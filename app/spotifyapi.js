@@ -8,23 +8,95 @@ await Promise.all(
       Array.from(files).map(async (file) => {
         const content = await file.text();
         
- // Handle Track Play History CSV
+ // Handle Apple Music CSV files
+        if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
+          return new Promise((resolve) => {
+            Papa.parse(content, {
+              header: true,
+              dynamicTyping: true,
+              skipEmptyLines: true,
+              complete: (results) => {
+                let transformedData = [];
+                
+                // Handle Play Activity CSV
+                if (file.name.includes('Play Activity')) {
+                  console.log('Sample row from Play Activity:', results.data[0]);
+                  transformedData = results.data
+                    .filter(row => row['Song Name'])
+                    .map(row => {
+                      // Log a few sample tracks for debugging
+                      if (row['Song Name'] === 'Levitating' || row['Song Name'] === 'Cold Heart') {
+                        console.log('Found track:', row['Song Name']);
+                        console.log('Row data:', row);
+                      }
+                      
+                      // Try multiple fields for artist name
+                      let artist = row['Container Artist Name'] || row['Artist Name'] || row['Container Name'];
+                      let trackName = row['Song Name'];
+                      
+                      // If still no artist, try to extract from Song Name
+                      if (!artist && trackName) {
+                        // Check for featuring artists first
+                        const featMatch = trackName.match(/(.*?)(?:\s*\(feat\.|[:]\s*)(.*?)\)/i);
+                        if (featMatch) {
+                          trackName = featMatch[1].trim();
+                        }
+                        
+                        // Try various separators
+                        const songParts = trackName.split(' - ');
+                        if (songParts.length > 1) {
+                          artist = songParts[0].trim();
+                          trackName = songParts[1].trim();
+                        } else {
+                          // Try "by" format
+                          const byMatch = trackName.match(/(.*) by (.*)/i);
+                          if (byMatch) {
+                            trackName = byMatch[1].trim();
+                            artist = byMatch[2].trim();
+                          }
+                        }
+                      }
+
+                      const entry = {
+                        master_metadata_track_name: trackName,
+                        ts: new Date(row['Event Start Timestamp'] || row['Event Timestamp']).toISOString(),
+                        ms_played: row['Play Duration Milliseconds'] || 0,
+                        master_metadata_album_artist_name: artist || 'Unknown Artist',
+                        master_metadata_album_album_name: row['Album Name'] || row['Container Album Name'] || 'Unknown Album'
+                      };
+
+                      // Log entries with Unknown Artist for debugging
+                      if (entry.master_metadata_album_artist_name === 'Unknown Artist') {
+                        console.log('Unknown Artist for track:', entry.master_metadata_track_name);
+                        console.log('Original row:', row);
+                      }
+
+                      return entry;
+                    });
+                }
+                // Handle Track Play History CSV
                 else if (file.name.includes('Track Play History')) {
-                  console.log('Processing Track Play History');
-                  console.log('First row sample:', results.data[0]);
+                  console.log('Starting Track Play History processing');
+                  console.log('First 3 rows:', results.data.slice(0, 3));
                   
                   transformedData = results.data
                     .filter(row => row['Track Name'])
                     .map(row => {
+                      console.log('Processing track:', row['Track Name']);
+                      
                       let artist = 'Unknown Artist';
                       let trackName = row['Track Name'];
                       
                       // Try to extract artist from track name
                       if (trackName) {
+                        // Log original track name
+                        console.log('Original track name:', trackName);
+                        
                         // First check for featuring artists
                         const featMatch = trackName.match(/(.*?)\s*(?:\(feat\.|feat\.|\(with|\(ft\.)(.*)\)/i);
                         if (featMatch) {
                           trackName = featMatch[1].trim();
+                          console.log('After removing features:', trackName);
                         }
                         
                         // Then look for artist separator
@@ -32,6 +104,9 @@ await Promise.all(
                         if (trackParts.length > 1) {
                           artist = trackParts[0].trim();
                           trackName = trackParts[1].trim();
+                          console.log('Split result - Artist:', artist, 'Track:', trackName);
+                        } else {
+                          console.log('No artist split found');
                         }
                       }
 
@@ -43,7 +118,10 @@ await Promise.all(
                         master_metadata_album_album_name: 'Unknown Album'
                       };
 
-                      console.log(`Processed track: "${trackName}" by "${artist}"`);
+                      if (artist === 'Unknown Artist') {
+                        console.log('WARNING: Unknown Artist for track:', trackName);
+                      }
+
                       return entry;
                     });
 
