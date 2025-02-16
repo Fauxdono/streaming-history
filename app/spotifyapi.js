@@ -3,7 +3,8 @@ import Papa from 'papaparse';
 
 export const spotifyApi = {
   async processFiles(files) {
-    const processedData = await Promise.all(
+let trackDataMap = new Map();
+await Promise.all(
       Array.from(files).map(async (file) => {
         const content = await file.text();
         
@@ -63,7 +64,29 @@ export const spotifyApi = {
                     });
                 }
 
-                resolve(transformedData);
+                      // Add transformed data to the map, merging with existing entries
+                transformedData.forEach(entry => {
+                  const key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
+                  if (trackDataMap.has(key)) {
+                    const existing = trackDataMap.get(key);
+                    trackDataMap.set(key, {
+                      ...existing,
+                      ...entry,
+                      // Keep non-unknown values
+                      master_metadata_album_album_name: 
+                        entry.master_metadata_album_album_name !== 'Unknown Album' 
+                          ? entry.master_metadata_album_album_name 
+                          : existing.master_metadata_album_album_name,
+                      master_metadata_album_artist_name:
+                        entry.master_metadata_album_artist_name !== 'Unknown Artist'
+                          ? entry.master_metadata_album_artist_name
+                          : existing.master_metadata_album_artist_name
+                    });
+                  } else {
+                    trackDataMap.set(key, entry);
+                  }
+                });
+                resolve([]);
               },
               error: (error) => {
                 console.error('Error parsing CSV:', error);
@@ -93,7 +116,8 @@ export const spotifyApi = {
     let totalListeningTime = 0;
     let allRawData = [];
 
-    processedData.forEach(jsonData => {
+const mergedData = Array.from(trackDataMap.values());
+[mergedData].forEach(jsonData => {
       if (!Array.isArray(jsonData)) return; // Skip if data is invalid
       
       allRawData = [...allRawData, ...jsonData];
