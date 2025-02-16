@@ -7,7 +7,7 @@ export const spotifyApi = {
       Array.from(files).map(async (file) => {
         const content = await file.text();
         
-        // Handle Apple Music CSV files
+// Handle Apple Music CSV files
         if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
           return new Promise((resolve) => {
             Papa.parse(content, {
@@ -15,21 +15,39 @@ export const spotifyApi = {
               dynamicTyping: true,
               skipEmptyLines: true,
               complete: (results) => {
-                // Transform Apple Music CSV data to match Spotify format
-                const transformedData = results.data.map(row => {
-                  // Extract artist from track name if possible
-                  const trackParts = row['Track Name'].split(' - ');
-                  const artist = trackParts[0] || 'Unknown Artist';
-                  const trackName = trackParts[1] || row['Track Name'];
+                let transformedData = [];
+                
+                // Handle Play Activity CSV
+                if (file.name.includes('Play Activity')) {
+                  transformedData = results.data
+                    .filter(row => row['Song Name'] && row['Play Duration Milliseconds'])
+                    .map(row => ({
+                      master_metadata_track_name: row['Song Name'],
+                      ts: new Date(row['Event Start Timestamp']).toISOString(),
+                      ms_played: row['Play Duration Milliseconds'] || 0,
+                      master_metadata_album_artist_name: row['Container Artist Name'] || 'Unknown Artist',
+                      master_metadata_album_album_name: row['Album Name'] || 'Unknown Album'
+                    }));
+                }
+                // Handle Track Play History CSV
+                else if (file.name.includes('Track Play History')) {
+                  transformedData = results.data
+                    .filter(row => row['Track Name'])
+                    .map(row => {
+                      const trackParts = row['Track Name'].split(' - ');
+                      const artist = trackParts.length > 1 ? trackParts[0] : 'Unknown Artist';
+                      const trackName = trackParts.length > 1 ? trackParts[1] : row['Track Name'];
 
-                  return {
-                    master_metadata_track_name: trackName,
-                    ts: new Date(row['Last Played Date']).toISOString(),
-                    ms_played: row['Is User Initiated'] ? 240000 : 30000, // Assume shorter play time for non-user initiated
-                    master_metadata_album_artist_name: artist,
-                    master_metadata_album_album_name: 'Unknown Album'
-                  };
-                });
+                      return {
+                        master_metadata_track_name: trackName,
+                        ts: new Date(row['Last Played Date']).toISOString(),
+                        ms_played: row['Is User Initiated'] ? 240000 : 30000,
+                        master_metadata_album_artist_name: artist,
+                        master_metadata_album_album_name: 'Unknown Album'
+                      };
+                    });
+                }
+
                 resolve(transformedData);
               },
               error: (error) => {
