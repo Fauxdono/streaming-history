@@ -34,9 +34,24 @@ export const spotifyApi = {
                   transformedData = results.data
                     .filter(row => row['Track Name'])
                     .map(row => {
-                      const trackParts = row['Track Name'].split(' - ');
-                      const artist = trackParts.length > 1 ? trackParts[0] : 'Unknown Artist';
-                      const trackName = trackParts.length > 1 ? trackParts[1] : row['Track Name'];
+                      // Try to extract artist and track name from Track Name
+                      let artist = 'Unknown Artist';
+                      let trackName = row['Track Name'];
+                      
+                      if (row['Track Name']) {
+                        const trackParts = row['Track Name'].split(' - ');
+                        if (trackParts.length > 1) {
+                          artist = trackParts[0].trim();
+                          trackName = trackParts[1].trim();
+                        } else {
+                          // Try other common separators
+                          const byMatch = row['Track Name'].match(/(.*) by (.*)/i);
+                          if (byMatch) {
+                            trackName = byMatch[1].trim();
+                            artist = byMatch[2].trim();
+                          }
+                        }
+                      }
 
                       return {
                         master_metadata_track_name: trackName,
