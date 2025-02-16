@@ -167,33 +167,37 @@ case 'podcasts':
 </div>
 {activeTab === 'upload' && (
   <>
-    <div className="p-4 border rounded bg-blue-50">
-      <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
-      <ol className="list-decimal list-inside space-y-1 text-blue-700">
+   <div className="p-4 border rounded bg-blue-50">
+  <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
+  <ol className="list-decimal list-inside space-y-1 text-blue-700">
+    <li>
+      Download your streaming history:
+      <ul className="list-disc list-inside ml-4 mt-1">
         <li>
-          Download your streaming history
-          {selectedService === 'spotify' && (
-            <a 
-              href="https://www.spotify.com/uk/account/privacy/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-1 text-blue-400 hover:text-blue-800 underline"
-            >
-              (Spotify Privacy Settings)
-            </a>
-          )}
+          Spotify: <a 
+            href="https://www.spotify.com/uk/account/privacy/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-800 underline"
+          >
+            Download from Privacy Settings
+          </a>
         </li>
-        <li>Select your streaming service below</li>
-        <li>Upload your JSON file(s)</li>
-      </ol>
-    </div>
+        <li>
+          Apple Music: Export CSV from your library
+        </li>
+      </ul>
+    </li>
+    <li>Upload your files (accepts both Spotify JSON and Apple Music CSV)</li>
+  </ol>
+</div>
     <div className="p-4 rounded bg-orange-100 border-2 border-orange-300">
       <div>
         <p className="mb-2 text-orange-700 font-bold">Upload your Spotify JSON files:</p>
         <input
           type="file"
           multiple
-          accept=".json"
+          accept=".json,.csv"
           onChange={(e) => {
             setIsProcessing(true);
             setTimeout(() => {
