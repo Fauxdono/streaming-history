@@ -3,12 +3,11 @@ import Papa from 'papaparse';
 
 export const spotifyApi = {
   async processFiles(files) {
-let trackDataMap = new Map();
-await Promise.all(
+    const processedData = await Promise.all(
       Array.from(files).map(async (file) => {
         const content = await file.text();
         
-// Handle Apple Music CSV files
+        // Handle Apple Music CSV files
         if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
           return new Promise((resolve) => {
             Papa.parse(content, {
@@ -16,154 +15,22 @@ await Promise.all(
               dynamicTyping: true,
               skipEmptyLines: true,
               complete: (results) => {
-                let transformedData = [];
-                
-                // Handle Play Activity CSV
-                if (file.name.includes('Play Activity')) {
-                  console.log('Sample row from Play Activity:', results.data[0]);
-                  transformedData = results.data
-                    .filter(row => row['Song Name'])
-                    .map(row => {
-                      // Log a few sample tracks for debugging
-                      if (row['Song Name'] === 'Levitating' || row['Song Name'] === 'Cold Heart') {
-                        console.log('Found track:', row['Song Name']);
-                        console.log('Row data:', row);
-                      }
-                      
-                      // Try multiple fields for artist name
-                      let artist = row['Container Artist Name'] || row['Artist Name'] || row['Container Name'];
-                      let trackName = row['Song Name'];
-                      
-                      // If still no artist, try to extract from Song Name
-                      if (!artist && trackName) {
-                        // Check for featuring artists first
-                        const featMatch = trackName.match(/(.*?)(?:\s*\(feat\.|[:]\s*)(.*?)\)/i);
-                        if (featMatch) {
-                          trackName = featMatch[1].trim();
-                        }
-                        
-                        // Try various separators
-                        const songParts = trackName.split(' - ');
-                        if (songParts.length > 1) {
-                          artist = songParts[0].trim();
-                          trackName = songParts[1].trim();
-                        } else {
-                          // Try "by" format
-                          const byMatch = trackName.match(/(.*) by (.*)/i);
-                          if (byMatch) {
-                            trackName = byMatch[1].trim();
-                            artist = byMatch[2].trim();
-                          }
-                        }
-                      }
+                // Transform Apple Music CSV data to match Spotify format
+                const transformedData = results.data.map(row => {
+                  // Extract artist from track name if possible
+                  const trackParts = row['Track Name'].split(' - ');
+                  const artist = trackParts[0] || 'Unknown Artist';
+                  const trackName = trackParts[1] || row['Track Name'];
 
-                      const entry = {
-                        master_metadata_track_name: trackName,
-                        ts: new Date(row['Event Start Timestamp'] || row['Event Timestamp']).toISOString(),
-                        ms_played: row['Play Duration Milliseconds'] || 0,
-                        master_metadata_album_artist_name: artist || 'Unknown Artist',
-                        master_metadata_album_album_name: row['Album Name'] || row['Container Album Name'] || 'Unknown Album'
-                      };
-
-                      // Log entries with Unknown Artist for debugging
-                      if (entry.master_metadata_album_artist_name === 'Unknown Artist') {
-                        console.log('Unknown Artist for track:', entry.master_metadata_track_name);
-                        console.log('Original row:', row);
-                      }
-
-                      return entry;
-                    });
-                }
-                // Handle Track Play History CSV
-                else if (file.name.includes('Track Play History')) {
-                  console.log('Starting Track Play History processing');
-                  console.log('First 3 rows:', results.data.slice(0, 3));
-                  
-                  transformedData = results.data
-                    .filter(row => row['Track Name'])
-                    .map(row => {
-                      console.log('Processing track:', row['Track Name']);
-                      
-                      let artist = 'Unknown Artist';
-                      let trackName = row['Track Name'];
-                      
-                      // Try to extract artist from track name
-                      if (trackName) {
-                        // Log original track name
-                        console.log('Original track name:', trackName);
-                        
-                        // First check for featuring artists
-                        const featMatch = trackName.match(/(.*?)\s*(?:\(feat\.|feat\.|\(with|\(ft\.)(.*)\)/i);
-                        if (featMatch) {
-                          trackName = featMatch[1].trim();
-                          console.log('After removing features:', trackName);
-                        }
-                        
-                        // Then look for artist separator
-                        const trackParts = trackName.split(' - ');
-                        if (trackParts.length > 1) {
-                          artist = trackParts[0].trim();
-                          trackName = trackParts[1].trim();
-                          console.log('Split result - Artist:', artist, 'Track:', trackName);
-                        } else {
-                          console.log('No artist split found');
-                        }
-                      }
-
-                      const entry = {
-                        master_metadata_track_name: trackName,
-                        ts: new Date(row['Last Played Date']).toISOString(),
-                        ms_played: row['Is User Initiated'] ? 240000 : 30000,
-                        master_metadata_album_artist_name: artist,
-                        master_metadata_album_album_name: 'Unknown Album'
-                      };
-
-                      if (artist === 'Unknown Artist') {
-                        console.log('WARNING: Unknown Artist for track:', trackName);
-                      }
-
-                      return entry;
-                    });
-
-                      const entry = {
-                        master_metadata_track_name: trackName,
-                        ts: new Date(row['Last Played Date']).toISOString(),
-                        ms_played: row['Is User Initiated'] ? 240000 : 30000,
-                        master_metadata_album_artist_name: artist,
-                        master_metadata_album_album_name: 'Unknown Album',
-                        source_file: 'track_history'
-                      };
-                      
-                      // Log successful parsing
-                      console.log(`Parsed track: "${trackName}" by "${artist}"`);
-                      
-                      return entry;
-                    });
-                }
-
-                // Add transformed data to the map, merging with existing entries
-                transformedData.forEach(entry => {
-                  const key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
-                  if (trackDataMap.has(key)) {
-                    const existing = trackDataMap.get(key);
-                    trackDataMap.set(key, {
-                      ...existing,
-                      ...entry,
-                      // Keep non-unknown values
-                      master_metadata_album_album_name: 
-                        entry.master_metadata_album_album_name !== 'Unknown Album' 
-                          ? entry.master_metadata_album_album_name 
-                          : existing.master_metadata_album_album_name,
-                      master_metadata_album_artist_name:
-                        entry.master_metadata_album_artist_name !== 'Unknown Artist'
-                          ? entry.master_metadata_album_artist_name
-                          : existing.master_metadata_album_artist_name
-                    });
-                  } else {
-                    trackDataMap.set(key, entry);
-                  }
+                  return {
+                    master_metadata_track_name: trackName,
+                    ts: new Date(row['Last Played Date']).toISOString(),
+                    ms_played: row['Is User Initiated'] ? 240000 : 30000, // Assume shorter play time for non-user initiated
+                    master_metadata_album_artist_name: artist,
+                    master_metadata_album_album_name: 'Unknown Album'
+                  };
                 });
-                resolve([]);
+                resolve(transformedData);
               },
               error: (error) => {
                 console.error('Error parsing CSV:', error);
@@ -171,7 +38,7 @@ await Promise.all(
               }
             });
           });
-}
+        }
         // Handle Spotify JSON files
         try {
           return JSON.parse(content);
@@ -193,8 +60,7 @@ await Promise.all(
     let totalListeningTime = 0;
     let allRawData = [];
 
-const mergedData = Array.from(trackDataMap.values());
-[mergedData].forEach(jsonData => {
+    processedData.forEach(jsonData => {
       if (!Array.isArray(jsonData)) return; // Skip if data is invalid
       
       allRawData = [...allRawData, ...jsonData];
