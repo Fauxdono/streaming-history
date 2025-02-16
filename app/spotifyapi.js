@@ -8,95 +8,44 @@ await Promise.all(
       Array.from(files).map(async (file) => {
         const content = await file.text();
         
-// Handle Apple Music CSV files
-        if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          return new Promise((resolve) => {
-            Papa.parse(content, {
-              header: true,
-              dynamicTyping: true,
-              skipEmptyLines: true,
-              complete: (results) => {
-                let transformedData = [];
-                
-                // Handle Play Activity CSV
-                if (file.name.includes('Play Activity')) {
-                  console.log('Sample row from Play Activity:', results.data[0]);
+ // Handle Track Play History CSV
+                else if (file.name.includes('Track Play History')) {
+                  console.log('Processing Track Play History');
+                  console.log('First row sample:', results.data[0]);
+                  
                   transformedData = results.data
-                    .filter(row => row['Song Name'])
+                    .filter(row => row['Track Name'])
                     .map(row => {
-                      // Log a few sample tracks for debugging
-                      if (row['Song Name'] === 'Levitating' || row['Song Name'] === 'Cold Heart') {
-                        console.log('Found track:', row['Song Name']);
-                        console.log('Row data:', row);
-                      }
+                      let artist = 'Unknown Artist';
+                      let trackName = row['Track Name'];
                       
-                      // Try multiple fields for artist name
-                      let artist = row['Container Artist Name'] || row['Artist Name'] || row['Container Name'];
-                      let trackName = row['Song Name'];
-                      
-                      // If still no artist, try to extract from Song Name
-                      if (!artist && trackName) {
-                        // Check for featuring artists first
-                        const featMatch = trackName.match(/(.*?)(?:\s*\(feat\.|[:]\s*)(.*?)\)/i);
+                      // Try to extract artist from track name
+                      if (trackName) {
+                        // First check for featuring artists
+                        const featMatch = trackName.match(/(.*?)\s*(?:\(feat\.|feat\.|\(with|\(ft\.)(.*)\)/i);
                         if (featMatch) {
                           trackName = featMatch[1].trim();
                         }
                         
-                        // Try various separators
-                        const songParts = trackName.split(' - ');
-                        if (songParts.length > 1) {
-                          artist = songParts[0].trim();
-                          trackName = songParts[1].trim();
-                        } else {
-                          // Try "by" format
-                          const byMatch = trackName.match(/(.*) by (.*)/i);
-                          if (byMatch) {
-                            trackName = byMatch[1].trim();
-                            artist = byMatch[2].trim();
-                          }
+                        // Then look for artist separator
+                        const trackParts = trackName.split(' - ');
+                        if (trackParts.length > 1) {
+                          artist = trackParts[0].trim();
+                          trackName = trackParts[1].trim();
                         }
                       }
 
                       const entry = {
                         master_metadata_track_name: trackName,
-                        ts: new Date(row['Event Start Timestamp'] || row['Event Timestamp']).toISOString(),
-                        ms_played: row['Play Duration Milliseconds'] || 0,
-                        master_metadata_album_artist_name: artist || 'Unknown Artist',
-                        master_metadata_album_album_name: row['Album Name'] || row['Container Album Name'] || 'Unknown Album'
+                        ts: new Date(row['Last Played Date']).toISOString(),
+                        ms_played: row['Is User Initiated'] ? 240000 : 30000,
+                        master_metadata_album_artist_name: artist,
+                        master_metadata_album_album_name: 'Unknown Album'
                       };
 
-                      // Log entries with Unknown Artist for debugging
-                      if (entry.master_metadata_album_artist_name === 'Unknown Artist') {
-                        console.log('Unknown Artist for track:', entry.master_metadata_track_name);
-                        console.log('Original row:', row);
-                      }
-
+                      console.log(`Processed track: "${trackName}" by "${artist}"`);
                       return entry;
                     });
-                }
-                // Handle Track Play History CSV
-                else if (file.name.includes('Track Play History')) {
-                  transformedData = results.data
-                    .filter(row => row['Track Name'])
-                    .map(row => {
-                      // Try to extract artist and track name from Track Name
-                      let artist = 'Unknown Artist';
-                      let trackName = row['Track Name'];
-                      
-                      if (row['Track Name']) {
-                        const trackParts = row['Track Name'].split(' - ');
-                        if (trackParts.length > 1) {
-                          artist = trackParts[0].trim();
-                          trackName = trackParts[1].trim();
-                        } else {
-                          // Try other common separators
-                          const byMatch = row['Track Name'].match(/(.*) by (.*)/i);
-                          if (byMatch) {
-                            trackName = byMatch[1].trim();
-                            artist = byMatch[2].trim();
-                          }
-                        }
-                      }
 
                       return {
                         master_metadata_track_name: trackName,
