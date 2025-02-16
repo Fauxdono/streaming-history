@@ -8,7 +8,7 @@ await Promise.all(
       Array.from(files).map(async (file) => {
         const content = await file.text();
         
- // Handle Apple Music CSV files
+// Handle Apple Music CSV files
         if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
           return new Promise((resolve) => {
             Papa.parse(content, {
@@ -125,13 +125,19 @@ await Promise.all(
                       return entry;
                     });
 
-                      return {
+                      const entry = {
                         master_metadata_track_name: trackName,
                         ts: new Date(row['Last Played Date']).toISOString(),
                         ms_played: row['Is User Initiated'] ? 240000 : 30000,
                         master_metadata_album_artist_name: artist,
-                        master_metadata_album_album_name: 'Unknown Album'
+                        master_metadata_album_album_name: 'Unknown Album',
+                        source_file: 'track_history'
                       };
+                      
+                      // Log successful parsing
+                      console.log(`Parsed track: "${trackName}" by "${artist}"`);
+                      
+                      return entry;
                     });
                 }
 
