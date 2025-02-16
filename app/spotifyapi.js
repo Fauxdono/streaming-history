@@ -20,15 +20,59 @@ await Promise.all(
                 
                 // Handle Play Activity CSV
                 if (file.name.includes('Play Activity')) {
+                  console.log('Sample row from Play Activity:', results.data[0]);
                   transformedData = results.data
-                    .filter(row => row['Song Name'] && row['Play Duration Milliseconds'])
-                    .map(row => ({
-                      master_metadata_track_name: row['Song Name'],
-                      ts: new Date(row['Event Start Timestamp']).toISOString(),
-                      ms_played: row['Play Duration Milliseconds'] || 0,
-                      master_metadata_album_artist_name: row['Container Artist Name'] || 'Unknown Artist',
-                      master_metadata_album_album_name: row['Album Name'] || 'Unknown Album'
-                    }));
+                    .filter(row => row['Song Name'])
+                    .map(row => {
+                      // Log a few sample tracks for debugging
+                      if (row['Song Name'] === 'Levitating' || row['Song Name'] === 'Cold Heart') {
+                        console.log('Found track:', row['Song Name']);
+                        console.log('Row data:', row);
+                      }
+                      
+                      // Try multiple fields for artist name
+                      let artist = row['Container Artist Name'] || row['Artist Name'] || row['Container Name'];
+                      let trackName = row['Song Name'];
+                      
+                      // If still no artist, try to extract from Song Name
+                      if (!artist && trackName) {
+                        // Check for featuring artists first
+                        const featMatch = trackName.match(/(.*?)(?:\s*\(feat\.|[:]\s*)(.*?)\)/i);
+                        if (featMatch) {
+                          trackName = featMatch[1].trim();
+                        }
+                        
+                        // Try various separators
+                        const songParts = trackName.split(' - ');
+                        if (songParts.length > 1) {
+                          artist = songParts[0].trim();
+                          trackName = songParts[1].trim();
+                        } else {
+                          // Try "by" format
+                          const byMatch = trackName.match(/(.*) by (.*)/i);
+                          if (byMatch) {
+                            trackName = byMatch[1].trim();
+                            artist = byMatch[2].trim();
+                          }
+                        }
+                      }
+
+                      const entry = {
+                        master_metadata_track_name: trackName,
+                        ts: new Date(row['Event Start Timestamp'] || row['Event Timestamp']).toISOString(),
+                        ms_played: row['Play Duration Milliseconds'] || 0,
+                        master_metadata_album_artist_name: artist || 'Unknown Artist',
+                        master_metadata_album_album_name: row['Album Name'] || row['Container Album Name'] || 'Unknown Album'
+                      };
+
+                      // Log entries with Unknown Artist for debugging
+                      if (entry.master_metadata_album_artist_name === 'Unknown Artist') {
+                        console.log('Unknown Artist for track:', entry.master_metadata_track_name);
+                        console.log('Original row:', row);
+                      }
+
+                      return entry;
+                    });
                 }
                 // Handle Track Play History CSV
                 else if (file.name.includes('Track Play History')) {
@@ -64,7 +108,7 @@ await Promise.all(
                     });
                 }
 
-                      // Add transformed data to the map, merging with existing entries
+                // Add transformed data to the map, merging with existing entries
                 transformedData.forEach(entry => {
                   const key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
                   if (trackDataMap.has(key)) {
@@ -94,7 +138,7 @@ await Promise.all(
               }
             });
           });
-        }
+}
         // Handle Spotify JSON files
         try {
           return JSON.parse(content);
