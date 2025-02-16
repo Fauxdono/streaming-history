@@ -1,140 +1,98 @@
 import _ from 'lodash';
-import Papa from 'papaparse';
 
 export const spotifyApi = {
-  async processFiles(files) {
-    const processedData = await Promise.all(
-      Array.from(files).map(async (file) => {
-        const content = await file.text();
-        
-        // Handle Apple Music CSV files
-        if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          return new Promise((resolve) => {
-            Papa.parse(content, {
-              header: true,
-              dynamicTyping: true,
-              skipEmptyLines: true,
-              complete: (results) => {
-                // Transform Apple Music CSV data to match Spotify format
-                const transformedData = results.data.map(row => {
-                  // Extract artist from track name if possible
-                  const trackParts = row['Track Name'].split(' - ');
-                  const artist = trackParts[0] || 'Unknown Artist';
-                  const trackName = trackParts[1] || row['Track Name'];
+ async processFiles(files) {
+   const processedData = await Promise.all(
+     Array.from(files).map(async (file) => {
+       const content = await file.text();
+       return JSON.parse(content);
+     })
+   );
 
-                  return {
-                    master_metadata_track_name: trackName,
-                    ts: new Date(row['Last Played Date']).toISOString(),
-                    ms_played: row['Is User Initiated'] ? 240000 : 30000, // Assume shorter play time for non-user initiated
-                    master_metadata_album_artist_name: artist,
-                    master_metadata_album_album_name: 'Unknown Album'
-                  };
-                });
-                resolve(transformedData);
-              },
-              error: (error) => {
-                console.error('Error parsing CSV:', error);
-                resolve([]); // Return empty array on error
-              }
-            });
-          });
-        }
-        // Handle Spotify JSON files
-        try {
-          return JSON.parse(content);
-        } catch (error) {
-          console.error('Error parsing JSON:', error);
-          return [];
-        }
-      })
-    );
+   const allSongs = [];
+   const artistStats = {};
+   const albumStats = {};
+   const songPlayHistory = {};
+   let totalEntries = 0;
+   let skippedEntries = 0;
+   let nullTrackNames = 0;
+   let shortPlays = 0;
+   let totalListeningTime = 0;
+   let allRawData = [];
 
-    const allSongs = [];
-    const artistStats = {};
-    const albumStats = {};
-    const songPlayHistory = {};
-    let totalEntries = 0;
-    let skippedEntries = 0;
-    let nullTrackNames = 0;
-    let shortPlays = 0;
-    let totalListeningTime = 0;
-    let allRawData = [];
+   processedData.forEach(jsonData => {
+     allRawData = [...allRawData, ...jsonData];
+     totalEntries += jsonData.length;
 
-    processedData.forEach(jsonData => {
-      if (!Array.isArray(jsonData)) return; // Skip if data is invalid
-      
-      allRawData = [...allRawData, ...jsonData];
-      totalEntries += jsonData.length;
+     jsonData.forEach(entry => {
+       const trackName = entry.master_metadata_track_name;
+       const artistName = entry.master_metadata_album_artist_name;
+       const albumName = entry.master_metadata_album_album_name;
+       const playTime = parseInt(entry.ms_played);
+       const timestamp = new Date(entry.ts);
 
-      jsonData.forEach(entry => {
-        const trackName = entry.master_metadata_track_name;
-        const artistName = entry.master_metadata_album_artist_name;
-        const albumName = entry.master_metadata_album_album_name;
-        const playTime = parseInt(entry.ms_played);
-        const timestamp = new Date(entry.ts);
+       if (!trackName) nullTrackNames++;
+       if (playTime < 30000) shortPlays++;
 
-        if (!trackName) nullTrackNames++;
-        if (playTime < 30000) shortPlays++;
+       if (trackName && playTime >= 30000) {
+         totalListeningTime += playTime;
+         
+         const key = `${trackName}-${artistName}`;
+         
+         if (!songPlayHistory[key]) {
+           songPlayHistory[key] = [];
+         }
+         songPlayHistory[key].push(timestamp.getTime());
 
-        if (trackName && playTime >= 30000) {
-          totalListeningTime += playTime;
-          
-          const key = `${trackName}-${artistName}`;
-          
-          if (!songPlayHistory[key]) {
-            songPlayHistory[key] = [];
-          }
-          songPlayHistory[key].push(timestamp.getTime());
+         if (artistName) {
+           if (!artistStats[artistName]) {
+             artistStats[artistName] = {
+               name: artistName,
+               totalPlayed: 0,
+               playCount: 0,
+               firstListen: timestamp.getTime()
+             };
+           }
+           artistStats[artistName].totalPlayed += playTime;
+           artistStats[artistName].playCount += 1;
+           artistStats[artistName].firstListen = Math.min(artistStats[artistName].firstListen, timestamp.getTime());
+         }
 
-          if (artistName) {
-            if (!artistStats[artistName]) {
-              artistStats[artistName] = {
-                name: artistName,
-                totalPlayed: 0,
-                playCount: 0,
-                firstListen: timestamp.getTime()
-              };
-            }
-            artistStats[artistName].totalPlayed += playTime;
-            artistStats[artistName].playCount += 1;
-            artistStats[artistName].firstListen = Math.min(artistStats[artistName].firstListen, timestamp.getTime());
-          }
+         if (albumName) {
+           const albumKey = `${albumName}-${artistName}`;
+           if (!albumStats[albumKey]) {
+             albumStats[albumKey] = {
+               name: albumName,
+               artist: artistName,
+               totalPlayed: 0,
+               playCount: 0,
+               trackCount: new Set(),
+               firstListen: timestamp.getTime()
+             };
+           }
+           albumStats[albumKey].totalPlayed += playTime;
+           albumStats[albumKey].playCount += 1;
+           albumStats[albumKey].trackCount.add(trackName);
+           albumStats[albumKey].firstListen = Math.min(albumStats[albumKey].firstListen, timestamp.getTime());
+         }
 
-          if (albumName) {
-            const albumKey = `${albumName}-${artistName}`;
-            if (!albumStats[albumKey]) {
-              albumStats[albumKey] = {
-                name: albumName,
-                artist: artistName,
-                totalPlayed: 0,
-                playCount: 0,
-                trackCount: new Set(),
-                firstListen: timestamp.getTime()
-              };
-            }
-            albumStats[albumKey].totalPlayed += playTime;
-            albumStats[albumKey].playCount += 1;
-            albumStats[albumKey].trackCount.add(trackName);
-            albumStats[albumKey].firstListen = Math.min(albumStats[albumKey].firstListen, timestamp.getTime());
-          }
-
-          const existing = allSongs.find(s => s.key === key);
-          if (existing) {
-            existing.totalPlayed += playTime;
-            existing.playCount += 1;
-          } else {
-            allSongs.push({
-              key,
-              trackName,
-              artist: artistName,
-              albumName,
-              totalPlayed: playTime,
-              playCount: 1
-            });
-          }
-        }
-      });
-    });
+         const existing = allSongs.find(s => s.key === key);
+         if (existing) {
+           existing.totalPlayed += playTime;
+           existing.playCount += 1;
+         } else {
+           allSongs.push({
+             key,
+             trackName,
+             artist: artistName,
+             albumName,
+             totalPlayed: playTime,
+             playCount: 1
+           });
+         }
+       }
+     });
+   });
 
    allSongs.forEach(song => {
      const lastPlayed = Math.max(...(songPlayHistory[song.key] || []));
