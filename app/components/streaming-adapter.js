@@ -225,7 +225,7 @@ function processEntries(data, serviceType = 'spotify') {
 }
 
 // Main processor that detects file type and uses appropriate adapter
-oplexport const streamingProcessor = {
+export const streamingProcessor = {
   async processFiles(files) {
     try {
       console.log('Starting to process files:', files.length);
