@@ -203,12 +203,12 @@ case 'podcasts':
             <p className="text-orange-700 mb-2">
               {STREAMING_SERVICES[selectedService].instructions}
             </p>
-            
+            <a
               href={STREAMING_SERVICES[selectedService].downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-orange-600 hover:text-orange-800 underline"
-            
+            >
               Download your data here
             </a>
           </div>
