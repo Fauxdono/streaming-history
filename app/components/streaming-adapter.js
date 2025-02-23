@@ -286,19 +286,29 @@ export const streamingProcessor = {
                 complete: (results) => {
                   // Transform Apple Music CSV data to match Spotify format
                   const transformedData = results.data.map(row => {
-                    const [artist, track] = (row['Song Name'] || '').split(' - ');
+                    // Handle multiple possible track name formats
+                    let trackName = row['Track Name'];
+                    let artistName = 'Unknown Artist';
+                    
+                    // Try to split artist and track if possible
+                    const trackParts = trackName ? trackName.split(' - ') : [];
+                    if (trackParts.length > 1) {
+                      artistName = trackParts[0];
+                      trackName = trackParts.slice(1).join(' - ');
+                    }
+
                     return {
-                      master_metadata_track_name: track || row['Song Name'],
-                      ts: new Date(row['Play Date']).toISOString(),
-                      ms_played: row['Play Duration Milliseconds'] || 30000,
-                      master_metadata_album_artist_name: artist || 'Unknown Artist',
-                      master_metadata_album_album_name: row['Album Name'] || 'Unknown Album'
+                      master_metadata_track_name: trackName,
+                      ts: new Date(row['Last Played Date']).toISOString(),
+                      ms_played: row['Is User Initiated'] ? 240000 : 30000, // Longer duration for user-initiated plays
+                      master_metadata_album_artist_name: artistName,
+                      master_metadata_album_album_name: 'Unknown Album'
                     };
-                  });
+                  }).filter(entry => entry.master_metadata_track_name); // Remove entries without track names
                   resolve(transformedData);
                 },
                 error: (error) => {
-                  console.error('Error parsing CSV:', error);
+                  console.error('Error parsing Apple Music CSV:', error);
                   resolve([]); // Return empty array on error
                 }
               });
