@@ -253,7 +253,6 @@ function processEntries(data, serviceType = 'spotify') {
   }
 }
 
-// Main processor that detects file type and uses appropriate adapter
 export const streamingProcessor = {
   async processFiles(files) {
     try {
@@ -297,17 +296,16 @@ export const streamingProcessor = {
       
       // Prepare final result
       const result = {
-stats: {
-  totalFiles: files.length,
-  totalEntries: allEntries.length,
-  processedSongs: allEntries.filter(e => !e.isPodcast).length,
-  nullTrackNames: allEntries.filter(e => !e.trackName).length,
-  skippedEntries: 0,
-  shortPlays: allEntries.filter(e => e.playedMs < 30000).length,
-  totalListeningTime: allEntries
-    .filter(e => e.playedMs >= 30000)  // Only count plays over 30 seconds
-    .reduce((total, e) => total + e.playedMs, 0)
-},
+        entries: allEntries,
+        stats: {
+          totalFiles: files.length,
+          totalEntries: allEntries.length,
+          processedSongs: allEntries.filter(e => !e.isPodcast).length,
+          nullTrackNames: allEntries.filter(e => !e.trackName).length,
+          skippedEntries: 0,
+          shortPlays: allEntries.filter(e => e.playedMs < 30000).length,
+          totalListeningTime: allEntries.reduce((total, e) => total + (e.playedMs || 0), 0)
+        },
         topArtists: _.orderBy(Object.values(combinedStats.artists), ['totalPlayed'], ['desc']),
         topAlbums: _.orderBy(
           Object.values(combinedStats.albums).map(album => ({
@@ -338,7 +336,6 @@ stats: {
     }
   }
 };
-
 function processSongsByYear(entries, playHistory) {
   const songsByYear = {};
   
