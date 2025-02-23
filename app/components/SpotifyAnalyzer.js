@@ -65,12 +65,11 @@ const filteredArtists = useMemo(() => {
     .slice(0, 10);
 }, [topAlbums, artistSearch, selectedArtists]);
 const processFiles = useCallback(async (fileList) => {
-  // Set loading state and wait for next render cycle
   setIsProcessing(true);
   await new Promise(resolve => setTimeout(resolve, 0));
   
   try {
-    const results = await spotifyApi.processFiles(fileList);
+    const results = await streamingProcessor.processFiles(fileList);  // Use the new processor
     console.log('Total Artists:', results.topArtists.length);
     setStats(results.stats);
     setTopArtists(results.topArtists);
