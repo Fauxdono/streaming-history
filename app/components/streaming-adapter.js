@@ -31,6 +31,7 @@ export const STREAMING_SERVICES = {
   }
 };
 
+
 // Service-specific adapters
 const adapters = {
   [STREAMING_TYPES.SPOTIFY]: {
@@ -40,7 +41,8 @@ const adapters = {
     parse: async (content) => {
       try {
         const data = JSON.parse(content);
-        const processed = processEntries(data);
+        console.log('Raw Spotify data first entry:', data[0]);  // Log first entry
+        const processed = processEntries(data, 'spotify');  // Explicitly pass 'spotify'
         return processed;
       } catch (error) {
         console.error('Error parsing Spotify data:', error);
@@ -179,32 +181,19 @@ function calculatePlayStats(entries) {
 }
 
 function processEntries(data, serviceType = 'spotify') {
-  // Add debug logging
-  console.log('Processing entries:', {
-    serviceType,
-    sampleData: data[0],
-    totalEntries: data.length
-  });
-
   switch (serviceType) {
     case 'spotify':
-      return data.map(entry => {
-        // Add debug logging for first entry
-        if (data.indexOf(entry) === 0) {
-          console.log('Processing Spotify entry:', entry);
-        }
-        return {
-          trackName: entry.master_metadata_track_name || entry.track_name || 'Unknown Track',
-          artistName: entry.master_metadata_album_artist_name || entry.artist_name || 'Unknown Artist',
-          albumName: entry.master_metadata_album_album_name || entry.album_name || 'Unknown Album',
-          playedAt: entry.ts || entry.played_at || new Date().toISOString(),
-          playedMs: parseInt(entry.ms_played || entry.duration_ms || '0'),
-          durationMs: parseInt(entry.duration_ms || '0'),
-          isPodcast: Boolean(entry.episode_show_name),
-          podcastName: entry.episode_show_name || null,
-          podcastEpisode: entry.episode_name || null
-        };
-      });
+      return data.map(entry => ({
+        trackName: entry.master_metadata_track_name,
+        artistName: entry.master_metadata_album_artist_name,
+        albumName: entry.master_metadata_album_album_name,
+        playedAt: entry.ts,
+        playedMs: parseInt(entry.ms_played),
+        durationMs: entry.duration_ms || null,
+        isPodcast: Boolean(entry.episode_show_name),
+        podcastName: entry.episode_show_name,
+        podcastEpisode: entry.episode_name
+      }));
 
     case 'apple':
       return data.map(row => {
@@ -236,7 +225,7 @@ function processEntries(data, serviceType = 'spotify') {
 }
 
 // Main processor that detects file type and uses appropriate adapter
-export const streamingProcessor = {
+oplexport const streamingProcessor = {
   async processFiles(files) {
     try {
       console.log('Starting to process files:', files.length);
