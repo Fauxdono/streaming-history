@@ -36,8 +36,9 @@ export const STREAMING_SERVICES = {
 const adapters = {
 [STREAMING_TYPES.SPOTIFY]: {
     canHandle: (file) => {
-      console.log("Checking file:", file.name); // Debug log
-      const canHandle = file.name.toLowerCase().includes('spotify') && file.name.endsWith('.json');
+      console.log("Checking file:", file.name);
+      // Changed to check for "Streaming_History" instead of "spotify"
+      const canHandle = file.name.includes('Streaming_History') && file.name.endsWith('.json');
       console.log("Can handle?", canHandle);
       return canHandle;
     },
