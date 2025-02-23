@@ -195,7 +195,7 @@ case 'podcasts':
       </div>
 
       {selectedService && (
-        <>
+        <div>
           <div className="mb-4">
             <h4 className="font-bold text-orange-700 mb-2">
               {STREAMING_SERVICES[selectedService].name} Instructions:
@@ -214,7 +214,9 @@ case 'podcasts':
           </div>
 
           <div>
-            <p className="mb-2 text-orange-700 font-bold">Upload your {STREAMING_SERVICES[selectedService].name} files:</p>
+            <p className="mb-2 text-orange-700 font-bold">
+              Upload your {STREAMING_SERVICES[selectedService].name} files:
+            </p>
             <input
               type="file"
               multiple
@@ -232,7 +234,7 @@ case 'podcasts':
                 file:text-yellow-800 hover:file:bg-yellow-400"
             />
           </div>
-        </>
+        </div>
       )}
 
       {isProcessing && (
