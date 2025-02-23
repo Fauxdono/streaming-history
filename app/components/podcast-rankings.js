@@ -44,60 +44,58 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
   }, [allShows, showSearch, selectedShows]);
 
   const filteredEpisodes = useMemo(() => {
-    if (!rawPlayData?.length) return [];
-    
-    const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
-    const end = endDate ? endOfDay(new Date(endDate)) : new Date();
-    
-    const episodeStats = {};
-    
-    // First pass: collect total duration of each episode
-    rawPlayData.forEach(entry => {
-      const timestamp = new Date(entry.ts);
-      if (
-        timestamp >= start && 
-        timestamp <= end && 
-        entry.episode_show_name &&
-        entry.episode_name &&
-        (selectedShows.length === 0 || selectedShows.includes(entry.episode_show_name))
-      ) {
-        const key = `${entry.episode_name}-${entry.episode_show_name}`;
-        if (!episodeStats[key]) {
-          episodeStats[key] = {
-            key,
-            episodeName: entry.episode_name,
-            showName: entry.episode_show_name,
-            totalPlayed: 0,
-            segmentCount: 0,          // Number of segments > 5 minutes
-            playSegments: [],         // Store all play segments
-            durationMs: entry.duration_ms || 0  // Total episode duration if available
-          };
-        }
-        
-        // Track each play segment
-        if (entry.ms_played >= 300000) { // 5 minutes
-          episodeStats[key].segmentCount++;
-          episodeStats[key].playSegments.push({
-            timestamp: new Date(entry.ts),
-            duration: entry.ms_played
-          });
-        }
-        
-        episodeStats[key].totalPlayed += entry.ms_played;
+  if (!rawPlayData?.length) return [];
+  
+  const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
+  const end = endDate ? endOfDay(new Date(endDate)) : new Date();
+  
+  const episodeStats = {};
+  
+  rawPlayData.forEach(entry => {
+    const timestamp = new Date(entry.playedAt);
+    if (
+      timestamp >= start && 
+      timestamp <= end && 
+      entry.isPodcast &&
+      entry.podcastName &&
+      entry.podcastEpisode &&
+      (selectedShows.length === 0 || selectedShows.includes(entry.podcastName))
+    ) {
+      const key = `${entry.podcastEpisode}-${entry.podcastName}`;
+      if (!episodeStats[key]) {
+        episodeStats[key] = {
+          key,
+          episodeName: entry.podcastEpisode,
+          showName: entry.podcastName,
+          totalPlayed: 0,
+          segmentCount: 0,
+          playSegments: [],
+          durationMs: entry.durationMs || 0
+        };
       }
-    });
+      
+      if (entry.playedMs >= 300000) { // 5 minutes
+        episodeStats[key].segmentCount++;
+        episodeStats[key].playSegments.push({
+          timestamp: new Date(entry.playedAt),
+          duration: entry.playedMs
+        });
+      }
+      
+      episodeStats[key].totalPlayed += entry.playedMs;
+    }
+  });
 
-    // Convert to array and calculate percentages
-    return Object.values(episodeStats)
-      .map(episode => ({
-        ...episode,
-        percentageListened: episode.durationMs ? 
-          Math.round((episode.totalPlayed / episode.durationMs) * 100) : null,
-        averageSegmentLength: Math.round(episode.totalPlayed / episode.segmentCount)
-      }))
-      .sort((a, b) => b[sortBy] - a[sortBy])
-      .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows]);
+  return Object.values(episodeStats)
+    .map(episode => ({
+      ...episode,
+      percentageListened: episode.durationMs ? 
+        Math.round((episode.totalPlayed / episode.durationMs) * 100) : null,
+      averageSegmentLength: Math.round(episode.totalPlayed / episode.segmentCount)
+    }))
+    .sort((a, b) => b[sortBy] - a[sortBy])
+    .slice(0, topN);
+}, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows]);
 
   const setQuickRange = (days) => {
     const currentStart = startDate ? new Date(startDate) : new Date();
