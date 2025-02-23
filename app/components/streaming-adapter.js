@@ -179,19 +179,32 @@ function calculatePlayStats(entries) {
 }
 
 function processEntries(data, serviceType = 'spotify') {
+  // Add debug logging
+  console.log('Processing entries:', {
+    serviceType,
+    sampleData: data[0],
+    totalEntries: data.length
+  });
+
   switch (serviceType) {
     case 'spotify':
-      return data.map(entry => ({
-        trackName: entry.master_metadata_track_name,
-        artistName: entry.master_metadata_album_artist_name,
-        albumName: entry.master_metadata_album_album_name,
-        playedAt: entry.ts,
-        playedMs: parseInt(entry.ms_played),
-        durationMs: entry.duration_ms,
-        isPodcast: !!entry.episode_show_name,
-        podcastName: entry.episode_show_name,
-        podcastEpisode: entry.episode_name
-      }));
+      return data.map(entry => {
+        // Add debug logging for first entry
+        if (data.indexOf(entry) === 0) {
+          console.log('Processing Spotify entry:', entry);
+        }
+        return {
+          trackName: entry.master_metadata_track_name || entry.track_name || 'Unknown Track',
+          artistName: entry.master_metadata_album_artist_name || entry.artist_name || 'Unknown Artist',
+          albumName: entry.master_metadata_album_album_name || entry.album_name || 'Unknown Album',
+          playedAt: entry.ts || entry.played_at || new Date().toISOString(),
+          playedMs: parseInt(entry.ms_played || entry.duration_ms || '0'),
+          durationMs: parseInt(entry.duration_ms || '0'),
+          isPodcast: Boolean(entry.episode_show_name),
+          podcastName: entry.episode_show_name || null,
+          podcastEpisode: entry.episode_name || null
+        };
+      });
 
     case 'apple':
       return data.map(row => {
@@ -226,36 +239,46 @@ function processEntries(data, serviceType = 'spotify') {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
+      console.log('Starting to process files:', files.length);
+      
       const processedEntries = await Promise.all(
         Array.from(files).map(async (file) => {
+          console.log('Processing file:', file.name);
           const content = await file.text();
           
           // Find appropriate adapter
           const adapter = Object.values(adapters).find(a => a.canHandle(file));
           if (!adapter) {
             console.warn(`No adapter found for file: ${file.name}`);
-            return [];
+            return { entries: [], stats: null };
           }
 
           try {
             const entries = await adapter.parse(content, file);
+            console.log(`Processed ${entries.length} entries from ${file.name}`);
+            
+            // Calculate stats for this file
             const stats = calculatePlayStats(entries);
-            return {
-              entries,
-              stats
-            };
+            return { entries, stats };
           } catch (error) {
             console.error(`Error processing file ${file.name}:`, error);
-            return [];
+            return { entries: [], stats: null };
           }
         })
       );
 
+      // Log processing results
+      console.log('Processed all files:', processedEntries.map(p => p.entries.length));
+
       // Combine all processed entries
       const allEntries = processedEntries.flatMap(result => result.entries || []);
-      const combinedStats = calculatePlayStats(allEntries);
+      console.log('Total combined entries:', allEntries.length);
 
-      return {
+      // Calculate combined stats
+      const combinedStats = calculatePlayStats(allEntries);
+      
+      // Prepare final result
+      const result = {
         entries: allEntries,
         stats: {
           totalFiles: files.length,
@@ -264,7 +287,7 @@ export const streamingProcessor = {
           nullTrackNames: allEntries.filter(e => !e.trackName).length,
           skippedEntries: 0,
           shortPlays: allEntries.filter(e => e.playedMs < 30000).length,
-          totalListeningTime: allEntries.reduce((total, e) => total + e.playedMs, 0)
+          totalListeningTime: allEntries.reduce((total, e) => total + (e.playedMs || 0), 0)
         },
         topArtists: _.orderBy(Object.values(combinedStats.artists), ['totalPlayed'], ['desc']),
         topAlbums: _.orderBy(
@@ -280,6 +303,16 @@ export const streamingProcessor = {
         briefObsessions: calculateBriefObsessions(combinedStats.songs, combinedStats.playHistory),
         rawPlayData: allEntries
       };
+
+      console.log('Final processing results:', {
+        totalFiles: result.stats.totalFiles,
+        totalEntries: result.stats.totalEntries,
+        topArtists: result.topArtists.length,
+        topAlbums: result.topAlbums.length,
+        processedTracks: result.processedTracks.length
+      });
+
+      return result;
     } catch (error) {
       console.error('Error in streamingProcessor:', error);
       throw error;
