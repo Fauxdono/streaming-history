@@ -165,7 +165,7 @@ case 'podcasts':
   {processedData.length > 0 && <TabButton id="custom" label="Custom Date Range" />}
 {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
 </div>
-
+</div>
 {activeTab === 'upload' && (
   <>
     <div className="p-4 border rounded bg-blue-50">
@@ -234,7 +234,7 @@ case 'podcasts':
                 file:text-yellow-800 hover:file:bg-yellow-400"
             />
           </div>
-        </div>
+     
       )}
 
       {isProcessing && (
