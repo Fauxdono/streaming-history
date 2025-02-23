@@ -34,22 +34,35 @@ export const STREAMING_SERVICES = {
 
 // Service-specific adapters
 const adapters = {
-  [STREAMING_TYPES.SPOTIFY]: {
+[STREAMING_TYPES.SPOTIFY]: {
     canHandle: (file) => {
-      return file.name.toLowerCase().includes('spotify') && file.name.endsWith('.json');
+      console.log("Checking file:", file.name); // Debug log
+      const canHandle = file.name.toLowerCase().includes('spotify') && file.name.endsWith('.json');
+      console.log("Can handle?", canHandle);
+      return canHandle;
     },
     parse: async (content) => {
       try {
+        console.log("Parsing content first 100 chars:", content.substring(0, 100)); // Debug log
         const data = JSON.parse(content);
-        console.log('Raw Spotify data first entry:', data[0]);  // Log first entry
-        const processed = processEntries(data, 'spotify');  // Explicitly pass 'spotify'
+        console.log("Parsed data length:", data.length); // Debug log
+        console.log("First entry sample:", data[0]); // Debug log
+        
+        // Check if we have the expected Spotify data structure
+        if (!data[0]?.master_metadata_track_name && !data[0]?.ms_played) {
+          console.error("Unexpected data structure:", data[0]);
+          return [];
+        }
+
+        const processed = processEntries(data, 'spotify');
+        console.log("Processed entries length:", processed.length); // Debug log
         return processed;
       } catch (error) {
         console.error('Error parsing Spotify data:', error);
         return [];
       }
     }
-  },
+},
 
   [STREAMING_TYPES.APPLE_MUSIC]: {
     canHandle: (file) => {
@@ -181,19 +194,35 @@ function calculatePlayStats(entries) {
 }
 
 function processEntries(data, serviceType = 'spotify') {
+  console.log("Processing entries for service:", serviceType); // Debug log
+  
   switch (serviceType) {
     case 'spotify':
-      return data.map(entry => ({
-        trackName: entry.master_metadata_track_name,
-        artistName: entry.master_metadata_album_artist_name,
-        albumName: entry.master_metadata_album_album_name,
-        playedAt: entry.ts,
-        playedMs: parseInt(entry.ms_played),
-        durationMs: entry.duration_ms || null,
-        isPodcast: Boolean(entry.episode_show_name),
-        podcastName: entry.episode_show_name,
-        podcastEpisode: entry.episode_name
-      }));
+      return data.map(entry => {
+        // Debug log for first entry
+        if (data.indexOf(entry) === 0) {
+          console.log("Processing entry:", entry);
+        }
+        
+        const processed = {
+          trackName: entry.master_metadata_track_name,
+          artistName: entry.master_metadata_album_artist_name,
+          albumName: entry.master_metadata_album_album_name,
+          playedAt: entry.ts,
+          playedMs: parseInt(entry.ms_played),
+          durationMs: entry.duration_ms,
+          isPodcast: Boolean(entry.episode_show_name),
+          podcastName: entry.episode_show_name,
+          podcastEpisode: entry.episode_name
+        };
+        
+        // Debug log for first processed entry
+        if (data.indexOf(entry) === 0) {
+          console.log("Processed entry:", processed);
+        }
+        
+        return processed;
+      });
 
     case 'apple':
       return data.map(row => {
