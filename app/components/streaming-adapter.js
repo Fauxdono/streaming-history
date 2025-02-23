@@ -392,19 +392,28 @@ const adapters = {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
+      console.log('Starting to process files:', files.length);
+      
+      // Log file details
+      Array.from(files).forEach(file => {
+        console.log(`File: ${file.name}, Type: ${file.type}`);
+      });
+
       const processedData = await Promise.all(
         Array.from(files).map(async (file) => {
+          console.log(`Processing file: ${file.name}`);
           const content = await file.text();
           
           // Find appropriate adapter
           const adapter = Object.values(adapters).find(a => a.canHandle(file));
           if (!adapter) {
             console.warn(`No adapter found for file: ${file.name}`);
-            return { entries: [], stats: null };
+            return { entries: [], fileName: file.name };
           }
 
           try {
             const entries = await adapter.parse(content, file);
+            console.log(`Processed ${entries.length} entries from ${file.name}`);
             return { entries, fileName: file.name };
           } catch (error) {
             console.error(`Error processing file ${file.name}:`, error);
@@ -415,9 +424,52 @@ export const streamingProcessor = {
 
       // Combine all entries from different sources
       const allSongs = processedData.flatMap(result => result.entries);
+      console.log('Total entries across all files:', allSongs.length);
+
+      // Log entries from each file type
+      processedData.forEach(data => {
+        console.log(`File ${data.fileName}: ${data.entries.length} entries`);
+      });
+
+      // Unique identification of songs
+      const uniqueSongKey = (song) => 
+        `${song.master_metadata_track_name || ''}-${song.master_metadata_album_artist_name || ''}`;
+
+      // Merge play data for songs with the same key
+      const mergedSongs = [];
+      const songPlayMap = new Map();
+
+      allSongs.forEach(song => {
+        const key = uniqueSongKey(song);
+        
+        if (!songPlayMap.has(key)) {
+          // First occurrence of this song
+          songPlayMap.set(key, {
+            ...song,
+            key,
+            totalPlayed: song.ms_played,
+            playCount: 1,
+            firstPlayed: new Date(song.ts)
+          });
+        } else {
+          // Merge existing song data
+          const existingSong = songPlayMap.get(key);
+          existingSong.totalPlayed += song.ms_played;
+          existingSong.playCount++;
+          existingSong.firstPlayed = new Date(
+            Math.min(
+              existingSong.firstPlayed.getTime(), 
+              new Date(song.ts).getTime()
+            )
+          );
+        }
+      });
+
+      // Convert map to array
+      const mergedEntries = Array.from(songPlayMap.values());
 
       // Calculate comprehensive stats
-      const stats = calculatePlayStats(allSongs);
+      const stats = calculatePlayStats(mergedEntries);
 
       // Prepare top artists with additional info
       let sortedArtists = Object.values(stats.artists).map(artist => {
@@ -456,24 +508,25 @@ export const streamingProcessor = {
 
       return {
         stats: {
-          totalFiles: files.length,
+          totalFiles: processedData.length,
           totalEntries: allSongs.length,
           processedSongs: stats.processedSongs,
           nullTrackNames: allSongs.filter(e => !e.master_metadata_track_name).length,
           skippedEntries: 0,
           shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime
+          totalListeningTime: stats.totalListeningTime,
+          fileNames: processedData.map(result => result.fileName)
         },
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
         processedTracks: sortedSongs,
         songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
         briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
-        rawPlayData: allSongs
+        rawPlayData: mergedEntries
       };
     } catch (error) {
       console.error('Error processing files:', error);
       throw error;
     }
   }
-};
+};export const streamingProcessor = {
