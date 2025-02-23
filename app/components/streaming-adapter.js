@@ -15,21 +15,81 @@ export const STREAMING_SERVICES = {
     name: 'Spotify',
     downloadUrl: 'https://www.spotify.com/account/privacy/',
     instructions: 'Request your "Extended streaming history" and wait for the email (can take up to 5 days)',
-    acceptedFormats: '.json'
+    acceptedFormats: '.json',
+    fileNamePattern: 'Streaming_History'
   },
   [STREAMING_TYPES.APPLE_MUSIC]: {
     name: 'Apple Music',
     downloadUrl: 'https://privacy.apple.com/',
-    instructions: 'Request a copy of your data and select "Apple Music Activity"',
-    acceptedFormats: '.csv'
+    instructions: 'Request a copy of your data and select "Apple Music Activity". Look for a CSV file with track play history.',
+    acceptedFormats: '.csv',
+    fileNamePattern: 'Track Play History'
   },
   [STREAMING_TYPES.YOUTUBE_MUSIC]: {
     name: 'YouTube Music',
     downloadUrl: 'https://takeout.google.com/',
     instructions: 'Select YouTube and YouTube Music data in Google Takeout',
-    acceptedFormats: '.json,.csv'
+    acceptedFormats: '.json,.csv',
+    fileNamePattern: 'YouTube'
   }
 };
+
+function processEntries(data, serviceType = 'spotify') {
+  switch (serviceType) {
+    case 'spotify':
+      return data.map(entry => {
+        return {
+          master_metadata_track_name: entry.master_metadata_track_name,
+          master_metadata_album_artist_name: entry.master_metadata_album_artist_name,
+          master_metadata_album_album_name: entry.master_metadata_album_album_name,
+          ts: entry.ts,
+          ms_played: parseInt(entry.ms_played),
+          durationMs: entry.duration_ms,
+          isPodcast: Boolean(entry.episode_show_name),
+          podcastName: entry.episode_show_name,
+          podcastEpisode: entry.episode_name
+        };
+      });
+
+    case 'apple':
+      return data.map(row => {
+        // Handle track name and artist extraction
+        let trackName = row['Track Name'];
+        let artistName = 'Unknown Artist';
+        
+        // Try to split artist and track if possible
+        const trackParts = trackName ? trackName.split(' - ') : [];
+        if (trackParts.length > 1) {
+          artistName = trackParts[0];
+          trackName = trackParts.slice(1).join(' - ');
+        }
+
+        return {
+          master_metadata_track_name: trackName,
+          master_metadata_album_artist_name: artistName,
+          master_metadata_album_album_name: 'Unknown Album',
+          ts: new Date(row['Last Played Date']).toISOString(),
+          ms_played: row['Is User Initiated'] ? 240000 : 30000,
+          durationMs: null,
+          isPodcast: false
+        };
+      });
+
+    case 'youtube':
+      return data.map(row => ({
+        master_metadata_track_name: row['Title'] || row['Video Title'],
+        master_metadata_album_artist_name: row['Artist'] || row['Channel Name'],
+        master_metadata_album_album_name: row['Album'] || 'YouTube Music',
+        ts: new Date(row['Time'] || row['Watched Time']).toISOString(),
+        ms_played: row['Duration Ms'] || 240000,
+        durationMs: null,
+        isPodcast: false
+      }));
+
+    default:
+      return data;
+  }
+}
 
 function calculatePlayStats(entries) {
   const allSongs = [];
@@ -259,6 +319,76 @@ function calculateSongsByYear(songs, songPlayHistory) {
   return songsByYear;
 }
 
+// Service-specific adapters
+const adapters = {
+  [STREAMING_TYPES.SPOTIFY]: {
+    canHandle: (file) => 
+      file.name.includes('Streaming_History') && file.name.endsWith('.json'),
+    parse: async (content) => {
+      try {
+        const data = JSON.parse(content);
+        return processEntries(data, 'spotify');
+      } catch (error) {
+        console.error('Error parsing Spotify data:', error);
+        return [];
+      }
+    }
+  },
+
+  [STREAMING_TYPES.APPLE_MUSIC]: {
+    canHandle: (file) => 
+      (file.name.toLowerCase().includes('apple') || 
+       file.name.includes('Track Play History')) && 
+      file.name.endsWith('.csv'),
+    parse: async (content) => {
+      return new Promise((resolve) => {
+        Papa.parse(content, {
+          header: true,
+          dynamicTyping: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            const processed = processEntries(results.data, 'apple');
+            resolve(processed);
+          },
+          error: (error) => {
+            console.error('Error parsing Apple Music data:', error);
+            resolve([]);
+          }
+        });
+      });
+    }
+  },
+
+  [STREAMING_TYPES.YOUTUBE_MUSIC]: {
+    canHandle: (file) => 
+      file.name.toLowerCase().includes('youtube') && 
+      (file.name.endsWith('.json') || file.name.endsWith('.csv')),
+    parse: async (content, file) => {
+      try {
+        if (file.name.endsWith('.csv')) {
+          return new Promise((resolve) => {
+            Papa.parse(content, {
+              header: true,
+              dynamicTyping: true,
+              skipEmptyLines: true,
+              complete: (results) => {
+                const processed = processEntries(results.data, 'youtube');
+                resolve(processed);
+              }
+            });
+          });
+        } else {
+          const data = JSON.parse(content);
+          return processEntries(data, 'youtube');
+        }
+      } catch (error) {
+        console.error('Error parsing YouTube Music data:', error);
+        return [];
+      }
+    }
+  }
+};
+
 export const streamingProcessor = {
   async processFiles(files) {
     try {
@@ -266,61 +396,25 @@ export const streamingProcessor = {
         Array.from(files).map(async (file) => {
           const content = await file.text();
           
-          // Spotify JSON files
-          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-            try {
-              return JSON.parse(content);
-            } catch (error) {
-              console.error('Error parsing JSON:', error);
-              return [];
-            }
+          // Find appropriate adapter
+          const adapter = Object.values(adapters).find(a => a.canHandle(file));
+          if (!adapter) {
+            console.warn(`No adapter found for file: ${file.name}`);
+            return { entries: [], stats: null };
           }
-          
-          // Apple Music CSV
-          if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-            return new Promise((resolve) => {
-              Papa.parse(content, {
-                header: true,
-                dynamicTyping: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                  // Transform Apple Music CSV data to match Spotify format
-                  const transformedData = results.data.map(row => {
-                    // Handle multiple possible track name formats
-                    let trackName = row['Track Name'];
-                    let artistName = 'Unknown Artist';
-                    
-                    // Try to split artist and track if possible
-                    const trackParts = trackName ? trackName.split(' - ') : [];
-                    if (trackParts.length > 1) {
-                      artistName = trackParts[0];
-                      trackName = trackParts.slice(1).join(' - ');
-                    }
 
-                    return {
-                      master_metadata_track_name: trackName,
-                      ts: new Date(row['Last Played Date']).toISOString(),
-                      ms_played: row['Is User Initiated'] ? 240000 : 30000, // Longer duration for user-initiated plays
-                      master_metadata_album_artist_name: artistName,
-                      master_metadata_album_album_name: 'Unknown Album'
-                    };
-                  }).filter(entry => entry.master_metadata_track_name); // Remove entries without track names
-                  resolve(transformedData);
-                },
-                error: (error) => {
-                  console.error('Error parsing Apple Music CSV:', error);
-                  resolve([]); // Return empty array on error
-                }
-              });
-            });
+          try {
+            const entries = await adapter.parse(content, file);
+            return { entries, fileName: file.name };
+          } catch (error) {
+            console.error(`Error processing file ${file.name}:`, error);
+            return { entries: [], fileName: file.name };
           }
-          
-          return []; // No matching file type
         })
       );
 
-      // Flatten and combine all entries
-      const allSongs = processedData.flat();
+      // Combine all entries from different sources
+      const allSongs = processedData.flatMap(result => result.entries);
 
       // Calculate comprehensive stats
       const stats = calculatePlayStats(allSongs);
