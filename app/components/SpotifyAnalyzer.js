@@ -1,12 +1,13 @@
 
 "use client";
 import React, { useState, useCallback, useMemo } from 'react';
-import { spotifyApi } from '../spotifyapi.js';
+import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES } from './streaming-adapter.js';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import ExportButton from './ExportButton.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import PodcastRankings from './podcast-rankings.js';
+import _ from 'lodash';
 
 
 
@@ -167,46 +168,72 @@ case 'podcasts':
 </div>
 {activeTab === 'upload' && (
   <>
-   <div className="p-4 border rounded bg-blue-50">
-  <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
-  <ol className="list-decimal list-inside space-y-1 text-blue-700">
-    <li>
-      Download your streaming history:
-      <ul className="list-disc list-inside ml-4 mt-1">
-        <li>
-          Spotify: <a 
-            href="https://www.spotify.com/uk/account/privacy/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-800 underline"
-          >
-            Download from Privacy Settings
-          </a>
-        </li>
-        <li>
-          Apple Music: Export CSV from your library
-        </li>
-      </ul>
-    </li>
-    <li>Upload your files (accepts both Spotify JSON and Apple Music CSV)</li>
-  </ol>
-</div>
+    <div className="p-4 border rounded bg-blue-50">
+      <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
+      <ol className="list-decimal list-inside space-y-1 text-blue-700">
+        <li>Select your streaming service below</li>
+        <li>Download your streaming history</li>
+        <li>Upload your file(s)</li>
+      </ol>
+    </div>
+    
     <div className="p-4 rounded bg-orange-100 border-2 border-orange-300">
-      <div>
-        <p className="mb-2 text-orange-700 font-bold">Upload your Spotify JSON files:</p>
-        <input
-          type="file"
-          multiple
-          accept=".json,.csv"
-          onChange={(e) => {
-            setIsProcessing(true);
-            setTimeout(() => {
-              processFiles(e.target.files);
-            }, 100);
-          }}
-          className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-2 file:border-yellow-400 file:text-sm file:font-semibold file:bg-yellow-300 file:text-yellow-800 hover:file:bg-yellow-400"
-        />
+      <div className="flex gap-4 mb-4">
+        {Object.entries(STREAMING_SERVICES).map(([type, service]) => (
+          <button
+            key={type}
+            onClick={() => setSelectedService(type)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              selectedService === type
+                ? 'bg-orange-500 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            {service.name}
+          </button>
+        ))}
       </div>
+
+      {selectedService && (
+        <>
+          <div className="mb-4">
+            <h4 className="font-bold text-orange-700 mb-2">
+              {STREAMING_SERVICES[selectedService].name} Instructions:
+            </h4>
+            <p className="text-orange-700 mb-2">
+              {STREAMING_SERVICES[selectedService].instructions}
+            </p>
+            
+              href={STREAMING_SERVICES[selectedService].downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-600 hover:text-orange-800 underline"
+            >
+              Download your data here
+            </a>
+          </div>
+
+          <div>
+            <p className="mb-2 text-orange-700 font-bold">Upload your {STREAMING_SERVICES[selectedService].name} files:</p>
+            <input
+              type="file"
+              multiple
+              accept={STREAMING_SERVICES[selectedService].acceptedFormats}
+              onChange={(e) => {
+                setIsProcessing(true);
+                setTimeout(() => {
+                  processFiles(e.target.files);
+                }, 100);
+              }}
+              className="block w-full text-sm text-slate-600 
+                file:mr-4 file:py-2 file:px-4 file:rounded-full 
+                file:border-2 file:border-yellow-400 file:text-sm 
+                file:font-semibold file:bg-yellow-300 
+                file:text-yellow-800 hover:file:bg-yellow-400"
+            />
+          </div>
+        </>
+      )}
 
       {isProcessing && (
         <div className="flex flex-col items-center justify-center p-8 space-y-4">
