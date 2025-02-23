@@ -278,7 +278,7 @@ stats: {
   totalListeningTime: allEntries
     .filter(e => e.playedMs >= 30000)  // Only count plays over 30 seconds
     .reduce((total, e) => total + e.playedMs, 0)
-}
+},
         topArtists: _.orderBy(Object.values(combinedStats.artists), ['totalPlayed'], ['desc']),
         topAlbums: _.orderBy(
           Object.values(combinedStats.albums).map(album => ({
