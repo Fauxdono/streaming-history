@@ -267,56 +267,44 @@ export const streamingProcessor = {
         Array.from(files).map(async (file) => {
           const content = await file.text();
           
-          let spotifyData = [];
-          let appleData = [];
-
-          // Process Spotify JSON files
+          // Spotify JSON files
           if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
             try {
               const data = JSON.parse(content);
-              spotifyData = parseSpotifyData(data);
+              allProcessedData = [...allProcessedData, ...data];
+              return data;
             } catch (error) {
-              console.error('Error parsing Spotify JSON:', error);
+              console.error('Error parsing JSON:', error);
+              return [];
             }
           }
-
-          // Process Apple Music CSV files asynchronously
+          
+          // Apple Music CSV files
           if (file.name.toLowerCase().endsWith('.csv')) {
-            appleData = await new Promise((resolve) => {
+            return new Promise((resolve) => {
               Papa.parse(content, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                  console.log('CSV Parsing Results:', results);
-
-                  // Ensure required columns exist
-                  if (!results.meta.fields.includes('Track Name') || 
-                      !results.meta.fields.includes('Last Played Date')) {
-                    console.warn('Unexpected CSV format');
-                    resolve([]);
-                    return;
-                  }
-
-                  const parsedAppleData = results.data
+                  const transformedData = results.data
                     .filter(row => row['Track Name'])
                     .map(row => {
-                      const fullTrackInfo = row['Track Name'] || '';
-                      const parts = fullTrackInfo.split(' - ');
-
-                      const artistName = parts.length > 1 ? parts[0].trim() : 'Unknown Artist';
-                      const trackName = parts.length > 1 ? parts.slice(1).join(' - ').trim() : fullTrackInfo.trim();
+                      const trackParts = row['Track Name'].split(' - ');
+                      const artistName = trackParts.length > 1 ? trackParts[0].trim() : 'Unknown Artist';
+                      const trackName = trackParts.length > 1 ? trackParts.slice(1).join(' - ').trim() : row['Track Name'].trim();
 
                       return {
-                        track: trackName,
-                        artist: artistName,
-                        playCount: row['Is User Initiated'] ? 1 : 0.2, // Adjust play weighting
-                        timestamp: row['Last Played Date'] ? new Date(row['Last Played Date']).getTime() : Date.now(),
+                        master_metadata_track_name: trackName,
+                        ts: new Date(row['Last Played Date']).toISOString(),
+                        ms_played: row['Is User Initiated'] ? 240000 : 30000,
+                        master_metadata_album_artist_name: artistName,
+                        master_metadata_album_album_name: 'Unknown Album'
                       };
                     });
-
-                  console.log('Transformed Apple Music Data:', parsedAppleData);
-                  resolve(parsedAppleData);
+                  
+                  allProcessedData = [...allProcessedData, ...transformedData];
+                  resolve(transformedData);
                 },
                 error: (error) => {
                   console.error('Error parsing CSV:', error);
@@ -325,24 +313,12 @@ export const streamingProcessor = {
               });
             });
           }
-
-          // Merge data only after both Spotify & Apple Music have been processed
-          const mergedData = mergeData(spotifyData, appleData);
-          allProcessedData = [...allProcessedData, ...mergedData];
-
-          return mergedData;
+          
+          return [];
         })
       );
 
-      return processedData.flat(); // Return combined data
-    } catch (error) {
-      console.error('Error processing files:', error);
-      return [];
-    }
-  }
-};
-
-      // Calculate comprehensive stats using allProcessedData
+      // Calculate stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
 
       const sortedArtists = Object.values(stats.artists)
