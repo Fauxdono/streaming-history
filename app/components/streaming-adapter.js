@@ -288,53 +288,72 @@ export const streamingProcessor = {
         
         // Apple Music CSV
         if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          // Split content into lines and process manually
-          const lines = content.trim().split('\n');
-          const processedEntries = [];
+          try {
+            console.log('Raw Apple Music content:', content.slice(0, 500)); // Log first 500 chars
 
-          const uniqueTracks = new Set();
+            // Use Papa Parse with more lenient parsing
+            const result = Papa.parse(content, {
+              delimiter: ',',
+              skipEmptyLines: true,
+              dynamicTyping: true
+            });
 
-          lines.forEach(line => {
-            // Split the line manually
-            const parts = line.split(',');
-            if (parts.length < 4) return;
+            console.log('Papa Parse result:', result);
 
-            const trackInfo = parts[0];
-            const timestamp = parts[1];
-            const isFullPlay = parts[3] === 'true';
+            const processedEntries = result.data
+              .map(row => {
+                try {
+                  // Ensure row has enough elements
+                  if (!row || row.length < 4) {
+                    console.warn('Skipping invalid row:', row);
+                    return null;
+                  }
 
-            // Split track info
-            const trackParts = trackInfo.split(' - ');
-            const artistName = trackParts[0].trim();
-            const trackName = trackParts.slice(1).join(' - ').trim();
+                  // Parse track info
+                  const trackInfo = row[0];
+                  const timestamp = row[1];
+                  const isFullPlay = row[3];
 
-            // Create a unique key to avoid duplicates
-            const key = `${trackName}-${timestamp}`;
-            if (uniqueTracks.has(key)) return;
-            uniqueTracks.add(key);
+                  // Split track info
+                  const trackParts = trackInfo.split(' - ');
+                  const artistName = trackParts[0].trim();
+                  const trackName = trackParts.slice(1).join(' - ').trim();
 
-            // Estimate play time based on full play
-            const estimatedPlayTime = isFullPlay 
-              ? 3 * 60 * 1000  // 3 minutes for full plays
-              : 30 * 1000;     // 30 seconds for partial plays
+                  // Validate timestamp
+                  const parsedTimestamp = new Date(parseInt(timestamp));
+                  if (isNaN(parsedTimestamp.getTime())) {
+                    console.warn('Invalid timestamp:', timestamp);
+                    return null;
+                  }
 
-            const entry = {
-              master_metadata_track_name: trackName,
-              master_metadata_album_artist_name: artistName,
-              master_metadata_album_album_name: 'Unknown Album',
-              ts: new Date(parseInt(timestamp)).toISOString(),
-              ms_played: estimatedPlayTime
-            };
+                  // Estimate play time
+                  const estimatedPlayTime = isFullPlay 
+                    ? 3 * 60 * 1000  // 3 minutes for full plays
+                    : 30 * 1000;     // 30 seconds for partial plays
 
-            processedEntries.push(entry);
-          });
+                  return {
+                    master_metadata_track_name: trackName,
+                    master_metadata_album_artist_name: artistName,
+                    master_metadata_album_album_name: 'Unknown Album',
+                    ts: parsedTimestamp.toISOString(),
+                    ms_played: estimatedPlayTime
+                  };
+                } catch (entryError) {
+                  console.warn('Error processing entry:', row, entryError);
+                  return null;
+                }
+              })
+              .filter(entry => entry !== null);
 
-          console.log(`Transformed Apple Music entries: ${processedEntries.length}`);
-          allProcessedData.push(...processedEntries);
+            console.log(`Transformed Apple Music entries: ${processedEntries.length}`);
+            allProcessedData.push(...processedEntries);
+          } catch (appleParseError) {
+            console.error('Error parsing Apple Music file:', appleParseError);
+          }
         }
       }
 
-      // Logging and processing remain the same as in previous version
+      // Logging and debugging
       console.log('FINAL Total entries processed:', allProcessedData.length);
       console.log('Total listening time (days):', 
         allProcessedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
@@ -343,7 +362,7 @@ export const streamingProcessor = {
       // Calculate stats
       const stats = calculatePlayStats(allProcessedData);
 
-      // Prepare sorted artists and albums
+      // Prepare sorted artists
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const artistSongs = stats.songs.filter(song => song.artist === artist.name);
