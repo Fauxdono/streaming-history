@@ -289,13 +289,14 @@ export const streamingProcessor = {
         // Apple Music CSV
         if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
           try {
-            // Parse CSV manually, skipping the header
+            // Parse CSV manually, including partial plays
             const lines = content.trim().split('\n').slice(1);
             
             const entries = lines
               .reduce((acc, line) => {
-                // Remove quotes and split
-                const parts = line.replace(/^"|"$/g, '').split('","');
+                // More robust parsing to handle various quote formats
+                const sanitizedLine = line.replace(/^"|"$/g, '').trim();
+                const parts = sanitizedLine.split('","');
                 
                 if (parts.length < 3) {
                   console.warn('Skipping invalid line:', line);
@@ -318,21 +319,18 @@ export const streamingProcessor = {
                   return acc;
                 }
 
-                // Estimate play time
+                // Estimate play time for both full and partial plays
                 const estimatedPlayTime = isFullPlay 
                   ? 3 * 60 * 1000  // 3 minutes for full plays
-                  : 30 * 1000;     // 30 seconds for partial plays
+                  : 1 * 60 * 1000; // 1 minute for partial plays
 
-                // Only add full play entries to avoid duplicates
-                if (isFullPlay) {
-                  acc.push({
-                    master_metadata_track_name: track,
-                    master_metadata_album_artist_name: artistName,
-                    master_metadata_album_album_name: 'Unknown Album',
-                    ts: parsedTimestamp.toISOString(),
-                    ms_played: estimatedPlayTime
-                  });
-                }
+                acc.push({
+                  master_metadata_track_name: track,
+                  master_metadata_album_artist_name: artistName,
+                  master_metadata_album_album_name: 'Unknown Album',
+                  ts: parsedTimestamp.toISOString(),
+                  ms_played: estimatedPlayTime
+                });
 
                 return acc;
               }, []);
