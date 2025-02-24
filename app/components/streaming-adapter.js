@@ -261,7 +261,6 @@ function calculateSongsByYear(songs, songPlayHistory) {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
-      // Convert FileList or array-like object to a proper array
       const fileArray = Array.isArray(files) 
         ? files 
         : files.length 
@@ -289,88 +288,53 @@ export const streamingProcessor = {
         
         // Apple Music CSV
         if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          const transformedData = await new Promise((resolve, reject) => {
-            Papa.parse(content, {
-              header: false, 
-              dynamicTyping: true,
-              skipEmptyLines: true,
-              complete: (results) => {
-                try {
-                  console.log(`Apple Music CSV entries: ${results.data.length}`);
+          // Split content into lines and process manually
+          const lines = content.trim().split('\n');
+          const processedEntries = [];
 
-                  const uniqueEntries = new Set();
-                  
-                  const processedEntries = results.data
-                    .filter(row => {
-                      if (!row || row.length < 3) {
-                        console.warn('Skipping invalid row:', row);
-                        return false;
-                      }
-                      return true;
-                    })
-                    .reduce((acc, row) => {
-                      try {
-                        const timestampStr = String(row[1]);
-                        let timestamp;
-                        if (/^\d+$/.test(timestampStr)) {
-                          timestamp = new Date(parseInt(timestampStr));
-                        } else {
-                          timestamp = new Date(timestampStr);
-                        }
+          const uniqueTracks = new Set();
 
-                        if (isNaN(timestamp.getTime())) {
-                          console.warn('Invalid timestamp:', timestampStr);
-                          return acc;
-                        }
+          lines.forEach(line => {
+            // Split the line manually
+            const parts = line.split(',');
+            if (parts.length < 4) return;
 
-                        const trackParts = String(row[0]).split(' - ');
-                        const artistName = trackParts[0];
-                        const trackName = trackParts.slice(1).join(' - ');
-                        
-                        const key = `${trackName}-${timestamp.toISOString()}`;
-                        
-                        if (uniqueEntries.has(key)) {
-                          return acc;
-                        }
-                        uniqueEntries.add(key);
+            const trackInfo = parts[0];
+            const timestamp = parts[1];
+            const isFullPlay = parts[3] === 'true';
 
-                        const estimatedPlayTime = 3 * 60 * 1000; // 3 minutes default
+            // Split track info
+            const trackParts = trackInfo.split(' - ');
+            const artistName = trackParts[0].trim();
+            const trackName = trackParts.slice(1).join(' - ').trim();
 
-                        const entry = {
-                          master_metadata_track_name: trackName,
-                          master_metadata_album_artist_name: artistName,
-                          master_metadata_album_album_name: 'Unknown Album',
-                          ts: timestamp.toISOString(),
-                          ms_played: estimatedPlayTime
-                        };
+            // Create a unique key to avoid duplicates
+            const key = `${trackName}-${timestamp}`;
+            if (uniqueTracks.has(key)) return;
+            uniqueTracks.add(key);
 
-                        acc.push(entry);
-                        return acc;
-                      } catch (entryError) {
-                        console.warn('Error processing entry:', row, entryError);
-                        return acc;
-                      }
-                    }, []);
-                
-                  console.log(`Transformed Apple Music entries: ${processedEntries.length}`);
-                  resolve(processedEntries);
-                } catch (processingError) {
-                  console.error('Error processing Apple Music data:', processingError);
-                  reject(processingError);
-                }
-              },
-              error: (error) => {
-                console.error('Papa Parse Error:', error);
-                reject(error);
-              }
-            });
+            // Estimate play time based on full play
+            const estimatedPlayTime = isFullPlay 
+              ? 3 * 60 * 1000  // 3 minutes for full plays
+              : 30 * 1000;     // 30 seconds for partial plays
+
+            const entry = {
+              master_metadata_track_name: trackName,
+              master_metadata_album_artist_name: artistName,
+              master_metadata_album_album_name: 'Unknown Album',
+              ts: new Date(parseInt(timestamp)).toISOString(),
+              ms_played: estimatedPlayTime
+            };
+
+            processedEntries.push(entry);
           });
 
-          allProcessedData.push(...transformedData);
+          console.log(`Transformed Apple Music entries: ${processedEntries.length}`);
+          allProcessedData.push(...processedEntries);
         }
       }
 
-      // Add global logging
+      // Logging and processing remain the same as in previous version
       console.log('FINAL Total entries processed:', allProcessedData.length);
       console.log('Total listening time (days):', 
         allProcessedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
