@@ -221,43 +221,43 @@ case 'podcasts':
         ))}
       </div>
       
-      {selectedService && (
-        <div>
-          <div className="mb-4">
-            <h4 className="font-bold text-orange-700 mb-2">
-              {STREAMING_SERVICES[selectedService].name} Instructions:
-            </h4>
-            <p className="text-orange-700 mb-2">
-              {STREAMING_SERVICES[selectedService].instructions}
-            </p>
-            
-              href={STREAMING_SERVICES[selectedService].downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-orange-600 hover:text-orange-800 underline"
-            >
-              Download your data here
-            </a>
-          </div>
-          
-          <div>
-            <p className="mb-2 text-orange-700 font-bold">
-              Upload your {STREAMING_SERVICES[selectedService].name} files:
-            </p>
-            <input
-              type="file"
-              multiple
-              accept={STREAMING_SERVICES[selectedService].acceptedFormats}
-              onChange={handleFileUpload}
-              className="block w-full text-sm text-slate-600 
-                file:mr-4 file:py-2 file:px-4 file:rounded-full 
-                file:border-2 file:border-yellow-400 file:text-sm 
-                file:font-semibold file:bg-yellow-300 
-                file:text-yellow-800 hover:file:bg-yellow-400"
-            />
-          </div>
-        </div>
-      )}
+{selectedService && (
+  <div>
+    <div className="mb-4">
+      <h4 className="font-bold text-orange-700 mb-2">
+        {STREAMING_SERVICES[selectedService].name} Instructions:
+      </h4>
+      <p className="text-orange-700 mb-2">
+        {STREAMING_SERVICES[selectedService].instructions}
+      </p>
+      <a  // Add the missing <a> tag opening
+        href={STREAMING_SERVICES[selectedService].downloadUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-orange-600 hover:text-orange-800 underline"
+      >
+        Download your data here
+      </a>
+    </div>
+    
+    <div>
+      <p className="mb-2 text-orange-700 font-bold">
+        Upload your {STREAMING_SERVICES[selectedService].name} files:
+      </p>
+      <input
+        type="file"
+        multiple
+        accept={STREAMING_SERVICES[selectedService].acceptedFormats}
+        onChange={handleFileUpload}
+        className="block w-full text-sm text-slate-600 
+          file:mr-4 file:py-2 file:px-4 file:rounded-full 
+          file:border-2 file:border-yellow-400 file:text-sm 
+          file:font-semibold file:bg-yellow-300 
+          file:text-yellow-800 hover:file:bg-yellow-400"
+      />
+    </div>
+  </div>
+)}
       
       {isProcessing && (
         <div className="flex flex-col items-center justify-center p-8 space-y-4">
