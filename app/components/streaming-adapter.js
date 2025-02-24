@@ -262,6 +262,8 @@ function calculateSongsByYear(songs, songPlayHistory) {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
+      let allProcessedData = [];  // Create an accumulator array
+      
       const processedData = await Promise.all(
         Array.from(files).map(async (file) => {
           const content = await file.text();
@@ -269,7 +271,9 @@ export const streamingProcessor = {
           // Spotify JSON files
           if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
             try {
-              return JSON.parse(content);
+              const data = JSON.parse(content);
+              allProcessedData = [...allProcessedData, ...data];  // Accumulate Spotify data
+              return data;
             } catch (error) {
               console.error('Error parsing JSON:', error);
               return [];
@@ -284,43 +288,100 @@ export const streamingProcessor = {
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                  // Transform Apple Music CSV data to match Spotify format
                   const transformedData = results.data.map(row => {
-                    // Handle multiple possible track name formats
                     let trackName = row['Track Name'];
                     let artistName = 'Unknown Artist';
                     
-                    // Try to split artist and track if possible
                     const trackParts = trackName ? trackName.split(' - ') : [];
                     if (trackParts.length > 1) {
                       artistName = trackParts[0];
                       trackName = trackParts.slice(1).join(' - ');
                     }
-
                     return {
                       master_metadata_track_name: trackName,
                       ts: new Date(row['Last Played Date']).toISOString(),
-                      ms_played: row['Is User Initiated'] ? 240000 : 30000, // Longer duration for user-initiated plays
+                      ms_played: row['Is User Initiated'] ? 240000 : 30000,
                       master_metadata_album_artist_name: artistName,
                       master_metadata_album_album_name: 'Unknown Album'
                     };
-                  }).filter(entry => entry.master_metadata_track_name); // Remove entries without track names
+                  }).filter(entry => entry.master_metadata_track_name);
+                  
+                  allProcessedData = [...allProcessedData, ...transformedData];  // Accumulate Apple data
                   resolve(transformedData);
                 },
                 error: (error) => {
                   console.error('Error parsing Apple Music CSV:', error);
-                  resolve([]); // Return empty array on error
+                  resolve([]);
                 }
               });
             });
           }
           
-          return []; // No matching file type
+          return [];
         })
       );
 
-      // Flatten and combine all entries
-      const allSongs = processedData.flat();
+      // Calculate comprehensive stats using allProcessedData instead of processedData
+      const stats = calculatePlayStats(allProcessedData);
+
+      // Sort and prepare results using the stats data
+      const sortedArtists = Object.values(stats.artists)
+        .map(artist => {
+          const artistSongs = stats.songs.filter(song => song.artist === artist.name);
+          const mostPlayed = _.maxBy(artistSongs, 'playCount');
+          const artistPlays = [];
+          artistSongs.forEach(song => {
+            if (stats.playHistory[song.key]) {
+              artistPlays.push(...stats.playHistory[song.key]);
+            }
+          });
+
+          const streaks = calculateArtistStreaks(artistPlays);
+
+          return {
+            ...artist,
+            mostPlayedSong: mostPlayed,
+            ...streaks
+          };
+        })
+        .sort((a, b) => b.totalPlayed - a.totalPlayed);
+
+      const sortedAlbums = _.orderBy(
+        Object.values(stats.albums).map(album => ({
+          ...album,
+          trackCount: album.trackCount.size
+        })),
+        ['totalPlayed'],
+        ['desc']
+      );
+
+      const briefObsessionsArray = calculateBriefObsessions(stats.songs, stats.playHistory);
+      const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
+
+      return {
+        stats: {
+          totalFiles: files.length,
+          totalEntries: allProcessedData.length,
+          processedSongs: stats.processedSongs,
+          nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
+          skippedEntries: 0,
+          shortPlays: stats.shortPlays,
+          totalListeningTime: stats.totalListeningTime
+        },
+        topArtists: sortedArtists,
+        topAlbums: sortedAlbums,
+        processedTracks: stats.songs,
+        songsByYear,
+        briefObsessions: briefObsessionsArray,
+        rawPlayData: allProcessedData
+      };
+
+    } catch (error) {
+      console.error('Error processing files:', error);
+      throw error;
+    }
+  }
+};
 
       // Calculate comprehensive stats
       const stats = calculatePlayStats(allSongs);
