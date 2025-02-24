@@ -93,35 +93,47 @@ const processFiles = useCallback(async (fileList) => {
     setIsProcessing(false);
   }
 }, []);
-  const handleFileUpload = (e) => {
-    const fileList = e.target.files;
-    const fileNames = Array.from(fileList).map(file => file.name);
-    setUploadedFileList(fileList);
-    setUploadedFiles(fileNames);
-  };
-    const handleProcessFiles = () => {
-    if (!uploadedFileList || uploadedFileList.length === 0) {
-      setError("Please upload files first");
-      return;
-    }
-    
-    setIsProcessing(true);
-    
-    setTimeout(() => {
-      processFiles(uploadedFileList)
-        .then(() => {
-          setActiveTab('stats');
-        })
-        .catch(err => {
-          console.error("Error processing files:", err);
-          setError(err.message);
-        })
-        .finally(() => {
-          setIsProcessing(false);
-        });
-    }, 100);
-  };
+const handleFileUpload = (e) => {
+  const newFiles = e.target.files;
+  const newFileNames = Array.from(newFiles).map(file => file.name);
+  
+  // Combine existing files with new files
+  const combinedFileList = uploadedFileList 
+    ? [...Array.from(uploadedFileList), ...Array.from(newFiles)]
+    : newFiles;
+  
+  // Combine existing file names with new file names
+  const combinedFileNames = uploadedFiles 
+    ? [...uploadedFiles, ...newFileNames]
+    : newFileNames;
+  
+  // Update state with combined files and file names
+  setUploadedFileList(combinedFileList);
+  setUploadedFiles(combinedFileNames);
+};
 
+const handleProcessFiles = () => {
+  if (!uploadedFileList || uploadedFileList.length === 0) {
+    setError("Please upload files first");
+    return;
+  }
+  
+  setIsProcessing(true);
+  
+  setTimeout(() => {
+    processFiles(uploadedFileList)
+      .then(() => {
+        setActiveTab('stats');
+      })
+      .catch(err => {
+        console.error("Error processing files:", err);
+        setError(err.message);
+      })
+      .finally(() => {
+        setIsProcessing(false);
+      });
+  }, 100);
+};
 const getTracksTabLabel = () => { 
   if (selectedTrackYear === 'all') { 
     return 'All-time Top 250'; 
