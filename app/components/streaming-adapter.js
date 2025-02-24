@@ -258,60 +258,72 @@ function calculateSongsByYear(songs, songPlayHistory) {
 
   return songsByYear;
 }
-
 export const streamingProcessor = {
   async processFiles(files) {
     try {
+      // Collect raw data from all files
       const allProcessedData = [];
-      
-      for (const file of files) {
-        const content = await file.text();
-        
-        // Spotify JSON files
-        if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-          try {
-            const data = JSON.parse(content);
-            const spotifyEntries = data.map(entry => ({
-              master_metadata_track_name: entry.master_metadata_track_name,
-              master_metadata_album_artist_name: entry.master_metadata_album_artist_name,
-              master_metadata_album_album_name: entry.master_metadata_album_album_name,
-              ts: entry.ts,
-              ms_played: entry.ms_played
-            }));
-            allProcessedData.push(...spotifyEntries);
-          } catch (error) {
-            console.error('Error parsing Spotify JSON:', error);
-          }
-        }
-        
-        // Apple Music CSV
-        if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          await new Promise((resolve) => {
-            Papa.parse(content, {
-              header: true,
-              dynamicTyping: true,
-              skipEmptyLines: true,
-              complete: (results) => {
-                const appleEntries = results.data.map(row => ({
-                  master_metadata_track_name: row['Track Name'],
-                  ts: new Date(row['Last Played Date']).toISOString(),
-                  ms_played: row['Is User Initiated'] ? 240000 : 30000,
-                  master_metadata_album_artist_name: 'Unknown Artist',
-                  master_metadata_album_album_name: 'Unknown Album'
-                })).filter(entry => entry.master_metadata_track_name);
-                
-                allProcessedData.push(...appleEntries);
-                resolve();
-              },
-              error: (error) => {
-                console.error('Error parsing Apple Music CSV:', error);
-                resolve();
-              }
-            });
-          });
-        }
-      }
 
+      // Process each file
+      await Promise.all(
+        Array.from(files).map(async (file) => {
+          const content = await file.text();
+          
+          // Spotify JSON files
+          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
+            try {
+              const data = JSON.parse(content);
+              allProcessedData.push(...data);
+            } catch (error) {
+              console.error('Error parsing Spotify JSON:', error);
+            }
+          }
+          
+          // Apple Music CSV
+          if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
+            return new Promise((resolve) => {
+              Papa.parse(content, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                  const transformedData = results.data.map(row => {
+                    // Revert to previous successful parsing logic
+                    let trackName = row['Track Name'];
+                    let artistName = 'Unknown Artist';
+                    
+                    const trackParts = trackName ? trackName.split(' - ') : [];
+                    if (trackParts.length > 1) {
+                      artistName = trackParts[0];
+                      trackName = trackParts.slice(1).join(' - ');
+                    }
+
+                    return {
+                      master_metadata_track_name: trackName,
+                      master_metadata_album_artist_name: artistName,
+                      master_metadata_album_album_name: 'Unknown Album',
+                      ts: new Date(row['Last Played Date']).toISOString(),
+                      ms_played: row['Is User Initiated'] ? 240000 : 30000
+                    };
+                  }).filter(entry => entry.master_metadata_track_name);
+                  
+                  // Add Apple Music entries to the main array
+                  allProcessedData.push(...transformedData);
+                  resolve(transformedData);
+                },
+                error: (error) => {
+                  console.error('Error parsing Apple Music CSV:', error);
+                  resolve([]);
+                }
+              });
+            });
+          }
+          
+          return [];
+        })
+      );
+
+      // Log total entries for debugging
       console.log('Total entries processed:', allProcessedData.length);
 
       // Calculate comprehensive stats using allProcessedData
