@@ -39,7 +39,8 @@ const SpotifyAnalyzer = () => {
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
-  const [uploadedFiles, setUploadedFiles] = useState([null]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+const [uploadedFileList, setUploadedFileList] = useState(null);
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
