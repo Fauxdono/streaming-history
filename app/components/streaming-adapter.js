@@ -319,18 +319,16 @@ export const streamingProcessor = {
                   return acc;
                 }
 
-                // Estimate play time for both full and partial plays
-                const estimatedPlayTime = isFullPlay 
-                  ? 3 * 60 * 1000  // 3 minutes for full plays
-                  : 1 * 60 * 1000; // 1 minute for partial plays
-
-                acc.push({
-                  master_metadata_track_name: track,
-                  master_metadata_album_artist_name: artistName,
-                  master_metadata_album_album_name: 'Unknown Album',
-                  ts: parsedTimestamp.toISOString(),
-                  ms_played: estimatedPlayTime
-                });
+                // Only add full play entries
+                if (isFullPlay) {
+                  acc.push({
+                    master_metadata_track_name: track,
+                    master_metadata_album_artist_name: artistName,
+                    master_metadata_album_album_name: 'Unknown Album',
+                    ts: parsedTimestamp.toISOString(),
+                    ms_played: 3 * 60 * 1000 // 3 minutes
+                  });
+                }
 
                 return acc;
               }, []);
