@@ -258,7 +258,7 @@ function calculateSongsByYear(songs, songPlayHistory) {
 
   return songsByYear;
 }
-export const streamingProcessor = {
+eexport const streamingProcessor = {
   async processFiles(files) {
     try {
       const allProcessedData = [];
@@ -281,23 +281,42 @@ export const streamingProcessor = {
           if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
             return new Promise((resolve) => {
               Papa.parse(content, {
-                header: false, // Change to false since it's not a standard CSV
+                header: false, 
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                  // Unique entries to remove duplicates
                   const uniqueEntries = new Set();
                   
                   const transformedData = results.data
-                    .filter(row => row[0]) // Ensure non-empty rows
+                    .filter(row => row[0] && row[1]) // Ensure non-empty rows
                     .map(row => {
+                      // Safe timestamp parsing
+                      let timestamp;
+                      try {
+                        // Parse timestamp as number, then create Date
+                        const timestampNum = parseInt(row[1]);
+                        if (isNaN(timestampNum)) {
+                          console.warn('Invalid timestamp:', row[1]);
+                          return null;
+                        }
+                        timestamp = new Date(timestampNum);
+                        
+                        // Validate date
+                        if (isNaN(timestamp.getTime())) {
+                          console.warn('Invalid date:', timestamp);
+                          return null;
+                        }
+                      } catch (error) {
+                        console.warn('Error parsing timestamp:', error);
+                        return null;
+                      }
+
                       const trackParts = row[0].split(' - ');
                       const artistName = trackParts[0];
                       const trackName = trackParts.slice(1).join(' - ');
-                      const timestamp = new Date(parseInt(row[1])).toISOString();
                       const isUserInitiated = row[2]; // true/false column
 
-                      const key = `${trackName}-${timestamp}`;
+                      const key = `${trackName}-${timestamp.toISOString()}`;
                       
                       // Avoid duplicates
                       if (uniqueEntries.has(key)) {
@@ -309,7 +328,7 @@ export const streamingProcessor = {
                         master_metadata_track_name: trackName,
                         master_metadata_album_artist_name: artistName,
                         master_metadata_album_album_name: 'Unknown Album',
-                        ts: timestamp,
+                        ts: timestamp.toISOString(),
                         ms_played: isUserInitiated ? 240000 : 30000 // Adjust as needed
                       };
                     })
