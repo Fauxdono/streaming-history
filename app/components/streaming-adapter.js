@@ -261,125 +261,125 @@ function calculateSongsByYear(songs, songPlayHistory) {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
-      console.log('Processing files:', files.length);
+      // Convert FileList or array-like object to a proper array
+      const fileArray = Array.isArray(files) 
+        ? files 
+        : files.length 
+          ? Array.from(files) 
+          : [];
+
+      console.log('Processing files:', fileArray.length);
+      
       const allProcessedData = [];
       
-      await Promise.all(
-        Array.from(files).map(async (file) => {
-          console.log(`Processing file: ${file.name}`);
-          const content = await file.text();
-          
-          // Spotify JSON files
-          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-            try {
-              const data = JSON.parse(content);
-              console.log(`Spotify JSON entries: ${data.length}`);
-              allProcessedData.push(...data);
-            } catch (error) {
-              console.error('Error parsing Spotify JSON:', error);
-            }
+      for (const file of fileArray) {
+        console.log(`Processing file: ${file.name}`);
+        const content = await file.text();
+        
+        // Spotify JSON files
+        if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
+          try {
+            const data = JSON.parse(content);
+            console.log(`Spotify JSON entries: ${data.length}`);
+            allProcessedData.push(...data);
+          } catch (error) {
+            console.error('Error parsing Spotify JSON:', error);
           }
-          
-          // Apple Music CSV
-          if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-            return new Promise((resolve, reject) => {
-              Papa.parse(content, {
-                header: false, 
-                dynamicTyping: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                  try {
-                    console.log(`Apple Music CSV entries: ${results.data.length}`);
+        }
+        
+        // Apple Music CSV
+        if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
+          const transformedData = await new Promise((resolve, reject) => {
+            Papa.parse(content, {
+              header: false, 
+              dynamicTyping: true,
+              skipEmptyLines: true,
+              complete: (results) => {
+                try {
+                  console.log(`Apple Music CSV entries: ${results.data.length}`);
 
-                    const uniqueEntries = new Set();
-                    
-                    const transformedData = results.data
-                      .filter(row => {
-                        if (!row || row.length < 3) {
-                          console.warn('Skipping invalid row:', row);
-                          return false;
-                        }
-                        return true;
-                      })
-                      .reduce((acc, row) => {
-                        try {
-                          const timestampStr = String(row[1]);
-                          let timestamp;
-                          if (/^\d+$/.test(timestampStr)) {
-                            timestamp = new Date(parseInt(timestampStr));
-                          } else {
-                            timestamp = new Date(timestampStr);
-                          }
-
-                          if (isNaN(timestamp.getTime())) {
-                            console.warn('Invalid timestamp:', timestampStr);
-                            return acc;
-                          }
-
-                          const trackParts = String(row[0]).split(' - ');
-                          const artistName = trackParts[0];
-                          const trackName = trackParts.slice(1).join(' - ');
-                          
-                          const key = `${trackName}-${timestamp.toISOString()}`;
-                          
-                          if (uniqueEntries.has(key)) {
-                            return acc;
-                          }
-                          uniqueEntries.add(key);
-
-                          const estimatedPlayTime = 3 * 60 * 1000; // 3 minutes default
-
-                          const entry = {
-                            master_metadata_track_name: trackName,
-                            master_metadata_album_artist_name: artistName,
-                            master_metadata_album_album_name: 'Unknown Album',
-                            ts: timestamp.toISOString(),
-                            ms_played: estimatedPlayTime
-                          };
-
-                          acc.push(entry);
-                          return acc;
-                        } catch (entryError) {
-                          console.warn('Error processing entry:', row, entryError);
-                          return acc;
-                        }
-                      }, []);
+                  const uniqueEntries = new Set();
                   
-                    console.log(`Transformed Apple Music entries: ${transformedData.length}`);
-                    allProcessedData.push(...transformedData);
-                    
-                    resolve(transformedData);
-                  } catch (processingError) {
-                    console.error('Error processing Apple Music data:', processingError);
-                    reject(processingError);
-                  }
-                },
-                error: (error) => {
-                  console.error('Papa Parse Error:', error);
-                  reject(error);
+                  const processedEntries = results.data
+                    .filter(row => {
+                      if (!row || row.length < 3) {
+                        console.warn('Skipping invalid row:', row);
+                        return false;
+                      }
+                      return true;
+                    })
+                    .reduce((acc, row) => {
+                      try {
+                        const timestampStr = String(row[1]);
+                        let timestamp;
+                        if (/^\d+$/.test(timestampStr)) {
+                          timestamp = new Date(parseInt(timestampStr));
+                        } else {
+                          timestamp = new Date(timestampStr);
+                        }
+
+                        if (isNaN(timestamp.getTime())) {
+                          console.warn('Invalid timestamp:', timestampStr);
+                          return acc;
+                        }
+
+                        const trackParts = String(row[0]).split(' - ');
+                        const artistName = trackParts[0];
+                        const trackName = trackParts.slice(1).join(' - ');
+                        
+                        const key = `${trackName}-${timestamp.toISOString()}`;
+                        
+                        if (uniqueEntries.has(key)) {
+                          return acc;
+                        }
+                        uniqueEntries.add(key);
+
+                        const estimatedPlayTime = 3 * 60 * 1000; // 3 minutes default
+
+                        const entry = {
+                          master_metadata_track_name: trackName,
+                          master_metadata_album_artist_name: artistName,
+                          master_metadata_album_album_name: 'Unknown Album',
+                          ts: timestamp.toISOString(),
+                          ms_played: estimatedPlayTime
+                        };
+
+                        acc.push(entry);
+                        return acc;
+                      } catch (entryError) {
+                        console.warn('Error processing entry:', row, entryError);
+                        return acc;
+                      }
+                    }, []);
+                
+                  console.log(`Transformed Apple Music entries: ${processedEntries.length}`);
+                  resolve(processedEntries);
+                } catch (processingError) {
+                  console.error('Error processing Apple Music data:', processingError);
+                  reject(processingError);
                 }
-              });
+              },
+              error: (error) => {
+                console.error('Papa Parse Error:', error);
+                reject(error);
+              }
             });
-          }
-          
-          return [];
-        })
-      );
+          });
+
+          allProcessedData.push(...transformedData);
+        }
+      }
 
       // Add global logging
       console.log('FINAL Total entries processed:', allProcessedData.length);
       console.log('Total listening time (days):', 
         allProcessedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
       );
-      // Debug logging for total entries
-      console.log('Total entries processed:', allProcessedData.length);
-      console.log('Total listening time (days):', 
-        allProcessedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
-      );
 
-      // Calculate comprehensive stats using allProcessedData
+      // Calculate stats
       const stats = calculatePlayStats(allProcessedData);
 
+      // Prepare sorted artists and albums
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const artistSongs = stats.songs.filter(song => song.artist === artist.name);
@@ -410,16 +410,16 @@ export const streamingProcessor = {
         ['desc']
       );
 
-     return {
+      return {
         stats: {
-          totalFiles: files.length,
+          totalFiles: fileArray.length,
           totalEntries: allProcessedData.length,
           processedSongs: stats.processedSongs,
           nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
           skippedEntries: 0,
           shortPlays: stats.shortPlays,
           totalListeningTime: stats.totalListeningTime,
-          fileNames: files.map(file => file.name)
+          fileNames: fileArray.map(file => file.name)
         },
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
