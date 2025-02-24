@@ -258,7 +258,7 @@ function calculateSongsByYear(songs, songPlayHistory) {
 
   return songsByYear;
 }
-eexport const streamingProcessor = {
+export const streamingProcessor = {
   async processFiles(files) {
     try {
       const allProcessedData = [];
