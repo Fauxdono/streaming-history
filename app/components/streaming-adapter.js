@@ -262,7 +262,7 @@ function calculateSongsByYear(songs, songPlayHistory) {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
-      let allProcessedData = [];  // Create an accumulator array
+      let allProcessedData = [];
       
       const processedData = await Promise.all(
         Array.from(files).map(async (file) => {
@@ -272,7 +272,7 @@ export const streamingProcessor = {
           if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
             try {
               const data = JSON.parse(content);
-              allProcessedData = [...allProcessedData, ...data];  // Accumulate Spotify data
+              allProcessedData = [...allProcessedData, ...data];
               return data;
             } catch (error) {
               console.error('Error parsing JSON:', error);
@@ -306,7 +306,7 @@ export const streamingProcessor = {
                     };
                   }).filter(entry => entry.master_metadata_track_name);
                   
-                  allProcessedData = [...allProcessedData, ...transformedData];  // Accumulate Apple data
+                  allProcessedData = [...allProcessedData, ...transformedData];
                   resolve(transformedData);
                 },
                 error: (error) => {
@@ -321,10 +321,9 @@ export const streamingProcessor = {
         })
       );
 
-      // Calculate comprehensive stats using allProcessedData instead of processedData
+      // Calculate comprehensive stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
 
-      // Sort and prepare results using the stats data
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const artistSongs = stats.songs.filter(song => song.artist === artist.name);
@@ -355,9 +354,6 @@ export const streamingProcessor = {
         ['desc']
       );
 
-      const briefObsessionsArray = calculateBriefObsessions(stats.songs, stats.playHistory);
-      const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
-
       return {
         stats: {
           totalFiles: files.length,
@@ -371,8 +367,8 @@ export const streamingProcessor = {
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
         processedTracks: stats.songs,
-        songsByYear,
-        briefObsessions: briefObsessionsArray,
+        songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
+        briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
         rawPlayData: allProcessedData
       };
 
