@@ -39,7 +39,7 @@ const SpotifyAnalyzer = () => {
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState([null]);
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
@@ -92,9 +92,33 @@ const processFiles = useCallback(async (fileList) => {
     setIsProcessing(false);
   }
 }, []);
- const handleFileUpload = (e) => {
+  const handleFileUpload = (e) => {
     const fileList = e.target.files;
-    processFiles(fileList);
+    const fileNames = Array.from(fileList).map(file => file.name);
+    setUploadedFileList(fileList);
+    setUploadedFiles(fileNames);
+  };
+    const handleProcessFiles = () => {
+    if (!uploadedFileList || uploadedFileList.length === 0) {
+      setError("Please upload files first");
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    setTimeout(() => {
+      processFiles(uploadedFileList)
+        .then(() => {
+          setActiveTab('stats');
+        })
+        .catch(err => {
+          console.error("Error processing files:", err);
+          setError(err.message);
+        })
+        .finally(() => {
+          setIsProcessing(false);
+        });
+    }, 100);
   };
 
 const getTracksTabLabel = () => { 
@@ -176,6 +200,7 @@ case 'podcasts':
         <li>Select your streaming service below</li>
         <li>Download your streaming history</li>
         <li>Upload your file(s)</li>
+        <li>Click "Calculate Statistics"</li>
       </ol>
     </div>
     
@@ -195,7 +220,7 @@ case 'podcasts':
           </button>
         ))}
       </div>
-
+      
       {selectedService && (
         <div>
           <div className="mb-4">
@@ -205,7 +230,7 @@ case 'podcasts':
             <p className="text-orange-700 mb-2">
               {STREAMING_SERVICES[selectedService].instructions}
             </p>
-            <a
+            
               href={STREAMING_SERVICES[selectedService].downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -214,7 +239,7 @@ case 'podcasts':
               Download your data here
             </a>
           </div>
-
+          
           <div>
             <p className="mb-2 text-orange-700 font-bold">
               Upload your {STREAMING_SERVICES[selectedService].name} files:
@@ -223,12 +248,7 @@ case 'podcasts':
               type="file"
               multiple
               accept={STREAMING_SERVICES[selectedService].acceptedFormats}
-              onChange={(e) => {
-                setIsProcessing(true);
-                setTimeout(() => {
-                  processFiles(e.target.files);
-                }, 100);
-              }}
+              onChange={handleFileUpload}
               className="block w-full text-sm text-slate-600 
                 file:mr-4 file:py-2 file:px-4 file:rounded-full 
                 file:border-2 file:border-yellow-400 file:text-sm 
@@ -238,7 +258,7 @@ case 'podcasts':
           </div>
         </div>
       )}
-
+      
       {isProcessing && (
         <div className="flex flex-col items-center justify-center p-8 space-y-4">
           <div className="flex flex-col items-center">
@@ -263,7 +283,7 @@ case 'podcasts':
           </div>
         </div>
       )}
-
+      
       {uploadedFiles.length > 0 && (
         <div className="mt-4">
           <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
@@ -272,6 +292,21 @@ case 'podcasts':
               <li key={index}>{fileName}</li>
             ))}
           </ul>
+          
+          <button
+            onClick={handleProcessFiles}
+            disabled={isProcessing}
+            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
+              hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+          >
+            {isProcessing ? "Processing..." : "Calculate Statistics"}
+          </button>
+        </div>
+      )}
+      
+      {error && (
+        <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
+          {error}
         </div>
       )}
     </div>
