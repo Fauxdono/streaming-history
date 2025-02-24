@@ -289,50 +289,47 @@ export const streamingProcessor = {
                   
                   const transformedData = results.data
                     .filter(row => row[0] && row[1]) // Ensure non-empty rows
-                    .map(row => {
-                      // Safe timestamp parsing
-                      let timestamp;
-                      try {
-                        // Parse timestamp as number, then create Date
-                        const timestampNum = parseInt(row[1]);
-                        if (isNaN(timestampNum)) {
-                          console.warn('Invalid timestamp:', row[1]);
-                          return null;
-                        }
-                        timestamp = new Date(timestampNum);
-                        
-                        // Validate date
-                        if (isNaN(timestamp.getTime())) {
-                          console.warn('Invalid date:', timestamp);
-                          return null;
-                        }
-                      } catch (error) {
-                        console.warn('Error parsing timestamp:', error);
-                        return null;
-                      }
-
+                    .reduce((acc, row) => {
                       const trackParts = row[0].split(' - ');
                       const artistName = trackParts[0];
                       const trackName = trackParts.slice(1).join(' - ');
-                      const isUserInitiated = row[2]; // true/false column
-
+                      
+                      // Parse timestamp
+                      const timestamp = new Date(parseInt(row[1]));
+                      
+                      // Create a unique key
                       const key = `${trackName}-${timestamp.toISOString()}`;
                       
-                      // Avoid duplicates
+                      // Check if this entry already exists
                       if (uniqueEntries.has(key)) {
-                        return null;
+                        return acc;
                       }
                       uniqueEntries.add(key);
 
-                      return {
+                      // Determine play time based on user interaction
+                      // If the next row is the same track with 'true', it means full track play
+                      const nextRow = results.data[results.data.indexOf(row) + 1];
+                      const isFullPlay = nextRow && 
+                        nextRow[0] === row[0] && 
+                        nextRow[1] === row[1] && 
+                        nextRow[2] === true;
+
+                      // Estimate play time (default to 3 minutes if full play, else 30 seconds)
+                      const estimatedPlayTime = isFullPlay 
+                        ? 3 * 60 * 1000  // 3 minutes in milliseconds 
+                        : 30 * 1000;     // 30 seconds in milliseconds
+
+                      const entry = {
                         master_metadata_track_name: trackName,
                         master_metadata_album_artist_name: artistName,
                         master_metadata_album_album_name: 'Unknown Album',
                         ts: timestamp.toISOString(),
-                        ms_played: isUserInitiated ? 240000 : 30000 // Adjust as needed
+                        ms_played: estimatedPlayTime
                       };
-                    })
-                    .filter(entry => entry !== null && entry.master_metadata_track_name);
+
+                      acc.push(entry);
+                      return acc;
+                    }, []);
                   
                   // Add Apple Music entries to the main array
                   allProcessedData.push(...transformedData);
