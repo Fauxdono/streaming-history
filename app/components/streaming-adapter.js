@@ -261,10 +261,8 @@ function calculateSongsByYear(songs, songPlayHistory) {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
-      // Collect raw data from all files
       const allProcessedData = [];
-
-      // Process each file
+      
       await Promise.all(
         Array.from(files).map(async (file) => {
           const content = await file.text();
@@ -283,32 +281,49 @@ export const streamingProcessor = {
           if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
             return new Promise((resolve) => {
               Papa.parse(content, {
-                header: true,
+                header: false, // Change to false since it's not a standard CSV
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                  const transformedData = results.data.map(row => {
-                    // Revert to previous successful parsing logic
-                    let trackName = row['Track Name'];
-                    let artistName = 'Unknown Artist';
-                    
-                    const trackParts = trackName ? trackName.split(' - ') : [];
-                    if (trackParts.length > 1) {
-                      artistName = trackParts[0];
-                      trackName = trackParts.slice(1).join(' - ');
-                    }
+                  // Unique entries to remove duplicates
+                  const uniqueEntries = new Set();
+                  
+                  const transformedData = results.data
+                    .filter(row => row[0]) // Ensure non-empty rows
+                    .map(row => {
+                      const trackParts = row[0].split(' - ');
+                      const artistName = trackParts[0];
+                      const trackName = trackParts.slice(1).join(' - ');
+                      const timestamp = new Date(parseInt(row[1])).toISOString();
+                      const isUserInitiated = row[2]; // true/false column
 
-                    return {
-                      master_metadata_track_name: trackName,
-                      master_metadata_album_artist_name: artistName,
-                      master_metadata_album_album_name: 'Unknown Album',
-                      ts: new Date(row['Last Played Date']).toISOString(),
-                      ms_played: row['Is User Initiated'] ? 240000 : 30000
-                    };
-                  }).filter(entry => entry.master_metadata_track_name);
+                      const key = `${trackName}-${timestamp}`;
+                      
+                      // Avoid duplicates
+                      if (uniqueEntries.has(key)) {
+                        return null;
+                      }
+                      uniqueEntries.add(key);
+
+                      return {
+                        master_metadata_track_name: trackName,
+                        master_metadata_album_artist_name: artistName,
+                        master_metadata_album_album_name: 'Unknown Album',
+                        ts: timestamp,
+                        ms_played: isUserInitiated ? 240000 : 30000 // Adjust as needed
+                      };
+                    })
+                    .filter(entry => entry !== null && entry.master_metadata_track_name);
                   
                   // Add Apple Music entries to the main array
                   allProcessedData.push(...transformedData);
+                  
+                  // Debug logging
+                  console.log('Apple Music Entries:', transformedData.length);
+                  console.log('Apple Music Total Time (days):', 
+                    transformedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
+                  );
+                  
                   resolve(transformedData);
                 },
                 error: (error) => {
@@ -323,8 +338,11 @@ export const streamingProcessor = {
         })
       );
 
-      // Log total entries for debugging
+      // Debug logging for total entries
       console.log('Total entries processed:', allProcessedData.length);
+      console.log('Total listening time (days):', 
+        allProcessedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
+      );
 
       // Calculate comprehensive stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
