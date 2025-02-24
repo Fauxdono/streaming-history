@@ -261,16 +261,19 @@ function calculateSongsByYear(songs, songPlayHistory) {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
+      console.log('Processing files:', files.length);
       const allProcessedData = [];
       
       await Promise.all(
         Array.from(files).map(async (file) => {
+          console.log(`Processing file: ${file.name}`);
           const content = await file.text();
           
           // Spotify JSON files
           if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
             try {
               const data = JSON.parse(content);
+              console.log(`Spotify JSON entries: ${data.length}`);
               allProcessedData.push(...data);
             } catch (error) {
               console.error('Error parsing Spotify JSON:', error);
@@ -286,13 +289,12 @@ export const streamingProcessor = {
                 skipEmptyLines: true,
                 complete: (results) => {
                   try {
-                    console.log('Raw Apple Music Data:', results.data.slice(0, 10)); // Log first 10 rows
+                    console.log(`Apple Music CSV entries: ${results.data.length}`);
 
                     const uniqueEntries = new Set();
                     
                     const transformedData = results.data
                       .filter(row => {
-                        // Detailed logging for filtering
                         if (!row || row.length < 3) {
                           console.warn('Skipping invalid row:', row);
                           return false;
@@ -301,20 +303,14 @@ export const streamingProcessor = {
                       })
                       .reduce((acc, row) => {
                         try {
-                          // Detailed timestamp parsing
                           const timestampStr = String(row[1]);
-                          console.log('Raw Timestamp:', timestampStr);
-
                           let timestamp;
                           if (/^\d+$/.test(timestampStr)) {
-                            // If it's a number, parse as milliseconds
                             timestamp = new Date(parseInt(timestampStr));
                           } else {
-                            // Fallback parsing
                             timestamp = new Date(timestampStr);
                           }
 
-                          // Validate timestamp
                           if (isNaN(timestamp.getTime())) {
                             console.warn('Invalid timestamp:', timestampStr);
                             return acc;
@@ -324,16 +320,13 @@ export const streamingProcessor = {
                           const artistName = trackParts[0];
                           const trackName = trackParts.slice(1).join(' - ');
                           
-                          // Create a unique key
                           const key = `${trackName}-${timestamp.toISOString()}`;
                           
-                          // Check if this entry already exists
                           if (uniqueEntries.has(key)) {
                             return acc;
                           }
                           uniqueEntries.add(key);
 
-                          // Estimate play time
                           const estimatedPlayTime = 3 * 60 * 1000; // 3 minutes default
 
                           const entry = {
@@ -352,14 +345,8 @@ export const streamingProcessor = {
                         }
                       }, []);
                   
-                    // Add Apple Music entries to the main array
+                    console.log(`Transformed Apple Music entries: ${transformedData.length}`);
                     allProcessedData.push(...transformedData);
-                    
-                    // Debug logging
-                    console.log('Apple Music Entries:', transformedData.length);
-                    console.log('Apple Music Total Time (days):', 
-                      transformedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
-                    );
                     
                     resolve(transformedData);
                   } catch (processingError) {
@@ -377,6 +364,12 @@ export const streamingProcessor = {
           
           return [];
         })
+      );
+
+      // Add global logging
+      console.log('FINAL Total entries processed:', allProcessedData.length);
+      console.log('Total listening time (days):', 
+        allProcessedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
       );
       // Debug logging for total entries
       console.log('Total entries processed:', allProcessedData.length);
@@ -417,7 +410,7 @@ export const streamingProcessor = {
         ['desc']
       );
 
-      return {
+     return {
         stats: {
           totalFiles: files.length,
           totalEntries: allProcessedData.length,
@@ -425,7 +418,8 @@ export const streamingProcessor = {
           nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
           skippedEntries: 0,
           shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime
+          totalListeningTime: stats.totalListeningTime,
+          fileNames: files.map(file => file.name)
         },
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
