@@ -410,28 +410,28 @@ export const streamingProcessor = {
         ['totalPlayed'],
         ['desc']
       );
-      const sortedSongs = _.orderBy(stats.songs, (song) => {
-        const lastPlayed = Math.max(...(stats.playHistory[song.key] || []));
-        return calculateSpotifyScore(song.playCount, song.totalPlayed, lastPlayed);
-      }, ['desc']).slice(0, 250);
+ const sortedSongs = _.orderBy(stats.songs, (song) => {
+  const lastPlayed = Math.max(...(stats.playHistory[song.key] || []));
+  return calculateSpotifyScore(song.playCount, song.totalPlayed, lastPlayed);
+}, ['desc']).slice(0, 250);
 
-      return {
-        stats: {
-          totalFiles: files.length,
-          totalEntries: allSongs.length,
-          processedSongs: stats.processedSongs,
-          nullTrackNames: allSongs.filter(e => !e.master_metadata_track_name).length,
-          skippedEntries: 0,
-          shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime
-        },
-        topArtists: sortedArtists,
-        topAlbums: sortedAlbums,
-        processedTracks: sortedSongs,
-        songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
-        briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
-        rawPlayData: allSongs
-      };
+return {
+  stats: {
+    totalFiles: files.length,
+    totalEntries: allProcessedData.length,
+    processedSongs: stats.processedSongs,
+    nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
+    skippedEntries: 0,
+    shortPlays: stats.shortPlays,
+    totalListeningTime: stats.totalListeningTime
+  },
+  topArtists: sortedArtists,
+  topAlbums: sortedAlbums,
+  processedTracks: sortedSongs,
+  songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
+  briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
+  rawPlayData: allProcessedData
+};
     } catch (error) {
       console.error('Error processing files:', error);
       throw error;
