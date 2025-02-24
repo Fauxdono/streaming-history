@@ -261,96 +261,68 @@ function calculateSongsByYear(songs, songPlayHistory) {
 export const streamingProcessor = {
   async processFiles(files) {
     try {
-      const fileArray = Array.isArray(files) 
-        ? files 
-        : files.length 
-          ? Array.from(files) 
-          : [];
-
-      console.log('Processing files:', fileArray.length);
+      let allProcessedData = [];
       
-      const allProcessedData = [];
-      
-      for (const file of fileArray) {
-        console.log(`Processing file: ${file.name}`);
-        const content = await file.text();
-        
-        // Spotify JSON files
-        if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-          try {
-            const data = JSON.parse(content);
-            console.log(`Spotify JSON entries: ${data.length}`);
-            allProcessedData.push(...data);
-          } catch (error) {
-            console.error('Error parsing Spotify JSON:', error);
+      const processedData = await Promise.all(
+        Array.from(files).map(async (file) => {
+          const content = await file.text();
+          
+          // Spotify JSON files
+          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
+            try {
+              const data = JSON.parse(content);
+              allProcessedData = [...allProcessedData, ...data];
+              return data;
+            } catch (error) {
+              console.error('Error parsing JSON:', error);
+              return [];
+            }
           }
-        }
-        
-        // Apple Music CSV
-        if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          try {
-            // Parse CSV manually, including partial plays
-            const lines = content.trim().split('\n').slice(1);
-            
-            const entries = lines
-              .reduce((acc, line) => {
-                // More robust parsing to handle various quote formats
-                const sanitizedLine = line.replace(/^"|"$/g, '').trim();
-                const parts = sanitizedLine.split('","');
-                
-                if (parts.length < 3) {
-                  console.warn('Skipping invalid line:', line);
-                  return acc;
+          
+          // Apple Music CSV
+          if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
+            return new Promise((resolve) => {
+              Papa.parse(content, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                  const transformedData = results.data.map(row => {
+                    let trackName = row['Track Name'];
+                    let artistName = 'Unknown Artist';
+                    
+                    const trackParts = trackName ? trackName.split(' - ') : [];
+                    if (trackParts.length > 1) {
+                      artistName = trackParts[0];
+                      trackName = trackParts.slice(1).join(' - ');
+                    }
+                    return {
+                      master_metadata_track_name: trackName,
+                      ts: new Date(row['Last Played Date']).toISOString(),
+                      ms_played: row['Is User Initiated'] ? 240000 : 30000,
+                      master_metadata_album_artist_name: artistName,
+                      master_metadata_album_album_name: 'Unknown Album'
+                    };
+                  }).filter(entry => entry.master_metadata_track_name);
+                  
+                  allProcessedData = [...allProcessedData, ...transformedData];
+                  resolve(transformedData);
+                },
+                error: (error) => {
+                  console.error('Error parsing Apple Music CSV:', error);
+                  resolve([]);
                 }
-
-                const trackName = parts[0];
-                const timestamp = parts[1];
-                const isFullPlay = parts[2] === 'true';
-
-                // Split track info
-                const trackParts = trackName.split(' - ');
-                const artistName = trackParts[0].trim();
-                const track = trackParts.slice(1).join(' - ').trim();
-
-                // Validate timestamp
-                const parsedTimestamp = new Date(parseInt(timestamp));
-                if (isNaN(parsedTimestamp.getTime())) {
-                  console.warn('Invalid timestamp:', timestamp);
-                  return acc;
-                }
-
-                // Only add full play entries
-                if (isFullPlay) {
-                  acc.push({
-                    master_metadata_track_name: track,
-                    master_metadata_album_artist_name: artistName,
-                    master_metadata_album_album_name: 'Unknown Album',
-                    ts: parsedTimestamp.toISOString(),
-                    ms_played: 3 * 60 * 1000 // 3 minutes
-                  });
-                }
-
-                return acc;
-              }, []);
-
-            console.log(`Transformed Apple Music entries: ${entries.length}`);
-            allProcessedData.push(...entries);
-          } catch (appleParseError) {
-            console.error('Error parsing Apple Music file:', appleParseError);
+              });
+            });
           }
-        }
-      }
-
-      // Logging and debugging
-      console.log('FINAL Total entries processed:', allProcessedData.length);
-      console.log('Total listening time (days):', 
-        allProcessedData.reduce((total, entry) => total + entry.ms_played, 0) / (1000 * 60 * 60 * 24)
+          
+          return [];
+        })
       );
 
-      // Calculate stats
+      // Calculate comprehensive stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
 
-      // Prepare sorted artists
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const artistSongs = stats.songs.filter(song => song.artist === artist.name);
@@ -383,14 +355,13 @@ export const streamingProcessor = {
 
       return {
         stats: {
-          totalFiles: fileArray.length,
+          totalFiles: files.length,
           totalEntries: allProcessedData.length,
           processedSongs: stats.processedSongs,
           nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
           skippedEntries: 0,
           shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime,
-          fileNames: fileArray.map(file => file.name)
+          totalListeningTime: stats.totalListeningTime
         },
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
