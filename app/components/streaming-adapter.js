@@ -287,47 +287,26 @@ if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
       dynamicTyping: true,
       skipEmptyLines: true,
       complete: (results) => {
-        console.log('Apple Music CSV Parsing Results:');
-        console.log('Total Rows:', results.data.length);
-        console.log('First few rows:', results.data.slice(0, 5));
-        console.log('Errors:', results.errors);
+        const transformedData = results.data
+          .filter(row => row['Track Name']) // Ensure track name exists
+          .map(row => {
+            // More robust track/artist parsing
+            const fullTrackInfo = row['Track Name'] || '';
+            const parts = fullTrackInfo.split(' - ');
+            
+            const artistName = parts.length > 1 ? parts[0].trim() : 'Unknown Artist';
+            const trackName = parts.length > 1 ? parts.slice(1).join(' - ').trim() : fullTrackInfo.trim();
 
-        const transformedData = results.data.map(row => {
-          console.log('Processing Row:', row);
-
-          let trackName = row['Track Name'];
-          let artistName = 'Unknown Artist';
-          
-          const trackParts = trackName ? trackName.split(' - ') : [];
-          if (trackParts.length > 1) {
-            artistName = trackParts[0];
-            trackName = trackParts.slice(1).join(' - ');
-          }
-
-          try {
-            const entry = {
+            return {
               master_metadata_track_name: trackName,
-              ts: new Date(row['Last Played Date']).toISOString(),
+              ts: row['Last Played Date'] ? new Date(row['Last Played Date']).toISOString() : new Date().toISOString(),
               ms_played: row['Is User Initiated'] ? 240000 : 30000,
               master_metadata_album_artist_name: artistName,
               master_metadata_album_album_name: 'Unknown Album'
             };
-            console.log('Transformed Entry:', entry);
-            return entry;
-          } catch (entryError) {
-            console.error('Error transforming entry:', entryError);
-            return null;
-          }
-        }).filter(entry => entry && entry.master_metadata_track_name);
+          });
         
-        console.log('Transformed Data Length:', transformedData.length);
-        
-        allProcessedData = [...allProcessedData, ...transformedData];
         resolve(transformedData);
-      },
-      error: (error) => {
-        console.error('Error parsing Apple Music CSV:', error);
-        resolve([]);
       }
     });
   });
