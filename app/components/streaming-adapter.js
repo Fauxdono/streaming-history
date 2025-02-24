@@ -377,9 +377,7 @@ export const streamingProcessor = {
       throw error;
     }
   }
-};
-
-      // Calculate comprehensive stats
+};   // Calculate comprehensive stats
       const stats = calculatePlayStats(allSongs);
 
       // Prepare top artists with additional info
