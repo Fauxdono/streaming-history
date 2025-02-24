@@ -289,64 +289,56 @@ export const streamingProcessor = {
         // Apple Music CSV
         if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
           try {
-            console.log('Raw Apple Music content:', content.slice(0, 500)); // Log first 500 chars
+            // Parse CSV manually, skipping the header
+            const lines = content.trim().split('\n').slice(1);
+            
+            const entries = lines
+              .reduce((acc, line) => {
+                // Remove quotes and split
+                const parts = line.replace(/^"|"$/g, '').split('","');
+                
+                if (parts.length < 3) {
+                  console.warn('Skipping invalid line:', line);
+                  return acc;
+                }
 
-            // Use Papa Parse with more lenient parsing
-            const result = Papa.parse(content, {
-              delimiter: ',',
-              skipEmptyLines: true,
-              dynamicTyping: true
-            });
+                const trackName = parts[0];
+                const timestamp = parts[1];
+                const isFullPlay = parts[2] === 'true';
 
-            console.log('Papa Parse result:', result);
+                // Split track info
+                const trackParts = trackName.split(' - ');
+                const artistName = trackParts[0].trim();
+                const track = trackParts.slice(1).join(' - ').trim();
 
-            const processedEntries = result.data
-              .map(row => {
-                try {
-                  // Ensure row has enough elements
-                  if (!row || row.length < 4) {
-                    console.warn('Skipping invalid row:', row);
-                    return null;
-                  }
+                // Validate timestamp
+                const parsedTimestamp = new Date(parseInt(timestamp));
+                if (isNaN(parsedTimestamp.getTime())) {
+                  console.warn('Invalid timestamp:', timestamp);
+                  return acc;
+                }
 
-                  // Parse track info
-                  const trackInfo = row[0];
-                  const timestamp = row[1];
-                  const isFullPlay = row[3];
+                // Estimate play time
+                const estimatedPlayTime = isFullPlay 
+                  ? 3 * 60 * 1000  // 3 minutes for full plays
+                  : 30 * 1000;     // 30 seconds for partial plays
 
-                  // Split track info
-                  const trackParts = trackInfo.split(' - ');
-                  const artistName = trackParts[0].trim();
-                  const trackName = trackParts.slice(1).join(' - ').trim();
-
-                  // Validate timestamp
-                  const parsedTimestamp = new Date(parseInt(timestamp));
-                  if (isNaN(parsedTimestamp.getTime())) {
-                    console.warn('Invalid timestamp:', timestamp);
-                    return null;
-                  }
-
-                  // Estimate play time
-                  const estimatedPlayTime = isFullPlay 
-                    ? 3 * 60 * 1000  // 3 minutes for full plays
-                    : 30 * 1000;     // 30 seconds for partial plays
-
-                  return {
-                    master_metadata_track_name: trackName,
+                // Only add full play entries to avoid duplicates
+                if (isFullPlay) {
+                  acc.push({
+                    master_metadata_track_name: track,
                     master_metadata_album_artist_name: artistName,
                     master_metadata_album_album_name: 'Unknown Album',
                     ts: parsedTimestamp.toISOString(),
                     ms_played: estimatedPlayTime
-                  };
-                } catch (entryError) {
-                  console.warn('Error processing entry:', row, entryError);
-                  return null;
+                  });
                 }
-              })
-              .filter(entry => entry !== null);
 
-            console.log(`Transformed Apple Music entries: ${processedEntries.length}`);
-            allProcessedData.push(...processedEntries);
+                return acc;
+              }, []);
+
+            console.log(`Transformed Apple Music entries: ${entries.length}`);
+            allProcessedData.push(...entries);
           } catch (appleParseError) {
             console.error('Error parsing Apple Music file:', appleParseError);
           }
