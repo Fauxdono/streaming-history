@@ -58,8 +58,9 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     const end = endDate ? endOfDay(new Date(endDate)) : new Date();
     
     const episodeStats = {};
+    const showAverages = {};
     
-    // First pass: collect total duration of each episode
+    // First pass: collect total duration of each episode and build show statistics
     rawPlayData.forEach(entry => {
       const timestamp = new Date(entry.ts);
       if (
@@ -70,42 +71,21 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
         (selectedShows.length === 0 || selectedShows.includes(entry.episode_show_name))
       ) {
         const key = `${entry.episode_name}-${entry.episode_show_name}`;
-        if (!episodeStats[key]) {
-          episodeStats[key] = {
-            key,
-            episodeName: entry.episode_name,
-            showName: entry.episode_show_name,
-            totalPlayed: 0,
-            segmentCount: 0,          // Number of segments > 5 minutes
-            playSegments: [],         // Store all play segments
-            durationMs: entry.duration_ms || 0  // Total episode duration if available
+        const showName = entry.episode_show_name;
+        
+        // Track show statistics to establish typical episode lengths
+        if (!showAverages[showName]) {
+          showAverages[showName] = {
+            totalDuration: 0,
+            episodeCount: 0,
+            knownDurations: []
           };
         }
         
-        // Track each play segment
-        if (entry.ms_played >= 300000) { // 5 minutes
-          episodeStats[key].segmentCount++;
-          episodeStats[key].playSegments.push({
-            timestamp: new Date(entry.ts),
-            duration: entry.ms_played
-          });
-        }
+        // If we have actual duration, track it
+        if (entry.duration_ms && entry.duration_ms > 0) {
+          showAverages[showName].knownDurations.push(entry.duration_ms);
         
-        episodeStats[key].totalPlayed += entry.ms_played;
-      }
-    });
-
-    // Convert to array and calculate percentages
-    return Object.values(episodeStats)
-      .map(episode => ({
-        ...episode,
-        percentageListened: episode.durationMs ? 
-          Math.round((episode.totalPlayed / episode.durationMs) * 100) : null,
-        averageSegmentLength: Math.round(episode.totalPlayed / episode.segmentCount)
-      }))
-      .sort((a, b) => b[sortBy] - a[sortBy])
-      .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows]);
 
   // Improved date range functions
   const setQuickRange = (days) => {
@@ -316,8 +296,13 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                   >
                     Sessions {sortBy === 'segmentCount' && '▼'}
                   </th>
-                  <th className="p-2 text-right text-indigo-700">% Complete</th>
-                  <th className="p-2 text-right text-indigo-700">Avg Session</th>
+                  <th 
+                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'completedPlays' ? 'font-bold' : ''}`}
+                    onClick={() => setSortBy('completedPlays')}
+                  >
+                    Completed {sortBy === 'completedPlays' && '▼'}
+                  </th>
+                  <th className="p-2 text-right text-indigo-700">End Reasons</th>
                 </tr>
               </thead>
               <tbody>
@@ -337,12 +322,19 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                       {episode.segmentCount}
                     </td>
                     <td className="p-2 text-right text-indigo-700">
-                      {episode.percentageListened !== null ? 
-                        `${episode.percentageListened}%` : 
-                        'N/A'}
+                      {episode.completedPlays}
                     </td>
-                    <td className="p-2 text-right text-indigo-700">
-                      {formatDuration(episode.averageSegmentLength)}
+                    <td className="p-2 text-right text-indigo-700 text-xs">
+                      {/* Show the most common reason ends, limited to keep UI clean */}
+                      {Object.entries(episode.reasonEnds)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([reason, count]) => (
+                          <div key={reason} title={`${reason}: ${count}`}>
+                            {reason}: {count}
+                          </div>
+                        ))
+                      }
                     </td>
                   </tr>
                 ))}
