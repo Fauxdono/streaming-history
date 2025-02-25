@@ -45,9 +45,41 @@ function normalizeString(str) {
     .trim();
 }
 
+// Additional cleaner for track titles to handle common variations
+function deepNormalizeTrack(track) {
+  if (!track) return '';
+  
+  // First apply basic normalization
+  let normalized = normalizeString(track);
+  
+  // Handle common variations in condition/state words
+  normalized = normalized
+    .replace(/\b(is|was)\b/g, '') // Remove "is" vs "was" variations
+    .replace(/\b(are|were)\b/g, '') // Remove "are" vs "were" variations
+    .replace(/\b(has|had)\b/g, '') // Remove "has" vs "had" variations
+    .replace(/\bcondition\b/g, 'cond') // Normalize "condition"
+    .replace(/\bpt\b|\bpart\b/, 'p') // Normalize "part" vs "pt"
+    .replace(/\bone\b|\b1\b/, '1') // Normalize "one" vs "1"
+    .replace(/\btwo\b|\b2\b/, '2') // Normalize "two" vs "2"
+    .replace(/\bthree\b|\b3\b/, '3') // Normalize "three" vs "3"
+    
+    // Remove common filler words that might differ across versions
+    .replace(/\b(the|a|an|and|or|but|in|on|at|to|for|with|by)\b/g, '')
+    
+    .replace(/\s+/g, ' ') // Re-normalize whitespace
+    .trim();
+    
+  return normalized;
+}
+
 // Create a normalized key for track matching
 function createMatchKey(trackName, artistName) {
   return `${normalizeString(trackName)}-${normalizeString(artistName)}`;
+}
+
+// Create a more aggressive normalized key for fuzzy track matching
+function createFuzzyMatchKey(trackName, artistName) {
+  return `${deepNormalizeTrack(trackName)}-${normalizeString(artistName)}`;
 }
 
 function calculatePlayStats(entries) {
@@ -89,6 +121,9 @@ function calculatePlayStats(entries) {
     }
   });
   
+  // Create a fuzzy track map for handling subtle variations
+  const fuzzyTrackMap = new Map();
+  
   // Second pass - process all entries
   entries.forEach(entry => {
     const playTime = entry.ms_played;
@@ -109,6 +144,7 @@ function calculatePlayStats(entries) {
     // Create keys for lookups
     const standardKey = `${trackName}-${artistName}`;
     const matchKey = createMatchKey(trackName, artistName);
+    const fuzzyKey = createFuzzyMatchKey(trackName, artistName);
     
     const timestamp = new Date(entry.ts);
 
@@ -182,8 +218,79 @@ function calculatePlayStats(entries) {
     }
   });
 
-  // Convert track map to array
-  const allSongs = Array.from(trackMap.values());
+  // Post-processing to find and combine similar tracks that weren't matched
+  const processedKeys = new Set();
+  const combinedTracks = [];
+  
+  // First, go through each track and look for near-duplicates
+  for (const [key, track] of trackMap.entries()) {
+    // Skip if we've already processed this track
+    if (processedKeys.has(key)) continue;
+    
+    // Mark as processed
+    processedKeys.add(key);
+    
+    // Start with this track's data
+    const combinedTrack = {...track};
+    let foundDuplicates = false;
+    
+    // Look for similar tracks to combine
+    for (const [otherKey, otherTrack] of trackMap.entries()) {
+      // Skip if same track or already processed
+      if (otherKey === key || processedKeys.has(otherKey)) continue;
+      
+      // Check if tracks are similar enough to combine
+      if (isSimilarTrack(track, otherTrack)) {
+        // Combine stats
+        combinedTrack.totalPlayed += otherTrack.totalPlayed;
+        combinedTrack.playCount += otherTrack.playCount;
+        
+        // Use Spotify data if available
+        if (otherTrack.hasSpotifyData && !combinedTrack.hasSpotifyData) {
+          combinedTrack.albumName = otherTrack.albumName;
+          combinedTrack.hasSpotifyData = true;
+        }
+        
+        // Combine play history
+        if (songPlayHistory[otherTrack.key]) {
+          if (!songPlayHistory[combinedTrack.key]) {
+            songPlayHistory[combinedTrack.key] = [];
+          }
+          songPlayHistory[combinedTrack.key].push(...songPlayHistory[otherTrack.key]);
+        }
+        
+        // Mark as processed
+        processedKeys.add(otherKey);
+        foundDuplicates = true;
+      }
+    }
+    
+    // Add the combined track to results
+    combinedTracks.push(combinedTrack);
+  }
+  
+  // Function to check if two tracks are similar enough to combine
+  function isSimilarTrack(track1, track2) {
+    // If exact match on fuzzy normalized key
+    const fuzzyKey1 = createFuzzyMatchKey(track1.trackName, track1.artist);
+    const fuzzyKey2 = createFuzzyMatchKey(track2.trackName, track2.artist);
+    if (fuzzyKey1 === fuzzyKey2) return true;
+    
+    // Handle specific cases like "Just Dropped In"
+    if (track1.trackName.includes("Just Dropped In") && 
+        track2.trackName.includes("Just Dropped In") &&
+        track1.artist.includes("Kenny Rogers") && 
+        track2.artist.includes("Kenny Rogers")) {
+      return true;
+    }
+    
+    // Add other specific matching rules here
+    
+    return false;
+  }
+  
+  // Use the combined tracks instead of just the trackMap values
+  const allSongs = combinedTracks;
 
   return {
     songs: allSongs,
