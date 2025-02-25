@@ -58,7 +58,38 @@ function calculatePlayStats(entries) {
   let totalListeningTime = 0;
   let processedSongs = 0;
   let shortPlays = 0;
+  
+  // Create indices for Spotify tracks by artist to help with album matching
+  const spotifyTracksByArtist = {};
+  const spotifyTracksByTitle = {};
 
+  // First pass - index all Spotify tracks for album matching
+  entries.forEach(entry => {
+    if (entry.source === 'spotify' && 
+        entry.master_metadata_track_name && 
+        entry.master_metadata_album_artist_name &&
+        entry.master_metadata_album_album_name) {
+        
+      const trackName = entry.master_metadata_track_name;
+      const artistName = entry.master_metadata_album_artist_name;
+      const normalizedTrack = normalizeString(trackName);
+      const normalizedArtist = normalizeString(artistName);
+      
+      // Index by artist
+      if (!spotifyTracksByArtist[normalizedArtist]) {
+        spotifyTracksByArtist[normalizedArtist] = [];
+      }
+      spotifyTracksByArtist[normalizedArtist].push(entry);
+      
+      // Index by track name
+      if (!spotifyTracksByTitle[normalizedTrack]) {
+        spotifyTracksByTitle[normalizedTrack] = [];
+      }
+      spotifyTracksByTitle[normalizedTrack].push(entry);
+    }
+  });
+  
+  // Second pass - process all entries
   entries.forEach(entry => {
     const playTime = entry.ms_played;
     
@@ -333,11 +364,32 @@ export const streamingProcessor = {
                       let trackName = row['Track Name'] || '';
                       let artistName = 'Unknown Artist';
                       
-                      // Apple format is often "Artist - Track" or "Artist, Artist - Track"
-                      const dashIndex = trackName.indexOf(' - ');
-                      if (dashIndex > 0) {
+                      // Handle different Apple Music formats
+                      if (trackName.includes(' - ')) {
+                        // Format: "Artist - Track" or "Artist, Artist - Track"
+                        const dashIndex = trackName.indexOf(' - ');
                         artistName = trackName.substring(0, dashIndex).trim();
                         trackName = trackName.substring(dashIndex + 3).trim();
+                      } else if (trackName.includes(', ') && !trackName.includes(' - ')) {
+                        // Alternative format sometimes seen: "Track, Artist"
+                        const parts = trackName.split(', ');
+                        if (parts.length >= 2) {
+                          // Assume last part is the artist
+                          artistName = parts[parts.length - 1].trim();
+                          // All other parts form the track name
+                          trackName = parts.slice(0, parts.length - 1).join(', ').trim();
+                        }
+                      }
+                      
+                      // Extract featuring artists from track name if present
+                      if (trackName.includes('(feat.') && !artistName.includes('feat.')) {
+                        const featIndex = trackName.indexOf('(feat.');
+                        const featEndIndex = trackName.indexOf(')', featIndex);
+                        
+                        if (featEndIndex !== -1) {
+                          // Leave the featuring info with the track name as Spotify does
+                          // This helps with matching
+                        }
                       }
                       
                       // Convert timestamp from milliseconds to ISO date
@@ -349,8 +401,7 @@ export const streamingProcessor = {
                         timestamp = new Date().toISOString();
                       }
                       
-                      // Estimate play time (Apple doesn't provide this)
-                      // User-initiated plays likely involve full tracks
+                      // Estimate play time based on user initiation
                       const estimatedPlayTime = row['Is User Initiated'] ? 240000 : 30000;
                       
                       return {
