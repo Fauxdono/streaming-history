@@ -31,23 +31,19 @@ export const STREAMING_SERVICES = {
   }
 };
 
-// Normalize track names and artist names for better matching
 function normalizeString(str) {
   if (!str) return '';
   return str.toLowerCase()
     .replace(/\(feat\..*?\)/g, '') // Remove featuring artists
-    .replace(/\(.*?version.*?\)/gi, '') // Remove version info
-    .replace(/\(.*?remix.*?\)/gi, '') // Remove remix info
-    .replace(/\(.*?edit.*?\)/gi, '') // Remove edit info
     .replace(/[^\w\s]/g, '') // Remove punctuation
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim();
 }
 
-// Create a normalized key for track matching
 function createMatchKey(trackName, artistName) {
   // Special case for "Just Dropped In"
-  if (trackName.toLowerCase().includes("just dropped in") && 
+  if (trackName && artistName && 
+      trackName.toLowerCase().includes("just dropped in") && 
       artistName.toLowerCase().includes("kenny rogers")) {
     return "just-dropped-in-kenny-rogers";
   }
@@ -55,19 +51,17 @@ function createMatchKey(trackName, artistName) {
 }
 
 function calculatePlayStats(entries) {
-  const trackMap = new Map();
+  const allSongs = [];
   const artistStats = {};
   const albumStats = {};
   const songPlayHistory = {};
   let totalListeningTime = 0;
   let processedSongs = 0;
   let shortPlays = 0;
-  
-  // Build Spotify indices - optimized for faster processing
-  const spotifyTracks = entries.filter(e => e.source === 'spotify' && 
-                                        e.master_metadata_track_name && 
-                                        e.master_metadata_album_artist_name);
-  
+
+  // Simple track map for combining same tracks
+  const trackMap = {};
+
   entries.forEach(entry => {
     const playTime = entry.ms_played;
     
@@ -83,12 +77,13 @@ function calculatePlayStats(entries) {
     const trackName = entry.master_metadata_track_name;
     const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
     const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-    const timestamp = new Date(entry.ts);
     
     // Create keys for lookups
     const standardKey = `${trackName}-${artistName}`;
     const matchKey = createMatchKey(trackName, artistName);
     
+    const timestamp = new Date(entry.ts);
+
     // Track play history
     if (!songPlayHistory[standardKey]) {
       songPlayHistory[standardKey] = [];
@@ -133,56 +128,28 @@ function calculatePlayStats(entries) {
       );
     }
 
-    // Track stats
-    if (trackMap.has(matchKey)) {
+    // Use simple object instead of Map for better performance
+    if (trackMap[matchKey]) {
       // Update existing track
-      const existingTrack = trackMap.get(matchKey);
-      existingTrack.totalPlayed += playTime;
-      existingTrack.playCount++;
-      
-      // If this entry has more complete metadata, use it
-      if (entry.source === 'spotify' && !existingTrack.hasSpotifyData) {
-        existingTrack.albumName = albumName;
-        existingTrack.hasSpotifyData = true;
-      }
+      trackMap[matchKey].totalPlayed += playTime;
+      trackMap[matchKey].playCount++;
     } else {
-      // Find album info for Apple Music tracks
-      let spotifyAlbumMatch = albumName;
-      let hasSpotifyMatch = entry.source === 'spotify';
-      
-      // Only try to match if this is an Apple Music track and we have Spotify data
-      if (entry.source === 'apple_music' && spotifyTracks.length > 0) {
-        const normalizedTrack = normalizeString(trackName);
-        const normalizedArtist = normalizeString(artistName);
-        
-        // Try to find a matching Spotify track
-        const spotifyMatch = spotifyTracks.find(
-          spotifyTrack => 
-            normalizeString(spotifyTrack.master_metadata_track_name).includes(normalizedTrack) &&
-            normalizeString(spotifyTrack.master_metadata_album_artist_name).includes(normalizedArtist)
-        );
-        
-        if (spotifyMatch) {
-          spotifyAlbumMatch = spotifyMatch.master_metadata_album_album_name;
-          hasSpotifyMatch = true;
-        }
-      }
-      
       // Add new track
-      trackMap.set(matchKey, {
+      trackMap[matchKey] = {
         key: standardKey,
         trackName,
         artist: artistName,
-        albumName: spotifyAlbumMatch,
+        albumName,
         totalPlayed: playTime,
-        playCount: 1,
-        hasSpotifyData: hasSpotifyMatch
-      });
+        playCount: 1
+      };
     }
   });
 
   // Convert track map to array
-  const allSongs = Array.from(trackMap.values());
+  for (const key in trackMap) {
+    allSongs.push(trackMap[key]);
+  }
 
   return {
     songs: allSongs,
@@ -323,14 +290,11 @@ export const streamingProcessor = {
       const processedData = await Promise.all(
         Array.from(files).map(async (file) => {
           const content = await file.text();
-          const fileName = file.name.toLowerCase();
           
           // Spotify JSON files
-          if ((fileName.includes('streaming_history') || fileName.includes('endsong')) && 
-              fileName.endsWith('.json')) {
+          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
             try {
               const data = JSON.parse(content);
-              // Add source tag to identify platform
               const dataWithSource = data.map(entry => ({
                 ...entry,
                 source: 'spotify'
@@ -338,25 +302,36 @@ export const streamingProcessor = {
               allProcessedData = [...allProcessedData, ...dataWithSource];
               return dataWithSource;
             } catch (error) {
-              console.error('Error parsing Spotify JSON:', error);
+              console.error('Error parsing JSON:', error);
               return [];
             }
           }
           
           // Apple Music CSV files
-          if (fileName.includes('apple') && fileName.endsWith('.csv')) {
+          if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
             return new Promise((resolve) => {
               Papa.parse(content, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                  console.log('Apple Music CSV Parsing Results:');
-                  console.log('Total Rows:', results.data.length);
-                  
                   const transformedData = results.data
                     .filter(row => row['Track Name'] && row['Last Played Date'])
                     .map(row => {
+                      // Handle special case for Kenny Rogers
+                      if (row['Track Name'] && 
+                          row['Track Name'].toLowerCase().includes('just dropped in') && 
+                          row['Track Name'].toLowerCase().includes('kenny rogers')) {
+                        return {
+                          master_metadata_track_name: 'Just Dropped In (To See What Condition My Condition Is In)',
+                          ts: new Date(parseInt(row['Last Played Date'])).toISOString(),
+                          ms_played: row['Is User Initiated'] ? 240000 : 30000,
+                          master_metadata_album_artist_name: 'Kenny Rogers & The First Edition',
+                          master_metadata_album_album_name: 'Unknown Album',
+                          source: 'apple_music'
+                        };
+                      }
+                  
                       // Parse track name from Apple Music format
                       let trackName = row['Track Name'] || '';
                       let artistName = 'Unknown Artist';
@@ -406,21 +381,14 @@ export const streamingProcessor = {
           return [];
         })
       );
-         
-
-      // No data processed
-      if (allProcessedData.length === 0) {
-        throw new Error('No valid streaming data found in the uploaded files.');
-      }
 
       // Calculate comprehensive stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
 
-      // Process artist data with streaks and most played songs
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const artistSongs = stats.songs.filter(song => song.artist === artist.name);
-          const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
+          const mostPlayed = _.maxBy(artistSongs, 'playCount');
           const artistPlays = [];
           artistSongs.forEach(song => {
             if (stats.playHistory[song.key]) {
@@ -432,13 +400,12 @@ export const streamingProcessor = {
 
           return {
             ...artist,
-            mostPlayedSong: mostPlayed,
+            mostPlayedSong: mostPlayed || { trackName: 'Unknown', playCount: 0 },
             ...streaks
           };
         })
         .sort((a, b) => b.totalPlayed - a.totalPlayed);
 
-      // Process album data
       const sortedAlbums = _.orderBy(
         Object.values(stats.albums).map(album => ({
           ...album,
@@ -448,18 +415,7 @@ export const streamingProcessor = {
         ['desc']
       );
 
-      // Calculate song scores for ranking
-      const scoredSongs = stats.songs.map(song => {
-        const playHistory = stats.playHistory[song.key] || [];
-        const lastPlayed = playHistory.length > 0 ? Math.max(...playHistory) : Date.now();
-        return {
-          ...song,
-          spotifyScore: song.playCount * (song.totalPlayed / 60000) * 0.1 // Simplified score
-        };
-      });
-
-      // Sort songs by score and limit to top 250
-      const sortedSongs = _.orderBy(scoredSongs, ['spotifyScore'], ['desc']).slice(0, 250);
+      const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
 
       return {
         stats: {
