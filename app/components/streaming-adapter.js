@@ -406,6 +406,13 @@ export const streamingProcessor = {
           return [];
         })
       );
+              });
+            });
+          }
+          
+          return [];
+        })
+      );
 
       // No data processed
       if (allProcessedData.length === 0) {
