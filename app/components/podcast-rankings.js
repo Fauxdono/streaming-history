@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, subDays, format } from 'date-fns';
+import { startOfDay, endOfDay, subDays, format, differenceInMinutes } from 'date-fns';
 
 const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }) => {
   const [startDate, setStartDate] = useState('');
@@ -8,6 +8,9 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedShows, setSelectedShows] = useState(initialShows);
   const [showSearch, setShowSearch] = useState('');
+  const [duplicateThreshold, setDuplicateThreshold] = useState(3); // Minutes threshold for duplicate detection
+  const [showDuplicateStats, setShowDuplicateStats] = useState(false);
+  const [duplicatesFound, setDuplicatesFound] = useState(0);
   
   const addShowFromEpisode = (show) => {
     if (!selectedShows.includes(show)) {
@@ -56,45 +59,97 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
     const end = endDate ? endOfDay(new Date(endDate)) : new Date();
     
-    const episodeStats = {};
+    // First pass: collect play events by episode
+    const episodePlayEvents = {};
+    let totalDuplicatesFound = 0;
     
-    // First pass: collect total duration of each episode
-    rawPlayData.forEach(entry => {
+    // Filter relevant play events
+    const relevantEvents = rawPlayData.filter(entry => {
       const timestamp = new Date(entry.ts);
-      if (
+      return (
         timestamp >= start && 
         timestamp <= end && 
         entry.ms_played >= 120000 && // Only count plays longer than 2 minutes
         entry.episode_show_name &&
         entry.episode_name &&
         (selectedShows.length === 0 || selectedShows.includes(entry.episode_show_name))
-      ) {
-        const key = `${entry.episode_name}-${entry.episode_show_name}`;
-        if (!episodeStats[key]) {
-          episodeStats[key] = {
-            key,
-            episodeName: entry.episode_name,
-            showName: entry.episode_show_name,
-            totalPlayed: 0,
-            segmentCount: 0,          // Number of segments > 5 minutes
-            playSegments: [],         // Store all play segments
-            durationMs: entry.duration_ms || 0  // Total episode duration if available
-          };
+      );
+    });
+    
+    // Group play events by episode
+    relevantEvents.forEach(entry => {
+      const key = `${entry.episode_name}-${entry.episode_show_name}`;
+      if (!episodePlayEvents[key]) {
+        episodePlayEvents[key] = [];
+      }
+      
+      episodePlayEvents[key].push({
+        timestamp: new Date(entry.ts),
+        duration: entry.ms_played,
+        durationMs: entry.duration_ms || 0
+      });
+    });
+    
+    // Second pass: process events and detect duplicates
+    const episodeStats = {};
+    
+    Object.entries(episodePlayEvents).forEach(([key, events]) => {
+      // Sort events by timestamp
+      events.sort((a, b) => a.timestamp - b.timestamp);
+      
+      // Initialize episode stats
+      const [episodeName, showName] = key.split('-');
+      episodeStats[key] = {
+        key,
+        episodeName,
+        showName,
+        totalPlayed: 0,
+        segmentCount: 0,
+        playSegments: [],
+        durationMs: events[0]?.durationMs || 0,
+        duplicatesRemoved: 0
+      };
+      
+      // Process events and filter duplicates
+      const filteredEvents = [];
+      
+      for (let i = 0; i < events.length; i++) {
+        const currentEvent = events[i];
+        
+        // Check if this is a duplicate of a previous event (within threshold minutes)
+        let isDuplicate = false;
+        
+        for (let j = Math.max(0, i - 5); j < i; j++) {
+          const prevEvent = events[j];
+          const minutesDiff = differenceInMinutes(currentEvent.timestamp, prevEvent.timestamp);
+          
+          if (Math.abs(minutesDiff) <= duplicateThreshold) {
+            isDuplicate = true;
+            episodeStats[key].duplicatesRemoved++;
+            totalDuplicatesFound++;
+            break;
+          }
         }
         
-        // Track each play segment
-        if (entry.ms_played >= 300000) { // 5 minutes
-          episodeStats[key].segmentCount++;
-          episodeStats[key].playSegments.push({
-            timestamp: new Date(entry.ts),
-            duration: entry.ms_played
-          });
+        if (!isDuplicate) {
+          filteredEvents.push(currentEvent);
+          
+          // Count as segment if > 5 minutes
+          if (currentEvent.duration >= 300000) {
+            episodeStats[key].segmentCount++;
+            episodeStats[key].playSegments.push({
+              timestamp: currentEvent.timestamp,
+              duration: currentEvent.duration
+            });
+          }
+          
+          episodeStats[key].totalPlayed += currentEvent.duration;
         }
-        
-        episodeStats[key].totalPlayed += entry.ms_played;
       }
     });
-
+    
+    setDuplicatesFound(totalDuplicatesFound);
+    
     // Convert to array and calculate percentages
     return Object.values(episodeStats)
       .map(episode => ({
@@ -106,7 +161,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
       }))
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows]);
+  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows, duplicateThreshold]);
 
   // Improved date range functions
   const setQuickRange = (days) => {
@@ -253,6 +308,35 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
         </div>
       </div>
 
+      {/* Duplicate Detection Settings */}
+      <div className="flex flex-wrap items-center gap-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+        <div className="flex items-center gap-2">
+          <label className="text-indigo-700 font-medium">Duplicate Detection: </label>
+          <input
+            type="number"
+            min="1"
+            max="30"
+            value={duplicateThreshold}
+            onChange={(e) => setDuplicateThreshold(Math.min(30, Math.max(1, parseInt(e.target.value))))}
+            className="border rounded w-16 px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400"
+          />
+          <span className="text-indigo-700">minute threshold</span>
+        </div>
+        
+        <button 
+          onClick={() => setShowDuplicateStats(!showDuplicateStats)}
+          className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
+        >
+          {showDuplicateStats ? 'Hide Stats' : 'Show Stats'}
+        </button>
+        
+        {showDuplicateStats && (
+          <div className="flex-1 text-right text-indigo-700">
+            <span className="font-medium">{duplicatesFound}</span> duplicate plays filtered
+          </div>
+        )}
+      </div>
+
       {/* Show Selection */}
       <div className="relative">
         <div className="flex flex-wrap gap-2 mb-4">
@@ -319,6 +403,9 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                   </th>
                   <th className="p-2 text-right text-indigo-700">% Complete</th>
                   <th className="p-2 text-right text-indigo-700">Avg Session</th>
+                  {showDuplicateStats && (
+                    <th className="p-2 text-right text-indigo-700">Duplicates Removed</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -345,6 +432,11 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                     <td className="p-2 text-right text-indigo-700">
                       {formatDuration(episode.averageSegmentLength)}
                     </td>
+                    {showDuplicateStats && (
+                      <td className="p-2 text-right text-indigo-700">
+                        {episode.duplicatesRemoved}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
