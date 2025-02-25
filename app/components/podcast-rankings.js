@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, subDays, format, differenceInMinutes } from 'date-fns';
+import { startOfDay, endOfDay, subDays, format, differenceInMinutes, parseISO } from 'date-fns';
 
 const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }) => {
   const [startDate, setStartDate] = useState('');
@@ -8,9 +8,10 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedShows, setSelectedShows] = useState(initialShows);
   const [showSearch, setShowSearch] = useState('');
-  const [duplicateThreshold, setDuplicateThreshold] = useState(3); // Minutes threshold for duplicate detection
-  const [showDuplicateStats, setShowDuplicateStats] = useState(false);
+  const [duplicateThreshold, setDuplicateThreshold] = useState(180); // Minutes threshold for duplicate detection
+  const [showDuplicateStats, setShowDuplicateStats] = useState(true);
   const [duplicatesFound, setDuplicatesFound] = useState(0);
+  const [duplicateTypes, setDuplicateTypes] = useState({exact: 0, overlapping: 0, zeroTime: 0});
   
   const addShowFromEpisode = (show) => {
     if (!selectedShows.includes(show)) {
@@ -59,128 +60,216 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
     const end = endDate ? endOfDay(new Date(endDate)) : new Date();
     
-    // First pass: collect play events by episode
-    const episodePlayEvents = {};
-    let totalDuplicatesFound = 0;
+    // Step 1: Collect all relevant episodes
+    const episodeMap = {};
+    const duplicateStats = {exact: 0, overlapping: 0, zeroTime: 0};
     
-    // Filter relevant play events
+    // Filter relevant play events and group by episode
     const relevantEvents = rawPlayData.filter(entry => {
       const timestamp = new Date(entry.ts);
       return (
         timestamp >= start && 
         timestamp <= end && 
-        entry.ms_played >= 120000 && // Only count plays longer than 2 minutes
         entry.episode_show_name &&
         entry.episode_name &&
         (selectedShows.length === 0 || selectedShows.includes(entry.episode_show_name))
       );
     });
     
-    // Group play events by episode
+    // Remove zero-duration entries and exact duplicates first
+    const hashTracker = new Set();
+    const filteredEvents = [];
+    
     relevantEvents.forEach(entry => {
-      const key = `${entry.episode_name}-${entry.episode_show_name}`;
-      if (!episodePlayEvents[key]) {
-        episodePlayEvents[key] = [];
+      // Skip zero duration plays
+      if (entry.ms_played === 0) {
+        duplicateStats.zeroTime++;
+        return;
       }
       
-      episodePlayEvents[key].push({
-        timestamp: new Date(entry.ts),
+      // Check for exact duplicates (same timestamp, same duration, same episode)
+      const hash = `${entry.ts}_${entry.ms_played}_${entry.episode_name}`;
+      if (hashTracker.has(hash)) {
+        duplicateStats.exact++;
+        return;
+      }
+      
+      hashTracker.add(hash);
+      filteredEvents.push(entry);
+    });
+    
+    // Group play events by episode
+    filteredEvents.forEach(entry => {
+      const key = `${entry.episode_name}|${entry.episode_show_name}`;
+      if (!episodeMap[key]) {
+        episodeMap[key] = {
+          key,
+          episodeName: entry.episode_name,
+          showName: entry.episode_show_name,
+          events: [],
+          durationMs: entry.duration_ms || 0
+        };
+      }
+      
+      episodeMap[key].events.push({
+        timestamp: parseISO(entry.ts),
         duration: entry.ms_played,
-        durationMs: entry.duration_ms || 0
+        platform: entry.platform || 'unknown'
       });
     });
     
-    // Second pass: process events and detect duplicates
+    // Step 2: Process each episode to merge overlapping sessions
     const episodeStats = {};
     
-    Object.entries(episodePlayEvents).forEach(([key, events]) => {
+    Object.entries(episodeMap).forEach(([key, episode]) => {
+      // Skip episodes with no valid plays
+      if (episode.events.length === 0) return;
+      
       // Sort events by timestamp
-      events.sort((a, b) => a.timestamp - b.timestamp);
+      episode.events.sort((a, b) => a.timestamp - b.timestamp);
       
       // Initialize episode stats
-      const [episodeName, showName] = key.split('-');
       episodeStats[key] = {
         key,
-        episodeName,
-        showName,
+        episodeName: episode.episodeName,
+        showName: episode.showName,
         totalPlayed: 0,
         segmentCount: 0,
         playSegments: [],
-        durationMs: events[0]?.durationMs || 0,
-        duplicatesRemoved: 0
+        durationMs: episode.durationMs,
+        duplicatesRemoved: 0,
+        longestSession: 0,
+        uniquePlatforms: new Set()
       };
       
-      // Process events and filter duplicates
-      const filteredEvents = [];
+      // Track the timeline of listening
+      const segments = [];
+      let currentSegment = null;
       
-      for (let i = 0; i < events.length; i++) {
-        const currentEvent = events[i];
+      // Process each event
+      for (let i = 0; i < episode.events.length; i++) {
+        const event = episode.events[i];
+        episodeStats[key].uniquePlatforms.add(event.platform);
         
-        // Check if this is a duplicate of a previous event (within threshold minutes)
-        let isDuplicate = false;
+        // Find the longest single session
+        episodeStats[key].longestSession = Math.max(
+          episodeStats[key].longestSession,
+          event.duration
+        );
         
-        for (let j = Math.max(0, i - 5); j < i; j++) {
-          const prevEvent = events[j];
-          const minutesDiff = differenceInMinutes(currentEvent.timestamp, prevEvent.timestamp);
+        // Skip very short plays (less than 2 minutes)
+        if (event.duration < 120000) continue;
+        
+        // If this is our first segment or there's no overlap with previous
+        if (!currentSegment) {
+          currentSegment = {
+            start: event.timestamp,
+            end: new Date(event.timestamp.getTime() + event.duration),
+            duration: event.duration
+          };
+        } else {
+          // Check if this event overlaps with or continues the current segment
+          // We consider events within the duplicate threshold to be part of the same session
+          const minutesSinceLastEnd = differenceInMinutes(
+            event.timestamp, 
+            currentSegment.end
+          );
           
-          if (Math.abs(minutesDiff) <= duplicateThreshold) {
-            isDuplicate = true;
+          // If this is within our threshold, extend the current segment
+          if (minutesSinceLastEnd <= duplicateThreshold) {
+            const newEnd = new Date(event.timestamp.getTime() + event.duration);
+            
+            // Only extend if this actually makes the segment longer
+            if (newEnd > currentSegment.end) {
+              currentSegment.end = newEnd;
+              
+              // We count a portion of this as new time, avoiding double counting
+              const overlap = Math.max(0, 
+                currentSegment.end.getTime() - 
+                Math.max(currentSegment.start.getTime(), event.timestamp.getTime())
+              );
+              
+              const newTime = event.duration - overlap;
+              if (newTime > 0) {
+                currentSegment.duration += newTime;
+              }
+            }
+            
+            duplicateStats.overlapping++;
             episodeStats[key].duplicatesRemoved++;
-            totalDuplicatesFound++;
-            break;
+          } else {
+            // This is a new segment
+            segments.push(currentSegment);
+            currentSegment = {
+              start: event.timestamp,
+              end: new Date(event.timestamp.getTime() + event.duration),
+              duration: event.duration
+            };
           }
-        }
-        
-        if (!isDuplicate) {
-          filteredEvents.push(currentEvent);
-          
-          // Count as segment if > 5 minutes
-          if (currentEvent.duration >= 300000) {
-            episodeStats[key].segmentCount++;
-            episodeStats[key].playSegments.push({
-              timestamp: currentEvent.timestamp,
-              duration: currentEvent.duration
-            });
-          }
-          
-          episodeStats[key].totalPlayed += currentEvent.duration;
         }
       }
+      
+      // Add the last segment
+      if (currentSegment) {
+        segments.push(currentSegment);
+      }
+      
+      // Sum up the total play time from segments
+      let totalPlayed = 0;
+      segments.forEach(segment => {
+        totalPlayed += segment.duration;
+        
+        // Add to play segments list if over 5 minutes
+        if (segment.duration >= 300000) {
+          episodeStats[key].playSegments.push({
+            timestamp: segment.start,
+            duration: segment.duration
+          });
+          episodeStats[key].segmentCount++;
+        }
+      });
+      
+      episodeStats[key].totalPlayed = totalPlayed;
+      episodeStats[key].uniquePlatforms = Array.from(episodeStats[key].uniquePlatforms);
     });
     
-    setDuplicatesFound(totalDuplicatesFound);
+    // Update duplicate stats
+    setDuplicateTypes(duplicateStats);
+    setDuplicatesFound(
+      duplicateStats.exact + 
+      duplicateStats.overlapping + 
+      duplicateStats.zeroTime
+    );
     
-    // Convert to array and calculate percentages
+    // Convert to array and calculate additional metrics
     return Object.values(episodeStats)
+      .filter(episode => episode.totalPlayed > 0) // Only include episodes with play time
       .map(episode => ({
         ...episode,
         percentageListened: episode.durationMs ? 
           Math.round((episode.totalPlayed / episode.durationMs) * 100) : null,
         averageSegmentLength: episode.segmentCount > 0 ? 
-          Math.round(episode.totalPlayed / episode.segmentCount) : 0
+          Math.round(episode.totalPlayed / episode.segmentCount) : 0,
+        estimatedFullLength: Math.max(episode.longestSession, episode.totalPlayed)
       }))
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows, duplicateThreshold]);
 
-  // Improved date range functions
+  // Date range functions
   const setQuickRange = (days) => {
-    // For most cases, set end date to today and start date to (today - days)
     if (days > 0) {
       const today = new Date();
       const start = subDays(today, days);
       setEndDate(format(today, 'yyyy-MM-dd'));
       setStartDate(format(start, 'yyyy-MM-dd'));
-    } 
-    // Special case for "Day" button (days=0)
-    else if (days === 0) {
+    } else if (days === 0) {
       const today = new Date();
       setStartDate(format(today, 'yyyy-MM-dd'));
       setEndDate(format(today, 'yyyy-MM-dd'));
     }
   };
 
-  // Set date to start at beginning of current month
   const setCurrentMonth = () => {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -188,7 +277,6 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setEndDate(format(today, 'yyyy-MM-dd'));
   };
 
-  // Set date to start at beginning of previous month, end at end of previous month
   const setPreviousMonth = () => {
     const today = new Date();
     const firstDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -197,7 +285,6 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setEndDate(format(lastDayOfPrevMonth, 'yyyy-MM-dd'));
   };
 
-  // Set date to current calendar year
   const setCurrentYear = () => {
     const today = new Date();
     const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
@@ -205,7 +292,6 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setEndDate(format(today, 'yyyy-MM-dd'));
   };
 
-  // Set date to last calendar year
   const setPreviousYear = () => {
     const prevYear = new Date().getFullYear() - 1;
     const firstDayOfYear = new Date(prevYear, 0, 1);
@@ -214,7 +300,6 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setEndDate(format(lastDayOfYear, 'yyyy-MM-dd'));
   };
 
-  // Set date to all time
   const setAllTime = () => {
     if (rawPlayData.length > 0) {
       let earliest = new Date(rawPlayData[0].ts);
@@ -311,16 +396,16 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
       {/* Duplicate Detection Settings */}
       <div className="flex flex-wrap items-center gap-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
         <div className="flex items-center gap-2">
-          <label className="text-indigo-700 font-medium">Duplicate Detection: </label>
+          <label className="text-indigo-700 font-medium">Session gap threshold: </label>
           <input
             type="number"
             min="1"
-            max="30"
+            max="1440" // 24 hours max
             value={duplicateThreshold}
-            onChange={(e) => setDuplicateThreshold(Math.min(30, Math.max(1, parseInt(e.target.value))))}
+            onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
             className="border rounded w-16 px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400"
           />
-          <span className="text-indigo-700">minute threshold</span>
+          <span className="text-indigo-700">minutes</span>
         </div>
         
         <button 
@@ -331,8 +416,11 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
         </button>
         
         {showDuplicateStats && (
-          <div className="flex-1 text-right text-indigo-700">
-            <span className="font-medium">{duplicatesFound}</span> duplicate plays filtered
+          <div className="flex-1 text-indigo-700 text-sm p-2 bg-indigo-100 rounded">
+            <div><span className="font-medium">{duplicatesFound}</span> duplicate plays filtered:</div>
+            <div>• <span className="font-medium">{duplicateTypes.exact}</span> exact duplicates</div>
+            <div>• <span className="font-medium">{duplicateTypes.overlapping}</span> overlapping sessions</div>
+            <div>• <span className="font-medium">{duplicateTypes.zeroTime}</span> zero-duration entries</div>
           </div>
         )}
       </div>
@@ -396,16 +484,21 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                     Total Time {sortBy === 'totalPlayed' && '▼'}
                   </th>
                   <th 
+                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
+                    onClick={() => setSortBy('longestSession')}
+                  >
+                    Longest Session {sortBy === 'longestSession' && '▼'}
+                  </th>
+                  <th 
                     className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
                     onClick={() => setSortBy('segmentCount')}
                   >
                     Sessions {sortBy === 'segmentCount' && '▼'}
                   </th>
-                  <th className="p-2 text-right text-indigo-700">% Complete</th>
-                  <th className="p-2 text-right text-indigo-700">Avg Session</th>
                   {showDuplicateStats && (
                     <th className="p-2 text-right text-indigo-700">Duplicates Removed</th>
                   )}
+                  <th className="p-2 text-right text-indigo-700">Platforms</th>
                 </tr>
               </thead>
               <tbody>
@@ -422,21 +515,19 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                       {formatDuration(episode.totalPlayed)}
                     </td>
                     <td className="p-2 text-right text-indigo-700">
+                      {formatDuration(episode.longestSession)}
+                    </td>
+                    <td className="p-2 text-right text-indigo-700">
                       {episode.segmentCount}
-                    </td>
-                    <td className="p-2 text-right text-indigo-700">
-                      {episode.percentageListened !== null ? 
-                        `${episode.percentageListened}%` : 
-                        'N/A'}
-                    </td>
-                    <td className="p-2 text-right text-indigo-700">
-                      {formatDuration(episode.averageSegmentLength)}
                     </td>
                     {showDuplicateStats && (
                       <td className="p-2 text-right text-indigo-700">
                         {episode.duplicatesRemoved}
                       </td>
                     )}
+                    <td className="p-2 text-right text-indigo-700 text-xs">
+                      {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).join(', ')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
