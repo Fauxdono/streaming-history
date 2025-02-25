@@ -487,7 +487,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                     className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
                     onClick={() => setSortBy('longestSession')}
                   >
-                    Longest Session {sortBy === 'longestSession' && '▼'}
+                    Lenght Episode {sortBy === 'longestSession' && '▼'}
                   </th>
                   <th 
                     className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
