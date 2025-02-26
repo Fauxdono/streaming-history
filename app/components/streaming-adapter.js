@@ -794,7 +794,7 @@ export const streamingProcessor = {
           totalEntries: allProcessedData.length,
           processedSongs: stats.processedSongs,
           nullTrackNames: nullTrackNames,
-          skippedEntries: allProcessedData.length - stats.processedSongs - stats.shortPlays - allProcessedData.filter(e => !e.master_metadata_track_name).length,
+          skippedEntries: skippedEntries,
           shortPlays: stats.shortPlays,
           totalListeningTime: stats.totalListeningTime
         },
