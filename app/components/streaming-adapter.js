@@ -785,14 +785,16 @@ export const streamingProcessor = {
       );
 
       const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
-
+    const nullTrackNames = allProcessedData.filter(e => !e.master_metadata_track_name).length;
+      const skippedEntries = allProcessedData.length - stats.processedSongs - stats.shortPlays - nullTrackNames;
+      
       return {
         stats: {
           totalFiles: files.length,
           totalEntries: allProcessedData.length,
           processedSongs: stats.processedSongs,
-          nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
-          skippedEntries: 0,
+          nullTrackNames: nullTrackNames,
+          skippedEntries: allProcessedData.length - stats.processedSongs - stats.shortPlays - allProcessedData.filter(e => !e.master_metadata_track_name).length
           shortPlays: stats.shortPlays,
           totalListeningTime: stats.totalListeningTime
         },
