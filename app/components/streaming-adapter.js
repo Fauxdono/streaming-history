@@ -6,7 +6,8 @@ export const STREAMING_TYPES = {
   SPOTIFY: 'spotify',
   APPLE_MUSIC: 'apple_music',
   YOUTUBE_MUSIC: 'youtube_music',
-  TIDAL: 'tidal'
+  TIDAL: 'tidal',
+  DEEZER: 'deezer'
 };
 
 // Service metadata for UI
@@ -28,6 +29,12 @@ export const STREAMING_SERVICES = {
     downloadUrl: 'https://takeout.google.com/',
     instructions: 'Select YouTube and YouTube Music data in Google Takeout',
     acceptedFormats: '.json,.csv'
+  },
+  [STREAMING_TYPES.DEEZER]: {
+    name: 'Deezer',
+    downloadUrl: 'https://www.deezer.com/account/privacy',
+    instructions: 'Go to Privacy Settings and request "Export my data", then download your listening history',
+    acceptedFormats: '.csv'
   }
 };
 
@@ -282,6 +289,44 @@ function calculateSongsByYear(songs, songPlayHistory) {
   return songsByYear;
 }
 
+// Extract listening time from various formats
+function parseListeningTime(timeValue) {
+  // Default play time (3.5 minutes)
+  let ms_played = 210000;
+  
+  try {
+    if (!timeValue) return ms_played;
+    
+    if (typeof timeValue === 'number') {
+      // If it's already a number, assume it's in seconds
+      return timeValue * 1000;
+    }
+    
+    if (typeof timeValue === 'string') {
+      // Check if format is "MM:SS" or "HH:MM:SS"
+      const timeParts = timeValue.split(':').map(Number);
+      if (timeParts.length === 2) {
+        // MM:SS format
+        return (timeParts[0] * 60 + timeParts[1]) * 1000;
+      } else if (timeParts.length === 3) {
+        // HH:MM:SS format
+        return ((timeParts[0] * 60 + timeParts[1]) * 60 + timeParts[2]) * 1000;
+      } else {
+        // Try to parse as a simple number (minutes or seconds)
+        const num = parseFloat(timeValue);
+        if (!isNaN(num)) {
+          // Assume minutes if small, seconds if larger
+          return (num < 30 ? num * 60 : num) * 1000;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Error parsing listening time:', timeValue, e);
+  }
+  
+  return ms_played;
+}
+
 export const streamingProcessor = {
   async processFiles(files) {
     try {
@@ -378,9 +423,147 @@ export const streamingProcessor = {
             });
           }
           
+          // Deezer CSV files
+          if ((file.name.toLowerCase().includes('deezer') || 
+               file.name.toLowerCase().includes('listening_history') ||
+               file.name.toLowerCase().includes('listen') ||
+               file.name.toLowerCase().includes('stream')) && 
+              file.name.endsWith('.csv')) {
+            
+            // Check content for Deezer-specific headers before parsing
+            const firstLine = content.split('\n')[0].toLowerCase();
+            const isDeezerFile = firstLine.includes('song title') || 
+                              firstLine.includes('artist') || 
+                              firstLine.includes('isrc') ||
+                              firstLine.includes('listening time');
+                              
+            if (!isDeezerFile) {
+              // Skip if it's not a Deezer file
+              return [];
+            }
+                  
+            return new Promise((resolve) => {
+              Papa.parse(content, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                delimitersToGuess: [',', '\t', '|', ';'],
+                complete: (results) => {
+                  console.log('Deezer CSV detected, headers:', results.meta.fields);
+                  
+                  // Normalize header names (they might vary in exports)
+                  const normalizedData = results.data.map(row => {
+                    const normalizedRow = {};
+                    Object.keys(row).forEach(key => {
+                      const lowerKey = key.toLowerCase();
+                      if (lowerKey.includes('song') && lowerKey.includes('title')) {
+                        normalizedRow['Song Title'] = row[key];
+                      } else if (lowerKey === 'artist' || lowerKey === 'artists') {
+                        normalizedRow['Artist'] = row[key];
+                      } else if (lowerKey.includes('album') && lowerKey.includes('title')) {
+                        normalizedRow['Album Title'] = row[key];
+                      } else if (lowerKey === 'date' || lowerKey.includes('listen') && lowerKey.includes('date')) {
+                        normalizedRow['Date'] = row[key];
+                      } else if (lowerKey === 'isrc') {
+                        normalizedRow['ISRC'] = row[key];
+                      } else if (lowerKey.includes('listen') && lowerKey.includes('time')) {
+                        normalizedRow['Listening Time'] = row[key];
+                      } else if (lowerKey.includes('duration')) {
+                        normalizedRow['Duration'] = row[key];
+                      } else if (lowerKey.includes('platform')) {
+                        normalizedRow['Platform'] = row[key];
+                      } else {
+                        normalizedRow[key] = row[key];
+                      }
+                    });
+                    return normalizedRow;
+                  });
+                  
+                  const transformedData = normalizedData
+                    .filter(row => row['Song Title'] && row['Artist'] && row['Date'])
+                    .map(row => {
+                      // Extract data from Deezer format
+                      const trackName = row['Song Title'] || '';
+                      const artistName = row['Artist'] || 'Unknown Artist';
+                      const albumName = row['Album Title'] || 'Unknown Album';
+                      const isrc = row['ISRC'] || null;
+                      const platformName = row['Platform'] || 'deezer';
+                      
+                      // Parse date (format: "YYYY-MM-DD HH:MM:SS")
+                      let timestamp;
+                      try {
+                        if (typeof row['Date'] === 'string') {
+                          // Handle various date formats
+                          if (row['Date'].includes('-')) {
+                            // YYYY-MM-DD HH:MM:SS or YYYY-MM-DD
+                            timestamp = new Date(row['Date']).toISOString();
+                          } else if (row['Date'].match(/^\d+$/)) {
+                            // Unix timestamp in milliseconds
+                            timestamp = new Date(parseInt(row['Date'])).toISOString();
+                          } else {
+                            // Other formats
+                            timestamp = new Date(row['Date']).toISOString();
+                          }
+                        } else if (typeof row['Date'] === 'number') {
+                          // Unix timestamp
+                          timestamp = new Date(row['Date']).toISOString();
+                        } else {
+                          throw new Error('Invalid date format');
+                        }
+                      } catch (e) {
+                        console.warn('Error parsing Deezer date:', row['Date'], e);
+                        timestamp = new Date().toISOString();
+                      }
+                      
+                      // Convert listening time to milliseconds
+                      const ms_played = parseListeningTime(row['Listening Time']);
+                      
+                      // Handle episodes/podcasts
+                      const isPodcast = row['Podcast'] === true || 
+                                      (isrc && isrc.includes('podcast')) ||
+                                      trackName.toLowerCase().includes('podcast') ||
+                                      artistName.toLowerCase().includes('podcast');
+                      
+                      return {
+                        master_metadata_track_name: trackName,
+                        ts: timestamp,
+                        ms_played: ms_played,
+                        master_metadata_album_artist_name: artistName,
+                        master_metadata_album_album_name: albumName,
+                        episode_name: isPodcast ? trackName : null,
+                        episode_show_name: isPodcast ? artistName : null,
+                        duration_ms: row['Duration'] ? parseListeningTime(row['Duration']) : null,
+                        isrc: isrc,
+                        platform: platformName,
+                        source: 'deezer'
+                      };
+                    });
+                  
+                  console.log('Transformed Deezer Data:', transformedData.length);
+                  allProcessedData = [...allProcessedData, ...transformedData];
+                  resolve(transformedData);
+                },
+                error: (error) => {
+                  console.error('Error parsing Deezer CSV:', error);
+                  resolve([]);
+                }
+              });
+            });
+          }
+          
           return [];
         })
       );
+
+      // Handle ISRC codes from Deezer data
+      allProcessedData.forEach(item => {
+        if (item.source === 'deezer' && item.isrc) {
+          // Store the ISRC code if available for better track matching
+          item.master_metadata_external_ids = {
+            isrc: item.isrc
+          };
+        }
+      });
 
       // Calculate comprehensive stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
