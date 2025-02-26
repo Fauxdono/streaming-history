@@ -372,7 +372,118 @@ export const streamingProcessor = {
                                       (results.meta.fields.includes('Date Played') || 
                                        results.meta.fields.includes('Play Duration Milliseconds'));
                   
-                  if (isTrackPlayHistory) {
+                  const isRecentlyPlayedTracks = results.meta.fields.includes('Total play duration in millis') && 
+                                              results.meta.fields.includes('Track Description') &&
+                                              results.meta.fields.includes('Media duration in millis');
+                                              
+                  if (isRecentlyPlayedTracks) {
+                    // Process the detailed Recently Played Tracks format
+                    console.log('Processing Apple Music Recently Played Tracks format');
+                    transformedData = results.data
+                      .filter(row => row['Track Description'] && row['Total plays'] > 0)
+                      .map(row => {
+                        // Parse track information from Track Description
+                        let trackDescription = row['Track Description'] || '';
+                        let trackName = trackDescription;
+                        let artistName = 'Unknown Artist';
+                        
+                        // Format is typically "Artist - Track Name"
+                        const dashIndex = trackDescription.indexOf(' - ');
+                        if (dashIndex > 0) {
+                          artistName = trackDescription.substring(0, dashIndex).trim();
+                          trackName = trackDescription.substring(dashIndex + 3).trim();
+                        }
+                        
+                        // For the more accurate file, we'll create multiple play entries
+                        // based on the number of plays, distributed over time
+                        const plays = [];
+                        const totalPlays = parseInt(row['Total plays']) || 1;
+                        const totalDuration = parseInt(row['Total play duration in millis']) || 0;
+                        const trackDuration = parseInt(row['Media duration in millis']) || 0;
+                        
+                        // Get the timestamps
+                        let firstPlayed, lastPlayed;
+                        try {
+                          firstPlayed = row['First Event Timestamp'] ? 
+                                        new Date(row['First Event Timestamp']) : 
+                                        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // fallback to 30 days ago
+                          
+                          lastPlayed = row['Last Event End Timestamp'] ? 
+                                      new Date(row['Last Event End Timestamp']) : 
+                                      new Date();
+                        } catch (e) {
+                          console.warn('Error parsing timestamps in Recently Played Tracks:', e);
+                          firstPlayed = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                          lastPlayed = new Date();
+                        }
+                        
+                        // Calculate average play duration
+                        const avgPlayDuration = totalPlays > 0 ? 
+                                              Math.floor(totalDuration / totalPlays) : 
+                                              trackDuration;
+                        
+                        // Determine if this is a podcast based on media type and duration
+                        const isPodcast = (row['Media type'] === 'PODCAST' || 
+                                         (trackDescription.toLowerCase().includes('podcast')) ||
+                                         (trackDuration > 1800000)); // Over 30 minutes
+                        
+                        // Create album information if available
+                        let albumName = 'Unknown Album';
+                        if (row['Container Description'] && 
+                            row['Container Type'] && 
+                            row['Container Type'].includes('ALBUM')) {
+                          albumName = row['Container Description'];
+                        }
+                        
+                        // For accurate statistics, we'll create one entry per play
+                        // We'll distribute these plays between first and last played timestamps
+                        if (totalPlays === 1) {
+                          // Just one play - use the last timestamp
+                          plays.push({
+                            master_metadata_track_name: trackName,
+                            ts: lastPlayed.toISOString(),
+                            ms_played: avgPlayDuration,
+                            master_metadata_album_artist_name: artistName,
+                            master_metadata_album_album_name: albumName,
+                            duration_ms: trackDuration,
+                            platform: 'APPLE',
+                            source: 'apple_music'
+                          });
+                        } else {
+                          // Multiple plays - distribute them between first and last
+                          const timeRange = lastPlayed.getTime() - firstPlayed.getTime();
+                          const timeStep = timeRange / (totalPlays - 1);
+                          
+                          for (let i = 0; i < totalPlays; i++) {
+                            const playTime = new Date(firstPlayed.getTime() + (timeStep * i));
+                            plays.push({
+                              master_metadata_track_name: trackName,
+                              ts: playTime.toISOString(),
+                              ms_played: avgPlayDuration,
+                              master_metadata_album_artist_name: artistName,
+                              master_metadata_album_album_name: albumName,
+                              duration_ms: trackDuration,
+                              platform: 'APPLE',
+                              source: 'apple_music'
+                            });
+                          }
+                        }
+                        
+                        // Add podcast information if relevant
+                        if (isPodcast) {
+                          plays.forEach(play => {
+                            play.episode_name = trackName;
+                            play.episode_show_name = artistName;
+                          });
+                        }
+                        
+                        return plays;
+                      });
+                    
+                    // Flatten the array of arrays
+                    transformedData = transformedData.flat();
+                    
+                  } else if (isTrackPlayHistory) {
                     // Process the simpler Track Play History format
                     transformedData = results.data
                       .filter(row => row['Track Name'] && row['Last Played Date'])
