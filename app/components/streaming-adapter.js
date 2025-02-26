@@ -68,7 +68,32 @@ function calculatePlayStats(entries) {
 
   // Simple track map for combining same tracks
   const trackMap = {};
-
+  
+  // Track album information by track/artist combination in a more direct way
+  const albumLookup = {};
+  
+  // First, collect all album information from all sources
+  entries.forEach(entry => {
+    if (entry.master_metadata_track_name && 
+        entry.master_metadata_album_artist_name) {
+      
+      // Create a simple lookup key based on track name and artist
+      const lookupKey = `${entry.master_metadata_track_name.toLowerCase()}|||${entry.master_metadata_album_artist_name.toLowerCase()}`;
+      
+      // Prioritize Spotify album info over other sources
+      if (entry.source === 'spotify' && entry.master_metadata_album_album_name) {
+        albumLookup[lookupKey] = entry.master_metadata_album_album_name;
+      } 
+      // If no album info for this track yet, use whatever we have
+      else if (!albumLookup[lookupKey] && entry.master_metadata_album_album_name) {
+        albumLookup[lookupKey] = entry.master_metadata_album_album_name;
+      }
+    }
+  });
+  
+  console.log("Album lookup map created with", Object.keys(albumLookup).length, "entries");
+  
+  // Now process all entries with the album information
   entries.forEach(entry => {
     const playTime = entry.ms_played;
     
@@ -83,7 +108,14 @@ function calculatePlayStats(entries) {
 
     const trackName = entry.master_metadata_track_name;
     const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
-    const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+    
+    // Lookup key for album information
+    const lookupKey = `${trackName.toLowerCase()}|||${artistName.toLowerCase()}`;
+    
+    // Get album name from our lookup first, fall back to the entry's album name
+    let albumName = albumLookup[lookupKey] || 
+                  entry.master_metadata_album_album_name || 
+                  'Unknown Album';
     
     // Create keys for lookups
     const standardKey = `${trackName}-${artistName}`;
@@ -140,6 +172,11 @@ function calculatePlayStats(entries) {
       // Update existing track
       trackMap[matchKey].totalPlayed += playTime;
       trackMap[matchKey].playCount++;
+      
+      // Always take the known album name if we've found a better one
+      if (albumName !== 'Unknown Album' && trackMap[matchKey].albumName === 'Unknown Album') {
+        trackMap[matchKey].albumName = albumName;
+      }
     } else {
       // Add new track
       trackMap[matchKey] = {
