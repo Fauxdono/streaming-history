@@ -317,18 +317,23 @@ function calculateSongsByYear(songs, songPlayHistory) {
           songsByYear[year] = [];
         }
         
+        // Calculate play time for this year based on the proportion of plays in this year
+        const yearTotalPlayed = song.totalPlayed * (yearTimestamps.length / timestamps.length);
+        
         songsByYear[year].push({
           ...song,
-          totalPlayed: song.totalPlayed * (yearTimestamps.length / timestamps.length),
+          totalPlayed: yearTotalPlayed,
           playCount: yearTimestamps.length,
+          // Keep spotifyScore for backward compatibility but we won't use it for sorting
           spotifyScore: Math.pow(yearTimestamps.length, 1.5)
         });
       });
     }
   });
 
+  // Sort by totalPlayed instead of spotifyScore
   Object.keys(songsByYear).forEach(year => {
-    songsByYear[year] = _.orderBy(songsByYear[year], ['spotifyScore'], ['desc'])
+    songsByYear[year] = _.orderBy(songsByYear[year], ['totalPlayed'], ['desc'])
       .slice(0, 100);
   });
 

@@ -68,26 +68,31 @@ const filteredArtists = useMemo(() => {
 const processFiles = useCallback(async (fileList) => {
   // Set loading state and wait for next render cycle
   setIsProcessing(true);
+  console.log("Starting to process files:", fileList);
   await new Promise(resolve => setTimeout(resolve, 0));
   
   try {
     const results = await streamingProcessor.processFiles(fileList);
-    
+    console.log("Got results:", results);
     console.log('Total Artists:', results.topArtists.length);
     setStats(results.stats);
     setTopArtists(results.topArtists);
     setTopAlbums(results.topAlbums);
-    setProcessedData(results.processedTracks);
+    
+    // Make sure we're using the totalPlayed value for sorting in the main list too
+    const sortedTracks = _.orderBy(results.processedTracks, ['totalPlayed'], ['desc']);
+    setProcessedData(sortedTracks);
+    
     setSongsByYear(results.songsByYear);
     setBriefObsessions(results.briefObsessions);
     setRawPlayData(results.rawPlayData);
 
-    // Update uploaded files list
     const fileNames = Array.from(fileList).map(file => file.name);
-    setUploadedFiles(prev => [...prev, ...fileNames]);
+    setUploadedFiles(fileNames);
 
     setActiveTab('stats');
   } catch (err) {
+    console.error("Error processing files:", err);
     setError(err.message);
   } finally {
     setIsProcessing(false);
