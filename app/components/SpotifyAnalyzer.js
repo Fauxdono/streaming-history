@@ -586,6 +586,7 @@ First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleD
       formatDuration={formatDuration}
     />
   </div>
+)}
 {activeTab === 'patterns' && (
   <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
     <h3 className="font-bold mb-2 text-purple-700">Listening Patterns</h3>
