@@ -38,6 +38,7 @@ if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length
   Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
     summarySheet.addRow([service, formatDuration(time)]);
   });
+}
 
 
     // Top Artists Sheet
