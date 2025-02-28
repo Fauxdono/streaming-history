@@ -65,13 +65,37 @@ function calculatePlayStats(entries) {
   let totalListeningTime = 0;
   let processedSongs = 0;
   let shortPlays = 0;
-  
-  // Track listening time by service
+
   const serviceListeningTime = {};
 
   // Simple track map for combining same tracks
   const trackMap = {};
-
+  
+  // Track album information by track/artist combination in a more direct way
+  const albumLookup = {};
+  
+  // First, collect all album information from all sources
+  entries.forEach(entry => {
+    if (entry.master_metadata_track_name && 
+        entry.master_metadata_album_artist_name) {
+      
+      // Create a simple lookup key based on track name and artist
+      const lookupKey = `${entry.master_metadata_track_name.toLowerCase()}|||${entry.master_metadata_album_artist_name.toLowerCase()}`;
+      
+      // Prioritize Spotify album info over other sources
+      if (entry.source === 'spotify' && entry.master_metadata_album_album_name) {
+        albumLookup[lookupKey] = entry.master_metadata_album_album_name;
+      } 
+      // If no album info for this track yet, use whatever we have
+      else if (!albumLookup[lookupKey] && entry.master_metadata_album_album_name) {
+        albumLookup[lookupKey] = entry.master_metadata_album_album_name;
+      }
+    }
+  });
+  
+  console.log("Album lookup map created with", Object.keys(albumLookup).length, "entries");
+  
+  // Now process all entries with the album information
   entries.forEach(entry => {
     const playTime = entry.ms_played;
     const source = entry.source || 'unknown';
@@ -84,16 +108,22 @@ function calculatePlayStats(entries) {
 
     processedSongs++;
     totalListeningTime += playTime;
-    
-    // Add to service-specific counters
-    if (!serviceListeningTime[source]) {
-      serviceListeningTime[source] = 0;
-    }
-    serviceListeningTime[source] += playTime;
+
+if (!serviceListeningTime[source]) {
+    serviceListeningTime[source] = 0;
+  }
+  serviceListeningTime[source] += playTime;
 
     const trackName = entry.master_metadata_track_name;
     const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
-    const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+    
+    // Lookup key for album information
+    const lookupKey = `${trackName.toLowerCase()}|||${artistName.toLowerCase()}`;
+    
+    // Get album name from our lookup first, fall back to the entry's album name
+    let albumName = albumLookup[lookupKey] || 
+                  entry.master_metadata_album_album_name || 
+                  'Unknown Album';
     
     // Create keys for lookups
     const standardKey = `${trackName}-${artistName}`;
@@ -150,6 +180,11 @@ function calculatePlayStats(entries) {
       // Update existing track
       trackMap[matchKey].totalPlayed += playTime;
       trackMap[matchKey].playCount++;
+      
+      // Always take the known album name if we've found a better one
+      if (albumName !== 'Unknown Album' && trackMap[matchKey].albumName === 'Unknown Album') {
+        trackMap[matchKey].albumName = albumName;
+      }
     } else {
       // Add new track
       trackMap[matchKey] = {
@@ -174,7 +209,7 @@ function calculatePlayStats(entries) {
     albums: albumStats,
     playHistory: songPlayHistory,
     totalListeningTime,
-    serviceListeningTime,
+    serviceListeningTime, 
     processedSongs,
     shortPlays
   };
@@ -363,96 +398,8 @@ export const streamingProcessor = {
             }
           }
           
-          // Apple Music CSV files
+// Apple Music CSV files
           if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-            return new Promise((resolve) => {
-              Papa.parse(content, {
-                header: true,
-                dynamicTyping: true,
-                skipEmptyLines: true,
-                complete: (results) => {
-                  const transformedData = results.data
-                    .filter(row => row['Track Name'] && row['Last Played Date'])
-                    .map(row => {
-                      // Handle special case for Kenny Rogers
-                      if (row['Track Name'] && 
-                          row['Track Name'].toLowerCase().includes('just dropped in') && 
-                          row['Track Name'].toLowerCase().includes('kenny rogers')) {
-                        return {
-                          master_metadata_track_name: 'Just Dropped In (To See What Condition My Condition Is In)',
-                          ts: new Date(parseInt(row['Last Played Date'])).toISOString(),
-                          ms_played: row['Is User Initiated'] ? 240000 : 30000,
-                          master_metadata_album_artist_name: 'Kenny Rogers & The First Edition',
-                          master_metadata_album_album_name: 'Unknown Album',
-                          source: 'apple_music'
-                        };
-                      }
-                  
-                      // Parse track name from Apple Music format
-                      let trackName = row['Track Name'] || '';
-                      let artistName = 'Unknown Artist';
-                      
-                      // Apple format is often "Artist - Track" or "Artist, Artist - Track"
-                      const dashIndex = trackName.indexOf(' - ');
-                      if (dashIndex > 0) {
-                        artistName = trackName.substring(0, dashIndex).trim();
-                        trackName = trackName.substring(dashIndex + 3).trim();
-                      }
-                      
-                      // Convert timestamp from milliseconds to ISO date
-                      let timestamp;
-                      try {
-                        timestamp = new Date(parseInt(row['Last Played Date'])).toISOString();
-                      } catch (e) {
-                        // Fallback if timestamp parsing fails
-                        timestamp = new Date().toISOString();
-                      }
-                      
-                      // Estimate play time (Apple doesn't provide this)
-                      // User-initiated plays likely involve full tracks
-                      const estimatedPlayTime = row['Is User Initiated'] ? 240000 : 30000;
-                      
-                      return {
-                        master_metadata_track_name: trackName,
-                        ts: timestamp,
-                        ms_played: estimatedPlayTime,
-                        master_metadata_album_artist_name: artistName,
-                        master_metadata_album_album_name: 'Unknown Album',
-                        source: 'apple_music'
-                      };
-                    });
-                  
-                  console.log('Transformed Apple Music Data:', transformedData.length);
-                  allProcessedData = [...allProcessedData, ...transformedData];
-                  resolve(transformedData);
-                },
-                error: (error) => {
-                  console.error('Error parsing Apple Music CSV:', error);
-                  resolve([]);
-                }
-              });
-            });
-          }
-          
-          // Deezer CSV files
-          if ((file.name.toLowerCase().includes('deezer') || 
-               file.name.toLowerCase().includes('listening_history') ||
-               file.name.toLowerCase().includes('listen') ||
-               file.name.toLowerCase().includes('stream')) && 
-              file.name.endsWith('.csv')) {
-            
-            // Check content for Deezer-specific headers before parsing
-            const firstLine = content.split('\n')[0].toLowerCase();
-            const isDeezerFile = firstLine.includes('song title') || 
-                              firstLine.includes('artist') || 
-                              firstLine.includes('isrc') ||
-                              firstLine.includes('listening time');
-                              
-            if (!isDeezerFile) {
-              // Skip if it's not a Deezer file
-              return [];
-            }
-                  
             return new Promise((resolve) => {
               Papa.parse(content, {
                 header: true,
@@ -460,102 +407,339 @@ export const streamingProcessor = {
                 skipEmptyLines: true,
                 delimitersToGuess: [',', '\t', '|', ';'],
                 complete: (results) => {
-                  console.log('Deezer CSV detected, headers:', results.meta.fields);
+                  console.log('Apple Music CSV headers:', results.meta.fields);
+                  let transformedData = [];
                   
-                  // Normalize header names (they might vary in exports)
-                  const normalizedData = results.data.map(row => {
-                    const normalizedRow = {};
-                    Object.keys(row).forEach(key => {
-                      const lowerKey = key.toLowerCase();
-                      if (lowerKey.includes('song') && lowerKey.includes('title')) {
-                        normalizedRow['Song Title'] = row[key];
-                      } else if (lowerKey === 'artist' || lowerKey === 'artists') {
-                        normalizedRow['Artist'] = row[key];
-                      } else if (lowerKey.includes('album') && lowerKey.includes('title')) {
-                        normalizedRow['Album Title'] = row[key];
-                      } else if (lowerKey === 'date' || lowerKey.includes('listen') && lowerKey.includes('date')) {
-                        normalizedRow['Date'] = row[key];
-                      } else if (lowerKey === 'isrc') {
-                        normalizedRow['ISRC'] = row[key];
-                      } else if (lowerKey.includes('listen') && lowerKey.includes('time')) {
-                        normalizedRow['Listening Time'] = row[key];
-                      } else if (lowerKey.includes('duration')) {
-                        normalizedRow['Duration'] = row[key];
-                      } else if (lowerKey.includes('platform')) {
-                        normalizedRow['Platform'] = row[key];
-                      } else {
-                        normalizedRow[key] = row[key];
-                      }
-                    });
-                    return normalizedRow;
-                  });
+                  // Detect which Apple Music file format we're working with
+                  const isTrackPlayHistory = results.meta.fields.includes('Track Name') && 
+                                          results.meta.fields.includes('Last Played Date');
                   
-                  const transformedData = normalizedData
-                    .filter(row => row['Song Title'] && row['Artist'] && row['Date'])
-                    .map(row => {
-                      // Extract data from Deezer format
-                      const trackName = row['Song Title'] || '';
-                      const artistName = row['Artist'] || 'Unknown Artist';
-                      const albumName = row['Album Title'] || 'Unknown Album';
-                      const isrc = row['ISRC'] || null;
-                      const platformName = row['Platform'] || 'deezer';
-                      
-                      // Parse date (format: "YYYY-MM-DD HH:MM:SS")
-                      let timestamp;
-                      try {
-                        if (typeof row['Date'] === 'string') {
-                          // Handle various date formats
-                          if (row['Date'].includes('-')) {
-                            // YYYY-MM-DD HH:MM:SS or YYYY-MM-DD
-                            timestamp = new Date(row['Date']).toISOString();
-                          } else if (row['Date'].match(/^\d+$/)) {
-                            // Unix timestamp in milliseconds
-                            timestamp = new Date(parseInt(row['Date'])).toISOString();
-                          } else {
-                            // Other formats
-                            timestamp = new Date(row['Date']).toISOString();
-                          }
-                        } else if (typeof row['Date'] === 'number') {
-                          // Unix timestamp
-                          timestamp = new Date(row['Date']).toISOString();
-                        } else {
-                          throw new Error('Invalid date format');
+                  const isDailyTracks = results.meta.fields.includes('Track Description') && 
+                                      (results.meta.fields.includes('Date Played') || 
+                                       results.meta.fields.includes('Play Duration Milliseconds'));
+                  
+                  const isRecentlyPlayedTracks = results.meta.fields.includes('Total play duration in millis') && 
+                                              results.meta.fields.includes('Track Description') &&
+                                              results.meta.fields.includes('Media duration in millis');
+                                              
+                  if (isRecentlyPlayedTracks) {
+                    // Process the detailed Recently Played Tracks format
+                    console.log('Processing Apple Music Recently Played Tracks format');
+                    transformedData = results.data
+                      .filter(row => row['Track Description'] && row['Total plays'] > 0)
+                      .map(row => {
+                        // Parse track information from Track Description
+                        let trackDescription = row['Track Description'] || '';
+                        let trackName = trackDescription;
+                        let artistName = 'Unknown Artist';
+                        
+                        // Format is typically "Artist - Track Name"
+                        const dashIndex = trackDescription.indexOf(' - ');
+                        if (dashIndex > 0) {
+                          artistName = trackDescription.substring(0, dashIndex).trim();
+                          trackName = trackDescription.substring(dashIndex + 3).trim();
                         }
-                      } catch (e) {
-                        console.warn('Error parsing Deezer date:', row['Date'], e);
-                        timestamp = new Date().toISOString();
-                      }
+                        
+                        // For the more accurate file, we'll create multiple play entries
+                        // based on the number of plays, distributed over time
+                        const plays = [];
+                        const totalPlays = parseInt(row['Total plays']) || 1;
+                        const totalDuration = parseInt(row['Total play duration in millis']) || 0;
+                        const trackDuration = parseInt(row['Media duration in millis']) || 0;
+                        
+                        // Get the timestamps
+                        let firstPlayed, lastPlayed;
+                        try {
+                          firstPlayed = row['First Event Timestamp'] ? 
+                                        new Date(row['First Event Timestamp']) : 
+                                        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // fallback to 30 days ago
+                          
+                          lastPlayed = row['Last Event End Timestamp'] ? 
+                                      new Date(row['Last Event End Timestamp']) : 
+                                      new Date();
+                        } catch (e) {
+                          console.warn('Error parsing timestamps in Recently Played Tracks:', e);
+                          firstPlayed = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                          lastPlayed = new Date();
+                        }
+                        
+                        // Calculate average play duration
+                        const avgPlayDuration = totalPlays > 0 ? 
+                                              Math.floor(totalDuration / totalPlays) : 
+                                              trackDuration;
+                        
+                        // Determine if this is a podcast based on media type and duration
+                        const isPodcast = (row['Media type'] === 'PODCAST' || 
+                                         (trackDescription.toLowerCase().includes('podcast')) ||
+                                         (trackDuration > 1800000)); // Over 30 minutes
+                        
+                        // Create album information if available
+                        let albumName = 'Unknown Album';
+                        if (row['Container Description'] && 
+                            row['Container Type'] && 
+                            row['Container Type'].includes('ALBUM')) {
+                          albumName = row['Container Description'];
+                        }
+                        
+                        // For accurate statistics, we'll create one entry per play
+                        // We'll distribute these plays between first and last played timestamps
+                        if (totalPlays === 1) {
+                          // Just one play - use the last timestamp
+                          plays.push({
+                            master_metadata_track_name: trackName,
+                            ts: lastPlayed.toISOString(),
+                            ms_played: avgPlayDuration,
+                            master_metadata_album_artist_name: artistName,
+                            master_metadata_album_album_name: albumName,
+                            duration_ms: trackDuration,
+                            platform: 'APPLE',
+                            source: 'apple_music'
+                          });
+                        } else {
+                          // Multiple plays - distribute them between first and last
+                          const timeRange = lastPlayed.getTime() - firstPlayed.getTime();
+                          const timeStep = timeRange / (totalPlays - 1);
+                          
+                          for (let i = 0; i < totalPlays; i++) {
+                            const playTime = new Date(firstPlayed.getTime() + (timeStep * i));
+                            plays.push({
+                              master_metadata_track_name: trackName,
+                              ts: playTime.toISOString(),
+                              ms_played: avgPlayDuration,
+                              master_metadata_album_artist_name: artistName,
+                              master_metadata_album_album_name: albumName,
+                              duration_ms: trackDuration,
+                              platform: 'APPLE',
+                              source: 'apple_music'
+                            });
+                          }
+                        }
+                        
+                        // Add podcast information if relevant
+                        if (isPodcast) {
+                          plays.forEach(play => {
+                            play.episode_name = trackName;
+                            play.episode_show_name = artistName;
+                          });
+                        }
+                        
+                        return plays;
+                      });
+                    
+                    // Flatten the array of arrays
+                    transformedData = transformedData.flat();
+                    
+                  } else if (isTrackPlayHistory) {
+                    // Process the simpler Track Play History format
+                    transformedData = results.data
+                      .filter(row => row['Track Name'] && row['Last Played Date'])
+                      .map(row => {
+                        // Handle special case for Kenny Rogers
+                        if (row['Track Name'] && 
+                            row['Track Name'].toLowerCase().includes('just dropped in') && 
+                            row['Track Name'].toLowerCase().includes('kenny rogers')) {
+                          return {
+                            master_metadata_track_name: 'Just Dropped In (To See What Condition My Condition Is In)',
+                            ts: new Date(parseInt(row['Last Played Date'])).toISOString(),
+                            ms_played: row['Is User Initiated'] ? 240000 : 30000,
+                            master_metadata_album_artist_name: 'Kenny Rogers & The First Edition',
+                            master_metadata_album_album_name: 'Unknown Album',
+                            source: 'apple_music'
+                          };
+                        }
+                    
+                        // Parse track name from Apple Music format
+                        let trackName = row['Track Name'] || '';
+                        let artistName = 'Unknown Artist';
+                        
+                        // Apple format is often "Artist - Track" or "Artist, Artist - Track"
+                        const dashIndex = trackName.indexOf(' - ');
+                        if (dashIndex > 0) {
+                          artistName = trackName.substring(0, dashIndex).trim();
+                          trackName = trackName.substring(dashIndex + 3).trim();
+                        }
+                        
+                        // Convert timestamp from milliseconds to ISO date
+                        let timestamp;
+                        try {
+                          timestamp = new Date(parseInt(row['Last Played Date'])).toISOString();
+                        } catch (e) {
+                          // Fallback if timestamp parsing fails
+                          timestamp = new Date().toISOString();
+                        }
+                        
+                        // Estimate play time (Apple doesn't provide this)
+                        // User-initiated plays likely involve full tracks
+                        const estimatedPlayTime = row['Is User Initiated'] ? 240000 : 30000;
+                        
+                        return {
+                          master_metadata_track_name: trackName,
+                          ts: timestamp,
+                          ms_played: estimatedPlayTime,
+                          master_metadata_album_artist_name: artistName,
+                          master_metadata_album_album_name: 'Unknown Album',
+                          source: 'apple_music'
+                        };
+                      });
+                  } else if (isDailyTracks) {
+                    // Process the more detailed Daily Tracks format
+                    transformedData = results.data
+                      .filter(row => row['Track Description'] && row['Date Played'])
+                      .map(row => {
+                        // Parse track information from Track Description
+                        let trackDescription = row['Track Description'] || '';
+                        let trackName = trackDescription;
+                        let artistName = 'Unknown Artist';
+                        
+                        // Format is typically "Artist - Track Name"
+                        const dashIndex = trackDescription.indexOf(' - ');
+                        if (dashIndex > 0) {
+                          artistName = trackDescription.substring(0, dashIndex).trim();
+                          trackName = trackDescription.substring(dashIndex + 3).trim();
+                        }
+                        
+                        // Parse date (format is typically YYYYMMDD)
+                        let timestamp;
+                        try {
+                          const datePlayed = row['Date Played'].toString();
+                          // Format YYYYMMDD to YYYY-MM-DD
+                          if (datePlayed.length === 8) {
+                            const year = datePlayed.substring(0, 4);
+                            const month = datePlayed.substring(4, 6);
+                            const day = datePlayed.substring(6, 8);
+                            
+                            // If hours field exists, use it for more precise timestamp
+                            let hours = 12; // Default to noon if no hour specified
+                            if (row['Hours']) {
+                              // Hours field might be like "19, 20" (meaning spanning multiple hours)
+                              // Just take the first number
+                              const hoursStr = row['Hours'].toString().split(',')[0].trim();
+                              hours = parseInt(hoursStr) || 12;
+                            }
+                            
+                            timestamp = new Date(`${year}-${month}-${day}T${hours}:00:00`).toISOString();
+                          } else {
+                            // Fallback to parsing as integer timestamp
+                            timestamp = new Date(parseInt(datePlayed)).toISOString();
+                          }
+                        } catch (e) {
+                          console.warn('Error parsing Daily Tracks date:', row['Date Played'], e);
+                          timestamp = new Date().toISOString();
+                        }
+                        
+                        // Get actual play duration if available, otherwise estimate
+                        let playDuration = 0;
+                        if (row['Play Duration Milliseconds'] && row['Play Duration Milliseconds'] > 0) {
+                          playDuration = row['Play Duration Milliseconds'];
+                        } else {
+                          // If no duration or zero duration, estimate based on end reason
+                          const endReason = row['End Reason Type'] || '';
+                          
+                          if (endReason === 'NATURAL_END_OF_TRACK') {
+                            // Completed track, estimate 3-4 minutes
+                            playDuration = 210000;
+                          } else if (endReason === 'PLAYBACK_MANUALLY_PAUSED' || 
+                                    endReason.includes('MANUALLY_SELECTED')) {
+                            // User intervention, use play count to determine if it was listened to
+                            playDuration = row['Play Count'] > 0 ? 120000 : 30000;
+                          } else if (endReason === 'TRACK_SKIPPED_FORWARDS') {
+                            // Skipped, likely short play
+                            playDuration = 30000;
+                          } else {
+                            // Default fallback
+                            playDuration = row['Play Count'] > 0 ? 180000 : 30000;
+                          }
+                        }
+                        
+                        // Handle podcast vs music distinction if possible
+                        const isPodcast = trackDescription.toLowerCase().includes('podcast') || 
+                                         (row['Media type'] === 'VIDEO' && playDuration > 1200000);
+                        
+                        const result = {
+                          master_metadata_track_name: trackName,
+                          ts: timestamp,
+                          ms_played: playDuration,
+                          master_metadata_album_artist_name: artistName,
+                          master_metadata_album_album_name: 'Unknown Album',
+                          platform: row['Source Type'] || 'APPLE',
+                          source: 'apple_music'
+                        };
+                        
+                        // Add podcast fields if it appears to be a podcast
+                        if (isPodcast) {
+                          result.episode_name = trackName;
+                          result.episode_show_name = artistName;
+                        }
+                        
+                        return result;
+                      });
+                  } else {
+                    // Unknown Apple Music format, try a generic approach
+                    console.log('Unknown Apple Music CSV format, attempting generic parsing');
+                    
+                    // Look for possible track name and date fields
+                    const nameFields = results.meta.fields.filter(f => 
+                      f.toLowerCase().includes('track') || 
+                      f.toLowerCase().includes('song') || 
+                      f.toLowerCase().includes('name') || 
+                      f.toLowerCase().includes('title') || 
+                      f.toLowerCase().includes('description')
+                    );
+                    
+                    const dateFields = results.meta.fields.filter(f => 
+                      f.toLowerCase().includes('date') || 
+                      f.toLowerCase().includes('played') || 
+                      f.toLowerCase().includes('time')
+                    );
+                    
+                    if (nameFields.length > 0 && dateFields.length > 0) {
+                      const nameField = nameFields[0];
+                      const dateField = dateFields[0];
                       
-                      // Convert listening time to milliseconds
-                      const ms_played = parseListeningTime(row['Listening Time']);
-                      
-                      // Handle episodes/podcasts
-                      const isPodcast = row['Podcast'] === true || 
-                                      (isrc && isrc.includes('podcast')) ||
-                                      trackName.toLowerCase().includes('podcast') ||
-                                      artistName.toLowerCase().includes('podcast');
-                      
-                      return {
-                        master_metadata_track_name: trackName,
-                        ts: timestamp,
-                        ms_played: ms_played,
-                        master_metadata_album_artist_name: artistName,
-                        master_metadata_album_album_name: albumName,
-                        episode_name: isPodcast ? trackName : null,
-                        episode_show_name: isPodcast ? artistName : null,
-                        duration_ms: row['Duration'] ? parseListeningTime(row['Duration']) : null,
-                        isrc: isrc,
-                        platform: platformName,
-                        source: 'deezer'
-                      };
-                    });
+                      transformedData = results.data
+                        .filter(row => row[nameField])
+                        .map(row => {
+                          let trackDescription = row[nameField] || '';
+                          let trackName = trackDescription;
+                          let artistName = 'Unknown Artist';
+                          
+                          const dashIndex = trackDescription.indexOf(' - ');
+                          if (dashIndex > 0) {
+                            artistName = trackDescription.substring(0, dashIndex).trim();
+                            trackName = trackDescription.substring(dashIndex + 3).trim();
+                          }
+                          
+                          let timestamp;
+                          try {
+                            if (typeof row[dateField] === 'number') {
+                              timestamp = new Date(row[dateField]).toISOString();
+                            } else if (typeof row[dateField] === 'string') {
+                              timestamp = new Date(row[dateField]).toISOString();
+                            } else {
+                              timestamp = new Date().toISOString();
+                            }
+                          } catch (e) {
+                            timestamp = new Date().toISOString();
+                          }
+                          
+                          return {
+                            master_metadata_track_name: trackName,
+                            ts: timestamp,
+                            ms_played: 180000, // Default 3 minutes
+                            master_metadata_album_artist_name: artistName,
+                            master_metadata_album_album_name: 'Unknown Album',
+                            source: 'apple_music'
+                          };
+                        });
+                    }
+                  }
                   
-                  console.log('Transformed Deezer Data:', transformedData.length);
+                  console.log('Transformed Apple Music Data:', transformedData.length);
                   allProcessedData = [...allProcessedData, ...transformedData];
                   resolve(transformedData);
                 },
                 error: (error) => {
-                  console.error('Error parsing Deezer CSV:', error);
+                  console.error('Error parsing Apple Music CSV:', error);
                   resolve([]);
                 }
               });
@@ -610,25 +794,27 @@ export const streamingProcessor = {
       );
 
       const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
-      
-      // Format service names for display
-      const serviceTimeBreakdown = {};
-      Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
-        let displayName = service;
-        
-        // Format service names nicely
-        if (service === 'spotify') {
-          displayName = 'Spotify';
-        } else if (service === 'apple_music') {
-          displayName = 'Apple Music';
-        } else if (service === 'deezer') {
-          displayName = 'Deezer';
-        } else if (service === 'unknown') {
-          displayName = 'Unknown Service';
-        }
-        
-        serviceTimeBreakdown[displayName] = time;
-      });
+
+// Format service names for display
+const serviceTimeBreakdown = {};
+Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
+  let displayName = service;
+  
+  // Format service names nicely
+  if (service === 'spotify') {
+    displayName = 'Spotify';
+  } else if (service === 'apple_music') {
+    displayName = 'Apple Music';
+  } else if (service === 'deezer') {
+    displayName = 'Deezer';
+  } else if (service === 'youtube_music') {
+    displayName = 'YouTube Music';
+  } else if (service === 'unknown') {
+    displayName = 'Unknown Service';
+  }
+  
+  serviceTimeBreakdown[displayName] = time;
+});
 
       return {
         stats: {
