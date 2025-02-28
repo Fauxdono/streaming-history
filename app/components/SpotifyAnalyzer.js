@@ -8,9 +8,9 @@ import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import PodcastRankings from './podcast-rankings.js';
 import _ from 'lodash';
-import ListeningPatterns from './ListeningPatterns.js';
-import ListeningBehavior from './ListeningBehavior.js';
-import DiscoveryAnalysis from './DiscoveryAnalysis.js';
+import ListeningPatterns from './listening-patterns.js';
+import ListeningBehavior from './listening-behavior.js';
+import DiscoveryAnalysis from './discovery-analysis.js';
 
 
 
