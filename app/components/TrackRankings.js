@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear = {}, formatDuration, onYearChange }) => {
   const [activeTab, setActiveTab] = useState('top250');
   const [selectedYear, setSelectedYear] = useState('all');
- useEffect(() => {
+  const [sortBy, setSortBy] = useState('totalPlayed'); // New state for sort method
+  
+  useEffect(() => {
     if (onYearChange) {
       onYearChange(selectedYear);
     }
@@ -15,6 +17,11 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
 
   const years = Object.keys(songsByYear).sort((a, b) => b - a);
 
+  // Sort the tracks based on the selected sort method
+  const getSortedTracks = (tracks) => {
+    return [...tracks].sort((a, b) => b[sortBy] - a[sortBy]);
+  };
+
   const TrackTable = ({ tracks }) => (
     <table className="w-full">
       <thead>
@@ -22,13 +29,27 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
           <th className="p-2 text-left text-blue-700">Rank</th>
           <th className="p-2 text-left text-blue-700">Track</th>
           <th className="p-2 text-left text-blue-700">Artist</th>
-          <th className="p-2 text-right text-blue-700">Total Time</th>
-          <th className="p-2 text-right text-blue-700">Play Count</th>
+          <th 
+            className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+              sortBy === 'totalPlayed' ? 'font-bold' : ''
+            }`}
+            onClick={() => setSortBy('totalPlayed')}
+          >
+            Total Time {sortBy === 'totalPlayed' && '▼'}
+          </th>
+          <th 
+            className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+              sortBy === 'playCount' ? 'font-bold' : ''
+            }`}
+            onClick={() => setSortBy('playCount')}
+          >
+            Play Count {sortBy === 'playCount' && '▼'}
+          </th>
         </tr>
       </thead>
       <tbody>
-        {tracks.map((song, index) => (
-          <tr key={song.key} className="border-b hover:bg-blue-50">
+        {getSortedTracks(tracks).map((song, index) => (
+          <tr key={song.key || `${song.trackName}-${song.artist}`} className="border-b hover:bg-blue-50">
             <td className="p-2 text-blue-700">{index + 1}</td>
             <td className="p-2 text-blue-700">{song.trackName}</td>
             <td className="p-2 text-blue-700">{song.artist}</td>
@@ -70,16 +91,16 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
   return (
     <div className="w-full">
       <div className="flex border-b mb-4">
-   <button
-  onClick={() => setActiveTab('top250')}
-  className={`px-4 py-2 font-medium ${
-    activeTab === 'top250' 
-      ? 'text-blue-600 border-b-2 border-blue-600' 
-      : 'text-gray-500 hover:text-gray-700'
-  }`}
->
-  {selectedYear === 'all' ? 'Top 250 Tracks' : `Top 100 Tracks ${selectedYear}`}
-</button>
+        <button
+          onClick={() => setActiveTab('top250')}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'top250' 
+              ? 'text-blue-600 border-b-2 border-blue-600' 
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          {selectedYear === 'all' ? 'Top 250 Tracks' : `Top 100 Tracks ${selectedYear}`}
+        </button>
         <button
           onClick={() => setActiveTab('obsessions')}
           className={`px-4 py-2 font-medium ${
@@ -104,11 +125,39 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         )}
       </div>
 
-      <h3 className="font-bold mb-4 text-blue-700">
-        {activeTab === 'top250' 
-          ? (selectedYear === 'all' ? 'All-time Top 250' : `Top 100 ${selectedYear}`)
-          : 'Top 100 Brief Obsessions'}
-      </h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-bold text-blue-700">
+          {activeTab === 'top250' 
+            ? (selectedYear === 'all' ? 'All-time Top 250' : `Top 100 ${selectedYear}`)
+            : 'Top 100 Brief Obsessions'}
+        </h3>
+
+        {activeTab === 'top250' && (
+          <div className="flex items-center gap-2">
+            <span className="text-blue-700">Sort by:</span>
+            <button
+              onClick={() => setSortBy('totalPlayed')}
+              className={`px-3 py-1 rounded ${
+                sortBy === 'totalPlayed'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              Total Time
+            </button>
+            <button
+              onClick={() => setSortBy('playCount')}
+              className={`px-3 py-1 rounded ${
+                sortBy === 'playCount'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              Play Count
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="overflow-x-auto -mx-4 px-4">
         <div className="min-w-[640px]">
