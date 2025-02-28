@@ -8,6 +8,9 @@ import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import PodcastRankings from './podcast-rankings.js';
 import _ from 'lodash';
+import ListeningPatterns from './ListeningPatterns.js';
+import ListeningBehavior from './ListeningBehavior.js';
+import DiscoveryAnalysis from './DiscoveryAnalysis.js';
 
 
 
@@ -176,9 +179,21 @@ case 'podcasts':
   return activeTab === tabId 
     ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
     : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
-    }
-  };
-
+    case 'patterns':
+      return activeTab === tabId 
+        ? 'bg-purple-50 text-purple-600 border-b-2 border-purple-600' 
+        : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
+    case 'behavior':
+      return activeTab === tabId 
+        ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
+        : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
+    case 'discovery':
+      return activeTab === tabId 
+        ? 'bg-green-50 text-green-600 border-b-2 border-green-600' 
+        : 'bg-green-200 text-green-600 hover:bg-green-300';
+    // ... default case
+  }
+};
 
   return (
     <button
@@ -208,6 +223,9 @@ case 'podcasts':
 {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
   {processedData.length > 0 && <TabButton id="custom" label="Custom Date Range" />}
 {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
+{processedData.length > 0 && <TabButton id="patterns" label="Listening Patterns" />}
+{processedData.length > 0 && <TabButton id="behavior" label="Listening Behavior" />}
+{processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
 </div>
 </div>
 {activeTab === 'upload' && (
@@ -566,6 +584,34 @@ First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleD
     <PodcastRankings 
       rawPlayData={rawPlayData}
       formatDuration={formatDuration}
+    />
+  </div>
+{activeTab === 'patterns' && (
+  <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
+    <h3 className="font-bold mb-2 text-purple-700">Listening Patterns</h3>
+    <ListeningPatterns 
+      rawPlayData={rawPlayData} 
+      formatDuration={formatDuration} 
+    />
+  </div>
+)}
+
+{activeTab === 'behavior' && (
+  <div className="p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+    <h3 className="font-bold mb-2 text-indigo-700">Listening Behavior</h3>
+    <ListeningBehavior 
+      rawPlayData={rawPlayData} 
+      formatDuration={formatDuration} 
+    />
+  </div>
+)}
+
+{activeTab === 'discovery' && (
+  <div className="p-4 bg-green-100 rounded border-2 border-green-300">
+    <h3 className="font-bold mb-2 text-green-700">Music Discovery</h3>
+    <DiscoveryAnalysis 
+      rawPlayData={rawPlayData} 
+      formatDuration={formatDuration} 
     />
   </div>
 )}
