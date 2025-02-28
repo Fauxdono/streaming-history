@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import _ from 'lodash';
+import * as XLSX from 'xlsx'; // Make sure XLSX is imported for Deezer XLSX support
 
 // Define a common structure for streaming data
 export const STREAMING_TYPES = {
@@ -34,7 +35,7 @@ export const STREAMING_SERVICES = {
     name: 'Deezer',
     downloadUrl: 'https://www.deezer.com/account/privacy',
     instructions: 'Go to Privacy Settings and request "Export my data", then download your listening history',
-    acceptedFormats: '.csv'
+    acceptedFormats: '.csv,.xlsx' // Updated to include XLSX format
   }
 };
 
@@ -66,8 +67,6 @@ function calculatePlayStats(entries) {
   let processedSongs = 0;
   let shortPlays = 0;
 
-  const serviceListeningTime = {};
-
   // Simple track map for combining same tracks
   const trackMap = {};
   
@@ -98,7 +97,6 @@ function calculatePlayStats(entries) {
   // Now process all entries with the album information
   entries.forEach(entry => {
     const playTime = entry.ms_played;
-    const source = entry.source || 'unknown';
     
     // Skip invalid entries
     if (!entry.master_metadata_track_name || playTime < 30000) {
@@ -108,11 +106,6 @@ function calculatePlayStats(entries) {
 
     processedSongs++;
     totalListeningTime += playTime;
-
-if (!serviceListeningTime[source]) {
-    serviceListeningTime[source] = 0;
-  }
-  serviceListeningTime[source] += playTime;
 
     const trackName = entry.master_metadata_track_name;
     const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
@@ -129,13 +122,30 @@ if (!serviceListeningTime[source]) {
     const standardKey = `${trackName}-${artistName}`;
     const matchKey = createMatchKey(trackName, artistName);
     
-    const timestamp = new Date(entry.ts);
+    // Parse timestamp safely
+    let timestamp;
+    if (entry.ts instanceof Date) {
+      timestamp = entry.ts;
+    } else if (typeof entry.ts === 'string') {
+      timestamp = new Date(entry.ts);
+    } else {
+      timestamp = new Date();
+    }
 
-    // Track play history
+    // Track play history - FIXED to handle different timestamp formats
     if (!songPlayHistory[standardKey]) {
       songPlayHistory[standardKey] = [];
     }
-    songPlayHistory[standardKey].push(timestamp.getTime());
+    
+    // Handle different timestamp formats safely
+    if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
+      songPlayHistory[standardKey].push(timestamp.getTime());
+    } else if (typeof timestamp === 'number') {
+      songPlayHistory[standardKey].push(timestamp);
+    } else {
+      console.warn('Unexpected timestamp format or invalid date:', timestamp);
+      songPlayHistory[standardKey].push(new Date().getTime());
+    }
 
     // Artist stats
     if (!artistStats[artistName]) {
@@ -209,7 +219,6 @@ if (!serviceListeningTime[source]) {
     albums: albumStats,
     playHistory: songPlayHistory,
     totalListeningTime,
-    serviceListeningTime, 
     processedSongs,
     shortPlays
   };
@@ -317,23 +326,18 @@ function calculateSongsByYear(songs, songPlayHistory) {
           songsByYear[year] = [];
         }
         
-        // Calculate play time for this year based on the proportion of plays in this year
-        const yearTotalPlayed = song.totalPlayed * (yearTimestamps.length / timestamps.length);
-        
         songsByYear[year].push({
           ...song,
-          totalPlayed: yearTotalPlayed,
+          totalPlayed: song.totalPlayed * (yearTimestamps.length / timestamps.length),
           playCount: yearTimestamps.length,
-          // Keep spotifyScore for backward compatibility but we won't use it for sorting
           spotifyScore: Math.pow(yearTimestamps.length, 1.5)
         });
       });
     }
   });
 
-  // Sort by totalPlayed instead of spotifyScore
   Object.keys(songsByYear).forEach(year => {
-    songsByYear[year] = _.orderBy(songsByYear[year], ['totalPlayed'], ['desc'])
+    songsByYear[year] = _.orderBy(songsByYear[year], ['spotifyScore'], ['desc'])
       .slice(0, 100);
   });
 
@@ -403,7 +407,7 @@ export const streamingProcessor = {
             }
           }
           
-// Apple Music CSV files
+          // Apple Music CSV files
           if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
             return new Promise((resolve) => {
               Papa.parse(content, {
@@ -492,7 +496,7 @@ export const streamingProcessor = {
                           // Just one play - use the last timestamp
                           plays.push({
                             master_metadata_track_name: trackName,
-                            ts: lastPlayed.toISOString(),
+                            ts: lastPlayed, // FIXED: Store Date object instead of ISO string
                             ms_played: avgPlayDuration,
                             master_metadata_album_artist_name: artistName,
                             master_metadata_album_album_name: albumName,
@@ -509,7 +513,7 @@ export const streamingProcessor = {
                             const playTime = new Date(firstPlayed.getTime() + (timeStep * i));
                             plays.push({
                               master_metadata_track_name: trackName,
-                              ts: playTime.toISOString(),
+                              ts: playTime, // FIXED: Store Date object instead of ISO string
                               ms_played: avgPlayDuration,
                               master_metadata_album_artist_name: artistName,
                               master_metadata_album_album_name: albumName,
@@ -541,11 +545,11 @@ export const streamingProcessor = {
                       .map(row => {
                         // Handle special case for Kenny Rogers
                         if (row['Track Name'] && 
-                            row['Track Name'].toLowerCase().includes('just dropped in') && 
-                            row['Track Name'].toLowerCase().includes('kenny rogers')) {
+                            row['Track Name'].toLowerCase().includes("just dropped in") && 
+                            row['Track Name'].toLowerCase().includes("kenny rogers")) {
                           return {
                             master_metadata_track_name: 'Just Dropped In (To See What Condition My Condition Is In)',
-                            ts: new Date(parseInt(row['Last Played Date'])).toISOString(),
+                            ts: new Date(parseInt(row['Last Played Date'])), // FIXED: Store Date object
                             ms_played: row['Is User Initiated'] ? 240000 : 30000,
                             master_metadata_album_artist_name: 'Kenny Rogers & The First Edition',
                             master_metadata_album_album_name: 'Unknown Album',
@@ -564,13 +568,13 @@ export const streamingProcessor = {
                           trackName = trackName.substring(dashIndex + 3).trim();
                         }
                         
-                        // Convert timestamp from milliseconds to ISO date
+                        // Convert timestamp from milliseconds to Date object
                         let timestamp;
                         try {
-                          timestamp = new Date(parseInt(row['Last Played Date'])).toISOString();
+                          timestamp = new Date(parseInt(row['Last Played Date'])); // FIXED: Store Date object
                         } catch (e) {
                           // Fallback if timestamp parsing fails
-                          timestamp = new Date().toISOString();
+                          timestamp = new Date();
                         }
                         
                         // Estimate play time (Apple doesn't provide this)
@@ -579,7 +583,7 @@ export const streamingProcessor = {
                         
                         return {
                           master_metadata_track_name: trackName,
-                          ts: timestamp,
+                          ts: timestamp, // FIXED: Store Date object instead of ISO string
                           ms_played: estimatedPlayTime,
                           master_metadata_album_artist_name: artistName,
                           master_metadata_album_album_name: 'Unknown Album',
@@ -622,14 +626,14 @@ export const streamingProcessor = {
                               hours = parseInt(hoursStr) || 12;
                             }
                             
-                            timestamp = new Date(`${year}-${month}-${day}T${hours}:00:00`).toISOString();
+                            timestamp = new Date(`${year}-${month}-${day}T${hours}:00:00`); // FIXED: Store Date object
                           } else {
                             // Fallback to parsing as integer timestamp
-                            timestamp = new Date(parseInt(datePlayed)).toISOString();
+                            timestamp = new Date(parseInt(datePlayed)); // FIXED: Store Date object
                           }
                         } catch (e) {
                           console.warn('Error parsing Daily Tracks date:', row['Date Played'], e);
-                          timestamp = new Date().toISOString();
+                          timestamp = new Date(); // FIXED: Store Date object
                         }
                         
                         // Get actual play duration if available, otherwise estimate
@@ -662,7 +666,7 @@ export const streamingProcessor = {
                         
                         const result = {
                           master_metadata_track_name: trackName,
-                          ts: timestamp,
+                          ts: timestamp, // FIXED: Store Date object instead of ISO string
                           ms_played: playDuration,
                           master_metadata_album_artist_name: artistName,
                           master_metadata_album_album_name: 'Unknown Album',
@@ -717,19 +721,19 @@ export const streamingProcessor = {
                           let timestamp;
                           try {
                             if (typeof row[dateField] === 'number') {
-                              timestamp = new Date(row[dateField]).toISOString();
+                              timestamp = new Date(row[dateField]); // FIXED: Store Date object
                             } else if (typeof row[dateField] === 'string') {
-                              timestamp = new Date(row[dateField]).toISOString();
+                              timestamp = new Date(row[dateField]); // FIXED: Store Date object
                             } else {
-                              timestamp = new Date().toISOString();
+                              timestamp = new Date(); // FIXED: Store Date object
                             }
                           } catch (e) {
-                            timestamp = new Date().toISOString();
+                            timestamp = new Date(); // FIXED: Store Date object
                           }
                           
                           return {
                             master_metadata_track_name: trackName,
-                            ts: timestamp,
+                            ts: timestamp, // FIXED: Store Date object instead of ISO string
                             ms_played: 180000, // Default 3 minutes
                             master_metadata_album_artist_name: artistName,
                             master_metadata_album_album_name: 'Unknown Album',
@@ -748,6 +752,96 @@ export const streamingProcessor = {
                   resolve([]);
                 }
               });
+            });
+          }
+          
+          // Deezer XLSX file
+          if (file.name.toLowerCase().includes('deezer') && file.name.endsWith('.xlsx')) {
+            return new Promise(async (resolve) => {
+              try {
+                // For XLSX files, we need to get the content as ArrayBuffer instead of text
+                const buffer = await file.arrayBuffer();
+                
+                // Parse the XLSX file
+                const workbook = XLSX.read(new Uint8Array(buffer), { 
+                  type: 'array',
+                  cellDates: true,
+                  cellNF: true
+                });
+                
+                // Find the listening history sheet
+                const historySheetName = "10_listeningHistory";
+                if (!workbook.SheetNames.includes(historySheetName)) {
+                  console.error('Listening history sheet not found in Deezer file');
+                  resolve([]);
+                  return;
+                }
+                
+                const historySheet = workbook.Sheets[historySheetName];
+                const data = XLSX.utils.sheet_to_json(historySheet);
+                
+                console.log(`Processing ${data.length} Deezer history entries`);
+                
+                // Transform Deezer data to common format
+                const transformedData = data.map(row => {
+                  // Extract required fields, handling potential missing fields
+                  const trackName = row['Song Title'] || '';
+                  const artistName = row['Artist'] || 'Unknown Artist';
+                  const albumName = row['Album Title'] || 'Unknown Album';
+                  const isrc = row['ISRC'] || null;
+                  
+                  // Parse listening time (in seconds) 
+                  let playDuration = 0;
+                  if (row['Listening Time'] && !isNaN(row['Listening Time'])) {
+                    // Convert seconds to milliseconds
+                    playDuration = parseInt(row['Listening Time']) * 1000;
+                  } else {
+                    // Default to 3.5 minutes if no valid duration
+                    playDuration = 210000;
+                  }
+                  
+                  // Parse date
+                  let timestamp;
+                  try {
+                    // If it's already a Date object, use it
+                    if (row['Date'] instanceof Date) {
+                      timestamp = row['Date'];
+                    } else if (typeof row['Date'] === 'string') {
+                      // Parse the date string
+                      timestamp = new Date(row['Date']);
+                    } else {
+                      // Fallback to current time
+                      timestamp = new Date();
+                    }
+                  } catch (e) {
+                    console.warn('Error parsing Deezer timestamp:', e);
+                    timestamp = new Date();
+                  }
+                  
+                  // Get platform info
+                  const platform = row['Platform Name'] || 'deezer';
+                  const platformModel = row['Platform Model'] || '';
+                  
+                  // Create the standardized entry
+                  return {
+                    master_metadata_track_name: trackName,
+                    ts: timestamp,
+                    ms_played: playDuration,
+                    master_metadata_album_artist_name: artistName,
+                    master_metadata_album_album_name: albumName,
+                    isrc: isrc, // Store ISRC for better track matching
+                    platform: `DEEZER-${platform.toUpperCase()}${platformModel ? '-' + platformModel.toUpperCase() : ''}`,
+                    source: 'deezer'
+                  };
+                });
+                
+                console.log(`Transformed ${transformedData.length} Deezer entries`);
+                allProcessedData = [...allProcessedData, ...transformedData];
+                resolve(transformedData);
+              } catch (error) {
+                console.error('Error processing Deezer XLSX file:', error);
+                resolve([]);
+              }
             });
           }
           
@@ -800,27 +894,6 @@ export const streamingProcessor = {
 
       const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
 
-// Format service names for display
-const serviceTimeBreakdown = {};
-Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
-  let displayName = service;
-  
-  // Format service names nicely
-  if (service === 'spotify') {
-    displayName = 'Spotify';
-  } else if (service === 'apple_music') {
-    displayName = 'Apple Music';
-  } else if (service === 'deezer') {
-    displayName = 'Deezer';
-  } else if (service === 'youtube_music') {
-    displayName = 'YouTube Music';
-  } else if (service === 'unknown') {
-    displayName = 'Unknown Service';
-  }
-  
-  serviceTimeBreakdown[displayName] = time;
-});
-
       return {
         stats: {
           totalFiles: files.length,
@@ -829,8 +902,7 @@ Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
           nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
           skippedEntries: 0,
           shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime,
-          serviceListeningTime: serviceTimeBreakdown
+          totalListeningTime: stats.totalListeningTime
         },
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
@@ -839,7 +911,6 @@ Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
         briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
         rawPlayData: allProcessedData
       };
-
     } catch (error) {
       console.error('Error processing files:', error);
       throw error;
