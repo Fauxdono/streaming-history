@@ -315,11 +315,39 @@ function calculateBriefObsessions(songs, songPlayHistory) {
 
 function calculateSongsByYear(songs, songPlayHistory) {
   const songsByYear = {};
+  let dateErrors = 0;
   
   songs.forEach(song => {
     const timestamps = songPlayHistory[song.key] || [];
     if (timestamps.length > 0) {
-      const playsByYear = _.groupBy(timestamps, ts => new Date(ts).getFullYear());
+      // Group by year with extra validation
+      const playsByYear = _.groupBy(timestamps, ts => {
+        try {
+          const date = new Date(ts);
+          
+          // Check if date is valid
+          if (isNaN(date.getTime())) {
+            dateErrors++;
+            return 2022; // Default to 2022 for invalid dates
+          }
+          
+          // Check if date is from the future
+          const currentYear = new Date().getFullYear();
+          const year = date.getFullYear();
+          
+          if (year > currentYear) {
+            console.warn(`Future year detected: ${year} for song ${song.trackName}. Defaulting to ${currentYear}.`);
+            dateErrors++;
+            return 2022; // Default to 2022 for future dates
+          }
+          
+          return year;
+        } catch (e) {
+          console.error('Error processing timestamp:', ts, e);
+          dateErrors++;
+          return 2022; // Default to 2022 for errors
+        }
+      });
       
       Object.entries(playsByYear).forEach(([year, yearTimestamps]) => {
         if (!songsByYear[year]) {
@@ -335,6 +363,10 @@ function calculateSongsByYear(songs, songPlayHistory) {
       });
     }
   });
+
+  if (dateErrors > 0) {
+    console.warn(`Detected ${dateErrors} date parsing issues while grouping songs by year`);
+  }
 
   Object.keys(songsByYear).forEach(year => {
     songsByYear[year] = _.orderBy(songsByYear[year], ['spotifyScore'], ['desc'])
@@ -626,39 +658,36 @@ export const streamingProcessor = {
                               hours = parseInt(hoursStr) || 12;
                             }
                             
-                            timestamp = new Date(`${year}-${month}-${day}T${hours}:00:00`); // FIXED: Store Date object
-                          } else {
-                            // Fallback to parsing as integer timestamp
-                            timestamp = new Date(parseInt(datePlayed)); // FIXED: Store Date object
-                          }
-                        } catch (e) {
-                          console.warn('Error parsing Daily Tracks date:', row['Date Played'], e);
-                          timestamp = new Date(); // FIXED: Store Date object
-                        }
-                        
-                        // Get actual play duration if available, otherwise estimate
-                        let playDuration = 0;
-                        if (row['Play Duration Milliseconds'] && row['Play Duration Milliseconds'] > 0) {
-                          playDuration = row['Play Duration Milliseconds'];
-                        } else {
-                          // If no duration or zero duration, estimate based on end reason
-                          const endReason = row['End Reason Type'] || '';
-                          
-                          if (endReason === 'NATURAL_END_OF_TRACK') {
-                            // Completed track, estimate 3-4 minutes
-                            playDuration = 210000;
-                          } else if (endReason === 'PLAYBACK_MANUALLY_PAUSED' || 
-                                    endReason.includes('MANUALLY_SELECTED')) {
-                            // User intervention, use play count to determine if it was listened to
-                            playDuration = row['Play Count'] > 0 ? 120000 : 30000;
-                          } else if (endReason === 'TRACK_SKIPPED_FORWARDS') {
-                            // Skipped, likely short play
-                            playDuration = 30000;
-                          } else {
-                            // Default fallback
-                            playDuration = row['Play Count'] > 0 ? 180000 : 30000;
-                          }
-                        }
+                      // Create date using proper component values to avoid timezone issues
+    timestamp = new Date(year, month, day, hours, 0, 0);
+    
+    // Validate the date - if it's invalid or in the future, log and use fallback
+    if (isNaN(timestamp.getTime()) || timestamp > new Date()) {
+      console.warn('Invalid or future date detected:', datePlayed, 'Using fallback date');
+      timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
+    }
+  } else {
+    // Fallback to parsing as integer timestamp
+    const parsed = new Date(parseInt(datePlayed));
+    
+    // Validate the parsed date
+    if (!isNaN(parsed.getTime()) && parsed <= new Date()) {
+      timestamp = parsed;
+    } else {
+      console.warn('Invalid timestamp detected:', datePlayed, 'Using fallback date');
+      timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
+    }
+  }
+} catch (e) {
+  console.warn('Error parsing Daily Tracks date:', row['Date Played'], e);
+  timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
+}
+
+// MODIFICATION 2: Add debugging to see what dates are being processed
+console.log('Apple Music date:', row['Date Played'], 
+            'Parsed as:', timestamp.toISOString(), 
+            'Year:', timestamp.getFullYear());
+
                         
                         // Handle podcast vs music distinction if possible
                         const isPodcast = trackDescription.toLowerCase().includes('podcast') || 
