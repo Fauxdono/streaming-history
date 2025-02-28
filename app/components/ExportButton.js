@@ -17,19 +17,28 @@ const ExportButton = ({
   const createWorkbook = async () => {
     const workbook = new ExcelJS.Workbook();
     
-    // Summary Sheet
-    const summarySheet = workbook.addWorksheet('Summary');
-    summarySheet.addRow(['Spotify Listening History Summary']);
-    summarySheet.addRow([]);
-    summarySheet.addRow(['Metric', 'Value']);
-    summarySheet.addRows([
-      ['Total Files Processed', stats.totalFiles],
-      ['Total Entries', stats.totalEntries],
-      ['Total Songs', stats.processedSongs],
-      ['Total Listening Time', formatDuration(stats.totalListeningTime)],
-      ['Very Short Plays (<30s)', stats.shortPlays],
-      ['Entries with No Track Name', stats.nullTrackNames],
-    ]);
+// Summary Sheet
+const summarySheet = workbook.addWorksheet('Summary');
+summarySheet.addRow(['Spotify Listening History Summary']);
+summarySheet.addRow([]);
+summarySheet.addRow(['Metric', 'Value']);
+summarySheet.addRows([
+  ['Total Files Processed', stats.totalFiles],
+  ['Total Entries', stats.totalEntries],
+  ['Total Songs', stats.processedSongs],
+  ['Total Listening Time', formatDuration(stats.totalListeningTime)],
+  ['Very Short Plays (<30s)', stats.shortPlays],
+  ['Entries with No Track Name', stats.nullTrackNames],
+]);
+
+// Add service listening time breakdown if available
+if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0) {
+  summarySheet.addRow([]);
+  summarySheet.addRow(['Listening Time by Service']);
+  Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
+    summarySheet.addRow([service, formatDuration(time)]);
+  });
+
 
     // Top Artists Sheet
     const artistsSheet = workbook.addWorksheet('Top Artists');
