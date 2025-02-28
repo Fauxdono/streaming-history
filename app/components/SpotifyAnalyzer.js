@@ -340,10 +340,25 @@ case 'podcasts':
             <li>Plays under 30s: {stats.shortPlays}</li>
           </ul>
         </div>
-        <div className="bg-purple-50 p-3 rounded">
+        <div className="bg-purple-50 p-3 rounded space-y-2">
           <div className="font-semibold mb-1 text-purple-700">Total Listening Time:</div>
           <div className="text-2xl text-purple-700">{formatDuration(stats.totalListeningTime)}</div>
           <div className="text-sm text-purple-600">(only counting plays over 30 seconds)</div>
+          
+          {/* Service breakdown */}
+          {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
+            <div className="mt-4 pt-3 border-t border-purple-200">
+              <div className="font-semibold text-purple-700 mb-2">Listening Time by Service:</div>
+              <ul className="space-y-1">
+                {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
+                  <li key={service} className="flex justify-between items-center">
+                    <span className="text-purple-600">{service}:</span>
+                    <span className="font-medium text-purple-700">{formatDuration(time)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
@@ -363,7 +378,6 @@ case 'podcasts':
     </div>
   </div>
 )}
-
         
 {activeTab === 'artists' && (
   <div className="p-4 bg-teal-100 rounded border-2 border-teal-300">
