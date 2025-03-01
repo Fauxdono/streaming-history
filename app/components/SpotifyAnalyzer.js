@@ -443,6 +443,8 @@ case 'podcasts':
             {artist.longestStreak > 1 && (
               <>
                 <br/>
+First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
+<br/>
                 Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
                 <br/>
                 <span className="text-xs">
@@ -542,8 +544,6 @@ case 'podcasts':
             Tracks: <span className="font-bold">{album.trackCount}</span>
 	<br/> 
 First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
-<br/>
-First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
 <br/>
           </div>
           <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
