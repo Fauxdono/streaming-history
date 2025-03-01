@@ -622,96 +622,96 @@ export const streamingProcessor = {
                           source: 'apple_music'
                         };
                       });
-                  } else if (isDailyTracks) {
-                    // Process the more detailed Daily Tracks format
-                    transformedData = results.data
-                      .filter(row => row['Track Description'] && row['Date Played'])
-                      .map(row => {
-                        // Parse track information from Track Description
-                        let trackDescription = row['Track Description'] || '';
-                        let trackName = trackDescription;
-                        let artistName = 'Unknown Artist';
-                        
-                        // Format is typically "Artist - Track Name"
-                        const dashIndex = trackDescription.indexOf(' - ');
-                        if (dashIndex > 0) {
-                          artistName = trackDescription.substring(0, dashIndex).trim();
-                          trackName = trackDescription.substring(dashIndex + 3).trim();
-                        }
-                        
-                        // Parse date (format is typically YYYYMMDD)
-                        let timestamp;
-                        try {
-                          const datePlayed = row['Date Played'].toString();
-                          // Format YYYYMMDD to YYYY-MM-DD
-                          if (datePlayed.length === 8) {
-                            const year = datePlayed.substring(0, 4);
-                            const month = datePlayed.substring(4, 6);
-                            const day = datePlayed.substring(6, 8);
-                            
-                            // If hours field exists, use it for more precise timestamp
-                            let hours = 12; // Default to noon if no hour specified
-                            if (row['Hours']) {
-                              // Hours field might be like "19, 20" (meaning spanning multiple hours)
-                              // Just take the first number
-                              const hoursStr = row['Hours'].toString().split(',')[0].trim();
-                              hours = parseInt(hoursStr) || 12;
-                            }
-                            
-                      // Create date using proper component values to avoid timezone issues
-    timestamp = new Date(year, month, day, hours, 0, 0);
-    
-    // Validate the date - if it's invalid or in the future, log and use fallback
-    if (isNaN(timestamp.getTime()) || timestamp > new Date()) {
-      console.warn('Invalid or future date detected:', datePlayed, 'Using fallback date');
-      timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
-    }
-  } else {
-    // Fallback to parsing as integer timestamp
-    const parsed = new Date(parseInt(datePlayed));
-    
-    // Validate the parsed date
-    if (!isNaN(parsed.getTime()) && parsed <= new Date()) {
-      timestamp = parsed;
-    } else {
-      console.warn('Invalid timestamp detected:', datePlayed, 'Using fallback date');
-      timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
-    }
-  }
-} catch (e) {
-  console.warn('Error parsing Daily Tracks date:', row['Date Played'], e);
-  timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
-}
-
-// MODIFICATION 2: Add debugging to see what dates are being processed
-console.log('Apple Music date:', row['Date Played'], 
-            'Parsed as:', timestamp.toISOString(), 
-            'Year:', timestamp.getFullYear());
-
-                        
-                        // Handle podcast vs music distinction if possible
-                        const isPodcast = trackDescription.toLowerCase().includes('podcast') || 
-                                         (row['Media type'] === 'VIDEO' && playDuration > 1200000);
-                        
-                        const result = {
-                          master_metadata_track_name: trackName,
-                          ts: timestamp, // FIXED: Store Date object instead of ISO string
-                          ms_played: playDuration,
-                          master_metadata_album_artist_name: artistName,
-                          master_metadata_album_album_name: 'Unknown Album',
-                          platform: row['Source Type'] || 'APPLE',
-                          source: 'apple_music'
-                        };
-                        
-                        // Add podcast fields if it appears to be a podcast
-                        if (isPodcast) {
-                          result.episode_name = trackName;
-                          result.episode_show_name = artistName;
-                        }
-                        
-                        return result;
-                      });
-                  } else {
+// Replace your isDailyTracks section with this fixed version:
+else if (isDailyTracks) {
+  // Process the more detailed Daily Tracks format
+  transformedData = results.data
+    .filter(row => row['Track Description'] && row['Date Played'])
+    .map(row => {
+      // Parse track information from Track Description
+      let trackDescription = row['Track Description'] || '';
+      let trackName = trackDescription;
+      let artistName = 'Unknown Artist';
+      
+      // Format is typically "Artist - Track Name"
+      const dashIndex = trackDescription.indexOf(' - ');
+      if (dashIndex > 0) {
+        artistName = trackDescription.substring(0, dashIndex).trim();
+        trackName = trackDescription.substring(dashIndex + 3).trim();
+      }
+      
+      // Parse date (format is typically YYYYMMDD)
+      let timestamp;
+      try {
+        const datePlayed = row['Date Played'].toString();
+        // Format YYYYMMDD to YYYY-MM-DD
+        if (datePlayed.length === 8) {
+          const year = parseInt(datePlayed.substring(0, 4));
+          const month = parseInt(datePlayed.substring(4, 6)) - 1; // Months are 0-indexed in JS
+          const day = parseInt(datePlayed.substring(6, 8));
+          
+          // If hours field exists, use it for more precise timestamp
+          let hours = 12; // Default to noon if no hour specified
+          if (row['Hours']) {
+            // Hours field might be like "19, 20" (meaning spanning multiple hours)
+            // Just take the first number
+            const hoursStr = row['Hours'].toString().split(',')[0].trim();
+            hours = parseInt(hoursStr) || 12;
+          }
+          
+          // Create date using proper component values
+          timestamp = new Date(year, month, day, hours, 0, 0);
+          
+          // Validate the date - if it's invalid or in the future, log and use fallback
+          if (isNaN(timestamp.getTime()) || timestamp > new Date()) {
+            console.warn('Invalid or future date detected:', datePlayed, 'Using fallback date');
+            timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
+          }
+        } else {
+          // Fallback to parsing as integer timestamp
+          const parsed = new Date(parseInt(datePlayed));
+          
+          // Validate the parsed date
+          if (!isNaN(parsed.getTime()) && parsed <= new Date()) {
+            timestamp = parsed;
+          } else {
+            console.warn('Invalid timestamp detected:', datePlayed, 'Using fallback date');
+            timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
+          }
+        }
+      } catch (e) {
+        console.warn('Error parsing Daily Tracks date:', row['Date Played'], e);
+        timestamp = new Date(2022, 0, 1); // Fallback to January 1, 2022
+      }
+      
+      // Get play duration in milliseconds
+      const playDuration = row['Play Duration Milliseconds'] || 210000; // Default to 3.5 min
+      
+      // Handle podcast vs music distinction if possible
+      const isPodcast = trackDescription.toLowerCase().includes('podcast') || 
+                       (row['Media type'] === 'VIDEO' && playDuration > 1200000);
+      
+      const result = {
+        master_metadata_track_name: trackName,
+        ts: timestamp, // Store Date object directly
+        ms_played: playDuration,
+        master_metadata_album_artist_name: artistName,
+        master_metadata_album_album_name: 'Unknown Album',
+        platform: row['Source Type'] || 'APPLE',
+        source: 'apple_music'
+      };
+      
+      // Add podcast fields if it appears to be a podcast
+      if (isPodcast) {
+        result.episode_name = trackName;
+        result.episode_show_name = artistName;
+      }
+      
+      return result;
+    });
+  
+  console.log(`Transformed ${transformedData.length} Apple Music Data entries`);
+} else {
                     // Unknown Apple Music format, try a generic approach
                     console.log('Unknown Apple Music CSV format, attempting generic parsing');
                     
