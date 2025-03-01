@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import ArtistByTimeOfDay from './ArtistByTimeOfDay';
+import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 
 const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('behavior');
