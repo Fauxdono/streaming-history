@@ -364,6 +364,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
             </div>
           </div>
         </div>
+)}
 {activeTab === 'streaming' && (
   <StreamingByYear 
     rawPlayData={rawPlayData} 
