@@ -446,7 +446,7 @@ case 'podcasts':
 First Song: <span className="font-bold">
   {artist.firstSong || "Unknown"} 
   {artist.mostPlayedSong && artist.mostPlayedSong.playCount 
-    ? ` (${artist.mostPlayedSong.playCount} plays)` 
+    ? ` (${artist.mostPlayedSong.playCount} x)` 
     : ""}
 </span>
 <br/>
