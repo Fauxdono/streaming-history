@@ -449,6 +449,7 @@ First Song: <span className="font-bold">
     ? ` (${artist.firstSongPlayCount}x)` 
     : ""}
 </span>
+<br/>
         Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
                 <br/>
                 <span className="text-xs">
