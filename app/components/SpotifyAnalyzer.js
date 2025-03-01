@@ -530,7 +530,20 @@ First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
        {topAlbums
     .filter(album => selectedArtists.length === 0 || selectedArtists.includes(album.artist))
     .slice(0, topAlbumsCount)
-    .map((album, index) => (
+    .map((album, index) => }
+ const artist = topArtists.find(a => a.name === album.artist) || {};
+          
+          // Find the most played track in this album from processed data
+          const albumTracks = processedData.filter(track => 
+            track.albumName === album.name && track.artist === album.artist
+          );
+          const topTrack = albumTracks.length > 0 
+            ? albumTracks.reduce((max, track) => 
+                track.totalPlayed > max.totalPlayed ? track : max
+              )
+            : null;
+  return (
+
         <div key={`${album.name}-${album.artist}`} 
           className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
           <div className="font-bold text-pink-600">{album.name}</div>
@@ -544,7 +557,14 @@ First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
             Tracks: <span className="font-bold">{album.trackCount}</span>
 	<br/> 
 First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
-<br/>
+<br/>   
+   Top Track: <span className="font-bold">
+                  {topTrack 
+                    ? `${topTrack.trackName} (${formatDuration(topTrack.totalPlayed)})` 
+                    : "No track data"
+                  }
+                </span>
+                <br/>
           </div>
           <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
         </div>
