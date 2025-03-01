@@ -445,12 +445,11 @@ case 'podcasts':
                 <br/>
 First Song: <span className="font-bold">
   {artist.firstSong || "Unknown"} 
-  {artist.mostPlayedSong && artist.mostPlayedSong.playCount 
-    ? ` (${artist.mostPlayedSong.playCount} x)` 
+  {artist.firstSongPlayCount 
+    ? ` (${artist.firstSongPlayCount}x)` 
     : ""}
 </span>
-<br/>
-                Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+        Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
                 <br/>
                 <span className="text-xs">
                   ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
