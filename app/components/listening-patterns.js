@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import StreamingByYear from './streaming-by-year.js';
 
 const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
