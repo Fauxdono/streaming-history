@@ -154,26 +154,31 @@ serviceListeningTime[service] += playTime;
       songPlayHistory[standardKey].push(new Date().getTime());
     }
 
-    // Artist stats
-    if (!artistStats[artistName]) {
-      artistStats[artistName] = {
-        name: artistName,
-        totalPlayed: 0,
-        playCount: 0,
-        firstListen: timestamp.getTime(),
-        firstSong: trackName
-      };
-    }
-    artistStats[artistName].totalPlayed += playTime;
-    artistStats[artistName].playCount++;
-    artistStats[artistName].firstListen = Math.min(
-      artistStats[artistName].firstListen, 
-      timestamp.getTime()
-    );
-
-// Optionally track the first song if it wasn't set before
-if (!artistStats[artistName].firstSong) {
-  artistStats[artistName].firstSong = trackName;
+ // Artist stats
+if (!artistStats[artistName]) {
+  artistStats[artistName] = {
+    name: artistName,
+    totalPlayed: 0,
+    playCount: 0,
+    firstListen: timestamp.getTime(),
+    firstSong: trackName,
+    firstSongPlayCount: 1  // Add a counter for the first song
+  };
+} else {
+  // Update running totals
+  artistStats[artistName].totalPlayed += playTime;
+  artistStats[artistName].playCount++;
+  
+  // If this timestamp is earlier than the current firstListen, update the first song
+  if (timestamp.getTime() < artistStats[artistName].firstListen) {
+    artistStats[artistName].firstListen = timestamp.getTime();
+    artistStats[artistName].firstSong = trackName;
+    artistStats[artistName].firstSongPlayCount = 1;  // Reset count for new first song
+  } 
+  // If this is the same song as the first song, increment its counter
+  else if (trackName === artistStats[artistName].firstSong) {
+    artistStats[artistName].firstSongPlayCount = (artistStats[artistName].firstSongPlayCount || 0) + 1;
+  }
 }
 
     // Album stats
