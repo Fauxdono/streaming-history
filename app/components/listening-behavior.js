@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import ArtistByTimeOfDay from './ArtistByTimeOfDay';
 
 const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('behavior');
@@ -228,6 +229,7 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
       <div className="flex gap-2 border-b">
         <TabButton id="behavior" label="Listening Behavior" />
         <TabButton id="sessions" label="Listening Sessions" />
+        <TabButton id="artistsTime" label="Artists by Time" />
       </div>
 
       {activeTab === 'behavior' && (
@@ -435,6 +437,13 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
           </div>
         </div>
       )}
+  {activeTab === 'artistsTime' && (
+  <ArtistByTimeOfDay
+    rawPlayData={rawPlayData}
+    formatDuration={formatDuration}
+  />
+  )}
+
     </div>
   );
 };
