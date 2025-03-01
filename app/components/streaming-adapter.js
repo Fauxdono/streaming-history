@@ -160,7 +160,8 @@ serviceListeningTime[service] += playTime;
         name: artistName,
         totalPlayed: 0,
         playCount: 0,
-        firstListen: timestamp.getTime()
+        firstListen: timestamp.getTime(),
+        firstSong: trackName
       };
     }
     artistStats[artistName].totalPlayed += playTime;
