@@ -47,7 +47,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration }) => {
       apple_music: '#FC3C44',
       youtube_music: '#FF0000',
       tidal: '#000000',
-      deezer: '#FEAA2D',
+      deezer: '#9B4DEE',  // Changed to purple
       unknown: '#666666'
     };
     
@@ -190,7 +190,6 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration }) => {
                 <Bar 
                   key={service} 
                   dataKey={service} 
-                  stackId="plays" 
                   fill={serviceData.serviceColorMap[service]} 
                   name={service}
                 />

@@ -174,6 +174,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
+        <TabButton id="streaming" label="Streaming Services" />
       </div>
 
       {activeTab === 'timeOfDay' && (
@@ -363,7 +364,13 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
             </div>
           </div>
         </div>
-      )}
+{activeTab === 'streaming' && (
+  <StreamingByYear 
+    rawPlayData={rawPlayData} 
+    formatDuration={formatDuration} 
+  />
+)}
+     
     </div>
   );
 };
