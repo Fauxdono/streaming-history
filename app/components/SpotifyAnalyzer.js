@@ -526,12 +526,12 @@ First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
         )}
       </div>
     </div>
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-       {topAlbums
-    .filter(album => selectedArtists.length === 0 || selectedArtists.includes(album.artist))
-    .slice(0, topAlbumsCount)
-    .map((album, index) => {
- const artist = topArtists.find(a => a.name === album.artist) || {};
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {topAlbums
+        .filter(album => selectedArtists.length === 0 || selectedArtists.includes(album.artist))
+        .slice(0, topAlbumsCount)
+        .map((album, index) => {
+          const artist = topArtists.find(a => a.name === album.artist) || {};
           
           // Find the most played track in this album from processed data
           const albumTracks = processedData.filter(track => 
@@ -542,33 +542,36 @@ First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
                 track.totalPlayed > max.totalPlayed ? track : max
               )
             : null;
-  return (
-
-        <div key={`${album.name}-${album.artist}`} 
-          className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
-          <div className="font-bold text-pink-600">{album.name}</div>
-          <div className="text-sm text-pink-400">
-            Artist: <span className="font-bold">{album.artist}</span> 
-            <br/>
-            Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
-            <br/>
-            Plays: <span className="font-bold">{album.playCount}</span> 
-            <br/>
-            Tracks: <span className="font-bold">{album.trackCount}</span>
-	<br/> 
-First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
-<br/>   
-   Top Track: <span className="font-bold">
+          
+          return (
+            <div 
+              key={`${album.name}-${album.artist}`} 
+              className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative"
+            >
+              <div className="font-bold text-pink-600">{album.name}</div>
+              <div className="text-sm text-pink-400">
+                Artist: <span className="font-bold">{album.artist}</span> 
+                <br/>
+                Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
+                <br/>
+                Plays: <span className="font-bold">{album.playCount}</span> 
+                <br/>
+                Tracks: <span className="font-bold">{album.trackCount}</span>
+                <br/> 
+                First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
+                <br/>   
+                Top Track: <span className="font-bold">
                   {topTrack 
                     ? `${topTrack.trackName} (${formatDuration(topTrack.totalPlayed)})` 
                     : "No track data"
                   }
                 </span>
                 <br/>
-          </div>
-          <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
-        </div>
-      ))}
+              </div>
+              <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
+            </div>
+          );
+        })}
     </div>
   </div>
 )}
