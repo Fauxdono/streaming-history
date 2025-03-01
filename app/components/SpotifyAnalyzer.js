@@ -443,7 +443,12 @@ case 'podcasts':
             {artist.longestStreak > 1 && (
               <>
                 <br/>
-First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
+First Song: <span className="font-bold">
+  {artist.firstSong || "Unknown"} 
+  {artist.mostPlayedSong && artist.mostPlayedSong.playCount 
+    ? ` (${artist.mostPlayedSong.playCount} plays)` 
+    : ""}
+</span>
 <br/>
                 Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
                 <br/>
