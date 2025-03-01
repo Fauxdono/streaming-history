@@ -22,7 +22,7 @@ export const STREAMING_SERVICES = {
   [STREAMING_TYPES.APPLE_MUSIC]: {
     name: 'Apple Music',
     downloadUrl: 'https://privacy.apple.com/',
-    instructions: 'Go to URL and request a copy of your data and Apple_Media_Services/Apple Music Activity/Apple Music - Play History Daily Tracks',
+    instructions: 'Go to URL and request a copy of your data and open Apple_Media_Services/Apple Music Activity/Apple Music - Play History Daily Tracks',
     acceptedFormats: '.csv'
   },
   [STREAMING_TYPES.YOUTUBE_MUSIC]: {
@@ -33,7 +33,7 @@ export const STREAMING_SERVICES = {
   },
   [STREAMING_TYPES.DEEZER]: {
     name: 'Deezer',
-    downloadUrl: 'https://www.deezer.com/account/privacy',
+    downloadUrl: 'https://www.deezer.com/account',
     instructions: 'Go to Account Settings and in the third tab Private information above your birthdate you see My personal data next to Privacy Settings press then download your listening history',
     acceptedFormats: '.csv,.xlsx' // Updated to include XLSX format
   }
