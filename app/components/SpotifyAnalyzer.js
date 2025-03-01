@@ -11,6 +11,7 @@ import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
+import { X } from 'lucide-react';
 
 
 
@@ -103,12 +104,18 @@ const processFiles = useCallback(async (fileList) => {
 }, []);
 const handleFileUpload = (e) => {
   const newFiles = e.target.files;
-  const newFileNames = Array.from(newFiles).map(file => file.name);
+  if (!newFiles || newFiles.length === 0) return;
+  
+  const newFileNames = Array.from(newFiles).map(file => ({
+    name: file.name,
+    file: file
+  }));
   
   // Combine existing files with new files
-  const combinedFileList = uploadedFileList 
-    ? [...Array.from(uploadedFileList), ...Array.from(newFiles)]
-    : newFiles;
+  let newFileList = Array.from(newFiles);
+  if (uploadedFileList) {
+    newFileList = [...Array.from(uploadedFileList), ...newFileList];
+  }
   
   // Combine existing file names with new file names
   const combinedFileNames = uploadedFiles 
@@ -116,9 +123,31 @@ const handleFileUpload = (e) => {
     : newFileNames;
   
   // Update state with combined files and file names
-  setUploadedFileList(combinedFileList);
+  setUploadedFileList(newFileList);
   setUploadedFiles(combinedFileNames);
 };
+
+  // Add the handleDeleteFile function here
+  const handleDeleteFile = (indexToDelete) => {
+    // Remove the file from uploadedFiles array
+    const updatedFiles = uploadedFiles.filter((_, index) => index !== indexToDelete);
+    setUploadedFiles(updatedFiles);
+    
+    // Create a new FileList-like object without the deleted file
+    if (uploadedFileList) {
+      const remainingFiles = Array.from(uploadedFileList).filter((_, index) => {
+        // Find which file in uploadedFileList corresponds to the one being deleted
+        return index !== indexToDelete;
+      });
+      
+      // Check if we've removed all files
+      if (remainingFiles.length === 0) {
+        setUploadedFileList(null);
+      } else {
+        setUploadedFileList(remainingFiles);
+      }
+    }
+  };
 
 const handleProcessFiles = () => {
   if (!uploadedFileList || uploadedFileList.length === 0) {
@@ -320,25 +349,34 @@ case 'podcasts':
         </div>
       )}
       
-      {uploadedFiles.length > 0 && (
-        <div className="mt-4">
-          <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
-          <ul className="list-disc list-inside text-orange-600">
-            {uploadedFiles.map((fileName, index) => (
-              <li key={index}>{fileName}</li>
-            ))}
-          </ul>
-          
-          <button
-            onClick={handleProcessFiles}
-            disabled={isProcessing}
-            className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
-              hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+{uploadedFiles.length > 0 && (
+  <div className="mt-4">
+    <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
+    <ul className="list-disc list-inside text-orange-600 space-y-1">
+      {uploadedFiles.map((fileObj, index) => (
+        <li key={index} className="flex items-center">
+          <span className="mr-2">{fileObj.name}</span>
+          <button 
+            onClick={() => handleDeleteFile(index)}
+            className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            title="Remove file"
           >
-            {isProcessing ? "Processing..." : "Calculate Statistics"}
+            <X size={14} />
           </button>
-        </div>
-      )}
+        </li>
+      ))}
+    </ul>
+    
+    <button
+      onClick={handleProcessFiles}
+      disabled={isProcessing}
+      className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
+        hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+    >
+      {isProcessing ? "Processing..." : "Calculate Statistics"}
+    </button>
+  </div>
+)}
       
       {error && (
         <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
