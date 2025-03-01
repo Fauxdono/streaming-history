@@ -623,7 +623,7 @@ export const streamingProcessor = {
                         };
                       });
 // Replace your isDailyTracks section with this fixed version:
-else if (isDailyTracks) {
+} else if (isDailyTracks) {
   // Process the more detailed Daily Tracks format
   transformedData = results.data
     .filter(row => row['Track Description'] && row['Date Played'])
@@ -711,7 +711,7 @@ else if (isDailyTracks) {
     });
   
   console.log(`Transformed ${transformedData.length} Apple Music Data entries`);
-}
+} else {
                     // Unknown Apple Music format, try a generic approach
                     console.log('Unknown Apple Music CSV format, attempting generic parsing');
                     
