@@ -63,6 +63,7 @@ function calculatePlayStats(entries) {
   const artistStats = {};
   const albumStats = {};
   const songPlayHistory = {};
+  const serviceListeningTime = {};
   let totalListeningTime = 0;
   let processedSongs = 0;
   let shortPlays = 0;
@@ -106,6 +107,12 @@ function calculatePlayStats(entries) {
 
     processedSongs++;
     totalListeningTime += playTime;
+
+const service = entry.source || 'unknown';
+if (!serviceListeningTime[service]) {
+  serviceListeningTime[service] = 0;
+}
+serviceListeningTime[service] += playTime;
 
     const trackName = entry.master_metadata_track_name;
     const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
@@ -219,6 +226,7 @@ function calculatePlayStats(entries) {
     albums: albumStats,
     playHistory: songPlayHistory,
     totalListeningTime,
+    serviceListeningTime,
     processedSongs,
     shortPlays
   };
@@ -931,7 +939,8 @@ export const streamingProcessor = {
           nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
           skippedEntries: 0,
           shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime
+          totalListeningTime: stats.totalListeningTime,
+          serviceListeningTime: stats.serviceListeningTime
         },
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
