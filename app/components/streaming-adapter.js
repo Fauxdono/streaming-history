@@ -171,6 +171,11 @@ serviceListeningTime[service] += playTime;
       timestamp.getTime()
     );
 
+// Optionally track the first song if it wasn't set before
+if (!artistStats[artistName].firstSong) {
+  artistStats[artistName].firstSong = trackName;
+}
+
     // Album stats
     if (albumName && artistName) {
       const albumKey = `${albumName}-${artistName}`;
