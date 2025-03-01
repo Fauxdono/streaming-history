@@ -530,7 +530,7 @@ First Song: <span className="font-bold">{artist.firstSong || "Unknown"}</span>
        {topAlbums
     .filter(album => selectedArtists.length === 0 || selectedArtists.includes(album.artist))
     .slice(0, topAlbumsCount)
-    .map((album, index) => }
+    .map((album, index) => {
  const artist = topArtists.find(a => a.name === album.artist) || {};
           
           // Find the most played track in this album from processed data
