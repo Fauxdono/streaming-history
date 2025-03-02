@@ -498,7 +498,7 @@ case 'podcasts':
     </div>
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 {console.log('Top Artists Count:', topArtistsCount, 'Artists:', topArtists.length)}
-      {topArtists.slice(0,topArtistsCount).map((artist, index) => (
+      {displayedArtists.slice(0,topArtistsCount).map((artist, index) => (
         <div key={artist.name} 
           className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor pointer relative"
           onClick={() => {
