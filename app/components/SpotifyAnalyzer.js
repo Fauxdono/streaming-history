@@ -461,18 +461,39 @@ case 'podcasts':
         
 {activeTab === 'artists' && (
   <div className="p-4 bg-teal-100 rounded border-2 border-teal-300">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-teal-700">Most Played Artists</h3>
-      <div className="flex items-center gap-2">
-        <label className="text-teal-700">Show Top</label>
-        <input 
-          type="number" 
-          min="1" 
-          max="999" 
-          value={topArtistsCount} 
-  onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
-          className="w-16 border rounded px-2 py-1 text-teal-700"
-        />
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="font-bold text-teal-700">
+        {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : `Most Played Artists (${selectedArtistYear})`}
+      </h3>
+      
+      <div className="flex items-center gap-4">
+        {/* Year selection dropdown */}
+        <div className="flex items-center gap-2">
+          <label className="text-teal-700">Year:</label>
+          <select
+            value={selectedArtistYear}
+            onChange={(e) => setSelectedArtistYear(e.target.value)}
+            className="border rounded px-2 py-1 text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="all">All Time</option>
+            {Object.keys(artistsByYear).sort((a, b) => b - a).map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Show top N control */}
+        <div className="flex items-center gap-2">
+          <label className="text-teal-700">Show Top</label>
+          <input 
+            type="number" 
+            min="1" 
+            max="999" 
+            value={topArtistsCount} 
+            onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
+            className="w-16 border rounded px-2 py-1 text-teal-700"
+          />
+        </div>
       </div>
     </div>
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
