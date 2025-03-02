@@ -140,6 +140,17 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
     }
   };
   
+  // Add a useEffect to call onYearRangeChange when the component mounts
+  // This ensures the parent component gets the initial year range
+  useEffect(() => {
+    if (onYearRangeChange && startYear && endYear) {
+      onYearRangeChange({
+        startYear,
+        endYear
+      });
+    }
+  }, []); // Run only once when the component mounts
+  
   return (
     <div className="my-4">
       <div className="flex justify-between mb-1 items-center">
@@ -152,7 +163,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
       
       <div 
         ref={sliderRef}
-        className="relative h-12 cursor-pointer" 
+        className="relative h-12 cursor-pointer select-none" 
         onClick={handleTrackClick}
       >
         {/* Background Line */}
@@ -160,7 +171,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
         
         {/* Selected Range */}
         <div 
-          className="absolute top-1/2 h-1 bg-black transform -translate-y-1/2 rounded-full"
+          className="absolute top-1/2 h-1 bg-teal-600 transform -translate-y-1/2 rounded-full"
           style={{ 
             left: `${startPosition}%`, 
             width: `${endPosition - startPosition}%` 
@@ -170,7 +181,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
         {/* Start Handle */}
         <div 
           className={`absolute top-1/2 h-8 w-8 bg-white border-2 ${
-            activeDragHandle === 'start' ? 'border-teal-600' : 'border-black'
+            activeDragHandle === 'start' ? 'border-teal-600' : 'border-teal-800'
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md cursor-move z-20`}
           style={{ left: `${startPosition}%` }}
           onMouseDown={(e) => handleMouseDown(e, true)}
@@ -179,7 +190,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
         {/* End Handle */}
         <div 
           className={`absolute top-1/2 h-8 w-8 bg-white border-2 ${
-            activeDragHandle === 'end' ? 'border-teal-600' : 'border-black'
+            activeDragHandle === 'end' ? 'border-teal-600' : 'border-teal-800'
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md cursor-move z-20`}
           style={{ left: `${endPosition}%` }}
           onMouseDown={(e) => handleMouseDown(e, false)}
@@ -194,7 +205,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
             <div 
               key={year}
               className={`absolute top-1/2 w-1 h-3 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
-                isInRange ? 'bg-black' : 'bg-gray-400'
+                isInRange ? 'bg-teal-600' : 'bg-gray-400'
               }`}
               style={{ left: `${position}%` }}
             >
@@ -207,6 +218,23 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
             </div>
           );
         })}
+      </div>
+      
+      {/* Add a direct call button to ensure the range is applied */}
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={() => {
+            if (onYearRangeChange) {
+              onYearRangeChange({
+                startYear: startYear,
+                endYear: endYear
+              });
+            }
+          }}
+          className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700"
+        >
+          Apply Range
+        </button>
       </div>
     </div>
   );
