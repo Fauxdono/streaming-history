@@ -395,6 +395,160 @@ function calculateSongsByYear(songs, songPlayHistory) {
   return songsByYear;
 }
 
+function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
+  const artistsByYear = {};
+  let dateErrors = 0;
+  
+  // First, go through raw play data to get all artists by year
+  rawPlayData.forEach(entry => {
+    if (!entry.master_metadata_album_artist_name || entry.ms_played < 30000) {
+      return; // Skip entries with no artist or short plays
+    }
+    
+    const artist = entry.master_metadata_album_artist_name;
+    let timestamp;
+    try {
+      timestamp = entry.ts instanceof Date 
+        ? entry.ts 
+        : new Date(entry.ts);
+      
+      // Check if date is valid
+      if (isNaN(timestamp.getTime())) {
+        dateErrors++;
+        return;
+      }
+      
+      // Check if date is from the future
+      const currentYear = new Date().getFullYear();
+      const year = timestamp.getFullYear();
+      
+      if (year > currentYear) {
+        console.warn(`Future year detected: ${year} for artist ${artist}. Defaulting to current year.`);
+        dateErrors++;
+        timestamp = new Date(); // Default to current date for future dates
+      }
+    } catch (e) {
+      console.warn("Error parsing timestamp:", entry.ts, e);
+      dateErrors++;
+      return;
+    }
+    
+    const year = timestamp.getFullYear();
+    
+    if (!artistsByYear[year]) {
+      artistsByYear[year] = {};
+    }
+    
+    if (!artistsByYear[year][artist]) {
+      artistsByYear[year][artist] = {
+        name: artist,
+        totalPlayed: 0,
+        playCount: 0,
+        tracks: new Set(),
+        plays: []
+      };
+    }
+    
+    artistsByYear[year][artist].totalPlayed += entry.ms_played;
+    artistsByYear[year][artist].playCount++;
+    
+    if (entry.master_metadata_track_name) {
+      artistsByYear[year][artist].tracks.add(entry.master_metadata_track_name);
+    }
+    
+    artistsByYear[year][artist].plays.push({
+      timestamp: timestamp.getTime(),
+      trackName: entry.master_metadata_track_name
+    });
+  });
+  
+  // Convert to array format and add additional stats for each year
+  const result = {};
+  
+  Object.entries(artistsByYear).forEach(([year, artists]) => {
+    result[year] = Object.values(artists).map(artist => {
+      const sortedPlays = artist.plays.sort((a, b) => a.timestamp - b.timestamp);
+      const firstListen = sortedPlays.length > 0 ? sortedPlays[0].timestamp : null;
+      const firstSong = sortedPlays.length > 0 ? sortedPlays[0].trackName : null;
+      
+      // Count plays of first song
+      const firstSongPlayCount = sortedPlays.filter(play => play.trackName === firstSong).length;
+      
+      // Find most played song
+      const songCounts = {};
+      sortedPlays.forEach(play => {
+        if (play.trackName) {
+          songCounts[play.trackName] = (songCounts[play.trackName] || 0) + 1;
+        }
+      });
+      
+      const mostPlayedSongName = Object.entries(songCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => ({ trackName: name, playCount: count }))[0] || 
+        { trackName: 'Unknown', playCount: 0 };
+      
+      // Calculate streaks
+      const playDates = [...new Set(
+        sortedPlays.map(play => new Date(play.timestamp).toISOString().split('T')[0])
+      )].sort();
+      
+      let currentStreak = 0;
+      let longestStreak = 0;
+      let streakStart = null;
+      let streakEnd = null;
+      
+      for (let i = 0; i < playDates.length; i++) {
+        const currentDate = new Date(playDates[i]);
+        const previousDate = i > 0 ? new Date(playDates[i - 1]) : null;
+        
+        if (!previousDate || 
+            (currentDate - previousDate) / (1000 * 60 * 60 * 24) === 1) {
+          // Continuing streak
+          currentStreak++;
+          if (currentStreak > longestStreak) {
+            longestStreak = currentStreak;
+            streakEnd = currentDate;
+            streakStart = new Date(playDates[i - currentStreak + 1]);
+          }
+        } else {
+          // Break in streak
+          currentStreak = 1;
+        }
+      }
+      
+      // Check if current streak is still active
+      const lastPlay = playDates.length > 0 ? new Date(playDates[playDates.length - 1]) : null;
+      const now = new Date();
+      const daysSinceLastPlay = lastPlay ? Math.floor((now - lastPlay) / (1000 * 60 * 60 * 24)) : 999;
+      const activeStreak = daysSinceLastPlay <= 1 ? currentStreak : 0;
+      
+      // Calculate a score similar to spotifyScore for sorting
+      const artistScore = Math.pow(artist.playCount, 1.5);
+      
+      return {
+        ...artist,
+        tracks: artist.tracks.size,
+        firstListen,
+        firstSong,
+        firstSongPlayCount,
+        mostPlayedSong: mostPlayedSongName,
+        longestStreak,
+        currentStreak: activeStreak,
+        streakStart,
+        streakEnd,
+        artistScore
+      };
+    }).sort((a, b) => b.artistScore - a.artistScore);
+  });
+  
+  if (dateErrors > 0) {
+    console.warn(`Detected ${dateErrors} date parsing issues while grouping artists by year`);
+  }
+  
+  return result;
+}
+
+
 // Extract listening time from various formats
 function parseListeningTime(timeValue) {
   // Default play time (3.5 minutes)
@@ -958,6 +1112,7 @@ export const streamingProcessor = {
         processedTracks: sortedSongs,
         songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
         briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
+        artistsByYear: calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData),
         rawPlayData: allProcessedData
       };
     } catch (error) {
