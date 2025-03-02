@@ -12,7 +12,7 @@ import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
 import { X } from 'lucide-react';
-import yearselector from './year-selector.js'
+import YearSelector from './year-selector.js'
 
 
 
@@ -41,6 +41,9 @@ const SpotifyAnalyzer = () => {
   const [stats, setStats] = useState(null);
   const [briefObsessions, setBriefObsessions] = useState([]);
   const [songPlayHistory, setSongPlayHistory] = useState({});
+const [artistsByYear, setArtistsByYear] = useState({});
+const [yearRangeMode, setYearRangeMode] = useState(false);
+const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [rawPlayData, setRawPlayData] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
@@ -141,6 +144,7 @@ const processFiles = useCallback(async (fileList) => {
     console.log('Total Artists:', results.topArtists.length);
     setStats(results.stats);
     setTopArtists(results.topArtists);
+    setArtistsByYear(results.artistsByYear || {});
     setTopAlbums(results.topAlbums);
     
     // Make sure we're using the totalPlayed value for sorting in the main list too
@@ -239,6 +243,8 @@ const handleYearRangeChange = ({ startYear, endYear }) => {
     console.warn("Invalid year range:", { startYear, endYear });
     return;
   }
+  setYearRange({ startYear, endYear })
+
 const getTracksTabLabel = () => { 
   if (selectedTrackYear === 'all') { 
     return 'All-time Top 250'; 
