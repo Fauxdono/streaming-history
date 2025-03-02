@@ -254,7 +254,7 @@ const handleProcessFiles = () => {
       });
   }, 100);
 };
-Const handleYearRangeChange = ({ startYear, endYear }) => {
+const handleYearRangeChange = ({ startYear, endYear }) => {
   console.log("Year range changed:", startYear, endYear);
   
   // Validate the years
