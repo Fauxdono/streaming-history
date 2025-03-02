@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BetterYearSlider from './better-year-slider.js';
 import DualHandleYearSlider from './dual-handle-year-slider.js';
 
-const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialYear, initialYearRange, isRangeMode }) => {
+const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialYear, initialYearRange, isRangeMode, onToggleRangeMode }) => {
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   
   // Extract years from artistsByYear and ensure they're in the correct format
@@ -13,28 +13,31 @@ const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialY
       return [];
     }
     
-    // Debug
-    console.log('YearSelector - artistsByYear keys:', Object.keys(artistsByYear));
-    
     return Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
   };
   
   const years = getYearsArray();
   
+  // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
-    // Update mode if changed externally
     setMode(isRangeMode ? 'range' : 'single');
   }, [isRangeMode]);
   
   const handleModeChange = (newMode) => {
+    // Update internal mode state
     setMode(newMode);
     
-    // Notify parent about mode change
+    // Notify parent component about mode change
+    if (onToggleRangeMode) {
+      onToggleRangeMode(newMode === 'range');
+    }
+    
+    // If switching to single mode, default to 'all'
     if (newMode === 'single' && onYearChange) {
-      // Default to 'all' when switching to single mode
       onYearChange('all');
-    } else if (newMode === 'range' && onYearRangeChange && years.length >= 2) {
-      // Default to full range when switching to range mode
+    } 
+    // If switching to range mode, default to full range
+    else if (newMode === 'range' && onYearRangeChange && years.length >= 2) {
       onYearRangeChange({
         startYear: years[0],
         endYear: years[years.length - 1]

@@ -81,11 +81,14 @@ const sortedYears = useMemo(() => {
 }, [artistsByYear]);
 
 
-const toggleYearRangeMode = () => {
-  setYearRangeMode(prev => !prev);
+const toggleYearRangeMode = (value) => {
+  // If value is provided, use it directly; otherwise toggle the current state
+  const newMode = typeof value === 'boolean' ? value : !yearRangeMode;
   
-  // Reset selected year when switching modes
-  if (!yearRangeMode) {
+  setYearRangeMode(newMode);
+  
+  // Reset selected year when switching to range mode
+  if (newMode) {
     setSelectedArtistYear('all');
   }
 };
@@ -249,6 +252,8 @@ const handleYearRangeChange = ({ startYear, endYear }) => {
   
   // Ensure we're in year range mode
   setYearRangeMode(true);
+  
+  // Update the year range
   setYearRange({ startYear, endYear });
 };
 const getTracksTabLabel = () => { 
