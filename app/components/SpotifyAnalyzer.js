@@ -84,12 +84,25 @@ const sortedYears = useMemo(() => {
 const toggleYearRangeMode = (value) => {
   // If value is provided, use it directly; otherwise toggle the current state
   const newMode = typeof value === 'boolean' ? value : !yearRangeMode;
+  console.log("Setting year range mode to:", newMode);
   
+  // Update the state
   setYearRangeMode(newMode);
   
   // Reset selected year when switching to range mode
   if (newMode) {
     setSelectedArtistYear('all');
+    
+    // If we're switching to range mode, set a default range
+    if (Object.keys(artistsByYear).length > 0) {
+      const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+      if (years.length > 0) {
+        setYearRange({
+          startYear: years[0],
+          endYear: years[years.length - 1]
+        });
+      }
+    }
   }
 };
 
@@ -241,7 +254,7 @@ const handleProcessFiles = () => {
       });
   }, 100);
 };
-const handleYearRangeChange = ({ startYear, endYear }) => {
+Const handleYearRangeChange = ({ startYear, endYear }) => {
   console.log("Year range changed:", startYear, endYear);
   
   // Validate the years
@@ -253,8 +266,11 @@ const handleYearRangeChange = ({ startYear, endYear }) => {
   // Ensure we're in year range mode
   setYearRangeMode(true);
   
-  // Update the year range
+  // Update the year range state
   setYearRange({ startYear, endYear });
+  
+  // Log the range for debugging
+  console.log("Set year range to:", { startYear, endYear });
 };
 const getTracksTabLabel = () => { 
   if (selectedTrackYear === 'all') { 
