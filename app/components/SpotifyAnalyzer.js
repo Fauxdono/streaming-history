@@ -12,7 +12,8 @@ import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
 import { X } from 'lucide-react';
-import YearRangeSlider from './year-range-slider.js'
+import yearselector from './year-selector.js'
+
 
 
 
@@ -232,10 +233,12 @@ const handleProcessFiles = () => {
 };
 const handleYearRangeChange = ({ startYear, endYear }) => {
   console.log("Year range changed:", startYear, endYear);
-  setYearRange({ startYear, endYear });
-  // When range changes, ensure we're in range mode
-  setYearRangeMode(true);
-};
+  
+  // Validate the years
+  if (!startYear || !endYear) {
+    console.warn("Invalid year range:", { startYear, endYear });
+    return;
+  }
 const getTracksTabLabel = () => { 
   if (selectedTrackYear === 'all') { 
     return 'All-time Top 250'; 
@@ -538,105 +541,15 @@ case 'podcasts':
       </div>
     </div>
     
-    <div className="mt-2 mb-4 w-full">
-      <div className="flex justify-between items-center mb-2">
-        <label className="text-teal-700 font-medium">
-          {yearRangeMode 
-            ? `Year Range: ${yearRange.startYear || '–'} - ${yearRange.endYear || '–'}`
-            : `Year: ${selectedArtistYear === 'all' ? 'All Time' : selectedArtistYear}`
-          }
-        </label>
-        
-        {/* Toggle between range and single year modes */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setYearRangeMode(false);
-              setSelectedArtistYear('all');
-            }}
-            className={`px-2 py-1 rounded text-sm ${
-              !yearRangeMode 
-                ? 'bg-teal-600 text-white' 
-                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-            }`}
-          >
-            Single Year
-          </button>
-          
-          <button
-            onClick={() => {
-              setYearRangeMode(true);
-              // Initialize year range if not set
-              if (!yearRange.startYear || !yearRange.endYear) {
-                const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
-                if (years.length > 0) {
-                  setYearRange({
-                    startYear: years[0],
-                    endYear: years[years.length - 1]
-                  });
-                }
-              }
-            }}
-            className={`px-2 py-1 rounded text-sm ${
-              yearRangeMode 
-                ? 'bg-teal-600 text-white' 
-                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-            }`}
-          >
-            Year Range
-          </button>
-        </div>
-      </div>
-      
-      {/* Show different UI based on the mode */}
-      {yearRangeMode ? (
-        <YearRangeSlider 
-          years={Object.keys(artistsByYear)}
-          onYearRangeChange={handleYearRangeChange}
-        />
-      ) : (
-        <div className="relative mt-1">
-          <div className="h-2 bg-teal-200 rounded-full">
-            <div 
-              className="absolute h-full bg-teal-500 rounded-full"
-              style={{ 
-                width: `${selectedArtistYear === 'all' ? 100 : 0}%`
-              }}
-            ></div>
-          </div>
-          
-          <div className="relative flex justify-between mt-2">
-            <button
-              onClick={() => setSelectedArtistYear('all')}
-              className={`px-2 py-1 rounded-full text-xs ${
-                selectedArtistYear === 'all' 
-                  ? 'bg-teal-600 text-white' 
-                  : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-              }`}
-            >
-              All
-            </button>
-            
-            {Object.keys(artistsByYear)
-              .sort((a, b) => parseInt(a) - parseInt(b))
-              .map(year => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedArtistYear(year)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-full text-xs ${
-                    selectedArtistYear === year 
-                      ? 'bg-teal-600 text-white' 
-                      : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                  }`}
-                >
-                  {year}
-                </button>
-              ))
-            }
-          </div>
-        </div>
-      )}
-    </div>
+    {/* Add our new YearSelector component */}
+    <YearSelector 
+      artistsByYear={artistsByYear}
+      onYearChange={setSelectedArtistYear}
+      onYearRangeChange={handleYearRangeChange}
+      initialYear={selectedArtistYear !== 'all' ? selectedArtistYear : null}
+      initialYearRange={yearRange}
+      isRangeMode={yearRangeMode}
+    />
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {displayedArtists.slice(0,topArtistsCount).map((artist, index) => (
