@@ -1,3 +1,4 @@
+// In BetterYearSlider.js
 import React, { useState, useEffect, useRef } from 'react';
 
 const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
@@ -16,10 +17,19 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   // State for the slider position
   const [sliderPosition, setSliderPosition] = useState(50); // Start in the middle
   const [selectedYear, setSelectedYear] = useState(initialYear || minYear);
+  // Add state to track if "all" is selected
+  const [showingAllYears, setShowingAllYears] = useState(initialYear === 'all');
   const sliderRef = useRef(null);
   
   // Initialize the slider position based on the initialYear
   useEffect(() => {
+    if (initialYear === 'all') {
+      setShowingAllYears(true);
+      return;
+    }
+    
+    setShowingAllYears(false);
+    
     if (initialYear && sortedYears.includes(initialYear.toString())) {
       const yearIndex = sortedYears.indexOf(initialYear.toString());
       const percentage = (yearIndex / (sortedYears.length - 1)) * 100;
@@ -35,6 +45,9 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   
   // Handle mouse drag on the slider
   const handleMouseDown = (e) => {
+    // When user interacts with slider, we're no longer showing all years
+    setShowingAllYears(false);
+    
     const slider = sliderRef.current;
     if (!slider) return;
     
@@ -81,7 +94,9 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
     <div className="my-4">
       <div className="flex justify-between mb-2">
         <span className="text-teal-700">{minYear}</span>
-        <span className="font-bold text-teal-700">Year: {selectedYear}</span>
+        <span className="font-bold text-teal-700">
+          {showingAllYears ? "All-Time" : `Year: ${selectedYear}`}
+        </span>
         <span className="text-teal-700">{maxYear}</span>
       </div>
       
@@ -93,11 +108,13 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
         {/* Line */}
         <div className="absolute top-1/2 left-0 right-0 h-1 bg-black transform -translate-y-1/2 rounded-full"></div>
         
-        {/* Handle */}
-        <div 
-          className="absolute top-1/2 h-8 w-8 bg-white border-2 border-black rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md"
-          style={{ left: `${sliderPosition}%` }}
-        ></div>
+        {/* Handle - only show if not in "all" mode */}
+        {!showingAllYears && (
+          <div 
+            className="absolute top-1/2 h-8 w-8 bg-white border-2 border-black rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md"
+            style={{ left: `${sliderPosition}%` }}
+          ></div>
+        )}
         
         {/* Year markers */}
         {sortedYears.map((year, index) => {
