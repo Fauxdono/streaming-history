@@ -110,35 +110,49 @@ const toggleYearRangeMode = (value) => {
 // This is the critical part that filters the artists based on the selected year or year range
 
 const displayedArtists = useMemo(() => {
-  // Force re-render when critical values change
   console.log("Re-calculating displayed artists:", {
     mode: yearRangeMode ? "range" : "single",
     selectedYear: selectedArtistYear,
     range: yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : "none"
   });
 
-  if (selectedArtistYear === 'all') {
-    // All-time mode: show the top artists
-    return topArtists;
-  } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+  // Important: Check yearRangeMode first, then check selectedArtistYear
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
     // Year range mode: collect and merge artists from the range
     const startYear = parseInt(yearRange.startYear);
     const endYear = parseInt(yearRange.endYear);
     
-    // Debug the years we're looking for
     console.log(`Filtering artists for range ${startYear}-${endYear}`, 
       "Available years:", Object.keys(artistsByYear));
+    
+    // Check if artistsByYear has any entries
+    const availableYears = Object.keys(artistsByYear);
+    console.log("Available years:", availableYears);
+    
+    if (availableYears.length === 0) {
+      console.warn("artistsByYear is empty!");
+      return [];
+    }
     
     // Collect artists from years within the range
     const rangeArtists = Object.entries(artistsByYear)
       .filter(([year]) => {
         const yearNum = parseInt(year);
-        return yearNum >= startYear && yearNum <= endYear;
+        const isInRange = yearNum >= startYear && yearNum <= endYear;
+        console.log(`Year ${year} in range ${startYear}-${endYear}? ${isInRange}`);
+        return isInRange;
       })
-      .flatMap(([_, artists]) => artists);
+      .flatMap(([year, artists]) => {
+        console.log(`Adding ${artists.length} artists from year ${year}`);
+        return artists;
+      });
     
-    // Debug artist count
     console.log(`Found ${rangeArtists.length} artists within the range`);
+    
+    if (rangeArtists.length === 0) {
+      console.log("No artists found in the selected year range");
+      return [];
+    }
     
     // Merge artists from different years
     const mergedArtists = {};
@@ -162,11 +176,19 @@ const displayedArtists = useMemo(() => {
     });
     
     // Convert back to array and sort by total play time
-    return Object.values(mergedArtists)
+    const result = Object.values(mergedArtists)
       .sort((a, b) => b.totalPlayed - a.totalPlayed);
+    
+    console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
+    return result;
+  } else if (selectedArtistYear === 'all') {
+    // All-time mode: show the top artists
+    return topArtists;
   } else {
     // Single year mode
-    return artistsByYear[selectedArtistYear] || [];
+    const yearArtists = artistsByYear[selectedArtistYear] || [];
+    console.log(`Found ${yearArtists.length} artists for year ${selectedArtistYear}`);
+    return yearArtists;
   }
 }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
 
