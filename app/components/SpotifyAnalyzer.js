@@ -106,14 +106,29 @@ const toggleYearRangeMode = (value) => {
   }
 };
 
+// Update the displayedArtists useMemo function in SpotifyAnalyzer.js
+// This is the critical part that filters the artists based on the selected year or year range
+
 const displayedArtists = useMemo(() => {
+  // Force re-render when critical values change
+  console.log("Re-calculating displayed artists:", {
+    mode: yearRangeMode ? "range" : "single",
+    selectedYear: selectedArtistYear,
+    range: yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : "none"
+  });
+
   if (selectedArtistYear === 'all') {
+    // All-time mode: show the top artists
     return topArtists;
   } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Convert years to numbers for comparison
+    // Year range mode: collect and merge artists from the range
     const startYear = parseInt(yearRange.startYear);
     const endYear = parseInt(yearRange.endYear);
-
+    
+    // Debug the years we're looking for
+    console.log(`Filtering artists for range ${startYear}-${endYear}`, 
+      "Available years:", Object.keys(artistsByYear));
+    
     // Collect artists from years within the range
     const rangeArtists = Object.entries(artistsByYear)
       .filter(([year]) => {
@@ -121,7 +136,10 @@ const displayedArtists = useMemo(() => {
         return yearNum >= startYear && yearNum <= endYear;
       })
       .flatMap(([_, artists]) => artists);
-
+    
+    // Debug artist count
+    console.log(`Found ${rangeArtists.length} artists within the range`);
+    
     // Merge artists from different years
     const mergedArtists = {};
     rangeArtists.forEach(artist => {
@@ -136,12 +154,13 @@ const displayedArtists = useMemo(() => {
         mergedArtists[name].playCount += artist.playCount;
         
         // Update most played song if necessary
-        if (artist.mostPlayedSong.playCount > mergedArtists[name].mostPlayedSong.playCount) {
+        if (artist.mostPlayedSong && mergedArtists[name].mostPlayedSong &&
+            artist.mostPlayedSong.playCount > mergedArtists[name].mostPlayedSong.playCount) {
           mergedArtists[name].mostPlayedSong = artist.mostPlayedSong;
         }
       }
     });
-
+    
     // Convert back to array and sort by total play time
     return Object.values(mergedArtists)
       .sort((a, b) => b.totalPlayed - a.totalPlayed);
@@ -585,54 +604,95 @@ case 'podcasts':
       onToggleRangeMode={toggleYearRangeMode}
     />
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {displayedArtists.slice(0,topArtistsCount).map((artist, index) => (
-        <div key={artist.name} 
-          className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
-          onClick={() => {
-            setSelectedArtists([artist.name]);
-            setActiveTab('custom');
-          }}
-        >
-          <div className="font-bold text-teal-600">{artist.name}</div>
-         <div className="text-sm text-teal-400">
-            Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-            <br/>
-            Plays: <span className="font-bold"> {artist.playCount}</span>
-            <br/>
-            Most Played Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> 
-            <br/>
-            Plays: <span className="font-bold">{artist.mostPlayedSong.playCount}</span>
-            <br/>
-            First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
-            {artist.longestStreak > 1 && (
-              <>
-                <br/>
-                First Song: <span className="font-bold">
-                  {artist.firstSong || "Unknown"} 
-                  {artist.firstSongPlayCount 
-                    ? ` (${artist.firstSongPlayCount}x)` 
-                    : ""}
-                </span>
-                <br/>
-                Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
-                <br/>
-                <span className="text-xs">
-                  ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
-                </span>
-              </>
-            )}
-            {artist.currentStreak > 1 && (
-              <>
-                <br/>
-                Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
-              </>
-            )}
-          </div>
-          <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{index + 1}</div>
-        </div>
-      ))}
+    {/* Add debug button */}
+    <div className="mb-4">
+      <button
+        onClick={() => {
+          console.log("Current state:", {
+            yearRangeMode,
+            yearRange,
+            selectedArtistYear,
+            artistsByYearKeys: Object.keys(artistsByYear),
+          });
+          console.log("Displayed artists count:", displayedArtists.length);
+        }}
+        className="px-3 py-1 bg-teal-700 text-white rounded hover:bg-teal-800"
+      >
+        Debug Info
+      </button>
     </div>
+    
+    {/* Add empty state handling */}
+    {displayedArtists.length === 0 ? (
+      <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
+        <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
+        <p className="text-teal-600 mt-2">
+          {yearRangeMode 
+            ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
+            : selectedArtistYear !== 'all' 
+              ? `No artists found for the year ${selectedArtistYear}.`
+              : "No artist data available."}
+        </p>
+        <button
+          onClick={() => {
+            setYearRangeMode(false);
+            setSelectedArtistYear('all');
+          }}
+          className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+        >
+          Show All Artists
+        </button>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {displayedArtists.slice(0,topArtistsCount).map((artist, index) => (
+          <div key={artist.name} 
+            className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
+            onClick={() => {
+              setSelectedArtists([artist.name]);
+              setActiveTab('custom');
+            }}
+          >
+            <div className="font-bold text-teal-600">{artist.name}</div>
+            <div className="text-sm text-teal-400">
+              Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+              <br/>
+              Plays: <span className="font-bold"> {artist.playCount}</span>
+              <br/>
+              Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
+              <br/>
+              Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
+              <br/>
+              First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
+              {artist.longestStreak > 1 && (
+                <>
+                  <br/>
+                  First Song: <span className="font-bold">
+                    {artist.firstSong || "Unknown"} 
+                    {artist.firstSongPlayCount 
+                      ? ` (${artist.firstSongPlayCount}x)` 
+                      : ""}
+                  </span>
+                  <br/>
+                  Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+                  <br/>
+                  <span className="text-xs">
+                    ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
+                  </span>
+                </>
+              )}
+              {artist.currentStreak > 1 && (
+                <>
+                  <br/>
+                  Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
+                </>
+              )}
+            </div>
+            <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{index + 1}</div>
+          </div>
+        ))}
+      </div>
+    )}
   </div>
 )}
 {activeTab === 'albums' && (
