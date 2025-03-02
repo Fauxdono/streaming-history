@@ -133,7 +133,7 @@ const displayedArtists = useMemo(() => {
     return Object.values(mergedArtists)
       .sort((a, b) => b.totalPlayed - a.totalPlayed);
   } else {
-    // Original single year mode
+    // Single year mode - restore this part
     return artistsByYear[selectedArtistYear] || [];
   }
 }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
