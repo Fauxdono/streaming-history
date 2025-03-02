@@ -66,6 +66,19 @@ const [selectedArtistYear, setSelectedArtistYear] = useState('all');
       `${hours}h ${remainingMinutes}m` : 
       `${remainingMinutes}m`;
   };
+
+useEffect(() => {
+    // When in single year mode and the selected year is 'all',
+    // update the year display text
+    if (!yearRangeMode && selectedArtistYear === 'all') {
+      // Force the BetterYearSlider to show "All-Time" instead of a specific year
+      const yearDisplay = document.querySelector('.year-display');
+      if (yearDisplay) {
+        yearDisplay.textContent = 'All-Time';
+      }
+    }
+  }, [yearRangeMode, selectedArtistYear]);
+
 const filteredArtists = useMemo(() => {
   const allArtists = Array.from(new Set(topAlbums.map(album => album.artist))).sort();
   return allArtists

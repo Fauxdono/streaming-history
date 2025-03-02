@@ -92,14 +92,13 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   
   return (
     <div className="my-4">
-      <div className="flex justify-between mb-2">
-        <span className="text-teal-700">{minYear}</span>
-        <span className="font-bold text-teal-700">
-          {showingAllYears ? "All-Time" : `Year: ${selectedYear}`}
-        </span>
-        <span className="text-teal-700">{maxYear}</span>
-      </div>
-      
+    <div className="flex justify-between mb-2">
+  <span className="text-teal-700">{minYear}</span>
+  <span className="font-bold text-teal-700">
+    {selectedYear === 'all' ? 'All-Time' : `Year: ${selectedYear}`}
+  </span>
+  <span className="text-teal-700">{maxYear}</span>
+</div>
       <div 
         ref={sliderRef}
         className="relative h-8 cursor-pointer" 
