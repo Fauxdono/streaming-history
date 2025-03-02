@@ -72,6 +72,11 @@ const filteredArtists = useMemo(() => {
     .slice(0, 10);
 }, [topAlbums, artistSearch, selectedArtists]);
 
+const sortedYears = useMemo(() => {
+  return Object.keys(artistsByYear).sort((a, b) => a - b);
+}, [artistsByYear]);
+
+
 const displayedArtists = useMemo(() => {
   if (selectedArtistYear === 'all') {
     return topArtists;
@@ -466,21 +471,57 @@ case 'podcasts':
         {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : `Most Played Artists (${selectedArtistYear})`}
       </h3>
       
-      <div className="flex items-center gap-4">
-        {/* Year selection dropdown */}
-        <div className="flex items-center gap-2">
-          <label className="text-teal-700">Year:</label>
-          <select
-            value={selectedArtistYear}
-            onChange={(e) => setSelectedArtistYear(e.target.value)}
-            className="border rounded px-2 py-1 text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="all">All Time</option>
-            {Object.keys(artistsByYear).sort((a, b) => b - a).map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </div>
+    <div className="mt-2 mb-4 w-full">
+  <div className="flex justify-between items-center">
+    <label className="text-teal-700 font-medium mb-2">Year: {selectedArtistYear === 'all' ? 'All Time' : selectedArtistYear}</label>
+    <button
+      onClick={() => setSelectedArtistYear('all')}
+      className={`px-2 py-1 rounded text-sm ${
+        selectedArtistYear === 'all' 
+          ? 'bg-teal-600 text-white' 
+          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+      }`}
+    >
+      All Time
+    </button>
+  </div>
+  
+  {Object.keys(artistsByYear).length > 0 && (
+    <div className="relative mt-1">
+      <div className="h-2 bg-teal-200 rounded-full">
+        <div 
+          className="absolute h-full bg-teal-500 rounded-full"
+          style={{ 
+            width: `${selectedArtistYear === 'all' ? 100 : 0}%`
+          }}
+        ></div>
+      </div>
+      
+      <div className="relative flex justify-between mt-2">
+        {Object.keys(artistsByYear)
+          .sort((a, b) => a - b)
+          .map(year => (
+            <button
+              key={year}
+              onClick={() => setSelectedArtistYear(year)}
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-xs ${
+                selectedArtistYear === year 
+                  ? 'bg-teal-600 text-white' 
+                  : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+              }`}
+            >
+              {year}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  )}
+  
+  {Object.keys(artistsByYear).length === 0 && (
+    <div className="text-teal-700 italic text-sm">No year data available</div>
+  )}
+</div>
         
         {/* Show top N control */}
         <div className="flex items-center gap-2">
