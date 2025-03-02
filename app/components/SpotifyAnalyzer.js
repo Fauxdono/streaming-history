@@ -12,6 +12,7 @@ import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
 import { X } from 'lucide-react';
+import YearRangeSlider from './year-range-slider.js'
 
 
 
@@ -44,6 +45,8 @@ const SpotifyAnalyzer = () => {
   const [artistSearch, setArtistSearch] = useState('');
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
+const [yearRangeMode, setYearRangeMode] = useState(false); // Toggle between single year and year range mode
+const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
 const [uploadedFileList, setUploadedFileList] = useState(null);
 const [artistsByYear, setArtistsByYear] = useState({});
 const [selectedArtistYear, setSelectedArtistYear] = useState('all');
@@ -80,10 +83,50 @@ const sortedYears = useMemo(() => {
 const displayedArtists = useMemo(() => {
   if (selectedArtistYear === 'all') {
     return topArtists;
+  } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    // Handle year range mode
+    let filteredArtists = [];
+    
+    // Get all years within the range
+    const years = Object.keys(artistsByYear)
+      .filter(year => year >= yearRange.startYear && year <= yearRange.endYear);
+    
+    console.log("Years in range:", years);
+    
+    // For each year in range, add artists to our results
+    years.forEach(year => {
+      const yearArtists = artistsByYear[year] || [];
+      filteredArtists = [...filteredArtists, ...yearArtists];
+    });
+    
+    // Combine artists that appear in multiple years
+    const mergedArtists = {};
+    
+    filteredArtists.forEach(artist => {
+      const name = artist.name;
+      
+      if (!mergedArtists[name]) {
+        // First time seeing this artist
+        mergedArtists[name] = {...artist};
+      } else {
+        // Merge with existing artist data
+        mergedArtists[name].totalPlayed += artist.totalPlayed;
+        mergedArtists[name].playCount += artist.playCount;
+        // Keep track of highest playCount for most played song
+        if (artist.mostPlayedSong && artist.mostPlayedSong.playCount > mergedArtists[name].mostPlayedSong.playCount) {
+          mergedArtists[name].mostPlayedSong = artist.mostPlayedSong;
+        }
+      }
+    });
+    
+    // Convert back to array and sort by total play time
+    return Object.values(mergedArtists)
+      .sort((a, b) => b.totalPlayed - a.totalPlayed);
   } else {
+    // Original single year mode
     return artistsByYear[selectedArtistYear] || [];
   }
-}, [topArtists, artistsByYear, selectedArtistYear]);
+}, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
 
 const processFiles = useCallback(async (fileList) => {
   // Set loading state and wait for next render cycle
@@ -187,6 +230,12 @@ const handleProcessFiles = () => {
       });
   }, 100);
 };
+const handleYearRangeChange = ({ startYear, endYear }) => {
+  console.log("Year range changed:", startYear, endYear);
+  setYearRange({ startYear, endYear });
+  // When range changes, ensure we're in range mode
+  setYearRangeMode(true);
+};
 const getTracksTabLabel = () => { 
   if (selectedTrackYear === 'all') { 
     return 'All-time Top 250'; 
@@ -197,6 +246,8 @@ const getTracksTabLabel = () => {
 const getArtistsTabLabel = () => {
   if (selectedArtistYear === 'all') {
     return 'All-time Artists';
+  } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    return `${yearRange.startYear}-${yearRange.endYear} Artists`;
   }
   return `${selectedArtistYear} Artists`;
 };
@@ -468,7 +519,10 @@ case 'podcasts':
   <div className="p-4 bg-teal-100 rounded border-2 border-teal-300">
     <div className="flex justify-between items-center mb-4">
       <h3 className="font-bold text-teal-700">
-        {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : `Most Played Artists (${selectedArtistYear})`}
+        {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
+          yearRangeMode && yearRange.startYear && yearRange.endYear ? 
+          `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
+          `Most Played Artists (${selectedArtistYear})`}
       </h3>
       
       <div className="flex items-center gap-2">
@@ -485,21 +539,62 @@ case 'podcasts':
     </div>
     
     <div className="mt-2 mb-4 w-full">
-      <div className="flex justify-between items-center">
-        <label className="text-teal-700 font-medium mb-2">Year: {selectedArtistYear === 'all' ? 'All Time' : selectedArtistYear}</label>
-        <button
-          onClick={() => setSelectedArtistYear('all')}
-          className={`px-2 py-1 rounded text-sm ${
-            selectedArtistYear === 'all' 
-              ? 'bg-teal-600 text-white' 
-              : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-          }`}
-        >
-          All Time
-        </button>
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-teal-700 font-medium">
+          {yearRangeMode 
+            ? `Year Range: ${yearRange.startYear || '–'} - ${yearRange.endYear || '–'}`
+            : `Year: ${selectedArtistYear === 'all' ? 'All Time' : selectedArtistYear}`
+          }
+        </label>
+        
+        {/* Toggle between range and single year modes */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setYearRangeMode(false);
+              setSelectedArtistYear('all');
+            }}
+            className={`px-2 py-1 rounded text-sm ${
+              !yearRangeMode 
+                ? 'bg-teal-600 text-white' 
+                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+            }`}
+          >
+            Single Year
+          </button>
+          
+          <button
+            onClick={() => {
+              setYearRangeMode(true);
+              // Initialize year range if not set
+              if (!yearRange.startYear || !yearRange.endYear) {
+                const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+                if (years.length > 0) {
+                  setYearRange({
+                    startYear: years[0],
+                    endYear: years[years.length - 1]
+                  });
+                }
+              }
+            }}
+            className={`px-2 py-1 rounded text-sm ${
+              yearRangeMode 
+                ? 'bg-teal-600 text-white' 
+                : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+            }`}
+          >
+            Year Range
+          </button>
+        </div>
       </div>
       
-      {Object.keys(artistsByYear).length > 0 && (
+      {/* Show different UI based on the mode */}
+      {yearRangeMode ? (
+        <YearRangeSlider 
+          years={Object.keys(artistsByYear)}
+          onYearRangeChange={handleYearRangeChange}
+        />
+      ) : (
         <div className="relative mt-1">
           <div className="h-2 bg-teal-200 rounded-full">
             <div 
@@ -511,8 +606,19 @@ case 'podcasts':
           </div>
           
           <div className="relative flex justify-between mt-2">
+            <button
+              onClick={() => setSelectedArtistYear('all')}
+              className={`px-2 py-1 rounded-full text-xs ${
+                selectedArtistYear === 'all' 
+                  ? 'bg-teal-600 text-white' 
+                  : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+              }`}
+            >
+              All
+            </button>
+            
             {Object.keys(artistsByYear)
-              .sort((a, b) => a - b)
+              .sort((a, b) => parseInt(a) - parseInt(b))
               .map(year => (
                 <button
                   key={year}
@@ -530,14 +636,9 @@ case 'podcasts':
           </div>
         </div>
       )}
-      
-      {Object.keys(artistsByYear).length === 0 && (
-        <div className="text-teal-700 italic text-sm">No year data available</div>
-      )}
     </div>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {console.log('Top Artists Count:', topArtistsCount, 'Artists:', topArtists.length)}
       {displayedArtists.slice(0,topArtistsCount).map((artist, index) => (
         <div key={artist.name} 
           className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
@@ -560,14 +661,14 @@ case 'podcasts':
             {artist.longestStreak > 1 && (
               <>
                 <br/>
-First Song: <span className="font-bold">
-  {artist.firstSong || "Unknown"} 
-  {artist.firstSongPlayCount 
-    ? ` (${artist.firstSongPlayCount}x)` 
-    : ""}
-</span>
-<br/>
-        Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+                First Song: <span className="font-bold">
+                  {artist.firstSong || "Unknown"} 
+                  {artist.firstSongPlayCount 
+                    ? ` (${artist.firstSongPlayCount}x)` 
+                    : ""}
+                </span>
+                <br/>
+                Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
                 <br/>
                 <span className="text-xs">
                   ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
@@ -581,8 +682,7 @@ First Song: <span className="font-bold">
               </>
             )}
           </div>
-         <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{index + 1}
-</div>
+          <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{index + 1}</div>
         </div>
       ))}
     </div>
