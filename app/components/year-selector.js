@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import BetterYearSlider from './BetterYearSlider';
-import DualHandleYearSlider from './DualHandleYearSlider';
+import BetterYearSlider from './better-yea-slider.js';
+import DualHandleYearSlider from './dual-handle-yea-slider.js';
 
 const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialYear, initialYearRange, isRangeMode }) => {
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
