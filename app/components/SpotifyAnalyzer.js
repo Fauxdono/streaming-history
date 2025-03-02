@@ -1,5 +1,5 @@
-
 "use client";
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES } from './streaming-adapter.js';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
@@ -49,8 +49,6 @@ const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [artistSearch, setArtistSearch] = useState('');
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
-const [yearRangeMode, setYearRangeMode] = useState(false); // Toggle between single year and year range mode
-const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
 const [uploadedFileList, setUploadedFileList] = useState(null);
 const [artistsByYear, setArtistsByYear] = useState({});
 const [selectedArtistYear, setSelectedArtistYear] = useState('all');
@@ -82,6 +80,10 @@ const filteredArtists = useMemo(() => {
 const sortedYears = useMemo(() => {
   return Object.keys(artistsByYear).sort((a, b) => a - b);
 }, [artistsByYear]);
+
+const toggleYearRangeMode = () => {
+  setYearRangeMode(prev => !prev);
+};
 
 
 const displayedArtists = useMemo(() => {
@@ -244,6 +246,7 @@ const handleYearRangeChange = ({ startYear, endYear }) => {
     return;
   }
   setYearRange({ startYear, endYear })
+};
 
 const getTracksTabLabel = () => { 
   if (selectedTrackYear === 'all') { 
@@ -555,6 +558,7 @@ case 'podcasts':
       initialYear={selectedArtistYear !== 'all' ? selectedArtistYear : null}
       initialYearRange={yearRange}
       isRangeMode={yearRangeMode}
+      onToggleRangeMode={toggleYearRangeMode}
     />
 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
