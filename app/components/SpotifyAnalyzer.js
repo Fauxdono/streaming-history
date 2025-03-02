@@ -50,7 +50,6 @@ const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
 const [uploadedFileList, setUploadedFileList] = useState(null);
-const [artistsByYear, setArtistsByYear] = useState({});
 const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
