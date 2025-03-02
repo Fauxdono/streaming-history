@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, subDays, addDays, format } from 'date-fns';
+import { startOfDay, endOfDay, subDays, format } from 'date-fns';
 
-const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists = [] }) => {
+const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists = []  }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [topN, setTopN] = useState(50);
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [artistSearch, setArtistSearch] = useState('');
+  const [key, setKey] = useState(0);
   
   const addArtistFromTrack = (artist) => {
     // Prevent duplicate artists
@@ -16,22 +17,21 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
     }
   };
 
-  // Initialize with the data range
-  useEffect(() => {
-    if (!startDate && !endDate && rawPlayData.length > 0) {
-      let earliest = new Date(rawPlayData[0].ts);
-      let latest = new Date(rawPlayData[0].ts);
-      
-      for (const entry of rawPlayData) {
-        const date = new Date(entry.ts);
-        if (date < earliest) earliest = date;
-        if (date > latest) latest = date;
-      }
-      
-      setStartDate(format(earliest, 'yyyy-MM-dd'));
-      setEndDate(format(latest, 'yyyy-MM-dd'));
+useEffect(() => {
+  if (!startDate && !endDate && rawPlayData.length > 0) {
+    let earliest = new Date(rawPlayData[0].ts);
+    let latest = new Date(rawPlayData[0].ts);
+    
+    for (const entry of rawPlayData) {
+      const date = new Date(entry.ts);
+      if (date < earliest) earliest = date;
+      if (date > latest) latest = date;
     }
-  }, [rawPlayData, startDate, endDate]);
+    
+    setStartDate(format(earliest, 'yyyy-MM-dd'));
+    setEndDate(format(latest, 'yyyy-MM-dd'));
+  }
+}, [rawPlayData, startDate, endDate]);
 
   // Get unique artists from raw play data
   const allArtists = useMemo(() => {
@@ -88,73 +88,13 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists]);
 
-  // Improved date range functions
-  const setQuickRange = (days) => {
-    // For most cases, set end date to today and start date to (today - days)
-    if (days > 0) {
-      const today = new Date();
-      const start = subDays(today, days);
-      setEndDate(format(today, 'yyyy-MM-dd'));
-      setStartDate(format(start, 'yyyy-MM-dd'));
-    } 
-    // Special case for "Day" button (days=0)
-    else if (days === 0) {
-      const today = new Date();
-      setStartDate(format(today, 'yyyy-MM-dd'));
-      setEndDate(format(today, 'yyyy-MM-dd'));
-    }
-  };
-
-  // Set date to start at beginning of current month
-  const setCurrentMonth = () => {
-    const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    setStartDate(format(firstDayOfMonth, 'yyyy-MM-dd'));
-    setEndDate(format(today, 'yyyy-MM-dd'));
-  };
-
-  // Set date to start at beginning of previous month, end at end of previous month
-  const setPreviousMonth = () => {
-    const today = new Date();
-    const firstDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const lastDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-    setStartDate(format(firstDayOfPrevMonth, 'yyyy-MM-dd'));
-    setEndDate(format(lastDayOfPrevMonth, 'yyyy-MM-dd'));
-  };
-
-  // Set date to current calendar year
-  const setCurrentYear = () => {
-    const today = new Date();
-    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
-    setStartDate(format(firstDayOfYear, 'yyyy-MM-dd'));
-    setEndDate(format(today, 'yyyy-MM-dd'));
-  };
-
-  // Set date to last calendar year
-  const setPreviousYear = () => {
-    const prevYear = new Date().getFullYear() - 1;
-    const firstDayOfYear = new Date(prevYear, 0, 1);
-    const lastDayOfYear = new Date(prevYear, 11, 31);
-    setStartDate(format(firstDayOfYear, 'yyyy-MM-dd'));
-    setEndDate(format(lastDayOfYear, 'yyyy-MM-dd'));
-  };
-
-  // Set date to all time
-  const setAllTime = () => {
-    if (rawPlayData.length > 0) {
-      let earliest = new Date(rawPlayData[0].ts);
-      let latest = new Date(rawPlayData[0].ts);
-      
-      for (const entry of rawPlayData) {
-        const date = new Date(entry.ts);
-        if (date < earliest) earliest = date;
-        if (date > latest) latest = date;
-      }
-      
-      setStartDate(format(earliest, 'yyyy-MM-dd'));
-      setEndDate(format(latest, 'yyyy-MM-dd'));
-    }
-  };
+const setQuickRange = (days) => {
+    const currentStart = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : new Date(currentStart);
+    end.setDate(end.getDate() + days);  // This is the fix
+    setStartDate(format(currentStart, 'yyyy-MM-dd'));
+    setEndDate(format(end, 'yyyy-MM-dd'));
+};
 
   const addArtist = (artist) => {
     setSelectedArtists(prev => [...prev, artist]);
@@ -184,39 +124,22 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
           />
         </div>
         
-        <div className="flex flex-wrap gap-2">
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setQuickRange(0)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-              Today
-            </button>
-            <button onClick={() => setQuickRange(7)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-              Last 7 days
-            </button>
-            <button onClick={() => setQuickRange(30)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-              Last 30 days
-            </button>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <button onClick={setCurrentMonth} className="px-3 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300">
-              This month
-            </button>
-            <button onClick={setPreviousMonth} className="px-3 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300">
-              Last month
-            </button>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <button onClick={setCurrentYear} className="px-3 py-1 bg-orange-300 text-orange-700 rounded hover:bg-orange-400">
-              This year
-            </button>
-            <button onClick={setPreviousYear} className="px-3 py-1 bg-orange-300 text-orange-700 rounded hover:bg-orange-400">
-              Last year
-            </button>
-            <button onClick={setAllTime} className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600">
-              All time
-            </button>
-          </div>
+       <div className="flex flex-wrap gap-2">
+          <button onClick={() => setQuickRange(0)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Day
+          </button>
+          <button onClick={() => setQuickRange(7)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Week
+          </button>
+          <button onClick={() => setQuickRange(30)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Month
+          </button>
+          <button onClick={() => setQuickRange(90)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Quarter
+          </button>
+          <button onClick={() => setQuickRange(365)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Year
+          </button>
         </div>
 
         <div className="flex items-center gap-2 text-orange-700">
@@ -277,44 +200,43 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
       </div>
 
       {filteredTracks.length > 0 ? (
-        <div className="overflow-x-auto -mx-4 px-4">
-          <div className="min-w-[640px]">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="p-2 text-left text-orange-700">Rank</th>
-                  <th className="p-2 text-left text-orange-700">Track</th>
-                  <th className="p-2 text-left text-orange-700">Artist</th>
-                  <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
-                    onClick={() => setSortBy('totalPlayed')}
-                  >
-                    Total Time {sortBy === 'totalPlayed' && '▼'}
-                  </th>
-                  <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'playCount' ? 'font-bold' : ''}`}
-                    onClick={() => setSortBy('playCount')}
-                  >
-                    Play Count {sortBy === 'playCount' && '▼'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTracks.map((song, index) => (
-                  <tr key={song.key} className="border-b hover:bg-orange-50">
-                    <td className="p-2 text-orange-700">{index + 1}</td>
-                    <td className="p-2 text-orange-700">{song.trackName}</td>
-                    <td className="p-2 text-orange-700 cursor-pointer hover:underline" onClick={() => addArtistFromTrack(song.artist)}>
-                      {song.artist}
-                    </td>
-                    <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
-                    <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+<div className="overflow-x-auto -mx-4 px-4">
+  <div className="min-w-[640px]">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b">
+              <th className="p-2 text-left text-orange-700">Rank</th>
+              <th className="p-2 text-left text-orange-700">Track</th>
+              <th className="p-2 text-left text-orange-700">Artist</th>
+              <th 
+                className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
+                onClick={() => setSortBy('totalPlayed')}
+              >
+                Total Time {sortBy === 'totalPlayed' && '▼'}
+              </th>
+              <th 
+                className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'playCount' ? 'font-bold' : ''}`}
+                onClick={() => setSortBy('playCount')}
+              >
+                Play Count {sortBy === 'playCount' && '▼'}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTracks.map((song, index) => (
+              <tr key={song.key} className="border-b hover:bg-orange-50">
+                <td className="p-2 text-orange-700">{index + 1}</td>
+                <td className="p-2 text-orange-700">{song.trackName}</td>
+     
+                <td className="p-2 text-orange-700 cursor-pointer hover:underline" onClick={() => addArtistFromTrack(song.artist)}> {song.artist} </td>
+                <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
+                <td className="p-2 text-right text-orange-700">{song.playCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+  </div>
+    </div>
       ) : (
         <div className="text-center py-4 text-orange-500">
           {startDate || endDate || selectedArtists.length > 0 
