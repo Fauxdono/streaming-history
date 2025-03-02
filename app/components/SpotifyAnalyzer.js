@@ -89,46 +89,40 @@ const displayedArtists = useMemo(() => {
   if (selectedArtistYear === 'all') {
     return topArtists;
   } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Handle year range mode
-    let filteredArtists = [];
-    
-    // Get all years within the range
-    const years = Object.keys(artistsByYear)
-      .filter(year => year >= yearRange.startYear && year <= yearRange.endYear);
-    
-    console.log("Years in range:", years);
-    
-    // For each year in range, add artists to our results
-    years.forEach(year => {
-      const yearArtists = artistsByYear[year] || [];
-      filteredArtists = [...filteredArtists, ...yearArtists];
-    });
-    
-    // Combine artists that appear in multiple years
+    // Convert years to numbers for comparison
+    const startYear = parseInt(yearRange.startYear);
+    const endYear = parseInt(yearRange.endYear);
+
+    // Collect artists from years within the range
+    const rangeArtists = Object.entries(artistsByYear)
+      .filter(([year]) => {
+        const yearNum = parseInt(year);
+        return yearNum >= startYear && yearNum <= endYear;
+      })
+      .flatMap(([_, artists]) => artists);
+
+    // Merge artists from different years
     const mergedArtists = {};
-    
-    filteredArtists.forEach(artist => {
-      const name = artist.name;
-      
-      if (!mergedArtists[name]) {
-        // First time seeing this artist
-        mergedArtists[name] = {...artist};
+    rangeArtists.forEach(artist => {
+      if (!mergedArtists[artist.name]) {
+        mergedArtists[artist.name] = { ...artist };
       } else {
-        // Merge with existing artist data
-        mergedArtists[name].totalPlayed += artist.totalPlayed;
-        mergedArtists[name].playCount += artist.playCount;
-        // Keep track of highest playCount for most played song
-        if (artist.mostPlayedSong && artist.mostPlayedSong.playCount > mergedArtists[name].mostPlayedSong.playCount) {
-          mergedArtists[name].mostPlayedSong = artist.mostPlayedSong;
+        // Merge artist data
+        mergedArtists[artist.name].totalPlayed += artist.totalPlayed;
+        mergedArtists[artist.name].playCount += artist.playCount;
+        
+        // Update most played song if necessary
+        if (artist.mostPlayedSong.playCount > mergedArtists[artist.name].mostPlayedSong.playCount) {
+          mergedArtists[artist.name].mostPlayedSong = artist.mostPlayedSong;
         }
       }
     });
-    
-    // Convert back to array and sort by total play time
+
+    // Convert back to array and sort
     return Object.values(mergedArtists)
       .sort((a, b) => b.totalPlayed - a.totalPlayed);
   } else {
-    // Original single year mode
+    // Single year mode
     return artistsByYear[selectedArtistYear] || [];
   }
 }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
@@ -244,7 +238,8 @@ const handleYearRangeChange = ({ startYear, endYear }) => {
     console.warn("Invalid year range:", { startYear, endYear });
     return;
   }
-  setYearRange({ startYear, endYear })
+  setYearRange({ startYear, endYear });
+  setYearRangeMode(true);
 };
 
 const getTracksTabLabel = () => { 
