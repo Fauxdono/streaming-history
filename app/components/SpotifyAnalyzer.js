@@ -45,6 +45,8 @@ const SpotifyAnalyzer = () => {
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
 const [uploadedFileList, setUploadedFileList] = useState(null);
+const [artistsByYear, setArtistsByYear] = useState({});
+const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
@@ -69,6 +71,15 @@ const filteredArtists = useMemo(() => {
     )
     .slice(0, 10);
 }, [topAlbums, artistSearch, selectedArtists]);
+
+const displayedArtists = useMemo(() => {
+  if (selectedArtistYear === 'all') {
+    return topArtists;
+  } else {
+    return artistsByYear[selectedArtistYear] || [];
+  }
+}, [topArtists, artistsByYear, selectedArtistYear]);
+
 const processFiles = useCallback(async (fileList) => {
   // Set loading state and wait for next render cycle
   setIsProcessing(true);
@@ -177,6 +188,14 @@ const getTracksTabLabel = () => {
   } 
   return `Top 100 ${selectedTrackYear}`; 
 };
+
+const getArtistsTabLabel = () => {
+  if (selectedArtistYear === 'all') {
+    return 'All-time Artists';
+  }
+  return `${selectedArtistYear} Artists`;
+};
+
 const TabButton = ({ id, label }) => {
   const getTabColor = (tabId) => {
     switch (tabId) {
@@ -247,7 +266,7 @@ case 'podcasts':
   <div className="flex gap-2 border-b border-violet-200 min-w-max"> 
   <TabButton id="upload" label="Upload" />
   {stats && <TabButton id="stats" label="Statistics" />}
-  {topArtists.length > 0 && <TabButton id="artists" label="Artists" />}
+{topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
   {topAlbums.length > 0 && <TabButton id="albums" label="Albums" />}
 {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
   {processedData.length > 0 && <TabButton id="custom" label="Custom Date Range" />}
