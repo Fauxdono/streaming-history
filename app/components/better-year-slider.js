@@ -42,6 +42,7 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
       setSliderPosition((middleIndex / (sortedYears.length - 1)) * 100);
     }
   }, [sortedYears, initialYear]);
+
   
   // Handle mouse drag on the slider
   const handleMouseDown = (e) => {
@@ -92,10 +93,10 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   
   return (
     <div className="my-4">
-    <div className="flex justify-between mb-2">
+<div className="flex justify-between mb-2">
   <span className="text-teal-700">{minYear}</span>
-  <span className="font-bold text-teal-700">
-    {selectedYear === 'all' ? 'All-Time' : `Year: ${selectedYear}`}
+  <span className="font-bold text-teal-700 year-display">
+    {showingAllYears ? 'All-Time' : `Year: ${selectedYear}`}
   </span>
   <span className="text-teal-700">{maxYear}</span>
 </div>
