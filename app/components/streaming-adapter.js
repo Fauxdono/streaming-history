@@ -8,7 +8,7 @@ export const STREAMING_TYPES = {
   APPLE_MUSIC: 'apple_music',
   YOUTUBE_MUSIC: 'youtube_music',
   TIDAL: 'tidal',
-  DEEZER: 'deezer'
+  DEEZER: 'deezer',
   SOUNDCLOUD: 'soundcloud'
 };
 
