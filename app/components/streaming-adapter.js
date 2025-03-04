@@ -38,7 +38,7 @@ export const STREAMING_SERVICES = {
     instructions: 'Go to Account Settings and in the third tab Private information above your birthdate you see My personal data next to Privacy Settings press then download your listening history',
     acceptedFormats: '.csv,.xlsx' // Updated to include XLSX format
   }
-  soundcloud: {
+   [STREAMING_TYPES.SOUNDCLOUD]: {
     name: 'SoundCloud',
     instructions: 'you have to send customerservice a mail for your soundcloud history. Mine spanned back to 2024, to it isn't that comprehensive for me',
     downloadUrl: 'https://soundcloud.com/settings/account',
