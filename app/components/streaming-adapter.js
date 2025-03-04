@@ -9,6 +9,7 @@ export const STREAMING_TYPES = {
   YOUTUBE_MUSIC: 'youtube_music',
   TIDAL: 'tidal',
   DEEZER: 'deezer'
+  Soundcloud: 'soundcloud'
 };
 
 // Service metadata for UI
@@ -37,6 +38,13 @@ export const STREAMING_SERVICES = {
     instructions: 'Go to Account Settings and in the third tab Private information above your birthdate you see My personal data next to Privacy Settings press then download your listening history',
     acceptedFormats: '.csv,.xlsx' // Updated to include XLSX format
   }
+  soundcloud: {
+    name: 'SoundCloud',
+    instructions: 'you have to send customerservice a mail for your soundcloud history. Mine spanned back to 2024, to it isn't that comprehensive for me',
+    downloadUrl: 'https://soundcloud.com/settings/account',
+    acceptedFormats: '.csv',
+    type: STREAMING_TYPES.Soundcloud
+  },
 };
 
 function normalizeString(str) {
@@ -635,6 +643,23 @@ export const streamingProcessor = {
                   const isRecentlyPlayedTracks = results.meta.fields.includes('Total play duration in millis') && 
                                               results.meta.fields.includes('Track Description') &&
                                               results.meta.fields.includes('Media duration in millis');
+
+}
+// Add Soundcloud handling
+else if (file.name.endsWith('.csv')) {
+  try {
+    // Check if it's a Soundcloud CSV by looking at content
+    if (content.includes('play_time') && content.includes('track_title')) {
+      console.log(`Processing ${file.name} as a Soundcloud CSV file`);
+      const soundcloudData = await processSoundcloudCSV(content);
+      allProcessedData = [...allProcessedData, ...soundcloudData];
+      return soundcloudData;
+    }
+  } catch (error) {
+    console.error('Error processing Soundcloud CSV file:', error);
+    return [];
+  }
+}
                                               
                   if (isRecentlyPlayedTracks) {
                     // Process the detailed Recently Played Tracks format
@@ -1060,6 +1085,88 @@ export const streamingProcessor = {
           };
         }
       });
+
+// Add this function to process Soundcloud CSV data
+async function processSoundcloudCSV(content) {
+  return new Promise((resolve) => {
+    Papa.parse(content, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      delimitersToGuess: [',', '\t', '|', ';'],
+      complete: (results) => {
+        console.log('Soundcloud CSV headers:', results.meta.fields);
+        
+        const transformedData = results.data
+          .filter(row => row['play_time'] && row['track_title'])
+          .map(row => {
+            // Parse the play time
+            const playTime = new Date(row.play_time);
+            
+            // Extract artist and track name from track_title
+            let artist = "Unknown Artist";
+            let trackName = row.track_title;
+            
+            // Handle different track title formats
+            if (row.track_title.includes(" - ")) {
+              // Standard "Artist - Track" format
+              const parts = row.track_title.split(" - ");
+              artist = parts[0].trim();
+              trackName = parts.slice(1).join(" - ").trim();
+            } else if (row.track_title.match(/^.*?\s+feat\.|ft\.|\(feat\.|\(ft\./i)) {
+              // Handle "Artist feat. Someone" format
+              const match = row.track_title.match(/^(.*?)\s+(feat\.|ft\.|\(feat\.|\(ft\.)/i);
+              if (match) {
+                artist = match[1].trim();
+                trackName = row.track_title.substring(match[0].length).trim();
+              }
+            }
+            
+            // Extract username from URL
+            const urlParts = row.track_url ? row.track_url.split('/') : [];
+            const uploader = urlParts[3] || "unknown";
+            
+            // Since SoundCloud doesn't provide play duration, we'll estimate it based on track type
+            let estimatedDuration = 210000; // Default: 3.5 minutes in milliseconds
+            
+            // Adjust duration based on keywords in the title
+            if (trackName.toLowerCase().includes("podcast") || 
+                trackName.toLowerCase().includes("episode") || 
+                trackName.toLowerCase().includes("mix") || 
+                trackName.toLowerCase().includes("set")) {
+              estimatedDuration = 1800000; // 30 minutes for podcasts/mixes
+            } else if (trackName.toLowerCase().includes("intro") || 
+                      trackName.toLowerCase().includes("skit")) {
+              estimatedDuration = 90000; // 1.5 minutes for intros/skits
+            }
+            
+            return {
+              ts: playTime,
+              ms_played: estimatedDuration,
+              master_metadata_track_name: trackName,
+              master_metadata_album_artist_name: artist,
+              master_metadata_album_album_name: uploader, // Use uploader as album name
+              reason_start: "trackdone",
+              reason_end: "trackdone",
+              shuffle: false,
+              skipped: false,
+              platform: "SOUNDCLOUD",
+              source: "soundcloud",
+              username: uploader,
+              url: row.track_url
+            };
+          });
+        
+        console.log(`Transformed ${transformedData.length} Soundcloud entries`);
+        resolve(transformedData);
+      },
+      error: (error) => {
+        console.error('Error parsing Soundcloud CSV:', error);
+        resolve([]);
+      }
+    });
+  });
+}
 
       // Calculate comprehensive stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
