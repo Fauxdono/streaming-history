@@ -621,7 +621,7 @@ export const streamingProcessor = {
           }
           
           // Apple Music CSV files
-          if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
+          else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
             return new Promise((resolve) => {
               Papa.parse(content, {
                 header: true,
@@ -629,37 +629,34 @@ export const streamingProcessor = {
                 skipEmptyLines: true,
                 delimitersToGuess: [',', '\t', '|', ';'],
                 complete: (results) => {
-                  console.log('Apple Music CSV headers:', results.meta.fields);
-                  let transformedData = [];
-                  
-                  // Detect which Apple Music file format we're working with
-                  const isTrackPlayHistory = results.meta.fields.includes('Track Name') && 
-                                          results.meta.fields.includes('Last Played Date');
-                  
-                  const isDailyTracks = results.meta.fields.includes('Track Description') && 
-                                      (results.meta.fields.includes('Date Played') || 
-                                       results.meta.fields.includes('Play Duration Milliseconds'));
-                  
-                  const isRecentlyPlayedTracks = results.meta.fields.includes('Total play duration in millis') && 
-                                              results.meta.fields.includes('Track Description') &&
-                                              results.meta.fields.includes('Media duration in millis');
-
-}
-// Add Soundcloud handling
-else if (file.name.endsWith('.csv')) {
-  try {
-    // Check if it's a Soundcloud CSV by looking at content
-    if (content.includes('play_time') && content.includes('track_title')) {
-      console.log(`Processing ${file.name} as a Soundcloud CSV file`);
-      const soundcloudData = await processSoundcloudCSV(content);
-      allProcessedData = [...allProcessedData, ...soundcloudData];
-      return soundcloudData;
-    }
-  } catch (error) {
-    console.error('Error processing Soundcloud CSV file:', error);
-    return [];
-  }
-}
+                  // Apple Music processing logic
+                  // ...
+                  // Make sure this is properly closed!
+                  resolve(transformedData);
+                },
+                error: (error) => {
+                  console.error('Error parsing Apple Music CSV:', error);
+                  resolve([]);
+                }
+              });
+            });
+          }
+          
+          // Add Soundcloud handling as another condition at the same level
+          else if (file.name.endsWith('.csv')) {
+            try {
+              // Check if it's a Soundcloud CSV by looking at content
+              if (content.includes('play_time') && content.includes('track_title')) {
+                console.log(`Processing ${file.name} as a Soundcloud CSV file`);
+                const soundcloudData = await processSoundcloudCSV(content);
+                allProcessedData = [...allProcessedData, ...soundcloudData];
+                return soundcloudData;
+              }
+            } catch (error) {
+              console.error('Error processing Soundcloud CSV file:', error);
+              return [];
+            }
+          }
                                               
                   if (isRecentlyPlayedTracks) {
                     // Process the detailed Recently Played Tracks format
