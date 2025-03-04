@@ -9,7 +9,7 @@ export const STREAMING_TYPES = {
   YOUTUBE_MUSIC: 'youtube_music',
   TIDAL: 'tidal',
   DEEZER: 'deezer'
-  Soundcloud: 'soundcloud'
+  SOUNDCLOUD: 'soundcloud'
 };
 
 // Service metadata for UI
