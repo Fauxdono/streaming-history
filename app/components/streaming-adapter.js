@@ -43,8 +43,8 @@ export const STREAMING_SERVICES = {
     instructions: 'you have to send customerservice a mail for your soundcloud history. Mine spanned back to 2024, to it isn't that comprehensive for me',
     downloadUrl: 'https://soundcloud.com/settings/account',
     acceptedFormats: '.csv',
-    type: STREAMING_TYPES.Soundcloud
-  },
+    
+  }
 };
 
 function normalizeString(str) {
