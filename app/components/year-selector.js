@@ -95,12 +95,19 @@ const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialY
 <div className="flex justify-center mt-4">
             <button
               onClick={() => {
-                // Directly update the BetterYearSlider component's display
-                const yearDisplay = document.querySelector('.year-display');
-                if (yearDisplay) {
-                  yearDisplay.textContent = 'All-Time';
+                console.log("Show All Years clicked");
+                // Set to 'all' first
+                if (onYearChange) {
+                  onYearChange('all');
                 }
-                onYearChange('all');
+                
+                // Force any BetterYearSlider to refresh
+                setTimeout(() => {
+                  const yearDisplays = document.querySelectorAll('.year-display');
+                  yearDisplays.forEach(display => {
+                    display.textContent = 'All-Time';
+                  });
+                }, 50);
               }}
               className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700"
             >

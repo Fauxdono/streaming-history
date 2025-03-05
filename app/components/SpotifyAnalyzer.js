@@ -72,12 +72,19 @@ useEffect(() => {
     // update the year display text
     if (!yearRangeMode && selectedArtistYear === 'all') {
       // Force the BetterYearSlider to show "All-Time" instead of a specific year
-      setTimeout(() => {
+      const updateAllTimeText = () => {
         const yearDisplay = document.querySelector('.year-display');
-        if (yearDisplay) {
+        if (yearDisplay && yearDisplay.textContent !== 'All-Time') {
+          console.log("Forcing All-Time text");
           yearDisplay.textContent = 'All-Time';
         }
-      }, 0);
+      };
+      
+      // Try multiple times to ensure it persists
+      updateAllTimeText();
+      setTimeout(updateAllTimeText, 50);
+      setTimeout(updateAllTimeText, 100);
+      setTimeout(updateAllTimeText, 300);
     }
   }, [yearRangeMode, selectedArtistYear]);
 const filteredArtists = useMemo(() => {
