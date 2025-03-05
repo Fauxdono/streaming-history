@@ -11,7 +11,7 @@ import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
-import { X } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import YearSelector from './year-selector.js'
 
 
@@ -78,7 +78,6 @@ useEffect(() => {
       }
     }
   }, [yearRangeMode, selectedArtistYear]);
-
 const filteredArtists = useMemo(() => {
   const allArtists = Array.from(new Set(topAlbums.map(album => album.artist))).sort();
   return allArtists
@@ -521,13 +520,13 @@ case 'podcasts':
       {uploadedFiles.map((fileObj, index) => (
         <li key={index} className="flex items-center">
           <span className="mr-2">{fileObj.name}</span>
-          <button 
-            onClick={() => handleDeleteFile(index)}
-            className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-            title="Remove file"
-          >
-            <X size={14} />
-          </button>
+      <button 
+  onClick={() => handleDeleteFile(index)}
+  className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+  title="Remove file"
+>
+  <Trash2 size={14} />
+</button>
         </li>
       ))}
     </ul>
