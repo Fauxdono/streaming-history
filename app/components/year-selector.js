@@ -92,9 +92,16 @@ const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialY
             onYearChange={onYearChange}
             initialYear={initialYear}
           />
-          <div className="flex justify-center mt-4">
+<div className="flex justify-center mt-4">
             <button
-              onClick={() => onYearChange('all')}
+              onClick={() => {
+                // Directly update the BetterYearSlider component's display
+                const yearDisplay = document.querySelector('.year-display');
+                if (yearDisplay) {
+                  yearDisplay.textContent = 'All-Time';
+                }
+                onYearChange('all');
+              }}
               className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700"
             >
               Show All Years
