@@ -48,7 +48,7 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
       setSliderPosition((middleIndex / (sortedYears.length - 1)) * 100);
     }
   }, [initialYear, sortedYears]);
-  
+
   // Handle mouse drag on the slider
   const handleMouseDown = (e) => {
     // When user interacts with slider, we're no longer showing all years
