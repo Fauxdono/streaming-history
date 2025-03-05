@@ -20,11 +20,13 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   // Add state to track if "all" is selected
   const [showingAllYears, setShowingAllYears] = useState(initialYear === 'all');
   const sliderRef = useRef(null);
-  
-  // Initialize the slider position based on the initialYear
+
+  // Watch specifically for changes to initialYear, including when it changes to 'all'
   useEffect(() => {
+    // Check if initialYear is 'all', which is a special case
     if (initialYear === 'all') {
       setShowingAllYears(true);
+      setSelectedYear('all'); // Also update selectedYear to 'all'
       return;
     }
     
@@ -35,14 +37,13 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
       const percentage = (yearIndex / (sortedYears.length - 1)) * 100;
       setSliderPosition(percentage);
       setSelectedYear(initialYear);
-    } else {
-      // Default to the middle year
+    } else if (initialYear !== 'all') {
+      // Default to the middle year only if initialYear is not 'all'
       const middleIndex = Math.floor(sortedYears.length / 2);
       setSelectedYear(sortedYears[middleIndex]);
       setSliderPosition((middleIndex / (sortedYears.length - 1)) * 100);
     }
-  }, [sortedYears, initialYear]);
-
+  }, [initialYear, sortedYears]);
   
   // Handle mouse drag on the slider
   const handleMouseDown = (e) => {
