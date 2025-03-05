@@ -21,15 +21,19 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   const [showingAllYears, setShowingAllYears] = useState(initialYear === 'all');
   const sliderRef = useRef(null);
 
-  // Watch specifically for changes to initialYear, including when it changes to 'all'
+// Watch specifically for changes to initialYear
   useEffect(() => {
+    console.log("initialYear changed:", initialYear);
+    
     // Check if initialYear is 'all', which is a special case
     if (initialYear === 'all') {
+      console.log("Setting to show all years");
       setShowingAllYears(true);
-      setSelectedYear('all'); // Also update selectedYear to 'all'
+      setSelectedYear('all');
       return;
     }
     
+    // Not showing all years
     setShowingAllYears(false);
     
     if (initialYear && sortedYears.includes(initialYear.toString())) {
