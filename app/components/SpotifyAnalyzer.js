@@ -522,7 +522,7 @@ case 'podcasts':
           <span className="mr-2">{fileObj.name}</span>
       <button 
   onClick={() => handleDeleteFile(index)}
-  className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+  className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
   title="Remove file"
 >
   <Trash2 size={14} />
