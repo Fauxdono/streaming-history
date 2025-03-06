@@ -8,14 +8,17 @@ const PlaylistExporter = ({
   briefObsessions = []
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
   const [error, setError] = useState(null);
   const [musicBasePath, setMusicBasePath] = useState('/Music/Downloads');
   const [playlistType, setPlaylistType] = useState('top');
   const [fileExtension, setFileExtension] = useState('mp3');
   const [exportMode, setExportMode] = useState('current'); // 'current' or 'all'
   const [exportCount, setExportCount] = useState(100); // How many tracks to export
+  const [sortMethod, setSortMethod] = useState('totalPlayed'); // 'totalPlayed' or 'playCount'
   const [pathFormat, setPathFormat] = useState('default'); // 'default' or 'custom'
   const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{album}/{track}.{ext}');
+  const [downloadQueue, setDownloadQueue] = useState([]);
 
   // Create M3U playlist content for a specific year or category
   const createM3UContent = (tracksToExport, yearLabel = null) => {
@@ -23,10 +26,13 @@ const PlaylistExporter = ({
       throw new Error('No tracks available for the selected criteria');
     }
     
+    // Sort tracks by the chosen method before creating the playlist
+    const sortedTracks = [...tracksToExport].sort((a, b) => b[sortMethod] - a[sortMethod]);
+    
     // Create the M3U content
     let content = '#EXTM3U\n';
     
-    tracksToExport.forEach((track, index) => {
+    sortedTracks.forEach((track, index) => {
       // Basic info line
       content += `#EXTINF:${Math.round(track.totalPlayed / 1000)},${track.artist} - ${track.trackName}\n`;
       
@@ -82,12 +88,52 @@ const PlaylistExporter = ({
       .trim();
   };
 
+  // Process the download queue
+  const processDownloadQueue = async () => {
+    if (downloadQueue.length === 0) {
+      setIsExporting(false);
+      setExportProgress({ current: 0, total: 0 });
+      return;
+    }
+
+    // Process one item from the queue
+    const item = downloadQueue[0];
+    const newQueue = downloadQueue.slice(1);
+    setDownloadQueue(newQueue);
+
+    // Update progress
+    setExportProgress(prev => ({ 
+      current: prev.current + 1, 
+      total: prev.total 
+    }));
+
+    // Download the file
+    const blob = new Blob([item.content], { type: 'audio/x-mpegurl' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = item.filename;
+    link.click();
+
+    // Clean up the URL
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+      
+      // Wait a bit before processing the next download to avoid browser blocks
+      setTimeout(() => {
+        processDownloadQueue();
+      }, 500);
+    }, 100);
+  };
+
   const exportPlaylist = async () => {
     setIsExporting(true);
     setError(null);
+    setDownloadQueue([]);
 
     try {
       const timestamp = new Date().toISOString().split('T')[0];
+      const newDownloadQueue = [];
       
       if (exportMode === 'current') {
         // Export just the currently selected playlist
@@ -117,20 +163,22 @@ const PlaylistExporter = ({
         // Generate filename
         const filename = `${typeStr}-${yearStr}-${timestamp}.m3u`;
         
-        // Download the file
-        downloadPlaylist(playlistContent, filename);
+        // Add to download queue
+        newDownloadQueue.push({ content: playlistContent, filename });
       } else {
         // Export all years as separate playlists
         if (playlistType === 'top') {
           // Get all years
           const years = Object.keys(songsByYear).sort((a, b) => b - a);
           
-          // Create and download a playlist for each year
+          // Create a playlist for each year
           for (const year of years) {
             const tracks = songsByYear[year].slice(0, exportCount);
-            const playlistContent = createM3UContent(tracks, year);
-            const filename = `top-tracks-${year}-${timestamp}.m3u`;
-            downloadPlaylist(playlistContent, filename);
+            if (tracks.length > 0) {
+              const playlistContent = createM3UContent(tracks, year);
+              const filename = `top-tracks-${year}-${timestamp}.m3u`;
+              newDownloadQueue.push({ content: playlistContent, filename });
+            }
           }
           
           // Also create an all-time playlist if requested
@@ -138,33 +186,37 @@ const PlaylistExporter = ({
             const allTimeTracks = processedData.slice(0, exportCount === 250 ? 250 : 100);
             const playlistContent = createM3UContent(allTimeTracks, 'all-time');
             const filename = `top-tracks-all-time-${timestamp}.m3u`;
-            downloadPlaylist(playlistContent, filename);
+            newDownloadQueue.push({ content: playlistContent, filename });
           }
         } else {
           // For obsessions, just create one playlist as there's no year division
           const tracks = briefObsessions.slice(0, exportCount);
-          const playlistContent = createM3UContent(tracks);
-          const filename = `obsessions-all-time-${timestamp}.m3u`;
-          downloadPlaylist(playlistContent, filename);
+          if (tracks.length > 0) {
+            const playlistContent = createM3UContent(tracks);
+            const filename = `obsessions-all-time-${timestamp}.m3u`;
+            newDownloadQueue.push({ content: playlistContent, filename });
+          }
         }
+      }
+      
+      // Set the queue and progress
+      setDownloadQueue(newDownloadQueue);
+      setExportProgress({ current: 0, total: newDownloadQueue.length });
+      
+      // Start processing the queue
+      if (newDownloadQueue.length > 0) {
+        setTimeout(() => {
+          processDownloadQueue();
+        }, 100);
+      } else {
+        setError('No tracks available to export for the selected criteria.');
+        setIsExporting(false);
       }
     } catch (err) {
       console.error('Export error:', err);
       setError(err.message || 'Failed to export playlist. Please try again.');
-    } finally {
       setIsExporting(false);
     }
-  };
-  
-  // Helper function to download a playlist file
-  const downloadPlaylist = (content, filename) => {
-    const blob = new Blob([content], { type: 'audio/x-mpegurl' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -228,13 +280,13 @@ const PlaylistExporter = ({
                 <li>{'{index}'} - Track number (001, 002, etc.)</li>
                 <li>{'{year}'} - Year (if available)</li>
               </ul>
-              <p className="mt-1">Example: {'{basePath}'}/Music/{'{artist}'} - {'{album}'}/{'{index}'} - {'{track}'}.{'{ext}'}</p>
+              <p className="mt-1">Example: {'{basePath}'}/Music by Artist/{'{artist}'} - {'{album}'}/{'{index}'} - {'{track}'}.{'{ext}'}</p>
             </div>
           </div>
         )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-blue-700 mb-1">File Extension:</label>
           <select
@@ -259,6 +311,18 @@ const PlaylistExporter = ({
           >
             <option value="100">Top 100</option>
             <option value="250">Top 250 (All-time only)</option>
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-blue-700 mb-1">Sort Tracks By:</label>
+          <select
+            value={sortMethod}
+            onChange={(e) => setSortMethod(e.target.value)}
+            className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="totalPlayed">Total Listening Time</option>
+            <option value="playCount">Play Count</option>
           </select>
         </div>
       </div>
@@ -318,7 +382,9 @@ const PlaylistExporter = ({
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
         >
           <Download size={16} />
-          {isExporting ? 'Exporting...' : 'Export M3U Playlist'}
+          {isExporting 
+            ? `Exporting... ${exportProgress.current}/${exportProgress.total}` 
+            : 'Export M3U Playlist'}
         </button>
       </div>
       
@@ -347,11 +413,12 @@ const PlaylistExporter = ({
           {exportMode === 'current' ? (
             <>
               The playlist will include the {exportCount === 250 && selectedYear === 'all' ? 'top 250' : 'top 100'} tracks from {selectedYear === 'all' ? 'all time' : selectedYear} 
-              {playlistType === 'obsessions' ? ' or your brief obsessions' : ''}.
+              {playlistType === 'obsessions' ? ' or your brief obsessions' : ''}, sorted by {sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.
             </>
           ) : (
             <>
-              This will export separate playlist files for each year plus an all-time playlist.
+              This will export separate playlist files for each year plus an all-time playlist, with tracks sorted by {sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.
+              <span className="block mt-1 text-blue-800">Note: Files will download one after another with progress tracking.</span>
             </>
           )}
         </p>
