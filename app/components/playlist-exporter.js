@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download } from 'lucide-react';
 
 const PlaylistExporter = ({ 
@@ -15,10 +15,14 @@ const PlaylistExporter = ({
   const [fileExtension, setFileExtension] = useState('mp3');
   const [exportMode, setExportMode] = useState('current'); // 'current' or 'all'
   const [exportCount, setExportCount] = useState(100); // How many tracks to export
-  const [sortMethod, setSortMethod] = useState('totalPlayed'); // 'totalPlayed' or 'playCount'
   const [pathFormat, setPathFormat] = useState('default'); // 'default' or 'custom'
   const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{album}/{track}.{ext}');
-  const [downloadQueue, setDownloadQueue] = useState([]);
+  const [sortMethod, setSortMethod] = useState('totalPlayed'); // 'totalPlayed' or 'playCount'
+  
+  // Use a ref to store the download queue to prevent issues with stale state
+  const downloadQueueRef = useRef([]);
+  // Use a ref to track if we're currently processing the queue
+  const processingQueueRef = useRef(false);
 
   // Create M3U playlist content for a specific year or category
   const createM3UContent = (tracksToExport, yearLabel = null) => {
@@ -89,17 +93,24 @@ const PlaylistExporter = ({
   };
 
   // Process the download queue
-  const processDownloadQueue = async () => {
-    if (downloadQueue.length === 0) {
-      setIsExporting(false);
-      setExportProgress({ current: 0, total: 0 });
+  const processDownloadQueue = () => {
+    // If we're already processing the queue or the queue is empty, do nothing
+    if (processingQueueRef.current || downloadQueueRef.current.length === 0) {
+      if (downloadQueueRef.current.length === 0) {
+        setIsExporting(false);
+        setExportProgress({ current: 0, total: 0 });
+        processingQueueRef.current = false;
+      }
       return;
     }
 
+    // Mark that we're processing the queue
+    processingQueueRef.current = true;
+
     // Process one item from the queue
-    const item = downloadQueue[0];
-    const newQueue = downloadQueue.slice(1);
-    setDownloadQueue(newQueue);
+    const item = downloadQueueRef.current[0];
+    // Remove the first item from the queue
+    downloadQueueRef.current = downloadQueueRef.current.slice(1);
 
     // Update progress
     setExportProgress(prev => ({ 
@@ -115,25 +126,36 @@ const PlaylistExporter = ({
     link.download = item.filename;
     link.click();
 
-    // Clean up the URL
+    // Clean up the URL and process the next item after a delay
     setTimeout(() => {
       window.URL.revokeObjectURL(url);
+      processingQueueRef.current = false;
       
-      // Wait a bit before processing the next download to avoid browser blocks
+      // Process the next item after a delay
       setTimeout(() => {
-        processDownloadQueue();
+        if (downloadQueueRef.current.length > 0) {
+          processDownloadQueue();
+        } else {
+          setIsExporting(false);
+          setExportProgress({ current: 0, total: 0 });
+        }
       }, 500);
     }, 100);
   };
 
   const exportPlaylist = async () => {
+    // If already exporting, do nothing
+    if (isExporting) return;
+    
     setIsExporting(true);
     setError(null);
-    setDownloadQueue([]);
+    
+    // Clear the download queue
+    downloadQueueRef.current = [];
+    processingQueueRef.current = false;
 
     try {
       const timestamp = new Date().toISOString().split('T')[0];
-      const newDownloadQueue = [];
       
       if (exportMode === 'current') {
         // Export just the currently selected playlist
@@ -157,6 +179,10 @@ const PlaylistExporter = ({
           tracks = briefObsessions.slice(0, exportCount);
         }
         
+        if (!tracks || tracks.length === 0) {
+          throw new Error('No tracks available for the selected criteria');
+        }
+        
         // Generate playlist content
         const playlistContent = createM3UContent(tracks, yearStr);
         
@@ -164,12 +190,18 @@ const PlaylistExporter = ({
         const filename = `${typeStr}-${yearStr}-${timestamp}.m3u`;
         
         // Add to download queue
-        newDownloadQueue.push({ content: playlistContent, filename });
+        downloadQueueRef.current.push({ content: playlistContent, filename });
       } else {
         // Export all years as separate playlists
         if (playlistType === 'top') {
-          // Get all years
-          const years = Object.keys(songsByYear).sort((a, b) => b - a);
+          // Get all years with data
+          const years = Object.keys(songsByYear)
+            .filter(year => songsByYear[year] && songsByYear[year].length > 0)
+            .sort((a, b) => b - a);
+          
+          if (years.length === 0) {
+            throw new Error('No yearly data available for export');
+          }
           
           // Create a playlist for each year
           for (const year of years) {
@@ -177,7 +209,7 @@ const PlaylistExporter = ({
             if (tracks.length > 0) {
               const playlistContent = createM3UContent(tracks, year);
               const filename = `top-tracks-${year}-${timestamp}.m3u`;
-              newDownloadQueue.push({ content: playlistContent, filename });
+              downloadQueueRef.current.push({ content: playlistContent, filename });
             }
           }
           
@@ -186,7 +218,7 @@ const PlaylistExporter = ({
             const allTimeTracks = processedData.slice(0, exportCount === 250 ? 250 : 100);
             const playlistContent = createM3UContent(allTimeTracks, 'all-time');
             const filename = `top-tracks-all-time-${timestamp}.m3u`;
-            newDownloadQueue.push({ content: playlistContent, filename });
+            downloadQueueRef.current.push({ content: playlistContent, filename });
           }
         } else {
           // For obsessions, just create one playlist as there's no year division
@@ -194,28 +226,32 @@ const PlaylistExporter = ({
           if (tracks.length > 0) {
             const playlistContent = createM3UContent(tracks);
             const filename = `obsessions-all-time-${timestamp}.m3u`;
-            newDownloadQueue.push({ content: playlistContent, filename });
+            downloadQueueRef.current.push({ content: playlistContent, filename });
+          } else {
+            throw new Error('No brief obsessions data available for export');
           }
         }
       }
       
-      // Set the queue and progress
-      setDownloadQueue(newDownloadQueue);
-      setExportProgress({ current: 0, total: newDownloadQueue.length });
+      // Set the progress state
+      setExportProgress({ current: 0, total: downloadQueueRef.current.length });
       
       // Start processing the queue
-      if (newDownloadQueue.length > 0) {
+      if (downloadQueueRef.current.length > 0) {
         setTimeout(() => {
           processDownloadQueue();
         }, 100);
       } else {
-        setError('No tracks available to export for the selected criteria.');
-        setIsExporting(false);
+        throw new Error('No playlists to export. Please check your data and try again.');
       }
     } catch (err) {
       console.error('Export error:', err);
       setError(err.message || 'Failed to export playlist. Please try again.');
       setIsExporting(false);
+      setExportProgress({ current: 0, total: 0 });
+      // Clear the queue on error
+      downloadQueueRef.current = [];
+      processingQueueRef.current = false;
     }
   };
 
