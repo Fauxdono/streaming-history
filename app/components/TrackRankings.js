@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import PlaylistExporter from './playlist-exporter.js';
 
 const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear = {}, formatDuration, onYearChange }) => {
   const [activeTab, setActiveTab] = useState('top250');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [sortBy, setSortBy] = useState('totalPlayed'); // New state for sort method
+  const [sortBy, setSortBy] = useState('totalPlayed');
+  const [showExporter, setShowExporter] = useState(false);
   
   useEffect(() => {
     if (onYearChange) {
@@ -132,32 +134,50 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
             : 'Top 100 Brief Obsessions'}
         </h3>
 
-        {activeTab === 'top250' && (
-          <div className="flex items-center gap-2">
-            <span className="text-blue-700">Sort by:</span>
-            <button
-              onClick={() => setSortBy('totalPlayed')}
-              className={`px-3 py-1 rounded ${
-                sortBy === 'totalPlayed'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-              }`}
-            >
-              Total Time
-            </button>
-            <button
-              onClick={() => setSortBy('playCount')}
-              className={`px-3 py-1 rounded ${
-                sortBy === 'playCount'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-              }`}
-            >
-              Play Count
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {activeTab === 'top250' && (
+            <div className="flex items-center gap-2 mr-3">
+              <span className="text-blue-700">Sort by:</span>
+              <button
+                onClick={() => setSortBy('totalPlayed')}
+                className={`px-3 py-1 rounded ${
+                  sortBy === 'totalPlayed'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                }`}
+              >
+                Total Time
+              </button>
+              <button
+                onClick={() => setSortBy('playCount')}
+                className={`px-3 py-1 rounded ${
+                  sortBy === 'playCount'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                }`}
+              >
+                Play Count
+              </button>
+            </div>
+          )}
+          
+          <button
+            onClick={() => setShowExporter(!showExporter)}
+            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            {showExporter ? 'Hide Playlist Exporter' : 'Export M3U Playlist'}
+          </button>
+        </div>
       </div>
+      
+      {showExporter && (
+        <PlaylistExporter 
+          processedData={processedData}
+          songsByYear={songsByYear}
+          selectedYear={selectedYear}
+          briefObsessions={briefObsessions}
+        />
+      )}
 
       <div className="overflow-x-auto -mx-4 px-4">
         <div className="min-w-[640px]">
