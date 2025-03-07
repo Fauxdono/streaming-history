@@ -459,7 +459,7 @@ case 'podcasts':
 </div>
 </div>
 {activeTab === 'upload' && (
-  <>
+  <div>
     <div className="p-4 border rounded bg-blue-50">
       <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
       <ol className="list-decimal list-inside space-y-1 text-blue-700">
@@ -600,7 +600,7 @@ case 'podcasts':
         </div>
       )}
     </div>
-  </>
+  </div>
 )}
 {activeTab === 'stats' && stats && (
   <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
