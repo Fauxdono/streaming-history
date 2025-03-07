@@ -31,7 +31,7 @@ const SpotifyAnalyzer = () => {
   const [songsByMonth, setSongsByMonth] = useState({});
   const [songsByYear, setSongsByYear] = useState({});
   const [processedData, setProcessedData] = useState([]);
-  const [selectedService, setSelectedService] = useState('spotify');
+  const [selectedServices, setSelectedServices] = useState(['spotify']);
   const [topArtists, setTopArtists] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(10);
@@ -125,6 +125,34 @@ const toggleYearRangeMode = (value) => {
       }
     }
   }
+};
+
+const [showServiceInfo, setShowServiceInfo] = useState({});
+
+// Toggle a service in the selection
+const toggleServiceSelection = (serviceType) => {
+  setSelectedServices(prev => {
+    if (prev.includes(serviceType)) {
+      return prev.filter(s => s !== serviceType);
+    } else {
+      return [...prev, serviceType];
+    }
+  });
+};
+
+// Toggle service info visibility
+const toggleServiceInfo = (serviceType) => {
+  setShowServiceInfo(prev => ({
+    ...prev,
+    [serviceType]: !prev[serviceType]
+  }));
+};
+
+// Get accepted file formats for all selected services
+const getAcceptedFormats = () => {
+  return selectedServices
+    .map(service => STREAMING_SERVICES[service].acceptedFormats)
+    .join(',');
 };
 
 // Update the displayedArtists useMemo function in SpotifyAnalyzer.js
@@ -442,59 +470,74 @@ case 'podcasts':
       </ol>
     </div>
     
-    <div className="p-4 rounded bg-orange-100 border-2 border-orange-300">
-      <div className="flex gap-4 mb-4">
-        {Object.entries(STREAMING_SERVICES).map(([type, service]) => (
-          <button
-            key={type}
-            onClick={() => setSelectedService(type)}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              selectedService === type
-                ? 'bg-orange-500 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            {service.name}
-          </button>
-        ))}
-      </div>
-      
-{selectedService && (
-  <div>
-    <div className="mb-4">
-      <h4 className="font-bold text-orange-700 mb-2">
-        {STREAMING_SERVICES[selectedService].name} Instructions:
-      </h4>
-      <p className="text-orange-700 mb-2">
-        {STREAMING_SERVICES[selectedService].instructions}
-      </p>
-      <a  // Add the missing <a> tag opening
-        href={STREAMING_SERVICES[selectedService].downloadUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-orange-600 hover:text-orange-800 underline"
+<h3 className="font-bold text-orange-700 mb-3">Select Streaming Services:</h3>
+             
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+  {Object.entries(STREAMING_SERVICES).map(([type, service]) => (
+    <div key={type} className="border rounded-lg overflow-hidden">
+      <button
+        onClick={() => toggleServiceSelection(type)}
+        className={`w-full px-4 py-2 flex justify-between items-center transition-colors ${
+          selectedServices.includes(type)
+            ? 'bg-orange-500 text-white'
+            : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+        }`}
       >
-        Download your data here
-      </a>
+        <span>{service.name}</span>
+        {selectedServices.includes(type) && <Check size={18} />}
+      </button>
+      
+      <div className="px-4 py-2 border-t bg-white">
+        <button 
+          onClick={() => toggleServiceInfo(type)}
+          className="flex items-center text-sm text-orange-600 hover:text-orange-800"
+        >
+          {showServiceInfo[type] ? 
+            <><ChevronUp size={16} className="mr-1" /> Hide Details</> : 
+            <><ChevronDown size={16} className="mr-1" /> Show Details</>
+          }
+        </button>
+        
+        {showServiceInfo[type] && (
+          <div className="mt-2 text-sm text-orange-700">
+            <p className="mb-2">{service.instructions}</p>
+            
+              href={service.downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-600 hover:text-orange-800 underline"
+            >
+              Download your data here
+            </a>
+            <p className="mt-1">Accepted formats: {service.acceptedFormats}</p>
+          </div>
+        )}
+      </div>
     </div>
-    
-    <div>
-      <p className="mb-2 text-orange-700 font-bold">
-        Upload your {STREAMING_SERVICES[selectedService].name} files:
-      </p>
-      <input
-        type="file"
-        multiple
-        accept={STREAMING_SERVICES[selectedService].acceptedFormats}
-        onChange={handleFileUpload}
-        className="block w-full text-sm text-slate-600 
-          file:mr-4 file:py-2 file:px-4 file:rounded-full 
-          file:border-2 file:border-yellow-400 file:text-sm 
-          file:font-semibold file:bg-yellow-300 
-          file:text-yellow-800 hover:file:bg-yellow-400"
-      />
-    </div>
+  ))}
+</div>
+      
+{selectedServices.length > 0 ? (
+  <div>
+    <p className="mb-2 text-orange-700 font-bold">
+      Upload your files from selected services:
+    </p>
+    <input
+      type="file"
+      multiple
+      accept={getAcceptedFormats()}
+      onChange={handleFileUpload}
+      className="block w-full text-sm text-slate-600 
+        file:mr-4 file:py-2 file:px-4 file:rounded-full 
+        file:border-2 file:border-yellow-400 file:text-sm 
+        file:font-semibold file:bg-yellow-300 
+        file:text-yellow-800 hover:file:bg-yellow-400"
+    />
   </div>
+) : (
+  <p className="text-orange-700 font-semibold">
+    Please select at least one streaming service
+  </p>
 )}
       
       {isProcessing && (
