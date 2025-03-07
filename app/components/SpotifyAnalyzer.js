@@ -501,7 +501,7 @@ case 'podcasts':
         {showServiceInfo[type] && (
           <div className="mt-2 text-sm text-orange-700">
             <p className="mb-2">{service.instructions}</p>
-            
+            <a
               href={service.downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
