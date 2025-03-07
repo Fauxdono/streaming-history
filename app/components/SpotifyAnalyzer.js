@@ -600,7 +600,7 @@ case 'podcasts':
         </div>
       )}
     </div>
-  </>
+  
 )}
 {activeTab === 'stats' && stats && (
   <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
