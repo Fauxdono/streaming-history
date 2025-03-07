@@ -11,8 +11,8 @@ import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
-import { X, Trash2 } from 'lucide-react';
-import YearSelector from './year-selector.js'
+import { X, Trash2, Check, ChevronUp, ChevronDown } from 'lucide-react';
+import YearSelector from './year-selector.js';
 
 
 
@@ -41,16 +41,18 @@ const SpotifyAnalyzer = () => {
   const [stats, setStats] = useState(null);
   const [briefObsessions, setBriefObsessions] = useState([]);
   const [songPlayHistory, setSongPlayHistory] = useState({});
-const [artistsByYear, setArtistsByYear] = useState({});
-const [yearRangeMode, setYearRangeMode] = useState(false);
-const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+  const [artistsByYear, setArtistsByYear] = useState({});
+  const [yearRangeMode, setYearRangeMode] = useState(false);
+  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [rawPlayData, setRawPlayData] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
-const [uploadedFileList, setUploadedFileList] = useState(null);
-const [selectedArtistYear, setSelectedArtistYear] = useState('all');
+  const [uploadedFileList, setUploadedFileList] = useState(null);
+  const [selectedArtistYear, setSelectedArtistYear] = useState('all');
+  const [showServiceInfo, setShowServiceInfo] = useState({});
+
   const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
@@ -87,6 +89,7 @@ useEffect(() => {
       setTimeout(updateAllTimeText, 300);
     }
   }, [yearRangeMode, selectedArtistYear]);
+
 const filteredArtists = useMemo(() => {
   const allArtists = Array.from(new Set(topAlbums.map(album => album.artist))).sort();
   return allArtists
@@ -126,8 +129,6 @@ const toggleYearRangeMode = (value) => {
     }
   }
 };
-
-const [showServiceInfo, setShowServiceInfo] = useState({});
 
 // Toggle a service in the selection
 const toggleServiceSelection = (serviceType) => {
@@ -275,52 +276,49 @@ const processFiles = useCallback(async (fileList) => {
     setIsProcessing(false);
   }
 }, []);
+
 const handleFileUpload = (e) => {
   const newFiles = e.target.files;
   if (!newFiles || newFiles.length === 0) return;
   
-  const newFileNames = Array.from(newFiles).map(file => ({
-    name: file.name,
-    file: file
-  }));
+  // Create an array to store the new file objects
+  const newFileObjects = Array.from(newFiles);
   
   // Combine existing files with new files
-  let newFileList = Array.from(newFiles);
+  let combinedFiles;
   if (uploadedFileList) {
-    newFileList = [...Array.from(uploadedFileList), ...newFileList];
+    combinedFiles = [...uploadedFileList, ...newFileObjects];
+  } else {
+    combinedFiles = newFileObjects;
   }
   
-  // Combine existing file names with new file names
-  const combinedFileNames = uploadedFiles 
-    ? [...uploadedFiles, ...newFileNames]
-    : newFileNames;
+  // Update file names for display - just using the names
+  const updatedFileNames = combinedFiles.map(file => file.name);
   
-  // Update state with combined files and file names
-  setUploadedFileList(newFileList);
-  setUploadedFiles(combinedFileNames);
+  // Update state with combined files
+  setUploadedFileList(combinedFiles);
+  setUploadedFiles(updatedFileNames);
 };
 
-  // Add the handleDeleteFile function here
-  const handleDeleteFile = (indexToDelete) => {
-    // Remove the file from uploadedFiles array
-    const updatedFiles = uploadedFiles.filter((_, index) => index !== indexToDelete);
-    setUploadedFiles(updatedFiles);
+// Add the handleDeleteFile function here
+const handleDeleteFile = (indexToDelete) => {
+  // Remove the file from uploadedFiles array
+  const updatedFileNames = uploadedFiles.filter((_, index) => index !== indexToDelete);
+  
+  // Create a new array without the deleted file
+  if (uploadedFileList) {
+    const remainingFiles = uploadedFileList.filter((_, index) => index !== indexToDelete);
     
-    // Create a new FileList-like object without the deleted file
-    if (uploadedFileList) {
-      const remainingFiles = Array.from(uploadedFileList).filter((_, index) => {
-        // Find which file in uploadedFileList corresponds to the one being deleted
-        return index !== indexToDelete;
-      });
-      
-      // Check if we've removed all files
-      if (remainingFiles.length === 0) {
-        setUploadedFileList(null);
-      } else {
-        setUploadedFileList(remainingFiles);
-      }
+    // Check if we've removed all files
+    if (remainingFiles.length === 0) {
+      setUploadedFileList(null);
+    } else {
+      setUploadedFileList(remainingFiles);
     }
-  };
+  }
+  
+  setUploadedFiles(updatedFileNames);
+};
 
 const handleProcessFiles = () => {
   if (!uploadedFileList || uploadedFileList.length === 0) {
@@ -344,6 +342,7 @@ const handleProcessFiles = () => {
       });
   }, 100);
 };
+
 const handleYearRangeChange = ({ startYear, endYear }) => {
   console.log("Year range changed:", startYear, endYear);
   
@@ -362,6 +361,7 @@ const handleYearRangeChange = ({ startYear, endYear }) => {
   // Log the range for debugging
   console.log("Set year range to:", { startYear, endYear });
 };
+
 const getTracksTabLabel = () => { 
   if (selectedTrackYear === 'all') { 
     return 'All-time Top 250'; 
@@ -405,25 +405,26 @@ const TabButton = ({ id, label }) => {
         return activeTab === tabId 
           ? 'bg-yellow-100 text-yellow-600 border-b-2 border-yellow-600' 
           : 'bg-yellow-200 text-yellow-600 hover:bg-yellow-300';
-case 'podcasts':
-  return activeTab === tabId 
-    ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
-    : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
-    case 'patterns':
-      return activeTab === tabId 
-        ? 'bg-purple-50 text-purple-600 border-b-2 border-purple-600' 
-        : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
-    case 'behavior':
-      return activeTab === tabId 
-        ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
-        : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
-    case 'discovery':
-      return activeTab === tabId 
-        ? 'bg-green-50 text-green-600 border-b-2 border-green-600' 
-        : 'bg-green-200 text-green-600 hover:bg-green-300';
-    // ... default case
-  }
-};
+      case 'podcasts':
+        return activeTab === tabId 
+          ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
+          : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
+      case 'patterns':
+        return activeTab === tabId 
+          ? 'bg-purple-50 text-purple-600 border-b-2 border-purple-600' 
+          : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
+      case 'behavior':
+        return activeTab === tabId 
+          ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
+          : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
+      case 'discovery':
+        return activeTab === tabId 
+          ? 'bg-green-50 text-green-600 border-b-2 border-green-600' 
+          : 'bg-green-200 text-green-600 hover:bg-green-300';
+      default:
+        return '';
+    }
+  };
 
   return (
     <button
@@ -569,16 +570,16 @@ case 'podcasts':
   <div className="mt-4">
     <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
     <ul className="list-disc list-inside text-orange-600 space-y-1">
-      {uploadedFiles.map((fileObj, index) => (
+      {uploadedFiles.map((fileName, index) => (
         <li key={index} className="flex items-center">
-          <span className="mr-2">{fileObj.name}</span>
-      <button 
-  onClick={() => handleDeleteFile(index)}
-  className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
-  title="Remove file"
->
-  <Trash2 size={14} />
-</button>
+          <span className="mr-2">{fileName}</span>
+          <button 
+            onClick={() => handleDeleteFile(index)}
+            className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            title="Remove file"
+          >
+            <Trash2 size={14} />
+          </button>
         </li>
       ))}
     </ul>
