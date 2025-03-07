@@ -16,7 +16,7 @@ const PlaylistExporter = ({
   const [exportMode, setExportMode] = useState('current'); // 'current' or 'all'
   const [exportCount, setExportCount] = useState(100); // How many tracks to export
   const [pathFormat, setPathFormat] = useState('default'); // 'default' or 'custom'
-  const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{album}/{track}.{ext}');
+  const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{artist}-{album}/{track}.{ext}');
   const [sortMethod, setSortMethod] = useState('totalPlayed'); // 'totalPlayed' or 'playCount'
   
   // Use a ref to store the download queue to prevent issues with stale state
@@ -49,8 +49,8 @@ const PlaylistExporter = ({
       let filePath;
       
       if (pathFormat === 'default') {
-        // Default format: BasePath/Artist/Album/Track.ext
-        filePath = `${musicBasePath}/${artist}/${album}/${trackName}.${fileExtension}`;
+        // Default format: BasePath/Artist/Artist-Album/Track.ext
+        filePath = `${musicBasePath}/${artist}/${artist}-${album}/${trackName}.${fileExtension}`;
       } else {
         // Custom format using the template
         filePath = customPathFormat
@@ -283,7 +283,7 @@ const PlaylistExporter = ({
               onChange={() => setPathFormat('default')}
               className="mr-2"
             />
-            <span>Default (BasePath/Artist/Album/Track.ext)</span>
+            <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
           </label>
           <label className="flex items-center">
             <input
@@ -434,7 +434,7 @@ const PlaylistExporter = ({
         <p className="font-medium">Path Preview:</p>
         <p className="font-mono mt-1">
           {pathFormat === 'default' 
-            ? `${musicBasePath}/Artist/Album/Track.${fileExtension}`
+            ? `${musicBasePath}/Artist/Artist-Album/Track.${fileExtension}`
             : customPathFormat
                 .replace('{basePath}', musicBasePath)
                 .replace('{artist}', 'Artist')
