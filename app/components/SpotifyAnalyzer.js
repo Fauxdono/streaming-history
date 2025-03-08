@@ -792,7 +792,7 @@ const formatDuration = (ms) => {
                 ))}
               </div>
             )}
-          </div>
+          </div>,
       
         
         {activeTab === 'albums' && (
