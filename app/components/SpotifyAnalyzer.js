@@ -591,7 +591,7 @@ const formatDuration = (ms) => {
                   onClick={handleProcessFiles}
                   disabled={isProcessing}
                   className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg 
-                    hover:bg-blue-700 disabled:bg-bluen-400 disabled:cursor-not-allowed"
+                    hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Calculate Statistics"}
                 </button>
@@ -793,7 +793,7 @@ const formatDuration = (ms) => {
               </div>
             )}
           </div>
-        )}
+      
         
         {activeTab === 'albums' && (
           <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
