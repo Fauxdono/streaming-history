@@ -65,7 +65,7 @@ const SpotifyAnalyzer = () => {
       selected: 'bg-red-600 text-black'
     },
     deezer: {
-      unselected: 'bg-purple-400 text-black',
+      unselected: 'bg-purple-300 text-black',
       selected: 'bg-purple-600 text-black'
     },
     soundcloud: {
@@ -585,36 +585,42 @@ const formatDuration = (ms) => {
               </div>
             )}
               
-     {uploadedFiles.length > 0 && (
-              <div className="mt-4 space-y-4">
+            {uploadedFiles.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
+                <ul className="list-disc list-inside text-orange-600 space-y-1">
+                  {uploadedFiles.map((fileName, index) => (
+                    <li key={index} className="flex items-center">
+                      <span className="mr-2">{fileName}</span>
+                      <button 
+                        onClick={() => handleDeleteFile(index)}
+                        className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                        title="Remove file"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                
                 <button
                   onClick={handleProcessFiles}
                   disabled={isProcessing}
-                  className="w-full px-6 py-2 bg-blue-600 text-white rounded-lg 
-                    hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+                  className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
+                    hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Calculate Statistics"}
                 </button>
-
-                <div>
-                  <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
-                  <ul className="list-disc list-inside text-orange-600 space-y-1">
-                    {uploadedFiles.map((fileName, index) => (
-                      <li key={index} className="flex items-center">
-                        <span className="mr-2">{fileName}</span>
-                        <button 
-                          onClick={() => handleDeleteFile(index)}
-                          className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                          title="Remove file"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               </div>
             )}
+              
+            {error && (
+              <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
+                {error}
+              </div>
+            )}
+          </div>
+        )}
         
         {activeTab === 'stats' && stats && (
           <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
@@ -792,8 +798,8 @@ const formatDuration = (ms) => {
                 ))}
               </div>
             )}
-          ,
-      
+          </div>
+        )}
         
         {activeTab === 'albums' && (
           <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
@@ -907,7 +913,6 @@ const formatDuration = (ms) => {
             </div>
           </div>
         )}
-
         
         {activeTab === 'tracks' && (
           <div className="p-4 bg-blue-100 rounded border-2 border-blue-300">
