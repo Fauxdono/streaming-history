@@ -122,13 +122,13 @@ const SupportOptions = () => {
     <Card className="w-full max-w-md mx-auto bg-gradient-to-r from-blue-50 to-purple-50">
       <CardHeader className="pb-2">
         <CardTitle className="flex justify-between items-center">
-          <span className="text-purple-600">Support This Project</span>
+          <span className="text-purple-600">donate if you wish</span>
           <button
             onClick={() => setShowOptions(!showOptions)}
             className="flex items-center space-x-1 text-sm font-normal text-purple-500 hover:text-purple-700"
           >
             <Heart size={16} className="text-red-500" />
-            <span>{showOptions ? "Hide Options" : "Show Support Options"}</span>
+            <span>{showOptions ? "Hide Options" : "support options"}</span>
           </button>
         </CardTitle>
       </CardHeader>
@@ -200,7 +200,7 @@ const SupportOptions = () => {
       {!showOptions && (
         <CardContent className="pt-0">
           <div className="text-sm text-center text-gray-600">
-            If you find this tool useful, consider supporting the project ❤️
+            ❤️
           </div>
         </CardContent>
       )}
