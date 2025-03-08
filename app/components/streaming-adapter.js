@@ -46,16 +46,96 @@ export const STREAMING_SERVICES = {
   }
 };
 
-// Helper functions
 function normalizeString(str) {
   if (!str) return '';
-  return str.toLowerCase()
-    .replace(/\(feat\..*?\)/g, '') // Remove featuring artists
-    .replace(/[^\w\s]/g, '') // Remove punctuation
-    .replace(/\s+/g, ' ') // Normalize whitespace
+  
+  // Extract feature artist information for reference
+  let featureArtists = [];
+  let match;
+  
+  // Look for feat. patterns
+  const patterns = [
+    // Parentheses/brackets formats
+    /\(feat\.\s*(.*?)\)/gi,
+    /\[feat\.\s*(.*?)\]/gi,
+    /\(ft\.\s*(.*?)\)/gi,
+    /\[ft\.\s*(.*?)\]/gi,
+    /\(with\s*(.*?)\)/gi,
+    /\[with\s*(.*?)\]/gi,
+    
+    // Without parentheses/brackets
+    /\sfeat\.\s+(.*?)(?=\s*[-,]|$)/gi,
+    /\sft\.\s+(.*?)(?=\s*[-,]|$)/gi,
+    /\sfeaturing\s+(.*?)(?=\s*[-,]|$)/gi,
+    /\swith\s+(.*?)(?=\s*[-,]|$)/gi,
+    
+    // Hyphenated formats
+    /\s-\s+feat\.\s+(.*?)(?=\s*[-,]|$)/gi,
+    /\s-\s+ft\.\s+(.*?)(?=\s*[-,]|$)/gi
+  ];
+  
+  // Extract artists from all patterns
+  for (const pattern of patterns) {
+    // Global flag requires iterating through all matches
+    while ((match = pattern.exec(str)) !== null) {
+      if (match && match[1]) {
+        // Clean up the extracted artist name
+        let artist = match[1].trim();
+        // Remove any trailing punctuation
+        artist = artist.replace(/[.,;:!?]+$/, '');
+        featureArtists.push(artist);
+      }
+    }
+  }
+  
+  // Remove things like "(feat. X)" or "[feat. X]"
+  let normalized = str.toLowerCase()
+    // Remove parentheses/bracket formats
+    .replace(/\(feat\..*?\)/gi, '')
+    .replace(/\[feat\..*?\]/gi, '')
+    .replace(/\(ft\..*?\)/gi, '')
+    .replace(/\[ft\..*?\]/gi, '')
+    .replace(/\(with.*?\)/gi, '')
+    .replace(/\[with.*?\]/gi, '')
+    
+    // Remove standalone formats
+    .replace(/\sfeat\..*?(?=\s*[-,]|$)/gi, '')
+    .replace(/\sft\..*?(?=\s*[-,]|$)/gi, '')
+    .replace(/\sfeaturing.*?(?=\s*[-,]|$)/gi, '')
+    
+    // Remove hyphenated formats
+    .replace(/\s-\s+feat\..*?(?=\s*[-,]|$)/gi, '')
+    .replace(/\s-\s+ft\..*?(?=\s*[-,]|$)/gi, '')
+    
+    // Remove other common clutter
+    .replace(/\(bonus track\)/gi, '')
+    .replace(/\[bonus track\]/gi, '')
+    .replace(/\(.*?version\)/gi, '')
+    .replace(/\[.*?version\]/gi, '')
+    .replace(/\(.*?edit\)/gi, '')
+    .replace(/\[.*?edit\)/gi, '')
+    .replace(/\(.*?remix\)/gi, '')
+    .replace(/\[.*?remix\)/gi, '');
+  
+  // Clean up the normalized name by removing extra whitespace and dashes
+  normalized = normalized
+    .replace(/\s+/g, ' ')      // Collapse multiple spaces into one
+    .replace(/\s-\s/g, ' ')    // Remove " - " separators
+    .replace(/^\s*-\s*/, '')   // Remove leading dash
+    .replace(/\s*-\s*$/, '')   // Remove trailing dash
     .trim();
+  
+  // Remove all non-alphanumeric characters except spaces
+  normalized = normalized.replace(/[^\w\s]/g, '').trim();
+  
+  // Store featureArtists in the entry if needed
+  return {
+    normalized,
+    featureArtists: featureArtists.length > 0 ? featureArtists : null
+  };
 }
 
+// Replace the existing createMatchKey function with this improved version
 function createMatchKey(trackName, artistName) {
   // Special case for "Just Dropped In"
   if (trackName && artistName && 
@@ -63,7 +143,11 @@ function createMatchKey(trackName, artistName) {
       artistName.toLowerCase().includes("kenny rogers")) {
     return "just-dropped-in-kenny-rogers";
   }
-  return `${normalizeString(trackName)}-${normalizeString(artistName)}`;
+  
+  const { normalized: normTrack } = normalizeString(trackName);
+  const { normalized: normArtist } = normalizeString(artistName);
+  
+  return `${normTrack}-${normArtist}`;
 }
 
 function parseListeningTime(timeValue) {
@@ -629,13 +713,24 @@ function calculatePlayStats(entries) {
   // Track album information by track/artist combination in a more direct way
   const albumLookup = {};
   
+  // Track feature artists by track/artist combination
+  const featureArtistLookup = {};
+  
   // First, collect all album information from all sources
   entries.forEach(entry => {
     if (entry.master_metadata_track_name && 
         entry.master_metadata_album_artist_name) {
       
       // Create a simple lookup key based on track name and artist
-      const lookupKey = `${entry.master_metadata_track_name.toLowerCase()}|||${entry.master_metadata_album_artist_name.toLowerCase()}`;
+      const trackInfo = normalizeString(entry.master_metadata_track_name);
+      const artistInfo = normalizeString(entry.master_metadata_album_artist_name);
+      
+      const lookupKey = `${trackInfo.normalized}|||${artistInfo.normalized}`;
+      
+      // Store feature artists in the lookup
+      if (trackInfo.featureArtists && trackInfo.featureArtists.length > 0) {
+        featureArtistLookup[lookupKey] = trackInfo.featureArtists;
+      }
       
       // Prioritize Spotify album info over other sources
       if (entry.source === 'spotify' && entry.master_metadata_album_album_name) {
@@ -672,13 +767,20 @@ function calculatePlayStats(entries) {
     const trackName = entry.master_metadata_track_name;
     const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
     
+    // Get normalized versions for lookups
+    const { normalized: normTrack } = normalizeString(trackName);
+    const { normalized: normArtist } = normalizeString(artistName);
+    
     // Lookup key for album information
-    const lookupKey = `${trackName.toLowerCase()}|||${artistName.toLowerCase()}`;
+    const lookupKey = `${normTrack}|||${normArtist}`;
     
     // Get album name from our lookup first, fall back to the entry's album name
     let albumName = albumLookup[lookupKey] || 
                   entry.master_metadata_album_album_name || 
                   'Unknown Album';
+    
+    // Get feature artists for this track
+    const featureArtists = featureArtistLookup[lookupKey] || null;
     
     // Create keys for lookups
     const standardKey = `${trackName}-${artistName}`;
@@ -758,8 +860,7 @@ function calculatePlayStats(entries) {
       );
     }
 
-    // Use simple object instead of Map for better performance
-    if (trackMap[matchKey]) {
+if (trackMap[matchKey]) {
       // Update existing track
       trackMap[matchKey].totalPlayed += playTime;
       trackMap[matchKey].playCount++;
@@ -767,6 +868,16 @@ function calculatePlayStats(entries) {
       // Always take the known album name if we've found a better one
       if (albumName !== 'Unknown Album' && trackMap[matchKey].albumName === 'Unknown Album') {
         trackMap[matchKey].albumName = albumName;
+      }
+      
+      // Add to variations if this is a different name
+      if (!trackMap[matchKey].variations.includes(trackName)) {
+        trackMap[matchKey].variations.push(trackName);
+      }
+      
+      // Store feature artists if we found them
+      if (featureArtists && !trackMap[matchKey].featureArtists) {
+        trackMap[matchKey].featureArtists = featureArtists;
       }
     } else {
       // Add new track
@@ -776,7 +887,9 @@ function calculatePlayStats(entries) {
         artist: artistName,
         albumName,
         totalPlayed: playTime,
-        playCount: 1
+        playCount: 1,
+        variations: [trackName],
+        featureArtists
       };
     }
   });
