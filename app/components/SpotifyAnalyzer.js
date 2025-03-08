@@ -50,7 +50,31 @@ const SpotifyAnalyzer = () => {
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   const [showServiceInfo, setShowServiceInfo] = useState({});
 
-  const formatDuration = (ms) => {
+  // Define service colors
+  const serviceColors = {
+    spotify: {
+      unselected: 'bg-green-100 text-black',
+      selected: 'bg-green-600 text-white'
+    },
+    apple_music: {
+      unselected: 'bg-red-100 text-black',
+      selected: 'bg-red-600 text-white'
+    },
+    youtube_music: {
+      unselected: 'bg-red-100 text-black',
+      selected: 'bg-red-600 text-white'
+    },
+    deezer: {
+      unselected: 'bg-purple-100 text-black',
+      selected: 'bg-purple-600 text-white'
+    },
+    soundcloud: {
+      unselected: 'bg-orange-100 text-black',
+      selected: 'bg-orange-600 text-white'
+    }
+  };
+  
+const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
@@ -125,40 +149,8 @@ const SpotifyAnalyzer = () => {
       }
     }
   };
-const serviceColors = {
-                    spotify: {
-                      unselected: 'bg-green-100 text-black',
-                      selected: 'bg-green-600 text-black'
-                    },
-                    apple_music: {
-                      unselected: 'bg-red-100 text-white',
-                      selected: 'bg-red-600 text-white'
-                    },
-                    youtube_music: {
-                      unselected: 'bg-gray text-red-100',
-                      selected: 'bg-black text-red-600'
-                    },
-                    deezer: {
-                      unselected: 'bg-purple-100 text-black',
-                      selected: 'bg-purple-600 text-black'
-                    },
-                    soundcloud: {
-                      unselected: 'bg-orange-100 text-white',
-                      selected: 'bg-orange-600 text-white'
-                    }
-                  };
 
-                  <button
-                    onClick={() => toggleServiceSelection(type)}
-                    className={`w-full px-4 py-2 flex justify-between items-center transition-colors ${
-                      selectedServices.includes(type)
-                        ? serviceColors[type]?.selected || 'bg-gray-600 text-white'
-                        : serviceColors[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <span>{service.name}</span>
-                    {selectedServices.includes(type) && <Check size={18} />}
-                  </button>
+   
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
     setSelectedServices(prev => {
@@ -507,8 +499,8 @@ const serviceColors = {
                     onClick={() => toggleServiceSelection(type)}
                     className={`w-full px-4 py-2 flex justify-between items-center transition-colors ${
                       selectedServices.includes(type)
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                       ? serviceColors[type]?.selected || 'bg-gray-600 text-white'
+                        : serviceColors[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     <span>{service.name}</span>
