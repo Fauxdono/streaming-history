@@ -211,7 +211,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
             >
               {/* Only show some year labels to avoid crowding */}
               {index % Math.ceil(sortedYears.length / 7) === 0 && (
-                <div className="absolute w-10 text-xs text-center -translate-x-1/2 mt-4">
+                <div className="absolute w-10 text-xs text-center -translate-x-1/2 mt-4 text-teal-700 font-medium">
                   {year}
                 </div>
               )}
