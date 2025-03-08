@@ -663,8 +663,8 @@ const SpotifyAnalyzer = () => {
               
               <div className="flex items-center gap-2">
                 <label className="text-teal-700">Show Top</label>
-                <input 
-                  type="number" 
+                <input
+                type="number" 
                   min="1" 
                   max="999" 
                   value={topArtistsCount} 
@@ -674,7 +674,7 @@ const SpotifyAnalyzer = () => {
               </div>
             </div>
             
-<YearSelector 
+            <YearSelector 
               artistsByYear={artistsByYear}
               onYearChange={setSelectedArtistYear}
               onYearRangeChange={handleYearRangeChange}
