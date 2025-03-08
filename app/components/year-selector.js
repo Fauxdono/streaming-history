@@ -64,7 +64,7 @@ const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialY
             onClick={() => handleModeChange('single')}
             className={`px-2 py-1 rounded text-sm ${
               mode === 'single' 
-                ? 'bg-teal-600 text-white' 
+                ? 'bg-teal-600 text-teal' 
                 : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
           >
@@ -75,7 +75,7 @@ const YearSelector = ({ artistsByYear, onYearChange, onYearRangeChange, initialY
             onClick={() => handleModeChange('range')}
             className={`px-2 py-1 rounded text-sm ${
               mode === 'range' 
-                ? 'bg-teal-600 text-white' 
+                ? 'bg-teal-600 text-teal' 
                 : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
             }`}
           >
