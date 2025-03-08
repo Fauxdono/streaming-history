@@ -586,7 +586,7 @@ const formatDuration = (ms) => {
               </div>
             )}
               
- {uploadedFiles.length > 0 && (
+{uploadedFiles.length > 0 && (
   <div className="mt-4">
     <div className="flex justify-between items-center mb-2">
       <h4 className="text-orange-700 font-semibold">Uploaded Files:</h4>
