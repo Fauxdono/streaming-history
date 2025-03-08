@@ -588,17 +588,7 @@ const formatDuration = (ms) => {
               
 {uploadedFiles.length > 0 && (
   <div className="mt-4">
-    <div className="flex justify-between items-center mb-2">
-      <h4 className="text-orange-700 font-semibold">Uploaded Files:</h4>
-      <button
-        onClick={handleProcessFiles}
-        disabled={isProcessing}
-        className="px-6 py-2 bg-green-600 text-white rounded-lg 
-          hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
-      >
-        {isProcessing ? "Processing..." : "Calculate Statistics"}
-      </button>
-    </div>
+    <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
     <ul className="list-disc list-inside text-orange-600 space-y-1">
       {uploadedFiles.map((fileName, index) => (
         <li key={index} className="flex items-center">
@@ -613,6 +603,15 @@ const formatDuration = (ms) => {
         </li>
       ))}
     </ul>
+    
+    <button
+      onClick={handleProcessFiles}
+      disabled={isProcessing}
+      className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
+        hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+    >
+      {isProcessing ? "Processing..." : "Calculate Statistics"}
+    </button>
   </div>
 )}
 
