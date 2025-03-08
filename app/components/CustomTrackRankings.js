@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, subDays, format } from 'date-fns';
+import { normalizeString, createMatchKey } from './streaming-adapter.js';
 
 const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists = []  }) => {
   const [startDate, setStartDate] = useState('');
@@ -53,40 +54,55 @@ useEffect(() => {
   }, [allArtists, artistSearch, selectedArtists]);
 
   const filteredTracks = useMemo(() => {
-    if (!rawPlayData?.length) return [];
-    
-    const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
-    const end = endDate ? endOfDay(new Date(endDate)) : new Date();
-    
-    const trackStats = {};
-    rawPlayData.forEach(entry => {
-      const timestamp = new Date(entry.ts);
-      if (
-        timestamp >= start && 
-        timestamp <= end && 
-        entry.ms_played >= 30000 && 
-        entry.master_metadata_track_name &&
-        (selectedArtists.length === 0 || selectedArtists.includes(entry.master_metadata_album_artist_name))
-      ) {
-        const key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
-        if (!trackStats[key]) {
-          trackStats[key] = {
-            key,
-            trackName: entry.master_metadata_track_name,
-            artist: entry.master_metadata_album_artist_name,
-            totalPlayed: 0,
-            playCount: 0
-          };
+  if (!rawPlayData?.length) return [];
+  
+  const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
+  const end = endDate ? endOfDay(new Date(endDate)) : new Date();
+  
+  const trackStats = {};
+  rawPlayData.forEach(entry => {
+    const timestamp = new Date(entry.ts);
+    if (
+      timestamp >= start && 
+      timestamp <= end && 
+      entry.ms_played >= 30000 && 
+      entry.master_metadata_track_name &&
+      (selectedArtists.length === 0 || selectedArtists.includes(entry.master_metadata_album_artist_name))
+    ) {
+      // Use createMatchKey from streaming adapter instead of creating your own key
+      const key = createMatchKey(
+        entry.master_metadata_track_name,
+        entry.master_metadata_album_artist_name
+      );
+      
+      if (!trackStats[key]) {
+        // Get feature artists if available
+        const { featureArtists } = normalizeString(entry.master_metadata_track_name);
+        
+        trackStats[key] = {
+          key,
+          trackName: entry.master_metadata_track_name,
+          artist: entry.master_metadata_album_artist_name,
+          totalPlayed: 0,
+          playCount: 0,
+          featureArtists,
+          variations: [entry.master_metadata_track_name]
+        };
+      } else {
+        // Track variations of the same song
+        if (!trackStats[key].variations.includes(entry.master_metadata_track_name)) {
+          trackStats[key].variations.push(entry.master_metadata_track_name);
         }
-        trackStats[key].totalPlayed += entry.ms_played;
-        trackStats[key].playCount += 1;
       }
-    });
+      trackStats[key].totalPlayed += entry.ms_played;
+      trackStats[key].playCount += 1;
+    }
+  });
 
-    return Object.values(trackStats)
-      .sort((a, b) => b[sortBy] - a[sortBy])
-      .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists]);
+  return Object.values(trackStats)
+    .sort((a, b) => b[sortBy] - a[sortBy])
+    .slice(0, topN);
+}, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists]);
 
 const setQuickRange = (days) => {
     const currentStart = startDate ? new Date(startDate) : new Date();
