@@ -135,19 +135,17 @@ function normalizeString(str) {
   };
 }
 
-// Replace the existing createMatchKey function with this improved version
 function createMatchKey(trackName, artistName) {
-  // Special case for "Just Dropped In"
-  if (trackName && artistName && 
-      trackName.toLowerCase().includes("just dropped in") && 
-      artistName.toLowerCase().includes("kenny rogers")) {
-    return "just-dropped-in-kenny-rogers";
-  }
+  if (!trackName || !artistName) return '';
   
   const { normalized: normTrack } = normalizeString(trackName);
   const { normalized: normArtist } = normalizeString(artistName);
   
-  return `${normTrack}-${normArtist}`;
+  // Remove all non-alphanumeric characters and convert to lowercase
+  const cleanTrack = normTrack.toLowerCase().replace(/[^\w\s]/g, '').trim();
+  const cleanArtist = normArtist.toLowerCase().replace(/[^\w\s]/g, '').trim();
+  
+  return `${cleanTrack}-${cleanArtist}`;
 }
 
 function parseListeningTime(timeValue) {
@@ -696,7 +694,6 @@ async function processDeezerXLSX(file) {
   }
 }
 
-// Data analysis and statistics functions
 function calculatePlayStats(entries) {
   const allSongs = [];
   const artistStats = {};
@@ -710,13 +707,16 @@ function calculatePlayStats(entries) {
   // Simple track map for combining same tracks
   const trackMap = {};
   
-  // Track album information by track/artist combination in a more direct way
+  // Track album information by track/artist combination
   const albumLookup = {};
   
   // Track feature artists by track/artist combination
   const featureArtistLookup = {};
   
-  // First, collect all album information from all sources
+  // Add ISRC tracking
+  const isrcMap = {};
+  
+  // First pass to collect album info and ISRCs
   entries.forEach(entry => {
     if (entry.master_metadata_track_name && 
         entry.master_metadata_album_artist_name) {
@@ -732,6 +732,17 @@ function calculatePlayStats(entries) {
         featureArtistLookup[lookupKey] = trackInfo.featureArtists;
       }
       
+      // Track ISRC codes when available
+      if (entry.master_metadata_external_ids && entry.master_metadata_external_ids.isrc) {
+        const isrc = entry.master_metadata_external_ids.isrc;
+        isrcMap[isrc] = lookupKey;
+      }
+      
+      // Also check for standalone ISRC field (from Deezer)
+      if (entry.isrc) {
+        isrcMap[entry.isrc] = lookupKey;
+      }
+      
       // Prioritize Spotify album info over other sources
       if (entry.source === 'spotify' && entry.master_metadata_album_album_name) {
         albumLookup[lookupKey] = entry.master_metadata_album_album_name;
@@ -743,9 +754,7 @@ function calculatePlayStats(entries) {
     }
   });
   
-  console.log("Album lookup map created with", Object.keys(albumLookup).length, "entries");
-  
-  // Now process all entries with the album information
+  // Second pass to process entries with consolidated information
   entries.forEach(entry => {
     const playTime = entry.ms_played;
     
@@ -771,16 +780,31 @@ function calculatePlayStats(entries) {
     const { normalized: normTrack } = normalizeString(trackName);
     const { normalized: normArtist } = normalizeString(artistName);
     
-    // Lookup key for album information
-    const lookupKey = `${normTrack}|||${normArtist}`;
+    // Determine the lookup key
+    let lookupKey = `${normTrack}|||${normArtist}`;
+    
+    // Check if we have an ISRC for this entry, and use that for matching if available
+    let matchKeyFromIsrc = null;
+    if (entry.master_metadata_external_ids && entry.master_metadata_external_ids.isrc) {
+      const isrc = entry.master_metadata_external_ids.isrc;
+      if (isrcMap[isrc]) {
+        matchKeyFromIsrc = isrcMap[isrc];
+      }
+    } else if (entry.isrc && isrcMap[entry.isrc]) {
+      // Also try standalone ISRC field
+      matchKeyFromIsrc = isrcMap[entry.isrc];
+    }
+    
+    // Use ISRC-derived key if available, otherwise use our standard key
+    const finalLookupKey = matchKeyFromIsrc || lookupKey;
     
     // Get album name from our lookup first, fall back to the entry's album name
-    let albumName = albumLookup[lookupKey] || 
+    let albumName = albumLookup[finalLookupKey] || 
                   entry.master_metadata_album_album_name || 
                   'Unknown Album';
     
     // Get feature artists for this track
-    const featureArtists = featureArtistLookup[lookupKey] || null;
+    const featureArtists = featureArtistLookup[finalLookupKey] || null;
     
     // Create keys for lookups
     const standardKey = `${trackName}-${artistName}`;
@@ -860,7 +884,7 @@ function calculatePlayStats(entries) {
       );
     }
 
-if (trackMap[matchKey]) {
+    if (trackMap[matchKey]) {
       // Update existing track
       trackMap[matchKey].totalPlayed += playTime;
       trackMap[matchKey].playCount++;
@@ -879,6 +903,11 @@ if (trackMap[matchKey]) {
       if (featureArtists && !trackMap[matchKey].featureArtists) {
         trackMap[matchKey].featureArtists = featureArtists;
       }
+      
+      // Store ISRC if available and not already stored
+      if ((entry.master_metadata_external_ids?.isrc || entry.isrc) && !trackMap[matchKey].isrc) {
+        trackMap[matchKey].isrc = entry.master_metadata_external_ids?.isrc || entry.isrc;
+      }
     } else {
       // Add new track
       trackMap[matchKey] = {
@@ -889,7 +918,8 @@ if (trackMap[matchKey]) {
         totalPlayed: playTime,
         playCount: 1,
         variations: [trackName],
-        featureArtists
+        featureArtists,
+        isrc: entry.master_metadata_external_ids?.isrc || entry.isrc
       };
     }
   });
@@ -1301,6 +1331,8 @@ export const streamingProcessor = {
       // Calculate comprehensive stats using allProcessedData
       const stats = calculatePlayStats(allProcessedData);
 
+
+
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const artistSongs = stats.songs.filter(song => song.artist === artist.name);
@@ -1358,3 +1390,4 @@ export const streamingProcessor = {
     }
   }
 };
+export { normalizeString, createMatchKey };
