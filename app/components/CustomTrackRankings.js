@@ -53,7 +53,7 @@ useEffect(() => {
       .slice(0, 10);
   }, [allArtists, artistSearch, selectedArtists]);
 
-  const filteredTracks = useMemo(() => {
+const filteredTracks = useMemo(() => {
   if (!rawPlayData?.length) return [];
   
   const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
@@ -61,41 +61,59 @@ useEffect(() => {
   
   const trackStats = {};
   rawPlayData.forEach(entry => {
-    const timestamp = new Date(entry.ts);
-    if (
-      timestamp >= start && 
-      timestamp <= end && 
-      entry.ms_played >= 30000 && 
-      entry.master_metadata_track_name &&
-      (selectedArtists.length === 0 || selectedArtists.includes(entry.master_metadata_album_artist_name))
-    ) {
-      // Use createMatchKey from streaming adapter instead of creating your own key
-      const key = createMatchKey(
-        entry.master_metadata_track_name,
-        entry.master_metadata_album_artist_name
-      );
-      
-      if (!trackStats[key]) {
-        // Get feature artists if available
-        const { featureArtists } = normalizeString(entry.master_metadata_track_name);
-        
-        trackStats[key] = {
-          key,
-          trackName: entry.master_metadata_track_name,
-          artist: entry.master_metadata_album_artist_name,
-          totalPlayed: 0,
-          playCount: 0,
-          featureArtists,
-          variations: [entry.master_metadata_track_name]
-        };
-      } else {
-        // Track variations of the same song
-        if (!trackStats[key].variations.includes(entry.master_metadata_track_name)) {
-          trackStats[key].variations.push(entry.master_metadata_track_name);
+    try {
+      const timestamp = new Date(entry.ts);
+      if (
+        timestamp >= start && 
+        timestamp <= end && 
+        entry.ms_played >= 30000 && 
+        entry.master_metadata_track_name &&
+        (selectedArtists.length === 0 || selectedArtists.includes(entry.master_metadata_album_artist_name))
+      ) {
+        // Use createMatchKey with error handling
+        let key;
+        try {
+          key = createMatchKey(
+            entry.master_metadata_track_name,
+            entry.master_metadata_album_artist_name
+          );
+        } catch (err) {
+          // Fallback if createMatchKey fails
+          console.warn('Error creating match key:', err);
+          key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
         }
+        
+        if (!trackStats[key]) {
+          // Safely extract feature artists
+          let featureArtists = null;
+          try {
+            const result = normalizeString(entry.master_metadata_track_name);
+            featureArtists = result.featureArtists;
+          } catch (err) {
+            console.warn('Error normalizing track name:', err);
+          }
+          
+          trackStats[key] = {
+            key,
+            trackName: entry.master_metadata_track_name,
+            artist: entry.master_metadata_album_artist_name,
+            totalPlayed: 0,
+            playCount: 0,
+            featureArtists,
+            variations: [entry.master_metadata_track_name]
+          };
+        } else {
+          // Track variations with error handling
+          if (trackStats[key].variations && 
+              !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
+            trackStats[key].variations.push(entry.master_metadata_track_name);
+          }
+        }
+        trackStats[key].totalPlayed += entry.ms_played;
+        trackStats[key].playCount += 1;
       }
-      trackStats[key].totalPlayed += entry.ms_played;
-      trackStats[key].playCount += 1;
+    } catch (err) {
+      console.error('Error processing track entry:', err);
     }
   });
 
@@ -242,9 +260,9 @@ const setQuickRange = (days) => {
             {filteredTracks.map((song, index) => (
               <tr key={song.key} className="border-b hover:bg-orange-50">
                 <td className="p-2 text-orange-700">{index + 1}</td>
-         <td className="p-2 text-orange-700">
+<td className="p-2 text-orange-700">
   <div>{song.trackName}</div>
-  {song.featureArtists && (
+  {song.featureArtists && song.featureArtists.length > 0 && (
     <div className="text-xs text-orange-500 mt-0.5">
       feat. {song.featureArtists.join(', ')}
     </div>
