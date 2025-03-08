@@ -538,28 +538,39 @@ const formatDuration = (ms) => {
               ))}
             </div>
               
-            {selectedServices.length > 0 ? (
-              <div>
-                <p className="mb-2 text-orange-700 font-bold">
-                  Upload your files from selected services:
-                </p>
-                <input
-                  type="file"
-                  multiple
-                  accept={getAcceptedFormats()}
-                  onChange={handleFileUpload}
-                  className="block w-full text-sm text-slate-600 
-                    file:mr-4 file:py-2 file:px-4 file:rounded-full 
-                    file:border-2 file:border-yellow-400 file:text-sm 
-                    file:font-semibold file:bg-yellow-300 
-                    file:text-yellow-800 hover:file:bg-yellow-400"
-                />
-              </div>
-            ) : (
-              <p className="text-orange-700 font-semibold">
-                Please select at least one streaming service
-              </p>
-            )}
+        {selectedServices.length > 0 ? (
+  <div>
+    <p className="mb-2 text-orange-700 font-bold">
+      Upload your files from selected services:
+    </p>
+    <input
+      type="file"
+      multiple
+      accept={getAcceptedFormats()}
+      onChange={handleFileUpload}
+      className="block w-full text-sm text-slate-600 
+        file:mr-4 file:py-2 file:px-4 file:rounded-full 
+        file:border-2 file:border-yellow-400 file:text-sm 
+        file:font-semibold file:bg-yellow-300 
+        file:text-yellow-800 hover:file:bg-yellow-400"
+    />
+    
+    {uploadedFiles.length > 0 && (
+      <button
+        onClick={handleProcessFiles}
+        disabled={isProcessing}
+        className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
+          hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+      >
+        {isProcessing ? "Processing..." : "Calculate Statistics"}
+      </button>
+    )}
+  </div>
+) : (
+  <p className="text-orange-700 font-semibold">
+    Please select at least one streaming service
+  </p>
+)}
               
             {isProcessing && (
               <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -586,42 +597,25 @@ const formatDuration = (ms) => {
               </div>
             )}
               
-            {uploadedFiles.length > 0 && (
-              <div className="mt-4">
-                <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
-                <ul className="list-disc list-inside text-orange-600 space-y-1">
-                  {uploadedFiles.map((fileName, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="mr-2">{fileName}</span>
-                      <button 
-                        onClick={() => handleDeleteFile(index)}
-                        className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                        title="Remove file"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                
-                <button
-                  onClick={handleProcessFiles}
-                  disabled={isProcessing}
-                  className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
-                    hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? "Processing..." : "Calculate Statistics"}
-                </button>
-              </div>
-            )}
-              
-            {error && (
-              <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
-                {error}
-              </div>
-            )}
-          </div>
-        )}
+       {uploadedFiles.length > 0 && (
+  <div className="mt-4">
+    <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
+    <ul className="list-disc list-inside text-orange-600 space-y-1">
+      {uploadedFiles.map((fileName, index) => (
+        <li key={index} className="flex items-center">
+          <span className="mr-2">{fileName}</span>
+          <button 
+            onClick={() => handleDeleteFile(index)}
+            className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            title="Remove file"
+          >
+            <Trash2 size={14} />
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
         
         {activeTab === 'stats' && stats && (
           <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
