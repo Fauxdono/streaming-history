@@ -122,7 +122,7 @@ const SupportOptions = () => {
     <Card className="w-full max-w-md mx-auto bg-gradient-to-r from-blue-50 to-purple-50">
       <CardHeader className="pb-2">
         <CardTitle className="flex justify-between items-center">
-          <span className="text-purple-600">i hate ads and i will never succumb to them</span>
+          <span className="text-purple-600">i will never succumb to ads</span>
           <button
             onClick={() => setShowOptions(!showOptions)}
             className="flex items-center space-x-1 text-sm font-normal text-purple-500 hover:text-purple-700"
