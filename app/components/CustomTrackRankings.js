@@ -242,9 +242,23 @@ const setQuickRange = (days) => {
             {filteredTracks.map((song, index) => (
               <tr key={song.key} className="border-b hover:bg-orange-50">
                 <td className="p-2 text-orange-700">{index + 1}</td>
-                <td className="p-2 text-orange-700">{song.trackName}</td>
+         <td className="p-2 text-orange-700">
+  <div>{song.trackName}</div>
+  {song.featureArtists && (
+    <div className="text-xs text-orange-500 mt-0.5">
+      feat. {song.featureArtists.join(', ')}
+    </div>
+  )}
+  {song.variations && song.variations.length > 1 && (
+    <div className="text-xs text-orange-400 mt-0.5">
+      Also: {song.variations.filter(v => v !== song.trackName)[0]}
+      {song.variations.length > 2 ? ` +${song.variations.length - 2} more` : ''}
+    </div>
+  )}
+</td>
      
                 <td className="p-2 text-orange-700 cursor-pointer hover:underline" onClick={() => addArtistFromTrack(song.artist)}> {song.artist} </td>
+
                 <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
                 <td className="p-2 text-right text-orange-700">{song.playCount}</td>
               </tr>
