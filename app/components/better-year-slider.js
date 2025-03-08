@@ -130,11 +130,11 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
               className="absolute top-1/2 w-1 h-3 bg-black transform -translate-x-1/2 -translate-y-1/2"
               style={{ left: `${position}%` }}
             >
-              {index % Math.ceil(sortedYears.length / 5) === 0 && (
-                <div className="absolute w-8 text-xs text-center -translate-x-1/2 mt-4">
-                  {year}
-                </div>
-              )}
+           {index % Math.ceil(sortedYears.length / 5) === 0 && (
+  <div className="absolute w-8 text-xs text-center -translate-x-1/2 mt-4 text-teal-700 font-medium">
+    {year}
+  </div>
+)}
             </div>
           );
         })}
