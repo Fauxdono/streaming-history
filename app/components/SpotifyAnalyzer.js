@@ -13,6 +13,7 @@ import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
 import { X, Trash2, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import YearSelector from './year-selector.js';
+import SupportOptions from './support-options.js';
 
 const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
   const now = new Date();
@@ -670,6 +671,7 @@ const formatDuration = (ms) => {
                     formatDuration={formatDuration}
                     songsByYear={songsByYear}
                   />
+   <SupportOptions />
                 </div>
               )}
             </div>
