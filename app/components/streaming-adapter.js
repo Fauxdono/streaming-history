@@ -877,7 +877,7 @@ function calculatePlayStats(entries) {
       }
       albumStats[albumKey].totalPlayed += playTime;
       albumStats[albumKey].playCount++;
-      albumStats[albumKey].trackCount.add(trackName);
+      albumStats[albumKey].trackCount.add(normTrack);
       albumStats[albumKey].firstListen = Math.min(
         albumStats[albumKey].firstListen, 
         timestamp.getTime()
