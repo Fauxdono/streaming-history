@@ -215,12 +215,13 @@ const displayedAlbums = useMemo(() => {
     : allAlbums;
   
   // We'll need to filter albums by year based on their first listen date
+  let filteredAlbums;
   if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
     // Year range mode
     const startYear = parseInt(albumYearRange.startYear);
     const endYear = parseInt(albumYearRange.endYear);
     
-    return artistFilteredAlbums.filter(album => {
+    filteredAlbums = artistFilteredAlbums.filter(album => {
       const albumDate = new Date(album.firstListen);
       const albumYear = albumDate.getFullYear();
       return albumYear >= startYear && albumYear <= endYear;
@@ -229,15 +230,32 @@ const displayedAlbums = useMemo(() => {
     // Single year mode
     const year = parseInt(selectedAlbumYear);
     
-    return artistFilteredAlbums.filter(album => {
+    filteredAlbums = artistFilteredAlbums.filter(album => {
       const albumDate = new Date(album.firstListen);
       const albumYear = albumDate.getFullYear();
       return albumYear === year;
     });
+  } else {
+    // Default: return all albums filtered by artist (if any)
+    filteredAlbums = artistFilteredAlbums;
   }
   
-  // Default: return all albums filtered by artist (if any)
-  return artistFilteredAlbums;
+  // Normalize the trackCount property to ensure it's always a number
+  return filteredAlbums.map(album => {
+    let normalizedTrackCount;
+    if (typeof album.trackCount === 'object' && album.trackCount instanceof Set) {
+      normalizedTrackCount = album.trackCount.size;
+    } else if (typeof album.trackCount === 'number') {
+      normalizedTrackCount = album.trackCount;
+    } else {
+      normalizedTrackCount = 0;
+    }
+    
+    return {
+      ...album,
+      trackCount: normalizedTrackCount
+    };
+  });
 }, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange]);
    
   // Toggle a service in the selection
@@ -992,12 +1010,7 @@ const displayedAlbums = useMemo(() => {
           <div className="text-sm text-pink-400">
             Artist: <span className="font-bold">{album.artist}</span> 
             <br/>
-            Top Track: <span className="font-bold">
-              {topTrack 
-                ? `${topTrack.trackName} (${formatDuration(topTrack.totalPlayed)})` 
-                : "No track data"
-              }
-            </span>
+       Top Track: <span className="font-bold">{album.trackCount}</span>
             <br/>
             Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
             <br/>
