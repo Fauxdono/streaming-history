@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect} from 'react';
-import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, findTopTrackForAlbum } from './streaming-adapter.js';
+import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES } from './streaming-adapter.js';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import ExportButton from './ExportButton.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
