@@ -1000,7 +1000,12 @@ const displayedAlbums = useMemo(() => {
           <div className="text-sm text-pink-400">
             Artist: <span className="font-bold">{album.artist}</span> 
             <br/>
-       Top Track: <span className="font-bold">{album.trackCount}</span>
+      Top Track: <span className="font-bold">
+  {topTrack 
+    ? `${topTrack.trackName} (${formatDuration(topTrack.totalPlayed)})` 
+    : "No track data"
+  }
+</span>
             <br/>
             Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
             <br/>
