@@ -147,106 +147,6 @@ function createMatchKey(trackName, artistName) {
   
   return `${cleanTrack}-${cleanArtist}`;
 }
-function findTopTrackForAlbum(album, tracks) {
-  // Input validation
-  if (!album || !album.name || !album.artist || !tracks || !Array.isArray(tracks)) {
-    console.warn('Invalid inputs to findTopTrackForAlbum:', { 
-      albumName: album?.name, 
-      artist: album?.artist,
-      tracksAvailable: Boolean(tracks && Array.isArray(tracks))
-    });
-    return null;
-  }
-  
-  // First try exact matching
-  let albumTracks = tracks.filter(track => 
-    track.albumName === album.name && track.artist === album.artist
-  );
-  
-  // If no exact matches, try normalized matching
-  if (albumTracks.length === 0) {
-    try {
-      // Get normalized album name
-      const normalizedAlbumResult = normalizeString(album.name);
-      const normalizedAlbumName = normalizedAlbumResult.normalized;
-      
-      // Get normalized artist name
-      const normalizedArtistResult = normalizeString(album.artist);
-      const normalizedArtistName = normalizedArtistResult.normalized;
-      
-      albumTracks = tracks.filter(track => {
-        if (!track.artist) return false;
-        
-        try {
-          // Normalize track artist name
-          const trackArtistResult = normalizeString(track.artist);
-          const trackArtistName = trackArtistResult.normalized;
-          
-          // First, ensure artist matches
-          const artistMatch = trackArtistName === normalizedArtistName;
-          if (!artistMatch) return false;
-          
-          // If track has no album name, it can still match if artist matches
-          if (!track.albumName) return true;
-          
-          // Normalize track album name
-          const trackAlbumResult = normalizeString(track.albumName);
-          const trackAlbumName = trackAlbumResult.normalized;
-          
-          // Check if album names overlap
-          const albumMatch = trackAlbumName.includes(normalizedAlbumName) || 
-                           normalizedAlbumName.includes(trackAlbumName);
-          
-          return albumMatch;
-        } catch (err) {
-          console.warn('Error in track normalization:', err);
-          return false;
-        }
-      });
-    } catch (err) {
-      console.warn('Error in album/artist normalization:', err);
-    }
-  }
-  
-  // If still no matches, try matching by artist name and a simple substring match on album name
-  if (albumTracks.length === 0) {
-    albumTracks = tracks.filter(track => {
-      if (track.artist !== album.artist) return false;
-      if (!track.albumName || !album.name) return true;
-      
-      // Simple substring match (non-normalized)
-      const trackAlbumLower = track.albumName.toLowerCase();
-      const albumNameLower = album.name.toLowerCase();
-      return trackAlbumLower.includes(albumNameLower) || 
-             albumNameLower.includes(trackAlbumLower);
-    });
-  }
-  
-  // If still no matches, fall back to just matching by artist
-  if (albumTracks.length === 0) {
-    albumTracks = tracks.filter(track => 
-      track.artist === album.artist
-    );
-  }
-  
-  // If even artist matching fails, try to match by the first few characters of artist name
-  if (albumTracks.length === 0 && album.artist && album.artist.length > 3) {
-    const artistPrefix = album.artist.substring(0, Math.min(5, album.artist.length)).toLowerCase();
-    albumTracks = tracks.filter(track => 
-      track.artist && track.artist.toLowerCase().startsWith(artistPrefix)
-    );
-  }
-  
-  // Find the most played track
-  if (albumTracks && albumTracks.length > 0) {
-    return albumTracks.reduce((max, track) => 
-      track.totalPlayed > max.totalPlayed ? track : max, 
-      albumTracks[0]
-    );
-  }
-  
-  return null;
-}
 
 function parseListeningTime(timeValue) {
   // Default play time (3.5 minutes)
@@ -1500,4 +1400,4 @@ const verifiedAlbums = sortedAlbums.map(album => {
     }
   }
 };
-export { normalizeString, createMatchKey, findTopTrackForAlbum};
+export { normalizeString, createMatchKey};
