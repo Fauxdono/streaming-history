@@ -974,7 +974,7 @@ const displayedAlbums = useMemo(() => {
       Show All Albums
     </button>
   </div>
-) : (
+
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
       const artistTracks = processedData.filter(track => track.artist === album.artist);
@@ -1017,7 +1017,7 @@ const displayedAlbums = useMemo(() => {
       );
     })}
   </div>
-
+)}
         
         {activeTab === 'tracks' && (
           <div className="p-4 bg-blue-100 rounded border-2 border-blue-300">
