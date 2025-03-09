@@ -208,10 +208,32 @@ function findTopTrackForAlbum(album, tracks) {
     }
   }
   
-  // If still no matches, try a more lenient approach - just match by artist
+  // If still no matches, try matching by artist name and a simple substring match on album name
+  if (albumTracks.length === 0) {
+    albumTracks = tracks.filter(track => {
+      if (track.artist !== album.artist) return false;
+      if (!track.albumName || !album.name) return true;
+      
+      // Simple substring match (non-normalized)
+      const trackAlbumLower = track.albumName.toLowerCase();
+      const albumNameLower = album.name.toLowerCase();
+      return trackAlbumLower.includes(albumNameLower) || 
+             albumNameLower.includes(trackAlbumLower);
+    });
+  }
+  
+  // If still no matches, fall back to just matching by artist
   if (albumTracks.length === 0) {
     albumTracks = tracks.filter(track => 
       track.artist === album.artist
+    );
+  }
+  
+  // If even artist matching fails, try to match by the first few characters of artist name
+  if (albumTracks.length === 0 && album.artist && album.artist.length > 3) {
+    const artistPrefix = album.artist.substring(0, Math.min(5, album.artist.length)).toLowerCase();
+    albumTracks = tracks.filter(track => 
+      track.artist && track.artist.toLowerCase().startsWith(artistPrefix)
     );
   }
   
