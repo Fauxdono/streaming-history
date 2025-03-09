@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect} from 'react';
-import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES } from './streaming-adapter.js';
+import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, findTopTrackForAlbum } from './streaming-adapter.js';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import ExportButton from './ExportButton.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
@@ -979,15 +979,8 @@ const displayedAlbums = useMemo(() => {
         {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
           const artist = topArtists.find(a => a.name === album.artist) || {};
           
-          // Find the most played track in this album from processed data
-          const albumTracks = processedData.filter(track => 
-            track.albumName === album.name && track.artist === album.artist
-          );
-          const topTrack = albumTracks.length > 0 
-            ? albumTracks.reduce((max, track) => 
-                track.totalPlayed > max.totalPlayed ? track : max
-              )
-            : null;
+          // Use the improved track matching function from streaming-adapter
+          const topTrack = findTopTrackForAlbum(album, processedData);
           
           return (
             <div 

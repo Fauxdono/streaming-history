@@ -148,6 +148,40 @@ function createMatchKey(trackName, artistName) {
   return `${cleanTrack}-${cleanArtist}`;
 }
 
+export function findTopTrackForAlbum(album, tracks) {
+  // First try exact matching
+  let albumTracks = tracks.filter(track => 
+    track.albumName === album.name && track.artist === album.artist
+  );
+  
+  // If no exact matches, try normalized matching
+  if (albumTracks.length === 0) {
+    const normalizedAlbumName = normalizeString(album.name);
+    const normalizedArtistName = normalizeString(album.artist);
+    
+    albumTracks = tracks.filter(track => {
+      const trackAlbumName = normalizeString(track.albumName || '');
+      const trackArtistName = normalizeString(track.artist || '');
+      
+      // Consider a match if either album names overlap or artists match exactly
+      const albumMatch = trackAlbumName.includes(normalizedAlbumName) || 
+                         normalizedAlbumName.includes(trackAlbumName);
+      const artistMatch = trackArtistName === normalizedArtistName;
+      
+      return albumMatch && artistMatch;
+    });
+  }
+  
+  // Find the most played track
+  if (albumTracks.length > 0) {
+    return albumTracks.reduce((max, track) => 
+      track.totalPlayed > max.totalPlayed ? track : max
+    );
+  }
+  
+  return null;
+}
+
 function parseListeningTime(timeValue) {
   // Default play time (3.5 minutes)
   let ms_played = 210000;
@@ -1400,4 +1434,4 @@ const verifiedAlbums = sortedAlbums.map(album => {
     }
   }
 };
-export { normalizeString, createMatchKey };
+export { normalizeString, createMatchKey, findTopTrackForAlbum};
