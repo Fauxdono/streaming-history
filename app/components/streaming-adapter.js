@@ -1387,7 +1387,7 @@ const verifiedAlbums = sortedAlbums.map(album => {
           serviceListeningTime: stats.serviceListeningTime
         },
         topArtists: sortedArtists,
-        topAlbums: sortedAlbums,
+        topAlbums: verifiedAlbums,
         processedTracks: sortedSongs,
         songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
         briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
