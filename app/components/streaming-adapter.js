@@ -155,7 +155,8 @@ function findTopTrackForAlbum(album, tracks) {
   
   // If no exact matches, try normalized matching
   if (albumTracks.length === 0) {
-    const normalizedAlbumName = normalizeString(album.name);
+const normalizedAlbumResult = normalizeString(album.name);
+const normalizedAlbumName = normalizedAlbumResult.normalized;
     const normalizedArtistName = normalizeString(album.artist);
     
     albumTracks = tracks.filter(track => {
