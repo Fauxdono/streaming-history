@@ -166,32 +166,38 @@ function findTopTrackForAlbum(album, tracks) {
   // If no exact matches, try normalized matching
   if (albumTracks.length === 0) {
     try {
-      // Get normalized album name - correctly accessing the .normalized property
+      // Get normalized album name
       const normalizedAlbumResult = normalizeString(album.name);
       const normalizedAlbumName = normalizedAlbumResult.normalized;
       
-      // Get normalized artist name - FIXED: now correctly accessing the .normalized property
+      // Get normalized artist name
       const normalizedArtistResult = normalizeString(album.artist);
       const normalizedArtistName = normalizedArtistResult.normalized;
       
       albumTracks = tracks.filter(track => {
-        if (!track.albumName || !track.artist) return false;
+        if (!track.artist) return false;
         
         try {
-          // Get normalized track album name
-          const trackAlbumResult = normalizeString(track.albumName || '');
-          const trackAlbumName = trackAlbumResult.normalized;
-          
-          // Get normalized track artist name
-          const trackArtistResult = normalizeString(track.artist || '');
+          // Normalize track artist name
+          const trackArtistResult = normalizeString(track.artist);
           const trackArtistName = trackArtistResult.normalized;
           
-          // Consider a match if album names overlap AND artists match exactly
+          // First, ensure artist matches
+          const artistMatch = trackArtistName === normalizedArtistName;
+          if (!artistMatch) return false;
+          
+          // If track has no album name, it can still match if artist matches
+          if (!track.albumName) return true;
+          
+          // Normalize track album name
+          const trackAlbumResult = normalizeString(track.albumName);
+          const trackAlbumName = trackAlbumResult.normalized;
+          
+          // Check if album names overlap
           const albumMatch = trackAlbumName.includes(normalizedAlbumName) || 
                            normalizedAlbumName.includes(trackAlbumName);
-          const artistMatch = trackArtistName === normalizedArtistName;
           
-          return albumMatch && artistMatch;
+          return albumMatch;
         } catch (err) {
           console.warn('Error in track normalization:', err);
           return false;
@@ -200,6 +206,13 @@ function findTopTrackForAlbum(album, tracks) {
     } catch (err) {
       console.warn('Error in album/artist normalization:', err);
     }
+  }
+  
+  // If still no matches, try a more lenient approach - just match by artist
+  if (albumTracks.length === 0) {
+    albumTracks = tracks.filter(track => 
+      track.artist === album.artist
+    );
   }
   
   // Find the most played track
