@@ -976,12 +976,16 @@ const displayedAlbums = useMemo(() => {
       </div>
     ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
-          const artist = topArtists.find(a => a.name === album.artist) || {};
-          
-          // Use the improved track matching function from streaming-adapter
-          const topTrack = findTopTrackForAlbum(album, processedData);
-          
+// Find all tracks by this artist
+const artistTracks = processedData.filter(track => 
+  track.artist === album.artist
+);
+
+// Find the most played track(s) by this artist
+const topTrack = artistTracks.length > 0 
+  ? artistTracks.reduce((max, track) => 
+      track.totalPlayed > max.totalPlayed ? track : max, artistTracks[0])
+  : null;
           return (
             <div 
               key={`${album.name}-${album.artist}`} 
