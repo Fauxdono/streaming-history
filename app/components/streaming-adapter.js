@@ -148,6 +148,16 @@ function createMatchKey(trackName, artistName) {
   return `${cleanTrack}-${cleanArtist}`;
 }
 function findTopTrackForAlbum(album, tracks) {
+  // Input validation
+  if (!album || !album.name || !album.artist || !tracks || !Array.isArray(tracks)) {
+    console.warn('Invalid inputs to findTopTrackForAlbum:', { 
+      albumName: album?.name, 
+      artist: album?.artist,
+      tracksAvailable: Boolean(tracks && Array.isArray(tracks))
+    });
+    return null;
+  }
+  
   // First try exact matching
   let albumTracks = tracks.filter(track => 
     track.albumName === album.name && track.artist === album.artist
@@ -155,27 +165,48 @@ function findTopTrackForAlbum(album, tracks) {
   
   // If no exact matches, try normalized matching
   if (albumTracks.length === 0) {
-const normalizedAlbumResult = normalizeString(album.name);
-const normalizedAlbumName = normalizedAlbumResult.normalized;
-    const normalizedArtistName = normalizeString(album.artist);
-    
-    albumTracks = tracks.filter(track => {
-      const trackAlbumName = normalizeString(track.albumName || '');
-      const trackArtistName = normalizeString(track.artist || '');
+    try {
+      // Get normalized album name - correctly accessing the .normalized property
+      const normalizedAlbumResult = normalizeString(album.name);
+      const normalizedAlbumName = normalizedAlbumResult.normalized;
       
-      // Consider a match if either album names overlap or artists match exactly
-      const albumMatch = trackAlbumName.includes(normalizedAlbumName) || 
-                         normalizedAlbumName.includes(trackAlbumName);
-      const artistMatch = trackArtistName === normalizedArtistName;
+      // Get normalized artist name - FIXED: now correctly accessing the .normalized property
+      const normalizedArtistResult = normalizeString(album.artist);
+      const normalizedArtistName = normalizedArtistResult.normalized;
       
-      return albumMatch && artistMatch;
-    });
+      albumTracks = tracks.filter(track => {
+        if (!track.albumName || !track.artist) return false;
+        
+        try {
+          // Get normalized track album name
+          const trackAlbumResult = normalizeString(track.albumName || '');
+          const trackAlbumName = trackAlbumResult.normalized;
+          
+          // Get normalized track artist name
+          const trackArtistResult = normalizeString(track.artist || '');
+          const trackArtistName = trackArtistResult.normalized;
+          
+          // Consider a match if album names overlap AND artists match exactly
+          const albumMatch = trackAlbumName.includes(normalizedAlbumName) || 
+                           normalizedAlbumName.includes(trackAlbumName);
+          const artistMatch = trackArtistName === normalizedArtistName;
+          
+          return albumMatch && artistMatch;
+        } catch (err) {
+          console.warn('Error in track normalization:', err);
+          return false;
+        }
+      });
+    } catch (err) {
+      console.warn('Error in album/artist normalization:', err);
+    }
   }
   
   // Find the most played track
-  if (albumTracks.length > 0) {
+  if (albumTracks && albumTracks.length > 0) {
     return albumTracks.reduce((max, track) => 
-      track.totalPlayed > max.totalPlayed ? track : max
+      track.totalPlayed > max.totalPlayed ? track : max, 
+      albumTracks[0]
     );
   }
   
