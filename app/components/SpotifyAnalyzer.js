@@ -214,7 +214,7 @@ const displayedAlbums = useMemo(() => {
     ? allAlbums.filter(album => selectedArtists.includes(album.artist))
     : allAlbums;
   
-  // We'll need to filter albums by year based on their first listen date
+  // Filter albums by year
   let filteredAlbums;
   if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
     // Year range mode
@@ -240,24 +240,14 @@ const displayedAlbums = useMemo(() => {
     filteredAlbums = artistFilteredAlbums;
   }
   
-  // Normalize the trackCount property to ensure it's always a number
-  return filteredAlbums.map(album => {
-    let normalizedTrackCount;
-    if (typeof album.trackCount === 'object' && album.trackCount instanceof Set) {
-      normalizedTrackCount = album.trackCount.size;
-    } else if (typeof album.trackCount === 'number') {
-      normalizedTrackCount = album.trackCount;
-    } else {
-      normalizedTrackCount = 0;
-    }
-    
-    return {
-      ...album,
-      trackCount: normalizedTrackCount
-    };
-  });
+  // Normalize trackCount to always be a number
+  return filteredAlbums.map(album => ({
+    ...album,
+    trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+      ? album.trackCount.size 
+      : (typeof album.trackCount === 'number' ? album.trackCount : 0)
+  }));
 }, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange]);
-   
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
     setSelectedServices(prev => {
