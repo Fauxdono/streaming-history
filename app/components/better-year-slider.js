@@ -15,45 +15,32 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   const maxYear = sortedYears[sortedYears.length - 1];
   
   // State for the slider position
-  const [sliderPosition, setSliderPosition] = useState(50); // Start in the middle
-  const [selectedYear, setSelectedYear] = useState(initialYear || minYear);
-  // Add state to track if "all" is selected
-  const [showingAllYears, setShowingAllYears] = useState(initialYear === 'all');
+  const [sliderPosition, setSliderPosition] = useState(0); // Start at the "All-Time" position (leftmost)
+  const [selectedYear, setSelectedYear] = useState(initialYear || 'all');
   const sliderRef = useRef(null);
 
-// Watch specifically for changes to initialYear
+  // Watch specifically for changes to initialYear
   useEffect(() => {
-    console.log("initialYear changed:", initialYear);
-    
-    // Check if initialYear is 'all', which is a special case
     if (initialYear === 'all') {
-      console.log("Setting to show all years");
-      setShowingAllYears(true);
+      // For "all", set position to leftmost (position 0)
+      setSliderPosition(0);
       setSelectedYear('all');
-      return;
-    }
-    
-    // Not showing all years
-    setShowingAllYears(false);
-    
-    if (initialYear && sortedYears.includes(initialYear.toString())) {
-      const yearIndex = sortedYears.indexOf(initialYear.toString());
-      const percentage = (yearIndex / (sortedYears.length - 1)) * 100;
+    } else if (initialYear && sortedYears.includes(initialYear.toString())) {
+      // Add 1 to account for the "All-Time" position at index 0
+      const yearIndex = sortedYears.indexOf(initialYear.toString()) + 1;
+      const totalPositions = sortedYears.length + 1; // +1 for "All-Time"
+      const percentage = (yearIndex / (totalPositions - 1)) * 100;
       setSliderPosition(percentage);
       setSelectedYear(initialYear);
-    } else if (initialYear !== 'all') {
-      // Default to the middle year only if initialYear is not 'all'
-      const middleIndex = Math.floor(sortedYears.length / 2);
-      setSelectedYear(sortedYears[middleIndex]);
-      setSliderPosition((middleIndex / (sortedYears.length - 1)) * 100);
+    } else {
+      // Default to "All-Time"
+      setSliderPosition(0);
+      setSelectedYear('all');
     }
   }, [initialYear, sortedYears]);
 
   // Handle mouse drag on the slider
   const handleMouseDown = (e) => {
-    // When user interacts with slider, we're no longer showing all years
-    setShowingAllYears(false);
-    
     const slider = sliderRef.current;
     if (!slider) return;
     
@@ -67,14 +54,27 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
       percentage = Math.max(0, Math.min(100, percentage));
       setSliderPosition(percentage);
       
-      // Calculate which year this corresponds to
-      const yearIndex = Math.round((percentage / 100) * (sortedYears.length - 1));
-      const newYear = sortedYears[yearIndex];
-      setSelectedYear(newYear);
+      // Total positions includes years + "All-Time"
+      const totalPositions = sortedYears.length + 1;
+      const positionIndex = Math.round((percentage / 100) * (totalPositions - 1));
       
-      // Notify parent
-      if (onYearChange) {
-        onYearChange(newYear);
+      // If position is 0 (leftmost), it's "All-Time", otherwise it's a year
+      if (positionIndex === 0) {
+        setSelectedYear('all');
+        // Notify parent
+        if (onYearChange) {
+          onYearChange('all');
+        }
+      } else {
+        // Adjust index to account for "All-Time" at position 0
+        const yearIndex = positionIndex - 1;
+        const newYear = sortedYears[yearIndex];
+        setSelectedYear(newYear);
+        
+        // Notify parent
+        if (onYearChange) {
+          onYearChange(newYear);
+        }
       }
     };
     
@@ -98,13 +98,13 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   
   return (
     <div className="my-4">
-<div className="flex justify-between mb-2">
-  <span className="text-teal-700">{minYear}</span>
-  <span className="font-bold text-teal-700 year-display">
-    {showingAllYears ? 'All-Time' : `Year: ${selectedYear}`}
-  </span>
-  <span className="text-teal-700">{maxYear}</span>
-</div>
+      <div className="flex justify-between mb-2">
+        <span className="text-teal-700 font-bold">All-Time</span>
+        <span className="font-bold text-teal-700 year-display">
+          {selectedYear === 'all' ? 'All-Time' : `Year: ${selectedYear}`}
+        </span>
+        <span className="text-teal-700">{maxYear}</span>
+      </div>
       <div 
         ref={sliderRef}
         className="relative h-8 cursor-pointer" 
@@ -113,28 +113,36 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
         {/* Line */}
         <div className="absolute top-1/2 left-0 right-0 h-1 bg-black transform -translate-y-1/2 rounded-full"></div>
         
-        {/* Handle - only show if not in "all" mode */}
-        {!showingAllYears && (
-          <div 
-            className="absolute top-1/2 h-8 w-8 bg-white border-2 border-black rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md"
-            style={{ left: `${sliderPosition}%` }}
-          ></div>
-        )}
+        {/* Handle */}
+        <div 
+          className="absolute top-1/2 h-8 w-8 bg-white border-2 border-black rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md"
+          style={{ left: `${sliderPosition}%` }}
+        ></div>
+        
+        {/* All-Time marker */}
+        <div 
+          className="absolute top-1/2 w-1 h-4 bg-teal-600 transform -translate-x-1/2 -translate-y-1/2"
+          style={{ left: '0%' }}
+        />
         
         {/* Year markers */}
         {sortedYears.map((year, index) => {
-          const position = (index / (sortedYears.length - 1)) * 100;
+          // Calculate position accounting for "All-Time" at position 0
+          const totalPositions = sortedYears.length + 1;
+          const position = ((index + 1) / (totalPositions - 1)) * 100;
+          
           return (
             <div 
               key={year}
               className="absolute top-1/2 w-1 h-3 bg-black transform -translate-x-1/2 -translate-y-1/2"
               style={{ left: `${position}%` }}
             >
-           {index % Math.ceil(sortedYears.length / 7) === 0 && (
-  <div className="absolute w-8 text-xs text-center -translate-x-1/2 mt-4 text-teal-700 font-medium">
-    {year}
-  </div>
-)}
+              {/* Only show some year labels to avoid crowding */}
+              {index % Math.ceil(sortedYears.length / 7) === 0 && (
+                <div className="absolute w-8 text-xs text-center -translate-x-1/2 mt-4 text-teal-700 font-medium">
+                  {year}
+                </div>
+              )}
             </div>
           );
         })}

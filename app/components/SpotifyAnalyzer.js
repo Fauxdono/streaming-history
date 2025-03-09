@@ -885,7 +885,11 @@ const formatDuration = (ms) => {
                         <br/>
                         Plays: <span className="font-bold">{album.playCount}</span> 
                         <br/>
-                        Tracks: <span className="font-bold">{album.trackCount}</span>
+                      Tracks: <span className="font-bold">
+  {typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+    ? album.trackCount.size 
+    : (typeof album.trackCount === 'number' ? album.trackCount : 0)}
+</span>
                         <br/> 
                         First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
                         <br/>
