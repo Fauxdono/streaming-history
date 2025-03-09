@@ -205,6 +205,7 @@ const getAlbumsTabLabel = () => {
   return `${selectedAlbumYear} Albums`;
 };
 
+// In your displayedAlbums useMemo
 const displayedAlbums = useMemo(() => {
   // Get all albums
   const allAlbums = topAlbums;
@@ -240,14 +241,30 @@ const displayedAlbums = useMemo(() => {
     filteredAlbums = artistFilteredAlbums;
   }
   
-  // Normalize trackCount to always be a number
-  return filteredAlbums.map(album => ({
-    ...album,
-    trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-      ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 0)
-  }));
-}, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange]);
+  // Normalize trackCount and add top track info
+  return filteredAlbums.map(album => {
+    // Calculate top track for this album
+    const albumTracks = processedData.filter(track => 
+      track.artist === album.artist && track.albumName === album.name
+    );
+    
+    const topTrack = albumTracks.length > 0 
+      ? albumTracks.reduce((max, track) => 
+          track.totalPlayed > max.totalPlayed ? track : max, 
+          albumTracks[0]
+        )
+      : null;
+    
+    return {
+      ...album,
+      trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+        ? album.trackCount.size 
+        : (typeof album.trackCount === 'number' ? album.trackCount : 0),
+      topTrack // Add this property
+    };
+  });
+}, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData]);
+
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
     setSelectedServices(prev => {
@@ -993,6 +1010,13 @@ const displayedAlbums = useMemo(() => {
       <div className="text-sm text-pink-400">
         Artist: <span className="font-bold">{album.artist}</span> 
         <br/>
+        Top Track: <span className="font-bold">
+          {album.topTrack 
+            ? `${album.topTrack.trackName} (${formatDuration(album.topTrack.totalPlayed)})` 
+            : "No track data"
+          }
+        </span>
+        <br/>
         Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
         <br/>
         Plays: <span className="font-bold">{album.playCount}</span> 
@@ -1000,6 +1024,7 @@ const displayedAlbums = useMemo(() => {
         Tracks: <span className="font-bold">{album.trackCount}</span>
         <br/> 
         First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
+        <br/>
       </div>
       <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
     </div>
