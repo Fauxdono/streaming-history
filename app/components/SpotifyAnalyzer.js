@@ -979,57 +979,92 @@ const displayedAlbums = useMemo(() => {
       </div>
     </div>
     
-{displayedAlbums.length === 0 ? (
-  <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
-    <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
-    <p className="text-pink-600 mt-2">
-      {albumYearRangeMode 
-        ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
-        : selectedAlbumYear !== 'all' 
-          ? `No albums found for the year ${selectedAlbumYear}.`
-          : "No album data available."}
-    </p>
-    <button
-      onClick={() => {
-        setAlbumYearRangeMode(false);
-        setSelectedAlbumYear('all');
-      }}
-      className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-    >
-      Show All Albums
-    </button>
+    {/* Filter albums directly in the render function */}
+    {(() => {
+      // Filter albums by artist
+      let filteredAlbums = selectedArtists.length > 0 
+        ? topAlbums.filter(album => selectedArtists.includes(album.artist))
+        : topAlbums;
+      
+      // Filter by year
+      if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+        const startYear = parseInt(albumYearRange.startYear);
+        const endYear = parseInt(albumYearRange.endYear);
+        
+        filteredAlbums = filteredAlbums.filter(album => {
+          const albumDate = new Date(album.firstListen);
+          const albumYear = albumDate.getFullYear();
+          return albumYear >= startYear && albumYear <= endYear;
+        });
+      } else if (selectedAlbumYear !== 'all') {
+        const year = parseInt(selectedAlbumYear);
+        
+        filteredAlbums = filteredAlbums.filter(album => {
+          const albumDate = new Date(album.firstListen);
+          const albumYear = albumDate.getFullYear();
+          return albumYear === year;
+        });
+      }
+      
+      // Display message if no albums found
+      if (filteredAlbums.length === 0) {
+        return (
+          <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
+            <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
+            <p className="text-pink-600 mt-2">
+              {albumYearRangeMode 
+                ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
+                : selectedAlbumYear !== 'all' 
+                  ? `No albums found for the year ${selectedAlbumYear}.`
+                  : "No album data available."}
+            </p>
+            <button
+              onClick={() => {
+                setAlbumYearRangeMode(false);
+                setSelectedAlbumYear('all');
+              }}
+              className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+            >
+              Show All Albums
+            </button>
+          </div>
+        );
+      }
+      
+      // Render albums grid
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredAlbums.slice(0, topAlbumsCount).map((album, index) => {
+            // Normalize trackCount
+            const normalizedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+              ? album.trackCount.size 
+              : (typeof album.trackCount === 'number' ? album.trackCount : 0);
+            
+            return (
+              <div 
+                key={`${album.name}-${album.artist}`} 
+                className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative"
+              >
+                <div className="font-bold text-pink-600">{album.name}</div>
+                <div className="text-sm text-pink-400">
+                  Artist: <span className="font-bold">{album.artist}</span> 
+                  <br/>
+                  Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
+                  <br/>
+                  Plays: <span className="font-bold">{album.playCount}</span> 
+                  <br/>
+                  Tracks: <span className="font-bold">{normalizedTrackCount}</span>
+                  <br/> 
+                  First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
+                </div>
+                <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    })()}
   </div>
-) : (
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-  {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-    <div 
-      key={`${album.name}-${album.artist}`} 
-      className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative"
-    >
-      <div className="font-bold text-pink-600">{album.name}</div>
-      <div className="text-sm text-pink-400">
-        Artist: <span className="font-bold">{album.artist}</span> 
-        <br/>
-        Top Track: <span className="font-bold">
-          {album.topTrack 
-            ? `${album.topTrack.trackName} (${formatDuration(album.topTrack.totalPlayed)})` 
-            : "No track data"
-          }
-        </span>
-        <br/>
-        Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
-        <br/>
-        Plays: <span className="font-bold">{album.playCount}</span> 
-        <br/>
-        Tracks: <span className="font-bold">{album.trackCount}</span>
-        <br/> 
-        First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
-        <br/>
-      </div>
-      <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
-    </div>
-  ))}
-</div>
 )}
         
         {activeTab === 'tracks' && (
