@@ -1,14 +1,14 @@
 // In BetterYearSlider.js
 import React, { useState, useEffect, useRef } from 'react';
 
-const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
+const BetterYearSlider = ({ years, onYearChange, initialYear, colorTheme = 'teal' }) => {
   // Make sure we have an array of years and they're sorted
   const sortedYears = Array.isArray(years) ? 
     [...years].sort((a, b) => parseInt(a) - parseInt(b)) : [];
   
   // If no years, nothing to render
   if (sortedYears.length === 0) {
-    return <div className="text-teal-700 italic">No year data available</div>;
+    return <div className={`text-${colorTheme}-700 italic`}>No year data available</div>;
   }
   
   const minYear = sortedYears[0];
@@ -18,6 +18,27 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   const [sliderPosition, setSliderPosition] = useState(0); // Start at the "All-Time" position (leftmost)
   const [selectedYear, setSelectedYear] = useState(initialYear || 'all');
   const sliderRef = useRef(null);
+
+  // Map color theme to actual color values
+  const getColors = () => {
+    switch (colorTheme) {
+      case 'pink':
+        return {
+          text: 'text-pink-700',
+          textBold: 'text-pink-700',
+          bg: 'bg-pink-600'
+        };
+      case 'teal':
+      default:
+        return {
+          text: 'text-teal-700',
+          textBold: 'text-teal-700',
+          bg: 'bg-teal-600'
+        };
+    }
+  };
+
+  const colors = getColors();
 
   // Watch specifically for changes to initialYear
   useEffect(() => {
@@ -99,11 +120,11 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
   return (
     <div className="my-4">
       <div className="flex justify-between mb-2">
-        <span className="text-teal-700 font-bold">All-Time</span>
-        <span className="font-bold text-teal-700 year-display">
+        <span className={`${colors.text} font-bold`}>All-Time</span>
+        <span className={`font-bold ${colors.textBold} year-display`}>
           {selectedYear === 'all' ? 'All-Time' : `Year: ${selectedYear}`}
         </span>
-        <span className="text-teal-700">{maxYear}</span>
+        <span className={colors.text}>{maxYear}</span>
       </div>
       <div 
         ref={sliderRef}
@@ -121,7 +142,7 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
         
         {/* All-Time marker */}
         <div 
-          className="absolute top-1/2 w-1 h-4 bg-teal-600 transform -translate-x-1/2 -translate-y-1/2"
+          className={`absolute top-1/2 w-1 h-4 ${colors.bg} transform -translate-x-1/2 -translate-y-1/2`}
           style={{ left: '0%' }}
         />
         
@@ -139,7 +160,7 @@ const BetterYearSlider = ({ years, onYearChange, initialYear }) => {
             >
               {/* Only show some year labels to avoid crowding */}
               {index % Math.ceil(sortedYears.length / 7) === 0 && (
-                <div className="absolute w-8 text-xs text-center -translate-x-1/2 mt-4 text-teal-700 font-medium">
+                <div className={`absolute w-8 text-xs text-center -translate-x-1/2 mt-4 ${colors.text} font-medium`}>
                   {year}
                 </div>
               )}

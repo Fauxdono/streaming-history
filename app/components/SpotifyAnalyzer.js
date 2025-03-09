@@ -797,6 +797,7 @@ const displayedAlbums = useMemo(() => {
               initialYearRange={yearRange}
               isRangeMode={yearRangeMode}
               onToggleRangeMode={toggleYearRangeMode}
+              colorTheme="teal"
             />
 
             {/* Add empty state handling */}
@@ -904,6 +905,7 @@ const displayedAlbums = useMemo(() => {
       initialYearRange={albumYearRange}
       isRangeMode={albumYearRangeMode}
       onToggleRangeMode={toggleAlbumYearRangeMode}
+      colorTheme="pink"
     />
     
     {/* Artist Selection */}
