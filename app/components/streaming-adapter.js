@@ -1364,6 +1364,16 @@ export const streamingProcessor = {
       );
 
       const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
+ 
+const verifiedAlbums = sortedAlbums.map(album => {
+  if (typeof album.trackCount === 'object' && album.trackCount instanceof Set) {
+    return {
+      ...album,
+      trackCount: album.trackCount.size
+    };
+  }
+  return album;
+});
 
       return {
         stats: {
@@ -1377,7 +1387,7 @@ export const streamingProcessor = {
           serviceListeningTime: stats.serviceListeningTime
         },
         topArtists: sortedArtists,
-        topAlbums: sortedAlbums,
+        topAlbums: verifiedAlbums,
         processedTracks: sortedSongs,
         songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
         briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
