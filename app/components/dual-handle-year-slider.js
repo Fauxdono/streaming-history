@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, initialEndYear }) => {
+const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, initialEndYear, colorTheme = 'teal' }) => {
   // Make sure we have an array of years and they're sorted
   const sortedYears = Array.isArray(years) ? 
     [...years].sort((a, b) => parseInt(a) - parseInt(b)) : [];
   
   // If no years, nothing to render
   if (sortedYears.length === 0) {
-    return <div className="text-teal-700 italic">No year data available</div>;
+    return <div className={`text-${colorTheme}-700 italic`}>No year data available</div>;
   }
   
   const minYear = sortedYears[0];
@@ -21,6 +21,39 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
   const [activeDragHandle, setActiveDragHandle] = useState(null);
   
   const sliderRef = useRef(null);
+  
+  // Map color theme to actual color values
+  const getColors = () => {
+    switch (colorTheme) {
+      case 'pink':
+        return {
+          text: 'text-pink-700',
+          textBold: 'text-pink-800',
+          bgMed: 'bg-pink-600',
+          bgLight: 'bg-pink-100',
+          textLight: 'text-pink-600',
+          borderActive: 'border-pink-600',
+          borderInactive: 'border-pink-800',
+          buttonBg: 'bg-pink-600',
+          buttonHover: 'hover:bg-pink-700'
+        };
+      case 'teal':
+      default:
+        return {
+          text: 'text-teal-700',
+          textBold: 'text-teal-800',
+          bgMed: 'bg-teal-600',
+          bgLight: 'bg-teal-100',
+          textLight: 'text-teal-600',
+          borderActive: 'border-teal-600',
+          borderInactive: 'border-teal-800',
+          buttonBg: 'bg-teal-600',
+          buttonHover: 'hover:bg-teal-700'
+        };
+    }
+  };
+
+  const colors = getColors();
   
   // Initialize the slider positions based on the initial years
   useEffect(() => {
@@ -154,11 +187,11 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
   return (
     <div className="my-4">
       <div className="flex justify-between mb-1 items-center">
-        <span className="text-teal-700">{minYear}</span>
-        <div className="font-medium text-teal-800 bg-teal-100 px-3 py-1 rounded">
+        <span className={colors.text}>{minYear}</span>
+        <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
           {startYear} - {endYear}
         </div>
-        <span className="text-teal-700">{maxYear}</span>
+        <span className={colors.text}>{maxYear}</span>
       </div>
       
       <div 
@@ -171,7 +204,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
         
         {/* Selected Range */}
         <div 
-          className="absolute top-1/2 h-1 bg-teal-600 transform -translate-y-1/2 rounded-full"
+          className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
           style={{ 
             left: `${startPosition}%`, 
             width: `${endPosition - startPosition}%` 
@@ -181,7 +214,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
         {/* Start Handle */}
         <div 
           className={`absolute top-1/2 h-8 w-8 bg-white border-2 ${
-            activeDragHandle === 'start' ? 'border-teal-600' : 'border-teal-800'
+            activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md cursor-move z-20`}
           style={{ left: `${startPosition}%` }}
           onMouseDown={(e) => handleMouseDown(e, true)}
@@ -190,7 +223,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
         {/* End Handle */}
         <div 
           className={`absolute top-1/2 h-8 w-8 bg-white border-2 ${
-            activeDragHandle === 'end' ? 'border-teal-600' : 'border-teal-800'
+            activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md cursor-move z-20`}
           style={{ left: `${endPosition}%` }}
           onMouseDown={(e) => handleMouseDown(e, false)}
@@ -205,13 +238,13 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
             <div 
               key={year}
               className={`absolute top-1/2 w-1 h-3 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
-                isInRange ? 'bg-teal-600' : 'bg-gray-400'
+                isInRange ? colors.bgMed : 'bg-gray-400'
               }`}
               style={{ left: `${position}%` }}
             >
               {/* Only show some year labels to avoid crowding */}
               {index % Math.ceil(sortedYears.length / 7) === 0 && (
-                <div className="absolute w-10 text-xs text-center -translate-x-1/2 mt-4 text-teal-700 font-medium">
+                <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${colors.text} font-medium`}>
                   {year}
                 </div>
               )}
@@ -231,7 +264,7 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
               });
             }
           }}
-          className="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700"
+          className={`px-3 py-1 ${colors.buttonBg} text-white rounded ${colors.buttonHover}`}
         >
           Apply Range
         </button>
