@@ -147,8 +147,7 @@ function createMatchKey(trackName, artistName) {
   
   return `${cleanTrack}-${cleanArtist}`;
 }
-
-export function findTopTrackForAlbum(album, tracks) {
+function findTopTrackForAlbum(album, tracks) {
   // First try exact matching
   let albumTracks = tracks.filter(track => 
     track.albumName === album.name && track.artist === album.artist
