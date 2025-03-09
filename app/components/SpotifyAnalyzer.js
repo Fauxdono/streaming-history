@@ -1017,7 +1017,7 @@ const displayedAlbums = useMemo(() => {
       );
     })}
   </div>
-)}
+
         
         {activeTab === 'tracks' && (
           <div className="p-4 bg-blue-100 rounded border-2 border-blue-300">
