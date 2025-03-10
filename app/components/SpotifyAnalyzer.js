@@ -241,109 +241,28 @@ const displayedAlbums = useMemo(() => {
     filteredAlbums = artistFilteredAlbums;
   }
   
-// Normalize trackCount and add top track info
-return filteredAlbums.map(album => {
-  // Enhanced matching for finding top tracks
-  const albumTracks = processedData.filter(track => {
-    // Skip tracks with no album name
-    if (!track.albumName) return false;
-    
-    // Normalize album names for comparison
-    const trackAlbumName = (track.albumName || '').toLowerCase().trim();
-    const thisAlbumName = (album.name || '').toLowerCase().trim();
-    
-    // 1. Exact match after normalization
-    if (trackAlbumName === thisAlbumName) return true;
-    
-    // 2. One contains the other (for handling "Album" vs "Album (Deluxe Edition)")
-    if (trackAlbumName.includes(thisAlbumName) || thisAlbumName.includes(trackAlbumName)) return true;
-    
-    // 3. Special handling for uppercase album names
-    if (album.name === album.name.toUpperCase() && 
-        track.albumName.toUpperCase() === album.name) {
-      return true;
-    }
-    
-    // 4. Handle all-uppercase vs. normal capitalization cases
-    const trackUpperCase = track.albumName.toUpperCase();
-    const albumUpperCase = album.name.toUpperCase();
-    if (trackUpperCase === albumUpperCase) return true;
-    
-    // 5. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
-    const cleanTrackAlbum = trackAlbumName
-      .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
-      .trim();
-    const cleanAlbum = thisAlbumName
-      .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
-      .trim();
-    
-    if (cleanTrackAlbum === cleanAlbum) return true;
-    
-    // 6. Check for significant word overlap (useful for albums with subtitles)
-    const trackWords = cleanTrackAlbum.split(/\s+/);
-    const albumWords = cleanAlbum.split(/\s+/);
-    
-    // If both names have multiple words, check if they share at least half of them
-    if (trackWords.length > 1 && albumWords.length > 1) {
-      const commonWords = trackWords.filter(word => albumWords.includes(word));
-      const matchRatio = commonWords.length / Math.min(trackWords.length, albumWords.length);
-      if (matchRatio >= 0.5) return true;
-    }
-    
-    return false;
-  });
-  
-  // Add debugging for albums that don't match any tracks
-  if (albumTracks.length === 0) {
-    console.log('No tracks found for:', {
-      albumName: album.name,
-      artist: album.artist,
-      // List a few available tracks by this artist for comparison
-      artistTracks: processedData
-        .filter(t => t.artist === album.artist)
-        .slice(0, 3)  // Just show first 3 to keep the log manageable
-        .map(t => ({ 
-          trackName: t.trackName, 
-          albumName: t.albumName 
-        }))
-    });
-  }
-  
-  // Get the top track based on most listening time
-  const topTrack = albumTracks.length > 0 
-    ? albumTracks.reduce((max, track) => 
-        track.totalPlayed > max.totalPlayed ? track : max, 
-        albumTracks[0]
-      )
-    : null;
-  
-  // Try to find a fallback track by this artist if no album match
-  let fallbackTopTrack = null;
-  if (!topTrack) {
-    const artistTracks = processedData.filter(track => 
-      track.artist === album.artist
+  // Normalize trackCount and add top track info
+  return filteredAlbums.map(album => {
+    // Calculate top track for this album
+    const albumTracks = processedData.filter(track => 
+      track.artist === album.artist && track.albumName === album.name
     );
     
-    if (artistTracks.length > 0) {
-      fallbackTopTrack = artistTracks.reduce((max, track) => 
-        track.totalPlayed > max.totalPlayed ? track : max, 
-        artistTracks[0]
-      );
-    }
-  }
-  
-  // Use the album track if available, otherwise use fallback
-  const displayTrack = topTrack || fallbackTopTrack;
-  
-  return {
-    ...album,
-    trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-      ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 0),
-    topTrack: displayTrack,
-    isArtistFallback: !topTrack && !!fallbackTopTrack
-  };
-});
+    const topTrack = albumTracks.length > 0 
+      ? albumTracks.reduce((max, track) => 
+          track.totalPlayed > max.totalPlayed ? track : max, 
+          albumTracks[0]
+        )
+      : null;
+    
+    return {
+      ...album,
+      trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+        ? album.trackCount.size 
+        : (typeof album.trackCount === 'number' ? album.trackCount : 0),
+      topTrack // Add this property
+    };
+  });
 }, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData]);
 
   // Toggle a service in the selection
@@ -1115,86 +1034,52 @@ return filteredAlbums.map(album => {
       // Render albums grid
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
-            // Find top track for this album using more robust matching
-            // Look for tracks that match both artist and album, with some flexibility
-            const albumTracks = processedData.filter(track => {
-              const artistMatch = track.artist === album.artist;
-              
-              // More flexible album name matching
-              const trackAlbumName = (track.albumName || '').toLowerCase().trim();
-              const thisAlbumName = (album.name || '').toLowerCase().trim();
-              
-              // Match if album names are the same or if one contains the other
-              const albumMatch = 
-                trackAlbumName === thisAlbumName || 
-                trackAlbumName.includes(thisAlbumName) || 
-                thisAlbumName.includes(trackAlbumName);
-              
-              return artistMatch && albumMatch;
-            });
-            
-            // Get the track with most listening time
-            const topTrack = albumTracks.length > 0 
-              ? albumTracks.reduce((max, track) => 
-                  track.totalPlayed > max.totalPlayed ? track : max, 
-                  albumTracks[0]
-                )
-              : null;
-            
-            // Fallback: If no tracks found with direct album matching,
-            // just use any tracks by this artist
-            let fallbackTopTrack = null;
-            if (!topTrack) {
-              const artistTracks = processedData.filter(track => 
-                track.artist === album.artist
-              );
-              
-              if (artistTracks.length > 0) {
-                fallbackTopTrack = artistTracks.reduce((max, track) => 
-                  track.totalPlayed > max.totalPlayed ? track : max, 
-                  artistTracks[0]
-                );
-              }
-            }
-            
-            // Use either the matched top track or fallback
-            const displayTrack = topTrack || fallbackTopTrack;
-            
-            // Normalize trackCount
-            const normalizedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-              ? album.trackCount.size 
-              : (typeof album.trackCount === 'number' ? album.trackCount : 0);
-            
-            return (
-              <div 
-                key={`${album.name}-${album.artist}`} 
-                className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative"
-              >
-                <div className="font-bold text-pink-600">{album.name}</div>
-                <div className="text-sm text-pink-400">
-                  Artist: <span className="font-bold">{album.artist}</span> 
-                  <br/>
- Top Track: <span className="font-bold">
-  {album.topTrack 
-    ? `${album.topTrack.trackName} (${formatDuration(album.topTrack.totalPlayed)})` 
-    : "No track data"
-  }
-</span>
-
-                  <br/>
-                  Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
-                  <br/>
-                  Plays: <span className="font-bold">{album.playCount}</span> 
-                  <br/>
-                  Tracks: <span className="font-bold">{normalizedTrackCount}</span>
-                  <br/> 
-                  First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
-                </div>
-                <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
-              </div>
-            );
-          })}
+        {filteredAlbums.slice(0, topAlbumsCount).map((album, index) => {
+  // Normalize trackCount
+  const normalizedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+    ? album.trackCount.size 
+    : (typeof album.trackCount === 'number' ? album.trackCount : 0);
+  
+  // Find top track for this album
+  const albumTracks = processedData.filter(track => 
+    track.artist === album.artist && track.albumName === album.name
+  );
+  
+  const topTrack = albumTracks.length > 0 
+    ? albumTracks.reduce((max, track) => 
+        track.totalPlayed > max.totalPlayed ? track : max, 
+        albumTracks[0]
+      )
+    : null;
+  
+  return (
+    <div 
+      key={`${album.name}-${album.artist}`} 
+      className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative"
+    >
+      <div className="font-bold text-pink-600">{album.name}</div>
+      <div className="text-sm text-pink-400">
+        Artist: <span className="font-bold">{album.artist}</span> 
+        <br/>
+        Top Track: <span className="font-bold">
+          {topTrack 
+            ? `${topTrack.trackName} (${formatDuration(topTrack.totalPlayed)})` 
+            : "No track data"
+          }
+        </span>
+        <br/>
+        Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
+        <br/>
+        Plays: <span className="font-bold">{album.playCount}</span> 
+        <br/>
+        Tracks: <span className="font-bold">{normalizedTrackCount}</span>
+        <br/> 
+        First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span> 
+      </div>
+      <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
+    </div>
+  );
+})}
         </div>
       );
     })()}
