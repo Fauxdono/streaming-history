@@ -243,17 +243,71 @@ const displayedAlbums = useMemo(() => {
   
   // Normalize trackCount and add top track info
   return filteredAlbums.map(album => {
-    // Calculate top track for this album
-    const albumTracks = processedData.filter(track => 
-      track.artist === album.artist && track.albumName === album.name
-    );
-    
-    const topTrack = albumTracks.length > 0 
-      ? albumTracks.reduce((max, track) => 
-          track.totalPlayed > max.totalPlayed ? track : max, 
-          albumTracks[0]
-        )
-      : null;
+// Enhanced matching for finding top tracks
+const albumTracks = processedData.filter(track => {
+  // First, check for artist match
+  const artistMatch = track.artist === album.artist;
+  if (!artistMatch) return false;
+  
+  // Skip tracks with no album name
+  if (!track.albumName) return false;
+  
+  // Normalize album names for comparison
+  const trackAlbumName = (track.albumName || '').toLowerCase().trim();
+  const thisAlbumName = (album.name || '').toLowerCase().trim();
+  
+  // 1. Exact match after normalization
+  if (trackAlbumName === thisAlbumName) return true;
+  
+  // 2. One contains the other (for handling "Album" vs "Album (Deluxe Edition)")
+  if (trackAlbumName.includes(thisAlbumName) || thisAlbumName.includes(trackAlbumName)) return true;
+  
+  // 3. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
+  const cleanTrackAlbum = trackAlbumName
+    .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
+    .trim();
+  const cleanAlbum = thisAlbumName
+    .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
+    .trim();
+  
+  if (cleanTrackAlbum === cleanAlbum) return true;
+  
+  // 4. Check for significant word overlap (useful for albums with subtitles)
+  const trackWords = cleanTrackAlbum.split(/\s+/);
+  const albumWords = cleanAlbum.split(/\s+/);
+  
+  // If both names have multiple words, check if they share at least half of them
+  if (trackWords.length > 1 && albumWords.length > 1) {
+    const commonWords = trackWords.filter(word => albumWords.includes(word));
+    const matchRatio = commonWords.length / Math.min(trackWords.length, albumWords.length);
+    if (matchRatio >= 0.5) return true;
+  }
+  
+  return false;
+});
+
+// Add debugging for albums that don't match any tracks
+if (albumTracks.length === 0) {
+  console.log('No tracks found for:', {
+    albumName: album.name,
+    artist: album.artist,
+    // List a few available tracks by this artist for comparison
+    artistTracks: processedData
+      .filter(t => t.artist === album.artist)
+      .slice(0, 3)  // Just show first 3 to keep the log manageable
+      .map(t => ({ 
+        trackName: t.trackName, 
+        albumName: t.albumName 
+      }))
+  });
+}
+
+const topTrack = albumTracks.length > 0 
+  ? albumTracks.reduce((max, track) => 
+      track.totalPlayed > max.totalPlayed ? track : max, 
+      albumTracks[0]
+    )
+  : null;
     
     return {
       ...album,
