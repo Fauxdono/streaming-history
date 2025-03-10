@@ -1092,7 +1092,12 @@ const topTrack = albumTracks.length > 0
             // Find top track for this album using more robust matching
             // Look for tracks that match both artist and album, with some flexibility
             const albumTracks = processedData.filter(track => {
-              const artistMatch = track.artist === album.artist;
+             // Add this to your artist matching section
+const artistMatch = track.artist === album.artist || 
+                    // Handle MGK case specifically
+                    (album.artist.toLowerCase() === "mgk" && 
+                     (track.artist.toLowerCase() === "machine gun kelly" || 
+                      track.artist.toLowerCase().includes("mgk")));
               
               // More flexible album name matching
               const trackAlbumName = (track.albumName || '').toLowerCase().trim();
