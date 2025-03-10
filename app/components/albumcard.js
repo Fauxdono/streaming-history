@@ -4,27 +4,57 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
 
-  // Find all tracks for this album
+  // Find all tracks for this album with enhanced matching
   const albumTracks = processedData.filter(track => {
     // Skip tracks with no album name
     if (!track.albumName) return false;
     
-    // Match by artist
-    const artistMatch = track.artist === album.artist;
+    // Match by artist (case insensitive)
+    const artistMatch = track.artist.toLowerCase() === album.artist.toLowerCase();
+    if (!artistMatch) return false;
     
     // Normalize album names for comparison
     const trackAlbumName = (track.albumName || '').toLowerCase().trim();
     const thisAlbumName = (album.name || '').toLowerCase().trim();
     
-    // Multiple matching strategies
-    return artistMatch && (
+    // If track count is available, we should be more aggressive with matching
+    // since we know exactly how many tracks to expect
+    const hasTrackCount = typeof album.trackCount === 'number' || 
+                          (album.trackCount instanceof Set && album.trackCount.size > 0);
+    
+    // Multiple matching strategies in order of strictness
+    return (
+      // 1. Exact match
       trackAlbumName === thisAlbumName ||
+      
+      // 2. One contains the other completely
       trackAlbumName.includes(thisAlbumName) || 
       thisAlbumName.includes(trackAlbumName) ||
-      trackAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '').trim() === 
-      thisAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '').trim()
+      
+      // 3. Clean version (remove deluxe, remastered, etc.)
+      trackAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim() === 
+      thisAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim() ||
+      
+      // 4. Word-by-word matching (for albums with rearranged words)
+      (hasTrackCount && compareAlbumNamesByWords(trackAlbumName, thisAlbumName))
     );
   });
+  
+  // Helper function to compare album names word by word
+  function compareAlbumNamesByWords(name1, name2) {
+    const words1 = name1.split(/\s+/).filter(word => word.length > 1);
+    const words2 = name2.split(/\s+/).filter(word => word.length > 1);
+    
+    // If either name has no substantial words, don't match
+    if (words1.length === 0 || words2.length === 0) return false;
+    
+    // Count matching words
+    const matchingWords = words1.filter(word => words2.includes(word));
+    
+    // Consider it a match if at least 60% of words from the shorter name match
+    const minWordCount = Math.min(words1.length, words2.length);
+    return matchingWords.length >= Math.max(2, minWordCount * 0.6);
+  }
   
   // Sort tracks by play time
   const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
@@ -88,7 +118,10 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       
       {/* Track Dropdown Content */}
       {showTracks && otherTracks.length > 0 && (
-        <div className="mt-1 max-h-32 overflow-y-auto text-xs border border-pink-200 rounded">
+        <div className="mt-1 max-h-64 overflow-y-auto text-xs border border-pink-200 rounded">
+          <div className="sticky top-0 bg-pink-100 p-1 text-xs text-center text-pink-600 font-medium">
+            Showing all {otherTracks.length} remaining tracks
+          </div>
           {otherTracks.map((track, trackIndex) => (
             <div 
               key={trackIndex}
