@@ -262,7 +262,18 @@ const albumTracks = processedData.filter(track => {
   // 2. One contains the other (for handling "Album" vs "Album (Deluxe Edition)")
   if (trackAlbumName.includes(thisAlbumName) || thisAlbumName.includes(trackAlbumName)) return true;
   
-  // 3. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
+  // 3. Special handling for uppercase album names - compare without case sensitivity
+  if (album.name === album.name.toUpperCase() && 
+      track.albumName.toUpperCase() === album.name) {
+    return true;
+  }
+  
+  // 4. Handle all-uppercase vs. normal capitalization cases
+  const trackUpperCase = track.albumName.toUpperCase();
+  const albumUpperCase = album.name.toUpperCase();
+  if (trackUpperCase === albumUpperCase) return true;
+  
+  // 5. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
   const cleanTrackAlbum = trackAlbumName
     .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
     .trim();
@@ -272,7 +283,7 @@ const albumTracks = processedData.filter(track => {
   
   if (cleanTrackAlbum === cleanAlbum) return true;
   
-  // 4. Check for significant word overlap (useful for albums with subtitles)
+  // 6. Check for significant word overlap (useful for albums with subtitles)
   const trackWords = cleanTrackAlbum.split(/\s+/);
   const albumWords = cleanAlbum.split(/\s+/);
   
