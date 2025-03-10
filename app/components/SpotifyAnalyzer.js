@@ -241,99 +241,109 @@ const displayedAlbums = useMemo(() => {
     filteredAlbums = artistFilteredAlbums;
   }
   
-  // Normalize trackCount and add top track info
-  return filteredAlbums.map(album => {
-
-// Enhanced matching for finding top tracks
-const albumTracks = processedData.filter(track => {
-  // First, check for artist match
-  const artistMatch = track.artist === album.artist;
-  if (!artistMatch) return false;
+// Normalize trackCount and add top track info
+return filteredAlbums.map(album => {
+  // Enhanced matching for finding top tracks
+  const albumTracks = processedData.filter(track => {
+    // Skip tracks with no album name
+    if (!track.albumName) return false;
+    
+    // Normalize album names for comparison
+    const trackAlbumName = (track.albumName || '').toLowerCase().trim();
+    const thisAlbumName = (album.name || '').toLowerCase().trim();
+    
+    // 1. Exact match after normalization
+    if (trackAlbumName === thisAlbumName) return true;
+    
+    // 2. One contains the other (for handling "Album" vs "Album (Deluxe Edition)")
+    if (trackAlbumName.includes(thisAlbumName) || thisAlbumName.includes(trackAlbumName)) return true;
+    
+    // 3. Special handling for uppercase album names
+    if (album.name === album.name.toUpperCase() && 
+        track.albumName.toUpperCase() === album.name) {
+      return true;
+    }
+    
+    // 4. Handle all-uppercase vs. normal capitalization cases
+    const trackUpperCase = track.albumName.toUpperCase();
+    const albumUpperCase = album.name.toUpperCase();
+    if (trackUpperCase === albumUpperCase) return true;
+    
+    // 5. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
+    const cleanTrackAlbum = trackAlbumName
+      .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
+      .trim();
+    const cleanAlbum = thisAlbumName
+      .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
+      .trim();
+    
+    if (cleanTrackAlbum === cleanAlbum) return true;
+    
+    // 6. Check for significant word overlap (useful for albums with subtitles)
+    const trackWords = cleanTrackAlbum.split(/\s+/);
+    const albumWords = cleanAlbum.split(/\s+/);
+    
+    // If both names have multiple words, check if they share at least half of them
+    if (trackWords.length > 1 && albumWords.length > 1) {
+      const commonWords = trackWords.filter(word => albumWords.includes(word));
+      const matchRatio = commonWords.length / Math.min(trackWords.length, albumWords.length);
+      if (matchRatio >= 0.5) return true;
+    }
+    
+    return false;
+  });
   
-  // Skip tracks with no album name
-  if (!track.albumName) return false;
-  
-  // Normalize album names for comparison
-  const trackAlbumName = (track.albumName || '').toLowerCase().trim();
-  const thisAlbumName = (album.name || '').toLowerCase().trim();
-  
-  // 1. Exact match after normalization
-  if (trackAlbumName === thisAlbumName) return true;
-  
-  // 2. One contains the other (for handling "Album" vs "Album (Deluxe Edition)")
-  if (trackAlbumName.includes(thisAlbumName) || thisAlbumName.includes(trackAlbumName)) return true;
-  
-  // 3. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
-  const cleanTrackAlbum = trackAlbumName
-    .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
-    .trim();
-  const cleanAlbum = thisAlbumName
-    .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
-    .trim();
-  
-  if (cleanTrackAlbum === cleanAlbum) return true;
-  
-  // 4. Check for significant word overlap (useful for albums with subtitles)
-  const trackWords = cleanTrackAlbum.split(/\s+/);
-  const albumWords = cleanAlbum.split(/\s+/);
-  
-  // If both names have multiple words, check if they share at least half of them
-  if (trackWords.length > 1 && albumWords.length > 1) {
-    const commonWords = trackWords.filter(word => albumWords.includes(word));
-    const matchRatio = commonWords.length / Math.min(trackWords.length, albumWords.length);
-    if (matchRatio >= 0.5) return true;
+  // Add debugging for albums that don't match any tracks
+  if (albumTracks.length === 0) {
+    console.log('No tracks found for:', {
+      albumName: album.name,
+      artist: album.artist,
+      // List a few available tracks by this artist for comparison
+      artistTracks: processedData
+        .filter(t => t.artist === album.artist)
+        .slice(0, 3)  // Just show first 3 to keep the log manageable
+        .map(t => ({ 
+          trackName: t.trackName, 
+          albumName: t.albumName 
+        }))
+    });
   }
   
-  return false;
-});
-
-// Add debugging for albums that don't match any tracks
-if (albumTracks.length === 0) {
-  console.log('No tracks found for:', {
-    albumName: album.name,
-    artist: album.artist,
-    // List a few available tracks by this artist for comparison
-    artistTracks: processedData
-      .filter(t => t.artist === album.artist)
-      .slice(0, 3)  // Just show first 3 to keep the log manageable
-      .map(t => ({ 
-        trackName: t.trackName, 
-        albumName: t.albumName 
-      }))
-  });
-}
-
-// Add debugging for albums that don't match any tracks
-if (albumTracks.length === 0) {
-  console.log('No tracks found for:', {
-    albumName: album.name,
-    artist: album.artist,
-    // List a few available tracks by this artist for comparison
-    artistTracks: processedData
-      .filter(t => t.artist === album.artist)
-      .slice(0, 3)  // Just show first 3 to keep the log manageable
-      .map(t => ({ 
-        trackName: t.trackName, 
-        albumName: t.albumName 
-      }))
-  });
-}
-
-const topTrack = albumTracks.length > 0 
-  ? albumTracks.reduce((max, track) => 
-      track.totalPlayed > max.totalPlayed ? track : max, 
-      albumTracks[0]
-    )
-  : null;
+  // Get the top track based on most listening time
+  const topTrack = albumTracks.length > 0 
+    ? albumTracks.reduce((max, track) => 
+        track.totalPlayed > max.totalPlayed ? track : max, 
+        albumTracks[0]
+      )
+    : null;
+  
+  // Try to find a fallback track by this artist if no album match
+  let fallbackTopTrack = null;
+  if (!topTrack) {
+    const artistTracks = processedData.filter(track => 
+      track.artist === album.artist
+    );
     
-    return {
-      ...album,
-      trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-        ? album.trackCount.size 
-        : (typeof album.trackCount === 'number' ? album.trackCount : 0),
-      topTrack // Add this property
-    };
-  });
+    if (artistTracks.length > 0) {
+      fallbackTopTrack = artistTracks.reduce((max, track) => 
+        track.totalPlayed > max.totalPlayed ? track : max, 
+        artistTracks[0]
+      );
+    }
+  }
+  
+  // Use the album track if available, otherwise use fallback
+  const displayTrack = topTrack || fallbackTopTrack;
+  
+  return {
+    ...album,
+    trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+      ? album.trackCount.size 
+      : (typeof album.trackCount === 'number' ? album.trackCount : 0),
+    topTrack: displayTrack,
+    isArtistFallback: !topTrack && !!fallbackTopTrack
+  };
+});
 }, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData]);
 
   // Toggle a service in the selection
