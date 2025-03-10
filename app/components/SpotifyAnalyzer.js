@@ -243,6 +243,7 @@ const displayedAlbums = useMemo(() => {
   
   // Normalize trackCount and add top track info
   return filteredAlbums.map(album => {
+
 // Enhanced matching for finding top tracks
 const albumTracks = processedData.filter(track => {
   // First, check for artist match
@@ -262,18 +263,7 @@ const albumTracks = processedData.filter(track => {
   // 2. One contains the other (for handling "Album" vs "Album (Deluxe Edition)")
   if (trackAlbumName.includes(thisAlbumName) || thisAlbumName.includes(trackAlbumName)) return true;
   
-  // 3. Special handling for uppercase album names - compare without case sensitivity
-  if (album.name === album.name.toUpperCase() && 
-      track.albumName.toUpperCase() === album.name) {
-    return true;
-  }
-  
-  // 4. Handle all-uppercase vs. normal capitalization cases
-  const trackUpperCase = track.albumName.toUpperCase();
-  const albumUpperCase = album.name.toUpperCase();
-  if (trackUpperCase === albumUpperCase) return true;
-  
-  // 5. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
+  // 3. Remove common words like "Edition", "Deluxe", "Remastered" and compare again
   const cleanTrackAlbum = trackAlbumName
     .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version)(\)|\])?/gi, '')
     .trim();
@@ -283,7 +273,7 @@ const albumTracks = processedData.filter(track => {
   
   if (cleanTrackAlbum === cleanAlbum) return true;
   
-  // 6. Check for significant word overlap (useful for albums with subtitles)
+  // 4. Check for significant word overlap (useful for albums with subtitles)
   const trackWords = cleanTrackAlbum.split(/\s+/);
   const albumWords = cleanAlbum.split(/\s+/);
   
@@ -296,6 +286,22 @@ const albumTracks = processedData.filter(track => {
   
   return false;
 });
+
+// Add debugging for albums that don't match any tracks
+if (albumTracks.length === 0) {
+  console.log('No tracks found for:', {
+    albumName: album.name,
+    artist: album.artist,
+    // List a few available tracks by this artist for comparison
+    artistTracks: processedData
+      .filter(t => t.artist === album.artist)
+      .slice(0, 3)  // Just show first 3 to keep the log manageable
+      .map(t => ({ 
+        trackName: t.trackName, 
+        albumName: t.albumName 
+      }))
+  });
+}
 
 // Add debugging for albums that don't match any tracks
 if (albumTracks.length === 0) {
@@ -1103,12 +1109,7 @@ const topTrack = albumTracks.length > 0
             // Find top track for this album using more robust matching
             // Look for tracks that match both artist and album, with some flexibility
             const albumTracks = processedData.filter(track => {
-             // Add this to your artist matching section
-const artistMatch = track.artist === album.artist || 
-                    // Handle MGK case specifically
-                    (album.artist.toLowerCase() === "mgk" && 
-                     (track.artist.toLowerCase() === "machine gun kelly" || 
-                      track.artist.toLowerCase().includes("mgk")));
+              const artistMatch = track.artist === album.artist;
               
               // More flexible album name matching
               const trackAlbumName = (track.albumName || '').toLowerCase().trim();
