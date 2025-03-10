@@ -1175,12 +1175,13 @@ return filteredAlbums.map(album => {
                 <div className="text-sm text-pink-400">
                   Artist: <span className="font-bold">{album.artist}</span> 
                   <br/>
-          Top Track: <span className="font-bold">
+ Top Track: <span className="font-bold">
   {album.topTrack 
     ? `${album.topTrack.trackName} (${formatDuration(album.topTrack.totalPlayed)})` 
     : "No track data"
   }
 </span>
+
                   <br/>
                   Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
                   <br/>
