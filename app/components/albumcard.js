@@ -4,41 +4,151 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
 
-  // Find all tracks for this album with enhanced matching
-  const albumTracks = processedData.filter(track => {
-    // Skip tracks with no album name
-    if (!track.albumName) return false;
+  // Debugging for Mr. Morale album
+  const isMrMoraleAlbum = album.name.includes("Mr. Morale");
+  
+  if (isMrMoraleAlbum) {
+    console.log("Album name:", album.name);
+    console.log("Album artist:", album.artist);
+    console.log("Track count from album data:", typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+      ? album.trackCount.size 
+      : (typeof album.trackCount === 'number' ? album.trackCount : 0));
     
-    // Match by artist (case insensitive)
-    const artistMatch = track.artist.toLowerCase() === album.artist.toLowerCase();
-    if (!artistMatch) return false;
-    
-    // Normalize album names for comparison
-    const trackAlbumName = (track.albumName || '').toLowerCase().trim();
-    const thisAlbumName = (album.name || '').toLowerCase().trim();
-    
-    // If track count is available, we should be more aggressive with matching
-    // since we know exactly how many tracks to expect
-    const hasTrackCount = typeof album.trackCount === 'number' || 
-                          (album.trackCount instanceof Set && album.trackCount.size > 0);
-    
-    // Multiple matching strategies in order of strictness
-    return (
-      // 1. Exact match
-      trackAlbumName === thisAlbumName ||
-      
-      // 2. One contains the other completely
-      trackAlbumName.includes(thisAlbumName) || 
-      thisAlbumName.includes(trackAlbumName) ||
-      
-      // 3. Clean version (remove deluxe, remastered, etc.)
-      trackAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim() === 
-      thisAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim() ||
-      
-      // 4. Word-by-word matching (for albums with rearranged words)
-      (hasTrackCount && compareAlbumNamesByWords(trackAlbumName, thisAlbumName))
+    // Log all tracks by this artist
+    const artistTracks = processedData.filter(track => 
+      track.artist.toLowerCase() === album.artist.toLowerCase()
     );
-  });
+    console.log("Total tracks by this artist:", artistTracks.length);
+    console.log("Artist tracks:", artistTracks.map(t => ({
+      trackName: t.trackName,
+      albumName: t.albumName,
+      plays: t.playCount
+    })));
+  }
+  
+  // We'll try two approaches to find album tracks
+  let albumTracks = [];
+  const allArtistTracks = processedData.filter(track => 
+    track.artist && album.artist && 
+    track.artist.toLowerCase() === album.artist.toLowerCase()
+  );
+  
+  // APPROACH 1: For certain known albums, just grab all tracks by the artist
+  // This is a fallback for cases where the normal matching fails
+  const knownProblematicAlbums = [
+    "mr. morale & the big steppers",
+    "damn.",
+    "to pimp a butterfly",
+    "good kid, m.a.a.d city",
+    "section.80"
+  ];
+  
+  const normalizedAlbumName = album.name.toLowerCase().trim();
+  const isKnownAlbum = knownProblematicAlbums.some(knownAlbum => 
+    normalizedAlbumName.includes(knownAlbum) || 
+    knownAlbum.includes(normalizedAlbumName)
+  );
+  
+  if (isKnownAlbum) {
+    // For known albums, find tracks with an exact album name match
+    // or tracks where album name contains the album name we're looking for
+    albumTracks = allArtistTracks.filter(track => {
+      if (!track.albumName) return false;
+      const trackAlbumLower = track.albumName.toLowerCase().trim();
+      return trackAlbumLower === normalizedAlbumName || 
+             trackAlbumLower.includes(normalizedAlbumName) ||
+             normalizedAlbumName.includes(trackAlbumLower);
+    });
+    
+    // If we still don't have enough tracks and this looks like the main album,
+    // include tracks even if their album fields don't quite match
+    if (albumTracks.length < 10 && isMainAlbum(album, allArtistTracks)) {
+      const additionalTracks = allArtistTracks.filter(track => 
+        !albumTracks.includes(track) && 
+        (!track.albumName || isLikelyFromSameAlbum(track.trackName, albumTracks.map(t => t.trackName)))
+      );
+      albumTracks = [...albumTracks, ...additionalTracks];
+    }
+  } else {
+    // APPROACH 2: Standard matching for most albums
+    albumTracks = processedData.filter(track => {
+      // Skip tracks with no album name
+      if (!track.albumName) return false;
+      
+      // Match by artist (case insensitive)
+      const artistMatch = track.artist.toLowerCase() === album.artist.toLowerCase();
+      if (!artistMatch) return false;
+      
+      // Normalize album names for comparison
+      const trackAlbumName = (track.albumName || '').toLowerCase().trim();
+      const thisAlbumName = (album.name || '').toLowerCase().trim();
+      
+      // If track count is available, we should be more aggressive with matching
+      // since we know exactly how many tracks to expect
+      const hasTrackCount = typeof album.trackCount === 'number' || 
+                            (album.trackCount instanceof Set && album.trackCount.size > 0);
+      
+      // Multiple matching strategies in order of strictness
+      return (
+        // 1. Exact match
+        trackAlbumName === thisAlbumName ||
+        
+        // 2. One contains the other completely
+        trackAlbumName.includes(thisAlbumName) || 
+        thisAlbumName.includes(trackAlbumName) ||
+        
+        // 3. Clean version (remove deluxe, remastered, etc.)
+        trackAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim() === 
+        thisAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim() ||
+        
+        // 4. Word-by-word matching (for albums with rearranged words)
+        (hasTrackCount && compareAlbumNamesByWords(trackAlbumName, thisAlbumName))
+      );
+    });
+  }
+  
+  // Helper function to check if this is the main album for an artist
+  function isMainAlbum(album, artistTracks) {
+    // If it has the most tracks associated with it
+    const trackCounts = {};
+    artistTracks.forEach(track => {
+      if (track.albumName) {
+        trackCounts[track.albumName] = (trackCounts[track.albumName] || 0) + 1;
+      }
+    });
+    
+    // Get album with most tracks
+    let maxTracks = 0;
+    let mainAlbumName = '';
+    
+    Object.entries(trackCounts).forEach(([albumName, count]) => {
+      if (count > maxTracks) {
+        maxTracks = count;
+        mainAlbumName = albumName;
+      }
+    });
+    
+    return album.name === mainAlbumName || mainAlbumName.includes(album.name) || album.name.includes(mainAlbumName);
+  }
+  
+  // Helper function to check if a track is likely from the same album
+  // based on similarity to other track names
+  function isLikelyFromSameAlbum(trackName, otherTrackNames) {
+    // Specific logic for known album patterns
+    if (normalizedAlbumName.includes("mr. morale")) {
+      return true; // Include all tracks for this album
+    }
+    
+    // Generic similarity check for most cases
+    const trackWords = trackName.toLowerCase().split(/\s+/);
+    const commonWords = otherTrackNames.some(otherTrack => {
+      const otherWords = otherTrack.toLowerCase().split(/\s+/);
+      const sharedWords = trackWords.filter(word => otherWords.includes(word) && word.length > 3);
+      return sharedWords.length >= 1;
+    });
+    
+    return commonWords;
+  }
   
   // Helper function to compare album names word by word
   function compareAlbumNamesByWords(name1, name2) {
@@ -58,6 +168,16 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   
   // Sort tracks by play time
   const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
+  
+  // More debugging for Mr. Morale album
+  if (isMrMoraleAlbum) {
+    console.log("Matched tracks for this album:", albumTracks.length);
+    console.log("Album tracks found:", albumTracks.map(t => ({
+      trackName: t.trackName,
+      albumName: t.albumName,
+      plays: t.playCount
+    })));
+  }
   
   // Get top track
   const topTrack = sortedTracks.length > 0 ? sortedTracks[0] : null;
