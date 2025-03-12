@@ -1,7 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 
-const AlbumCard = ({ album, index, processedData, formatDuration }) => {
+const AlbumCard = ({ 
+  album, 
+  index, 
+  processedData, 
+  formatDuration,
+  selectedAlbumYear = 'all',
+  isYearRangeMode = false,
+  yearRange = { startYear: '', endYear: '' }
+}) => {
   const [showTracks, setShowTracks] = useState(false);
 
   // Use album.trackObjects directly if available (from enhanced streaming adapter)
@@ -93,6 +101,10 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
     ? Math.min(100, Math.round((sortedTracks.length / normalizedTrackCount) * 100)) 
     : 0;
 
+  // Format the year range for display if in range mode
+  const yearRangeText = isYearRangeMode && yearRange.startYear && yearRange.endYear ? 
+    `${yearRange.startYear}-${yearRange.endYear}` : null;
+
   return (
     <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
       <div className="font-bold text-pink-600">{album.name}</div>
@@ -100,9 +112,30 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       <div className="text-sm text-pink-400">
         Artist: <span className="font-bold">{album.artist}</span> 
         <br/>
-        Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
-        <br/>
-        Plays: <span className="font-bold">{album.playCount}</span> 
+        {/* Show year-specific stats if available, otherwise show all-time stats */}
+        {album.yearTotalPlayed ? (
+          <>
+            {selectedAlbumYear} Time: <span className="font-bold">{formatDuration(album.yearTotalPlayed)}</span> 
+            <br/>
+            {selectedAlbumYear} Plays: <span className="font-bold">{album.yearPlayCount}</span> 
+            <br/>
+            All-time: <span className="text-pink-300">{formatDuration(album.totalPlayed)}</span>
+          </>
+        ) : album.rangeTotalPlayed ? (
+          <>
+            {yearRangeText} Time: <span className="font-bold">{formatDuration(album.rangeTotalPlayed)}</span> 
+            <br/>
+            {yearRangeText} Plays: <span className="font-bold">{album.rangePlayCount}</span> 
+            <br/>
+            All-time: <span className="text-pink-300">{formatDuration(album.totalPlayed)}</span>
+          </>
+        ) : (
+          <>
+            Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
+            <br/>
+            Plays: <span className="font-bold">{album.playCount}</span> 
+          </>
+        )}
         <br/>
         Tracks: <span className="font-bold">{sortedTracks.length} / {normalizedTrackCount || '?'}</span>
         {completenessPercentage > 0 && (
