@@ -1043,6 +1043,7 @@ return (
         index={index}
         processedData={processedData}
         formatDuration={formatDuration}
+        rawPlayData={rawPlayData}
       />
     ))}
   </div>
