@@ -850,14 +850,14 @@ entries.forEach(entry => {
   serviceListeningTime[service] += playTime;
 
   // Get the original track and artist names
-  const trackName = entry.master_metadata_track_name;
+  const originalTrackName = entry.master_metadata_track_name;
   const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
   
   // Apply our new normalizeTrackName function to get a standardized version
-  const normalizedTrackName = normalizeTrackName(trackName);
+  const normalizedTrackName = normalizeTrackName(originalTrackName);
   
   // Also use the existing normalizeString for compatibility
-  const { normalized: normTrack } = normalizeString(trackName);
+  const { normalized: normTrack } = normalizeString(originalTrackName);
   const { normalized: normArtist } = normalizeString(artistName);
   
   // Create an enhanced lookup key with our new normalization
@@ -866,7 +866,7 @@ entries.forEach(entry => {
   // Keep the original lookup key for backward compatibility
   let lookupKey = `${normTrack}|||${normArtist}`;
   
-  // Use the enhanced lookup key as primary, falling back to the original
+  // Use the enhanced lookup key as primary
   lookupKey = enhancedLookupKey;
     
     // Check if we have an ISRC for this entry, and use that for matching if available
