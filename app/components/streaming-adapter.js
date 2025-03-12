@@ -797,7 +797,11 @@ function normalizeTrackName(trackName) {
       const trackInfo = normalizeString(entry.master_metadata_track_name);
       const artistInfo = normalizeString(entry.master_metadata_album_artist_name || 'Unknown Artist');
       
-      const lookupKey = `${trackInfo.normalized}|||${artistInfo.normalized}`;
+    // Normalize track name with our enhanced function
+const enhancedNormTrack = normalizeTrackName(trackName);
+
+// Determine the lookup key
+let lookupKey = `${enhancedNormTrack}|||${normArtist}`;
       
       // Store feature artists in the lookup
       if (trackInfo.featureArtists && trackInfo.featureArtists.length > 0) {
@@ -826,34 +830,44 @@ function normalizeTrackName(trackName) {
     }
   });
   
-  // Second pass to process entries with consolidated information
-  entries.forEach(entry => {
-    const playTime = entry.ms_played;
-    
-    // Skip invalid entries
-    if (!entry.master_metadata_track_name || playTime < 30000) {
-      if (playTime < 30000) shortPlays++;
-      return;
-    }
+// Second pass to process entries with consolidated information
+entries.forEach(entry => {
+  const playTime = entry.ms_played;
+  
+  // Skip invalid entries
+  if (!entry.master_metadata_track_name || playTime < 30000) {
+    if (playTime < 30000) shortPlays++;
+    return;
+  }
 
-    processedSongs++;
-    totalListeningTime += playTime;
+  processedSongs++;
+  totalListeningTime += playTime;
 
-    const service = entry.source || 'unknown';
-    if (!serviceListeningTime[service]) {
-      serviceListeningTime[service] = 0;
-    }
-    serviceListeningTime[service] += playTime;
+  const service = entry.source || 'unknown';
+  if (!serviceListeningTime[service]) {
+    serviceListeningTime[service] = 0;
+  }
+  serviceListeningTime[service] += playTime;
 
-    const trackName = entry.master_metadata_track_name;
-    const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
-    
-    // Get normalized versions for lookups
-    const { normalized: normTrack } = normalizeString(trackName);
-    const { normalized: normArtist } = normalizeString(artistName);
-    
-    // Determine the lookup key
-    let lookupKey = `${normTrack}|||${normArtist}`;
+  // Get the original track and artist names
+  const trackName = entry.master_metadata_track_name;
+  const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
+  
+  // Apply our new normalizeTrackName function to get a standardized version
+  const normalizedTrackName = normalizeTrackName(trackName);
+  
+  // Also use the existing normalizeString for compatibility
+  const { normalized: normTrack } = normalizeString(trackName);
+  const { normalized: normArtist } = normalizeString(artistName);
+  
+  // Create an enhanced lookup key with our new normalization
+  const enhancedLookupKey = `${normalizedTrackName}|||${normArtist}`;
+  
+  // Keep the original lookup key for backward compatibility
+  let lookupKey = `${normTrack}|||${normArtist}`;
+  
+  // Use the enhanced lookup key as primary, falling back to the original
+  lookupKey = enhancedLookupKey;
     
     // Check if we have an ISRC for this entry, and use that for matching if available
     let matchKeyFromIsrc = null;
