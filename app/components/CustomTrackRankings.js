@@ -74,10 +74,6 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
           const isArtistMatch = selectedArtists.length === 0 || 
             selectedArtists.includes(entry.master_metadata_album_artist_name);
 
-          // Skip this entry if it doesn't match the artist filter and we're not including features
-          // or if we need to check features later
-          if (!isArtistMatch && !includeFeatures) continue;
-          
           // Extract feature artists
           let featureArtists = null;
           try {
@@ -95,8 +91,11 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
               )
             );
           
-          // Skip if no match on either main artist or features
-          if (selectedArtists.length > 0 && !isArtistMatch && !isFeatureMatch) continue;
+          // Skip if no match based on our filtering criteria
+          if ((selectedArtists.length > 0 && !isArtistMatch && !includeFeatures) || 
+              (selectedArtists.length > 0 && !isArtistMatch && !isFeatureMatch)) {
+            return; // Use return instead of continue to skip this iteration
+          }
           
           // Create a unique key for the track
           let key;
