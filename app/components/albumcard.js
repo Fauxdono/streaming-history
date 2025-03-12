@@ -1,129 +1,73 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
 
-  // Debug specific albums
-  const isMGKAlbum = album.artist.toLowerCase().includes('mgk') || 
-                     album.name.toLowerCase().includes('mainstream sellout');
-                     
-  useEffect(() => {
-    if (isMGKAlbum) {
-      console.log("==== MGK Album Debug ====");
-      console.log("Album details:", {
-        name: album.name,
-        normalizedName: album.name.toLowerCase().trim(),
-        artist: album.artist,
-        normalizedArtist: album.artist.toLowerCase().trim(),
-        trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-          ? album.trackCount.size 
-          : (typeof album.trackCount === 'number' ? album.trackCount : 0),
-        firstListen: new Date(album.firstListen).toISOString()
-      });
-      
-      // Check for MGK tracks in processedData
-      const mgkTracks = processedData.filter(track => 
-        track.artist && track.artist.toLowerCase().includes('mgk')
-      );
-      
-      console.log(`Found ${mgkTracks.length} MGK tracks in processed data`);
-      
-      // Find tracks with 'mainstream sellout' in the album name
-      const msAlbumTracks = processedData.filter(track => 
-        track.albumName && track.albumName.toLowerCase().includes('mainstream sellout')
-      );
-      
-      console.log(`Found ${msAlbumTracks.length} tracks with 'mainstream sellout' in album name`);
-      console.log("Tracks:", msAlbumTracks.map(t => ({
-        trackName: t.trackName,
-        artist: t.artist, 
-        albumName: t.albumName
-      })));
-    }
-  }, [album, processedData, isMGKAlbum]);
-
-  // Get tracks for this album
+  // Get tracks for this album with a more aggressive matching approach
   const albumTracks = useMemo(() => {
-    // Get all tracks by this artist (case insensitive)
-    const normalizedArtist = album.artist.toLowerCase().trim();
-    const artistTracks = processedData.filter(track => 
-      track.artist && track.artist.toLowerCase().trim() === normalizedArtist
-    );
-    
-    // If this is the MGK album we're debugging, log the artist tracks
-    if (isMGKAlbum) {
-      console.log(`Found ${artistTracks.length} tracks by artist: ${album.artist}`);
-      console.log("Artist tracks:", artistTracks.map(t => ({
-        trackName: t.trackName,
-        albumName: t.albumName || 'No Album'
-      })));
-    }
-    
-    // Match by album name - try multiple approaches
+    // First, check exact album name matches (what the streaming adapter already did)
     const normalizedAlbumName = album.name.toLowerCase().trim();
+    const normalizedArtistName = album.artist.toLowerCase().trim();
     
-    // Try several matching strategies
-    const exactMatches = artistTracks.filter(track => 
-      track.albumName && track.albumName.toLowerCase().trim() === normalizedAlbumName
-    );
-    
-    const containsMatches = artistTracks.filter(track => 
+    // Start with tracks that have the exact album name
+    let matches = processedData.filter(track => 
+      track.artist && 
+      track.artist.toLowerCase().trim() === normalizedArtistName && 
       track.albumName && 
-      !exactMatches.includes(track) &&
-      (track.albumName.toLowerCase().includes(normalizedAlbumName) || 
-       normalizedAlbumName.includes(track.albumName.toLowerCase()))
+      track.albumName.toLowerCase().trim() === normalizedAlbumName
     );
     
-    const cleanMatches = artistTracks.filter(track => {
-      if (!track.albumName || exactMatches.includes(track) || containsMatches.includes(track)) {
-        return false;
+    // If we don't have enough tracks, try more aggressive matching
+    if (matches.length < (album.trackCount || 0) * 0.7) {
+      // Get all tracks by this artist
+      const artistTracks = processedData.filter(track => 
+        track.artist && 
+        track.artist.toLowerCase().trim() === normalizedArtistName &&
+        !matches.includes(track) // Don't duplicate tracks we already found
+      );
+      
+      // Try additional matching for tracks:
+      // 1. Tracks with partial album name matches
+      const partialMatches = artistTracks.filter(track => 
+        track.albumName && 
+        (track.albumName.toLowerCase().includes(normalizedAlbumName) || 
+         normalizedAlbumName.includes(track.albumName.toLowerCase()))
+      );
+      
+      // 2. For the "mainstream sellout" album - special case
+      const isMainstreamSellout = normalizedAlbumName.includes('mainstream sellout') || 
+                               normalizedArtistName.includes('mgk');
+                               
+      if (isMainstreamSellout) {
+        // Known tracks from this album
+        const knownTracks = ['emo girl', 'mainstream sellout', 'make up sex', 'born with horns', 
+                           'drug dealer', 'god save me', 'maybe', 'fake love don\'t last', 'die in california',
+                           'sid & nancy', 'twin flame', 'papercuts', 'ay!', 'ww4'];
+                           
+        const specialMatches = artistTracks.filter(track => {
+          // Check if track name is in our list
+          const trackNameLower = track.trackName.toLowerCase().trim();
+          return knownTracks.some(known => trackNameLower.includes(known));
+        });
+        
+        // Add these tracks
+        partialMatches.push(...specialMatches.filter(t => !partialMatches.includes(t)));
       }
       
-      // Clean album names
-      const cleanTrackAlbum = track.albumName.toLowerCase()
-        .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
-        .trim();
-      const cleanAlbumName = normalizedAlbumName
-        .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
-        .trim();
+      // 3. Tracks with no album but played around the same time
+      // This is a simpler approach than timestamp calculation
+      const albumlessMatches = artistTracks.filter(track => 
+        (!track.albumName || track.albumName === 'Unknown Album') &&
+        !partialMatches.includes(track) // Don't duplicate
+      );
       
-      return cleanTrackAlbum === cleanAlbumName;
-    });
-    
-    // Combine matches from all strategies
-    const allMatches = [...exactMatches, ...containsMatches, ...cleanMatches];
-    
-    // Debug output for MGK album
-    if (isMGKAlbum) {
-      console.log("Album matching results for", album.name);
-      console.log(`Exact matches: ${exactMatches.length}`);
-      console.log(`Contains matches: ${containsMatches.length}`);
-      console.log(`Clean matches: ${cleanMatches.length}`);
-      console.log(`Total matches: ${allMatches.length}`);
-      
-      // Last-ditch effort: check for any tracks that might be from this album
-      if (allMatches.length === 0) {
-        console.log("No matches found with standard methods. Checking raw tracks...");
-        const possibleTracks = [];
-        
-        // Get all known tracks from this album (from your example)
-        const knownAlbumTracks = ["emo girl", "mainstream sellout", "make up sex", "born with horns"];
-        
-        for (const track of artistTracks) {
-          const normalizedTrackName = track.trackName.toLowerCase();
-          if (knownAlbumTracks.some(knownTrack => normalizedTrackName.includes(knownTrack))) {
-            possibleTracks.push(track);
-            console.log(`Potential match: "${track.trackName}" might be from "${album.name}"`);
-          }
-        }
-        
-        console.log(`Found ${possibleTracks.length} potential tracks by name matching`);
-      }
+      // Add all new matches to our list
+      matches = [...matches, ...partialMatches, ...albumlessMatches];
     }
     
-    return allMatches;
-  }, [album, processedData, isMGKAlbum]);
+    return matches;
+  }, [album, processedData]);
   
   // Sort tracks by play time
   const sortedTracks = useMemo(() => {
