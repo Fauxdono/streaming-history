@@ -709,7 +709,7 @@ function calculatePlayStats(entries) {
   // Simple track map for combining same tracks
   const trackMap = {};
   
-  // Track album information by track/artist combination
+  // Track album information by track/artist combination - ENHANCED
   const albumLookup = {};
   
   // Track feature artists by track/artist combination
@@ -720,31 +720,60 @@ function calculatePlayStats(entries) {
   
   // Create a track-to-album mapping from Spotify entries first
   const trackToAlbumMap = new Map();
+  
+  // NEW: Create an album-to-track mapping to improve album track association
+  const albumToTracksMap = new Map();
 
-  // First pass - collect all Spotify album information
+  // First pass - collect all Spotify album information with IMPROVED normalization
   entries.forEach(entry => {
-    if (entry.source === 'spotify' && 
-        entry.master_metadata_track_name && 
-        entry.master_metadata_album_artist_name && 
-        entry.master_metadata_album_album_name) {
+    if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name) {
+      // Extract album name if available
+      const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
       
-      const trackName = entry.master_metadata_track_name.toLowerCase().trim();
-      const artistName = entry.master_metadata_album_artist_name.toLowerCase().trim();
-      const albumName = entry.master_metadata_album_album_name;
-      
-      // Create a key that identifies this track regardless of source
-      const trackKey = `${trackName}|||${artistName}`;
-      
-      // Store the album information for this track
-      trackToAlbumMap.set(trackKey, {
-        albumName: albumName,
-        normalizedAlbumName: albumName.toLowerCase().trim(),
-        source: 'spotify'
-      });
+      // Store track-to-album mapping regardless of source (not just Spotify)
+      if (albumName !== 'Unknown Album') {
+        const trackName = entry.master_metadata_track_name.toLowerCase().trim();
+        const artistName = entry.master_metadata_album_artist_name.toLowerCase().trim();
+        
+        // Create a key that identifies this track regardless of source
+        const trackKey = `${trackName}|||${artistName}`;
+        
+        // Store the album information for this track
+        trackToAlbumMap.set(trackKey, {
+          albumName: albumName,
+          normalizedAlbumName: normalizeAlbumName(albumName),
+          source: entry.source || 'unknown'
+        });
+        
+        // NEW: Also track which tracks belong to each album
+        const albumKey = `${normalizeAlbumName(albumName)}|||${artistName}`;
+        if (!albumToTracksMap.has(albumKey)) {
+          albumToTracksMap.set(albumKey, new Set());
+        }
+        albumToTracksMap.get(albumKey).add(trackName);
+      }
     }
   });
 
-  console.log(`Created track-to-album mapping with ${trackToAlbumMap.size} entries from Spotify`);
+  // Helper function for consistent album name normalization
+  function normalizeAlbumName(albumName) {
+    if (!albumName) return '';
+    return albumName.toLowerCase()
+      // Remove deluxe/special edition markers
+      .replace(/(\(|\[)?\s*(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\s*edition)?\s*(\)|\])?/gi, '')
+      // Remove years in parentheses like (2019) or [2019]
+      .replace(/(\(|\[)\s*\d{4}\s*(\)|\])/g, '')
+      // Remove feat. artist parts
+      .replace(/(\(|\[)?\s*feat\..*(\)|\])?/gi, '')
+      // Clean up remaining parentheses and brackets
+      .replace(/(\(|\[)\s*(\)|\])/g, '')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  console.log(`Created track-to-album mapping with ${trackToAlbumMap.size} entries`);
+  console.log(`Created album-to-tracks mapping with ${albumToTracksMap.size} albums`);
   
   // First pass to collect album info and ISRCs
   entries.forEach(entry => {
@@ -826,7 +855,7 @@ function calculatePlayStats(entries) {
     // Use ISRC-derived key if available, otherwise use our standard key
     const finalLookupKey = matchKeyFromIsrc || lookupKey;
     
-    // ALBUM NAME DETERMINATION - IMPROVED VERSION
+    // ALBUM NAME DETERMINATION - ENHANCED VERSION
     // Determine the album name using several sources in order of priority
     let albumName = 'Unknown Album';
     
@@ -906,12 +935,17 @@ function calculatePlayStats(entries) {
       }
     }
 
-    // Album stats
+    // ENHANCED Album stats with improved track association
     if (albumName && artistName) {
-      // Create a normalized album key for consistent lookups
-      const normalizedAlbumName = albumName.toLowerCase().trim();
+      // Use consistent normalization for the album key
+      const normalizedAlbumName = normalizeAlbumName(albumName);
       const normalizedArtistName = artistName.toLowerCase().trim();
       const albumKey = `${normalizedAlbumName}-${normalizedArtistName}`;
+      
+      // Get the expected track count from the album-to-tracks mapping
+      const fullAlbumKey = `${normalizedAlbumName}|||${normalizedArtistName}`;
+      const expectedTrackCount = albumToTracksMap.has(fullAlbumKey) ? 
+                               albumToTracksMap.get(fullAlbumKey).size : 0;
       
       if (!albumStats[albumKey]) {
         albumStats[albumKey] = {
@@ -920,12 +954,49 @@ function calculatePlayStats(entries) {
           totalPlayed: 0,
           playCount: 0,
           trackCount: new Set(),
-          firstListen: timestamp.getTime()
+          trackNames: new Set(), // Store actual track names
+          trackObjects: [], // NEW: Store track objects for sorting
+          expectedTrackCount: expectedTrackCount,
+          firstListen: timestamp.getTime(),
+          isComplete: false // Track if we have all expected tracks
         };
       }
+      
       albumStats[albumKey].totalPlayed += playTime;
       albumStats[albumKey].playCount++;
       albumStats[albumKey].trackCount.add(normTrack);
+      albumStats[albumKey].trackNames.add(trackName);
+      
+      // Add this track to the trackObjects array if not already present
+      const existingTrackIndex = albumStats[albumKey].trackObjects.findIndex(
+        t => t.trackName === trackName
+      );
+      
+      if (existingTrackIndex === -1) {
+        // Track not in array yet, add it
+        albumStats[albumKey].trackObjects.push({
+          trackName,
+          artist: artistName,
+          totalPlayed: playTime,
+          playCount: 1,
+          albumName
+        });
+      } else {
+        // Update existing track stats
+        albumStats[albumKey].trackObjects[existingTrackIndex].totalPlayed += playTime;
+        albumStats[albumKey].trackObjects[existingTrackIndex].playCount++;
+      }
+      
+      // Update expected track count if we have more tracks than expected
+      if (albumStats[albumKey].trackCount.size > albumStats[albumKey].expectedTrackCount) {
+        albumStats[albumKey].expectedTrackCount = albumStats[albumKey].trackCount.size;
+      }
+      
+      // Mark as complete if we've found all expected tracks
+      if (expectedTrackCount > 0 && albumStats[albumKey].trackCount.size >= expectedTrackCount) {
+        albumStats[albumKey].isComplete = true;
+      }
+      
       albumStats[albumKey].firstListen = Math.min(
         albumStats[albumKey].firstListen, 
         timestamp.getTime()
@@ -969,6 +1040,20 @@ function calculatePlayStats(entries) {
         featureArtists,
         isrc: entry.master_metadata_external_ids?.isrc || entry.isrc
       };
+    }
+  });
+
+  // NEW: Final processing to ensure albumStats has sorted track lists
+  Object.values(albumStats).forEach(album => {
+    // Sort tracks by total played time
+    album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+    
+    // Ensure trackCount is converted to a number for easier use
+    if (album.trackCount instanceof Set) {
+      album.trackCountValue = album.trackCount.size;
+    } else {
+      album.trackCountValue = typeof album.trackCount === 'number' ? 
+                            album.trackCount : album.trackCount.size;
     }
   });
 
