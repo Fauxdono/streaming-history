@@ -772,9 +772,24 @@ function calculatePlayStats(entries) {
       .trim();
   }
 
+function normalizeTrackName(trackName) {
+  if (!trackName) return '';
+  return trackName.toLowerCase()
+    // Standardize interludes, skits, outros, intros
+    .replace(/\s*-\s*(interlude|skit|outro|intro)\s*$/i, ' ($1)')
+    .replace(/\s*\(\s*(interlude|skit|outro|intro)\s*\)\s*$/i, ' ($1)')
+    // Remove feat./ft. parts
+    .replace(/\s*(\(|\[)?\s*feat\..*(\)|\])?\s*$/i, '')
+    .replace(/\s*(\(|\[)?\s*ft\..*(\)|\])?\s*$/i, '')
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
   console.log(`Created track-to-album mapping with ${trackToAlbumMap.size} entries`);
   console.log(`Created album-to-tracks mapping with ${albumToTracksMap.size} albums`);
   
+
   // First pass to collect album info and ISRCs
   entries.forEach(entry => {
     if (entry.master_metadata_track_name) {
