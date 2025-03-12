@@ -206,207 +206,47 @@ const getAlbumsTabLabel = () => {
   return `${selectedAlbumYear} Albums`;
 };
 
-// Update the displayedAlbums useMemo in SpotifyAnalyzer.js
-
-// This is an updated version of the displayedAlbums useMemo function in SpotifyAnalyzer.js
-
-// This is a simpler, more direct fix to ensure albums like GNX show up in year views
-// Add this to the displayedAlbums useMemo function in SpotifyAnalyzer.js
+// Updated displayedAlbums useMemo function for SpotifyAnalyzer.js
 
 const displayedAlbums = useMemo(() => {
-  // 1. First filter albums by selected artists
-  const artistFilteredAlbums = selectedArtists.length > 0 
-    ? topAlbums.filter(album => selectedArtists.includes(album.artist))
-    : topAlbums;
-
-  // 2. Build a map of album play activity by year from raw data
-  // Key format: "Album Name|||Artist Name" => { 2024: {plays, time}, 2025: {plays, time}, ... }
-  const albumPlaysByYear = {};
-
-  // Process each track play
-  rawPlayData.forEach(entry => {
-    // Skip invalid entries
-    if (!entry.master_metadata_track_name || 
-        !entry.master_metadata_album_artist_name || 
-        entry.ms_played < 30000) {
-      return;
-    }
-
-    try {
-      // Parse timestamp carefully
-      const timestamp = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
-      if (isNaN(timestamp.getTime())) return; // Skip invalid dates
-      
-      const year = timestamp.getFullYear().toString();
-      const artist = entry.master_metadata_album_artist_name;
-      
-      // Be flexible with album name - use the one from the entry or "Unknown Album"
-      const albumName = entry.master_metadata_album_album_name || "Unknown Album";
-      
-      // Create consistent key for album lookup
-      const albumKey = `${albumName.toLowerCase().trim()}|||${artist.toLowerCase().trim()}`;
-      
-      // Initialize data structures if needed
-      if (!albumPlaysByYear[albumKey]) {
-        albumPlaysByYear[albumKey] = {};
-      }
-      
-      if (!albumPlaysByYear[albumKey][year]) {
-        albumPlaysByYear[albumKey][year] = {
-          playCount: 0,
-          totalPlayed: 0,
-          tracks: new Set()
-        };
-      }
-      
-      // Update play statistics
-      albumPlaysByYear[albumKey][year].playCount++;
-      albumPlaysByYear[albumKey][year].totalPlayed += entry.ms_played;
-      if (entry.master_metadata_track_name) {
-        albumPlaysByYear[albumKey][year].tracks.add(entry.master_metadata_track_name);
-      }
-    } catch (err) {
-      console.error("Error processing play data entry:", err);
-    }
-  });
-
-  // 3. Filter and enhance albums based on year selection
-  let result = [];
+  // Start with all albums
+  let filteredAlbums = topAlbums;
   
-  if (selectedAlbumYear !== 'all') {
-    // Single year mode
-    const year = selectedAlbumYear;
-    
-    // Filter albums that were played in this year
-    result = artistFilteredAlbums.filter(album => {
-      // Get normalized keys for lookup
-      const albumName = album.name.toLowerCase().trim();
-      const artistName = album.artist.toLowerCase().trim();
-      const albumKey = `${albumName}|||${artistName}`;
-      
-      // Also try variations of the album name for more robust matching
-      // This helps with albums that might be listed slightly differently
-      const possibleKeys = [
-        albumKey,
-        // Try without "deluxe", "expanded", etc.
-        `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`
-      ];
-      
-      // Check if any of the possible keys match an album played in this year
-      return possibleKeys.some(key => 
-        albumPlaysByYear[key] && 
-        albumPlaysByYear[key][year] && 
-        albumPlaysByYear[key][year].playCount > 0
-      );
-    });
-    
-    // Add year-specific play data to each album
-    result = result.map(album => {
-      // Get normalized keys for lookup
-      const albumName = album.name.toLowerCase().trim();
-      const artistName = album.artist.toLowerCase().trim();
-      const albumKey = `${albumName}|||${artistName}`;
-      
-      // Find the matching key if any
-      const matchingKey = [
-        albumKey,
-        `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`
-      ].find(key => 
-        albumPlaysByYear[key] && 
-        albumPlaysByYear[key][year]
-      );
-      
-      // Get year data if we found a match
-      const yearData = matchingKey && albumPlaysByYear[matchingKey][year] 
-        ? albumPlaysByYear[matchingKey][year] 
-        : { playCount: 0, totalPlayed: 0 };
-      
-      // Return enhanced album with year data
-      return {
-        ...album,
-        yearPlayCount: yearData.playCount,
-        yearTotalPlayed: yearData.totalPlayed,
-        yearTracks: yearData.tracks ? yearData.tracks.size : 0
-      };
-    });
-    
-    // Sort by play count in this specific year
-    result.sort((a, b) => b.yearTotalPlayed - a.yearTotalPlayed);
-  } 
-  else if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+  // Filter by selected artists if any
+  if (selectedArtists.length > 0) {
+    filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
+  }
+  
+  // Year filtering
+  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
     // Year range mode
     const startYear = parseInt(albumYearRange.startYear);
     const endYear = parseInt(albumYearRange.endYear);
     
-    // Get all years in the range
-    const yearsInRange = [];
-    for (let y = startYear; y <= endYear; y++) {
-      yearsInRange.push(y.toString());
-    }
-    
-    // Filter albums that were played in any year within the range
-    result = artistFilteredAlbums.filter(album => {
-      const albumName = album.name.toLowerCase().trim();
-      const artistName = album.artist.toLowerCase().trim();
-      const albumKey = `${albumName}|||${artistName}`;
-      
-      // Also try with a cleaned album name
-      const cleanedAlbumKey = `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`;
-      
-      // Check both keys against all years in the range
-      return yearsInRange.some(year => {
-        return (albumPlaysByYear[albumKey] && 
-                albumPlaysByYear[albumKey][year] && 
-                albumPlaysByYear[albumKey][year].playCount > 0) ||
-               (albumPlaysByYear[cleanedAlbumKey] && 
-                albumPlaysByYear[cleanedAlbumKey][year] && 
-                albumPlaysByYear[cleanedAlbumKey][year].playCount > 0);
-      });
+    filteredAlbums = filteredAlbums.filter(album => {
+      const albumDate = new Date(album.firstListen);
+      const albumYear = albumDate.getFullYear();
+      return albumYear >= startYear && albumYear <= endYear;
     });
+  } else if (selectedAlbumYear !== 'all') {
+    // Single year mode
+    const year = parseInt(selectedAlbumYear);
     
-    // Add range-specific play data to each album
-    result = result.map(album => {
-      const albumName = album.name.toLowerCase().trim();
-      const artistName = album.artist.toLowerCase().trim();
-      const albumKey = `${albumName}|||${artistName}`;
-      const cleanedAlbumKey = `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`;
-      
-      // Track total plays across the years in range
-      let rangePlayCount = 0;
-      let rangeTotalPlayed = 0;
-      
-      // Check each year in the range
-      yearsInRange.forEach(year => {
-        // Try both keys
-        [albumKey, cleanedAlbumKey].forEach(key => {
-          if (albumPlaysByYear[key] && albumPlaysByYear[key][year]) {
-            rangePlayCount += albumPlaysByYear[key][year].playCount;
-            rangeTotalPlayed += albumPlaysByYear[key][year].totalPlayed;
-          }
-        });
-      });
-      
-      return {
-        ...album,
-        rangePlayCount,
-        rangeTotalPlayed
-      };
+    filteredAlbums = filteredAlbums.filter(album => {
+      const albumDate = new Date(album.firstListen);
+      const albumYear = albumDate.getFullYear();
+      return albumYear === year;
     });
-    
-    // Sort by total play time within the range
-    result.sort((a, b) => b.rangeTotalPlayed - a.rangeTotalPlayed);
-  } 
-  else {
-    // All-time mode - just use the artist-filtered albums
-    result = artistFilteredAlbums;
   }
-
-  // 4. Enhance remaining albums with track data (same as before)
-  return result.map(album => {
+  // For 'all', we keep all albums from topAlbums
+  
+  // Enhance albums with proper track counts and pre-collected track data
+  return filteredAlbums.map(album => {
     // Ensure trackCount is properly formatted
-    const trackCountValue = album.trackCount instanceof Set 
-      ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 0);
+    const trackCountValue = album.trackCountValue || 
+      (album.trackCount instanceof Set 
+        ? album.trackCount.size 
+        : (typeof album.trackCount === 'number' ? album.trackCount : 0));
     
     // Check if we have enhanced trackObjects data from the streaming adapter
     if (!album.trackObjects || !Array.isArray(album.trackObjects)) {
@@ -422,7 +262,7 @@ const displayedAlbums = useMemo(() => {
       // Return the enhanced album object
       return {
         ...album,
-        trackCount: trackCountValue,
+        trackCount: typeof album.trackCount === 'object' ? album.trackCount.size : album.trackCount,
         trackCountValue,
         trackObjects: sortedTracks,
         topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
@@ -434,13 +274,13 @@ const displayedAlbums = useMemo(() => {
     
     return {
       ...album,
-      trackCount: trackCountValue,
+      trackCount: typeof album.trackCount === 'object' ? album.trackCount.size : album.trackCount,
       trackCountValue,
       trackObjects: sortedTracks,
       topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
     };
   });
-}, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData, rawPlayData]);
+}, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData]);
 
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
@@ -1076,7 +916,7 @@ const displayedAlbums = useMemo(() => {
           </div>
         )}
         
-{activeTab === 'albums' && (
+{{activeTab === 'albums' && (
   <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
     <div className="flex justify-between items-center mb-2">
       <h3 className="font-bold text-pink-700">
@@ -1156,78 +996,40 @@ const displayedAlbums = useMemo(() => {
       </div>
     </div>
     
-    {/* Filter albums directly in the render function */}
-    {(() => {
-      // Filter albums by artist
-      let filteredAlbums = selectedArtists.length > 0 
-        ? topAlbums.filter(album => selectedArtists.includes(album.artist))
-        : topAlbums;
-      
-      // Filter by year
-      if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-        const startYear = parseInt(albumYearRange.startYear);
-        const endYear = parseInt(albumYearRange.endYear);
-        
-        filteredAlbums = filteredAlbums.filter(album => {
-          const albumDate = new Date(album.firstListen);
-          const albumYear = albumDate.getFullYear();
-          return albumYear >= startYear && albumYear <= endYear;
-        });
-      } else if (selectedAlbumYear !== 'all') {
-        const year = parseInt(selectedAlbumYear);
-        
-        filteredAlbums = filteredAlbums.filter(album => {
-          const albumDate = new Date(album.firstListen);
-          const albumYear = albumDate.getFullYear();
-          return albumYear === year;
-        });
-      }
-      
-      // Display message if no albums found
-      if (filteredAlbums.length === 0) {
-        return (
-          <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
-            <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
-            <p className="text-pink-600 mt-2">
-              {albumYearRangeMode 
-                ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
-                : selectedAlbumYear !== 'all' 
-                  ? `No albums found for the year ${selectedAlbumYear}.`
-                  : "No album data available."}
-            </p>
-            <button
-              onClick={() => {
-                setAlbumYearRangeMode(false);
-                setSelectedAlbumYear('all');
-              }}
-              className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-            >
-              Show All Albums
-            </button>
-          </div>
-        );
-      }
-      
-      // Render albums grid
-    // Render albums grid
-return (
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-  {filteredAlbums.slice(0, topAlbumsCount).map((album, index) => (
-    <AlbumCard 
-      key={`${album.name}-${album.artist}`}
-      album={album}
-      index={index}
-      processedData={processedData}
-      formatDuration={formatDuration}
-      rawPlayData={rawPlayData}
-      selectedAlbumYear={selectedAlbumYear}
-      isYearRangeMode={albumYearRangeMode}
-      yearRange={albumYearRange}
-    />
-  ))}
-</div>
-      );
-    })()}
+    {/* Albums Display */}
+    {displayedAlbums.length === 0 ? (
+      <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
+        <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
+        <p className="text-pink-600 mt-2">
+          {albumYearRangeMode 
+            ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
+            : selectedAlbumYear !== 'all' 
+              ? `No albums found for the year ${selectedAlbumYear}.`
+              : "No album data available."}
+        </p>
+        <button
+          onClick={() => {
+            setAlbumYearRangeMode(false);
+            setSelectedAlbumYear('all');
+          }}
+          className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+        >
+          Show All Albums
+        </button>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
+          <AlbumCard 
+            key={`${album.name}-${album.artist}`}
+            album={album}
+            index={index}
+            processedData={processedData}
+            formatDuration={formatDuration}
+          />
+        ))}
+      </div>
+    )}
   </div>
 )}
         
