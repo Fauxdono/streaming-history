@@ -210,95 +210,180 @@ const getAlbumsTabLabel = () => {
 
 // This is an updated version of the displayedAlbums useMemo function in SpotifyAnalyzer.js
 
+// This is a simpler, more direct fix to ensure albums like GNX show up in year views
+// Add this to the displayedAlbums useMemo function in SpotifyAnalyzer.js
+
 const displayedAlbums = useMemo(() => {
-  // Get all albums
-  const allAlbums = topAlbums;
-  
-  // Filter by selected artists if any
+  // 1. First filter albums by selected artists
   const artistFilteredAlbums = selectedArtists.length > 0 
-    ? allAlbums.filter(album => selectedArtists.includes(album.artist))
-    : allAlbums;
-  
-  // Create a map of album play data by year
+    ? topAlbums.filter(album => selectedArtists.includes(album.artist))
+    : topAlbums;
+
+  // 2. Build a map of album play activity by year from raw data
+  // Key format: "Album Name|||Artist Name" => { 2024: {plays, time}, 2025: {plays, time}, ... }
   const albumPlaysByYear = {};
-  
-  // Process raw play data to identify when albums were played
+
+  // Process each track play
   rawPlayData.forEach(entry => {
-    // Skip entries with missing data or short plays
+    // Skip invalid entries
     if (!entry.master_metadata_track_name || 
         !entry.master_metadata_album_artist_name || 
         entry.ms_played < 30000) {
       return;
     }
-    
-    const timestamp = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
-    const year = timestamp.getFullYear().toString();
-    
-    // Skip invalid dates
-    if (isNaN(timestamp.getTime())) return;
-    
-    const artist = entry.master_metadata_album_artist_name;
-    const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-    
-    // Create a key for this album
-    const albumKey = `${albumName.toLowerCase().trim()}|||${artist.toLowerCase().trim()}`;
-    
-    // Initialize year data if needed
-    if (!albumPlaysByYear[year]) {
-      albumPlaysByYear[year] = {};
-    }
-    
-    // Initialize album data if needed
-    if (!albumPlaysByYear[year][albumKey]) {
-      albumPlaysByYear[year][albumKey] = {
-        playCount: 0,
-        totalPlayed: 0
-      };
-    }
-    
-    // Add this play to the album's data for this year
-    albumPlaysByYear[year][albumKey].playCount++;
-    albumPlaysByYear[year][albumKey].totalPlayed += entry.ms_played;
-  });
-  
-  // Filter albums based on the year selection
-  let filteredAlbums;
-  
-  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Year range mode - include albums with plays in any year within the range
-    const startYear = albumYearRange.startYear;
-    const endYear = albumYearRange.endYear;
-    const yearsInRange = [];
-    
-    // Create array of years in the range
-    for (let y = parseInt(startYear); y <= parseInt(endYear); y++) {
-      yearsInRange.push(y.toString());
-    }
-    
-    // Get albums that have plays in any year within the range
-    filteredAlbums = artistFilteredAlbums.filter(album => {
-      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
+
+    try {
+      // Parse timestamp carefully
+      const timestamp = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
+      if (isNaN(timestamp.getTime())) return; // Skip invalid dates
       
-      // Check if this album has plays in any year within the range
-      return yearsInRange.some(year => 
-        albumPlaysByYear[year] && 
-        albumPlaysByYear[year][albumKey] &&
-        albumPlaysByYear[year][albumKey].playCount > 0
+      const year = timestamp.getFullYear().toString();
+      const artist = entry.master_metadata_album_artist_name;
+      
+      // Be flexible with album name - use the one from the entry or "Unknown Album"
+      const albumName = entry.master_metadata_album_album_name || "Unknown Album";
+      
+      // Create consistent key for album lookup
+      const albumKey = `${albumName.toLowerCase().trim()}|||${artist.toLowerCase().trim()}`;
+      
+      // Initialize data structures if needed
+      if (!albumPlaysByYear[albumKey]) {
+        albumPlaysByYear[albumKey] = {};
+      }
+      
+      if (!albumPlaysByYear[albumKey][year]) {
+        albumPlaysByYear[albumKey][year] = {
+          playCount: 0,
+          totalPlayed: 0,
+          tracks: new Set()
+        };
+      }
+      
+      // Update play statistics
+      albumPlaysByYear[albumKey][year].playCount++;
+      albumPlaysByYear[albumKey][year].totalPlayed += entry.ms_played;
+      if (entry.master_metadata_track_name) {
+        albumPlaysByYear[albumKey][year].tracks.add(entry.master_metadata_track_name);
+      }
+    } catch (err) {
+      console.error("Error processing play data entry:", err);
+    }
+  });
+
+  // 3. Filter and enhance albums based on year selection
+  let result = [];
+  
+  if (selectedAlbumYear !== 'all') {
+    // Single year mode
+    const year = selectedAlbumYear;
+    
+    // Filter albums that were played in this year
+    result = artistFilteredAlbums.filter(album => {
+      // Get normalized keys for lookup
+      const albumName = album.name.toLowerCase().trim();
+      const artistName = album.artist.toLowerCase().trim();
+      const albumKey = `${albumName}|||${artistName}`;
+      
+      // Also try variations of the album name for more robust matching
+      // This helps with albums that might be listed slightly differently
+      const possibleKeys = [
+        albumKey,
+        // Try without "deluxe", "expanded", etc.
+        `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`
+      ];
+      
+      // Check if any of the possible keys match an album played in this year
+      return possibleKeys.some(key => 
+        albumPlaysByYear[key] && 
+        albumPlaysByYear[key][year] && 
+        albumPlaysByYear[key][year].playCount > 0
       );
     });
     
-    // Augment album data with specific range play counts
-    filteredAlbums = filteredAlbums.map(album => {
-      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
+    // Add year-specific play data to each album
+    result = result.map(album => {
+      // Get normalized keys for lookup
+      const albumName = album.name.toLowerCase().trim();
+      const artistName = album.artist.toLowerCase().trim();
+      const albumKey = `${albumName}|||${artistName}`;
+      
+      // Find the matching key if any
+      const matchingKey = [
+        albumKey,
+        `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`
+      ].find(key => 
+        albumPlaysByYear[key] && 
+        albumPlaysByYear[key][year]
+      );
+      
+      // Get year data if we found a match
+      const yearData = matchingKey && albumPlaysByYear[matchingKey][year] 
+        ? albumPlaysByYear[matchingKey][year] 
+        : { playCount: 0, totalPlayed: 0 };
+      
+      // Return enhanced album with year data
+      return {
+        ...album,
+        yearPlayCount: yearData.playCount,
+        yearTotalPlayed: yearData.totalPlayed,
+        yearTracks: yearData.tracks ? yearData.tracks.size : 0
+      };
+    });
+    
+    // Sort by play count in this specific year
+    result.sort((a, b) => b.yearTotalPlayed - a.yearTotalPlayed);
+  } 
+  else if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+    // Year range mode
+    const startYear = parseInt(albumYearRange.startYear);
+    const endYear = parseInt(albumYearRange.endYear);
+    
+    // Get all years in the range
+    const yearsInRange = [];
+    for (let y = startYear; y <= endYear; y++) {
+      yearsInRange.push(y.toString());
+    }
+    
+    // Filter albums that were played in any year within the range
+    result = artistFilteredAlbums.filter(album => {
+      const albumName = album.name.toLowerCase().trim();
+      const artistName = album.artist.toLowerCase().trim();
+      const albumKey = `${albumName}|||${artistName}`;
+      
+      // Also try with a cleaned album name
+      const cleanedAlbumKey = `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`;
+      
+      // Check both keys against all years in the range
+      return yearsInRange.some(year => {
+        return (albumPlaysByYear[albumKey] && 
+                albumPlaysByYear[albumKey][year] && 
+                albumPlaysByYear[albumKey][year].playCount > 0) ||
+               (albumPlaysByYear[cleanedAlbumKey] && 
+                albumPlaysByYear[cleanedAlbumKey][year] && 
+                albumPlaysByYear[cleanedAlbumKey][year].playCount > 0);
+      });
+    });
+    
+    // Add range-specific play data to each album
+    result = result.map(album => {
+      const albumName = album.name.toLowerCase().trim();
+      const artistName = album.artist.toLowerCase().trim();
+      const albumKey = `${albumName}|||${artistName}`;
+      const cleanedAlbumKey = `${albumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim()}|||${artistName}`;
+      
+      // Track total plays across the years in range
       let rangePlayCount = 0;
       let rangeTotalPlayed = 0;
       
-      // Sum up plays across all years in the range
+      // Check each year in the range
       yearsInRange.forEach(year => {
-        if (albumPlaysByYear[year] && albumPlaysByYear[year][albumKey]) {
-          rangePlayCount += albumPlaysByYear[year][albumKey].playCount;
-          rangeTotalPlayed += albumPlaysByYear[year][albumKey].totalPlayed;
-        }
+        // Try both keys
+        [albumKey, cleanedAlbumKey].forEach(key => {
+          if (albumPlaysByYear[key] && albumPlaysByYear[key][year]) {
+            rangePlayCount += albumPlaysByYear[key][year].playCount;
+            rangeTotalPlayed += albumPlaysByYear[key][year].totalPlayed;
+          }
+        });
       });
       
       return {
@@ -308,46 +393,16 @@ const displayedAlbums = useMemo(() => {
       };
     });
     
-    // Sort by play count within the range
-    filteredAlbums.sort((a, b) => b.rangeTotalPlayed - a.rangeTotalPlayed);
-    
-  } else if (selectedAlbumYear !== 'all') {
-    // Single year mode - only include albums with plays in the selected year
-    const year = selectedAlbumYear;
-    
-    // First check if we have data for this year
-    if (!albumPlaysByYear[year]) {
-      return []; // No plays in this year
-    }
-    
-    // Filter to albums that have plays in the selected year
-    filteredAlbums = artistFilteredAlbums.filter(album => {
-      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
-      return albumPlaysByYear[year][albumKey] && albumPlaysByYear[year][albumKey].playCount > 0;
-    });
-    
-    // Augment album data with specific year play counts
-    filteredAlbums = filteredAlbums.map(album => {
-      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
-      const yearData = albumPlaysByYear[year][albumKey] || { playCount: 0, totalPlayed: 0 };
-      
-      return {
-        ...album,
-        yearPlayCount: yearData.playCount,
-        yearTotalPlayed: yearData.totalPlayed
-      };
-    });
-    
-    // Sort by play count within the selected year
-    filteredAlbums.sort((a, b) => b.yearTotalPlayed - a.yearTotalPlayed);
-    
-  } else {
-    // All-time mode - use the default album data which is already sorted
-    filteredAlbums = artistFilteredAlbums;
+    // Sort by total play time within the range
+    result.sort((a, b) => b.rangeTotalPlayed - a.rangeTotalPlayed);
+  } 
+  else {
+    // All-time mode - just use the artist-filtered albums
+    result = artistFilteredAlbums;
   }
-  
-  // Enhance albums with proper track counts and pre-collected track data
-  return filteredAlbums.map(album => {
+
+  // 4. Enhance remaining albums with track data (same as before)
+  return result.map(album => {
     // Ensure trackCount is properly formatted
     const trackCountValue = album.trackCount instanceof Set 
       ? album.trackCount.size 
