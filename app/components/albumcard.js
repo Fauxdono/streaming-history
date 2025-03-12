@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Music, Info } from 'lucide-react';
 
 const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
-  // Comprehensive track matching with a universal approach
+  // Improved comprehensive track matching with a more robust approach
   const albumTracks = useMemo(() => {
+    if (!processedData || !album) return [];
+    
     // Normalize album and artist names for consistent matching
     const normalizedAlbumName = album.name.toLowerCase().trim();
     const normalizedArtistName = album.artist.toLowerCase().trim();
@@ -19,13 +22,11 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
     // Expected track count from album metadata
     const expectedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
       ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 15); // Default to 15 if unknown
+      : (typeof album.trackCount === 'number' ? album.trackCount : 0);
     
-    // MATCHING STRATEGY - Use multiple criteria to find album tracks
-    
-    // 1. Direct album name matches (exact and fuzzy)
+    // MATCHING STRATEGY
+    // 1. Direct album name matches
     const directMatches = artistTracks.filter(track => {
-      // Skip tracks with no album name
       if (!track.albumName) return false;
       
       const trackAlbumLower = track.albumName.toLowerCase().trim();
@@ -33,61 +34,50 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       // Exact match
       if (trackAlbumLower === normalizedAlbumName) return true;
       
-      // Significant substring match (to avoid false positives with short names)
-      const minMatchLength = 5; // Minimum characters to consider a substring match
-      if (normalizedAlbumName.length >= minMatchLength && trackAlbumLower.includes(normalizedAlbumName)) {
-        return true;
-      }
-      if (trackAlbumLower.length >= minMatchLength && normalizedAlbumName.includes(trackAlbumLower)) {
-        return true;
-      }
+      // Remove common qualifiers for better matching
+      const cleanTrackAlbum = trackAlbumLower
+        .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
+        .trim();
       
-      // Clean versions (removing deluxe, remastered, etc.)
-      const cleanTrackAlbum = trackAlbumLower.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
-      const cleanAlbumName = normalizedAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
+      const cleanAlbumName = normalizedAlbumName
+        .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
+        .trim();
       
+      // Clean match
       if (cleanTrackAlbum === cleanAlbumName) return true;
-      if (cleanTrackAlbum.includes(cleanAlbumName) || cleanAlbumName.includes(cleanTrackAlbum)) {
-        return true;
-      }
+      
+      // Substantial inclusion match (minimum 5 characters to avoid false positives)
+      if (cleanAlbumName.length >= 5 && cleanTrackAlbum.includes(cleanAlbumName)) return true;
+      if (cleanTrackAlbum.length >= 5 && cleanAlbumName.includes(cleanTrackAlbum)) return true;
       
       return false;
     });
     
-    // If we have enough matches, just return those
-    if (directMatches.length >= expectedTrackCount * 0.8) {
+    // If we have enough direct matches, we can rely on them
+    const sufficientDirectMatches = directMatches.length >= Math.max(3, Math.floor(expectedTrackCount * 0.5));
+    
+    if (sufficientDirectMatches) {
       return directMatches;
     }
     
-    // 2. Add tracks played in similar timeframes
+    // 2. Try time-based matching for albums with few direct matches
+    // Get the release timeframe of the album (when most tracks were first played)
+    let albumFirstListen = album.firstListen; // From album metadata
     
-    // Get the first listen timestamps for the already matched tracks
-    const matchListenTimes = directMatches
-      .map(track => {
-        // Extract timestamp data from the first time this track was played
-        const timePlayed = getApproximateFirstPlayTime(track, album.artist);
-        return timePlayed ? new Date(timePlayed).getTime() : null;
-      })
-      .filter(time => time !== null);
-    
-    // If we have enough timestamps, try to find other tracks played around the same time
+    // If we have at least one direct match, use their timestamps to find more tracks
     let timeBasedMatches = [];
-    if (matchListenTimes.length > 0) {
-      // Get average and range of timestamps of already matched tracks
-      const avgTime = matchListenTimes.reduce((sum, time) => sum + time, 0) / matchListenTimes.length;
-      const timeRange = {
-        min: Math.min(...matchListenTimes),
-        max: Math.max(...matchListenTimes)
-      };
+    if (directMatches.length > 0) {
+      // Get first listened timestamps
+      const timestamps = directMatches.map(track => {
+        const key = `${track.trackName}-${track.artist}`;
+        return album.firstListen; // Fallback to album firstListen time
+      });
       
-      // Expand the range to catch more potential tracks
-      const rangeExpansion = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
-      const expandedRange = {
-        min: timeRange.min - rangeExpansion,
-        max: timeRange.max + rangeExpansion
-      };
+      // Find min and max timestamps (with a 30 day window)
+      const minTimestamp = Math.min(...timestamps) - (30 * 24 * 60 * 60 * 1000);
+      const maxTimestamp = Math.max(...timestamps) + (30 * 24 * 60 * 60 * 1000);
       
-      // Find tracks played in similar timeframe
+      // Find tracks that might be from this album based on when they were first played
       timeBasedMatches = artistTracks.filter(track => {
         // Skip already matched tracks
         if (directMatches.includes(track)) return false;
@@ -97,60 +87,53 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
           return false;
         }
         
-        // Get approximate first play time
-        const trackTime = getApproximateFirstPlayTime(track, album.artist);
-        if (!trackTime) return false;
+        // Check if within the album's timeframe (use firstListen as approximate release date)
+        if (track.ts) {
+          const trackTimestamp = new Date(track.ts).getTime();
+          return trackTimestamp >= minTimestamp && trackTimestamp <= maxTimestamp;
+        }
         
-        // Check if this track was first played in our expanded timeframe
-        const trackTimeMs = new Date(trackTime).getTime();
-        return trackTimeMs >= expandedRange.min && trackTimeMs <= expandedRange.max;
+        return false;
       });
     }
     
-    // 3. If we're still missing too many tracks, add tracks with no album info
+    // 3. If we still have too few tracks, add tracks with no album info
+    const combinedMatches = [...directMatches, ...timeBasedMatches];
     let noAlbumMatches = [];
-    if (directMatches.length + timeBasedMatches.length < expectedTrackCount * 0.6) {
-      const remainingNeeded = expectedTrackCount - (directMatches.length + timeBasedMatches.length);
-      
-      // Get tracks with no album information
+    
+    if (expectedTrackCount > 0 && combinedMatches.length < Math.floor(expectedTrackCount * 0.6)) {
+      // Get tracks with no album information or with "Unknown Album"
       const albumlessTracks = artistTracks.filter(track => 
         (!track.albumName || track.albumName === 'Unknown Album') && 
-        !directMatches.includes(track) && 
-        !timeBasedMatches.includes(track)
+        !combinedMatches.includes(track)
       );
       
-      // Sort by play count to get the most likely candidates
-      const sortedAlbumless = [...albumlessTracks].sort((a, b) => b.playCount - a.playCount);
-      
-      // Take only as many as we need to reach our expected count
-      noAlbumMatches = sortedAlbumless.slice(0, Math.min(remainingNeeded, sortedAlbumless.length));
+      // Sort by play count to get most likely album tracks
+      noAlbumMatches = albumlessTracks
+        .sort((a, b) => b.playCount - a.playCount)
+        .slice(0, Math.min(expectedTrackCount - combinedMatches.length, albumlessTracks.length));
     }
     
-    // Combine all matches
-    return [...directMatches, ...timeBasedMatches, ...noAlbumMatches];
+    // Remove duplicates and combine all matches
+    const allMatches = [...directMatches, ...timeBasedMatches, ...noAlbumMatches];
     
-    // Helper function to estimate when a track was first played
-    function getApproximateFirstPlayTime(track, artistName) {
-      // This function would ideally use the raw play data
-      // For now, we'll approximate using the track's metadata
-      
-      // If the track has a first listen timestamp already, use that
-      if (track.firstListen) return track.firstListen;
-      
-      // Otherwise, search for the track in processed data and try to find earliest play
-      const artistTrackKey = `${track.trackName}-${artistName}`;
-      
-      // Since we don't have direct access to the play history here, 
-      // we'll use the track's metadata as an approximation
-      return null; // In practice, this would return a timestamp if available
-    }
+    // Create a map to deduplicate tracks by name (in case we have different versions)
+    const uniqueTracks = new Map();
+    allMatches.forEach(track => {
+      const trackName = track.trackName.toLowerCase().trim();
+      if (!uniqueTracks.has(trackName) || track.totalPlayed > uniqueTracks.get(trackName).totalPlayed) {
+        uniqueTracks.set(trackName, track);
+      }
+    });
     
-    // Helper to determine if two album names are definitely different
+    return Array.from(uniqueTracks.values());
+    
+    // Helper function to determine if two album names are definitely different
     function isDefinitelyDifferentAlbum(albumName1, albumName2) {
       const name1 = albumName1.toLowerCase().trim();
       const name2 = albumName2.toLowerCase().trim();
       
-      // If one contains the other substantially, they might be the same album
+      // If one contains the other, they might be the same
       if (name1.includes(name2) || name2.includes(name1)) {
         return false;
       }
@@ -159,12 +142,12 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       const clean1 = name1.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
       const clean2 = name2.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
       
-      // If clean versions have significant overlap, they might be the same
+      // If clean versions have overlap, they might be the same
       if (clean1.includes(clean2) || clean2.includes(clean1)) {
         return false;
       }
       
-      // Compare words between the two names
+      // Compare significant words between the two names
       const words1 = clean1.split(/\s+/).filter(word => word.length > 3);
       const words2 = clean2.split(/\s+/).filter(word => word.length > 3);
       
@@ -179,7 +162,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
     }
   }, [album, processedData]);
   
-  // Sort tracks by play time
+  // Sort tracks by play time (most played first)
   const sortedTracks = useMemo(() => {
     return [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
   }, [albumTracks]);
@@ -192,21 +175,45 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const normalizedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
     ? album.trackCount.size 
     : (typeof album.trackCount === 'number' ? album.trackCount : 0);
+  
+  // Calculate average play time per track
+  const avgPlayTime = album.totalPlayed / Math.max(1, album.playCount);
+  
+  // Calculate completeness percentage based on how many tracks we've found vs expected
+  const completenessPercentage = normalizedTrackCount > 0 
+    ? Math.min(100, Math.round((sortedTracks.length / normalizedTrackCount) * 100)) 
+    : 0;
 
   return (
     <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
-      <div className="font-bold text-pink-600">{album.name}</div>
+      <div className="flex justify-between items-start">
+        <div className="font-bold text-pink-600 pr-6">{album.name}</div>
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="p-1 text-pink-400 hover:text-pink-600 transition-colors"
+          title={showDetails ? "Hide details" : "Show details"}
+        >
+          <Info size={16} />
+        </button>
+      </div>
       
-      <div className="text-sm text-pink-400">
+      {/* Album details */}
+      <div className={`text-sm text-pink-400 ${showDetails ? 'block' : 'block'}`}>
         Artist: <span className="font-bold">{album.artist}</span> 
         <br/>
         Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
         <br/>
-        Plays: <span className="font-bold">{album.playCount}</span> 
-        <br/>
-        Tracks: <span className="font-bold">{normalizedTrackCount}</span>
-        <br/> 
-        First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span>
+        {showDetails && (
+          <>
+            Plays: <span className="font-bold">{album.playCount}</span> 
+            <br/>
+            Tracks Found: <span className="font-bold">{sortedTracks.length} / {normalizedTrackCount || '?'}</span>
+            <br/> 
+            First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span>
+            <br/>
+            Avg Play Time: <span className="font-bold">{formatDuration(avgPlayTime)}</span>
+          </>
+        )}
       </div>
       
       {/* Divider */}
@@ -234,10 +241,14 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
           onClick={() => setShowTracks(!showTracks)}
           className="mt-2 text-xs flex items-center justify-between w-full p-1 text-pink-600 bg-pink-100 hover:bg-pink-200 rounded"
         >
-          <span>
+          <span className="flex items-center">
+            <Music size={14} className="mr-1" />
             {showTracks ? 'Hide' : 'Show'} {otherTracks.length} more tracks
-            {normalizedTrackCount > otherTracks.length + 1 && !showTracks && 
-              ` (${normalizedTrackCount - otherTracks.length - 1} unavailable)`}
+            {normalizedTrackCount > 0 && (
+              <span className="ml-1 text-pink-500">
+                ({completenessPercentage}% complete)
+              </span>
+            )}
           </span>
           {showTracks ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
@@ -247,13 +258,18 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       {showTracks && otherTracks.length > 0 && (
         <div className="mt-1 max-h-64 overflow-y-auto text-xs border border-pink-200 rounded">
           <div className="sticky top-0 bg-pink-100 p-1 text-xs text-center text-pink-600 font-medium">
-            {normalizedTrackCount > otherTracks.length + 1 ?
-              `Showing ${otherTracks.length} of ${normalizedTrackCount - 1} remaining tracks` :
-              `Showing all ${otherTracks.length} remaining tracks`}
+            {normalizedTrackCount > 0 && (
+              <span>
+                Showing {otherTracks.length} of {normalizedTrackCount - 1} remaining tracks
+                {normalizedTrackCount > sortedTracks.length && (
+                  <span className="text-pink-500"> ({sortedTracks.length - 1}/{normalizedTrackCount - 1} found)</span>
+                )}
+              </span>
+            )}
           </div>
           {otherTracks.map((track, trackIndex) => (
             <div 
-              key={trackIndex}
+              key={`${track.trackName}-${trackIndex}`}
               className={`p-1 ${trackIndex % 2 === 0 ? 'bg-pink-50' : 'bg-white'}`}
             >
               <div className="text-pink-600">{track.trackName}</div>
