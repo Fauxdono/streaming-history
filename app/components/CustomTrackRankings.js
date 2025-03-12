@@ -2,14 +2,14 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, subDays, format } from 'date-fns';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 
-const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists = []  }) => {
+const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists = [] }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [topN, setTopN] = useState(50);
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [artistSearch, setArtistSearch] = useState('');
-  const [key, setKey] = useState(0);
+  const [includeFeatures, setIncludeFeatures] = useState(false); // New state for feature toggle
   
   const addArtistFromTrack = (artist) => {
     // Prevent duplicate artists
@@ -18,21 +18,21 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
     }
   };
 
-useEffect(() => {
-  if (!startDate && !endDate && rawPlayData.length > 0) {
-    let earliest = new Date(rawPlayData[0].ts);
-    let latest = new Date(rawPlayData[0].ts);
-    
-    for (const entry of rawPlayData) {
-      const date = new Date(entry.ts);
-      if (date < earliest) earliest = date;
-      if (date > latest) latest = date;
+  useEffect(() => {
+    if (!startDate && !endDate && rawPlayData.length > 0) {
+      let earliest = new Date(rawPlayData[0].ts);
+      let latest = new Date(rawPlayData[0].ts);
+      
+      for (const entry of rawPlayData) {
+        const date = new Date(entry.ts);
+        if (date < earliest) earliest = date;
+        if (date > latest) latest = date;
+      }
+      
+      setStartDate(format(earliest, 'yyyy-MM-dd'));
+      setEndDate(format(latest, 'yyyy-MM-dd'));
     }
-    
-    setStartDate(format(earliest, 'yyyy-MM-dd'));
-    setEndDate(format(latest, 'yyyy-MM-dd'));
-  }
-}, [rawPlayData, startDate, endDate]);
+  }, [rawPlayData, startDate, endDate]);
 
   // Get unique artists from raw play data
   const allArtists = useMemo(() => {
@@ -53,38 +53,32 @@ useEffect(() => {
       .slice(0, 10);
   }, [allArtists, artistSearch, selectedArtists]);
 
-const filteredTracks = useMemo(() => {
-  if (!rawPlayData?.length) return [];
-  
-  const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
-  const end = endDate ? endOfDay(new Date(endDate)) : new Date();
-  
-  const trackStats = {};
-  rawPlayData.forEach(entry => {
-    try {
-      const timestamp = new Date(entry.ts);
-      if (
-        timestamp >= start && 
-        timestamp <= end && 
-        entry.ms_played >= 30000 && 
-        entry.master_metadata_track_name &&
-        (selectedArtists.length === 0 || selectedArtists.includes(entry.master_metadata_album_artist_name))
-      ) {
-        // Use createMatchKey with error handling
-        let key;
-        try {
-          key = createMatchKey(
-            entry.master_metadata_track_name,
-            entry.master_metadata_album_artist_name
-          );
-        } catch (err) {
-          // Fallback if createMatchKey fails
-          console.warn('Error creating match key:', err);
-          key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
-        }
+  const filteredTracks = useMemo(() => {
+    if (!rawPlayData?.length) return [];
+    
+    const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
+    const end = endDate ? endOfDay(new Date(endDate)) : new Date();
+    
+    const trackStats = {};
+    rawPlayData.forEach(entry => {
+      try {
+        const timestamp = new Date(entry.ts);
         
-        if (!trackStats[key]) {
-          // Safely extract feature artists
+        // Check if the entry is within the selected date range and has sufficient play time
+        if (timestamp >= start && 
+            timestamp <= end && 
+            entry.ms_played >= 30000 && 
+            entry.master_metadata_track_name) {
+          
+          // Artist filtering - check both main artist and features based on toggle
+          const isArtistMatch = selectedArtists.length === 0 || 
+            selectedArtists.includes(entry.master_metadata_album_artist_name);
+
+          // Skip this entry if it doesn't match the artist filter and we're not including features
+          // or if we need to check features later
+          if (!isArtistMatch && !includeFeatures) continue;
+          
+          // Extract feature artists
           let featureArtists = null;
           try {
             const result = normalizeString(entry.master_metadata_track_name);
@@ -93,42 +87,76 @@ const filteredTracks = useMemo(() => {
             console.warn('Error normalizing track name:', err);
           }
           
-          trackStats[key] = {
-            key,
-            trackName: entry.master_metadata_track_name,
-            artist: entry.master_metadata_album_artist_name,
-            totalPlayed: 0,
-            playCount: 0,
-            featureArtists,
-            variations: [entry.master_metadata_track_name]
-          };
-        } else {
-          // Track variations with error handling
-          if (trackStats[key].variations && 
-              !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
-            trackStats[key].variations.push(entry.master_metadata_track_name);
+          // Check if any of the selected artists appear as features (if feature toggle is enabled)
+          const isFeatureMatch = includeFeatures && featureArtists && 
+            selectedArtists.some(artist => 
+              featureArtists.some(feature => 
+                feature.toLowerCase().includes(artist.toLowerCase())
+              )
+            );
+          
+          // Skip if no match on either main artist or features
+          if (selectedArtists.length > 0 && !isArtistMatch && !isFeatureMatch) continue;
+          
+          // Create a unique key for the track
+          let key;
+          try {
+            key = createMatchKey(
+              entry.master_metadata_track_name,
+              entry.master_metadata_album_artist_name
+            );
+          } catch (err) {
+            console.warn('Error creating match key:', err);
+            key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
           }
+          
+          if (!trackStats[key]) {
+            // New track, create its stats object
+            trackStats[key] = {
+              key,
+              trackName: entry.master_metadata_track_name,
+              artist: entry.master_metadata_album_artist_name,
+              totalPlayed: 0,
+              playCount: 0,
+              featureArtists,
+              variations: [entry.master_metadata_track_name],
+              isFeatured: isFeatureMatch // Mark if this is a feature match
+            };
+          } else {
+            // Track variations with error handling
+            if (trackStats[key].variations && 
+                !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
+              trackStats[key].variations.push(entry.master_metadata_track_name);
+            }
+            
+            // Update the featured flag if not already set
+            if (isFeatureMatch && !trackStats[key].isFeatured) {
+              trackStats[key].isFeatured = true;
+            }
+          }
+          
+          // Update play statistics
+          trackStats[key].totalPlayed += entry.ms_played;
+          trackStats[key].playCount += 1;
         }
-        trackStats[key].totalPlayed += entry.ms_played;
-        trackStats[key].playCount += 1;
+      } catch (err) {
+        console.error('Error processing track entry:', err);
       }
-    } catch (err) {
-      console.error('Error processing track entry:', err);
-    }
-  });
+    });
 
-  return Object.values(trackStats)
-    .sort((a, b) => b[sortBy] - a[sortBy])
-    .slice(0, topN);
-}, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists]);
+    return Object.values(trackStats)
+      .sort((a, b) => b[sortBy] - a[sortBy])
+      .slice(0, topN);
+  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, includeFeatures]);
 
-const setQuickRange = (days) => {
-    const currentStart = startDate ? new Date(startDate) : new Date();
-    const end = endDate ? new Date(endDate) : new Date(currentStart);
-    end.setDate(end.getDate() + days);  // This is the fix
-    setStartDate(format(currentStart, 'yyyy-MM-dd'));
+  const setQuickRange = (days) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    
+    setStartDate(format(start, 'yyyy-MM-dd'));
     setEndDate(format(end, 'yyyy-MM-dd'));
-};
+  };
 
   const addArtist = (artist) => {
     setSelectedArtists(prev => [...prev, artist]);
@@ -158,7 +186,7 @@ const setQuickRange = (days) => {
           />
         </div>
         
-       <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           <button onClick={() => setQuickRange(0)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
             Day
           </button>
@@ -231,60 +259,96 @@ const setQuickRange = (days) => {
             </div>
           )}
         </div>
+        
+        {/* Feature Toggle - only show when artists are selected */}
+        {selectedArtists.length > 0 && (
+          <div className="flex items-center mt-2">
+            <label className="flex items-center cursor-pointer">
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={includeFeatures} 
+                  onChange={() => setIncludeFeatures(!includeFeatures)}
+                  className="sr-only"
+                />
+                <div className={`block w-10 h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-4' : ''}`}></div>
+              </div>
+              <span className="ml-2 text-orange-700">
+                Include songs featuring these artists
+              </span>
+            </label>
+          </div>
+        )}
       </div>
 
       {filteredTracks.length > 0 ? (
-<div className="overflow-x-auto -mx-4 px-4">
-  <div className="min-w-[640px]">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="p-2 text-left text-orange-700">Rank</th>
-              <th className="p-2 text-left text-orange-700">Track</th>
-              <th className="p-2 text-left text-orange-700">Artist</th>
-              <th 
-                className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
-                onClick={() => setSortBy('totalPlayed')}
-              >
-                Total Time {sortBy === 'totalPlayed' && '▼'}
-              </th>
-              <th 
-                className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'playCount' ? 'font-bold' : ''}`}
-                onClick={() => setSortBy('playCount')}
-              >
-                Play Count {sortBy === 'playCount' && '▼'}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTracks.map((song, index) => (
-              <tr key={song.key} className="border-b hover:bg-orange-50">
-                <td className="p-2 text-orange-700">{index + 1}</td>
-<td className="p-2 text-orange-700">
-  <div>{song.trackName}</div>
-  {song.featureArtists && song.featureArtists.length > 0 && (
-    <div className="text-xs text-orange-500 mt-0.5">
-      feat. {song.featureArtists.join(', ')}
-    </div>
-  )}
-  {song.variations && song.variations.length > 1 && (
-    <div className="text-xs text-orange-400 mt-0.5">
-      Also: {song.variations.filter(v => v !== song.trackName)[0]}
-      {song.variations.length > 2 ? ` +${song.variations.length - 2} more` : ''}
-    </div>
-  )}
-</td>
-     
-                <td className="p-2 text-orange-700 cursor-pointer hover:underline" onClick={() => addArtistFromTrack(song.artist)}> {song.artist} </td>
-
-                <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
-                <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-  </div>
-    </div>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <div className="min-w-[640px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="p-2 text-left text-orange-700">Rank</th>
+                  <th className="p-2 text-left text-orange-700">Track</th>
+                  <th className="p-2 text-left text-orange-700">Artist</th>
+                  <th 
+                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
+                    onClick={() => setSortBy('totalPlayed')}
+                  >
+                    Total Time {sortBy === 'totalPlayed' && '▼'}
+                  </th>
+                  <th 
+                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'playCount' ? 'font-bold' : ''}`}
+                    onClick={() => setSortBy('playCount')}
+                  >
+                    Play Count {sortBy === 'playCount' && '▼'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTracks.map((song, index) => (
+                  <tr 
+                    key={song.key} 
+                    className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+                  >
+                    <td className="p-2 text-orange-700">{index + 1}</td>
+                    <td className="p-2 text-orange-700">
+                      <div className="flex items-center">
+                        {song.isFeatured && (
+                          <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+                            FEAT
+                          </span>
+                        )}
+                        <div>
+                          {song.trackName}
+                          {song.featureArtists && song.featureArtists.length > 0 && (
+                            <div className="text-xs text-orange-500 mt-0.5">
+                              feat. {song.featureArtists.join(', ')}
+                            </div>
+                          )}
+                          {song.variations && song.variations.length > 1 && (
+                            <div className="text-xs text-orange-400 mt-0.5">
+                              Also: {song.variations.filter(v => v !== song.trackName)[0]}
+                              {song.variations.length > 2 ? ` +${song.variations.length - 2} more` : ''}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td 
+                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
+                      onClick={() => addArtistFromTrack(song.artist)}
+                    > 
+                      {song.artist} 
+                    </td>
+                    <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
+                    <td className="p-2 text-right text-orange-700">{song.playCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
         <div className="text-center py-4 text-orange-500">
           {startDate || endDate || selectedArtists.length > 0 
