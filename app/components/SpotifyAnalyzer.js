@@ -916,7 +916,7 @@ const displayedAlbums = useMemo(() => {
           </div>
         )}
         
-{{activeTab === 'albums' && (
+{activeTab === 'albums' && (
   <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
     <div className="flex justify-between items-center mb-2">
       <h3 className="font-bold text-pink-700">
