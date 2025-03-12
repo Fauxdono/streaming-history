@@ -1,261 +1,114 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const AlbumCard = ({ album, index, processedData, formatDuration, rawPlayData = [] }) => {
   const [showTracks, setShowTracks] = useState(false);
 
-  // Debugging for Mr. Morale album
-  const isMrMoraleAlbum = album.name.includes("Mr. Morale");
-  
-  if (isMrMoraleAlbum) {
-    console.log("Album name:", album.name);
-    console.log("Album artist:", album.artist);
-    console.log("Track count from album data:", typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-      ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 0));
-    
-    // Log all tracks by this artist
-    const artistTracks = processedData.filter(track => 
+  // Use useMemo to prevent expensive track matching on every render
+  const { albumTracks, normalizedTrackCount } = useMemo(() => {
+    // Get all tracks by this artist - this is fast and simple
+    const allArtistTracks = processedData.filter(track => 
+      track.artist && album.artist && 
       track.artist.toLowerCase() === album.artist.toLowerCase()
     );
-    console.log("Total tracks by this artist:", artistTracks.length);
-    console.log("Artist tracks:", artistTracks.map(t => ({
-      trackName: t.trackName,
-      albumName: t.albumName,
-      plays: t.playCount
-    })));
-  }
-  
-  // We'll use a comprehensive approach to find all tracks for an album
-  let albumTracks = [];
-  
-  // Get all tracks by this artist
-  const allArtistTracks = processedData.filter(track => 
-    track.artist && album.artist && 
-    track.artist.toLowerCase() === album.artist.toLowerCase()
-  );
-  
-  const normalizedAlbumName = album.name.toLowerCase().trim();
+    
+    const normalizedAlbumName = album.name.toLowerCase().trim();
 
-  // Expected track count (either from the album object or a fallback)
-  const expectedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-    ? album.trackCount.size 
-    : (typeof album.trackCount === 'number' ? album.trackCount : 15); // Default expectation
-  
-  // STAGE 1: First try exact and fuzzy album name matching
-  let exactMatches = allArtistTracks.filter(track => {
-    if (!track.albumName) return false;
+    // Expected track count (either from the album object or a fallback)
+    let expectedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+      ? album.trackCount.size 
+      : (typeof album.trackCount === 'number' ? album.trackCount : 15); // Default expectation
     
-    const trackAlbumLower = track.albumName.toLowerCase().trim();
-    const exactMatch = trackAlbumLower === normalizedAlbumName;
-    const containsMatch = trackAlbumLower.includes(normalizedAlbumName) || normalizedAlbumName.includes(trackAlbumLower);
-    
-    // Clean versions (removing deluxe, remastered, etc.)
-    const cleanTrackAlbum = trackAlbumLower.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
-    const cleanAlbumName = normalizedAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
-    const cleanMatch = cleanTrackAlbum === cleanAlbumName;
-    
-    return exactMatch || containsMatch || cleanMatch;
-  });
-  
-  // STAGE 2: If we didn't find enough tracks, try using temporal proximity
-  if (exactMatches.length < expectedTrackCount * 0.7) {
-    // Get the album's first listen date to find tracks heard around the same time
-    const albumFirstListen = new Date(album.firstListen);
-    const threeMonthsInMs = 3 * 30 * 24 * 60 * 60 * 1000; // 3 months window
-    
-    // Find tracks that were first heard around the same time
-    const timeBasedMatches = allArtistTracks.filter(track => {
-      // Skip tracks we already matched
-      if (exactMatches.includes(track)) return false;
+    // STAGE 1: Basic album name matching
+    let matches = allArtistTracks.filter(track => {
+      if (!track.albumName) return false;
       
-      // Skip tracks with album names that clearly don't match
-      if (track.albumName && !isAlbumNameCompatible(track.albumName, album.name)) return false;
+      const trackAlbumLower = track.albumName.toLowerCase().trim();
       
-      // Check song play history if available
-      const firstListenTimestamp = findFirstPlayTimestamp(track, rawPlayData);
-      if (firstListenTimestamp) {
-        const trackFirstListen = new Date(firstListenTimestamp);
-        const timeDifference = Math.abs(trackFirstListen - albumFirstListen);
-        return timeDifference < threeMonthsInMs;
-      }
+      // Simple exact match
+      if (trackAlbumLower === normalizedAlbumName) return true;
       
+      // Contains match
+      if (trackAlbumLower.includes(normalizedAlbumName) || normalizedAlbumName.includes(trackAlbumLower)) return true;
+      
+      // Clean versions match (remove deluxe, remastered, etc.)
+      const cleanTrackAlbum = trackAlbumLower.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
+      const cleanAlbumName = normalizedAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
+      
+      if (cleanTrackAlbum === cleanAlbumName) return true;
+      
+      // Not a match by album name
       return false;
     });
     
-    // Add these matches if they seem reasonable
-    if (timeBasedMatches.length > 0 && 
-        exactMatches.length + timeBasedMatches.length <= expectedTrackCount * 1.5) {
-      console.log(`${album.name}: Adding ${timeBasedMatches.length} tracks based on temporal proximity`);
-      exactMatches = [...exactMatches, ...timeBasedMatches];
+    // If we found enough tracks with simple matching, we're done
+    if (matches.length >= expectedTrackCount * 0.7) {
+      return { 
+        albumTracks: matches,
+        normalizedTrackCount: Math.max(expectedTrackCount, matches.length)
+      };
     }
-  }
-  
-  // STAGE 3: Cluster analysis - find tracks that are similar to already matched tracks
-  if (exactMatches.length > 0 && exactMatches.length < expectedTrackCount) {
-    // Extract patterns from already matched tracks
-    const matchedPatterns = exactMatches.map(t => {
-      const name = t.trackName.toLowerCase()
-        .replace(/\(feat\..*\)/gi, '')
-        .replace(/\[feat\..*\]/gi, '')
-        .replace(/\(with.*\)/gi, '')
-        .replace(/\[with.*\]/gi, '')
-        .trim();
-      return name;
-    });
     
-    // Get the words that appear frequently in matched tracks
-    const wordFrequency = {};
-    matchedPatterns.forEach(pattern => {
-      const words = pattern.split(/\s+/);
-      words.forEach(word => {
-        if (word.length > 3) { // Only count significant words
-          wordFrequency[word] = (wordFrequency[word] || 0) + 1;
-        }
-      });
-    });
-    
-    // Find tracks with similar word patterns
-    const patternMatches = allArtistTracks.filter(track => {
-      // Skip tracks we already matched
-      if (exactMatches.includes(track)) return false;
+    // STAGE 2: Add tracks from the same time period
+    // This is a simplified version that only does a date check if we need more tracks
+    if (matches.length > 0) {
+      // Get 3 month window around first album listen
+      const albumDate = new Date(album.firstListen);
+      const dateLower = new Date(albumDate);
+      dateLower.setMonth(dateLower.getMonth() - 2);
+      const dateUpper = new Date(albumDate);
+      dateUpper.setMonth(dateUpper.getMonth() + 2);
       
-      // Clean the track name for matching
-      const cleanTrackName = track.trackName.toLowerCase()
-        .replace(/\(feat\..*\)/gi, '')
-        .replace(/\[feat\..*\]/gi, '')
-        .replace(/\(with.*\)/gi, '')
-        .replace(/\[with.*\]/gi, '')
-        .trim();
-      
-      // Count words in this track name that match our frequency list
-      const words = cleanTrackName.split(/\s+/);
-      const matchingWordCount = words.filter(word => wordFrequency[word] > 0).length;
-      
-      // If enough matching words, likely from same album
-      return matchingWordCount > 0;
-    });
-    
-    // Only add if we're not adding too many tracks
-    if (patternMatches.length > 0 && 
-        exactMatches.length + patternMatches.length <= expectedTrackCount * 1.5) {
-      console.log(`${album.name}: Adding ${patternMatches.length} tracks based on pattern matching`);
-      exactMatches = [...exactMatches, ...patternMatches];
-    }
-  }
-
-  // STAGE 4: If we still don't have enough tracks, try tracks with no album name or partial matches
-  if (exactMatches.length < expectedTrackCount) {
-    // Look for tracks with no album name but otherwise likely to belong
-    const albumlessMatches = allArtistTracks.filter(track => {
-      // Skip tracks we already matched
-      if (exactMatches.includes(track)) return false;
-      
-      // This stage targets tracks with no album name or very dissimilar album names
-      if (track.albumName && isAlbumNameCompatible(track.albumName, album.name)) return false;
-      
-      // Check if this track was played around the same time as the matched tracks
-      // Get the average first play time of already matched tracks
-      if (exactMatches.length > 0 && rawPlayData && rawPlayData.length > 0) {
-        const matchedFirstPlays = exactMatches
-          .map(t => findFirstPlayTimestamp(t, rawPlayData))
-          .filter(ts => ts !== null);
-          
-        if (matchedFirstPlays.length > 0) {
-          const avgMatchedTime = matchedFirstPlays.reduce((sum, ts) => sum + ts, 0) / matchedFirstPlays.length;
-          const trackFirstPlay = findFirstPlayTimestamp(track, rawPlayData);
-          
-          if (trackFirstPlay) {
-            // If this track was first played within 1 month of the average time for matched tracks
-            const timeDiff = Math.abs(trackFirstPlay - avgMatchedTime);
-            const oneMonthMs = 30 * 24 * 60 * 60 * 1000;
-            return timeDiff < oneMonthMs;
+      // Find tracks first heard in this window
+      const timeWindowTracks = allArtistTracks.filter(track => {
+        // Skip tracks we already matched
+        if (matches.includes(track)) return false;
+        
+        // Very basic time window check - only get tracks that were heard in the same ~4 month window
+        // This is much more efficient than the detailed findFirstPlayTimestamp approach
+        let firstListenDate = null;
+        
+        // Try to find a play for this track
+        for (let i = 0; i < rawPlayData.length; i++) {
+          const entry = rawPlayData[i];
+          if (entry.master_metadata_track_name === track.trackName && 
+              entry.master_metadata_album_artist_name === track.artist) {
+            firstListenDate = new Date(entry.ts);
+            break;
           }
         }
-      }
+        
+        if (firstListenDate && firstListenDate >= dateLower && firstListenDate <= dateUpper) {
+          return true;
+        }
+        
+        return false;
+      });
       
-      return false;
-    });
-    
-    // Only add if we're still well under the expected count
-    if (albumlessMatches.length > 0 && 
-        exactMatches.length + albumlessMatches.length <= expectedTrackCount * 1.2) {
-      console.log(`${album.name}: Adding ${albumlessMatches.length} tracks with no/different album name`);
-      exactMatches = [...exactMatches, ...albumlessMatches];
-    }
-  }
-  
-  // Set the final albumTracks list
-  albumTracks = exactMatches;
-  
-  // Helper function to find the first time a track was played
-  function findFirstPlayTimestamp(track, rawData) {
-    if (!rawData || rawData.length === 0) return null;
-    
-    const plays = rawData.filter(entry => 
-      entry.master_metadata_track_name && 
-      entry.master_metadata_album_artist_name &&
-      entry.master_metadata_track_name.toLowerCase() === track.trackName.toLowerCase() &&
-      entry.master_metadata_album_artist_name.toLowerCase() === track.artist.toLowerCase()
-    );
-    
-    if (plays.length > 0) {
-      const timestamps = plays.map(play => new Date(play.ts));
-      return Math.min(...timestamps.map(date => date.getTime()));
+      if (timeWindowTracks.length > 0) {
+        matches = [...matches, ...timeWindowTracks];
+      }
     }
     
-    return null;
-  }
+    // Update normalizedTrackCount if we found more tracks than expected
+    if (matches.length > expectedTrackCount) {
+      expectedTrackCount = matches.length;
+    }
+    
+    return { 
+      albumTracks: matches,
+      normalizedTrackCount: expectedTrackCount
+    };
+  }, [album, processedData, rawPlayData]);
   
-  // Helper function to check if album names could be compatible
-  function isAlbumNameCompatible(name1, name2) {
-    if (!name1 || !name2) return false;
-    
-    // Clean both names
-    const clean1 = name1.toLowerCase().trim()
-      .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
-    const clean2 = name2.toLowerCase().trim()
-      .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
-    
-    // Check for compatibility: either contains the other, or share significant words
-    if (clean1.includes(clean2) || clean2.includes(clean1)) return true;
-    
-    // Compare significant words (longer than 3 letters)
-    const words1 = clean1.split(/\s+/).filter(word => word.length > 3);
-    const words2 = clean2.split(/\s+/).filter(word => word.length > 3);
-    
-    if (words1.length === 0 || words2.length === 0) return false;
-    
-    const sharedWords = words1.filter(word => words2.includes(word));
-    return sharedWords.length >= Math.min(1, Math.min(words1.length, words2.length) * 0.5);
-  }
+  // Sort tracks by play time (outside of useMemo, but using the cached albumTracks)
+  const sortedTracks = useMemo(() => {
+    return [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
+  }, [albumTracks]);
   
-  // For debugging purposes
-  if (isMrMoraleAlbum) {
-    console.log("Final matched tracks count:", albumTracks.length);
-    console.log("Matched tracks:", albumTracks.map(t => t.trackName).sort());
-  }
-  
-  // Sort tracks by play time
-  const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
-  
-  // Get top track
+  // Get top track and other tracks
   const topTrack = sortedTracks.length > 0 ? sortedTracks[0] : null;
-  
-  // Get remaining tracks (excluding top track)
   const otherTracks = sortedTracks.slice(1);
-  
-  // Normalize trackCount and update to match actual track count if needed
-  let normalizedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-    ? album.trackCount.size 
-    : (typeof album.trackCount === 'number' ? album.trackCount : 0);
-    
-  // If we found more tracks than the reported trackCount, update our display count
-  // This is especially important for albums with track count inconsistencies
-  if (sortedTracks.length > normalizedTrackCount && normalizedTrackCount > 0) {
-    console.log(`${album.name}: Adjusting track count from ${normalizedTrackCount} to ${sortedTracks.length}`);
-    normalizedTrackCount = sortedTracks.length;
-  }
 
   return (
     <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
