@@ -208,6 +208,8 @@ const getAlbumsTabLabel = () => {
 
 // Update the displayedAlbums useMemo in SpotifyAnalyzer.js
 
+// This is an updated version of the displayedAlbums useMemo function in SpotifyAnalyzer.js
+
 const displayedAlbums = useMemo(() => {
   // Get all albums
   const allAlbums = topAlbums;
@@ -217,29 +219,130 @@ const displayedAlbums = useMemo(() => {
     ? allAlbums.filter(album => selectedArtists.includes(album.artist))
     : allAlbums;
   
-  // Filter albums by year
+  // Create a map of album play data by year
+  const albumPlaysByYear = {};
+  
+  // Process raw play data to identify when albums were played
+  rawPlayData.forEach(entry => {
+    // Skip entries with missing data or short plays
+    if (!entry.master_metadata_track_name || 
+        !entry.master_metadata_album_artist_name || 
+        entry.ms_played < 30000) {
+      return;
+    }
+    
+    const timestamp = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
+    const year = timestamp.getFullYear().toString();
+    
+    // Skip invalid dates
+    if (isNaN(timestamp.getTime())) return;
+    
+    const artist = entry.master_metadata_album_artist_name;
+    const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+    
+    // Create a key for this album
+    const albumKey = `${albumName.toLowerCase().trim()}|||${artist.toLowerCase().trim()}`;
+    
+    // Initialize year data if needed
+    if (!albumPlaysByYear[year]) {
+      albumPlaysByYear[year] = {};
+    }
+    
+    // Initialize album data if needed
+    if (!albumPlaysByYear[year][albumKey]) {
+      albumPlaysByYear[year][albumKey] = {
+        playCount: 0,
+        totalPlayed: 0
+      };
+    }
+    
+    // Add this play to the album's data for this year
+    albumPlaysByYear[year][albumKey].playCount++;
+    albumPlaysByYear[year][albumKey].totalPlayed += entry.ms_played;
+  });
+  
+  // Filter albums based on the year selection
   let filteredAlbums;
+  
   if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Year range mode
-    const startYear = parseInt(albumYearRange.startYear);
-    const endYear = parseInt(albumYearRange.endYear);
+    // Year range mode - include albums with plays in any year within the range
+    const startYear = albumYearRange.startYear;
+    const endYear = albumYearRange.endYear;
+    const yearsInRange = [];
     
+    // Create array of years in the range
+    for (let y = parseInt(startYear); y <= parseInt(endYear); y++) {
+      yearsInRange.push(y.toString());
+    }
+    
+    // Get albums that have plays in any year within the range
     filteredAlbums = artistFilteredAlbums.filter(album => {
-      const albumDate = new Date(album.firstListen);
-      const albumYear = albumDate.getFullYear();
-      return albumYear >= startYear && albumYear <= endYear;
+      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
+      
+      // Check if this album has plays in any year within the range
+      return yearsInRange.some(year => 
+        albumPlaysByYear[year] && 
+        albumPlaysByYear[year][albumKey] &&
+        albumPlaysByYear[year][albumKey].playCount > 0
+      );
     });
+    
+    // Augment album data with specific range play counts
+    filteredAlbums = filteredAlbums.map(album => {
+      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
+      let rangePlayCount = 0;
+      let rangeTotalPlayed = 0;
+      
+      // Sum up plays across all years in the range
+      yearsInRange.forEach(year => {
+        if (albumPlaysByYear[year] && albumPlaysByYear[year][albumKey]) {
+          rangePlayCount += albumPlaysByYear[year][albumKey].playCount;
+          rangeTotalPlayed += albumPlaysByYear[year][albumKey].totalPlayed;
+        }
+      });
+      
+      return {
+        ...album,
+        rangePlayCount,
+        rangeTotalPlayed
+      };
+    });
+    
+    // Sort by play count within the range
+    filteredAlbums.sort((a, b) => b.rangeTotalPlayed - a.rangeTotalPlayed);
+    
   } else if (selectedAlbumYear !== 'all') {
-    // Single year mode
-    const year = parseInt(selectedAlbumYear);
+    // Single year mode - only include albums with plays in the selected year
+    const year = selectedAlbumYear;
     
+    // First check if we have data for this year
+    if (!albumPlaysByYear[year]) {
+      return []; // No plays in this year
+    }
+    
+    // Filter to albums that have plays in the selected year
     filteredAlbums = artistFilteredAlbums.filter(album => {
-      const albumDate = new Date(album.firstListen);
-      const albumYear = albumDate.getFullYear();
-      return albumYear === year;
+      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
+      return albumPlaysByYear[year][albumKey] && albumPlaysByYear[year][albumKey].playCount > 0;
     });
+    
+    // Augment album data with specific year play counts
+    filteredAlbums = filteredAlbums.map(album => {
+      const albumKey = `${album.name.toLowerCase().trim()}|||${album.artist.toLowerCase().trim()}`;
+      const yearData = albumPlaysByYear[year][albumKey] || { playCount: 0, totalPlayed: 0 };
+      
+      return {
+        ...album,
+        yearPlayCount: yearData.playCount,
+        yearTotalPlayed: yearData.totalPlayed
+      };
+    });
+    
+    // Sort by play count within the selected year
+    filteredAlbums.sort((a, b) => b.yearTotalPlayed - a.yearTotalPlayed);
+    
   } else {
-    // Default: return all albums filtered by artist (if any)
+    // All-time mode - use the default album data which is already sorted
     filteredAlbums = artistFilteredAlbums;
   }
   
@@ -282,7 +385,7 @@ const displayedAlbums = useMemo(() => {
       topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
     };
   });
-}, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData]);
+}, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData, rawPlayData]);
 
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
@@ -1053,18 +1156,21 @@ const displayedAlbums = useMemo(() => {
       // Render albums grid
     // Render albums grid
 return (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {filteredAlbums.slice(0, topAlbumsCount).map((album, index) => (
-      <AlbumCard 
-        key={`${album.name}-${album.artist}`}
-        album={album}
-        index={index}
-        processedData={processedData}
-        formatDuration={formatDuration}
-        rawPlayData={rawPlayData}
-      />
-    ))}
-  </div>
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {filteredAlbums.slice(0, topAlbumsCount).map((album, index) => (
+    <AlbumCard 
+      key={`${album.name}-${album.artist}`}
+      album={album}
+      index={index}
+      processedData={processedData}
+      formatDuration={formatDuration}
+      rawPlayData={rawPlayData}
+      selectedAlbumYear={selectedAlbumYear}
+      isYearRangeMode={albumYearRangeMode}
+      yearRange={albumYearRange}
+    />
+  ))}
+</div>
       );
     })()}
   </div>
