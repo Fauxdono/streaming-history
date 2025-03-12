@@ -206,7 +206,8 @@ const getAlbumsTabLabel = () => {
   return `${selectedAlbumYear} Albums`;
 };
 
-// In your displayedAlbums useMemo
+// Update the displayedAlbums useMemo in SpotifyAnalyzer.js
+
 const displayedAlbums = useMemo(() => {
   // Get all albums
   const allAlbums = topAlbums;
@@ -242,26 +243,43 @@ const displayedAlbums = useMemo(() => {
     filteredAlbums = artistFilteredAlbums;
   }
   
-  // Normalize trackCount and add top track info
+  // Enhance albums with proper track counts and pre-collected track data
   return filteredAlbums.map(album => {
-    // Calculate top track for this album
-    const albumTracks = processedData.filter(track => 
-      track.artist === album.artist && track.albumName === album.name
-    );
+    // Ensure trackCount is properly formatted
+    const trackCountValue = album.trackCount instanceof Set 
+      ? album.trackCount.size 
+      : (typeof album.trackCount === 'number' ? album.trackCount : 0);
     
-    const topTrack = albumTracks.length > 0 
-      ? albumTracks.reduce((max, track) => 
-          track.totalPlayed > max.totalPlayed ? track : max, 
-          albumTracks[0]
-        )
-      : null;
+    // Check if we have enhanced trackObjects data from the streaming adapter
+    if (!album.trackObjects || !Array.isArray(album.trackObjects)) {
+      // We need to build the trackObjects array for this album
+      const albumTracks = processedData.filter(track => 
+        track.artist === album.artist && 
+        track.albumName && track.albumName.toLowerCase().trim() === album.name.toLowerCase().trim()
+      );
+      
+      // Sort by total play time
+      const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
+      
+      // Return the enhanced album object
+      return {
+        ...album,
+        trackCount: trackCountValue,
+        trackCountValue,
+        trackObjects: sortedTracks,
+        topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
+      };
+    }
+    
+    // If we already have trackObjects, just ensure they're sorted correctly
+    const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
     
     return {
       ...album,
-      trackCount: typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-        ? album.trackCount.size 
-        : (typeof album.trackCount === 'number' ? album.trackCount : 0),
-      topTrack // Add this property
+      trackCount: trackCountValue,
+      trackCountValue,
+      trackObjects: sortedTracks,
+      topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
     };
   });
 }, [topAlbums, selectedArtists, selectedAlbumYear, albumYearRangeMode, albumYearRange, processedData]);
