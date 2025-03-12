@@ -718,8 +718,33 @@ function calculatePlayStats(entries) {
   // Add ISRC tracking
   const isrcMap = {};
   
-  // Track-to-album mapping to improve album associations
-  const trackToAlbum = {};
+  // Create a track-to-album mapping from Spotify entries first
+  const trackToAlbumMap = new Map();
+
+  // First pass - collect all Spotify album information
+  entries.forEach(entry => {
+    if (entry.source === 'spotify' && 
+        entry.master_metadata_track_name && 
+        entry.master_metadata_album_artist_name && 
+        entry.master_metadata_album_album_name) {
+      
+      const trackName = entry.master_metadata_track_name.toLowerCase().trim();
+      const artistName = entry.master_metadata_album_artist_name.toLowerCase().trim();
+      const albumName = entry.master_metadata_album_album_name;
+      
+      // Create a key that identifies this track regardless of source
+      const trackKey = `${trackName}|||${artistName}`;
+      
+      // Store the album information for this track
+      trackToAlbumMap.set(trackKey, {
+        albumName: albumName,
+        normalizedAlbumName: albumName.toLowerCase().trim(),
+        source: 'spotify'
+      });
+    }
+  });
+
+  console.log(`Created track-to-album mapping with ${trackToAlbumMap.size} entries from Spotify`);
   
   // First pass to collect album info and ISRCs
   entries.forEach(entry => {
@@ -728,11 +753,7 @@ function calculatePlayStats(entries) {
       const trackInfo = normalizeString(entry.master_metadata_track_name);
       const artistInfo = normalizeString(entry.master_metadata_album_artist_name || 'Unknown Artist');
       
-      // Create normalized versions for lookups
-      const normTrack = trackInfo.normalized;
-      const normArtist = artistInfo.normalized;
-      
-      const lookupKey = `${normTrack}|||${normArtist}`;
+      const lookupKey = `${trackInfo.normalized}|||${artistInfo.normalized}`;
       
       // Store feature artists in the lookup
       if (trackInfo.featureArtists && trackInfo.featureArtists.length > 0) {
@@ -750,30 +771,13 @@ function calculatePlayStats(entries) {
         isrcMap[entry.isrc] = lookupKey;
       }
       
-      // If this entry has album info, record it for this track
-      if (entry.master_metadata_album_album_name) {
-        // Use a consistently normalized version of the album name
-        const albumName = entry.master_metadata_album_album_name.trim();
-        const normAlbumName = albumName.toLowerCase();
-        
-        // Store the album info for this track
-        if (!trackToAlbum[lookupKey] || entry.source === 'spotify') {
-          // Prioritize Spotify album info, but take any if we don't have one
-          trackToAlbum[lookupKey] = {
-            name: albumName,
-            normalizedName: normAlbumName,
-            source: entry.source
-          };
-        }
-        
-        // Link this to our album lookup too
-        if (entry.source === 'spotify' && entry.master_metadata_album_album_name) {
-          albumLookup[lookupKey] = albumName;
-        } 
-        // If no album info for this track yet, use whatever we have
-        else if (!albumLookup[lookupKey] && entry.master_metadata_album_album_name) {
-          albumLookup[lookupKey] = albumName;
-        }
+      // Prioritize Spotify album info over other sources
+      if (entry.source === 'spotify' && entry.master_metadata_album_album_name) {
+        albumLookup[lookupKey] = entry.master_metadata_album_album_name;
+      } 
+      // If no album info for this track yet, use whatever we have
+      else if (!albumLookup[lookupKey] && entry.master_metadata_album_album_name) {
+        albumLookup[lookupKey] = entry.master_metadata_album_album_name;
       }
     }
   });
@@ -822,18 +826,25 @@ function calculatePlayStats(entries) {
     // Use ISRC-derived key if available, otherwise use our standard key
     const finalLookupKey = matchKeyFromIsrc || lookupKey;
     
-    // Use the best album info we have for this track
-    // 1. Look up from our track-to-album mapping
-    // 2. Fall back to entry's album name
-    // 3. Default to Unknown Album
+    // ALBUM NAME DETERMINATION - IMPROVED VERSION
+    // Determine the album name using several sources in order of priority
     let albumName = 'Unknown Album';
     
-    if (trackToAlbum[finalLookupKey]) {
-      // Use the album info we collected in the first pass
-      albumName = trackToAlbum[finalLookupKey].name;
-    } else if (entry.master_metadata_album_album_name) {
-      // Use this entry's album name if we don't have better info
+    // 1. First try to use album name from this entry if it's a Spotify entry
+    if (entry.source === 'spotify' && entry.master_metadata_album_album_name) {
       albumName = entry.master_metadata_album_album_name;
+    }
+    // 2. If not from Spotify or missing album, check our track-to-album mapping
+    else {
+      const trackKey = `${normTrack}|||${normArtist}`;
+      
+      if (trackToAlbumMap.has(trackKey)) {
+        albumName = trackToAlbumMap.get(trackKey).albumName;
+      }
+      // 3. Fall back to our album lookup if the mapping doesn't have it
+      else if (albumLookup[finalLookupKey]) {
+        albumName = albumLookup[finalLookupKey];
+      }
     }
     
     // Get feature artists for this track
@@ -876,7 +887,7 @@ function calculatePlayStats(entries) {
         playCount: 0,
         firstListen: timestamp.getTime(),
         firstSong: trackName,
-        firstSongPlayCount: 1  // Add a counter for the first song
+        firstSongPlayCount: 1
       };
     } else {
       // Update running totals
@@ -887,7 +898,7 @@ function calculatePlayStats(entries) {
       if (timestamp.getTime() < artistStats[artistName].firstListen) {
         artistStats[artistName].firstListen = timestamp.getTime();
         artistStats[artistName].firstSong = trackName;
-        artistStats[artistName].firstSongPlayCount = 1;  // Reset count for new first song
+        artistStats[artistName].firstSongPlayCount = 1;
       } 
       // If this is the same song as the first song, increment its counter
       else if (trackName === artistStats[artistName].firstSong) {
@@ -895,17 +906,16 @@ function calculatePlayStats(entries) {
       }
     }
 
-    // IMPORTANT: Album stats - this is the key part to fix
+    // Album stats
     if (albumName && artistName) {
-      // Create a normalized album key that's consistent across all entries
-      // This is critical to ensure tracks from different sources map to the same album
-      const normalizedAlbumName = albumName.toLowerCase().trim(); 
+      // Create a normalized album key for consistent lookups
+      const normalizedAlbumName = albumName.toLowerCase().trim();
       const normalizedArtistName = artistName.toLowerCase().trim();
       const albumKey = `${normalizedAlbumName}-${normalizedArtistName}`;
       
       if (!albumStats[albumKey]) {
         albumStats[albumKey] = {
-          name: albumName,  // Keep the original casing for display
+          name: albumName,
           artist: artistName,
           totalPlayed: 0,
           playCount: 0,
@@ -913,7 +923,6 @@ function calculatePlayStats(entries) {
           firstListen: timestamp.getTime()
         };
       }
-      
       albumStats[albumKey].totalPlayed += playTime;
       albumStats[albumKey].playCount++;
       albumStats[albumKey].trackCount.add(normTrack);
@@ -923,7 +932,6 @@ function calculatePlayStats(entries) {
       );
     }
 
-    // Track map update - ensure we keep the best album information
     if (trackMap[matchKey]) {
       // Update existing track
       trackMap[matchKey].totalPlayed += playTime;
