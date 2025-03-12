@@ -1,107 +1,32 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-const AlbumCard = ({ album, index, processedData, formatDuration, rawPlayData = [] }) => {
+const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
 
-  // Use useMemo to prevent expensive track matching on every render
-  const { albumTracks, normalizedTrackCount } = useMemo(() => {
-    // Get all tracks by this artist - this is fast and simple
-    const allArtistTracks = processedData.filter(track => 
+  // Get tracks for this album - much simpler now with improved data
+  const albumTracks = useMemo(() => {
+    // Get all tracks by this artist
+    const artistTracks = processedData.filter(track => 
       track.artist && album.artist && 
       track.artist.toLowerCase() === album.artist.toLowerCase()
     );
     
-    const normalizedAlbumName = album.name.toLowerCase().trim();
-
-    // Expected track count (either from the album object or a fallback)
-    let expectedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-      ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 15); // Default expectation
-    
-    // STAGE 1: Basic album name matching
-    let matches = allArtistTracks.filter(track => {
+    // Match by album name - simple comparison now that data is normalized in adapter
+    return artistTracks.filter(track => {
       if (!track.albumName) return false;
       
       const trackAlbumLower = track.albumName.toLowerCase().trim();
+      const albumNameLower = album.name.toLowerCase().trim();
       
-      // Simple exact match
-      if (trackAlbumLower === normalizedAlbumName) return true;
-      
-      // Contains match
-      if (trackAlbumLower.includes(normalizedAlbumName) || normalizedAlbumName.includes(trackAlbumLower)) return true;
-      
-      // Clean versions match (remove deluxe, remastered, etc.)
-      const cleanTrackAlbum = trackAlbumLower.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
-      const cleanAlbumName = normalizedAlbumName.replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '').trim();
-      
-      if (cleanTrackAlbum === cleanAlbumName) return true;
-      
-      // Not a match by album name
-      return false;
+      // Simple exact or partial match should be sufficient now
+      return trackAlbumLower === albumNameLower || 
+             trackAlbumLower.includes(albumNameLower) || 
+             albumNameLower.includes(trackAlbumLower);
     });
-    
-    // If we found enough tracks with simple matching, we're done
-    if (matches.length >= expectedTrackCount * 0.7) {
-      return { 
-        albumTracks: matches,
-        normalizedTrackCount: Math.max(expectedTrackCount, matches.length)
-      };
-    }
-    
-    // STAGE 2: Add tracks from the same time period
-    // This is a simplified version that only does a date check if we need more tracks
-    if (matches.length > 0) {
-      // Get 3 month window around first album listen
-      const albumDate = new Date(album.firstListen);
-      const dateLower = new Date(albumDate);
-      dateLower.setMonth(dateLower.getMonth() - 2);
-      const dateUpper = new Date(albumDate);
-      dateUpper.setMonth(dateUpper.getMonth() + 2);
-      
-      // Find tracks first heard in this window
-      const timeWindowTracks = allArtistTracks.filter(track => {
-        // Skip tracks we already matched
-        if (matches.includes(track)) return false;
-        
-        // Very basic time window check - only get tracks that were heard in the same ~4 month window
-        // This is much more efficient than the detailed findFirstPlayTimestamp approach
-        let firstListenDate = null;
-        
-        // Try to find a play for this track
-        for (let i = 0; i < rawPlayData.length; i++) {
-          const entry = rawPlayData[i];
-          if (entry.master_metadata_track_name === track.trackName && 
-              entry.master_metadata_album_artist_name === track.artist) {
-            firstListenDate = new Date(entry.ts);
-            break;
-          }
-        }
-        
-        if (firstListenDate && firstListenDate >= dateLower && firstListenDate <= dateUpper) {
-          return true;
-        }
-        
-        return false;
-      });
-      
-      if (timeWindowTracks.length > 0) {
-        matches = [...matches, ...timeWindowTracks];
-      }
-    }
-    
-    // Update normalizedTrackCount if we found more tracks than expected
-    if (matches.length > expectedTrackCount) {
-      expectedTrackCount = matches.length;
-    }
-    
-    return { 
-      albumTracks: matches,
-      normalizedTrackCount: expectedTrackCount
-    };
-  }, [album, processedData, rawPlayData]);
+  }, [album, processedData]);
   
-  // Sort tracks by play time (outside of useMemo, but using the cached albumTracks)
+  // Sort tracks by play time
   const sortedTracks = useMemo(() => {
     return [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
   }, [albumTracks]);
@@ -109,6 +34,11 @@ const AlbumCard = ({ album, index, processedData, formatDuration, rawPlayData = 
   // Get top track and other tracks
   const topTrack = sortedTracks.length > 0 ? sortedTracks[0] : null;
   const otherTracks = sortedTracks.slice(1);
+  
+  // Normalize trackCount
+  const normalizedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
+    ? album.trackCount.size 
+    : (typeof album.trackCount === 'number' ? album.trackCount : 0);
 
   return (
     <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
