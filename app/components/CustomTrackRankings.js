@@ -9,7 +9,8 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [artistSearch, setArtistSearch] = useState('');
-  const [featureMode, setFeatureMode] = useState('all'); // 'all', 'main', 'features'
+  const [includeFeatures, setIncludeFeatures] = useState(false); // Toggle for including features
+  const [onlyFeatures, setOnlyFeatures] = useState(false); // New toggle for showing only features
   
   const addArtistFromTrack = (artist) => {
     // Prevent duplicate artists
@@ -53,6 +54,34 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
       .slice(0, 10);
   }, [allArtists, artistSearch, selectedArtists]);
 
+  // Create a mapping of track/artist keys to album names
+  const albumMap = useMemo(() => {
+    const map = new Map();
+    
+    // First pass: collect all Spotify album information
+    rawPlayData.forEach(entry => {
+      if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name) {
+        const albumName = entry.master_metadata_album_album_name;
+        
+        if (albumName) {
+          const trackName = entry.master_metadata_track_name.toLowerCase().trim();
+          const artistName = entry.master_metadata_album_artist_name.toLowerCase().trim();
+          
+          // Create a key that identifies this track
+          const trackKey = `${trackName}|||${artistName}`;
+          
+          // Store the album information for this track
+          // Prioritize Spotify entries (they usually have better metadata)
+          if (entry.source === 'spotify' || !map.has(trackKey)) {
+            map.set(trackKey, albumName);
+          }
+        }
+      }
+    });
+    
+    return map;
+  }, [rawPlayData]);
+
   const filteredTracks = useMemo(() => {
     if (!rawPlayData?.length) return [];
     
@@ -79,10 +108,11 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
             console.warn('Error normalizing track name:', err);
           }
           
-          // Determine artist match based on feature mode
-          const isMainArtistMatch = selectedArtists.length === 0 || 
+          // Check if this is a main artist match
+          const isArtistMatch = selectedArtists.length === 0 || 
             selectedArtists.includes(entry.master_metadata_album_artist_name);
           
+          // Check if this is a feature artist match
           const isFeatureMatch = featureArtists && 
             selectedArtists.some(artist => 
               featureArtists.some(feature => 
@@ -90,10 +120,23 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
               )
             );
           
-          // Filter tracks based on feature mode
-          if (selectedArtists.length > 0) {
-            if (featureMode === 'main' && !isMainArtistMatch) return;
-            if (featureMode === 'features' && !isFeatureMatch) return;
+          // Handle filter logic for different toggle states
+          const shouldInclude = (
+            // No artists selected - include everything
+            selectedArtists.length === 0 ||
+            
+            // Only features mode - only include feature matches
+            (onlyFeatures && isFeatureMatch) ||
+            
+            // Main artist matches (when not in only-features mode)
+            (!onlyFeatures && isArtistMatch) ||
+            
+            // Include features mode - include feature matches
+            (!onlyFeatures && includeFeatures && isFeatureMatch)
+          );
+          
+          if (!shouldInclude) {
+            return; // Skip this track
           }
           
           // Create a unique key for the track
@@ -108,33 +151,39 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
             key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
           }
           
+          // Get the album name if available
+          const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
+          let albumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
+          
           if (!trackStats[key]) {
             // New track, create its stats object
             trackStats[key] = {
               key,
               trackName: entry.master_metadata_track_name,
               artist: entry.master_metadata_album_artist_name,
-              albumName: entry.master_metadata_album_album_name || 'Unknown Album',
+              albumName: albumName,
               totalPlayed: 0,
               playCount: 0,
               featureArtists,
               variations: [entry.master_metadata_track_name],
-              isMainArtist: isMainArtistMatch,
               isFeatured: isFeatureMatch
             };
           } else {
-            // Track variations with error handling
+            // Track variations
             if (trackStats[key].variations && 
                 !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
               trackStats[key].variations.push(entry.master_metadata_track_name);
             }
             
-            // Update the featured and main artist flags if not already set
+            // Update the featured flag if not already set
             if (isFeatureMatch && !trackStats[key].isFeatured) {
               trackStats[key].isFeatured = true;
             }
-            if (isMainArtistMatch && !trackStats[key].isMainArtist) {
-              trackStats[key].isMainArtist = true;
+            
+            // Update album name if this entry has a better one
+            if (albumName !== 'Unknown Album' && 
+                (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
+              trackStats[key].albumName = albumName;
             }
           }
           
@@ -150,7 +199,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
     return Object.values(trackStats)
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, featureMode]);
+  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, includeFeatures, onlyFeatures, albumMap]);
 
   const setQuickRange = (days) => {
     const end = new Date();
@@ -170,20 +219,20 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
     setSelectedArtists(prev => prev.filter(a => a !== artist));
   };
 
-  // Toggle feature mode
-  const toggleFeatureMode = () => {
-    const modes = ['all', 'main', 'features'];
-    const currentIndex = modes.indexOf(featureMode);
-    const nextIndex = (currentIndex + 1) % modes.length;
-    setFeatureMode(modes[nextIndex]);
-  };
-
-  const getFeatureModeLabel = () => {
-    switch (featureMode) {
-      case 'all': return 'All Tracks';
-      case 'main': return 'Main Artists Only';
-      case 'features': return 'Featured Tracks Only';
-      default: return 'All Tracks';
+  // Handle changes to feature toggles
+  const handleFeatureToggleChange = (toggleType, value) => {
+    if (toggleType === 'include') {
+      setIncludeFeatures(value);
+      // If turning on "only features", turn off "include features"
+      if (onlyFeatures && value) {
+        setOnlyFeatures(false);
+      }
+    } else { // 'only'
+      setOnlyFeatures(value);
+      // If turning on "only features", turn off "include features"
+      if (includeFeatures && value) {
+        setIncludeFeatures(false);
+      }
     }
   };
 
@@ -271,7 +320,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                 <div
                   key={artist}
                   onClick={() => addArtist(artist)}
-                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer text-orange-700"
+                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer"
                 >
                   {artist}
                 </div>
@@ -280,16 +329,44 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
           )}
         </div>
         
-        {/* Feature Toggle - only show when artists are selected */}
+        {/* Feature Toggles - only show when artists are selected */}
         {selectedArtists.length > 0 && (
-          <div className="flex items-center mt-2 gap-4">
-            {/* Feature Inclusion Toggle */}
-            <button
-              onClick={toggleFeatureMode}
-              className="px-3 py-1 rounded text-sm bg-orange-100 text-orange-700 hover:bg-orange-200"
-            >
-              {getFeatureModeLabel()}
-            </button>
+          <div className="flex flex-col sm:flex-row gap-4 mt-2">
+            {/* Include features toggle */}
+            <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={includeFeatures} 
+                  disabled={onlyFeatures}
+                  onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
+                  className="sr-only"
+                />
+                <div className={`block w-10 h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-4' : ''}`}></div>
+              </div>
+              <span className="ml-2 text-orange-700">
+                Include songs featuring these artists
+              </span>
+            </label>
+            
+            {/* Only features toggle */}
+            <label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={onlyFeatures} 
+                  disabled={includeFeatures}
+                  onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
+                  className="sr-only"
+                />
+                <div className={`block w-10 h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-4' : ''}`}></div>
+              </div>
+              <span className="ml-2 text-orange-700">
+                Only show songs where these artists are featured
+              </span>
+            </label>
           </div>
         )}
       </div>
@@ -350,13 +427,11 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                     </td>
                     <td 
                       className="p-2 text-orange-700 cursor-pointer hover:underline" 
-     onClick={() => addArtistFromTrack(song.artist)}
+                      onClick={() => addArtistFromTrack(song.artist)}
                     > 
                       {song.artist} 
                     </td>
-                    <td className="p-2 text-orange-700">
-                      {song.albumName || 'Unknown Album'}
-                    </td>
+                    <td className="p-2 text-orange-700">{song.albumName}</td>
                     <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
                     <td className="p-2 text-right text-orange-700">{song.playCount}</td>
                   </tr>
