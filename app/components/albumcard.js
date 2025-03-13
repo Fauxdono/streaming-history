@@ -4,90 +4,38 @@ import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
 
-  // Use album.trackObjects directly if available (from enhanced streaming adapter)
-  // Otherwise, fall back to the existing album track matching logic
+  // Simplified album tracks handling
   const albumTracks = useMemo(() => {
-    // First check if we have valid trackObjects data
-    if (album && album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
-      // Use the pre-processed track objects
+    // Use pre-existing trackObjects if available
+    if (album?.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
       return album.trackObjects;
     }
     
-    // Fall back to existing logic if trackObjects isn't available
+    // Fall back to matching tracks from processedData
     if (!processedData || !album) return [];
     
-    // Normalize album and artist names for consistent matching
-    const normalizedAlbumName = album.name.toLowerCase().trim();
-    const normalizedArtistName = album.artist.toLowerCase().trim();
-    
-    // Get all tracks by this artist
-    const artistTracks = processedData.filter(track => 
-      track.artist && 
-      track.artist.toLowerCase().trim() === normalizedArtistName
+    // Simple matching logic
+    return processedData.filter(track => 
+      track?.artist === album.artist && 
+      track?.albumName && 
+      track.albumName.toLowerCase().includes(album.name.toLowerCase())
     );
-    
-    // Try multiple matching strategies to find album tracks
-    const directMatches = artistTracks.filter(track => {
-      if (!track.albumName) return false;
-      
-      const trackAlbumLower = track.albumName.toLowerCase().trim();
-      
-      // Exact match
-      if (trackAlbumLower === normalizedAlbumName) return true;
-      
-      // Clean both names for more flexible matching
-      const cleanTrackAlbum = trackAlbumLower
-        .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
-        .trim();
-      
-      const cleanAlbumName = normalizedAlbumName
-        .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
-        .trim();
-      
-      // Various matching strategies
-      if (cleanTrackAlbum === cleanAlbumName) return true;
-      if (cleanTrackAlbum.includes(cleanAlbumName) || cleanAlbumName.includes(cleanTrackAlbum)) return true;
-      
-      // More aggressive matching for edge cases
-      if (cleanTrackAlbum.length > 5 && cleanAlbumName.length > 5) {
-        // Check if one is a substring of the other with some leeway
-        if (cleanTrackAlbum.includes(cleanAlbumName.substring(0, Math.min(cleanAlbumName.length, 10)))) return true;
-        if (cleanAlbumName.includes(cleanTrackAlbum.substring(0, Math.min(cleanTrackAlbum.length, 10)))) return true;
-      }
-      
-      return false;
-    });
-    
-    return directMatches;
   }, [album, processedData]);
   
   // Sort tracks by play time
   const sortedTracks = useMemo(() => {
-    // If we have the enhanced trackObjects data, just use it directly
-    if (album.trackObjects && Array.isArray(album.trackObjects)) {
-      // Ensure it's sorted by totalPlayed
-      return [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
-    }
-    
-    // Otherwise sort the fallback albumTracks
-    return [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
-  }, [albumTracks, album.trackObjects]);
+    const tracks = albumTracks || [];
+    return [...tracks].sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+  }, [albumTracks]);
   
   // Get top track and other tracks
   const topTrack = sortedTracks.length > 0 ? sortedTracks[0] : null;
   const otherTracks = sortedTracks.slice(1);
   
-  // Normalize trackCount - use enhanced values if available
-  const normalizedTrackCount = album.trackCountValue 
-    ? album.trackCountValue 
-    : (typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-      ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 0));
-
-  // If the album has trackNames set, use that for count display
-  const displayTrackCount = album.trackNames instanceof Set 
-    ? album.trackNames.size 
-    : normalizedTrackCount;
+  // Normalize trackCount
+  const normalizedTrackCount = album.trackCountValue || 
+    (album.trackCount instanceof Set ? album.trackCount.size : 
+    (typeof album.trackCount === 'number' ? album.trackCount : 0));
   
   // Calculate completeness percentage
   const completenessPercentage = normalizedTrackCount > 0 
@@ -103,7 +51,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
         <br/>
         Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
         <br/>
-        Plays: <span className="font-bold">{album.playCount}</span> 
+        Plays: <span className="font-bold">{album.playCount || 0}</span> 
         <br/>
         Tracks: <span className="font-bold">{sortedTracks.length} / {normalizedTrackCount || '?'}</span>
         {completenessPercentage > 0 && (
@@ -158,13 +106,13 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
           </div>
           {otherTracks.map((track, trackIndex) => (
             <div 
-              key={`${track.trackName}-${trackIndex}`}
+              key={`${track.trackName || 'unknown'}-${trackIndex}`}
               className={`p-1 ${trackIndex % 2 === 0 ? 'bg-pink-50' : 'bg-white'}`}
             >
-              <div className="text-pink-600">{track.trackName}</div>
+              <div className="text-pink-600">{track.trackName || 'Unknown Track'}</div>
               <div className="flex justify-between text-pink-400">
-                <span>{formatDuration(track.totalPlayed)}</span>
-                <span>{track.playCount} plays</span>
+                <span>{formatDuration(track.totalPlayed || 0)}</span>
+                <span>{track.playCount || 0} plays</span>
               </div>
             </div>
           ))}
