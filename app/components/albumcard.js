@@ -7,6 +7,10 @@ const normalizeTrackName = (trackName) => {
   
   // Convert to lowercase
   let normalized = trackName.toLowerCase()
+    // Handle Kendrick's "untitled unmastered" album specially
+    // Convert both "untitled 07 2014 - 2016" and "untitled 07 | 2014 - 2016" to the same format
+    .replace(/untitled\s+(\d+)\s*[\|\.l]*\s*(\d+.*?)$/i, 'untitled $1 $2')
+    
     // Remove featuring artist info
     .replace(/\(feat\..*?\)/gi, '')
     .replace(/\(ft\..*?\)/gi, '')
@@ -20,8 +24,8 @@ const normalizeTrackName = (trackName) => {
     // Remove parenthetical info
     .replace(/\(.*?\)/gi, '')
     .replace(/\[.*?\]/gi, '')
-    // Change hyphens to spaces
-    .replace(/-/g, ' ')
+    // Replace vertical bars, periods, and other separators with spaces
+    .replace(/[|\-\.l]/g, ' ')
     // Remove punctuation
     .replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g, '')
     // Collapse multiple spaces
@@ -39,26 +43,27 @@ const combineTrackData = (tracks) => {
   
   // First pass: group tracks by normalized name
   tracks.forEach(track => {
-    if (!track.trackName) return;
+    if (!track.trackName && !track.name) return;
     
-    const normalizedName = normalizeTrackName(track.trackName);
+    const trackName = track.trackName || track.name;
+    const normalizedName = normalizeTrackName(trackName);
     if (!normalizedName) return;
     
     if (!trackMap.has(normalizedName)) {
       trackMap.set(normalizedName, {
         normalizedName,
-        variations: [track.trackName],
+        variations: [trackName],
         totalPlayed: track.totalPlayed || 0,
         playCount: track.playCount || 0,
         // Use the original track name with the most plays as the display name
-        displayName: track.trackName
+        displayName: trackName
       });
     } else {
       const existing = trackMap.get(normalizedName);
       
       // Add this variation if it's not already included
-      if (!existing.variations.includes(track.trackName)) {
-        existing.variations.push(track.trackName);
+      if (!existing.variations.includes(trackName)) {
+        existing.variations.push(trackName);
       }
       
       // Add play counts
@@ -67,7 +72,7 @@ const combineTrackData = (tracks) => {
       
       // Update display name if this track has more plays
       if ((track.totalPlayed || 0) > (existing.totalPlayed / existing.variations.length)) {
-        existing.displayName = track.trackName;
+        existing.displayName = trackName;
       }
     }
   });
@@ -96,7 +101,9 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       track?.albumName && (
         // Check for partial matches in either direction
         track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-        album.name.toLowerCase().includes(track.albumName.toLowerCase())
+        album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
+        // Also match tracks where albumName is 'Unknown Album' if our current album is 'Unknown Album'
+        (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
       )
     );
   }, [album, processedData]);
