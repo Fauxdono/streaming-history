@@ -1,23 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 
-const AlbumCard = ({ 
-  album, 
-  index, 
-  processedData, 
-  formatDuration,
-  selectedAlbumYear = 'all',
-  isYearRangeMode = false,
-  yearRange = { startYear: '', endYear: '' }
-}) => {
+const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
 
   // Use album.trackObjects directly if available (from enhanced streaming adapter)
   // Otherwise, fall back to the existing album track matching logic
   const albumTracks = useMemo(() => {
-    // Check if enhanced data is available
-    if (album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
-      // Just return the pre-processed track objects
+    // First check if we have valid trackObjects data
+    if (album && album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
+      // Use the pre-processed track objects
       return album.trackObjects;
     }
     
@@ -34,12 +26,7 @@ const AlbumCard = ({
       track.artist.toLowerCase().trim() === normalizedArtistName
     );
     
-    // Expected track count from album metadata
-    const expectedTrackCount = typeof album.trackCount === 'object' && album.trackCount instanceof Set 
-      ? album.trackCount.size 
-      : (typeof album.trackCount === 'number' ? album.trackCount : 0);
-    
-    // Direct album name matches
+    // Try multiple matching strategies to find album tracks
     const directMatches = artistTracks.filter(track => {
       if (!track.albumName) return false;
       
@@ -48,7 +35,7 @@ const AlbumCard = ({
       // Exact match
       if (trackAlbumLower === normalizedAlbumName) return true;
       
-      // Clean both names
+      // Clean both names for more flexible matching
       const cleanTrackAlbum = trackAlbumLower
         .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
         .trim();
@@ -57,9 +44,15 @@ const AlbumCard = ({
         .replace(/(\(|\[)?(deluxe|special|expanded|remastered|anniversary|edition|version|complete|bonus|tracks)(\)|\])?/gi, '')
         .trim();
       
+      // Various matching strategies
       if (cleanTrackAlbum === cleanAlbumName) return true;
-      if (cleanTrackAlbum.includes(cleanAlbumName) || cleanAlbumName.includes(cleanTrackAlbum)) {
-        return true;
+      if (cleanTrackAlbum.includes(cleanAlbumName) || cleanAlbumName.includes(cleanTrackAlbum)) return true;
+      
+      // More aggressive matching for edge cases
+      if (cleanTrackAlbum.length > 5 && cleanAlbumName.length > 5) {
+        // Check if one is a substring of the other with some leeway
+        if (cleanTrackAlbum.includes(cleanAlbumName.substring(0, Math.min(cleanAlbumName.length, 10)))) return true;
+        if (cleanAlbumName.includes(cleanTrackAlbum.substring(0, Math.min(cleanTrackAlbum.length, 10)))) return true;
       }
       
       return false;
@@ -101,10 +94,6 @@ const AlbumCard = ({
     ? Math.min(100, Math.round((sortedTracks.length / normalizedTrackCount) * 100)) 
     : 0;
 
-  // Format the year range for display if in range mode
-  const yearRangeText = isYearRangeMode && yearRange.startYear && yearRange.endYear ? 
-    `${yearRange.startYear}-${yearRange.endYear}` : null;
-
   return (
     <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
       <div className="font-bold text-pink-600">{album.name}</div>
@@ -112,30 +101,9 @@ const AlbumCard = ({
       <div className="text-sm text-pink-400">
         Artist: <span className="font-bold">{album.artist}</span> 
         <br/>
-        {/* Show year-specific stats if available, otherwise show all-time stats */}
-        {album.yearTotalPlayed ? (
-          <>
-            {selectedAlbumYear} Time: <span className="font-bold">{formatDuration(album.yearTotalPlayed)}</span> 
-            <br/>
-            {selectedAlbumYear} Plays: <span className="font-bold">{album.yearPlayCount}</span> 
-            <br/>
-            All-time: <span className="text-pink-300">{formatDuration(album.totalPlayed)}</span>
-          </>
-        ) : album.rangeTotalPlayed ? (
-          <>
-            {yearRangeText} Time: <span className="font-bold">{formatDuration(album.rangeTotalPlayed)}</span> 
-            <br/>
-            {yearRangeText} Plays: <span className="font-bold">{album.rangePlayCount}</span> 
-            <br/>
-            All-time: <span className="text-pink-300">{formatDuration(album.totalPlayed)}</span>
-          </>
-        ) : (
-          <>
-            Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
-            <br/>
-            Plays: <span className="font-bold">{album.playCount}</span> 
-          </>
-        )}
+        Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
+        <br/>
+        Plays: <span className="font-bold">{album.playCount}</span> 
         <br/>
         Tracks: <span className="font-bold">{sortedTracks.length} / {normalizedTrackCount || '?'}</span>
         {completenessPercentage > 0 && (
