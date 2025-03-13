@@ -1002,44 +1002,44 @@ return filteredAlbums.map(album => {
   </div>
 </div>
     
-    {/* Albums Display */}
-    {displayedAlbums.length === 0 ? (
-      <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
-        <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
-        <p className="text-pink-600 mt-2">
-          {albumYearRangeMode 
-            ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
-            : selectedAlbumYear !== 'all' 
-              ? `No albums found for the year ${selectedAlbumYear}.`
-              : "No album data available."}
-        </p>
-        <button
-          onClick={() => {
-            setAlbumYearRangeMode(false);
-            setSelectedAlbumYear('all');
-            setSelectedArtists([]);
-          }}
-          className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-        >
-          Show All Albums
-        </button>
-      </div>
-    ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-          <AlbumCard 
-            key={`${album.name}-${album.artist}`}
-            album={album}
-            index={index}
-            processedData={processedData}
-            formatDuration={formatDuration}
-            selectedYear={selectedAlbumYear}
-            yearRange={albumYearRange}
-            isYearRangeMode={albumYearRangeMode}
-          />
-        ))}
-      </div>
-    )}
+  
+{displayedAlbums.length === 0 ? (
+  <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
+    <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
+    <p className="text-pink-600 mt-2">
+      {albumYearRangeMode 
+        ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
+        : selectedAlbumYear !== 'all' 
+          ? `No albums found for the year ${selectedAlbumYear}.`
+          : "No album data available."}
+    </p>
+    <button
+      onClick={() => {
+        setAlbumYearRangeMode(false);
+        setSelectedAlbumYear('all');
+        setSelectedArtists([]);
+      }}
+      className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+    >
+      Show All Albums
+    </button>
+  </div>
+) : (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
+      <AlbumCard 
+        key={`${album.name}-${album.artist}`}
+        album={album}
+        index={index}
+        processedData={processedData}
+        formatDuration={formatDuration}
+        selectedYear={selectedAlbumYear}
+        yearRange={albumYearRange}
+        isYearRangeMode={albumYearRangeMode}
+      />
+    ))}
+  </div>
+)}
   </div>
 )}
         
