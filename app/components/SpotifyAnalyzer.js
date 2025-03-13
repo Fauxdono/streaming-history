@@ -249,36 +249,40 @@ const displayedAlbums = useMemo(() => {
   }
   
   // Enhance albums with track data
-  return filteredAlbums.map(album => {
-    // Try to get track data
-    if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
-      // Find tracks for this album
-      const albumTracks = processedData.filter(track => 
-        track.artist === album.artist && 
-        track.albumName && 
-        (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-         album.name.toLowerCase().includes(track.albumName.toLowerCase()))
-      );
-      
-      // Sort by total play time
-      const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
-      
-      return {
-        ...album,
-        trackObjects: sortedTracks,
-        topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
-      };
-    }
+return filteredAlbums.map(album => {
+  // Flag to indicate this album is already pre-filtered for a specific year/range
+  const isYearFiltered = selectedAlbumYear !== 'all' || albumYearRangeMode;
+  
+  // Rest of your existing code...
+  if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
+    // Find tracks for this album
+    const albumTracks = processedData.filter(track => 
+      track.artist === album.artist && 
+      track.albumName && 
+      (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+       album.name.toLowerCase().includes(track.albumName.toLowerCase()))
+    );
     
-    // Just ensure tracks are sorted if we already have them
-    const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
+    // Sort by total play time
+    const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
     
     return {
       ...album,
       trackObjects: sortedTracks,
-      topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
+      topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null,
+      isYearFiltered // Add this flag
     };
-  });
+  }
+  
+  // Just ensure tracks are sorted if we already have them
+  const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
+  
+  return {
+    ...album,
+    trackObjects: sortedTracks,
+    topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null,
+    isYearFiltered // Add this flag
+  };
 }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
@@ -1029,6 +1033,9 @@ const displayedAlbums = useMemo(() => {
             index={index}
             processedData={processedData}
             formatDuration={formatDuration}
+            selectedYear={selectedAlbumYear}
+            yearRange={albumYearRange}
+            isYearRangeMode={albumYearRangeMode}
           />
         ))}
       </div>

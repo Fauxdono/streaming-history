@@ -143,31 +143,100 @@ const combineTrackData = (tracks) => {
   return finalTracks.sort((a, b) => b.totalPlayed - a.totalPlayed);
 };
 
-const AlbumCard = ({ album, index, processedData, formatDuration }) => {
+const AlbumCard = ({ album, index, processedData, formatDuration, selectedYear = 'all', yearRange = null, isYearRangeMode = false }) => {
   const [showTracks, setShowTracks] = useState(false);
+  
+  // Determine if we should filter by year
+  const shouldFilterByYear = selectedYear !== 'all' || isYearRangeMode;
 
-  // Get album tracks with improved handling
+  // Get album tracks with improved handling and year filtering
   const albumTracks = useMemo(() => {
-    // Use pre-existing trackObjects if available
+    // First determine if we need to filter by year
+    const shouldFilterByYear = selectedYear !== 'all' || isYearRangeMode;
+    const startYear = isYearRangeMode && yearRange?.startYear ? parseInt(yearRange.startYear) : null;
+    const endYear = isYearRangeMode && yearRange?.endYear ? parseInt(yearRange.endYear) : null;
+    const exactYear = selectedYear !== 'all' ? parseInt(selectedYear) : null;
+    
+    // Helper function to check if a track's timestamps match the year filter
+    const trackMatchesYearFilter = (track) => {
+      // If no filtering needed, always return true
+      if (!shouldFilterByYear) return true;
+      
+      // We need to check if this track has play history that matches our year filter
+      // Since we don't have direct access to play history here, we can use a few approaches:
+      
+      // 1. For album data from a specific year (already pre-filtered), trust it's correct
+      if (album.yearSpecific || album.isYearFiltered) return true;
+      
+      // 2. Look for year data in the track itself
+      if (track.years || track.yearsPlayed) {
+        const trackYears = track.years || track.yearsPlayed || [];
+        if (isYearRangeMode) {
+          return trackYears.some(year => year >= startYear && year <= endYear);
+        } else {
+          return trackYears.includes(exactYear);
+        }
+      }
+      
+      // 3. If the track has a lastPlayedDate or firstPlayedDate, use that
+      const checkDate = (dateStr) => {
+        if (!dateStr) return false;
+        try {
+          const date = new Date(dateStr);
+          const year = date.getFullYear();
+          
+          if (isYearRangeMode) {
+            return year >= startYear && year <= endYear;
+          } else {
+            return year === exactYear;
+          }
+        } catch (e) {
+          return false;
+        }
+      };
+      
+      // Check last played date
+      if (track.lastPlayedDate) return checkDate(track.lastPlayedDate);
+      
+      // Check first played date
+      if (track.firstPlayedDate) return checkDate(track.firstPlayedDate);
+      
+      // 4. If we're displaying a year-specific album view, we can assume all tracks qualify
+      // (This would be true if albumsByYear is used correctly)
+      return true;
+    };
+    
+    // Use pre-existing trackObjects if available, but filter by year if needed
     if (album?.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
-      return album.trackObjects;
+      // If this album is already year-specific (from albumsByYear), return all tracks
+      if (album.yearSpecific || album.isYearFiltered) {
+        return album.trackObjects;
+      }
+      
+      // Otherwise, filter the tracks by year if needed
+      return shouldFilterByYear 
+        ? album.trackObjects.filter(trackMatchesYearFilter)
+        : album.trackObjects;
     }
     
     // Fall back to matching tracks from processedData
     if (!processedData || !album) return [];
     
-    // Enhanced matching logic with better album name normalization
+    // Enhanced matching logic with better album name normalization, plus year filtering
     return processedData.filter(track => 
       track?.artist === album.artist && 
-      track?.albumName && (
+      track?.albumName && 
+      (
         // Check for partial matches in either direction
         track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
         album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
         // Also match tracks where albumName is 'Unknown Album' if our current album is 'Unknown Album'
         (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
-      )
+      ) &&
+      // Apply year filter if needed
+      trackMatchesYearFilter(track)
     );
-  }, [album, processedData]);
+  }, [album, processedData, selectedYear, yearRange, isYearRangeMode]);
   
   // Deduplicate and combine similar tracks with improved logic
   const dedupedTracks = useMemo(() => {
@@ -182,6 +251,11 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const normalizedTrackCount = album.trackCountValue || 
     (album.trackCount instanceof Set ? album.trackCount.size : 
     (typeof album.trackCount === 'number' ? album.trackCount : 0));
+  
+  // Mark album as year-specific if it was pre-filtered by a year query
+  const isYearSpecific = selectedYear !== 'all' || isYearRangeMode || 
+                       album.yearSpecific || album.isYearFiltered || 
+                       (album.yearsArray && album.yearsArray.length === 1);
   
   // Calculate completeness percentage
   const completenessPercentage = normalizedTrackCount > 0 
@@ -205,6 +279,123 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
         )}
         <br/> 
         First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span>
+      </div>
+      
+      {/* Divider */}
+      <div className="border-t border-pink-200 my-2"></div>
+      
+      {/* Top Track Section */}
+      <div className="mt-2">
+        <div className="font-medium text-pink-600">Top Track:</div>
+        {topTrack ? (
+          <div className="text-sm text-pink-500 p-1 bg-pink-50 rounded">
+            {topTrack.displayName}
+            {topTrack.variations && topTrack.variations.length > 1 && (
+              <span className="text-xs text-pink-400 ml-1">
+                ({topTrack.variations.length} versions)
+              </span>
+            )}
+            <div className="flex justify-between text-xs text-pink-400">
+              <span>{formatDuration(topTrack.totalPlayed)}</span>
+              <span>{topTrack.playCount} plays</span>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-pink-400 italic">No track data available</div>
+        )}
+      </div>
+      
+      {/* Track Dropdown Toggle */}
+      {otherTracks.length > 0 && (
+        <button 
+          onClick={() => setShowTracks(!showTracks)}
+          className="mt-2 text-xs flex items-center justify-between w-full p-1 text-pink-600 bg-pink-100 hover:bg-pink-200 rounded"
+        >
+          <span className="flex items-center">
+            <Music size={14} className="mr-1" />
+            {showTracks ? 'Hide' : 'Show'} {otherTracks.length} more tracks
+            {normalizedTrackCount > otherTracks.length + 1 && !showTracks && 
+              <span className="ml-1">{` (${normalizedTrackCount - otherTracks.length - 1} unavailable)`}</span>}
+          </span>
+          {showTracks ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+      )}
+      
+      {/* Track Dropdown Content */}
+      {showTracks && otherTracks.length > 0 && (
+        <div className="mt-1 max-h-64 overflow-y-auto text-xs border border-pink-200 rounded">
+          <div className="sticky top-0 bg-pink-100 p-1 text-xs text-center text-pink-600 font-medium">
+            {normalizedTrackCount > otherTracks.length + 1 ?
+              `Showing ${otherTracks.length} of ${normalizedTrackCount - 1} remaining tracks` :
+              `Showing all ${otherTracks.length} remaining tracks`}
+          </div>
+          {otherTracks.map((track, trackIndex) => (
+            <div 
+              key={`${track.normalizedName || 'unknown'}-${trackIndex}`}
+              className={`p-1 ${trackIndex % 2 === 0 ? 'bg-pink-50' : 'bg-white'}`}
+            >
+              <div className="text-pink-600">
+                {track.displayName || 'Unknown Track'}
+                {track.variations && track.variations.length > 1 && (
+                  <span className="text-xs text-pink-400 ml-1">
+                    ({track.variations.length} versions)
+                  </span>
+                )}
+              </div>
+              <div className="flex justify-between text-pink-400">
+                <span>{formatDuration(track.totalPlayed || 0)}</span>
+                <span>{track.playCount || 0} plays</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
+    </div>
+  );
+};
+
+// Add a display message to show if we're viewing filtered data
+  // This helps users understand what they're seeing
+  const yearFilterMessage = useMemo(() => {
+    if (!shouldFilterByYear) return null;
+    
+    if (isYearRangeMode && yearRange?.startYear && yearRange?.endYear) {
+      return (
+        <div className="text-xs text-pink-500 italic mt-1">
+          Showing data from {yearRange.startYear}-{yearRange.endYear} only
+        </div>
+      );
+    } else if (selectedYear !== 'all') {
+      return (
+        <div className="text-xs text-pink-500 italic mt-1">
+          Showing data from {selectedYear} only
+        </div>
+      );
+    }
+    
+    return null;
+  }, [shouldFilterByYear, isYearRangeMode, yearRange, selectedYear]);
+
+  return (
+    <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
+      <div className="font-bold text-pink-600">{album.name}</div>
+      
+      <div className="text-sm text-pink-400">
+        Artist: <span className="font-bold">{album.artist}</span> 
+        <br/>
+        Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
+        <br/>
+        Plays: <span className="font-bold">{album.playCount || 0}</span> 
+        <br/>
+        Tracks: <span className="font-bold">{dedupedTracks.length} / {normalizedTrackCount || '?'}</span>
+        {completenessPercentage > 0 && (
+          <span className="text-xs ml-1">({completenessPercentage}% complete)</span>
+        )}
+        <br/> 
+        First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span>
+        {yearFilterMessage}
       </div>
       
       {/* Divider */}
