@@ -962,20 +962,27 @@ function normalizeTrackName(trackName) {
       const expectedTrackCount = albumToTracksMap.has(fullAlbumKey) ? 
                                albumToTracksMap.get(fullAlbumKey).size : 0;
       
-      if (!albumStats[albumKey]) {
-        albumStats[albumKey] = {
-          name: albumName,
-          artist: artistName,
-          totalPlayed: 0,
-          playCount: 0,
-          trackCount: new Set(),
-          trackNames: new Set(), // Store actual track names
-          trackObjects: [], // NEW: Store track objects for sorting
-          expectedTrackCount: expectedTrackCount,
-          firstListen: timestamp.getTime(),
-          isComplete: false // Track if we have all expected tracks
-        };
-      }
+  if (!albumStats[albumKey]) {
+  albumStats[albumKey] = {
+    name: albumName,
+    artist: artistName,
+    totalPlayed: 0,
+    playCount: 0,
+    trackCount: new Set(),
+    trackNames: new Set(), // Store actual track names
+    trackObjects: [], // NEW: Store track objects for sorting
+    expectedTrackCount: expectedTrackCount,
+    firstListen: timestamp.getTime(),
+    isComplete: false, // Track if we have all expected tracks
+    years: new Set() // NEW: Track which years this album was played in
+  };
+}
+
+// Get the year from the timestamp and add it to the years set
+if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
+  const year = timestamp.getFullYear();
+  albumStats[albumKey].years.add(year);
+}
       
       albumStats[albumKey].totalPlayed += playTime;
       albumStats[albumKey].playCount++;
@@ -1018,6 +1025,7 @@ function normalizeTrackName(trackName) {
       );
     }
 
+
     if (trackMap[matchKey]) {
       // Update existing track
       trackMap[matchKey].totalPlayed += playTime;
@@ -1037,6 +1045,8 @@ function normalizeTrackName(trackName) {
       if (featureArtists && !trackMap[matchKey].featureArtists) {
         trackMap[matchKey].featureArtists = featureArtists;
       }
+
+
       
       // Store ISRC if available and not already stored
       if ((entry.master_metadata_external_ids?.isrc || entry.isrc) && !trackMap[matchKey].isrc) {
@@ -1058,19 +1068,26 @@ function normalizeTrackName(trackName) {
     }
   });
 
-  // NEW: Final processing to ensure albumStats has sorted track lists
-  Object.values(albumStats).forEach(album => {
-    // Sort tracks by total played time
-    album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
-    
-    // Ensure trackCount is converted to a number for easier use
-    if (album.trackCount instanceof Set) {
-      album.trackCountValue = album.trackCount.size;
-    } else {
-      album.trackCountValue = typeof album.trackCount === 'number' ? 
-                            album.trackCount : album.trackCount.size;
-    }
-  });
+// NEW: Final processing to ensure albumStats has sorted track lists
+Object.values(albumStats).forEach(album => {
+  // Sort tracks by total played time
+  album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+  
+  // Ensure trackCount is converted to a number for easier use
+  if (album.trackCount instanceof Set) {
+    album.trackCountValue = album.trackCount.size;
+  } else {
+    album.trackCountValue = typeof album.trackCount === 'number' ? 
+                          album.trackCount : album.trackCount.size;
+  }
+  
+  // Convert years Set to Array for the final output - this needs to be INSIDE the forEach
+  if (album.years instanceof Set) {
+    album.yearsArray = Array.from(album.years).sort();
+  } else {
+    album.yearsArray = [];
+  }
+});
 
   // Convert track map to array
   for (const key in trackMap) {
@@ -1239,6 +1256,52 @@ function calculateSongsByYear(songs, songPlayHistory) {
   });
 
   return songsByYear;
+}
+
+function calculateAlbumsByYear(albums) {
+  const albumsByYear = {};
+  
+  // Process each album and distribute it to the appropriate years
+  albums.forEach(album => {
+    // Check if we have years data for this album
+    if (album.yearsArray && album.yearsArray.length > 0) {
+      // Add this album to each year it was played in
+      album.yearsArray.forEach(year => {
+        // Initialize the year array if needed
+        if (!albumsByYear[year]) {
+          albumsByYear[year] = [];
+        }
+        
+        // Add the album to this year's array
+        albumsByYear[year].push({...album});
+      });
+    } else if (album.firstListen) {
+      // Fallback to using firstListen if yearsArray is not available
+      try {
+        const firstListenDate = new Date(album.firstListen);
+        if (!isNaN(firstListenDate.getTime())) {
+          const year = firstListenDate.getFullYear().toString();
+          
+          // Initialize the year array if needed
+          if (!albumsByYear[year]) {
+            albumsByYear[year] = [];
+          }
+          
+          // Add the album to this year's array
+          albumsByYear[year].push({...album});
+        }
+      } catch (e) {
+        console.warn("Error processing album year from firstListen:", e);
+      }
+    }
+  });
+  
+  // Sort each year's albums by total played time
+  Object.keys(albumsByYear).forEach(year => {
+    albumsByYear[year] = _.orderBy(albumsByYear[year], ['totalPlayed'], ['desc']);
+  });
+  
+  return albumsByYear;
 }
 
 function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
@@ -1523,25 +1586,26 @@ const verifiedAlbums = sortedAlbums.map(album => {
   return album;
 });
 
-      return {
-        stats: {
-          totalFiles: files.length,
-          totalEntries: allProcessedData.length,
-          processedSongs: stats.processedSongs,
-          nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
-          skippedEntries: 0,
-          shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime,
-          serviceListeningTime: stats.serviceListeningTime
-        },
-        topArtists: sortedArtists,
-        topAlbums: verifiedAlbums,
-        processedTracks: sortedSongs,
-        songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
-        briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
-        artistsByYear: calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData),
-        rawPlayData: allProcessedData
-      };
+  return {
+  stats: {
+    totalFiles: files.length,
+    totalEntries: allProcessedData.length,
+    processedSongs: stats.processedSongs,
+    nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
+    skippedEntries: 0,
+    shortPlays: stats.shortPlays,
+    totalListeningTime: stats.totalListeningTime,
+    serviceListeningTime: stats.serviceListeningTime
+  },
+  topArtists: sortedArtists,
+  topAlbums: verifiedAlbums,
+  processedTracks: sortedSongs,
+  songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
+  briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
+  artistsByYear: calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData),
+  albumsByYear: calculateAlbumsByYear(verifiedAlbums), // NEW: Add albumsByYear
+  rawPlayData: allProcessedData
+};
     } catch (error) {
       console.error('Error processing files:', error);
       throw error;
