@@ -320,7 +320,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                 <div
                   key={artist}
                   onClick={() => addArtist(artist)}
-                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer"
+                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer text-orange-700"
                 >
                   {artist}
                 </div>
