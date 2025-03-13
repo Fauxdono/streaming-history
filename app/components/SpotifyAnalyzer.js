@@ -208,37 +208,98 @@ const getAlbumsTabLabel = () => {
 
 // Updated displayedAlbums useMemo function for SpotifyAnalyzer.js
 
+// Add extra debug logging to diagnose issues with album display
+useEffect(() => {
+  console.log('Album display state:', {
+    selectedAlbumYear,
+    albumYearRangeMode,
+    albumYearRange,
+    totalAlbums: topAlbums.length,
+    filteredAlbums: displayedAlbums.length
+  });
+}, [selectedAlbumYear, albumYearRangeMode, albumYearRange, topAlbums.length, displayedAlbums.length]);
+
+// Modified displayedAlbums function with better error handling and logging
 const displayedAlbums = useMemo(() => {
+  console.log("Computing displayedAlbums with:", {
+    selectedAlbumYear,
+    albumYearRangeMode,
+    albumYearRange,
+    artistsFilter: selectedArtists.length > 0
+  });
+
   // Start with all albums
   let filteredAlbums = topAlbums;
+  console.log(`Starting with ${filteredAlbums.length} total albums`);
   
   // Filter by selected artists if any
   if (selectedArtists.length > 0) {
     filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
+    console.log(`After artist filtering: ${filteredAlbums.length} albums`);
   }
   
-  // Year filtering
-  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Year range mode
-    const startYear = parseInt(albumYearRange.startYear);
-    const endYear = parseInt(albumYearRange.endYear);
-    
-    filteredAlbums = filteredAlbums.filter(album => {
-      const albumDate = new Date(album.firstListen);
-      const albumYear = albumDate.getFullYear();
-      return albumYear >= startYear && albumYear <= endYear;
-    });
-  } else if (selectedAlbumYear !== 'all') {
-    // Single year mode
-    const year = parseInt(selectedAlbumYear);
-    
-    filteredAlbums = filteredAlbums.filter(album => {
-      const albumDate = new Date(album.firstListen);
-      const albumYear = albumDate.getFullYear();
-      return albumYear === year;
-    });
+  // Year filtering - carefully handle the 'all' case
+  if (selectedAlbumYear !== 'all' || (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear)) {
+    if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+      // Year range mode
+      const startYear = parseInt(albumYearRange.startYear);
+      const endYear = parseInt(albumYearRange.endYear);
+      
+      console.log(`Filtering by year range: ${startYear}-${endYear}`);
+      
+      filteredAlbums = filteredAlbums.filter(album => {
+        try {
+          if (!album.firstListen) {
+            console.log(`Album without firstListen:`, album.name);
+            return false;
+          }
+          
+          const albumDate = new Date(album.firstListen);
+          if (isNaN(albumDate.getTime())) {
+            console.log(`Invalid date for album:`, album.name, album.firstListen);
+            return false;
+          }
+          
+          const albumYear = albumDate.getFullYear();
+          return albumYear >= startYear && albumYear <= endYear;
+        } catch (e) {
+          console.error("Error filtering album by year range:", e, album);
+          return false;
+        }
+      });
+      
+      console.log(`After year range filtering: ${filteredAlbums.length} albums`);
+    } else if (selectedAlbumYear !== 'all') {
+      // Single year mode
+      const year = parseInt(selectedAlbumYear);
+      console.log(`Filtering by year: ${year}`);
+      
+      filteredAlbums = filteredAlbums.filter(album => {
+        try {
+          if (!album.firstListen) {
+            console.log(`Album without firstListen:`, album.name);
+            return false;
+          }
+          
+          const albumDate = new Date(album.firstListen);
+          if (isNaN(albumDate.getTime())) {
+            console.log(`Invalid date for album:`, album.name, album.firstListen);
+            return false;
+          }
+          
+          const albumYear = albumDate.getFullYear();
+          return albumYear === year;
+        } catch (e) {
+          console.error("Error filtering album by single year:", e, album);
+          return false;
+        }
+      });
+      
+      console.log(`After single year filtering: ${filteredAlbums.length} albums`);
+    }
+  } else {
+    console.log(`No year filtering applied - showing all ${filteredAlbums.length} albums`);
   }
-  // For 'all', we keep all albums from topAlbums
   
   // Enhance albums with proper track counts and pre-collected track data
   return filteredAlbums.map(album => {
@@ -249,11 +310,15 @@ const displayedAlbums = useMemo(() => {
         : (typeof album.trackCount === 'number' ? album.trackCount : 0));
     
     // Check if we have enhanced trackObjects data from the streaming adapter
-    if (!album.trackObjects || !Array.isArray(album.trackObjects)) {
+    if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
       // We need to build the trackObjects array for this album
       const albumTracks = processedData.filter(track => 
         track.artist === album.artist && 
-        track.albumName && track.albumName.toLowerCase().trim() === album.name.toLowerCase().trim()
+        track.albumName && 
+        (track.albumName.toLowerCase().trim() === album.name.toLowerCase().trim() ||
+         // Also try more flexible matching
+         track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+         album.name.toLowerCase().includes(track.albumName.toLowerCase()))
       );
       
       // Sort by total play time
