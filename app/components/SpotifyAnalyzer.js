@@ -951,50 +951,52 @@ const displayedAlbums = useMemo(() => {
     />
     
     {/* Artist Selection */}
-    <div className="mb-4">
-      <div className="flex flex-wrap gap-2 mb-2">
-        {selectedArtists.map(artist => (
-          <div 
-            key={artist} 
-            className="flex items-center bg-pink-600 text-white px-2 py-1 rounded text-sm"
+
+
+<div className="mb-4">
+  <div className="flex flex-wrap gap-2 mb-2">
+    {selectedArtists.map(artist => (
+      <div 
+        key={artist} 
+        className="flex items-center bg-pink-600 text-white px-2 py-1 rounded text-sm"
+      >
+        {artist}
+        <button 
+          onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
+          className="ml-2 text-white hover:text-pink-200"
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
+
+  <div className="relative">
+    <input
+      type="text"
+      value={artistSearch}
+      onChange={(e) => setArtistSearch(e.target.value)}
+      placeholder="Search artists..."
+      className="w-full border border-pink-300 rounded px-2 py-1 text-pink-700 focus:border-pink-400 focus:ring-pink-400 focus:outline-none"
+    />
+    {artistSearch && filteredArtists.length > 0 && (
+      <div className="absolute z-10 w-full bg-white border border-pink-200 rounded shadow-lg mt-1">
+        {filteredArtists.map(artist => (
+          <div
+            key={artist}
+            onClick={() => {
+              setSelectedArtists(prev => [...prev, artist]);
+              setArtistSearch('');
+            }}
+            className="px-2 py-1 hover:bg-pink-100 text-pink-700 cursor-pointer"
           >
             {artist}
-            <button 
-              onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-              className="ml-2 text-white hover:text-pink-200"
-            >
-              ×
-            </button>
           </div>
         ))}
       </div>
-
-      <div className="relative">
-        <input
-          type="text"
-          value={artistSearch}
-          onChange={(e) => setArtistSearch(e.target.value)}
-          placeholder="Search artists..."
-          className="w-full border rounded px-2 py-1 text-pink-700 focus:border-pink-400 focus:ring-pink-400"
-        />
-        {artistSearch && filteredArtists.length > 0 && (
-          <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
-            {filteredArtists.map(artist => (
-              <div
-                key={artist}
-                onClick={() => {
-                  setSelectedArtists(prev => [...prev, artist]);
-                  setArtistSearch('');
-                }}
-                className="px-2 py-1 hover:bg-pink-100 cursor-pointer"
-              >
-                {artist}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    )}
+  </div>
+</div>
     
     {/* Albums Display */}
     {displayedAlbums.length === 0 ? (
