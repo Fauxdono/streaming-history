@@ -9,7 +9,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [artistSearch, setArtistSearch] = useState('');
-  const [includeFeatures, setIncludeFeatures] = useState(false); // New state for feature toggle
+  const [featureMode, setFeatureMode] = useState('all'); // 'all', 'main', 'features'
   
   const addArtistFromTrack = (artist) => {
     // Prevent duplicate artists
@@ -70,10 +70,6 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
             entry.ms_played >= 30000 && 
             entry.master_metadata_track_name) {
           
-          // Artist filtering - check both main artist and features based on toggle
-          const isArtistMatch = selectedArtists.length === 0 || 
-            selectedArtists.includes(entry.master_metadata_album_artist_name);
-
           // Extract feature artists
           let featureArtists = null;
           try {
@@ -83,18 +79,21 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
             console.warn('Error normalizing track name:', err);
           }
           
-          // Check if any of the selected artists appear as features (if feature toggle is enabled)
-          const isFeatureMatch = includeFeatures && featureArtists && 
+          // Determine artist match based on feature mode
+          const isMainArtistMatch = selectedArtists.length === 0 || 
+            selectedArtists.includes(entry.master_metadata_album_artist_name);
+          
+          const isFeatureMatch = featureArtists && 
             selectedArtists.some(artist => 
               featureArtists.some(feature => 
                 feature.toLowerCase().includes(artist.toLowerCase())
               )
             );
           
-          // Skip if no match based on our filtering criteria
-          if ((selectedArtists.length > 0 && !isArtistMatch && !includeFeatures) || 
-              (selectedArtists.length > 0 && !isArtistMatch && !isFeatureMatch)) {
-            return; // Use return instead of continue to skip this iteration
+          // Filter tracks based on feature mode
+          if (selectedArtists.length > 0) {
+            if (featureMode === 'main' && !isMainArtistMatch) return;
+            if (featureMode === 'features' && !isFeatureMatch) return;
           }
           
           // Create a unique key for the track
@@ -115,11 +114,13 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
               key,
               trackName: entry.master_metadata_track_name,
               artist: entry.master_metadata_album_artist_name,
+              albumName: entry.master_metadata_album_album_name || 'Unknown Album',
               totalPlayed: 0,
               playCount: 0,
               featureArtists,
               variations: [entry.master_metadata_track_name],
-              isFeatured: isFeatureMatch // Mark if this is a feature match
+              isMainArtist: isMainArtistMatch,
+              isFeatured: isFeatureMatch
             };
           } else {
             // Track variations with error handling
@@ -128,9 +129,12 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
               trackStats[key].variations.push(entry.master_metadata_track_name);
             }
             
-            // Update the featured flag if not already set
+            // Update the featured and main artist flags if not already set
             if (isFeatureMatch && !trackStats[key].isFeatured) {
               trackStats[key].isFeatured = true;
+            }
+            if (isMainArtistMatch && !trackStats[key].isMainArtist) {
+              trackStats[key].isMainArtist = true;
             }
           }
           
@@ -146,7 +150,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
     return Object.values(trackStats)
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, includeFeatures]);
+  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, featureMode]);
 
   const setQuickRange = (days) => {
     const end = new Date();
@@ -164,6 +168,23 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
 
   const removeArtist = (artist) => {
     setSelectedArtists(prev => prev.filter(a => a !== artist));
+  };
+
+  // Toggle feature mode
+  const toggleFeatureMode = () => {
+    const modes = ['all', 'main', 'features'];
+    const currentIndex = modes.indexOf(featureMode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setFeatureMode(modes[nextIndex]);
+  };
+
+  const getFeatureModeLabel = () => {
+    switch (featureMode) {
+      case 'all': return 'All Tracks';
+      case 'main': return 'Main Artists Only';
+      case 'features': return 'Featured Tracks Only';
+      default: return 'All Tracks';
+    }
   };
 
   return (
@@ -261,22 +282,14 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
         
         {/* Feature Toggle - only show when artists are selected */}
         {selectedArtists.length > 0 && (
-          <div className="flex items-center mt-2">
-            <label className="flex items-center cursor-pointer">
-              <div className="relative">
-                <input 
-                  type="checkbox" 
-                  checked={includeFeatures} 
-                  onChange={() => setIncludeFeatures(!includeFeatures)}
-                  className="sr-only"
-                />
-                <div className={`block w-10 h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-4' : ''}`}></div>
-              </div>
-              <span className="ml-2 text-orange-700">
-                Include songs featuring these artists
-              </span>
-            </label>
+          <div className="flex items-center mt-2 gap-4">
+            {/* Feature Inclusion Toggle */}
+            <button
+              onClick={toggleFeatureMode}
+              className="px-3 py-1 rounded text-sm bg-orange-100 text-orange-700 hover:bg-orange-200"
+            >
+              {getFeatureModeLabel()}
+            </button>
           </div>
         )}
       </div>
@@ -290,6 +303,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                   <th className="p-2 text-left text-orange-700">Rank</th>
                   <th className="p-2 text-left text-orange-700">Track</th>
                   <th className="p-2 text-left text-orange-700">Artist</th>
+                  <th className="p-2 text-left text-orange-700">Album</th>
                   <th 
                     className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
                     onClick={() => setSortBy('totalPlayed')}
@@ -336,9 +350,12 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                     </td>
                     <td 
                       className="p-2 text-orange-700 cursor-pointer hover:underline" 
-                      onClick={() => addArtistFromTrack(song.artist)}
+     onClick={() => addArtistFromTrack(song.artist)}
                     > 
                       {song.artist} 
+                    </td>
+                    <td className="p-2 text-orange-700">
+                      {song.albumName || 'Unknown Album'}
                     </td>
                     <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
                     <td className="p-2 text-right text-orange-700">{song.playCount}</td>
