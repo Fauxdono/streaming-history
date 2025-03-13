@@ -1258,9 +1258,7 @@ function calculateSongsByYear(songs, songPlayHistory) {
   return songsByYear;
 }
 
-// In streaming-adapter.js, find the original calculateAlbumsByYear function
-// and replace it with this improved version
-
+// Replace this function in streaming-adapter.js
 function calculateAlbumsByYear(albums, rawPlayData) {
   // First, create album ID mapping from all-time data
   const albumMapping = {};
@@ -1370,22 +1368,47 @@ function calculateAlbumsByYear(albums, rawPlayData) {
       }
       
       if (!playsByYearAndAlbum[year][resolvedAlbumKey]) {
+        // Create a completely new album object for this year
+        // Don't use the allTimeReference directly to avoid modifying the original data
         playsByYearAndAlbum[year][resolvedAlbumKey] = {
           name: resolvedAlbumData ? resolvedAlbumData.name : albumName,
           artist: artist,
           totalPlayed: 0,
           playCount: 0,
           tracks: new Set(),
+          trackObjects: [], // Initialize empty trackObjects array
           firstListen: timestamp.getTime(),
+          // Store reference to all-time data but don't use its play counts
           allTimeReference: resolvedAlbumData?.allTimeReference || null
         };
       }
       
-      // Update stats
+      // Update stats for this year's album
       playsByYearAndAlbum[year][resolvedAlbumKey].totalPlayed += entry.ms_played;
       playsByYearAndAlbum[year][resolvedAlbumKey].playCount++;
+      
       if (trackName) {
         playsByYearAndAlbum[year][resolvedAlbumKey].tracks.add(trackName);
+        
+        // Update or add track to trackObjects
+        const trackIndex = playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects.findIndex(
+          t => t.trackName === trackName
+        );
+        
+        if (trackIndex === -1) {
+          // Add new track
+          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects.push({
+            trackName: trackName,
+            artist: artist,
+            totalPlayed: entry.ms_played,
+            playCount: 1,
+            albumName: albumName
+          });
+        } else {
+          // Update existing track
+          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[trackIndex].totalPlayed += entry.ms_played;
+          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[trackIndex].playCount++;
+        }
       }
       
       // Update first listen time if earlier
@@ -1402,37 +1425,53 @@ function calculateAlbumsByYear(albums, rawPlayData) {
   
   Object.entries(playsByYearAndAlbum).forEach(([year, albums]) => {
     result[year] = Object.values(albums).map(album => {
-      // If we have an all-time reference, use that as the base and override year-specific stats
+      // Start with a fresh album object for this year
+      let yearAlbum = {
+        name: album.name,
+        artist: album.artist,
+        totalPlayed: album.totalPlayed,
+        playCount: album.playCount,
+        firstListen: album.firstListen
+      };
+      
+      // If we have track objects from this year, use them
+      if (album.trackObjects && album.trackObjects.length > 0) {
+        // Sort tracks by play time
+        yearAlbum.trackObjects = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
+      }
+      
+      // If we have an all-time reference, use it to fill in additional metadata
+      // but NOT the play counts or track objects
       if (album.allTimeReference) {
         const allTimeRef = album.allTimeReference;
         
-        // Make a shallow copy of the all-time album data
-        const yearAlbum = { ...allTimeRef };
+        // Copy metadata from all-time reference
+        yearAlbum.trackCount = allTimeRef.trackCount;
+        yearAlbum.trackCountValue = allTimeRef.trackCountValue;
+        yearAlbum.isComplete = allTimeRef.isComplete;
         
-        // Override with year-specific stats
-        yearAlbum.totalPlayed = album.totalPlayed;
-        yearAlbum.playCount = album.playCount;
-        yearAlbum.firstListen = album.firstListen;
-        
-        // Ensure we have trackObjects by copying from all-time if needed
-        if (allTimeRef.trackObjects && !yearAlbum.trackObjects) {
-          yearAlbum.trackObjects = [...allTimeRef.trackObjects];
+        // Use trackObjects from the year data if available, otherwise from all-time but with corrected play counts
+        if (!yearAlbum.trackObjects && allTimeRef.trackObjects) {
+          // Use the structure from all-time track objects but with scaled-down play counts
+          // This is a rough approximation since we don't have exact play counts per year for each track
+          const scaleRatio = album.totalPlayed / (allTimeRef.totalPlayed || 1);
+          
+          yearAlbum.trackObjects = allTimeRef.trackObjects.map(track => ({
+            ...track,
+            // Scale down play counts based on the album's overall ratio
+            totalPlayed: Math.round(track.totalPlayed * scaleRatio),
+            playCount: Math.max(1, Math.round(track.playCount * scaleRatio))
+          })).sort((a, b) => b.totalPlayed - a.totalPlayed);
         }
-        
-        // Keep track count
-        if (album.tracks && album.tracks.size > 0) {
-          yearAlbum.yearTracksCount = album.tracks.size;
-        }
-        
-        return yearAlbum;
       }
       
-      // For albums not in all-time data, convert tracks Set to trackCount
-      return {
-        ...album,
-        trackCount: album.tracks.size,
-        trackCountValue: album.tracks.size
-      };
+      // Use the track count from this year's data
+      if (album.tracks && album.tracks.size > 0) {
+        yearAlbum.trackCount = album.tracks.size;
+        yearAlbum.trackCountValue = album.tracks.size;
+      }
+      
+      return yearAlbum;
     }).sort((a, b) => b.totalPlayed - a.totalPlayed);
   });
   

@@ -205,6 +205,7 @@ const getAlbumsTabLabel = () => {
   }
   return `${selectedAlbumYear} Albums`;
 };
+// This should replace the displayedAlbums useMemo in SpotifyAnalyzer.js
 const displayedAlbums = useMemo(() => {
   console.log("Calculating displayedAlbums with filter:", {
     selectedAlbumYear,
@@ -223,23 +224,69 @@ const displayedAlbums = useMemo(() => {
     // Collect albums from each year in the range
     for (let year = parseInt(startYear); year <= parseInt(endYear); year++) {
       if (albumsByYear[year]) {
+        // Important: Use the year-specific album data that already has the correct play counts
         filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
       }
     }
     
     // Remove duplicates (same album might appear in multiple years)
-    const albumIds = new Set();
-    filteredAlbums = filteredAlbums.filter(album => {
+    // When removing duplicates, we need to maintain the play count data from the combined years
+    const albumIdMap = new Map();
+    
+    filteredAlbums.forEach(album => {
       const id = `${album.name}-${album.artist}`;
-      if (albumIds.has(id)) return false;
-      albumIds.add(id);
-      return true;
+      
+      if (!albumIdMap.has(id)) {
+        // First time seeing this album
+        albumIdMap.set(id, { ...album });
+      } else {
+        // Combine with existing album data
+        const existingAlbum = albumIdMap.get(id);
+        
+        // Sum the play counts and total played time
+        existingAlbum.totalPlayed += album.totalPlayed;
+        existingAlbum.playCount += album.playCount;
+        
+        // Take the earlier first listen date
+        if (album.firstListen < existingAlbum.firstListen) {
+          existingAlbum.firstListen = album.firstListen;
+        }
+        
+        // Merge track objects if available
+        if (album.trackObjects && existingAlbum.trackObjects) {
+          // Create a map of existing tracks
+          const trackMap = new Map();
+          existingAlbum.trackObjects.forEach(track => {
+            trackMap.set(track.trackName, track);
+          });
+          
+          // Add or update tracks from this year
+          album.trackObjects.forEach(track => {
+            if (trackMap.has(track.trackName)) {
+              // Update existing track stats
+              const existingTrack = trackMap.get(track.trackName);
+              existingTrack.totalPlayed += track.totalPlayed;
+              existingTrack.playCount += track.playCount;
+            } else {
+              // Add new track
+              trackMap.set(track.trackName, { ...track });
+            }
+          });
+          
+          // Replace track objects with the merged and sorted list
+          existingAlbum.trackObjects = Array.from(trackMap.values())
+            .sort((a, b) => b.totalPlayed - a.totalPlayed);
+        }
+      }
     });
+    
+    // Convert map back to array
+    filteredAlbums = Array.from(albumIdMap.values());
   } else if (selectedAlbumYear !== 'all') {
-    // Single year mode
+    // Single year mode - use the year-specific album data
     filteredAlbums = albumsByYear[selectedAlbumYear] || [];
   } else {
-    // All-time mode
+    // All-time mode - use the complete album data
     filteredAlbums = topAlbums;
   }
   
@@ -249,40 +296,52 @@ const displayedAlbums = useMemo(() => {
   }
   
   // Enhance albums with track data
-return filteredAlbums.map(album => {
-  // Flag to indicate this album is already pre-filtered for a specific year/range
-  const isYearFiltered = selectedAlbumYear !== 'all' || albumYearRangeMode;
-  
-  // Rest of your existing code...
-  if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
-    // Find tracks for this album
-    const albumTracks = processedData.filter(track => 
-      track.artist === album.artist && 
-      track.albumName && 
-      (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-       album.name.toLowerCase().includes(track.albumName.toLowerCase()))
-    );
+  return filteredAlbums.map(album => {
+    // Try to get track data
+    if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
+      // Find tracks for this album
+      let albumTracks = [];
+      
+      // In year-specific mode, we should filter processedData to only include tracks from this year
+      if (selectedAlbumYear !== 'all' || albumYearRangeMode) {
+        // For year-specific filtering, we'd need tracks filtered by year
+        // This requires more complex logic that we don't have access to here
+        // Instead, just use the basic matching without year filtering
+        albumTracks = processedData.filter(track => 
+          track.artist === album.artist && 
+          track.albumName && 
+          (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+           album.name.toLowerCase().includes(track.albumName.toLowerCase()))
+        );
+      } else {
+        // For all-time, use all tracks
+        albumTracks = processedData.filter(track => 
+          track.artist === album.artist && 
+          track.albumName && 
+          (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+           album.name.toLowerCase().includes(track.albumName.toLowerCase()))
+        );
+      }
+      
+      // Sort by total play time
+      const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
+      
+      return {
+        ...album,
+        trackObjects: sortedTracks,
+        topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
+      };
+    }
     
-    // Sort by total play time
-    const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
+    // Just ensure tracks are sorted if we already have them
+    const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
     
     return {
       ...album,
       trackObjects: sortedTracks,
-      topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null,
-      isYearFiltered // Add this flag
+      topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
     };
-  }
-  
-  // Just ensure tracks are sorted if we already have them
-  const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
-  
-  return {
-    ...album,
-    trackObjects: sortedTracks,
-    topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null,
-    isYearFiltered // Add this flag
-  };
+  });
 }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
