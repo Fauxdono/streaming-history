@@ -1258,78 +1258,185 @@ function calculateSongsByYear(songs, songPlayHistory) {
   return songsByYear;
 }
 
+// In streaming-adapter.js, find the original calculateAlbumsByYear function
+// and replace it with this improved version
+
 function calculateAlbumsByYear(albums, rawPlayData) {
-  const albumsByYear = {};
+  // First, create album ID mapping from all-time data
+  const albumMapping = {};
   
-  // First, create a mapping of album plays by year
-  const albumPlaysByYear = {};
+  // For each all-time album, create a unique ID and store reference data
+  albums.forEach(album => {
+    if (!album) return;
+    
+    // Create a unique ID for this album
+    const albumKey = `${album.artist}:::${album.name}`.toLowerCase();
+    
+    // Get track names from trackNames or trackObjects
+    let trackNames = [];
+    if (album.trackNames && album.trackNames instanceof Set) {
+      trackNames = Array.from(album.trackNames);
+    } else if (album.trackObjects && Array.isArray(album.trackObjects)) {
+      trackNames = album.trackObjects.map(t => t.trackName || t.displayName).filter(Boolean);
+    }
+    
+    // Store essential data for matching
+    albumMapping[albumKey] = {
+      name: album.name,
+      artist: album.artist,
+      allTimeReference: album,
+      // Store any album identifiers to help with matching
+      trackNames: trackNames,
+      trackCount: album.trackCount instanceof Set ? 
+                album.trackCount.size : 
+                (typeof album.trackCount === 'number' ? album.trackCount : 
+                 album.trackCountValue || 0)
+    };
+    
+    // Also create keys for alternate/partial album names
+    if (album.name !== 'Unknown Album') {
+      // For example, "Mr. Morale & The Big Steppers" might have a variant "Mr. Morale"
+      const simplifiedName = album.name.split(/\s+&|\s+and/i)[0].trim();
+      if (simplifiedName !== album.name && simplifiedName.length > 5) {
+        const altKey = `${album.artist}:::${simplifiedName}`.toLowerCase();
+        albumMapping[altKey] = albumMapping[albumKey];
+      }
+    }
+  });
   
-  // Process raw play data to count plays per album per year
+  // Group plays by year and album
+  const playsByYearAndAlbum = {};
+  
   rawPlayData.forEach(entry => {
-    if (entry.ms_played >= 30000 && entry.master_metadata_album_album_name) {
+    if (entry.ms_played < 30000 || !entry.master_metadata_album_artist_name) return;
+    
+    try {
       const timestamp = new Date(entry.ts);
       if (isNaN(timestamp.getTime())) return;
       
-      const year = timestamp.getFullYear().toString();
-      const albumName = entry.master_metadata_album_album_name;
-      const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
-      const playTime = entry.ms_played;
+      const year = timestamp.getFullYear();
+      const artist = entry.master_metadata_album_artist_name;
+      const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+      const trackName = entry.master_metadata_track_name;
       
-      const albumKey = `${albumName.toLowerCase().trim()}-${artistName.toLowerCase().trim()}`;
+      // Create a key for the album
+      const albumKey = `${artist}:::${albumName}`.toLowerCase();
       
-      // Initialize nested structure if needed
-      if (!albumPlaysByYear[year]) {
-        albumPlaysByYear[year] = {};
+      // Try to find matching album in our master mapping
+      let resolvedAlbumKey = albumKey;
+      let resolvedAlbumData = albumMapping[albumKey];
+      
+      // If not found, try to identify special cases of tracks
+      if ((!resolvedAlbumData || albumName === 'Unknown Album') && trackName) {
+        // Special case for Kendrick's untitled unmastered
+        if (artist === 'Kendrick Lamar' && 
+            trackName.toLowerCase().match(/untitled\s+\d+/) &&
+            (trackName.toLowerCase().includes('2014') || 
+             trackName.toLowerCase().includes('2013'))) {
+          
+          // Look for the untitled unmastered album key
+          const untitledKey = Object.keys(albumMapping).find(key => 
+            key.includes('kendrick lamar') && key.includes('untitled unmastered')
+          );
+          
+          if (untitledKey) {
+            resolvedAlbumKey = untitledKey;
+            resolvedAlbumData = albumMapping[untitledKey];
+          }
+        } 
+        // For other Unknown Album cases, try to match by track name
+        else if (albumName === 'Unknown Album') {
+          // Try to find a matching album by artist and track
+          for (const [key, data] of Object.entries(albumMapping)) {
+            if (key.startsWith(`${artist.toLowerCase()}:::`) && 
+                data.trackNames && data.trackNames.some(t => {
+                  if (!t) return false;
+                  const normalizedTrack = t.toLowerCase();
+                  const normalizedInput = trackName.toLowerCase();
+                  return normalizedTrack.includes(normalizedInput) || 
+                         normalizedInput.includes(normalizedTrack);
+                })) {
+              resolvedAlbumKey = key;
+              resolvedAlbumData = data;
+              break;
+            }
+          }
+        }
       }
       
-      if (!albumPlaysByYear[year][albumKey]) {
-        albumPlaysByYear[year][albumKey] = {
+      // Initialize if needed
+      if (!playsByYearAndAlbum[year]) {
+        playsByYearAndAlbum[year] = {};
+      }
+      
+      if (!playsByYearAndAlbum[year][resolvedAlbumKey]) {
+        playsByYearAndAlbum[year][resolvedAlbumKey] = {
+          name: resolvedAlbumData ? resolvedAlbumData.name : albumName,
+          artist: artist,
           totalPlayed: 0,
-          playCount: 0
+          playCount: 0,
+          tracks: new Set(),
+          firstListen: timestamp.getTime(),
+          allTimeReference: resolvedAlbumData?.allTimeReference || null
         };
       }
       
-      // Update the counts for this year and album
-      albumPlaysByYear[year][albumKey].totalPlayed += playTime;
-      albumPlaysByYear[year][albumKey].playCount += 1;
+      // Update stats
+      playsByYearAndAlbum[year][resolvedAlbumKey].totalPlayed += entry.ms_played;
+      playsByYearAndAlbum[year][resolvedAlbumKey].playCount++;
+      if (trackName) {
+        playsByYearAndAlbum[year][resolvedAlbumKey].tracks.add(trackName);
+      }
+      
+      // Update first listen time if earlier
+      if (timestamp.getTime() < playsByYearAndAlbum[year][resolvedAlbumKey].firstListen) {
+        playsByYearAndAlbum[year][resolvedAlbumKey].firstListen = timestamp.getTime();
+      }
+    } catch (err) {
+      console.warn("Error processing album entry:", err);
     }
   });
   
-  // Now, create year-specific album entries
-  albums.forEach(album => {
-    if (album.yearsArray && album.yearsArray.length > 0) {
-      // Process each year this album was played in
-      album.yearsArray.forEach(year => {
-        // Initialize the year array if needed
-        if (!albumsByYear[year]) {
-          albumsByYear[year] = [];
+  // Convert to final format
+  const result = {};
+  
+  Object.entries(playsByYearAndAlbum).forEach(([year, albums]) => {
+    result[year] = Object.values(albums).map(album => {
+      // If we have an all-time reference, use that as the base and override year-specific stats
+      if (album.allTimeReference) {
+        const allTimeRef = album.allTimeReference;
+        
+        // Make a shallow copy of the all-time album data
+        const yearAlbum = { ...allTimeRef };
+        
+        // Override with year-specific stats
+        yearAlbum.totalPlayed = album.totalPlayed;
+        yearAlbum.playCount = album.playCount;
+        yearAlbum.firstListen = album.firstListen;
+        
+        // Ensure we have trackObjects by copying from all-time if needed
+        if (allTimeRef.trackObjects && !yearAlbum.trackObjects) {
+          yearAlbum.trackObjects = [...allTimeRef.trackObjects];
         }
         
-        // Create a copy of the album for this year
-        const albumKey = `${album.name.toLowerCase().trim()}-${album.artist.toLowerCase().trim()}`;
-        const yearSpecificPlays = albumPlaysByYear[year]?.[albumKey];
-        
-        // Only include the album in this year if it has plays
-        if (yearSpecificPlays) {
-          const yearAlbum = {
-            ...album,
-            // Use year-specific play counts instead of all-time counts
-            totalPlayed: yearSpecificPlays.totalPlayed,
-            playCount: yearSpecificPlays.playCount
-          };
-          
-          albumsByYear[year].push(yearAlbum);
+        // Keep track count
+        if (album.tracks && album.tracks.size > 0) {
+          yearAlbum.yearTracksCount = album.tracks.size;
         }
-      });
-    }
+        
+        return yearAlbum;
+      }
+      
+      // For albums not in all-time data, convert tracks Set to trackCount
+      return {
+        ...album,
+        trackCount: album.tracks.size,
+        trackCountValue: album.tracks.size
+      };
+    }).sort((a, b) => b.totalPlayed - a.totalPlayed);
   });
   
-  // Sort each year's albums by total played time
-  Object.keys(albumsByYear).forEach(year => {
-    albumsByYear[year] = _.orderBy(albumsByYear[year], ['totalPlayed'], ['desc']);
-  });
-  
-  return albumsByYear;
+  return result;
 }
 
 function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
