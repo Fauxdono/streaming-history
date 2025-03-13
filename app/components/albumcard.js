@@ -1,33 +1,37 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 
-// Function to normalize track names for comparison
+// Improved function to normalize track names for comparison
 const normalizeTrackName = (trackName) => {
   if (!trackName) return '';
   
   // Convert to lowercase
   let normalized = trackName.toLowerCase()
     // Handle Kendrick's "untitled unmastered" album specially
-    // Convert both "untitled 07 2014 - 2016" and "untitled 07 | 2014 - 2016" to the same format
     .replace(/untitled\s+(\d+)\s*[\|\.l]*\s*(\d+.*?)$/i, 'untitled $1 $2')
     
-    // Remove featuring artist info
+    // Remove featuring artist info using various patterns
     .replace(/\(feat\..*?\)/gi, '')
     .replace(/\(ft\..*?\)/gi, '')
     .replace(/\(featuring.*?\)/gi, '')
     .replace(/feat\..*?$/gi, '')
     .replace(/ft\..*?$/gi, '')
+    
     // Remove remix, version, etc.
     .replace(/\(.*?version\)/gi, '')
     .replace(/\(.*?remix\)/gi, '')
     .replace(/\(.*?edit\)/gi, '')
+    
     // Remove parenthetical info
     .replace(/\(.*?\)/gi, '')
     .replace(/\[.*?\]/gi, '')
+    
     // Replace vertical bars, periods, and other separators with spaces
     .replace(/[|\-\.l]/g, ' ')
+    
     // Remove punctuation
     .replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g, '')
+    
     // Collapse multiple spaces
     .replace(/\s+/g, ' ')
     .trim();
@@ -35,11 +39,12 @@ const normalizeTrackName = (trackName) => {
   return normalized;
 };
 
-// Function to combine duplicate tracks
+// Function to combine duplicate tracks with smarter matching
 const combineTrackData = (tracks) => {
   if (!tracks || !Array.isArray(tracks) || tracks.length === 0) return [];
   
   const trackMap = new Map();
+  const titleMatchMap = new Map(); // Additional map for title-only matching
   
   // First pass: group tracks by normalized name
   tracks.forEach(track => {
@@ -58,6 +63,12 @@ const combineTrackData = (tracks) => {
         // Use the original track name with the most plays as the display name
         displayName: trackName
       });
+      
+      // Also store a reference by track name only (without artist)
+      const simpleTitle = trackName.split(' - ')[0].trim().toLowerCase();
+      if (!titleMatchMap.has(simpleTitle)) {
+        titleMatchMap.set(simpleTitle, normalizedName);
+      }
     } else {
       const existing = trackMap.get(normalizedName);
       
@@ -77,9 +88,59 @@ const combineTrackData = (tracks) => {
     }
   });
   
-  // Convert map back to array and sort by play time
-  return Array.from(trackMap.values())
-    .sort((a, b) => b.totalPlayed - a.totalPlayed);
+  // Second pass: try to identify similar titles with different normalizations
+  // For example, "If It Ain't Me" and "If It Ain't Me (feat. Someone)"
+  const finalTracks = [];
+  const processedKeys = new Set();
+  
+  for (const [key, track] of trackMap.entries()) {
+    if (processedKeys.has(key)) continue;
+    
+    // Check if there are similar tracks with the same title but different features
+    const simpleTitle = track.displayName.split(' - ')[0].split('(')[0].trim().toLowerCase();
+    const similarTracks = [];
+    
+    // Find tracks with similar titles
+    for (const [otherKey, otherTrack] of trackMap.entries()) {
+      if (key !== otherKey && !processedKeys.has(otherKey)) {
+        const otherSimpleTitle = otherTrack.displayName.split(' - ')[0].split('(')[0].trim().toLowerCase();
+        
+        // If titles are nearly identical, merge them
+        if (simpleTitle === otherSimpleTitle || 
+            simpleTitle.includes(otherSimpleTitle) || 
+            otherSimpleTitle.includes(simpleTitle)) {
+          similarTracks.push(otherTrack);
+          processedKeys.add(otherKey);
+        }
+      }
+    }
+    
+    // If we found similar tracks, merge them
+    if (similarTracks.length > 0) {
+      const mergedTrack = {
+        ...track,
+        totalPlayed: track.totalPlayed,
+        playCount: track.playCount,
+        variations: [...track.variations]
+      };
+      
+      // Merge in the similar tracks
+      similarTracks.forEach(similarTrack => {
+        mergedTrack.totalPlayed += similarTrack.totalPlayed;
+        mergedTrack.playCount += similarTrack.playCount;
+        mergedTrack.variations.push(...similarTrack.variations.filter(v => !mergedTrack.variations.includes(v)));
+      });
+      
+      finalTracks.push(mergedTrack);
+    } else {
+      finalTracks.push(track);
+    }
+    
+    processedKeys.add(key);
+  }
+  
+  // Sort by play time
+  return finalTracks.sort((a, b) => b.totalPlayed - a.totalPlayed);
 };
 
 const AlbumCard = ({ album, index, processedData, formatDuration }) => {
@@ -108,7 +169,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
     );
   }, [album, processedData]);
   
-  // Deduplicate and combine similar tracks
+  // Deduplicate and combine similar tracks with improved logic
   const dedupedTracks = useMemo(() => {
     return combineTrackData(albumTracks || []);
   }, [albumTracks]);
@@ -155,6 +216,11 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
         {topTrack ? (
           <div className="text-sm text-pink-500 p-1 bg-pink-50 rounded">
             {topTrack.displayName}
+            {topTrack.variations && topTrack.variations.length > 1 && (
+              <span className="text-xs text-pink-400 ml-1">
+                ({topTrack.variations.length} versions)
+              </span>
+            )}
             <div className="flex justify-between text-xs text-pink-400">
               <span>{formatDuration(topTrack.totalPlayed)}</span>
               <span>{topTrack.playCount} plays</span>
