@@ -1040,9 +1040,7 @@ return filteredAlbums.map(album => {
     ))}
   </div>
 )}
-  </div>
-)}
-        
+     
         {activeTab === 'tracks' && (
           <div className="p-4 bg-blue-100 rounded border-2 border-blue-300">
             <h3 className="font-bold mb-2 text-blue-700">Track Rankings</h3>
