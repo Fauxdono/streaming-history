@@ -157,11 +157,8 @@ const formatDuration = (ms) => {
   };
 
 const handleAlbumYearRangeChange = ({ startYear, endYear }) => {
-  console.log("Album year range changed:", startYear, endYear);
-  
   // Validate the years
   if (!startYear || !endYear) {
-    console.warn("Invalid album year range:", { startYear, endYear });
     return;
   }
   
@@ -175,7 +172,6 @@ const handleAlbumYearRangeChange = ({ startYear, endYear }) => {
 const toggleAlbumYearRangeMode = (value) => {
   // If value is provided, use it directly; otherwise toggle the current state
   const newMode = typeof value === 'boolean' ? value : !albumYearRangeMode;
-  console.log("Setting album year range mode to:", newMode);
   
   // Update the state
   setAlbumYearRangeMode(newMode);
@@ -184,7 +180,7 @@ const toggleAlbumYearRangeMode = (value) => {
   if (newMode) {
     setSelectedAlbumYear('all');
     
-    // If we're switching to range mode, set a default range
+    // Set a default range
     if (Object.keys(artistsByYear).length > 0) {
       const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
       if (years.length > 0) {
@@ -194,6 +190,9 @@ const toggleAlbumYearRangeMode = (value) => {
         });
       }
     }
+  } else {
+    // When switching back to single mode, reset to "all"
+    setSelectedAlbumYear('all');
   }
 };
 
@@ -205,100 +204,69 @@ const getAlbumsTabLabel = () => {
   }
   return `${selectedAlbumYear} Albums`;
 };
-
-
+// This follows the pattern of the working displayedArtists function
 const displayedAlbums = useMemo(() => {
-  // Start with all albums - handle case where topAlbums might be undefined
-  let filteredAlbums = topAlbums || [];
+  // For debugging
+  console.log("Recalculating displayedAlbums:", {
+    mode: albumYearRangeMode ? "range" : "single",
+    selectedYear: selectedAlbumYear,
+    range: albumYearRangeMode ? `${albumYearRange.startYear}-${albumYearRange.endYear}` : "none"
+  });
+
+  // First handle artist filtering
+  let filteredAlbums = topAlbums;
   
-  // Filter by selected artists if any
-  if (selectedArtists && selectedArtists.length > 0) {
+  if (selectedArtists.length > 0) {
     filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
   }
   
-  // Year filtering - carefully handle the 'all' case and make null/undefined safe
-  if (selectedAlbumYear !== 'all' || (albumYearRangeMode && albumYearRange?.startYear && albumYearRange?.endYear)) {
-    if (albumYearRangeMode && albumYearRange?.startYear && albumYearRange?.endYear) {
-      // Year range mode
-      const startYear = parseInt(albumYearRange.startYear);
-      const endYear = parseInt(albumYearRange.endYear);
-      
-      filteredAlbums = filteredAlbums.filter(album => {
-        try {
-          if (!album?.firstListen) return false;
-          
-          const albumDate = new Date(album.firstListen);
-          if (isNaN(albumDate.getTime())) return false;
-          
-          const albumYear = albumDate.getFullYear();
-          return albumYear >= startYear && albumYear <= endYear;
-        } catch (e) {
-          return false;
-        }
-      });
-    } else if (selectedAlbumYear !== 'all') {
-      // Single year mode
-      const year = parseInt(selectedAlbumYear);
-      
-      filteredAlbums = filteredAlbums.filter(album => {
-        try {
-          if (!album?.firstListen) return false;
-          
-          const albumDate = new Date(album.firstListen);
-          if (isNaN(albumDate.getTime())) return false;
-          
-          const albumYear = albumDate.getFullYear();
-          return albumYear === year;
-        } catch (e) {
-          return false;
-        }
-      });
-    }
+  // Now handle year filtering - just like in the artists tab
+  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+    // Year range mode
+    const startYear = parseInt(albumYearRange.startYear);
+    const endYear = parseInt(albumYearRange.endYear);
+    
+    filteredAlbums = filteredAlbums.filter(album => {
+      const albumDate = new Date(album.firstListen);
+      const albumYear = albumDate.getFullYear();
+      return albumYear >= startYear && albumYear <= endYear;
+    });
+  } else if (selectedAlbumYear !== 'all') {
+    // Single year mode
+    const year = parseInt(selectedAlbumYear);
+    
+    filteredAlbums = filteredAlbums.filter(album => {
+      const albumDate = new Date(album.firstListen);
+      const albumYear = albumDate.getFullYear();
+      return albumYear === year;
+    });
   }
   
-  // Enhance albums with proper track counts and pre-collected track data
+  // Now handle track mapping - a simpler version that should be less error-prone
   return filteredAlbums.map(album => {
-    // Ensure trackCount is properly formatted
-    const trackCountValue = album.trackCountValue || 
-      (album.trackCount instanceof Set 
-        ? album.trackCount.size 
-        : (typeof album.trackCount === 'number' ? album.trackCount : 0));
+    // Extract tracks for this album
+    const albumTracks = album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0
+      ? album.trackObjects
+      : processedData.filter(track => 
+          track.artist === album.artist && 
+          track.albumName && 
+          track.albumName.toLowerCase().includes(album.name.toLowerCase())
+        );
     
-    // Check if we have enhanced trackObjects data from the streaming adapter
-    if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
-      // We need to build the trackObjects array for this album
-      const albumTracks = processedData?.filter(track => 
-        track?.artist === album.artist && 
-        track?.albumName && 
-        (track.albumName.toLowerCase().trim() === album.name.toLowerCase().trim() ||
-         track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-         album.name.toLowerCase().includes(track.albumName.toLowerCase()))
-      ) || [];
-      
-      // Sort by total play time - safely handle empty arrays
-      const sortedTracks = albumTracks.length > 0 ? 
-        [...albumTracks].sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0)) : 
-        [];
-      
-      // Return the enhanced album object
-      return {
-        ...album,
-        trackCount: typeof album.trackCount === 'object' ? album.trackCount.size : album.trackCount,
-        trackCountValue,
-        trackObjects: sortedTracks,
-        topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
-      };
-    }
+    // Sort tracks by play time
+    const sortedTracks = albumTracks.length > 0
+      ? [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed)
+      : [];
     
-    // If we already have trackObjects, just ensure they're sorted correctly
-    const sortedTracks = album.trackObjects.length > 0 ? 
-      [...album.trackObjects].sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0)) : 
-      [];
+    // Calculate track count
+    const trackCountValue = album.trackCount instanceof Set 
+      ? album.trackCount.size 
+      : (typeof album.trackCount === 'number' ? album.trackCount : sortedTracks.length);
     
     return {
       ...album,
-      trackCount: typeof album.trackCount === 'object' ? album.trackCount.size : album.trackCount,
-      trackCountValue,
+      trackCount: trackCountValue,
+      trackCountValue: trackCountValue,
       trackObjects: sortedTracks,
       topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
     };
@@ -1033,6 +1001,7 @@ const displayedAlbums = useMemo(() => {
           onClick={() => {
             setAlbumYearRangeMode(false);
             setSelectedAlbumYear('all');
+            setSelectedArtists([]);
           }}
           className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
         >
