@@ -1257,7 +1257,8 @@ function calculateSongsByYear(songs, songPlayHistory) {
 
   return songsByYear;
 }
-// Replace this function in streaming-adapter.js
+// In streaming-adapter.js: Update the calculateAlbumsByYear function
+
 function calculateAlbumsByYear(albums, rawPlayData) {
   // First, create album ID mapping from all-time data
   const albumMapping = {};
@@ -1301,22 +1302,77 @@ function calculateAlbumsByYear(albums, rawPlayData) {
     }
   });
   
-  // Group plays by year and album
+  // Function to normalize track names for better matching across services
+  function normalizeTrackName(trackName) {
+    if (!trackName) return '';
+    
+    // Convert to lowercase
+    let normalized = trackName.toLowerCase()
+      // Remove featuring artist info
+      .replace(/\(feat\..*?\)/gi, '')
+      .replace(/\(ft\..*?\)/gi, '')
+      .replace(/\(featuring.*?\)/gi, '')
+      .replace(/feat\..*?$/gi, '')
+      .replace(/ft\..*?$/gi, '')
+      
+      // Remove remix, version, etc.
+      .replace(/\(.*?version\)/gi, '')
+      .replace(/\(.*?remix\)/gi, '')
+      .replace(/\(.*?edit\)/gi, '')
+      
+      // Remove parenthetical info
+      .replace(/\(.*?\)/gi, '')
+      .replace(/\[.*?\]/gi, '')
+      
+      // Replace vertical bars, periods, and other separators with spaces
+      .replace(/[|\-\.l]/g, ' ')
+      
+      // Remove punctuation
+      .replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g, '')
+      
+      // Collapse multiple spaces
+      .replace(/\s+/g, ' ')
+      .trim();
+      
+    return normalized;
+  }
+  
+  // Group plays by year and album AND track
   const playsByYearAndAlbum = {};
+  
+  // Track relation between normalized tracks and actual track names
+  const normalizedToOriginalTrack = {};
+  
+  // First pass: build normalized track mappings
+  rawPlayData.forEach(entry => {
+    if (entry.ms_played < 30000 || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) return;
+    
+    const trackName = entry.master_metadata_track_name;
+    const normalizedTrack = normalizeTrackName(trackName);
+    
+    if (normalizedTrack) {
+      if (!normalizedToOriginalTrack[normalizedTrack]) {
+        normalizedToOriginalTrack[normalizedTrack] = [trackName];
+      } else if (!normalizedToOriginalTrack[normalizedTrack].includes(trackName)) {
+        normalizedToOriginalTrack[normalizedTrack].push(trackName);
+      }
+    }
+  });
   
   // Track relationship between tracks and albums
   const trackToAlbumMap = new Map();
   
-  // First pass: build track-to-album mappings to better understand which tracks belong together
+  // Second pass: build track-to-album mappings to better understand which tracks belong together
   rawPlayData.forEach(entry => {
     if (entry.ms_played < 30000 || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) return;
     
     const artist = entry.master_metadata_album_artist_name;
     const trackName = entry.master_metadata_track_name;
+    const normalizedTrack = normalizeTrackName(trackName);
     const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
     
     // Create a key that identifies this track
-    const trackKey = `${artist}:::${trackName}`.toLowerCase();
+    const trackKey = `${artist}:::${normalizedTrack}`.toLowerCase();
     
     // If this track explicitly belongs to an album, record this relationship
     if (albumName && albumName !== 'Unknown Album') {
@@ -1371,7 +1427,7 @@ function calculateAlbumsByYear(albums, rawPlayData) {
     trackMainAlbum.set(trackKey, albums[0].name);
   });
   
-  // Second pass: use the track-to-album map to build yearly albums
+  // Third pass: build year-specific album data
   rawPlayData.forEach(entry => {
     if (entry.ms_played < 30000 || !entry.master_metadata_album_artist_name) return;
     
@@ -1387,8 +1443,11 @@ function calculateAlbumsByYear(albums, rawPlayData) {
       // Skip tracks with no name
       if (!trackName) return;
       
+      // Normalize the track name for cross-service comparison
+      const normalizedTrack = normalizeTrackName(trackName);
+      
       // Check if this track has a known main album that differs from the current album
-      const trackKey = `${artist}:::${trackName}`.toLowerCase();
+      const trackKey = `${artist}:::${normalizedTrack}`.toLowerCase();
       const mainAlbum = trackMainAlbum.get(trackKey);
       
       // If this track belongs to a different album according to our mapping, 
@@ -1423,10 +1482,10 @@ function calculateAlbumsByYear(albums, rawPlayData) {
             if (key.startsWith(`${artist.toLowerCase()}:::`) && 
                 data.trackNames && data.trackNames.some(t => {
                   if (!t) return false;
-                  const normalizedTrack = t.toLowerCase();
-                  const normalizedInput = trackName.toLowerCase();
-                  return normalizedTrack.includes(normalizedInput) || 
-                         normalizedInput.includes(normalizedTrack);
+                  const normalizedAlbumTrack = normalizeTrackName(t);
+                  return normalizedAlbumTrack === normalizedTrack || 
+                         normalizedAlbumTrack.includes(normalizedTrack) ||
+                         normalizedTrack.includes(normalizedAlbumTrack);
                 })) {
               resolvedAlbumKey = key;
               resolvedAlbumData = data;
@@ -1449,8 +1508,9 @@ function calculateAlbumsByYear(albums, rawPlayData) {
           artist: artist,
           totalPlayed: 0,
           playCount: 0,
-          tracks: new Set(),
-          trackObjects: [], // Initialize empty trackObjects array
+          normalizedTracks: new Set(), // Track normalized track names to avoid duplicates
+          tracks: new Set(),   // Track actual track names
+          trackObjects: {},    // Use an object with normTrack as keys
           firstListen: timestamp.getTime(),
           // Store reference to all-time data but don't use its play counts
           allTimeReference: resolvedAlbumData?.allTimeReference || null
@@ -1462,26 +1522,33 @@ function calculateAlbumsByYear(albums, rawPlayData) {
       playsByYearAndAlbum[year][resolvedAlbumKey].playCount++;
       
       if (trackName) {
+        // Add the normalized track to avoid duplicates across services
+        playsByYearAndAlbum[year][resolvedAlbumKey].normalizedTracks.add(normalizedTrack);
+        
+        // Add the actual track name
         playsByYearAndAlbum[year][resolvedAlbumKey].tracks.add(trackName);
         
-        // Update or add track to trackObjects
-        const trackIndex = playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects.findIndex(
-          t => t.trackName === trackName
-        );
-        
-        if (trackIndex === -1) {
+        // Update or add track to trackObjects using the normalized name as key
+        if (!playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[normalizedTrack]) {
           // Add new track
-          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects.push({
+          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[normalizedTrack] = {
             trackName: trackName,
+            normalizedTrack: normalizedTrack,
             artist: artist,
             totalPlayed: entry.ms_played,
             playCount: 1,
-            albumName: effectiveAlbumName
-          });
+            albumName: effectiveAlbumName,
+            variations: normalizedToOriginalTrack[normalizedTrack] || [trackName]
+          };
         } else {
           // Update existing track
-          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[trackIndex].totalPlayed += entry.ms_played;
-          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[trackIndex].playCount++;
+          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[normalizedTrack].totalPlayed += entry.ms_played;
+          playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[normalizedTrack].playCount++;
+          
+          // Ensure this variation is in the list
+          if (!playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[normalizedTrack].variations.includes(trackName)) {
+            playsByYearAndAlbum[year][resolvedAlbumKey].trackObjects[normalizedTrack].variations.push(trackName);
+          }
         }
       }
       
@@ -1494,37 +1561,55 @@ function calculateAlbumsByYear(albums, rawPlayData) {
     }
   });
   
+  // Helper function for album similarity
+  function isSimilarAlbum(album1, album2) {
+    if (!album1 || !album2) return false;
+    
+    const norm1 = album1.toLowerCase().trim();
+    const norm2 = album2.toLowerCase().trim();
+    
+    // Direct match
+    if (norm1 === norm2) return true;
+    
+    // Skip if either is unknown
+    if (norm1 === 'unknown album' || norm2 === 'unknown album') return false;
+    
+    // Check for substantial substring match
+    if (norm1.includes(norm2) || norm2.includes(norm1)) {
+      const minLength = Math.min(norm1.length, norm2.length);
+      
+      // Ensure it's a substantial match, not just a short word contained within
+      if (minLength >= 5 && 
+          (norm1.length <= 2 * norm2.length) && 
+          (norm2.length <= 2 * norm1.length)) {
+        return true;
+      }
+    }
+    
+    // Check for similarity in words (at least 50% of words in common)
+    const words1 = new Set(norm1.split(/\s+/).filter(w => w.length > 2));
+    const words2 = new Set(norm2.split(/\s+/).filter(w => w.length > 2));
+    
+    if (words1.size > 0 && words2.size > 0) {
+      let matchCount = 0;
+      words1.forEach(word => {
+        if (words2.has(word)) matchCount++;
+      });
+      
+      const matchRatio = matchCount / Math.min(words1.size, words2.size);
+      if (matchRatio >= 0.5) return true;
+    }
+    
+    return false;
+  }
+  
   // Convert to final format
   const result = {};
   
   Object.entries(playsByYearAndAlbum).forEach(([year, albums]) => {
     result[year] = Object.values(albums).map(album => {
-      // For every album, calculate the estimated track count
-      // based on the frequency distribution of tracks
-      
-      // Get the tracks and their play counts
-      const trackPlayCounts = album.trackObjects.map(t => t.playCount);
-      
-      // Calculate a more accurate track count estimation
-      let estimatedTrackCount = album.tracks.size;
-      
-      // Use distribution analysis to detect if this album is likely incomplete
-      if (trackPlayCounts.length >= 3) {
-        // Sort by play count (high to low)
-        trackPlayCounts.sort((a, b) => b - a);
-        
-        // Check play count distribution
-        const maxPlays = trackPlayCounts[0];
-        const minPlays = trackPlayCounts[trackPlayCounts.length - 1];
-        const median = trackPlayCounts[Math.floor(trackPlayCounts.length / 2)];
-        
-        // If there's a steep drop-off in play counts, we might be missing tracks
-        const ratio = minPlays / maxPlays;
-        if (ratio < 0.1 && trackPlayCounts.length >= 8) {
-          // Estimate based on the better represented tracks
-          estimatedTrackCount = Math.ceil(trackPlayCounts.length * 1.2);
-        }
-      }
+      // Convert trackObjects from object to array for easier usage
+      const trackObjectsArray = Object.values(album.trackObjects || {}).sort((a, b) => b.totalPlayed - a.totalPlayed);
       
       // Start with a fresh album object for this year
       let yearAlbum = {
@@ -1533,65 +1618,32 @@ function calculateAlbumsByYear(albums, rawPlayData) {
         totalPlayed: album.totalPlayed,
         playCount: album.playCount,
         firstListen: album.firstListen,
-        // Use our estimated track count
-        trackCountValue: estimatedTrackCount
+        // Use normalized track count to avoid counting duplicates
+        trackCountValue: album.normalizedTracks ? album.normalizedTracks.size : 0,
+        // Include array of track objects
+        trackObjects: trackObjectsArray
       };
       
-      // If we have track objects from this year, use them
-      if (album.trackObjects && album.trackObjects.length > 0) {
-        // Sort tracks by play time
-        yearAlbum.trackObjects = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
-      }
-      
       // If we have an all-time reference, use it to fill in additional metadata
-      // but NOT the play counts or track objects
+      // but NOT the play counts
       if (album.allTimeReference) {
         const allTimeRef = album.allTimeReference;
         
         // Copy metadata from all-time reference
         yearAlbum.trackCount = allTimeRef.trackCount;
         
-        // If all-time reference has a better track count, use it
-        if (allTimeRef.trackCountValue && 
-            allTimeRef.trackCountValue > yearAlbum.trackCountValue) {
+        // If all-time reference has track metadata but no track count, 
+        // use our normalized count as a better estimate
+        if (allTimeRef && (!allTimeRef.trackCountValue || allTimeRef.trackCountValue < yearAlbum.trackCountValue)) {
+          allTimeRef.trackCountValue = yearAlbum.trackCountValue;
+        }
+        
+        // Use all-time track count if it's higher
+        if (allTimeRef && allTimeRef.trackCountValue && allTimeRef.trackCountValue > yearAlbum.trackCountValue) {
           yearAlbum.trackCountValue = allTimeRef.trackCountValue;
         }
         
         yearAlbum.isComplete = allTimeRef.isComplete;
-        
-        // Use trackObjects from the year data if available, otherwise from all-time but with corrected play counts
-        if (!yearAlbum.trackObjects && allTimeRef.trackObjects) {
-          // Use the structure from all-time track objects but with scaled-down play counts
-          // This is a rough approximation since we don't have exact play counts per year for each track
-          const scaleRatio = album.totalPlayed / (allTimeRef.totalPlayed || 1);
-          
-          yearAlbum.trackObjects = allTimeRef.trackObjects
-            .filter(track => {
-              // Only include tracks that are likely to be from this album
-              // Use our track-to-album mapping if available
-              const trackKey = `${album.artist}:::${track.trackName}`.toLowerCase();
-              const mainAlbum = trackMainAlbum.get(trackKey);
-              
-              // If we know this track's main album and it's different from current album, exclude it
-              if (mainAlbum && !isSimilarAlbum(mainAlbum, album.name)) {
-                return false;
-              }
-              
-              return true;
-            })
-            .map(track => ({
-              ...track,
-              // Scale down play counts based on the album's overall ratio
-              totalPlayed: Math.round(track.totalPlayed * scaleRatio),
-              playCount: Math.max(1, Math.round(track.playCount * scaleRatio))
-            }))
-            .sort((a, b) => b.totalPlayed - a.totalPlayed);
-        }
-      }
-      
-      // Use the track count from this year's data
-      if (album.tracks && album.tracks.size > 0) {
-        yearAlbum.trackCount = album.tracks.size;
       }
       
       return yearAlbum;
