@@ -306,91 +306,193 @@ const displayedAlbums = useMemo(() => {
       .join(',');
   };
 
-  // Update the displayedArtists useMemo function in SpotifyAnalyzer.js
-  // This is the critical part that filters the artists based on the selected year or year range
-  const displayedArtists = useMemo(() => {
-    console.log("Re-calculating displayed artists:", {
-      mode: yearRangeMode ? "range" : "single",
-      selectedYear: selectedArtistYear,
-      range: yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : "none"
-    });
+// This modification ensures track play counts are year-specific
 
-    // Important: Check yearRangeMode first, then check selectedArtistYear
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      // Year range mode: collect and merge artists from the range
-      const startYear = parseInt(yearRange.startYear);
-      const endYear = parseInt(yearRange.endYear);
-      
-      console.log(`Filtering artists for range ${startYear}-${endYear}`, 
-        "Available years:", Object.keys(artistsByYear));
-      
-      // Check if artistsByYear has any entries
-      const availableYears = Object.keys(artistsByYear);
-      console.log("Available years:", availableYears);
-      
-      if (availableYears.length === 0) {
-        console.warn("artistsByYear is empty!");
-        return [];
+// In the displayedAlbums useMemo function in SpotifyAnalyzer.js:
+// Make sure that we're not using all-time tracks when in year mode
+
+const displayedAlbums = useMemo(() => {
+  console.log("Calculating displayedAlbums with filter:", {
+    selectedAlbumYear,
+    mode: albumYearRangeMode ? "range" : "single"
+  });
+
+  // First determine which albums to show based on year filter
+  let filteredAlbums;
+  
+  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+    // Year range mode - collect albums from multiple years
+    filteredAlbums = [];
+    const startYear = parseInt(albumYearRange.startYear);
+    const endYear = parseInt(albumYearRange.endYear);
+    
+    // Collect albums from each year in the range
+    for (let year = startYear; year <= endYear; year++) {
+      if (albumsByYear[year]) {
+        filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
       }
+    }
+    
+    // Remove duplicates (same album might appear in multiple years)
+    // When removing duplicates, combine the play counts
+    const albumIdMap = new Map();
+    
+    filteredAlbums.forEach(album => {
+      const id = `${album.name}-${album.artist}`;
       
-      // Collect artists from years within the range
-      const rangeArtists = Object.entries(artistsByYear)
-        .filter(([year]) => {
-          const yearNum = parseInt(year);
-          const isInRange = yearNum >= startYear && yearNum <= endYear;
-          console.log(`Year ${year} in range ${startYear}-${endYear}? ${isInRange}`);
-          return isInRange;
-        })
-        .flatMap(([year, artists]) => {
-          console.log(`Adding ${artists.length} artists from year ${year}`);
-          return artists;
-        });
-      
-      console.log(`Found ${rangeArtists.length} artists within the range`);
-      
-      if (rangeArtists.length === 0) {
-        console.log("No artists found in the selected year range");
-        return [];
-      }
-      
-      // Merge artists from different years
-      const mergedArtists = {};
-      rangeArtists.forEach(artist => {
-        const name = artist.name;
+      if (!albumIdMap.has(id)) {
+        // First time seeing this album - use a deep copy to avoid modifying the original
+        albumIdMap.set(id, JSON.parse(JSON.stringify(album)));
+      } else {
+        // Combine with existing album data
+        const existingAlbum = albumIdMap.get(id);
         
-        if (!mergedArtists[name]) {
-          // First time seeing this artist
-          mergedArtists[name] = {...artist};
-        } else {
-          // Merge with existing artist data
-          mergedArtists[name].totalPlayed += artist.totalPlayed;
-          mergedArtists[name].playCount += artist.playCount;
+        // Sum the play counts and total played time
+        existingAlbum.totalPlayed = (existingAlbum.totalPlayed || 0) + (album.totalPlayed || 0);
+        existingAlbum.playCount = (existingAlbum.playCount || 0) + (album.playCount || 0);
+        
+        // Take the earlier first listen date
+        if (album.firstListen && existingAlbum.firstListen && 
+            album.firstListen < existingAlbum.firstListen) {
+          existingAlbum.firstListen = album.firstListen;
+        }
+        
+        // Merge track objects if available
+        if (album.trackObjects && existingAlbum.trackObjects) {
+          // Create a map of existing tracks by name/key
+          const trackMap = new Map();
+          existingAlbum.trackObjects.forEach(track => {
+            if (track && track.trackName) {
+              // Use normalized track name as key when available
+              const key = track.normalizedTrack || track.trackName.toLowerCase();
+              trackMap.set(key, track);
+            }
+          });
           
-          // Update most played song if necessary
-          if (artist.mostPlayedSong && mergedArtists[name].mostPlayedSong &&
-              artist.mostPlayedSong.playCount > mergedArtists[name].mostPlayedSong.playCount) {
-            mergedArtists[name].mostPlayedSong = artist.mostPlayedSong;
-          }
+          // Add or update tracks from this year
+          album.trackObjects && album.trackObjects.forEach(track => {
+            if (!track || !track.trackName) return;
+            
+            // Use normalized track name as key when available
+            const key = track.normalizedTrack || track.trackName.toLowerCase();
+            
+            if (trackMap.has(key)) {
+              // Update existing track stats
+              const existingTrack = trackMap.get(key);
+              existingTrack.totalPlayed = (existingTrack.totalPlayed || 0) + (track.totalPlayed || 0);
+              existingTrack.playCount = (existingTrack.playCount || 0) + (track.playCount || 0);
+              
+              // Combine variations if needed
+              if (track.variations && Array.isArray(track.variations)) {
+                if (!existingTrack.variations) {
+                  existingTrack.variations = [...track.variations];
+                } else {
+                  // Add any new variations
+                  track.variations.forEach(variation => {
+                    if (!existingTrack.variations.includes(variation)) {
+                      existingTrack.variations.push(variation);
+                    }
+                  });
+                }
+              }
+            } else {
+              // Add new track
+              trackMap.set(key, JSON.parse(JSON.stringify(track)));
+            }
+          });
+          
+          // Replace track objects with the merged and sorted list
+          existingAlbum.trackObjects = Array.from(trackMap.values())
+            .sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+        }
+      }
+    });
+    
+    // Convert map back to array
+    filteredAlbums = Array.from(albumIdMap.values());
+  } else if (selectedAlbumYear !== 'all') {
+    // Single year mode - use the year-specific album data
+    // Important: make deep copies to avoid modifying the original
+    filteredAlbums = albumsByYear[selectedAlbumYear] ? 
+                   JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
+                   [];
+  } else {
+    // All-time mode - use the complete album data
+    filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
+  }
+  
+  // Then apply artist filtering if needed
+  if (selectedArtists.length > 0) {
+    filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
+  }
+  
+  // Make sure all albums have trackObjects even in all-time mode
+  return filteredAlbums.map(album => {
+    if (!album) return null;
+    
+    // If we already have track objects, just use them
+    if (album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
+      // Ensure they're sorted
+      album.trackObjects.sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+      return album;
+    }
+    
+    // For albums without track objects, try to find matching tracks
+    const albumTracks = processedData.filter(track => 
+      track && track.artist === album.artist && 
+      track.albumName && (
+        track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+        album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
+        (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
+      )
+    );
+    
+    if (albumTracks.length > 0) {
+      // Group tracks by name to handle duplicates
+      const trackGroups = {};
+      
+      albumTracks.forEach(track => {
+        const key = track.trackName.toLowerCase();
+        
+        if (!trackGroups[key]) {
+          trackGroups[key] = {
+            trackName: track.trackName,
+            artist: track.artist,
+            totalPlayed: 0,
+            playCount: 0,
+            variations: [track.trackName]
+          };
+        }
+        
+        // Only include actual year-specific play stats
+        if (selectedAlbumYear !== 'all') {
+          // For year-specific mode, scale down the track stats
+          // This is a rough approximation that should still align with the album totals
+          const yearRatio = album.playCount / track.playCount;
+          trackGroups[key].totalPlayed += track.totalPlayed * yearRatio;
+          trackGroups[key].playCount += track.playCount * yearRatio;
+        } else {
+          // For all-time mode, use the full play stats
+          trackGroups[key].totalPlayed += track.totalPlayed;
+          trackGroups[key].playCount += track.playCount;
+        }
+        
+        // Add variation if not already present
+        if (!trackGroups[key].variations.includes(track.trackName)) {
+          trackGroups[key].variations.push(track.trackName);
         }
       });
       
-      // Convert back to array and sort by total play time
-      const result = Object.values(mergedArtists)
+      // Convert to array and sort
+      album.trackObjects = Object.values(trackGroups)
         .sort((a, b) => b.totalPlayed - a.totalPlayed);
-      
-      console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
-      return result;
-    } else if (selectedArtistYear === 'all') {
-      // All-time mode: show the top artists
-      return topArtists;
     } else {
-      // Single year mode
-      const yearArtists = artistsByYear[selectedArtistYear] || [];
-      console.log(`Found ${yearArtists.length} artists for year ${selectedArtistYear}`);
-      return yearArtists;
+      album.trackObjects = [];
     }
-  }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
-
+    
+    return album;
+  }).filter(Boolean); // Remove any null results
+}, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
   const processFiles = useCallback(async (fileList) => {
     // Set loading state and wait for next render cycle
     setIsProcessing(true);

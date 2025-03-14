@@ -32,6 +32,11 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
     ? Math.min(100, Math.round((albumTracks.length / actualTrackCount) * 100)) 
     : 0;
 
+  // Sum all track plays to verify they match the album total
+  const totalTrackPlays = useMemo(() => {
+    return albumTracks.reduce((sum, track) => sum + (track.playCount || 0), 0);
+  }, [albumTracks]);
+
   return (
     <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
       <div className="font-bold text-pink-600">{album.name}</div>
