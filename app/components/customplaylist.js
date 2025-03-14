@@ -367,7 +367,7 @@ const CustomPlaylistCreator = ({
                 />
                 
                 {filteredTracks.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-red-500">
                     {filteredTracks.map(track => (
                       <div 
                         key={track.id}
