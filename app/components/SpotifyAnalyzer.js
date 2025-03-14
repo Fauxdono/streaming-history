@@ -868,12 +868,12 @@ const displayedAlbums = useMemo(() => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <ul className="space-y-1 text-purple-700">
+       <ul className="space-y-1 text-purple-700">
                     <li>Files processed: {stats.totalFiles}</li>
                     <li>Total entries: {stats.totalEntries}</li>
                     <li>Processed songs: {stats.processedSongs}</li>
+                    <li>Unique songs: {processedData.length}</li>
                     <li>Entries with no track name: {stats.nullTrackNames}</li>
-                    <li>Skipped tracks: {stats.skippedEntries}</li>
                     <li>Plays under 30s: {stats.shortPlays}</li>
                   </ul>
                 </div>
