@@ -15,6 +15,7 @@ import { X, Trash2, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import YearSelector from './year-selector.js';
 import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
+import CustomPlaylistCreator from './CustomPlaylistCreator.js';
 
 const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
   const now = new Date();
@@ -711,6 +712,7 @@ const displayedAlbums = useMemo(() => {
       {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
             {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
             {processedData.length > 0 && <TabButton id="custom" label="Custom Date Range" />}
+            {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
             {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
             {processedData.length > 0 && <TabButton id="patterns" label="Listening Patterns" />}
             {processedData.length > 0 && <TabButton id="behavior" label="Listening Behavior" />}
@@ -1175,6 +1177,17 @@ const displayedAlbums = useMemo(() => {
             />
           </div>
         )}
+
+{activeTab === 'playlists' && (
+  <div className="p-4 bg-violet-100 rounded border-2 border-violet-300">
+    <h3 className="font-bold mb-2 text-violet-700">Custom Playlists</h3>
+    <CustomPlaylistCreator
+      processedData={processedData}
+      formatDuration={formatDuration}
+      rawPlayData={rawPlayData}
+    />
+  </div>
+)}
         
         {activeTab === 'podcasts' && (
           <div 
