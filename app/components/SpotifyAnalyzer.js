@@ -872,7 +872,7 @@ const displayedAlbums = useMemo(() => {
                     <li>Files processed: {stats.totalFiles}</li>
                     <li>Total entries: {stats.totalEntries}</li>
                     <li>Processed songs: {stats.processedSongs}</li>
-                    <li>Unique songs: {processedData.length}</li>
+                    <li>Unique songs: {stats.uniqueSongs || 0}</li>
                     <li>Entries with no track name: {stats.nullTrackNames}</li>
                     <li>Plays under 30s: {stats.shortPlays}</li>
                   </ul>
