@@ -376,7 +376,7 @@ const CustomPlaylistCreator = ({
                       >
                         <div>
                           <div className="font-medium">{track.trackName}</div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-red-600">
                             {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
                           </div>
                         </div>
