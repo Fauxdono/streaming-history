@@ -205,106 +205,7 @@ const getAlbumsTabLabel = () => {
   }
   return `${selectedAlbumYear} Albums`;
 };
-const displayedAlbums = useMemo(() => {
-  console.log("Calculating displayedAlbums with filter:", {
-    selectedAlbumYear,
-    mode: albumYearRangeMode ? "range" : "single"
-  });
 
-  // First determine which albums to show based on year filter
-  let filteredAlbums;
-  
-  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Year range mode - collect albums from multiple years
-    filteredAlbums = [];
-    const startYear = albumYearRange.startYear;
-    const endYear = albumYearRange.endYear;
-    
-    // Collect albums from each year in the range
-    for (let year = parseInt(startYear); year <= parseInt(endYear); year++) {
-      if (albumsByYear[year]) {
-        filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
-      }
-    }
-    
-    // Remove duplicates (same album might appear in multiple years)
-    const albumIds = new Set();
-    filteredAlbums = filteredAlbums.filter(album => {
-      const id = `${album.name}-${album.artist}`;
-      if (albumIds.has(id)) return false;
-      albumIds.add(id);
-      return true;
-    });
-  } else if (selectedAlbumYear !== 'all') {
-    // Single year mode
-    filteredAlbums = albumsByYear[selectedAlbumYear] || [];
-  } else {
-    // All-time mode
-    filteredAlbums = topAlbums;
-  }
-  
-  // Then apply artist filtering if needed
-  if (selectedArtists.length > 0) {
-    filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
-  }
-  
-  // Enhance albums with track data
-  return filteredAlbums.map(album => {
-    // Try to get track data
-    if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
-      // Find tracks for this album
-      const albumTracks = processedData.filter(track => 
-        track.artist === album.artist && 
-        track.albumName && 
-        (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-         album.name.toLowerCase().includes(track.albumName.toLowerCase()))
-      );
-      
-      // Sort by total play time
-      const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
-      
-      return {
-        ...album,
-        trackObjects: sortedTracks,
-        topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
-      };
-    }
-    
-    // Just ensure tracks are sorted if we already have them
-    const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
-    
-    return {
-      ...album,
-      trackObjects: sortedTracks,
-      topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
-    };
-  });
-}, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
-  // Toggle a service in the selection
-  const toggleServiceSelection = (serviceType) => {
-    setSelectedServices(prev => {
-      if (prev.includes(serviceType)) {
-        return prev.filter(s => s !== serviceType);
-      } else {
-        return [...prev, serviceType];
-      }
-    });
-  };
-
-  // Toggle service info visibility
-  const toggleServiceInfo = (serviceType) => {
-    setShowServiceInfo(prev => ({
-      ...prev,
-      [serviceType]: !prev[serviceType]
-    }));
-  };
-
-  // Get accepted file formats for all selected services
-  const getAcceptedFormats = () => {
-    return selectedServices
-      .map(service => STREAMING_SERVICES[service].acceptedFormats)
-      .join(',');
-  };
 
 const displayedAlbums = useMemo(() => {
   console.log("Calculating displayedAlbums with filter:", {
@@ -488,6 +389,117 @@ const displayedAlbums = useMemo(() => {
     return album;
   }).filter(Boolean); // Remove any null results
 }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
+  // Toggle a service in the selection
+  const toggleServiceSelection = (serviceType) => {
+    setSelectedServices(prev => {
+      if (prev.includes(serviceType)) {
+        return prev.filter(s => s !== serviceType);
+      } else {
+        return [...prev, serviceType];
+      }
+    });
+  };
+
+  // Toggle service info visibility
+  const toggleServiceInfo = (serviceType) => {
+    setShowServiceInfo(prev => ({
+      ...prev,
+      [serviceType]: !prev[serviceType]
+    }));
+  };
+
+  // Get accepted file formats for all selected services
+  const getAcceptedFormats = () => {
+    return selectedServices
+      .map(service => STREAMING_SERVICES[service].acceptedFormats)
+      .join(',');
+  };
+
+  // Update the displayedArtists useMemo function in SpotifyAnalyzer.js
+  // This is the critical part that filters the artists based on the selected year or year range
+  const displayedArtists = useMemo(() => {
+    console.log("Re-calculating displayed artists:", {
+      mode: yearRangeMode ? "range" : "single",
+      selectedYear: selectedArtistYear,
+      range: yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : "none"
+    });
+
+    // Important: Check yearRangeMode first, then check selectedArtistYear
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Year range mode: collect and merge artists from the range
+      const startYear = parseInt(yearRange.startYear);
+      const endYear = parseInt(yearRange.endYear);
+      
+      console.log(`Filtering artists for range ${startYear}-${endYear}`, 
+        "Available years:", Object.keys(artistsByYear));
+      
+      // Check if artistsByYear has any entries
+      const availableYears = Object.keys(artistsByYear);
+      console.log("Available years:", availableYears);
+      
+      if (availableYears.length === 0) {
+        console.warn("artistsByYear is empty!");
+        return [];
+      }
+      
+      // Collect artists from years within the range
+      const rangeArtists = Object.entries(artistsByYear)
+        .filter(([year]) => {
+          const yearNum = parseInt(year);
+          const isInRange = yearNum >= startYear && yearNum <= endYear;
+          console.log(`Year ${year} in range ${startYear}-${endYear}? ${isInRange}`);
+          return isInRange;
+        })
+        .flatMap(([year, artists]) => {
+          console.log(`Adding ${artists.length} artists from year ${year}`);
+          return artists;
+        });
+      
+      console.log(`Found ${rangeArtists.length} artists within the range`);
+      
+      if (rangeArtists.length === 0) {
+        console.log("No artists found in the selected year range");
+        return [];
+      }
+      
+      // Merge artists from different years
+      const mergedArtists = {};
+      rangeArtists.forEach(artist => {
+        const name = artist.name;
+        
+        if (!mergedArtists[name]) {
+          // First time seeing this artist
+          mergedArtists[name] = {...artist};
+        } else {
+          // Merge with existing artist data
+          mergedArtists[name].totalPlayed += artist.totalPlayed;
+          mergedArtists[name].playCount += artist.playCount;
+          
+          // Update most played song if necessary
+          if (artist.mostPlayedSong && mergedArtists[name].mostPlayedSong &&
+              artist.mostPlayedSong.playCount > mergedArtists[name].mostPlayedSong.playCount) {
+            mergedArtists[name].mostPlayedSong = artist.mostPlayedSong;
+          }
+        }
+      });
+      
+      // Convert back to array and sort by total play time
+      const result = Object.values(mergedArtists)
+        .sort((a, b) => b.totalPlayed - a.totalPlayed);
+      
+      console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
+      return result;
+    } else if (selectedArtistYear === 'all') {
+      // All-time mode: show the top artists
+      return topArtists;
+    } else {
+      // Single year mode
+      const yearArtists = artistsByYear[selectedArtistYear] || [];
+      console.log(`Found ${yearArtists.length} artists for year ${selectedArtistYear}`);
+      return yearArtists;
+    }
+  }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
+
   const processFiles = useCallback(async (fileList) => {
     // Set loading state and wait for next render cycle
     setIsProcessing(true);
@@ -1128,7 +1140,7 @@ const displayedAlbums = useMemo(() => {
             formatDuration={formatDuration}
             selectedYear={selectedAlbumYear}
             yearRange={albumYearRange}
-            isYearRangeMode={albumYearRangeMode}
+      isYearRangeMode={albumYearRangeMode}
           />
         ))}
       </div>
