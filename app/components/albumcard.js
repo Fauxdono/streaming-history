@@ -1,14 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 
-// Function to normalize track names for comparison
+// Improved normalizeTrackName function to better detect duplicates
 const normalizeTrackName = (trackName) => {
   if (!trackName) return '';
   
   // Convert to lowercase
   let normalized = trackName.toLowerCase()
     // Handle Kendrick's "untitled unmastered" album specially
-    // Convert both "untitled 07 2014 - 2016" and "untitled 07 | 2014 - 2016" to the same format
     .replace(/untitled\s+(\d+)\s*[\|\.l]*\s*(\d+.*?)$/i, 'untitled $1 $2')
     
     // Remove featuring artist info
@@ -17,24 +16,35 @@ const normalizeTrackName = (trackName) => {
     .replace(/\(featuring.*?\)/gi, '')
     .replace(/feat\..*?$/gi, '')
     .replace(/ft\..*?$/gi, '')
+    
     // Remove remix, version, etc.
     .replace(/\(.*?version\)/gi, '')
     .replace(/\(.*?remix\)/gi, '')
     .replace(/\(.*?edit\)/gi, '')
+    
     // Remove parenthetical info
     .replace(/\(.*?\)/gi, '')
     .replace(/\[.*?\]/gi, '')
+    
     // Replace vertical bars, periods, and other separators with spaces
     .replace(/[|\-\.l]/g, ' ')
+    
     // Remove punctuation
     .replace(/[.,\/#!$%\^&\*;:{}=\_`~()]/g, '')
+    
     // Collapse multiple spaces
     .replace(/\s+/g, ' ')
     .trim();
+
+  // Special case for interludes, skits, etc.
+  normalized = normalized
+    .replace(/(\w+)\s+interlude$/, '$1 interlude')  // Standardize interlude naming
+    .replace(/(\w+)\s+skit$/, '$1 skit')           // Standardize skit naming
+    .replace(/(\w+)\s+intro$/, '$1 intro')         // Standardize intro naming
+    .replace(/(\w+)\s+outro$/, '$1 outro');        // Standardize outro naming
   
   return normalized;
 };
-
 // Function to combine duplicate tracks
 const combineTrackData = (tracks) => {
   if (!tracks || !Array.isArray(tracks) || tracks.length === 0) return [];
