@@ -1982,7 +1982,7 @@ const verifiedAlbums = sortedAlbums.map(album => {
     totalEntries: allProcessedData.length,
     processedSongs: stats.processedSongs,
     nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
-    skippedEntries: 0,
+    uniqueSongs: stats.songs.length, // Use the length of the songs array
     shortPlays: stats.shortPlays,
     totalListeningTime: stats.totalListeningTime,
     serviceListeningTime: stats.serviceListeningTime
