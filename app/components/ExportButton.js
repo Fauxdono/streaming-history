@@ -193,7 +193,7 @@ if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length
       <button
         onClick={exportToExcel}
         disabled={isExporting}
-        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
       >
         <Download size={16} />
         {isExporting ? 'Exporting...' : 'Export to Excel'}
