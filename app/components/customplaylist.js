@@ -1,7 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { Download, Plus, Trash2, Save, Music, Filter } from 'lucide-react';
 
- setSelectedTracks] = useState([]);
+const CustomPlaylistCreator = ({ 
+  processedData = [], 
+  formatDuration,
+  rawPlayData = []
+}) => {
+  const [playlistName, setPlaylistName] = useState('My Custom Playlist');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [creationMode, setCreationMode] = useState('manual'); // 'manual' or 'smart'
+  const [smartRules, setSmartRules] = useState([
+    { type: 'artist', operator: 'contains', value: '', id: Date.now() }
+  ]);
+  const [selectedTracks, setSelectedTracks] = useState([]);
   const [musicBasePath, setMusicBasePath] = useState('/Music/Downloads');
   const [fileExtension, setFileExtension] = useState('mp3');
   const [pathFormat, setPathFormat] = useState('default');
