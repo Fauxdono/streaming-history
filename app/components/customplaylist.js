@@ -287,7 +287,7 @@ const CustomPlaylistCreator = ({
           onClick={() => setActiveTab('create')}
           className={`px-4 py-2 font-medium ${
             activeTab === 'create' 
-              ? 'text-blue-600 border-b-2 border-blue-600' 
+              ? 'text-red-600 border-b-2 border-red-600' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -297,7 +297,7 @@ const CustomPlaylistCreator = ({
           onClick={() => setActiveTab('saved')}
           className={`px-4 py-2 font-medium ${
             activeTab === 'saved' 
-              ? 'text-blue-600 border-b-2 border-blue-600' 
+              ? 'text-red-600 border-b-2 border-red-600' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -307,7 +307,7 @@ const CustomPlaylistCreator = ({
           onClick={() => setActiveTab('export')}
           className={`px-4 py-2 font-medium ${
             activeTab === 'export' 
-              ? 'text-blue-600 border-b-2 border-blue-600' 
+              ? 'text-red-600 border-b-2 border-red-600' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -319,12 +319,12 @@ const CustomPlaylistCreator = ({
         <div className="space-y-4">
           {/* Playlist Name */}
           <div>
-            <label className="block text-blue-700 mb-1">Playlist Name:</label>
+            <label className="block text-red-700 mb-1">Playlist Name:</label>
             <input
               type="text"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               placeholder="Enter playlist name"
             />
           </div>
@@ -335,8 +335,8 @@ const CustomPlaylistCreator = ({
               onClick={() => setCreationMode('manual')}
               className={`px-4 py-2 font-medium ${
                 creationMode === 'manual' 
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' 
-                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                  ? 'bg-red-50 text-red-600 border-b-2 border-red-600' 
+                  : 'bg-red-100 text-red-600 hover:bg-red-200'
               }`}
             >
               Manual Selection
@@ -345,8 +345,8 @@ const CustomPlaylistCreator = ({
               onClick={() => setCreationMode('smart')}
               className={`px-4 py-2 font-medium ${
                 creationMode === 'smart' 
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' 
-                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                  ? 'bg-red-50 text-red-600 border-b-2 border-red-600' 
+                  : 'bg-red-100 text-red-600 hover:bg-red-200'
               }`}
             >
               Smart Playlist
@@ -356,13 +356,13 @@ const CustomPlaylistCreator = ({
           {creationMode === 'manual' ? (
             /* Track Search */
             <div>
-              <label className="block text-blue-700 mb-1">Search for tracks to add:</label>
+              <label className="block text-red-700 mb-1">Search for tracks to add:</label>
               <div className="relative">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="Search by track name, artist or album..."
                 />
                 
@@ -372,7 +372,7 @@ const CustomPlaylistCreator = ({
                       <div 
                         key={track.id}
                         onClick={() => addTrack(track)}
-                        className="px-4 py-2 hover:bg-blue-50 cursor-pointer flex justify-between items-center"
+                        className="px-4 py-2 hover:bg-red-50 cursor-pointer flex justify-between items-center"
                       >
                         <div>
                           <div className="font-medium">{track.trackName}</div>
@@ -380,7 +380,7 @@ const CustomPlaylistCreator = ({
                             {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
                           </div>
                         </div>
-                        <button className="text-blue-600 hover:text-blue-800">
+                        <button className="text-red-600 hover:text-red-800">
                           <Plus size={16} />
                         </button>
                       </div>
@@ -391,10 +391,10 @@ const CustomPlaylistCreator = ({
             </div>
           ) : (
             /* Smart Rules */
-            <div className="space-y-4 border p-4 rounded bg-blue-50">
+            <div className="space-y-4 border p-4 rounded bg-red-50">
               <div className="flex justify-between items-center">
-                <h4 className="font-bold text-blue-700">Smart Playlist Rules</h4>
-                <div className="text-sm text-blue-600">All rules must match (AND logic)</div>
+                <h4 className="font-bold text-red-700">Smart Playlist Rules</h4>
+                <div className="text-sm text-red-600">All rules must match (AND logic)</div>
               </div>
               
               {smartRules.map((rule) => (
@@ -453,7 +453,7 @@ const CustomPlaylistCreator = ({
               <div className="flex justify-between">
                 <button
                   onClick={addRule}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                 >
                   <Plus size={16} className="inline mr-1" /> Add Rule
                 </button>
@@ -461,7 +461,7 @@ const CustomPlaylistCreator = ({
                 <button
                   onClick={generateFromRules}
                   disabled={smartRules.every(rule => !rule.value)}
-                  className="px-4 py-2 bg-violet-600 text-white rounded hover:bg-violet-700 disabled:bg-violet-300 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
                 >
                   <Filter size={16} className="inline mr-1" /> Generate Playlist
                 </button>
@@ -472,10 +472,10 @@ const CustomPlaylistCreator = ({
           {/* Selected Tracks */}
           <div>
             <div className="flex justify-between items-center">
-              <div className="font-bold text-blue-700">
+              <div className="font-bold text-red-700">
                 Selected Tracks ({selectedTracks.length})
               </div>
-              <div className="text-sm text-blue-600">
+              <div className="text-sm text-red-600">
                 Total Duration: {formatDuration(totalDuration)}
               </div>
             </div>
@@ -502,7 +502,7 @@ const CustomPlaylistCreator = ({
                       <button 
                         onClick={() => moveTrack(index, 'up')}
                         disabled={index === 0}
-                        className="p-1 text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                        className="p-1 text-red-600 hover:text-red-800 disabled:text-gray-400"
                         title="Move up"
                       >
                         ↑
@@ -510,7 +510,7 @@ const CustomPlaylistCreator = ({
                       <button 
                         onClick={() => moveTrack(index, 'down')}
                         disabled={index === selectedTracks.length - 1}
-                        className="p-1 text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                        className="p-1 text-red-600 hover:text-red-800 disabled:text-gray-400"
                         title="Move down"
                       >
                         ↓
@@ -538,7 +538,7 @@ const CustomPlaylistCreator = ({
             <button
               onClick={savePlaylist}
               disabled={selectedTracks.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
             >
               <Save size={16} />
               Save Playlist
@@ -546,7 +546,7 @@ const CustomPlaylistCreator = ({
             <button
               onClick={exportPlaylist}
               disabled={selectedTracks.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
             >
               <Download size={16} />
               Export as M3U
@@ -557,14 +557,14 @@ const CustomPlaylistCreator = ({
       
       {activeTab === 'saved' && (
         <div className="space-y-4">
-          <h3 className="font-bold text-blue-700">Saved Playlists</h3>
+          <h3 className="font-bold text-red-700">Saved Playlists</h3>
           
           {savedPlaylists.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedPlaylists.map(playlist => (
-                <div key={playlist.id} className="border rounded p-4 hover:border-blue-400">
+                <div key={playlist.id} className="border rounded p-4 hover:border-red-400">
                   <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-blue-600">{playlist.name}</h4>
+                    <h4 className="font-bold text-red-600">{playlist.name}</h4>
                     <div className="text-sm text-gray-500">
                       {new Date(playlist.created).toLocaleDateString()}
                     </div>
@@ -577,7 +577,7 @@ const CustomPlaylistCreator = ({
                   <div className="mt-3 flex justify-between">
                     <button
                       onClick={() => loadPlaylist(playlist)}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-red-600 hover:text-red-800"
                     >
                       Load
                     </button>
@@ -602,21 +602,21 @@ const CustomPlaylistCreator = ({
       {activeTab === 'export' && (
         <div className="space-y-4">
           <div>
-            <label className="block text-blue-700 mb-1">Base Music Path:</label>
+            <label className="block text-red-700 mb-1">Base Music Path:</label>
             <input
               type="text"
               value={musicBasePath}
               onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               placeholder="e.g. /Music/Downloads or C:/Music"
             />
-            <p className="text-xs text-blue-600 mt-1">
+            <p className="text-xs text-red-600 mt-1">
               This will be the base path for your music files in the exported playlist.
             </p>
           </div>
           
           <div>
-            <label className="block text-blue-700 mb-1">Path Format:</label>
+            <label className="block text-red-700 mb-1">Path Format:</label>
             <div className="flex gap-4 mb-2">
               <label className="flex items-center">
                 <input
@@ -644,10 +644,10 @@ const CustomPlaylistCreator = ({
                   type="text"
                   value={customPathFormat}
                   onChange={(e) => setCustomPathFormat(e.target.value)}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="Custom path format"
                 />
-                <div className="text-xs text-blue-600 mt-1">
+                <div className="text-xs text-red-600 mt-1">
                   <p>Available placeholders:</p>
                   <ul className="list-disc list-inside ml-2">
                     <li>{'{basePath}'} - Your base music path</li>
@@ -663,11 +663,11 @@ const CustomPlaylistCreator = ({
           </div>
           
           <div>
-            <label className="block text-blue-700 mb-1">File Extension:</label>
+            <label className="block text-red-700 mb-1">File Extension:</label>
             <select
               value={fileExtension}
               onChange={(e) => setFileExtension(e.target.value)}
-              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="mp3">mp3</option>
               <option value="flac">flac</option>
@@ -677,7 +677,7 @@ const CustomPlaylistCreator = ({
             </select>
           </div>
           
-          <div className="text-sm text-blue-600 p-3 bg-blue-100 rounded">
+          <div className="text-sm text-red-600 p-3 bg-red-100 rounded">
             <p className="font-medium">Path Preview:</p>
             <p className="font-mono mt-1">
               {pathFormat === 'default' 

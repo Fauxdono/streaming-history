@@ -639,7 +639,7 @@ const displayedAlbums = useMemo(() => {
     return `${selectedArtistYear} Artists`;
   };
 
-  const TabButton = ({ id, label }) => {
+const TabButton = ({ id, label }) => {
     const getTabColor = (tabId) => {
       switch (tabId) {
         case 'upload':
@@ -666,6 +666,10 @@ const displayedAlbums = useMemo(() => {
           return activeTab === tabId 
             ? 'bg-yellow-100 text-yellow-600 border-b-2 border-yellow-600' 
             : 'bg-yellow-200 text-yellow-600 hover:bg-yellow-300';
+        case 'playlists':
+          return activeTab === tabId 
+            ? 'bg-red-50 text-red-600 border-b-2 border-red-600' 
+            : 'bg-red-200 text-red-600 hover:bg-red-300';
         case 'podcasts':
           return activeTab === tabId 
             ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
@@ -1179,8 +1183,8 @@ const displayedAlbums = useMemo(() => {
         )}
 
 {activeTab === 'playlists' && (
-  <div className="p-4 bg-violet-100 rounded border-2 border-violet-300">
-    <h3 className="font-bold mb-2 text-violet-700">Custom Playlists</h3>
+  <div className="p-4 bg-red-100 rounded border-2 border-red-300">
+    <h3 className="font-bold mb-2 text-red-700">Custom Playlists</h3>
     <CustomPlaylistCreator
       processedData={processedData}
       formatDuration={formatDuration}
