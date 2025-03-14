@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Heart, Coffee, CreditCard, DollarSign, Copy, Check } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 
-const SupportOptions = () => {
+const SupportOptions = ({ className = "" }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [activePlatform, setActivePlatform] = useState('ko-fi');
   const [copied, setCopied] = useState(false);
@@ -119,7 +119,7 @@ const SupportOptions = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-gradient-to-r from-blue-50 to-purple-50">
+    <Card className={`w-full bg-gradient-to-r from-blue-50 to-purple-50 ${className}`}>
       <CardHeader className="pb-2">
         <CardTitle className="flex justify-between items-center">
           <span className="text-purple-600">i will never succumb to ads</span>
