@@ -490,10 +490,10 @@ const CustomPlaylistCreator = ({
                     }`}
                   >
                     <div className="flex items-center">
-                      <div className="text-gray-500 mr-2">{index + 1}.</div>
+                      <div className="text-red-500 mr-2">{index + 1}.</div>
                       <div>
                         <div className="font-medium">{track.trackName}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-red-600">
                           {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
                         </div>
                       </div>
