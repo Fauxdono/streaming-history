@@ -15,7 +15,7 @@ import { X, Trash2, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import YearSelector from './year-selector.js';
 import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
-import CustomPlaylist from './customplaylist.js';
+import CustomPlaylistCreator from './customplaylist.js';
 
 const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
   const now = new Date();
