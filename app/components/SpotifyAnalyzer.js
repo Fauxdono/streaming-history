@@ -899,20 +899,20 @@ const displayedAlbums = useMemo(() => {
                 </div>
               </div>
 
-              {stats && processedData.length > 0 && (
-                <div className="mt-4 flex justify-end">
-                  <ExportButton
-                    stats={stats}
-                    topArtists={topArtists}
-                    topAlbums={topAlbums}
-                    processedData={processedData}
-                    briefObsessions={briefObsessions}
-                    formatDuration={formatDuration}
-                    songsByYear={songsByYear}
-                  />
-   <SupportOptions />
-                </div>
-              )}
+{stats && processedData.length > 0 && (
+  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <ExportButton
+      stats={stats}
+      topArtists={topArtists}
+      topAlbums={topAlbums}
+      processedData={processedData}
+      briefObsessions={briefObsessions}
+      formatDuration={formatDuration}
+      songsByYear={songsByYear}
+    />
+    <SupportOptions className="h-full" />
+  </div>
+)}
             </div>
           </div>
         )}
