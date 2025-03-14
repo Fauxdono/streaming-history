@@ -362,7 +362,7 @@ const CustomPlaylistCreator = ({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-500"
                   placeholder="Search by track name, artist or album..."
                 />
                 
@@ -527,7 +527,7 @@ const CustomPlaylistCreator = ({
                 ))}
               </div>
             ) : (
-              <div className="mt-2 p-4 text-center text-gray-500 border border-dashed rounded">
+              <div className="mt-2 p-4 text-center text-red-300 border border-dashed rounded">
                 No tracks selected. Search for tracks to add them to your playlist.
               </div>
             )}
@@ -627,7 +627,7 @@ const CustomPlaylistCreator = ({
                 />
                 <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center text-red-500">
                 <input
                   type="radio"
                   checked={pathFormat === 'custom'}
@@ -667,7 +667,7 @@ const CustomPlaylistCreator = ({
             <select
               value={fileExtension}
               onChange={(e) => setFileExtension(e.target.value)}
-              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-500"
             >
               <option value="mp3">mp3</option>
               <option value="flac">flac</option>
