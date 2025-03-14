@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 
-// Improved normalizeTrackName function to better detect duplicates
+// Function to normalize track names for comparison
 const normalizeTrackName = (trackName) => {
   if (!trackName) return '';
   
@@ -45,19 +45,28 @@ const normalizeTrackName = (trackName) => {
   
   return normalized;
 };
-// Function to combine duplicate tracks
-const combineTrackData = (tracks) => {
+
+// Function to combine duplicate tracks with stricter album matching
+const combineTrackData = (tracks, albumName = '') => {
   if (!tracks || !Array.isArray(tracks) || tracks.length === 0) return [];
   
   const trackMap = new Map();
   
-  // First pass: group tracks by normalized name
+  // First pass: group tracks by normalized name with stricter album matching
   tracks.forEach(track => {
     if (!track.trackName && !track.name) return;
     
     const trackName = track.trackName || track.name;
     const normalizedName = normalizeTrackName(trackName);
     if (!normalizedName) return;
+    
+    // Check if track's album matches this album
+    // Skip tracks that explicitly belong to a different album
+    if (albumName && track.albumName && 
+        !albumNameMatch(track.albumName, albumName) && 
+        track.albumName !== 'Unknown Album') {
+      return;  // Skip this track as it belongs to a different album
+    }
     
     if (!trackMap.has(normalizedName)) {
       trackMap.set(normalizedName, {
@@ -92,6 +101,31 @@ const combineTrackData = (tracks) => {
     .sort((a, b) => b.totalPlayed - a.totalPlayed);
 };
 
+// Helper function to check if two album names match, with fuzzy matching
+const albumNameMatch = (albumName1, albumName2) => {
+  if (!albumName1 || !albumName2) return false;
+  
+  // Normalize both album names
+  const norm1 = albumName1.toLowerCase().trim();
+  const norm2 = albumName2.toLowerCase().trim();
+  
+  // Check for exact match
+  if (norm1 === norm2) return true;
+  
+  // Check if one contains the other (for partial matches)
+  if (norm1.includes(norm2) || norm2.includes(norm1)) {
+    // Make sure it's a substantial match (at least 60% of the shorter name)
+    const minLength = Math.min(norm1.length, norm2.length);
+    const maxLength = Math.max(norm1.length, norm2.length);
+    
+    // Only consider it a match if the longer name isn't more than 
+    // twice the length of the shorter name
+    return maxLength <= minLength * 2;
+  }
+  
+  return false;
+};
+
 const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   const [showTracks, setShowTracks] = useState(false);
 
@@ -102,35 +136,67 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       return album.trackObjects;
     }
     
-    // Fall back to matching tracks from processedData
+    // Fall back to matching tracks from processedData with stricter album matching
     if (!processedData || !album) return [];
     
-    // Enhanced matching logic with better album name normalization
+    // Improved album matching logic
     return processedData.filter(track => 
       track?.artist === album.artist && 
       track?.albumName && (
-        // Check for partial matches in either direction
-        track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-        album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
-        // Also match tracks where albumName is 'Unknown Album' if our current album is 'Unknown Album'
+        // Strict album matching - require substantial match
+        albumNameMatch(track.albumName, album.name) ||
+        // Special case for Unknown Album only if both are unknown
         (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
       )
     );
   }, [album, processedData]);
   
-  // Deduplicate and combine similar tracks
+  // Deduplicate and combine similar tracks with stricter album validation
   const dedupedTracks = useMemo(() => {
-    return combineTrackData(albumTracks || []);
-  }, [albumTracks]);
+    return combineTrackData(albumTracks || [], album.name);
+  }, [albumTracks, album.name]);
   
   // Get top track and other tracks
   const topTrack = dedupedTracks.length > 0 ? dedupedTracks[0] : null;
   const otherTracks = dedupedTracks.slice(1);
   
-  // Normalize trackCount
-  const normalizedTrackCount = album.trackCountValue || 
-    (album.trackCount instanceof Set ? album.trackCount.size : 
-    (typeof album.trackCount === 'number' ? album.trackCount : 0));
+  // Normalize trackCount with a more accurate count based on dedupedTracks
+  const normalizedTrackCount = useMemo(() => {
+    // If we have an explicit track count from metadata, use that
+    if (album.trackCountValue && typeof album.trackCountValue === 'number') {
+      return album.trackCountValue;
+    }
+    
+    // If we have a trackCount that's a Set or number, use that
+    if (album.trackCount) {
+      if (album.trackCount instanceof Set) {
+        return album.trackCount.size;
+      }
+      if (typeof album.trackCount === 'number') {
+        return album.trackCount;
+      }
+    }
+    
+    // Default approximate track count for common albums if none is specified
+    const defaultCounts = {
+      // Add common album track counts here
+      '2001': 22, // Dr. Dre's 2001
+      'Mr. Morale & The Big Steppers': 18, // Kendrick Lamar
+      'To Pimp A Butterfly': 16, // Kendrick Lamar
+      'Future Nostalgia': 13, // Dua Lipa
+      // Add more as needed
+    };
+    
+    // Check if this is a known album
+    for (const [knownAlbum, count] of Object.entries(defaultCounts)) {
+      if (albumNameMatch(album.name, knownAlbum)) {
+        return count;
+      }
+    }
+    
+    // Otherwise use the number of deduped tracks we have or fallback to a default
+    return dedupedTracks.length > 0 ? dedupedTracks.length : album.trackObjects?.length || 0;
+  }, [album, dedupedTracks]);
   
   // Calculate completeness percentage
   const completenessPercentage = normalizedTrackCount > 0 
