@@ -205,8 +205,6 @@ const getAlbumsTabLabel = () => {
   }
   return `${selectedAlbumYear} Albums`;
 };
-
-
 const displayedAlbums = useMemo(() => {
   console.log("Calculating displayedAlbums with filter:", {
     selectedAlbumYear,
@@ -219,79 +217,29 @@ const displayedAlbums = useMemo(() => {
   if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
     // Year range mode - collect albums from multiple years
     filteredAlbums = [];
-    const startYear = parseInt(albumYearRange.startYear);
-    const endYear = parseInt(albumYearRange.endYear);
+    const startYear = albumYearRange.startYear;
+    const endYear = albumYearRange.endYear;
     
     // Collect albums from each year in the range
-    for (let year = startYear; year <= endYear; year++) {
+    for (let year = parseInt(startYear); year <= parseInt(endYear); year++) {
       if (albumsByYear[year]) {
         filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
       }
     }
     
     // Remove duplicates (same album might appear in multiple years)
-    // When removing duplicates, combine the play counts
-    const albumIdMap = new Map();
-    
-    filteredAlbums.forEach(album => {
+    const albumIds = new Set();
+    filteredAlbums = filteredAlbums.filter(album => {
       const id = `${album.name}-${album.artist}`;
-      
-      if (!albumIdMap.has(id)) {
-        // First time seeing this album
-        albumIdMap.set(id, { ...album });
-      } else {
-        // Combine with existing album data
-        const existingAlbum = albumIdMap.get(id);
-        
-        // Sum the play counts and total played time
-        existingAlbum.totalPlayed = (existingAlbum.totalPlayed || 0) + (album.totalPlayed || 0);
-        existingAlbum.playCount = (existingAlbum.playCount || 0) + (album.playCount || 0);
-        
-        // Take the earlier first listen date
-        if (album.firstListen && existingAlbum.firstListen && 
-            album.firstListen < existingAlbum.firstListen) {
-          existingAlbum.firstListen = album.firstListen;
-        }
-        
-        // Merge track objects if available
-        if (album.trackObjects && existingAlbum.trackObjects) {
-          // Create a map of existing tracks
-          const trackMap = new Map();
-          existingAlbum.trackObjects.forEach(track => {
-            if (track && track.trackName) {
-              trackMap.set(track.trackName, { ...track });
-            }
-          });
-          
-          // Add or update tracks from this year
-          album.trackObjects && album.trackObjects.forEach(track => {
-            if (!track || !track.trackName) return;
-            
-            if (trackMap.has(track.trackName)) {
-              // Update existing track stats
-              const existingTrack = trackMap.get(track.trackName);
-              existingTrack.totalPlayed = (existingTrack.totalPlayed || 0) + (track.totalPlayed || 0);
-              existingTrack.playCount = (existingTrack.playCount || 0) + (track.playCount || 0);
-            } else {
-              // Add new track
-              trackMap.set(track.trackName, { ...track });
-            }
-          });
-          
-          // Replace track objects with the merged and sorted list
-          existingAlbum.trackObjects = Array.from(trackMap.values())
-            .sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
-        }
-      }
+      if (albumIds.has(id)) return false;
+      albumIds.add(id);
+      return true;
     });
-    
-    // Convert map back to array
-    filteredAlbums = Array.from(albumIdMap.values());
   } else if (selectedAlbumYear !== 'all') {
-    // Single year mode - use the year-specific album data
+    // Single year mode
     filteredAlbums = albumsByYear[selectedAlbumYear] || [];
   } else {
-    // All-time mode - use the complete album data
+    // All-time mode
     filteredAlbums = topAlbums;
   }
   
@@ -302,25 +250,18 @@ const displayedAlbums = useMemo(() => {
   
   // Enhance albums with track data
   return filteredAlbums.map(album => {
-    if (!album) return null;
-    
     // Try to get track data
     if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
       // Find tracks for this album
-      let albumTracks = [];
-      
-      // For simplicity, just use the matching logic without year filtering
-      albumTracks = processedData.filter(track => 
-        track && track.artist === album.artist && 
-        track.albumName && (
-          track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-          album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
-          (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
-        )
+      const albumTracks = processedData.filter(track => 
+        track.artist === album.artist && 
+        track.albumName && 
+        (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+         album.name.toLowerCase().includes(track.albumName.toLowerCase()))
       );
       
       // Sort by total play time
-      const sortedTracks = [...albumTracks].sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+      const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
       
       return {
         ...album,
@@ -330,14 +271,14 @@ const displayedAlbums = useMemo(() => {
     }
     
     // Just ensure tracks are sorted if we already have them
-    const sortedTracks = [...album.trackObjects].sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+    const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
     
     return {
       ...album,
       trackObjects: sortedTracks,
       topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
     };
-  }).filter(Boolean); // Remove any null results
+  });
 }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
@@ -1057,45 +998,47 @@ const displayedAlbums = useMemo(() => {
   </div>
 </div>
     
-  
-{displayedAlbums.length === 0 ? (
-  <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
-    <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
-    <p className="text-pink-600 mt-2">
-      {albumYearRangeMode 
-        ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
-        : selectedAlbumYear !== 'all' 
-          ? `No albums found for the year ${selectedAlbumYear}.`
-          : "No album data available."}
-    </p>
-    <button
-      onClick={() => {
-        setAlbumYearRangeMode(false);
-        setSelectedAlbumYear('all');
-        setSelectedArtists([]);
-      }}
-      className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-    >
-      Show All Albums
-    </button>
-  </div>
-) : (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-      <AlbumCard 
-        key={`${album.name}-${album.artist}`}
-        album={album}
-        index={index}
-        processedData={processedData}
-        formatDuration={formatDuration}
-        selectedYear={selectedAlbumYear}
-        yearRange={albumYearRange}
-        isYearRangeMode={albumYearRangeMode}
-      />
-    ))}
+    {/* Albums Display */}
+    {displayedAlbums.length === 0 ? (
+      <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
+        <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
+        <p className="text-pink-600 mt-2">
+          {albumYearRangeMode 
+            ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
+            : selectedAlbumYear !== 'all' 
+              ? `No albums found for the year ${selectedAlbumYear}.`
+              : "No album data available."}
+        </p>
+        <button
+          onClick={() => {
+            setAlbumYearRangeMode(false);
+            setSelectedAlbumYear('all');
+            setSelectedArtists([]);
+          }}
+          className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+        >
+          Show All Albums
+        </button>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
+          <AlbumCard 
+            key={`${album.name}-${album.artist}`}
+            album={album}
+            index={index}
+            processedData={processedData}
+            formatDuration={formatDuration}
+            selectedYear={selectedAlbumYear}
+            yearRange={albumYearRange}
+            isYearRangeMode={albumYearRangeMode}
+          />
+        ))}
+      </div>
+    )}
   </div>
 )}
-     
+        
         {activeTab === 'tracks' && (
           <div className="p-4 bg-blue-100 rounded border-2 border-blue-300">
             <h3 className="font-bold mb-2 text-blue-700">Track Rankings</h3>
