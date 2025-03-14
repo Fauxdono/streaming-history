@@ -306,11 +306,6 @@ const displayedAlbums = useMemo(() => {
       .join(',');
   };
 
-// This modification ensures track play counts are year-specific
-
-// In the displayedAlbums useMemo function in SpotifyAnalyzer.js:
-// Make sure that we're not using all-time tracks when in year mode
-
 const displayedAlbums = useMemo(() => {
   console.log("Calculating displayedAlbums with filter:", {
     selectedAlbumYear,
