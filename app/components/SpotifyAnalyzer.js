@@ -205,7 +205,8 @@ const getAlbumsTabLabel = () => {
   }
   return `${selectedAlbumYear} Albums`;
 };
-// This should replace the displayedAlbums useMemo in SpotifyAnalyzer.js
+
+
 const displayedAlbums = useMemo(() => {
   console.log("Calculating displayedAlbums with filter:", {
     selectedAlbumYear,
@@ -218,19 +219,18 @@ const displayedAlbums = useMemo(() => {
   if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
     // Year range mode - collect albums from multiple years
     filteredAlbums = [];
-    const startYear = albumYearRange.startYear;
-    const endYear = albumYearRange.endYear;
+    const startYear = parseInt(albumYearRange.startYear);
+    const endYear = parseInt(albumYearRange.endYear);
     
     // Collect albums from each year in the range
-    for (let year = parseInt(startYear); year <= parseInt(endYear); year++) {
+    for (let year = startYear; year <= endYear; year++) {
       if (albumsByYear[year]) {
-        // Important: Use the year-specific album data that already has the correct play counts
         filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
       }
     }
     
     // Remove duplicates (same album might appear in multiple years)
-    // When removing duplicates, we need to maintain the play count data from the combined years
+    // When removing duplicates, combine the play counts
     const albumIdMap = new Map();
     
     filteredAlbums.forEach(album => {
@@ -244,11 +244,12 @@ const displayedAlbums = useMemo(() => {
         const existingAlbum = albumIdMap.get(id);
         
         // Sum the play counts and total played time
-        existingAlbum.totalPlayed += album.totalPlayed;
-        existingAlbum.playCount += album.playCount;
+        existingAlbum.totalPlayed = (existingAlbum.totalPlayed || 0) + (album.totalPlayed || 0);
+        existingAlbum.playCount = (existingAlbum.playCount || 0) + (album.playCount || 0);
         
         // Take the earlier first listen date
-        if (album.firstListen < existingAlbum.firstListen) {
+        if (album.firstListen && existingAlbum.firstListen && 
+            album.firstListen < existingAlbum.firstListen) {
           existingAlbum.firstListen = album.firstListen;
         }
         
@@ -257,16 +258,20 @@ const displayedAlbums = useMemo(() => {
           // Create a map of existing tracks
           const trackMap = new Map();
           existingAlbum.trackObjects.forEach(track => {
-            trackMap.set(track.trackName, track);
+            if (track && track.trackName) {
+              trackMap.set(track.trackName, { ...track });
+            }
           });
           
           // Add or update tracks from this year
-          album.trackObjects.forEach(track => {
+          album.trackObjects && album.trackObjects.forEach(track => {
+            if (!track || !track.trackName) return;
+            
             if (trackMap.has(track.trackName)) {
               // Update existing track stats
               const existingTrack = trackMap.get(track.trackName);
-              existingTrack.totalPlayed += track.totalPlayed;
-              existingTrack.playCount += track.playCount;
+              existingTrack.totalPlayed = (existingTrack.totalPlayed || 0) + (track.totalPlayed || 0);
+              existingTrack.playCount = (existingTrack.playCount || 0) + (track.playCount || 0);
             } else {
               // Add new track
               trackMap.set(track.trackName, { ...track });
@@ -275,7 +280,7 @@ const displayedAlbums = useMemo(() => {
           
           // Replace track objects with the merged and sorted list
           existingAlbum.trackObjects = Array.from(trackMap.values())
-            .sort((a, b) => b.totalPlayed - a.totalPlayed);
+            .sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
         }
       }
     });
@@ -297,34 +302,25 @@ const displayedAlbums = useMemo(() => {
   
   // Enhance albums with track data
   return filteredAlbums.map(album => {
+    if (!album) return null;
+    
     // Try to get track data
     if (!album.trackObjects || !Array.isArray(album.trackObjects) || album.trackObjects.length === 0) {
       // Find tracks for this album
       let albumTracks = [];
       
-      // In year-specific mode, we should filter processedData to only include tracks from this year
-      if (selectedAlbumYear !== 'all' || albumYearRangeMode) {
-        // For year-specific filtering, we'd need tracks filtered by year
-        // This requires more complex logic that we don't have access to here
-        // Instead, just use the basic matching without year filtering
-        albumTracks = processedData.filter(track => 
-          track.artist === album.artist && 
-          track.albumName && 
-          (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-           album.name.toLowerCase().includes(track.albumName.toLowerCase()))
-        );
-      } else {
-        // For all-time, use all tracks
-        albumTracks = processedData.filter(track => 
-          track.artist === album.artist && 
-          track.albumName && 
-          (track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-           album.name.toLowerCase().includes(track.albumName.toLowerCase()))
-        );
-      }
+      // For simplicity, just use the matching logic without year filtering
+      albumTracks = processedData.filter(track => 
+        track && track.artist === album.artist && 
+        track.albumName && (
+          track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+          album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
+          (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
+        )
+      );
       
       // Sort by total play time
-      const sortedTracks = [...albumTracks].sort((a, b) => b.totalPlayed - a.totalPlayed);
+      const sortedTracks = [...albumTracks].sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
       
       return {
         ...album,
@@ -334,14 +330,14 @@ const displayedAlbums = useMemo(() => {
     }
     
     // Just ensure tracks are sorted if we already have them
-    const sortedTracks = [...album.trackObjects].sort((a, b) => b.totalPlayed - a.totalPlayed);
+    const sortedTracks = [...album.trackObjects].sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
     
     return {
       ...album,
       trackObjects: sortedTracks,
       topTrack: sortedTracks.length > 0 ? sortedTracks[0] : null
     };
-  });
+  }).filter(Boolean); // Remove any null results
 }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
