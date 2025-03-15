@@ -926,8 +926,8 @@ const TabButton = ({ id, label }) => {
         )}
 
 {activeTab === 'updates' && (
-  <div className="p-4 bg-violet-100 rounded border-2 border-violet-300">
-    <h3 className="font-bold mb-2 text-violet-700">App Updates</h3>
+  <div className="p-4 bg-cyan-300 rounded border-2 border-cyan-300">
+    <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
     <UpdatesSection />
   </div>
 )}
