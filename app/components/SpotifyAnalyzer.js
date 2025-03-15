@@ -732,6 +732,7 @@ case 'updates':
         
         {activeTab === 'upload' && (
           <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 border rounded bg-blue-50">
               <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
               <ol className="list-decimal list-inside space-y-1 text-blue-700">
@@ -741,6 +742,29 @@ case 'updates':
                 <li>Click "Calculate Statistics"</li>
               </ol>
             </div>
+            
+            <div className="p-4 border rounded bg-green-50">
+              <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
+              <div className="space-y-2 text-green-700">
+                <p>Get a seamless, native-like experience with our Progressive Web App (PWA)!</p>
+                <div className="space-y-1">
+                  <h4 className="font-medium text-green-800">Desktop:</h4>
+                  <p>1. Open the site in Chrome/Edge</p>
+                  <p>2. Click the "+" or install icon in the address bar</p>
+                  <p>3. Click "Install" to add to your desktop</p>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-medium text-green-800">Mobile:</h4>
+                  <p>1. Open in Safari (iOS) or Chrome (Android)</p>
+                  <p>2. Tap "Add to Home Screen"</p>
+                  <p>3. Tap "Add" to install</p>
+                </div>
+                <p className="text-sm text-green-600">
+                  Enjoy offline access and a native app-like experience!
+                </p>
+              </div>
+            </div>
+          </div>
             
             <h3 className="font-bold text-orange-700 mb-3">Select Streaming Services:</h3>
                      
