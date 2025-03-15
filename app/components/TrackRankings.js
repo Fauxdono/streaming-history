@@ -163,7 +163,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
           
           <button
             onClick={() => setShowExporter(!showExporter)}
-            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             {showExporter ? 'Hide Playlist Exporter' : 'Export M3U Playlist'}
           </button>
