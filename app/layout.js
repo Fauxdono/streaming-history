@@ -18,17 +18,20 @@ const comicNeue = Comic_Neue({
 });
 
 export const metadata = {
-  title: "Cakeculator",
+  title: "Music Stats - Streaming History Analyzer",
   description: "Analyze your music streaming history in depth",
-  manifest: "/manifest.json",
   icons: {
-    apple: [
-      { url: '/icon-192x192.png' }
+    icon: [
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' }
     ],
-    other: [
-      { url: '/icon-512x512.png' }
+    apple: [
+      { url: '/icon-180x180.png', sizes: '180x180', type: 'image/png' }
     ]
   },
+  manifest: '/manifest.json',
+  themeColor: '#000000'
+};
   viewport: 'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no',
   themeColor: '#000000',
   appleWebApp: {
