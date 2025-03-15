@@ -18,7 +18,7 @@ const comicNeue = Comic_Neue({
 });
 
 export const metadata = {
-  title: "Music Stats - Streaming History Analyzer",
+  title: "Cakeculator - streaming history analyzer",
   description: "Analyze your music streaming history in depth",
   icons: {
     icon: [
@@ -36,7 +36,7 @@ export const metadata = {
   themeColor: '#000000',
   appleWebApp: {
     capable: true,
-    title: 'Spotify Analyzer',
+    title: 'Cakeculator',
     statusBarStyle: 'black-translucent',
   }
 };
