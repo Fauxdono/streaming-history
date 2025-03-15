@@ -36,21 +36,37 @@ const CustomPlaylistCreator = ({
     }));
   }, [processedData]);
   
-  // Filter tracks based on search term
+// Filter tracks based on search term
   const filteredTracks = useMemo(() => {
     if (!searchTerm.trim()) return [];
     
     const term = searchTerm.toLowerCase();
     
-    // First look in allTracks
+    // First look in allTracks (this is already the processed data, so searching here is faster)
     const matchingTracks = allTracks.filter(track => 
       track.trackName.toLowerCase().includes(term) || 
       track.artist.toLowerCase().includes(term) ||
       (track.albumName && track.albumName.toLowerCase().includes(term))
-    );
+    ).slice(0, 20); // Limit here to avoid unnecessary processing
     
-    // Also search in raw play data to find tracks that might not be in the processed data
-    const additionalTracks = rawPlayData
+    // Only search raw data if we found fewer than 10 matches in processed data
+    // This significantly reduces computation on large datasets
+    if (matchingTracks.length >= 10) {
+      return matchingTracks;
+    }
+    
+    // Create a Set of existing track IDs for faster lookup
+    const existingTrackIds = new Set(matchingTracks.map(track => 
+      `${track.trackName.toLowerCase()}-${track.artist.toLowerCase()}`
+    ));
+    
+    // Sample a subset of rawPlayData (5000 items max) to prevent freezing
+    const sampleSize = 5000;
+    const rawPlaySample = rawPlayData.length > sampleSize ? 
+      rawPlayData.slice(0, sampleSize) : rawPlayData;
+    
+    // Search in the sample of raw play data
+    const additionalTracks = rawPlaySample
       .filter(entry => 
         entry.master_metadata_track_name && 
         entry.master_metadata_album_artist_name &&
@@ -59,35 +75,28 @@ const CustomPlaylistCreator = ({
          (entry.master_metadata_album_album_name && 
           entry.master_metadata_album_album_name.toLowerCase().includes(term)))
       )
-      .map(entry => ({
-        trackName: entry.master_metadata_track_name,
-        artist: entry.master_metadata_album_artist_name,
-        albumName: entry.master_metadata_album_album_name || 'Unknown Album',
-        totalPlayed: entry.ms_played || 180000,
-        playCount: 1,
-        id: `raw-${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`
-      }));
+      .slice(0, 20) // Limit results
+      .map(entry => {
+        const trackId = `${entry.master_metadata_track_name.toLowerCase()}-${entry.master_metadata_album_artist_name.toLowerCase()}`;
+        
+        // Skip if we already have this track
+        if (existingTrackIds.has(trackId)) {
+          return null;
+        }
+        
+        return {
+          trackName: entry.master_metadata_track_name,
+          artist: entry.master_metadata_album_artist_name,
+          albumName: entry.master_metadata_album_album_name || 'Unknown Album',
+          totalPlayed: entry.ms_played || 180000,
+          playCount: 1,
+          id: `raw-${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`
+        };
+      })
+      .filter(Boolean); // Remove nulls
     
-    // Combine and deduplicate results
-    const combinedResults = [...matchingTracks];
-    
-    // Add entries from additionalTracks that don't already exist in combinedResults
-    additionalTracks.forEach(track => {
-      const normalizedTrackName = track.trackName.toLowerCase();
-      const normalizedArtistName = track.artist.toLowerCase();
-      
-      // Check if this track (by name and artist) is already in our results
-      const exists = combinedResults.some(existingTrack => 
-        existingTrack.trackName.toLowerCase() === normalizedTrackName && 
-        existingTrack.artist.toLowerCase() === normalizedArtistName
-      );
-      
-      if (!exists) {
-        combinedResults.push(track);
-      }
-    });
-    
-    return combinedResults.slice(0, 30); // Increased to 30 for more comprehensive results
+    // Combine results (no need to check for duplicates again)
+    return [...matchingTracks, ...additionalTracks].slice(0, 20);
   }, [searchTerm, allTracks, rawPlayData]);
   
   // Add track to selection
