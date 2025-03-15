@@ -170,37 +170,130 @@ const CustomPlaylistCreator = ({
     setSmartRules(prev => prev.filter(rule => rule.id !== id));
   };
   
-  // Generate a playlist from rules
-  const generateFromRules = () => {
-    // Filter tracks based on all rules (AND logic)
-    const filteredTracks = allTracks.filter(track => {
-      return smartRules.every(rule => {
-        const value = rule.value.toLowerCase();
-        
-        // Skip empty rules
-        if (!value) return true;
-        
-        switch(rule.type) {
-          case 'artist':
-            return applyOperator(track.artist.toLowerCase(), rule.operator, value);
-          case 'album':
-            return track.albumName && applyOperator(track.albumName.toLowerCase(), rule.operator, value);
-          case 'track':
-            return applyOperator(track.trackName.toLowerCase(), rule.operator, value);
-          case 'playCount':
-            return applyOperator(track.playCount, rule.operator, parseInt(value) || 0);
-          case 'playTime':
-            return applyOperator(track.totalPlayed / 60000, rule.operator, parseInt(value) || 0);
-          default:
-            return true;
-        }
-      });
-    });
-    
-    // Limit to 100 tracks to avoid excessive lists
-    setSelectedTracks(filteredTracks.slice(0, 100));
+// Generate a playlist from rules with chunked processing
+const generateFromRules = () => {
+  // Early exit if no valid rules
+  if (smartRules.every(rule => !rule.value.trim())) {
+    alert('Please add at least one rule with a value');
+    return;
+  }
+
+  // Set a processing message
+  setSelectedTracks([{ 
+    id: 'processing',
+    trackName: 'Processing...',
+    artist: 'Please wait while your playlist is being generated',
+    albumName: '',
+    totalPlayed: 0,
+    playCount: 0
+  }]);
+
+  // Only use valid rules (with a value)
+  const validRules = smartRules.filter(rule => rule.value.trim());
+  
+  // Create a copy of allTracks to process (limit to 10,000 tracks for performance)
+  const tracksToProcess = [...allTracks].slice(0, 10000);
+  const results = [];
+  let processedCount = 0;
+  let processedChunks = 0;
+  
+  // Process in chunks of 300 tracks
+  const chunkSize = 300;
+  
+  // Track processing status
+  const updateStatus = (current, total, found) => {
+    setSelectedTracks([{ 
+      id: 'processing',
+      trackName: `Processing... (${Math.min(current, total)}/${total} tracks)`,
+      artist: `Found ${found} matching tracks so far`,
+      albumName: '',
+      totalPlayed: 0,
+      playCount: 0
+    }]);
   };
   
+  function processNextChunk() {
+    try {
+      // Extract the next chunk
+      const chunk = tracksToProcess.slice(processedCount, processedCount + chunkSize);
+      processedCount += chunk.length;
+      processedChunks++;
+      
+      // Filter this chunk
+      const matchingTracks = chunk.filter(track => {
+        return validRules.every(rule => {
+          const value = rule.value.toLowerCase();
+            
+          switch(rule.type) {
+            case 'artist':
+              return applyOperator(track.artist?.toLowerCase() || '', rule.operator, value);
+            case 'album':
+              return applyOperator(track.albumName?.toLowerCase() || '', rule.operator, value);
+            case 'track':
+              return applyOperator(track.trackName?.toLowerCase() || '', rule.operator, value);
+            case 'playCount':
+              return applyOperator(track.playCount || 0, rule.operator, parseInt(value) || 0);
+            case 'playTime':
+              return applyOperator((track.totalPlayed || 0) / 60000, rule.operator, parseInt(value) || 0);
+            default:
+              return true;
+          }
+        });
+      });
+      
+      // Add matches to results
+      results.push(...matchingTracks);
+      
+      // Update status every few chunks or when done
+      if (processedChunks % 3 === 0 || processedCount >= tracksToProcess.length) {
+        updateStatus(processedCount, tracksToProcess.length, results.length);
+      }
+      
+      // Continue processing or finish
+      if (processedCount < tracksToProcess.length && results.length < 100) {
+        // Continue with next chunk after a small delay
+        setTimeout(processNextChunk, 0);
+      } else {
+        // Finished processing
+        setTimeout(() => {
+          if (results.length === 0) {
+            setSelectedTracks([{
+              id: 'no-matches',
+              trackName: 'No matches found',
+              artist: 'Try adjusting your smart playlist rules',
+              albumName: '',
+              totalPlayed: 0,
+              playCount: 0
+            }]);
+            
+            // Clear the no-matches message after 3 seconds
+            setTimeout(() => {
+              setSelectedTracks(prev => 
+                prev.length === 1 && prev[0].id === 'no-matches' ? [] : prev
+              );
+            }, 3000);
+          } else {
+            // Final update with all results (max 100)
+            setSelectedTracks(results.slice(0, 100));
+          }
+        }, 100);
+      }
+    } catch (error) {
+      console.error("Error generating playlist chunk:", error);
+      setSelectedTracks([{
+        id: 'error',
+        trackName: 'Error generating playlist',
+        artist: 'Please try again with different rules',
+        albumName: '',
+        totalPlayed: 0,
+        playCount: 0
+      }]);
+    }
+  }
+  
+  // Start processing after a short delay to allow UI to update
+  setTimeout(processNextChunk, 100);
+};
   // Helper function to apply operators
   const applyOperator = (fieldValue, operator, ruleValue) => {
     switch(operator) {
