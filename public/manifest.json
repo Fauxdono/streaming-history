@@ -1,6 +1,6 @@
 {
-  "name": "Cakeculator",
-  "short_name": "streaming history analyzer",
+  "name": "Cakeculator - Streaming History Analyzer",
+  "short_name": "Cakeculator",
   "description": "Analyze your music streaming history in depth",
   "start_url": "/",
   "display": "standalone",
@@ -24,7 +24,7 @@
       "src": "/icon-180x180.png", 
       "sizes": "180x180",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
