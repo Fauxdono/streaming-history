@@ -651,6 +651,10 @@ const TabButton = ({ id, label }) => {
           return activeTab === tabId 
             ? 'bg-purple-100 text-purple-600 border-b-2 border-purple-600' 
             : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
+case 'updates':
+  return activeTab === tabId 
+    ? 'bg-cyan-50 text-cyan-600 border-b-2 border-cyan-600' 
+    : 'bg-cyan-200 text-cyan-600 hover:bg-cyan-300';
         case 'artists':
           return activeTab === tabId 
             ? 'bg-emerald-50 text-teal-600 border-b-2 border-teal-600' 
@@ -926,7 +930,7 @@ const TabButton = ({ id, label }) => {
         )}
 
 {activeTab === 'updates' && (
-  <div className="p-4 bg-cyan-300 rounded border-2 border-cyan-300">
+  <div className="p-4 bg-cyan-200 rounded border-2 border-cyan-400">
     <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
     <UpdatesSection />
   </div>
