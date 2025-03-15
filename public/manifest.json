@@ -1,6 +1,6 @@
 {
-  "name": "Streaming History Analyzer",
-  "short_name": "Music Stats",
+  "name": "Cakeculator",
+  "short_name": "streaming history analyzer",
   "description": "Analyze your music streaming history in depth",
   "start_url": "/",
   "display": "standalone",
