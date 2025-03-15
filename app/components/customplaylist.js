@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Download, Plus, Trash2, Save, Music, Filter, PlusSquare } from 'lucide-react';
-import { normalizeString, createMatchKey } from './streaming-adapter.js';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Download, Plus, Trash2, Save, Music, Filter, PlusSquare, ArrowUp, ArrowDown } from 'lucide-react';
 
 const CustomPlaylistCreator = ({ 
   processedData = [], 
@@ -28,64 +27,259 @@ const CustomPlaylistCreator = ({
     playCount: 1,
     totalPlayed: 180000 // Default 3 minutes
   });
-
+  const [draggedTrackIndex, setDraggedTrackIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [customTrackPosition, setCustomTrackPosition] = useState("");
+  const [activeTrackForPosition, setActiveTrackForPosition] = useState(null);
+  
   // Create a normalized track map for faster searching
-  // Using the same approach as in CustomTrackRankings
   const trackMap = useMemo(() => {
+    // Create a map for normalized track names (for fuzzy search)
+    const normalizedMap = new Map();
+    
+    // Process all tracks
     const map = new Map();
     
     // First add all processed tracks
     processedData.forEach(track => {
-      const key = createMatchKey(track.trackName, track.artist);
-      map.set(key, {
-        ...track,
-        id: `processed-${key}`
-      });
+      // Skip if no track name or artist
+      if (!track.trackName || !track.artist) return;
+      
+      try {
+        const key = `${track.trackName.toLowerCase()}-${track.artist.toLowerCase()}`;
+        map.set(key, {
+          ...track,
+          id: `processed-${key}`
+        });
+        
+        // Add to normalized map for fuzzy search
+        const normalizedTitle = normalizeTrackTitle(track.trackName);
+        const normalizedArtist = normalizeArtistName(track.artist);
+        
+        const normalizedKey = `${normalizedTitle}-${normalizedArtist}`;
+        if (!normalizedMap.has(normalizedKey)) {
+          normalizedMap.set(normalizedKey, []);
+        }
+        normalizedMap.get(normalizedKey).push(key);
+        
+        // Add common variations
+        const variations = getCommonVariations(track.trackName);
+        variations.forEach(variation => {
+          const varKey = `${variation}-${normalizedArtist}`;
+          if (!normalizedMap.has(varKey)) {
+            normalizedMap.set(varKey, []);
+          }
+          if (!normalizedMap.get(varKey).includes(key)) {
+            normalizedMap.get(varKey).push(key);
+          }
+        });
+      } catch (err) {
+        console.warn("Error processing track:", track, err);
+      }
     });
     
     // Then add tracks from raw data that aren't already in our map
     rawPlayData.forEach(entry => {
       if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && entry.ms_played >= 30000) {
-        const key = createMatchKey(
-          entry.master_metadata_track_name,
-          entry.master_metadata_album_artist_name
-        );
-        
-        if (!map.has(key)) {
-          map.set(key, {
-            trackName: entry.master_metadata_track_name,
-            artist: entry.master_metadata_album_artist_name,
-            albumName: entry.master_metadata_album_album_name || 'Unknown Album',
-            totalPlayed: entry.ms_played,
-            playCount: 1,
-            id: `raw-${key}`
-          });
+        try {
+          const key = `${entry.master_metadata_track_name.toLowerCase()}-${entry.master_metadata_album_artist_name.toLowerCase()}`;
+          
+          if (!map.has(key)) {
+            map.set(key, {
+              trackName: entry.master_metadata_track_name,
+              artist: entry.master_metadata_album_artist_name,
+              albumName: entry.master_metadata_album_album_name || 'Unknown Album',
+              totalPlayed: entry.ms_played,
+              playCount: 1,
+              id: `raw-${key}`
+            });
+            
+            // Add to normalized map for fuzzy search
+            const normalizedTitle = normalizeTrackTitle(entry.master_metadata_track_name);
+            const normalizedArtist = normalizeArtistName(entry.master_metadata_album_artist_name);
+            
+            const normalizedKey = `${normalizedTitle}-${normalizedArtist}`;
+            if (!normalizedMap.has(normalizedKey)) {
+              normalizedMap.set(normalizedKey, []);
+            }
+            normalizedMap.get(normalizedKey).push(key);
+            
+            // Add common variations
+            const variations = getCommonVariations(entry.master_metadata_track_name);
+            variations.forEach(variation => {
+              const varKey = `${variation}-${normalizedArtist}`;
+              if (!normalizedMap.has(varKey)) {
+                normalizedMap.set(varKey, []);
+              }
+              if (!normalizedMap.get(varKey).includes(key)) {
+                normalizedMap.get(varKey).push(key);
+              }
+            });
+          }
+        } catch (err) {
+          console.warn("Error processing raw track:", entry, err);
         }
       }
     });
     
+    // Store the normalized map in the map object itself
+    map.normalizedMap = normalizedMap;
+    
     return map;
   }, [processedData, rawPlayData]);
+  
+  // Helper function to normalize track titles for better matching
+  function normalizeTrackTitle(title) {
+    if (!title) return '';
+    
+    // First convert to lowercase
+    let normalized = title.toLowerCase()
+      // Replace special characters
+      .replace(/[àáâäæãåā]/g, 'a')
+      .replace(/[èéêëēėę]/g, 'e')
+      .replace(/[îïíīįì]/g, 'i')
+      .replace(/[ôöòóœøōõ]/g, 'o')
+      .replace(/[ûüùúū]/g, 'u')
+      // Remove common noise words
+      .replace(/\b(feat|ft|featuring|with|prod|produced by)\b/g, '')
+      // Remove parentheses content, which is often features, remixes, etc.
+      .replace(/\([^\)]*\)/g, '')
+      .replace(/\[[^\]]*\]/g, '')
+      // Normalize spaces
+      .replace(/\s+/g, ' ')
+      // Remove some common punctuation
+      .replace(/['",.!?-]/g, '')
+      .trim();
+    
+    // Replace specific common substitutions
+    normalized = normalized
+      .replace(/chill/g, "chil")
+      .replace(/all american/g, "all amerikkkan")
+      .replace(/amerikkkan/g, "american")
+      .replace(/\$/g, "s")
+      .replace(/&/g, "and")
+      .replace(/w\//g, "with");
+    
+    return normalized;
+  }
+  
+  // Helper function to normalize artist names
+  function normalizeArtistName(name) {
+    if (!name) return '';
+    
+    return name.toLowerCase()
+      // Replace special characters
+      .replace(/[àáâäæãåā]/g, 'a')
+      .replace(/[èéêëēėę]/g, 'e')
+      .replace(/[îïíīįì]/g, 'i')
+      .replace(/[ôöòóœøōõ]/g, 'o')
+      .replace(/[ûüùúū]/g, 'u')
+      // ASAP => asap
+      .replace(/\ba\$ap\b/gi, 'asap')
+      // Remove common punctuation
+      .replace(/['",.!?-]/g, '')
+      // Normalize spaces
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  
+  // Create common variations of track titles
+  function getCommonVariations(title) {
+    if (!title) return [];
+    
+    const variations = [];
+    const lowerTitle = title.toLowerCase();
+    
+    // For titles with (feat. XXX), create a version without it
+    if (lowerTitle.includes('feat.') || lowerTitle.includes('ft.')) {
+      variations.push(lowerTitle.replace(/(\(|\[)?\s*(feat\.?|ft\.?)\s+[^\)\]]*(\)|\])?/gi, '').trim());
+    }
+    
+    // For titles with common abbreviations, add variations
+    if (lowerTitle.includes('pt.')) {
+      variations.push(lowerTitle.replace(/pt\./gi, 'part').trim());
+    }
+    
+    return variations.map(v => normalizeTrackTitle(v));
+  }
   
   // All tracks array for operations
   const allTracks = useMemo(() => {
     return Array.from(trackMap.values());
   }, [trackMap]);
   
-  // Filter tracks based on search term - more efficient approach
+  // Filter tracks based on search term - more efficient approach with fuzzy matching
   const filteredTracks = useMemo(() => {
     if (!searchTerm.trim()) return [];
     
     const term = searchTerm.toLowerCase();
+    const normalizedTerm = normalizeTrackTitle(term);
+    const normalizedArtistTerm = normalizeArtistName(term);
     
-    return allTracks
-      .filter(track => 
-        track.trackName.toLowerCase().includes(term) || 
-        track.artist.toLowerCase().includes(term) ||
-        (track.albumName && track.albumName.toLowerCase().includes(term))
-      )
+    // First collect all potential matches using the normalized map
+    const potentialMatches = new Set();
+    
+    // Check for normalized track title matches
+    trackMap.normalizedMap.forEach((trackKeys, normalizedKey) => {
+      // First try exact artist+title matches
+      if (normalizedKey.includes(normalizedTerm)) {
+        trackKeys.forEach(key => potentialMatches.add(key));
+      }
+    });
+    
+    // If we have less than 20 matches, try more fuzzy matching
+    if (potentialMatches.size < 20) {
+      trackMap.normalizedMap.forEach((trackKeys, normalizedKey) => {
+        const [trackPart, artistPart] = normalizedKey.split('-');
+        
+        // Try matching just the track part or artist part
+        if (trackPart.includes(normalizedTerm) || artistPart.includes(normalizedArtistTerm)) {
+          trackKeys.forEach(key => potentialMatches.add(key));
+        }
+      });
+    }
+    
+    // Get the actual tracks from the track map
+    const matchedTracks = [];
+    potentialMatches.forEach(key => {
+      if (trackMap.has(key)) {
+        matchedTracks.push(trackMap.get(key));
+      }
+    });
+    
+    // If we still don't have enough, do a fallback direct search
+    if (matchedTracks.length < 20) {
+      // Direct search in all tracks
+      const directMatches = allTracks.filter(track => 
+        !potentialMatches.has(`${track.trackName.toLowerCase()}-${track.artist.toLowerCase()}`) &&
+        (track.trackName.toLowerCase().includes(term) || 
+         track.artist.toLowerCase().includes(term) ||
+         (track.albumName && track.albumName.toLowerCase().includes(term)))
+      );
+      
+      // Add direct matches
+      matchedTracks.push(...directMatches);
+    }
+    
+    // Sort by relevance (exact matches first)
+    return matchedTracks
+      .sort((a, b) => {
+        // Sort by how closely the track name matches the search term
+        const aTrackMatch = a.trackName.toLowerCase().includes(term) ? 0 : 1;
+        const bTrackMatch = b.trackName.toLowerCase().includes(term) ? 0 : 1;
+        
+        if (aTrackMatch !== bTrackMatch) {
+          return aTrackMatch - bTrackMatch;
+        }
+        
+        // Then by how closely the artist matches
+        const aArtistMatch = a.artist.toLowerCase().includes(term) ? 0 : 1;
+        const bArtistMatch = b.artist.toLowerCase().includes(term) ? 0 : 1;
+        
+        return aArtistMatch - bArtistMatch;
+      })
       .slice(0, 20); // Limit to 20 results
-  }, [searchTerm, allTracks]);
+  }, [searchTerm, trackMap, allTracks]);
   
   // Add track to selection
   const addTrack = (track) => {
@@ -158,7 +352,67 @@ const CustomPlaylistCreator = ({
     setSmartRules(prev => prev.filter(rule => rule.id !== id));
   };
   
-  // Generate a playlist from rules - using the more efficient approach
+  // Process tracks batch by batch to avoid UI freezing
+  const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => {
+    let results = [];
+    let processingIndex = 0;
+    
+    function processNextBatch() {
+      // Update processing status
+      setSelectedTracks([{ 
+        id: 'processing',
+        trackName: `Processing... (${Math.min(processingIndex + batchSize, tracks.length)}/${tracks.length})`,
+        artist: `Found ${results.length} matching tracks so far`,
+        albumName: '',
+        totalPlayed: 0,
+        playCount: 0
+      }]);
+      
+      // Process this batch
+      const endIndex = Math.min(processingIndex + batchSize, tracks.length);
+      const currentBatch = tracks.slice(processingIndex, endIndex);
+      
+      // Filter the batch
+      const batchMatches = currentBatch.filter(track => {
+        return validRules.every(rule => {
+          const value = rule.value.toLowerCase();
+            
+          switch(rule.type) {
+            case 'artist':
+              return applyOperator(track.artist?.toLowerCase() || '', rule.operator, value);
+            case 'album':
+              return applyOperator(track.albumName?.toLowerCase() || '', rule.operator, value);
+            case 'track':
+              return applyOperator(track.trackName?.toLowerCase() || '', rule.operator, value);
+            case 'playCount':
+              return applyOperator(track.playCount || 0, rule.operator, parseInt(value) || 0);
+            case 'playTime':
+              return applyOperator((track.totalPlayed || 0) / 60000, rule.operator, parseInt(value) || 0);
+            default:
+              return true;
+          }
+        });
+      });
+      
+      // Add to results
+      results = [...results, ...batchMatches];
+      processingIndex = endIndex;
+      
+      // Check if we're done or should process the next batch
+      if (processingIndex < tracks.length && results.length < 100) {
+        // Schedule next batch
+        setTimeout(processNextBatch, 10);
+      } else {
+        // We're done, call the callback with results
+        resultCallback(results.slice(0, 100));
+      }
+    }
+    
+    // Start processing
+    processNextBatch();
+  };
+  
+  // Generate a playlist from rules - using batched processing
   const generateFromRules = () => {
     // Early exit if no valid rules
     if (smartRules.every(rule => !rule.value.trim())) {
@@ -179,49 +433,30 @@ const CustomPlaylistCreator = ({
     // Only use valid rules (with a value)
     const validRules = smartRules.filter(rule => rule.value.trim());
     
-    // Use setTimeout to allow the UI to update with the processing message
+    // Start processing after a short delay to allow UI to update
     setTimeout(() => {
       try {
-        // Filter tracks in one pass using efficient filtering
-        const matchingTracks = allTracks.filter(track => {
-          return validRules.every(rule => {
-            const value = rule.value.toLowerCase();
-              
-            switch(rule.type) {
-              case 'artist':
-                return applyOperator(track.artist?.toLowerCase() || '', rule.operator, value);
-              case 'album':
-                return applyOperator(track.albumName?.toLowerCase() || '', rule.operator, value);
-              case 'track':
-                return applyOperator(track.trackName?.toLowerCase() || '', rule.operator, value);
-              case 'playCount':
-                return applyOperator(track.playCount || 0, rule.operator, parseInt(value) || 0);
-              case 'playTime':
-                return applyOperator((track.totalPlayed || 0) / 60000, rule.operator, parseInt(value) || 0);
-              default:
-                return true;
-            }
-          });
-        }).slice(0, 100); // Limit to 100 tracks
-        
-        // Update the selected tracks
-        if (matchingTracks.length === 0) {
-          setSelectedTracks([{
-            id: 'no-matches',
-            trackName: 'No matches found',
-            artist: 'Try adjusting your smart playlist rules',
-            albumName: '',
-            totalPlayed: 0,
-            playCount: 0
-          }]);
-          
-          // Clear the no-matches message after 3 seconds
-          setTimeout(() => {
-            setSelectedTracks([]);
-          }, 3000);
-        } else {
-          setSelectedTracks(matchingTracks);
-        }
+        // Process tracks in batches
+        processBatches(allTracks, validRules, 300, (matchingTracks) => {
+          // Update the selected tracks
+          if (matchingTracks.length === 0) {
+            setSelectedTracks([{
+              id: 'no-matches',
+              trackName: 'No matches found',
+              artist: 'Try adjusting your smart playlist rules',
+              albumName: '',
+              totalPlayed: 0,
+              playCount: 0
+            }]);
+            
+            // Clear the no-matches message after 3 seconds
+            setTimeout(() => {
+              setSelectedTracks([]);
+            }, 3000);
+          } else {
+            setSelectedTracks(matchingTracks);
+          }
+        });
       } catch (error) {
         console.error("Error generating playlist:", error);
         setSelectedTracks([{
@@ -272,6 +507,71 @@ const CustomPlaylistCreator = ({
       [newTracks[index], newTracks[index + 1]] = [newTracks[index + 1], newTracks[index]];
       setSelectedTracks(newTracks);
     }
+  };
+  
+  // Move track to a specific position
+  const moveTrackToPosition = (trackIndex, newPosition) => {
+    // Validate position
+    const targetPosition = parseInt(newPosition);
+    if (isNaN(targetPosition) || targetPosition < 1 || targetPosition > selectedTracks.length) {
+      alert(`Please enter a position between 1 and ${selectedTracks.length}`);
+      return;
+    }
+    
+    // Adjust for zero-based indexing
+    const targetIndex = targetPosition - 1;
+    
+    // Don't do anything if position is the same
+    if (trackIndex === targetIndex) return;
+    
+    // Make a copy of tracks
+    const newTracks = [...selectedTracks];
+    
+    // Remove the track from its current position
+    const [movedTrack] = newTracks.splice(trackIndex, 1);
+    
+    // Insert it at the new position
+    newTracks.splice(targetIndex, 0, movedTrack);
+    
+    // Update state
+    setSelectedTracks(newTracks);
+    setActiveTrackForPosition(null);
+    setCustomTrackPosition("");
+  };
+  
+  // Handle drag start
+  const handleDragStart = (index) => {
+    setDraggedTrackIndex(index);
+  };
+  
+  // Handle drag over
+  const handleDragOver = (e, index) => {
+    e.preventDefault(); // Necessary to allow drop
+    setDragOverIndex(index);
+  };
+  
+  // Handle drop
+  const handleDrop = (e) => {
+    e.preventDefault();
+    
+    // Check if we have a valid drag operation
+    if (draggedTrackIndex !== null && dragOverIndex !== null && draggedTrackIndex !== dragOverIndex) {
+      // Create a new tracks array
+      const newTracks = [...selectedTracks];
+      
+      // Remove the dragged track
+      const [draggedTrack] = newTracks.splice(draggedTrackIndex, 1);
+      
+      // Insert it at the drop position
+      newTracks.splice(dragOverIndex, 0, draggedTrack);
+      
+      // Update state
+      setSelectedTracks(newTracks);
+    }
+    
+    // Reset drag state
+    setDraggedTrackIndex(null);
+    setDragOverIndex(null);
   };
   
   // Helper function to clean path components for file system compatibility
@@ -399,7 +699,7 @@ const CustomPlaylistCreator = ({
   };
   
   // Load saved playlists from localStorage on mount
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       const storedPlaylists = JSON.parse(localStorage.getItem('savedPlaylists') || '[]');
       if (storedPlaylists.length > 0) {
@@ -728,7 +1028,15 @@ const CustomPlaylistCreator = ({
                       key={track.id}
                       className={`p-2 flex justify-between items-center ${
                         index % 2 === 0 ? 'bg-red-50' : 'bg-white'
-                      }`}
+                      } ${dragOverIndex === index ? 'border-2 border-red-400' : ''}`}
+                      draggable={true}
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={handleDrop}
+                      onDragEnd={() => {
+                        setDraggedTrackIndex(null);
+                        setDragOverIndex(null);
+                      }}
                     >
                       <div className="flex items-center">
                         <div className="text-red-500 mr-2">{index + 1}.</div>
@@ -740,13 +1048,48 @@ const CustomPlaylistCreator = ({
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
+                        {activeTrackForPosition === index ? (
+                          <div className="flex items-center">
+                            <input
+                              type="number"
+                              value={customTrackPosition}
+                              onChange={(e) => setCustomTrackPosition(e.target.value)}
+                              className="w-12 px-1 py-0.5 border rounded text-xs text-red-700 mr-1"
+                              min="1" 
+                              max={selectedTracks.length}
+                            />
+                            <button 
+                              onClick={() => moveTrackToPosition(index, customTrackPosition)}
+                              className="p-1 bg-red-100 text-red-700 text-xs rounded hover:bg-red-200"
+                            >
+                              Go
+                            </button>
+                            <button 
+                              onClick={() => setActiveTrackForPosition(null)}
+                              className="p-1 ml-1 bg-red-100 text-red-700 text-xs rounded hover:bg-red-200"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => {
+                              setActiveTrackForPosition(index);
+                              setCustomTrackPosition(index + 1);
+                            }}
+                            className="p-1 text-red-600 hover:text-red-800"
+                            title="Set position"
+                          >
+                            #
+                          </button>
+                        )}
                         <button 
                           onClick={() => moveTrack(index, 'up')}
                           disabled={index === 0}
                           className="p-1 text-red-600 hover:text-red-800 disabled:text-red-300"
                           title="Move up"
                         >
-                          ↑
+                          <ArrowUp size={16} />
                         </button>
                         <button 
                           onClick={() => moveTrack(index, 'down')}
@@ -754,7 +1097,7 @@ const CustomPlaylistCreator = ({
                           className="p-1 text-red-600 hover:text-red-800 disabled:text-red-300"
                           title="Move down"
                         >
-                          ↓
+                          <ArrowDown size={16} />
                         </button>
                         <button 
                           onClick={() => removeTrack(track.id)}
