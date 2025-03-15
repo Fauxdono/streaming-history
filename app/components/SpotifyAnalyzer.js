@@ -717,7 +717,7 @@ case 'updates':
           <div className="flex gap-2 border-b border-violet-200 min-w-max"> 
             <TabButton id="upload" label="Upload" />
             {stats && <TabButton id="stats" label="Statistics" />}
-            <TabButton id="updates" label="Updates" />
+  {stats && <TabButton id="updates" label="Updates" />}
             {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
       {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
             {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
