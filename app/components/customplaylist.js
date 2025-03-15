@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Download, Plus, Trash2, Save, Music, Filter } from 'lucide-react';
+import { Download, Plus, Trash2, Save, Music, Filter, PlusSquare } from 'lucide-react';
 
 const CustomPlaylistCreator = ({ 
   processedData = [], 
@@ -19,6 +19,14 @@ const CustomPlaylistCreator = ({
   const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{artist}-{album}/{track}.{ext}');
   const [savedPlaylists, setSavedPlaylists] = useState([]);
   const [activeTab, setActiveTab] = useState('create');
+  const [showManualAdd, setShowManualAdd] = useState(false);
+  const [manualTrack, setManualTrack] = useState({
+    trackName: '',
+    artist: '',
+    albumName: 'Unknown Album',
+    playCount: 1,
+    totalPlayed: 180000 // Default 3 minutes
+  });
   
   // Combine all tracks from processedData for searching
   const allTracks = useMemo(() => {
@@ -33,14 +41,54 @@ const CustomPlaylistCreator = ({
     if (!searchTerm.trim()) return [];
     
     const term = searchTerm.toLowerCase();
-    return allTracks
-      .filter(track => 
-        track.trackName.toLowerCase().includes(term) || 
-        track.artist.toLowerCase().includes(term) ||
-        (track.albumName && track.albumName.toLowerCase().includes(term))
+    
+    // First look in allTracks
+    const matchingTracks = allTracks.filter(track => 
+      track.trackName.toLowerCase().includes(term) || 
+      track.artist.toLowerCase().includes(term) ||
+      (track.albumName && track.albumName.toLowerCase().includes(term))
+    );
+    
+    // Also search in raw play data to find tracks that might not be in the processed data
+    const additionalTracks = rawPlayData
+      .filter(entry => 
+        entry.master_metadata_track_name && 
+        entry.master_metadata_album_artist_name &&
+        (entry.master_metadata_track_name.toLowerCase().includes(term) ||
+         entry.master_metadata_album_artist_name.toLowerCase().includes(term) ||
+         (entry.master_metadata_album_album_name && 
+          entry.master_metadata_album_album_name.toLowerCase().includes(term)))
       )
-      .slice(0, 20); // Limit to 20 results for performance
-  }, [searchTerm, allTracks]);
+      .map(entry => ({
+        trackName: entry.master_metadata_track_name,
+        artist: entry.master_metadata_album_artist_name,
+        albumName: entry.master_metadata_album_album_name || 'Unknown Album',
+        totalPlayed: entry.ms_played || 180000,
+        playCount: 1,
+        id: `raw-${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`
+      }));
+    
+    // Combine and deduplicate results
+    const combinedResults = [...matchingTracks];
+    
+    // Add entries from additionalTracks that don't already exist in combinedResults
+    additionalTracks.forEach(track => {
+      const normalizedTrackName = track.trackName.toLowerCase();
+      const normalizedArtistName = track.artist.toLowerCase();
+      
+      // Check if this track (by name and artist) is already in our results
+      const exists = combinedResults.some(existingTrack => 
+        existingTrack.trackName.toLowerCase() === normalizedTrackName && 
+        existingTrack.artist.toLowerCase() === normalizedArtistName
+      );
+      
+      if (!exists) {
+        combinedResults.push(track);
+      }
+    });
+    
+    return combinedResults.slice(0, 30); // Increased to 30 for more comprehensive results
+  }, [searchTerm, allTracks, rawPlayData]);
   
   // Add track to selection
   const addTrack = (track) => {
@@ -48,6 +96,47 @@ const CustomPlaylistCreator = ({
       setSelectedTracks(prev => [...prev, track]);
     }
     setSearchTerm('');
+  };
+  
+  // Add a manually entered track
+  const addManualTrack = () => {
+    // Validate required fields
+    if (!manualTrack.trackName || !manualTrack.artist) {
+      alert('Track name and artist are required');
+      return;
+    }
+    
+    // Create a unique ID for this track
+    const trackId = `manual-${manualTrack.trackName}-${manualTrack.artist}-${Date.now()}`;
+    
+    // Create the track object
+    const newTrack = {
+      ...manualTrack,
+      id: trackId
+    };
+    
+    // Add to selected tracks
+    setSelectedTracks(prev => [...prev, newTrack]);
+    
+    // Reset the form
+    setManualTrack({
+      trackName: '',
+      artist: '',
+      albumName: 'Unknown Album',
+      playCount: 1,
+      totalPlayed: 180000
+    });
+    
+    // Hide the manual add form
+    setShowManualAdd(false);
+  };
+  
+  // Update manual track field
+  const updateManualTrack = (field, value) => {
+    setManualTrack(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
   
   // Add a smart rule
@@ -288,7 +377,7 @@ const CustomPlaylistCreator = ({
           className={`px-4 py-2 font-medium ${
             activeTab === 'create' 
               ? 'text-red-600 border-b-2 border-red-600' 
-              : 'text-gray-500 hover:text-gray-700'
+              : 'text-red-500 hover:text-red-700'
           }`}
         >
           Create Playlist
@@ -298,7 +387,7 @@ const CustomPlaylistCreator = ({
           className={`px-4 py-2 font-medium ${
             activeTab === 'saved' 
               ? 'text-red-600 border-b-2 border-red-600' 
-              : 'text-gray-500 hover:text-gray-700'
+              : 'text-red-500 hover:text-red-700'
           }`}
         >
           Saved Playlists ({savedPlaylists.length})
@@ -308,7 +397,7 @@ const CustomPlaylistCreator = ({
           className={`px-4 py-2 font-medium ${
             activeTab === 'export' 
               ? 'text-red-600 border-b-2 border-red-600' 
-              : 'text-gray-500 hover:text-gray-700'
+              : 'text-red-500 hover:text-red-700'
           }`}
         >
           Export Settings
@@ -324,7 +413,7 @@ const CustomPlaylistCreator = ({
               type="text"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
               placeholder="Enter playlist name"
             />
           </div>
@@ -355,39 +444,108 @@ const CustomPlaylistCreator = ({
           
           {creationMode === 'manual' ? (
             /* Track Search */
-            <div>
-              <label className="block text-red-700 mb-1">Search for tracks to add:</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-500"
-                  placeholder="Search by track name, artist or album..."
-                />
-                
-                {filteredTracks.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-red-500">
-                    {filteredTracks.map(track => (
-                      <div 
-                        key={track.id}
-                        onClick={() => addTrack(track)}
-                        className="px-4 py-2 hover:bg-red-50 cursor-pointer flex justify-between items-center"
-                      >
-                        <div>
-                          <div className="font-medium">{track.trackName}</div>
-                          <div className="text-sm text-red-600">
-                            {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-red-700">Search for tracks to add:</label>
+                  <button 
+                    onClick={() => setShowManualAdd(!showManualAdd)}
+                    className="flex items-center text-red-600 hover:text-red-800"
+                  >
+                    <PlusSquare size={16} className="mr-1" />
+                    {showManualAdd ? 'Cancel' : 'Add track manually'}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                    placeholder="Search by track name, artist or album..."
+                  />
+                  
+                  {filteredTracks.length > 0 && !showManualAdd && (
+                    <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-red-500">
+                      {filteredTracks.map(track => (
+                        <div 
+                          key={track.id}
+                          onClick={() => addTrack(track)}
+                          className="px-4 py-2 hover:bg-red-50 cursor-pointer flex justify-between items-center"
+                        >
+                          <div>
+                            <div className="font-medium">{track.trackName}</div>
+                            <div className="text-sm text-red-600">
+                              {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
+                            </div>
                           </div>
+                          <button className="text-red-600 hover:text-red-800">
+                            <Plus size={16} />
+                          </button>
                         </div>
-                        <button className="text-red-600 hover:text-red-800">
-                          <Plus size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+              
+              {/* Manual Track Add Form */}
+              {showManualAdd && (
+                <div className="border border-red-300 rounded p-4 bg-red-50">
+                  <h4 className="font-bold text-red-700 mb-3">Add Track Manually</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-red-700 mb-1">Track Name:*</label>
+                      <input
+                        type="text"
+                        value={manualTrack.trackName}
+                        onChange={(e) => updateManualTrack('trackName', e.target.value)}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        placeholder="Enter track name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-red-700 mb-1">Artist:*</label>
+                      <input
+                        type="text"
+                        value={manualTrack.artist}
+                        onChange={(e) => updateManualTrack('artist', e.target.value)}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        placeholder="Enter artist name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-red-700 mb-1">Album:</label>
+                      <input
+                        type="text"
+                        value={manualTrack.albumName}
+                        onChange={(e) => updateManualTrack('albumName', e.target.value)}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        placeholder="Enter album name (optional)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-red-700 mb-1">Duration (seconds):</label>
+                      <input
+                        type="number"
+                        value={Math.round(manualTrack.totalPlayed / 1000)}
+                        onChange={(e) => updateManualTrack('totalPlayed', parseInt(e.target.value) * 1000)}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        placeholder="Duration in seconds"
+                        min="1"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={addManualTrack}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        <Plus size={16} className="inline mr-1" /> Add Track
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Smart Rules */
@@ -398,11 +556,11 @@ const CustomPlaylistCreator = ({
               </div>
               
               {smartRules.map((rule) => (
-                <div key={rule.id} className="flex flex-wrap gap-2 items-center border-b pb-3">
+                <div key={rule.id} className="flex flex-wrap gap-2 items-center border-b border-red-200 pb-3">
                   <select
                     value={rule.type}
                     onChange={(e) => updateRule(rule.id, 'type', e.target.value)}
-                    className="px-3 py-2 border rounded"
+                    className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
                   >
                     <option value="artist">Artist</option>
                     <option value="album">Album</option>
@@ -414,7 +572,7 @@ const CustomPlaylistCreator = ({
                   <select
                     value={rule.operator}
                     onChange={(e) => updateRule(rule.id, 'operator', e.target.value)}
-                    className="px-3 py-2 border rounded"
+                    className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
                   >
                     {(rule.type === 'artist' || rule.type === 'album' || rule.type === 'track') ? (
                       <>
@@ -436,7 +594,7 @@ const CustomPlaylistCreator = ({
                     type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
                     value={rule.value}
                     onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded"
+                    className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
                     placeholder={`Enter ${rule.type} value...`}
                     min={rule.type === 'playCount' || rule.type === 'playTime' ? "0" : undefined}
                   />
@@ -481,18 +639,18 @@ const CustomPlaylistCreator = ({
             </div>
             
             {selectedTracks.length > 0 ? (
-              <div className="mt-2 border rounded overflow-hidden">
+              <div className="mt-2 border border-red-200 rounded overflow-hidden">
                 {selectedTracks.map((track, index) => (
                   <div 
                     key={track.id}
                     className={`p-2 flex justify-between items-center ${
-                      index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                      index % 2 === 0 ? 'bg-red-50' : 'bg-white'
                     }`}
                   >
                     <div className="flex items-center">
                       <div className="text-red-500 mr-2">{index + 1}.</div>
                       <div>
-                        <div className="font-medium">{track.trackName}</div>
+                        <div className="font-medium text-red-700">{track.trackName}</div>
                         <div className="text-sm text-red-600">
                           {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
                         </div>
@@ -502,7 +660,7 @@ const CustomPlaylistCreator = ({
                       <button 
                         onClick={() => moveTrack(index, 'up')}
                         disabled={index === 0}
-                        className="p-1 text-red-600 hover:text-red-800 disabled:text-gray-400"
+                        className="p-1 text-red-600 hover:text-red-800 disabled:text-red-300"
                         title="Move up"
                       >
                         ↑
@@ -510,7 +668,7 @@ const CustomPlaylistCreator = ({
                       <button 
                         onClick={() => moveTrack(index, 'down')}
                         disabled={index === selectedTracks.length - 1}
-                        className="p-1 text-red-600 hover:text-red-800 disabled:text-gray-400"
+                        className="p-1 text-red-600 hover:text-red-800 disabled:text-red-300"
                         title="Move down"
                       >
                         ↓
@@ -527,7 +685,7 @@ const CustomPlaylistCreator = ({
                 ))}
               </div>
             ) : (
-              <div className="mt-2 p-4 text-center text-red-300 border border-dashed rounded">
+              <div className="mt-2 p-4 text-center text-red-400 border border-dashed border-red-300 rounded">
                 No tracks selected. Search for tracks to add them to your playlist.
               </div>
             )}
@@ -562,14 +720,15 @@ const CustomPlaylistCreator = ({
           {savedPlaylists.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedPlaylists.map(playlist => (
-                <div key={playlist.id} className="border rounded p-4 hover:border-red-400">
+                <div key={playlist.id} className="border border-red-200 rounded p-4 hover:border-red-400">
                   <div className="flex justify-between items-center">
                     <h4 className="font-bold text-red-600">{playlist.name}</h4>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-red-500">
                       {new Date(playlist.created).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
+                  <div className="text-sm text-red-600 mt-1">
+             
                     {playlist.tracks.length} tracks • 
                     {formatDuration(playlist.tracks.reduce((total, track) => 
                       total + (track.totalPlayed / track.playCount), 0))}
@@ -592,7 +751,7 @@ const CustomPlaylistCreator = ({
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center text-gray-500 border border-dashed rounded">
+            <div className="p-4 text-center text-red-400 border border-dashed border-red-300 rounded">
               No saved playlists. Create and save a playlist to see it here.
             </div>
           )}
@@ -607,7 +766,7 @@ const CustomPlaylistCreator = ({
               type="text"
               value={musicBasePath}
               onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
               placeholder="e.g. /Music/Downloads or C:/Music"
             />
             <p className="text-xs text-red-600 mt-1">
@@ -618,7 +777,7 @@ const CustomPlaylistCreator = ({
           <div>
             <label className="block text-red-700 mb-1">Path Format:</label>
             <div className="flex gap-4 mb-2">
-              <label className="flex items-center">
+              <label className="flex items-center text-red-700">
                 <input
                   type="radio"
                   checked={pathFormat === 'default'}
@@ -627,7 +786,7 @@ const CustomPlaylistCreator = ({
                 />
                 <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
               </label>
-              <label className="flex items-center text-red-500">
+              <label className="flex items-center text-red-700">
                 <input
                   type="radio"
                   checked={pathFormat === 'custom'}
@@ -644,7 +803,7 @@ const CustomPlaylistCreator = ({
                   type="text"
                   value={customPathFormat}
                   onChange={(e) => setCustomPathFormat(e.target.value)}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
                   placeholder="Custom path format"
                 />
                 <div className="text-xs text-red-600 mt-1">
@@ -667,7 +826,7 @@ const CustomPlaylistCreator = ({
             <select
               value={fileExtension}
               onChange={(e) => setFileExtension(e.target.value)}
-              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-500"
+              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
             >
               <option value="mp3">mp3</option>
               <option value="flac">flac</option>
@@ -677,7 +836,7 @@ const CustomPlaylistCreator = ({
             </select>
           </div>
           
-          <div className="text-sm text-red-600 p-3 bg-red-100 rounded">
+          <div className="text-sm text-red-600 p-3 bg-red-50 border border-red-200 rounded">
             <p className="font-medium">Path Preview:</p>
             <p className="font-mono mt-1">
               {pathFormat === 'default' 
