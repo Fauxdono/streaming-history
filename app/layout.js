@@ -30,17 +30,14 @@ export const metadata = {
     ]
   },
   manifest: '/manifest.json',
-  themeColor: '#000000'
-};
-  viewport: 'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no',
   themeColor: '#000000',
+  viewport: 'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no',
   appleWebApp: {
     capable: true,
     title: 'Cakeculator',
     statusBarStyle: 'black-translucent',
   }
 };
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
