@@ -16,6 +16,7 @@ import YearSelector from './year-selector.js';
 import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
+import UpdatesSection from './updatessection.js';
 
 const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
   const now = new Date();
@@ -712,6 +713,7 @@ const TabButton = ({ id, label }) => {
           <div className="flex gap-2 border-b border-violet-200 min-w-max"> 
             <TabButton id="upload" label="Upload" />
             {stats && <TabButton id="stats" label="Statistics" />}
+            <TabButton id="updates" label="Updates" />
             {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
       {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
             {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
@@ -922,6 +924,13 @@ const TabButton = ({ id, label }) => {
             </div>
           </div>
         )}
+
+{activeTab === 'updates' && (
+  <div className="p-4 bg-violet-100 rounded border-2 border-violet-300">
+    <h3 className="font-bold mb-2 text-violet-700">App Updates</h3>
+    <UpdatesSection />
+  </div>
+)}
                 
         {activeTab === 'artists' && (
           <div className="p-4 bg-teal-100 rounded border-2 border-teal-300">
