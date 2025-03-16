@@ -89,32 +89,55 @@ const handleLoadSampleData = () => {
   setIsProcessing(true);
   setError(null);
   
-  setTimeout(async () => {
-    try {
-      // Create a File object from the sample data
-      const file = new File(
-        [JSON.stringify(sampleData)],
-        'personal-spotify-data.json',
-        { type: 'application/json' }
-      );
-      
-      // Update the UI to show the sample file
-      setUploadedFileList([file]);
-      setUploadedFiles(['personal-spotify-data.json']);
-      
-      // Process the sample data
-      await processFiles([file]);
-      
-      // This is the important line - it ensures the active tab is set to 'stats'
-      setActiveTab('stats');
-    } catch (err) {
-      console.error("Error loading sample data:", err);
-      setError("Failed to load sample data: " + err.message);
-    } finally {
+  // URLs to your existing JSON files
+  const sampleFileUrls = [
+    '/sampledata/Streaming1.json',
+    '/sampledata/Streaming2.json',
+'/sampledata/Streaming3.json',
+'/sampledata/Streaming4.json'
+  ];
+  
+  // Create promises to fetch each file
+  const fetchPromises = sampleFileUrls.map(url => 
+    fetch(url).then(response => response.json())
+  );
+  
+  // Process all files together
+  Promise.all(fetchPromises)
+    .then(async (dataArray) => {
+      try {
+        // Convert JSON data to File objects
+        const files = dataArray.map((data, index) => {
+          return new File(
+            [JSON.stringify(data)],
+            `sample-streaming-${index + 1}.json`,
+            { type: 'application/json' }
+          );
+        });
+        
+        // Update the UI to show the sample files
+        setUploadedFileList(files);
+        setUploadedFiles(files.map(file => file.name));
+        
+        // Process the sample files
+        await processFiles(files);
+        
+        // Navigate to stats view
+        setActiveTab('stats');
+      } catch (err) {
+        console.error("Error processing sample data:", err);
+        setError("Failed to process sample data: " + err.message);
+      }
+    })
+    .catch(err => {
+      console.error("Error loading sample data files:", err);
+      setError("Failed to load sample data files. Please check that the files exist in the public directory.");
+    })
+    .finally(() => {
       setIsProcessing(false);
-    }
-  }, 100);
+    });
 };
+
 const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
