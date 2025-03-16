@@ -1021,6 +1021,7 @@ case 'updates':
       
     )}
 
+// STEP 3: Update the conditional rendering - CORRECTED VERSION
 {displayedArtists.length === 0 ? (
   <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
     <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
@@ -1104,8 +1105,6 @@ case 'updates':
     ))}
   </div>
 )}
-          </div>
-        )}
         
 {activeTab === 'albums' && (
   <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
