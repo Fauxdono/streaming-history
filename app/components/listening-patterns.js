@@ -236,7 +236,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
                 {timeOfDayData.periods.map((period, index) => (
                   <li key={index} className="p-2 bg-purple-50 rounded">
                     <span className="font-bold" style={{ color: period.color }}>{period.name}:</span>
-                    <div className="ml-2">
+                    <div className="ml-2 text-purple-500">
                       <div>{period.count} plays</div>
                       <div>{formatDuration(period.totalMs)} listening time</div>
                     </div>
