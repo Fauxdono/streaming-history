@@ -84,60 +84,46 @@ const SpotifyAnalyzer = () => {
       selected: 'bg-orange-600 text-white'
     }
   };
-
-const handleLoadSampleData = () => {
+const handleLoadSampleData = async () => {
   setIsProcessing(true);
   setError(null);
   
-  // URLs to your existing JSON files
-  const sampleFileUrls = [
-    '/sampledata/Streaming1.json',
+  try {
+    // URLs to your sample JSON files
+    const sampleFileUrls = [
+     '/sampledata/Streaming1.json',
     '/sampledata/Streaming2.json',
 '/sampledata/Streaming3.json',
 '/sampledata/Streaming4.json'
-  ];
-  
-  // Create promises to fetch each file
-  const fetchPromises = sampleFileUrls.map(url => 
-    fetch(url).then(response => response.json())
-  );
-  
-  // Process all files together
-  Promise.all(fetchPromises)
-    .then(async (dataArray) => {
-      try {
-        // Convert JSON data to File objects
-        const files = dataArray.map((data, index) => {
-          return new File(
-            [JSON.stringify(data)],
-            `sample-streaming-${index + 1}.json`,
-            { type: 'application/json' }
-          );
-        });
-        
-        // Update the UI to show the sample files
-        setUploadedFileList(files);
-        setUploadedFiles(files.map(file => file.name));
-        
-        // Process the sample files
-        await processFiles(files);
-        
-        // Navigate to stats view
-        setActiveTab('stats');
-      } catch (err) {
-        console.error("Error processing sample data:", err);
-        setError("Failed to process sample data: " + err.message);
-      }
-    })
-    .catch(err => {
-      console.error("Error loading sample data files:", err);
-      setError("Failed to load sample data files. Please check that the files exist in the public directory.");
-    })
-    .finally(() => {
-      setIsProcessing(false);
-    });
+    ];
+    
+    // Fetch all files and create proper File objects
+    const files = await Promise.all(
+      sampleFileUrls.map(async (url, index) => {
+        const response = await fetch(url);
+        const blob = await response.blob(); // Get the raw binary data
+        return new File([blob], `sample-${index+1}.json`, { type: 'application/json' });
+      })
+    );
+    
+    console.log("Sample files created:", files);
+    
+    // Update UI to show the sample files
+    setUploadedFileList(files);
+    setUploadedFiles(files.map(file => file.name));
+    
+    // Process the files - important to wait for this to complete
+    await processFiles(files);
+    
+    // After processing completes, switch to stats tab
+    setActiveTab('stats');
+  } catch (err) {
+    console.error("Error loading sample data:", err);
+    setError("Failed to load sample data: " + err.message);
+  } finally {
+    setIsProcessing(false);
+  }
 };
-
 const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
