@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@/components/ui/table';
 
 const ExcelPreview = ({ file }) => {
   const [sheetData, setSheetData] = useState([]);
@@ -9,7 +8,17 @@ const ExcelPreview = ({ file }) => {
   useEffect(() => {
     const readExcelFile = async () => {
       try {
-        const arrayBuffer = await file.arrayBuffer();
+        let arrayBuffer;
+        
+        // Check if it's a File object or a path to a file
+        if (file instanceof File) {
+          arrayBuffer = await file.arrayBuffer();
+        } else {
+          // Fetch the file from public directory
+          const response = await fetch(file);
+          arrayBuffer = await response.arrayBuffer();
+        }
+
         const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
         
         // Get the first sheet
@@ -39,7 +48,9 @@ const ExcelPreview = ({ file }) => {
 
   return (
     <div className="mt-4">
-      <h4 className="font-bold text-orange-700 mb-2">File Preview: {file.name}</h4>
+      <h4 className="font-bold text-orange-700 mb-2">
+        {file instanceof File ? `File Preview: ${file.name}` : 'Sample Data Preview'}
+      </h4>
       <div className="max-h-96 overflow-auto border rounded">
         <table className="w-full">
           <thead className="sticky top-0 bg-orange-100">
