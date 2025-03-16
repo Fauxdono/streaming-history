@@ -121,8 +121,8 @@ const formatDuration = (ms) => {
   }, [yearRangeMode, selectedArtistYear]);
 
 const filteredArtists = useMemo(() => {
-  // Get a list of all unique artist names from the currently displayed artists
-  const allArtists = Array.from(new Set(displayedArtists.map(artist => artist.name))).sort();
+  // Get unique artist names from topArtists instead of displayedArtists to avoid circular refs
+  const allArtists = Array.from(new Set(topArtists.map(artist => artist.name))).sort();
   
   return allArtists
     .filter(artist => 
@@ -130,8 +130,7 @@ const filteredArtists = useMemo(() => {
       !selectedArtists.includes(artist)
     )
     .slice(0, 10);
-}, [displayedArtists, artistSearch, selectedArtists]);
-
+}, [topArtists, artistSearch, selectedArtists]);
 
 
   const sortedYears = useMemo(() => {
@@ -509,23 +508,24 @@ const displayedAlbums = useMemo(() => {
   }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
 
 const filteredDisplayedArtists = useMemo(() => {
-  // If we have selected artists, they take precedence over search
-  if (selectedArtists.length > 0) {
-    return displayedArtists.filter(artist => 
-      selectedArtists.includes(artist.name)
-    );
-  }
+  // If no artists displayed, return empty array to avoid issues
+  if (!displayedArtists || displayedArtists.length === 0) return [];
   
-  // Otherwise, apply search filter if there's a search term
-  if (artistSearch.trim()) {
-    const searchTerm = artistSearch.toLowerCase();
-    return displayedArtists.filter(artist => 
-      artist.name.toLowerCase().includes(searchTerm)
-    );
-  }
-  
-  // If no search or selection, return all displayed artists
-  return displayedArtists;
+  // Handle both search and selection together
+  return displayedArtists.filter(artist => {
+    // If there are selected artists, only show those
+    if (selectedArtists.length > 0) {
+      return selectedArtists.includes(artist.name);
+    }
+    
+    // Otherwise, apply search term filter if search exists
+    if (artistSearch.trim()) {
+      return artist.name.toLowerCase().includes(artistSearch.toLowerCase());
+    }
+    
+    // If no filters, show all
+    return true;
+  });
 }, [displayedArtists, artistSearch, selectedArtists]);
 
   const processFiles = useCallback(async (fileList) => {
@@ -1095,24 +1095,23 @@ case 'updates':
           Show All Artists
         </button>
       </div>
-    ) : filteredDisplayedArtists.length === 0 && artistSearch && !selectedArtists.length ? (
-      <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
-        <h4 className="text-lg font-bold text-teal-700">No matching artists</h4>
-        <p className="text-teal-600 mt-2">
-          No artists found matching "{artistSearch}".
-        </p>
-        <button
-          onClick={() => setArtistSearch('')}
-          className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
-        >
-          Clear Search
-        </button>
-      </div>
     ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Use the original display list, but filter for selected artists if needed */}
         {displayedArtists
-          .filter(artist => selectedArtists.length === 0 || selectedArtists.includes(artist.name))
+          .filter(artist => {
+            // If we have selected artists, only show them
+            if (selectedArtists.length > 0) {
+              return selectedArtists.includes(artist.name);
+            }
+            
+            // If we're searching, filter by that
+            if (artistSearch.trim()) {
+              return artist.name.toLowerCase().includes(artistSearch.toLowerCase());
+            }
+            
+            // Otherwise show all
+            return true;
+          })
           .slice(0, topArtistsCount)
           .map((artist, index) => {
             // Find original index to preserve ranking
@@ -1177,7 +1176,7 @@ case 'updates':
       </div>
     )}
   </div>
-)}    
+)}
 {activeTab === 'albums' && (
   <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
     <div className="flex justify-between items-center mb-2">
