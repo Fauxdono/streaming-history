@@ -18,6 +18,7 @@ import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
+import sampleData from './sampledata.js';
 
 const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
   const now = new Date();
@@ -83,7 +84,37 @@ const SpotifyAnalyzer = () => {
       selected: 'bg-orange-600 text-white'
     }
   };
+
+const handleLoadSampleData = () => {
+  setIsProcessing(true);
+  setError(null);
   
+  setTimeout(async () => {
+    try {
+      // Create a File object from the sample data
+      const file = new File(
+        [JSON.stringify(sampleData)],
+        'personal-spotify-data.json',
+        { type: 'application/json' }
+      );
+      
+      // Update the UI to show the sample file
+      setUploadedFileList([file]);
+      setUploadedFiles(['personal-spotify-data.json']);
+      
+      // Process the sample data
+      await processFiles([file]);
+      
+      // This is the important line - it ensures the active tab is set to 'stats'
+      setActiveTab('stats');
+    } catch (err) {
+      console.error("Error loading sample data:", err);
+      setError("Failed to load sample data: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, 100);
+};
 const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
@@ -766,6 +797,20 @@ case 'updates':
                 <li>Select your streaming service below</li>
                 <li>Download your streaming history</li>
                 <li>Upload your file(s)</li>
+
+<div className="mt-4">
+  <button
+    onClick={handleLoadSampleData}
+    disabled={isProcessing}
+    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+  >
+    <Download size={16} />
+    Try with Sample Data
+  </button>
+  <p className="text-sm text-gray-600 mt-1">
+    Want to test the app without uploading your own data? Click above to load sample streaming history.
+  </p>
+</div>
                 <li>Click "Calculate Statistics"</li>
               </ol>
             </div>
