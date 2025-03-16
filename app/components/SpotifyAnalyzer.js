@@ -971,138 +971,143 @@ case 'updates':
   </div>
 )}
                 
-        {activeTab === 'artists' && (
-          <div className="p-4 bg-teal-100 rounded border-2 border-teal-300">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-teal-700">
-                {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
-                  yearRangeMode && yearRange.startYear && yearRange.endYear ? 
-                  `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
-                  `Most Played Artists (${selectedArtistYear})`}
-              </h3>
-              
-              <div className="flex items-center gap-2">
-                <label className="text-teal-700">Show Top</label>
-                <input
-                type="number" 
-                  min="1" 
-                  max="999" 
-                  value={topArtistsCount} 
-                  onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
-                  className="w-16 border rounded px-2 py-1 text-teal-700"
-                />
-              </div>
-            </div>
-            
-            <YearSelector 
-              artistsByYear={artistsByYear}
-              onYearChange={setSelectedArtistYear}
-              onYearRangeChange={handleYearRangeChange}
-              initialYear={selectedArtistYear !== 'all' ? selectedArtistYear : null}
-              initialYearRange={yearRange}
-              isRangeMode={yearRangeMode}
-              onToggleRangeMode={toggleYearRangeMode}
-              colorTheme="teal"
-            />
-
-   <input
-      type="text"
-      value={artistSearch}
-      onChange={(e) => setArtistSearch(e.target.value)}
-      placeholder="Search artists..."
-      className="w-full border border-teal-300 rounded px-2 py-1 text-teal-700 focus:border-teal-400 focus:ring-teal-400 focus:outline-none"
-    />
-    {artistSearch && (
-      <button
-        onClick={() => setArtistSearch('')}
-        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-teal-500 hover:text-teal-700"
-      >
-        ×
+{activeTab === 'artists' && (
+  <div className="p-4 bg-teal-100 rounded border-2 border-teal-300">
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="font-bold text-teal-700">
+        {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
+          yearRangeMode && yearRange.startYear && yearRange.endYear ? 
+          `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
+          `Most Played Artists (${selectedArtistYear})`}
+      </h3>
       
-    )}
-
-// STEP 3: Update the conditional rendering - CORRECTED VERSION
-{displayedArtists.length === 0 ? (
-  <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
-    <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
-    <p className="text-teal-600 mt-2">
-      {yearRangeMode 
-        ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
-        : selectedArtistYear !== 'all' 
-          ? `No artists found for the year ${selectedArtistYear}.`
-          : "No artist data available."}
-    </p>
-    <button
-      onClick={() => {
-        setYearRangeMode(false);
-        setSelectedArtistYear('all');
-      }}
-      className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
-    >
-      Show All Artists
-    </button>
-  </div>
-) : filteredDisplayedArtists.length === 0 ? (
-  <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
-    <h4 className="text-lg font-bold text-teal-700">No matching artists</h4>
-    <p className="text-teal-600 mt-2">
-      No artists found matching "{artistSearch}".
-    </p>
-    <button
-      onClick={() => setArtistSearch('')}
-      className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
-    >
-      Clear Search
-    </button>
-  </div>
-) : (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {filteredDisplayedArtists.slice(0,topArtistsCount).map((artist, index) => (
-      <div key={artist.name} 
-        className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
-        onClick={() => {
-          setSelectedArtists([artist.name]);
-          setActiveTab('custom');
-        }}
-      >
-        <div className="font-bold text-teal-600">{artist.name}</div>
-        <div className="text-sm text-teal-400">
-          Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-          <br/>
-          Plays: <span className="font-bold"> {artist.playCount}</span>
-          <br/>
-          Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
-          <br/>
-          Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
-          <br/>
-          First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
-          {artist.longestStreak > 1 && (
-            <>
-              <br/>
-              First Song: <span className="font-bold">
-                {artist.firstSong || "Unknown"} 
-                {artist.firstSongPlayCount 
-                  ? ` (${artist.firstSongPlayCount}x)` 
-                  : ""}
-              </span>
-              <br/>
-              Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
-              <br/>
-              <span className="text-xs">
-                ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
-              </span>
-            </>
-          )}
-          {artist.currentStreak > 1 && (
-            <>
-              <br/>
-              Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
-            </>
-          )}
-        </div>
-        <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{index + 1}</div>
+      <div className="flex items-center gap-2">
+        <label className="text-teal-700">Show Top</label>
+        <input
+          type="number" 
+          min="1" 
+          max="999" 
+          value={topArtistsCount} 
+          onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
+          className="w-16 border rounded px-2 py-1 text-teal-700"
+        />
       </div>
-    ))}
+    </div>
+    
+    <YearSelector 
+      artistsByYear={artistsByYear}
+      onYearChange={setSelectedArtistYear}
+      onYearRangeChange={handleYearRangeChange}
+      initialYear={selectedArtistYear !== 'all' ? selectedArtistYear : null}
+      initialYearRange={yearRange}
+      isRangeMode={yearRangeMode}
+      onToggleRangeMode={toggleYearRangeMode}
+      colorTheme="teal"
+    />
+
+    <div className="mb-4">
+      <div className="relative">
+        <input
+          type="text"
+          value={artistSearch}
+          onChange={(e) => setArtistSearch(e.target.value)}
+          placeholder="Search artists..."
+          className="w-full border border-teal-300 rounded px-2 py-1 text-teal-700 focus:border-teal-400 focus:ring-teal-400 focus:outline-none"
+        />
+        {artistSearch && (
+          <button
+            onClick={() => setArtistSearch('')}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-teal-500 hover:text-teal-700"
+          >
+            ×
+          </button>
+        )}
+      </div>
+    </div>
+
+    {displayedArtists.length === 0 ? (
+      <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
+        <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
+        <p className="text-teal-600 mt-2">
+          {yearRangeMode 
+            ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
+            : selectedArtistYear !== 'all' 
+              ? `No artists found for the year ${selectedArtistYear}.`
+              : "No artist data available."}
+        </p>
+        <button
+          onClick={() => {
+            setYearRangeMode(false);
+            setSelectedArtistYear('all');
+          }}
+          className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+        >
+          Show All Artists
+        </button>
+      </div>
+    ) : filteredDisplayedArtists.length === 0 ? (
+      <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
+        <h4 className="text-lg font-bold text-teal-700">No matching artists</h4>
+        <p className="text-teal-600 mt-2">
+          No artists found matching "{artistSearch}".
+        </p>
+        <button
+          onClick={() => setArtistSearch('')}
+          className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+        >
+          Clear Search
+        </button>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredDisplayedArtists.slice(0,topArtistsCount).map((artist, index) => (
+          <div key={artist.name} 
+            className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
+            onClick={() => {
+              setSelectedArtists([artist.name]);
+              setActiveTab('custom');
+            }}
+          >
+            <div className="font-bold text-teal-600">{artist.name}</div>
+            <div className="text-sm text-teal-400">
+              Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+              <br/>
+              Plays: <span className="font-bold"> {artist.playCount}</span>
+              <br/>
+              Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
+              <br/>
+              Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
+              <br/>
+              First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
+              {artist.longestStreak > 1 && (
+                <>
+                  <br/>
+                  First Song: <span className="font-bold">
+                    {artist.firstSong || "Unknown"} 
+                    {artist.firstSongPlayCount 
+                      ? ` (${artist.firstSongPlayCount}x)` 
+                      : ""}
+                  </span>
+                  <br/>
+                  Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+                  <br/>
+                  <span className="text-xs">
+                    ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
+                  </span>
+                </>
+              )}
+              {artist.currentStreak > 1 && (
+                <>
+                  <br/>
+                  Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
+                </>
+              )}
+            </div>
+            <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{index + 1}</div>
+          </div>
+        ))}
+      </div>
+    )}
   </div>
 )}
         
