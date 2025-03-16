@@ -1,17 +1,14 @@
 {
+  "id": "cakeculator-streaming-analyzer",
   "name": "Cakeculator",
   "short_name": "Cakeculator",
   "description": "Analyze your music streaming history in depth",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
@@ -20,11 +17,6 @@
     {
       "src": "/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
       "type": "image/png"
     }
   ]
