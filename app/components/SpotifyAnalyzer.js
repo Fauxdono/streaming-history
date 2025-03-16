@@ -132,25 +132,7 @@ const filteredArtists = useMemo(() => {
     .slice(0, 10);
 }, [displayedArtists, artistSearch, selectedArtists]);
 
-const filteredDisplayedArtists = useMemo(() => {
-  // If we have selected artists, they take precedence over search
-  if (selectedArtists.length > 0) {
-    return displayedArtists.filter(artist => 
-      selectedArtists.includes(artist.name)
-    );
-  }
-  
-  // Otherwise, apply search filter if there's a search term
-  if (artistSearch.trim()) {
-    const searchTerm = artistSearch.toLowerCase();
-    return displayedArtists.filter(artist => 
-      artist.name.toLowerCase().includes(searchTerm)
-    );
-  }
-  
-  // If no search or selection, return all displayed artists
-  return displayedArtists;
-}, [displayedArtists, artistSearch, selectedArtists]);
+
 
   const sortedYears = useMemo(() => {
     return Object.keys(artistsByYear).sort((a, b) => a - b);
@@ -527,13 +509,24 @@ const displayedAlbums = useMemo(() => {
   }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
 
 const filteredDisplayedArtists = useMemo(() => {
-  if (!artistSearch.trim()) return displayedArtists;
+  // If we have selected artists, they take precedence over search
+  if (selectedArtists.length > 0) {
+    return displayedArtists.filter(artist => 
+      selectedArtists.includes(artist.name)
+    );
+  }
   
-  const searchTerm = artistSearch.toLowerCase();
-  return displayedArtists.filter(artist => 
-    artist.name.toLowerCase().includes(searchTerm)
-  );
-}, [displayedArtists, artistSearch]);
+  // Otherwise, apply search filter if there's a search term
+  if (artistSearch.trim()) {
+    const searchTerm = artistSearch.toLowerCase();
+    return displayedArtists.filter(artist => 
+      artist.name.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  // If no search or selection, return all displayed artists
+  return displayedArtists;
+}, [displayedArtists, artistSearch, selectedArtists]);
 
   const processFiles = useCallback(async (fileList) => {
     // Set loading state and wait for next render cycle
