@@ -120,15 +120,37 @@ const formatDuration = (ms) => {
     }
   }, [yearRangeMode, selectedArtistYear]);
 
-  const filteredArtists = useMemo(() => {
-    const allArtists = Array.from(new Set(topAlbums.map(album => album.artist))).sort();
-    return allArtists
-      .filter(artist => 
-        artist.toLowerCase().includes(artistSearch.toLowerCase()) &&
-        !selectedArtists.includes(artist)
-      )
-      .slice(0, 10);
-  }, [topAlbums, artistSearch, selectedArtists]);
+const filteredArtists = useMemo(() => {
+  // Get a list of all unique artist names from the currently displayed artists
+  const allArtists = Array.from(new Set(displayedArtists.map(artist => artist.name))).sort();
+  
+  return allArtists
+    .filter(artist => 
+      artist.toLowerCase().includes(artistSearch.toLowerCase()) &&
+      !selectedArtists.includes(artist)
+    )
+    .slice(0, 10);
+}, [displayedArtists, artistSearch, selectedArtists]);
+
+const filteredDisplayedArtists = useMemo(() => {
+  // If we have selected artists, they take precedence over search
+  if (selectedArtists.length > 0) {
+    return displayedArtists.filter(artist => 
+      selectedArtists.includes(artist.name)
+    );
+  }
+  
+  // Otherwise, apply search filter if there's a search term
+  if (artistSearch.trim()) {
+    const searchTerm = artistSearch.toLowerCase();
+    return displayedArtists.filter(artist => 
+      artist.name.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  // If no search or selection, return all displayed artists
+  return displayedArtists;
+}, [displayedArtists, artistSearch, selectedArtists]);
 
   const sortedYears = useMemo(() => {
     return Object.keys(artistsByYear).sort((a, b) => a - b);
@@ -1005,7 +1027,25 @@ case 'updates':
       colorTheme="teal"
     />
 
+    {/* Artist Selection */}
     <div className="mb-4">
+      <div className="flex flex-wrap gap-2 mb-2">
+        {selectedArtists.map(artist => (
+          <div 
+            key={artist} 
+            className="flex items-center bg-teal-600 text-white px-2 py-1 rounded text-sm"
+          >
+            {artist}
+            <button 
+              onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
+              className="ml-2 text-white hover:text-teal-200"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+
       <div className="relative">
         <input
           type="text"
@@ -1021,6 +1061,22 @@ case 'updates':
           >
             ×
           </button>
+        )}
+        {artistSearch && filteredArtists.length > 0 && (
+          <div className="absolute z-10 w-full bg-white border border-teal-200 rounded shadow-lg mt-1">
+            {filteredArtists.map(artist => (
+              <div
+                key={artist}
+                onClick={() => {
+                  setSelectedArtists(prev => [...prev, artist]);
+                  setArtistSearch('');
+                }}
+                className="px-2 py-1 hover:bg-teal-100 text-teal-700 cursor-pointer"
+              >
+                {artist}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -1039,13 +1095,14 @@ case 'updates':
           onClick={() => {
             setYearRangeMode(false);
             setSelectedArtistYear('all');
+            setSelectedArtists([]);
           }}
           className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
         >
           Show All Artists
         </button>
       </div>
-    ) : filteredDisplayedArtists.length === 0 ? (
+    ) : filteredDisplayedArtists.length === 0 && artistSearch && !selectedArtists.length ? (
       <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
         <h4 className="text-lg font-bold text-teal-700">No matching artists</h4>
         <p className="text-teal-600 mt-2">
@@ -1060,57 +1117,74 @@ case 'updates':
       </div>
     ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredDisplayedArtists.slice(0,topArtistsCount).map((artist, index) => (
-          <div key={artist.name} 
-            className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
-            onClick={() => {
-              setSelectedArtists([artist.name]);
-              setActiveTab('custom');
-            }}
-          >
-            <div className="font-bold text-teal-600">{artist.name}</div>
-            <div className="text-sm text-teal-400">
-              Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-              <br/>
-              Plays: <span className="font-bold"> {artist.playCount}</span>
-              <br/>
-              Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
-              <br/>
-              Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
-              <br/>
-              First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
-              {artist.longestStreak > 1 && (
-                <>
+        {/* Use the original display list, but filter for selected artists if needed */}
+        {displayedArtists
+          .filter(artist => selectedArtists.length === 0 || selectedArtists.includes(artist.name))
+          .slice(0, topArtistsCount)
+          .map((artist, index) => {
+            // Find original index to preserve ranking
+            const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
+            
+            return (
+              <div key={artist.name} 
+                className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
+                onClick={() => {
+                  // Toggle artist selection
+                  if (selectedArtists.includes(artist.name)) {
+                    setSelectedArtists(prev => prev.filter(a => a !== artist.name));
+                  } else {
+                    setSelectedArtists(prev => [...prev, artist.name]);
+                  }
+                }}
+              >
+                <div className="font-bold text-teal-600">{artist.name}</div>
+                <div className="text-sm text-teal-400">
+                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
                   <br/>
-                  First Song: <span className="font-bold">
-                    {artist.firstSong || "Unknown"} 
-                    {artist.firstSongPlayCount 
-                      ? ` (${artist.firstSongPlayCount}x)` 
-                      : ""}
-                  </span>
+                  Plays: <span className="font-bold"> {artist.playCount}</span>
                   <br/>
-                  Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+                  Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
                   <br/>
-                  <span className="text-xs">
-                    ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
-                  </span>
-                </>
-              )}
-              {artist.currentStreak > 1 && (
-                <>
+                  Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
                   <br/>
-                  Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
-                </>
-              )}
-            </div>
-            <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{index + 1}</div>
-          </div>
-        ))}
+                  First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
+                  {artist.longestStreak > 1 && (
+                    <>
+                      <br/>
+                      First Song: <span className="font-bold">
+                        {artist.firstSong || "Unknown"} 
+                        {artist.firstSongPlayCount 
+                          ? ` (${artist.firstSongPlayCount}x)` 
+                          : ""}
+                      </span>
+                      <br/>
+                      Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+                      <br/>
+                      <span className="text-xs">
+                        ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
+                      </span>
+                    </>
+                  )}
+                  {artist.currentStreak > 1 && (
+                    <>
+                      <br/>
+                      Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
+                    </>
+                  )}
+                </div>
+                <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{originalIndex + 1}</div>
+                {selectedArtists.includes(artist.name) && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
+                    ✓
+                  </div>
+                )}
+              </div>
+            );
+          })}
       </div>
     )}
   </div>
-)}
-        
+)}    
 {activeTab === 'albums' && (
   <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
     <div className="flex justify-between items-center mb-2">
