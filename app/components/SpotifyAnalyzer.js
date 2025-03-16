@@ -11,7 +11,7 @@ import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
-import { X, Trash2, Check, ChevronUp, ChevronDown } from 'lucide-react';
+import { X, Trash2, Check, ChevronUp, ChevronDown, Download } from 'lucide-react';
 import YearSelector from './year-selector.js';
 import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
