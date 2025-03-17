@@ -97,7 +97,7 @@ const handleLoadSampleData = async () => {
       '/sampledata/Streaming4.json'
     ];
     
-    // Fetch all files and create proper File objects with the original filenames
+    // Fetch all files and create proper File objects with names the adapter expects
     const files = await Promise.all(
       sampleFileUrls.map(async (url, index) => {
         const response = await fetch(url);
@@ -107,9 +107,8 @@ const handleLoadSampleData = async () => {
         }
         
         const blob = await response.blob();
-        // Use the original file name instead of "sample-N.json"
-        const fileName = url.split('/').pop(); // Gets "Streaming1.json" from the URL
-        return new File([blob], fileName, { type: 'application/json' });
+        // Use a filename that the adapter will recognize
+        return new File([blob], `Streaming_History_${index+1}.json`, { type: 'application/json' });
       })
     );
     
