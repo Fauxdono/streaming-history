@@ -32,101 +32,142 @@ const CustomPlaylistCreator = ({
   const [customTrackPosition, setCustomTrackPosition] = useState("");
   const [activeTrackForPosition, setActiveTrackForPosition] = useState(null);
   
-  // Create a normalized track map for faster searching
-  const trackMap = useMemo(() => {
-    // Create a map for normalized track names (for fuzzy search)
-    const normalizedMap = new Map();
-    
-    // Process all tracks
-    const map = new Map();
-    
-    // First add all processed tracks
-    processedData.forEach(track => {
-      // Skip if no track name or artist
-      if (!track.trackName || !track.artist) return;
+ // Create a normalized track map for faster searching
+const trackMap = useMemo(() => {
+  // Create a map for normalized track names (for fuzzy search)
+  const normalizedMap = new Map();
+  
+  // Process all tracks
+  const map = new Map();
+  
+  // First process raw data to calculate accurate play counts
+  const playCountMap = new Map();
+  
+  // Count occurrences in raw data first
+  rawPlayData.forEach(entry => {
+    if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && entry.ms_played >= 30000) {
+      const key = `${entry.master_metadata_track_name.toLowerCase()}-${entry.master_metadata_album_artist_name.toLowerCase()}`;
       
+      if (!playCountMap.has(key)) {
+        playCountMap.set(key, {
+          count: 1,
+          totalPlayed: entry.ms_played
+        });
+      } else {
+        const current = playCountMap.get(key);
+        current.count += 1;
+        current.totalPlayed += entry.ms_played;
+      }
+    }
+  });
+  
+  // Now add processed tracks with correct play counts
+  processedData.forEach(track => {
+    // Skip if no track name or artist
+    if (!track.trackName || !track.artist) return;
+    
+    try {
+      const key = `${track.trackName.toLowerCase()}-${track.artist.toLowerCase()}`;
+      
+      // Get actual play count from our calculation if available
+      const playData = playCountMap.get(key);
+      const actualPlayCount = playData ? playData.count : (track.playCount || 0);
+      const actualTotalPlayed = playData ? playData.totalPlayed : (track.totalPlayed || 0);
+      
+      map.set(key, {
+        ...track,
+        id: `processed-${key}`,
+        playCount: actualPlayCount, // Use our calculated play count
+        totalPlayed: actualTotalPlayed // Use our calculated total play time
+      });
+      
+      // Add to normalized map for fuzzy search
+      const normalizedTitle = normalizeTrackTitle(track.trackName);
+      const normalizedArtist = normalizeArtistName(track.artist);
+      
+      const normalizedKey = `${normalizedTitle}-${normalizedArtist}`;
+      if (!normalizedMap.has(normalizedKey)) {
+        normalizedMap.set(normalizedKey, []);
+      }
+      normalizedMap.get(normalizedKey).push(key);
+      
+      // Add common variations
+      const variations = getCommonVariations(track.trackName);
+      variations.forEach(variation => {
+        const varKey = `${variation}-${normalizedArtist}`;
+        if (!normalizedMap.has(varKey)) {
+          normalizedMap.set(varKey, []);
+        }
+        if (!normalizedMap.get(varKey).includes(key)) {
+          normalizedMap.get(varKey).push(key);
+        }
+      });
+    } catch (err) {
+      console.warn("Error processing track:", track, err);
+    }
+  });
+  
+  // Then add tracks from raw data that aren't already in our map
+  rawPlayData.forEach(entry => {
+    if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && entry.ms_played >= 30000) {
       try {
-        const key = `${track.trackName.toLowerCase()}-${track.artist.toLowerCase()}`;
-        map.set(key, {
-          ...track,
-          id: `processed-${key}`
-        });
+        const key = `${entry.master_metadata_track_name.toLowerCase()}-${entry.master_metadata_album_artist_name.toLowerCase()}`;
         
-        // Add to normalized map for fuzzy search
-        const normalizedTitle = normalizeTrackTitle(track.trackName);
-        const normalizedArtist = normalizeArtistName(track.artist);
-        
-        const normalizedKey = `${normalizedTitle}-${normalizedArtist}`;
-        if (!normalizedMap.has(normalizedKey)) {
-          normalizedMap.set(normalizedKey, []);
-        }
-        normalizedMap.get(normalizedKey).push(key);
-        
-        // Add common variations
-        const variations = getCommonVariations(track.trackName);
-        variations.forEach(variation => {
-          const varKey = `${variation}-${normalizedArtist}`;
-          if (!normalizedMap.has(varKey)) {
-            normalizedMap.set(varKey, []);
-          }
-          if (!normalizedMap.get(varKey).includes(key)) {
-            normalizedMap.get(varKey).push(key);
-          }
-        });
-      } catch (err) {
-        console.warn("Error processing track:", track, err);
-      }
-    });
-    
-    // Then add tracks from raw data that aren't already in our map
-    rawPlayData.forEach(entry => {
-      if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && entry.ms_played >= 30000) {
-        try {
-          const key = `${entry.master_metadata_track_name.toLowerCase()}-${entry.master_metadata_album_artist_name.toLowerCase()}`;
+        if (!map.has(key)) {
+          // Get the play count from our calculation
+          const playData = playCountMap.get(key) || { count: 1, totalPlayed: entry.ms_played };
           
-          if (!map.has(key)) {
-            map.set(key, {
-              trackName: entry.master_metadata_track_name,
-              artist: entry.master_metadata_album_artist_name,
-              albumName: entry.master_metadata_album_album_name || 'Unknown Album',
-              totalPlayed: entry.ms_played,
-              playCount: 1,
-              id: `raw-${key}`
-            });
-            
-            // Add to normalized map for fuzzy search
-            const normalizedTitle = normalizeTrackTitle(entry.master_metadata_track_name);
-            const normalizedArtist = normalizeArtistName(entry.master_metadata_album_artist_name);
-            
-            const normalizedKey = `${normalizedTitle}-${normalizedArtist}`;
-            if (!normalizedMap.has(normalizedKey)) {
-              normalizedMap.set(normalizedKey, []);
-            }
-            normalizedMap.get(normalizedKey).push(key);
-            
-            // Add common variations
-            const variations = getCommonVariations(entry.master_metadata_track_name);
-            variations.forEach(variation => {
-              const varKey = `${variation}-${normalizedArtist}`;
-              if (!normalizedMap.has(varKey)) {
-                normalizedMap.set(varKey, []);
-              }
-              if (!normalizedMap.get(varKey).includes(key)) {
-                normalizedMap.get(varKey).push(key);
-              }
-            });
+          map.set(key, {
+            trackName: entry.master_metadata_track_name,
+            artist: entry.master_metadata_album_artist_name,
+            albumName: entry.master_metadata_album_album_name || 'Unknown Album',
+            totalPlayed: playData.totalPlayed,
+            playCount: playData.count, // Use our calculated count
+            id: `raw-${key}`
+          });
+          
+          // Add to normalized map for fuzzy search
+          const normalizedTitle = normalizeTrackTitle(entry.master_metadata_track_name);
+          const normalizedArtist = normalizeArtistName(entry.master_metadata_album_artist_name);
+          
+          const normalizedKey = `${normalizedTitle}-${normalizedArtist}`;
+          if (!normalizedMap.has(normalizedKey)) {
+            normalizedMap.set(normalizedKey, []);
           }
-        } catch (err) {
-          console.warn("Error processing raw track:", entry, err);
+          normalizedMap.get(normalizedKey).push(key);
+          
+          // Add common variations
+          const variations = getCommonVariations(entry.master_metadata_track_name);
+          variations.forEach(variation => {
+            const varKey = `${variation}-${normalizedArtist}`;
+            if (!normalizedMap.has(varKey)) {
+              normalizedMap.set(varKey, []);
+            }
+            if (!normalizedMap.get(varKey).includes(key)) {
+              normalizedMap.get(varKey).push(key);
+            }
+          });
         }
+      } catch (err) {
+        console.warn("Error processing raw track:", entry, err);
       }
-    });
-    
-    // Store the normalized map in the map object itself
-    map.normalizedMap = normalizedMap;
-    
-    return map;
-  }, [processedData, rawPlayData]);
+    }
+  });
+  
+  // Store the normalized map in the map object itself
+  map.normalizedMap = normalizedMap;
+  
+  // For debugging
+  console.log("Track map created with correct play counts:", 
+    Array.from(map.values()).map(t => ({
+      name: t.trackName,
+      artist: t.artist,
+      playCount: t.playCount
+    })).slice(0, 5)
+  );
+  
+  return map;
+}, [processedData, rawPlayData]);
   
   // Helper function to normalize track titles for better matching
   function normalizeTrackTitle(title) {
