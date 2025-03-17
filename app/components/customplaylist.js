@@ -547,21 +547,7 @@ const generateFromRules = () => {
               
               return false;
             }
-            
-            default:
-              return true;
-          }
-        });
-        
-        // If track matches all rules, add it to results
-        if (matchesAllRules) {
-          // Always log high play count matches for debugging
-          if (hasPlayCountRule && +Number(track.playCount || 0) > 290) {
-            console.log(`MATCH FOUND: "${track.trackName}" with play count ${track.playCount}`);
-          }
-          
-          matchingTracks.push(track);
-        }
+
 case 'playDate': {
   // Get timestamp from track entry
   const trackDate = new Date(track.ts);
@@ -601,7 +587,22 @@ case 'playDate': {
   
   return false;
 }
-      });
+            
+            default:
+              return true;
+          }
+        });
+        
+        // If track matches all rules, add it to results
+        if (matchesAllRules) {
+          // Always log high play count matches for debugging
+          if (hasPlayCountRule && +Number(track.playCount || 0) > 290) {
+            console.log(`MATCH FOUND: "${track.trackName}" with play count ${track.playCount}`);
+          }
+          
+          matchingTracks.push(track);
+        }
+    });
       
       // Limit to 100 tracks
       const limitedResults = matchingTracks.slice(0, 100);
