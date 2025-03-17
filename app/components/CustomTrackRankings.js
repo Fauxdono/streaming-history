@@ -16,6 +16,7 @@ const CustomTrackRankings = ({
   const [selectedAlbums, setSelectedAlbums] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [albumSearch, setAlbumSearch] = useState('');
+  const [unifiedSearch, setUnifiedSearch] = useState('');
   const [includeFeatures, setIncludeFeatures] = useState(false); // Toggle for including features
   const [onlyFeatures, setOnlyFeatures] = useState(false); // Toggle for showing only features
   const [showExportOptions, setShowExportOptions] = useState(false);
@@ -454,15 +455,16 @@ const CustomTrackRankings = ({
         </div>
       </div>
 
-      {/* Artist Selection */}
+      {/* Unified Artist and Album Selection */}
       <div className="relative">
         <div className="flex flex-wrap gap-2 mb-2">
+          {/* Display selected artists */}
           {selectedArtists.map(artist => (
             <div 
               key={artist} 
               className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-sm"
             >
-              {artist}
+              <span className="mr-1">👤</span> {artist}
               <button 
                 onClick={() => removeArtist(artist)}
                 className="ml-2 text-white hover:text-orange-200"
@@ -471,39 +473,14 @@ const CustomTrackRankings = ({
               </button>
             </div>
           ))}
-        </div>
-
-        <div className="relative mb-4">
-          <input
-            type="text"
-            value={artistSearch}
-            onChange={(e) => setArtistSearch(e.target.value)}
-            placeholder="Search artists..."
-            className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          {artistSearch && filteredArtists.length > 0 && (
-            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
-              {filteredArtists.map(artist => (
-                <div
-                  key={artist}
-                  onClick={() => addArtist(artist)}
-                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer"
-                >
-                  {artist}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        {/* Album Selection */}
-        <div className="flex flex-wrap gap-2 mb-2">
+          
+          {/* Display selected albums */}
           {selectedAlbums.map(album => (
             <div 
               key={album.key} 
               className="flex items-center bg-orange-500 text-white px-2 py-1 rounded text-sm"
             >
-              {album.name} <span className="text-xs ml-1">({album.artist})</span>
+              <span className="mr-1">💿</span> {album.name} <span className="text-xs ml-1">({album.artist})</span>
               <button 
                 onClick={() => removeAlbum(album.key)}
                 className="ml-2 text-white hover:text-orange-200"
@@ -514,25 +491,64 @@ const CustomTrackRankings = ({
           ))}
         </div>
 
+        {/* Unified search box */}
         <div className="relative mb-4">
           <input
             type="text"
-            value={albumSearch}
-            onChange={(e) => setAlbumSearch(e.target.value)}
-            placeholder="Search albums..."
+            value={unifiedSearch}
+            onChange={(e) => {
+              // Update all search states with the same value
+              setUnifiedSearch(e.target.value);
+              setArtistSearch(e.target.value);
+              setAlbumSearch(e.target.value);
+            }}
+            placeholder="Search artists or albums..."
             className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
           />
-          {albumSearch && filteredAlbums.length > 0 && (
-            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
-              {filteredAlbums.map(album => (
-                <div
-                  key={album.key}
-                  onClick={() => addAlbum(album)}
-                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer"
-                >
-                  {album.name} <span className="text-xs text-gray-600">({album.artist})</span>
+          
+          {/* Show combined search results */}
+          {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
+            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1 max-h-60 overflow-y-auto">
+              {/* Show artists section if there are results */}
+              {filteredArtists.length > 0 && (
+                <div>
+                  <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ARTISTS</div>
+                  {filteredArtists.map(artist => (
+                    <div
+                      key={`artist-${artist}`}
+                      onClick={() => {
+                        addArtist(artist);
+                        setUnifiedSearch('');
+                        setArtistSearch('');
+                        setAlbumSearch('');
+                      }}
+                      className="px-2 py-1 hover:bg-orange-100 cursor-pointer flex items-center"
+                    >
+                      <span className="mr-1">👤</span> {artist}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              
+              {/* Show albums section if there are results */}
+              {filteredAlbums.length > 0 && (
+                <div>
+                  <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ALBUMS</div>
+                  {filteredAlbums.map(album => (
+                    <div
+                      key={`album-${album.key}`}
+                      onClick={() => {
+                        addAlbum(album);
+                        setArtistSearch('');
+                        setAlbumSearch('');
+                      }}
+                      className="px-2 py-1 hover:bg-orange-100 cursor-pointer flex items-center"
+                    >
+                      <span className="mr-1">💿</span> {album.name} <span className="text-xs text-gray-600 ml-1">({album.artist})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
