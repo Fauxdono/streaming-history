@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, subDays, format } from 'date-fns';
+import { startOfDay, endOfDay, format } from 'date-fns';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus, Save } from 'lucide-react';
 
@@ -365,7 +365,7 @@ const CustomTrackRankings = ({
     
     filteredTracks.forEach((track, index) => {
       // Skip system messages
-      if (['processing', 'no-matches', 'error'].includes(track.id)) {
+      if (track.id === 'processing' || track.id === 'no-matches' || track.id === 'error') {
         return;
       }
       
@@ -431,155 +431,76 @@ const CustomTrackRankings = ({
     window.URL.revokeObjectURL(url);
   };
 
+  // Set quick date range
+  const setQuickRange = (days) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    
+    setStartDate(format(start, 'yyyy-MM-dd'));
+    setEndDate(format(end, 'yyyy-MM-dd'));
+  };
+
   return (
     <div className="space-y-4">
-      <div className="space-y-4">
-        <div className="flex flex-col md:flex-row gap-4 items-start">
-          {/* Date Range Selector */}
-          <div className="w-full md:w-auto">
-            <label className="block text-orange-700 mb-1 font-medium">Date Range:</label>
-            <div className="flex items-center gap-2 text-orange-700">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              />
-              <span>to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              />
-            </div>
-            
-            {/* Date adjustment controls */}
-            <div className="mt-2 flex flex-wrap gap-2">
-              <div className="flex flex-col items-center">
-                <label className="text-xs text-orange-600 mb-1">Move Range</label>
-                <div className="flex gap-1">
-                  <button 
-                    onClick={() => adjustDateRange(-7)} 
-                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
-                    title="Move 7 days earlier"
-                  >
-                    ←
-                  </button>
-                  <button 
-                    onClick={() => adjustDateRange(7)} 
-                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
-                    title="Move 7 days later"
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <label className="text-xs text-orange-600 mb-1">Range Size</label>
-                <div className="flex gap-1">
-                  <button 
-                    onClick={() => expandDateRange(7)} 
-                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
-                    title="Include 7 more days"
-                  >
-                    +
-                  </button>
-                  <button 
-                    onClick={() => shrinkDateRange(7)} 
-                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
-                    title="Reduce range by 7 days"
-                  >
-                    -
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <label className="text-xs text-orange-600 mb-1">Quick Ranges</label>
-                <div className="flex gap-1">
-                  <button 
-                    onClick={() => {
-                      const end = new Date();
-                      const start = new Date();
-                      start.setDate(start.getDate() - 30);
-                      setStartDate(format(start, 'yyyy-MM-dd'));
-                      setEndDate(format(end, 'yyyy-MM-dd'));
-                    }} 
-                    className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-                    title="Last 30 days"
-                  >
-                    Month
-                  </button>
-                  <button 
-                    onClick={() => {
-                      const end = new Date();
-                      const start = new Date();
-                      start.setDate(start.getDate() - 7);
-                      setStartDate(format(start, 'yyyy-MM-dd'));
-                      setEndDate(format(end, 'yyyy-MM-dd'));
-                    }} 
-                    className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-                    title="Last 7 days"
-                  >
-                    Week
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="w-full md:w-auto">
-            <label className="block text-orange-700 mb-1 font-medium">Limits:</label>
-            <div className="flex items-center gap-2 text-orange-700">
-              <label>Top</label>
-              <input
-                type="number"
-                min="1"
-                max="999"
-                value={topN}
-                onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
-                className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              />
-              <label>tracks</label>
-              
-              <span className="ml-3">
-                <button
-                  onClick={() => setSortBy('totalPlayed')}
-                  className={`px-3 py-1 rounded-full ${
-                    sortBy === 'totalPlayed'
-                      ? 'bg-orange-600 text-white'
-                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                  }`}
-                >
-                  By Time
-                </button>
-                <button
-                  onClick={() => setSortBy('playCount')}
-                  className={`ml-1 px-3 py-1 rounded-full ${
-                    sortBy === 'playCount'
-                      ? 'bg-orange-600 text-white'
-                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                  }`}
-                >
-                  By Plays
-                </button>
-              </span>
-            </div>
-          </div>
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2 text-orange-700">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+          />
+          <span>to</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+          />
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => setQuickRange(0)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Day
+          </button>
+          <button onClick={() => setQuickRange(7)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Week
+          </button>
+          <button onClick={() => setQuickRange(30)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Month
+          </button>
+          <button onClick={() => setQuickRange(90)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Quarter
+          </button>
+          <button onClick={() => setQuickRange(365)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
+            Year
+          </button>
         </div>
 
-      {/* Unified Artist and Album Selection */}
+        <div className="flex items-center gap-2 text-orange-700">
+          <label>Top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
+            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+          />
+          <label>tracks</label>
+        </div>
+      </div>
+
+      {/* Artist Selection */}
       <div className="relative">
         <div className="flex flex-wrap gap-2 mb-2">
-          {/* Display selected artists */}
           {selectedArtists.map(artist => (
             <div 
               key={artist} 
               className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-sm"
             >
-              <span className="mr-1">👤</span> {artist}
+              {artist}
               <button 
                 onClick={() => removeArtist(artist)}
                 className="ml-2 text-white hover:text-orange-200"
@@ -589,7 +510,6 @@ const CustomTrackRankings = ({
             </div>
           ))}
           
-          {/* Display selected albums */}
           {selectedAlbums.map(album => (
             <div 
               key={album.key} 
@@ -606,8 +526,7 @@ const CustomTrackRankings = ({
           ))}
         </div>
 
-        {/* Unified search box */}
-        <div className="relative mb-4">
+        <div className="relative">
           <input
             type="text"
             value={unifiedSearch}
@@ -621,23 +540,19 @@ const CustomTrackRankings = ({
             className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
           />
           
-          {/* Show combined search results */}
           {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1 max-h-60 overflow-y-auto">
-              {/* Show artists section if there are results */}
+            <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-orange-600">
               {filteredArtists.length > 0 && (
                 <div>
                   <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ARTISTS</div>
                   {filteredArtists.map(artist => (
                     <div
-                      key={`artist-${artist}`}
+                      key={artist}
                       onClick={() => {
                         addArtist(artist);
                         setUnifiedSearch('');
-                        setArtistSearch('');
-                        setAlbumSearch('');
                       }}
-                      className="px-2 py-1 hover:bg-orange-100 cursor-pointer flex items-center"
+                      className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
                     >
                       <span className="mr-1">👤</span> {artist}
                     </div>
@@ -645,21 +560,19 @@ const CustomTrackRankings = ({
                 </div>
               )}
               
-              {/* Show albums section if there are results */}
               {filteredAlbums.length > 0 && (
                 <div>
                   <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ALBUMS</div>
                   {filteredAlbums.map(album => (
                     <div
-                      key={`album-${album.key}`}
+                      key={album.key}
                       onClick={() => {
                         addAlbum(album);
-                        setArtistSearch('');
-                        setAlbumSearch('');
+                        setUnifiedSearch('');
                       }}
-                      className="px-2 py-1 hover:bg-orange-100 cursor-pointer flex items-center"
+                      className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
                     >
-                      <span className="mr-1">💿</span> {album.name} <span className="text-xs text-gray-600 ml-1">({album.artist})</span>
+                      <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
                     </div>
                   ))}
                 </div>
@@ -710,44 +623,46 @@ const CustomTrackRankings = ({
         )}
       </div>
 
-      {/* Export playlist toggle */}
-      <div className="flex items-center mt-4">
+      {/* Export Controls */}
+      <div>
         <button
           onClick={() => setShowExportOptions(!showExportOptions)}
-          className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-2"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
         >
           <Download size={16} />
           {showExportOptions ? 'Hide Export Options' : 'Export as M3U Playlist'}
         </button>
-        {filteredTracks.length > 0 && (
-          <span className="ml-2 text-orange-600 font-medium">
-            {filteredTracks.length} tracks found
-          </span>
-        )}
-      </div>
-      
-      {/* Export Options */}
-      {showExportOptions && (
-        <div className="p-4 border border-orange-300 rounded bg-orange-50 mt-2">
-          <h4 className="font-bold text-orange-700 mb-2">M3U Playlist Export Options</h4>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        {showExportOptions && (
+          <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded">
             <div>
               <label className="block text-orange-700 mb-1">Playlist Name:</label>
               <input
                 type="text"
                 value={playlistName}
                 onChange={(e) => setPlaylistName(e.target.value)}
-                className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+                placeholder="Enter playlist name"
               />
             </div>
             
-            <div>
+            <div className="mt-3">
+              <label className="block text-orange-700 mb-1">Base Music Path:</label>
+              <input
+                type="text"
+                value={musicBasePath}
+                onChange={(e) => setMusicBasePath(e.target.value)}
+                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+                placeholder="e.g. /Music/Downloads or C:/Music"
+              />
+            </div>
+            
+            <div className="mt-3">
               <label className="block text-orange-700 mb-1">File Extension:</label>
               <select
                 value={fileExtension}
                 onChange={(e) => setFileExtension(e.target.value)}
-                className="w-full border rounded px-2 py-1 text-orange-700"
+                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
               >
                 <option value="mp3">mp3</option>
                 <option value="flac">flac</option>
@@ -756,85 +671,19 @@ const CustomTrackRankings = ({
                 <option value="wav">wav</option>
               </select>
             </div>
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1">Base Music Path:</label>
-            <input
-              type="text"
-              value={musicBasePath}
-              onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              placeholder="e.g. /Music or C:/Music"
-            />
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1">Path Format:</label>
-            <div className="flex gap-4 mb-2">
-              <label className="flex items-center text-orange-700">
-                <input
-                  type="radio"
-                  checked={pathFormat === 'default'}
-                  onChange={() => setPathFormat('default')}
-                  className="mr-2"
-                />
-                <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
-              </label>
-              <label className="flex items-center text-orange-700">
-                <input
-                  type="radio"
-                  checked={pathFormat === 'custom'}
-                  onChange={() => setPathFormat('custom')}
-                  className="mr-2"
-                />
-                <span>Custom Format</span>
-              </label>
-            </div>
             
-            {pathFormat === 'custom' && (
-              <div className="mt-2">
-                <input
-                  type="text"
-                  value={customPathFormat}
-                  onChange={(e) => setCustomPathFormat(e.target.value)}
-                  className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-                />
-                <div className="text-xs text-orange-600 mt-1">
-                  <p>Available placeholders: {'{basePath}'}, {'{artist}'}, {'{album}'}, {'{track}'}, {'{ext}'}, {'{index}'}</p>
-                </div>
-              </div>
-            )}
+            <div className="mt-3">
+              <button
+                onClick={exportPlaylist}
+                disabled={filteredTracks.length === 0}
+                className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed"
+              >
+                Download Playlist ({filteredTracks.length} tracks)
+              </button>
+            </div>
           </div>
-          
-          <div className="text-sm text-orange-600 p-3 bg-orange-100 rounded mt-3">
-            <p className="font-medium">Path Preview:</p>
-            <p className="font-mono mt-1">
-              {pathFormat === 'default' 
-                ? `${musicBasePath}/Artist/Artist-Album/Track.${fileExtension}`
-                : customPathFormat
-                    .replace('{basePath}', musicBasePath)
-                    .replace('{artist}', 'Artist')
-                    .replace('{album}', 'Album')
-                    .replace('{track}', 'Track')
-                    .replace('{ext}', fileExtension)
-                    .replace('{index}', '001')
-              }
-            </p>
-          </div>
-          
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={exportPlaylist}
-              disabled={filteredTracks.length === 0}
-              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Download size={16} />
-              Export Playlist ({filteredTracks.length} tracks)
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {filteredTracks.length > 0 ? (
         <div className="overflow-x-auto -mx-4 px-4">
@@ -912,6 +761,6 @@ const CustomTrackRankings = ({
       )}
     </div>
   );
-}
+};
 
 export default CustomTrackRankings;
