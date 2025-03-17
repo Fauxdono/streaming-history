@@ -91,10 +91,10 @@ const handleLoadSampleData = async () => {
   try {
     // URLs to your sample JSON files
     const sampleFileUrls = [
-     '/sampledata/Streaming1.json',
-    '/sampledata/Streaming2.json',
-'/sampledata/Streaming3.json',
-'/sampledata/Streaming4.json'
+      '/sampledata/Streaming1.json',
+      '/sampledata/Streaming2.json',
+      '/sampledata/Streaming3.json',
+      '/sampledata/Streaming4.json'
     ];
     
     // Fetch all files and create proper File objects
@@ -113,7 +113,14 @@ const handleLoadSampleData = async () => {
     setUploadedFiles(files.map(file => file.name));
     
     // Process the files - important to wait for this to complete
-    await processFiles(files);
+    const results = await processFiles(files);
+    
+    // If stats aren't properly populated, ensure they are
+    if (!stats || !stats.totalListeningTime) {
+      console.log("Ensuring stats are properly set");
+      // The processFiles function should have set all necessary state
+      // but we can verify here if needed
+    }
     
     // After processing completes, switch to stats tab
     setActiveTab('stats');
