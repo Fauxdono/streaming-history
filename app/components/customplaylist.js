@@ -379,24 +379,44 @@ const trackMap = useMemo(() => {
     ]);
   };
   
-  // Update a smart rule
-  const updateRule = (id, field, value) => {
-    setSmartRules(prev => 
-      prev.map(rule => 
-        rule.id === id ? { ...rule, [field]: value } : rule
-      )
-    );
-  };
-  
-  // Remove a smart rule
-  const removeRule = (id) => {
-    setSmartRules(prev => prev.filter(rule => rule.id !== id));
-  };
-  
+const updateRule = (id, field, value) => {
+  setSmartRules(prev => {
+    return prev.map(rule => {
+      if (rule.id === id) {
+        // Create a new rule object with the updated field
+        const updatedRule = { ...rule, [field]: value };
+        
+        // If changing the type to a numeric field, ensure proper operator is set
+        if (field === 'type' && (value === 'playCount' || value === 'playTime')) {
+          // Force numeric operators for numeric types
+          if (['contains', 'startsWith', 'endsWith'].includes(updatedRule.operator)) {
+            updatedRule.operator = 'greaterThan'; // Default to greaterThan for numeric fields
+          }
+        } 
+        // If changing from a numeric field to a text field, ensure proper operator is set
+        else if (field === 'type' && rule.type !== value && 
+                (rule.type === 'playCount' || rule.type === 'playTime')) {
+          // Coming from numeric field to text field, reset operator if needed
+          if (['greaterThan', 'lessThan', 'equals'].includes(updatedRule.operator)) {
+            updatedRule.operator = 'contains'; // Default to contains for text fields
+          }
+        }
+        
+        return updatedRule;
+      }
+      return rule;
+    });
+  });
+};
 
-// Replace your entire generateFromRules function with this direct implementation
+// And when creating the initial smart rules in useState, ensure proper operator:
+const [smartRules, setSmartRules] = useState([
+  { type: 'artist', operator: 'contains', value: '', id: Date.now() }
+]);
+
+// Add a type validation check in your generateFromRules function:
 const generateFromRules = () => {
-  console.clear(); // Clear previous logs for cleaner output
+  console.clear();
   console.log("======= STARTING PLAYLIST GENERATION =======");
   
   // Early exit if no valid rules
@@ -405,7 +425,35 @@ const generateFromRules = () => {
     return;
   }
   
-  // Show processing indicator immediately
+  // Only use valid rules (with values)
+  let validRules = smartRules.filter(rule => rule.value.trim());
+  
+  // IMPORTANT: Fix any incorrectly set operators (this is the key part)
+  validRules = validRules.map(rule => {
+    // Make a copy of the rule
+    const fixedRule = { ...rule };
+    
+    // Force correct operators based on type
+    if (rule.type === 'playCount' || rule.type === 'playTime') {
+      // For numeric fields, only allow numeric operators
+      if (['contains', 'startsWith', 'endsWith'].includes(rule.operator)) {
+        console.log(`FIXING OPERATOR: Changing ${rule.operator} to greaterThan for ${rule.type}`);
+        fixedRule.operator = 'greaterThan';
+      }
+    } else {
+      // For text fields, only allow text operators
+      if (['greaterThan', 'lessThan'].includes(rule.operator)) {
+        console.log(`FIXING OPERATOR: Changing ${rule.operator} to contains for ${rule.type}`);
+        fixedRule.operator = 'contains';
+      }
+    }
+    
+    return fixedRule;
+  });
+  
+  console.log("Rules after operator validation:", validRules);
+  
+  // Show processing indicator
   setSelectedTracks([{ 
     id: 'processing',
     trackName: 'Processing...',
