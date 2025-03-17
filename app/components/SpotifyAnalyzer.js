@@ -833,21 +833,19 @@ case 'updates':
             <div className="p-4 border rounded bg-green-50">
               <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
               <div className="space-y-2 text-green-700">
-                <p>Get a seamless, native-like experience with our Progressive Web App (PWA)!</p>
-                <div className="space-y-1">
                   <h4 className="font-medium text-green-800">Desktop:</h4>
                   <p>1. Open the site in Chrome/Edge</p>
                   <p>2. Click the "+" or install icon in the address bar</p>
-                  <p>3. Click "Install" to add to your desktop</p>
+  
                 </div>
                 <div className="space-y-1">
                   <h4 className="font-medium text-green-800">Mobile:</h4>
                   <p>1. Open in Safari (iOS) or Chrome (Android)</p>
                   <p>2. Tap "Add to Home Screen"</p>
-                  <p>3. Tap "Add" to install</p>
+             
                 </div>
                 <p className="text-sm text-green-600">
-                  Enjoy offline access and a native app-like experience!
+                  Enjoy offline access and storage of files.
                 </p>
               </div>
             </div>
