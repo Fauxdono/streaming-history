@@ -490,6 +490,8 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
 };
   
 
+// Replace the generateFromRules function in customplaylist.js with this improved version:
+
 // Generate a playlist from rules - using batched processing
 const generateFromRules = () => {
   // Early exit if no valid rules
