@@ -817,13 +817,13 @@ case 'updates':
   <button
     onClick={handleLoadSampleData}
     disabled={isProcessing}
-    className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-black rounded-lg hover:bg-purple-700 transition-colors"
+    className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
   >
     <Download size={16} />
-    Try with Sample Data
+    DEMO
   </button>
   <p className="text-sm text-gray-600 mt-1">
-    Want to test the app without uploading your own data? Click above to load sample streaming history.
+    Want to test the app without uploading your own data? Click DEMO to load sample streaming history.
   </p>
 </div>
                 <li>Click "Calculate Statistics"</li>
