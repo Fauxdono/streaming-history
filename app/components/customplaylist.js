@@ -393,76 +393,101 @@ const trackMap = useMemo(() => {
     setSmartRules(prev => prev.filter(rule => rule.id !== id));
   };
   
-  // Process tracks batch by batch to avoid UI freezing
-  const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => {
-    let results = [];
-    let processingIndex = 0;
+// Process tracks batch by batch to avoid UI freezing
+const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => {
+  let results = [];
+  let processingIndex = 0;
+  
+  function processNextBatch() {
+    // Update processing status
+    setSelectedTracks([{ 
+      id: 'processing',
+      trackName: `Processing... (${Math.min(processingIndex + batchSize, tracks.length)}/${tracks.length})`,
+      artist: `Found ${results.length} matching tracks so far`,
+      albumName: '',
+      totalPlayed: 0,
+      playCount: 0
+    }]);
     
-    function processNextBatch() {
-      // Update processing status
-      setSelectedTracks([{ 
-        id: 'processing',
-        trackName: `Processing... (${Math.min(processingIndex + batchSize, tracks.length)}/${tracks.length})`,
-        artist: `Found ${results.length} matching tracks so far`,
-        albumName: '',
-        totalPlayed: 0,
-        playCount: 0
-      }]);
+    // Process this batch
+    const endIndex = Math.min(processingIndex + batchSize, tracks.length);
+    const currentBatch = tracks.slice(processingIndex, endIndex);
+    
+    // Filter the batch
+    const batchMatches = currentBatch.filter(track => {
+      // Make sure track is valid
+      if (!track) return false;
       
-      // Process this batch
-      const endIndex = Math.min(processingIndex + batchSize, tracks.length);
-      const currentBatch = tracks.slice(processingIndex, endIndex);
-      
-      // Filter the batch
-      const batchMatches = currentBatch.filter(track => {
-        return validRules.every(rule => {
-          const value = rule.value.toLowerCase();
+      return validRules.every(rule => {
+        const value = rule.value.toLowerCase();
+        
+        // For debugging - log what we're comparing
+        if (rule.type === 'playCount') {
+          console.log(`Checking track "${track.trackName}" - playCount ${track.playCount} ${rule.operator} ${value}`);
+        }
+        
+        switch(rule.type) {
+          case 'artist':
+            return applyOperator(track.artist?.toLowerCase() || '', rule.operator, value);
+          case 'album':
+            return applyOperator(track.albumName?.toLowerCase() || '', rule.operator, value);
+          case 'track':
+            return applyOperator(track.trackName?.toLowerCase() || '', rule.operator, value);
+          case 'playCount':
+            // Always work with numbers for comparison
+            const trackCount = Number(track.playCount || 0);
+            const ruleCount = Number(value);
             
-     switch(rule.type) {
-  case 'artist':
-    return applyOperator(track.artist?.toLowerCase() || '', rule.operator, value);
-  case 'album':
-    return applyOperator(track.albumName?.toLowerCase() || '', rule.operator, value);
-  case 'track':
-    return applyOperator(track.trackName?.toLowerCase() || '', rule.operator, value);
-  case 'playCount':
-    const trackPlayCount = Number(track.playCount || 0);
-    const ruleValueNum = Number(parseInt(value) || 0);
-    switch(rule.operator) {
-      case 'greaterThan':
-        return trackPlayCount > ruleValueNum;
-      case 'lessThan': 
-        return trackPlayCount < ruleValueNum;
-      case 'equals':
-        return trackPlayCount === ruleValueNum;
-      default:
-        return applyOperator(trackPlayCount, rule.operator, ruleValueNum);
-    }
-  case 'playTime':
-    return applyOperator((track.totalPlayed || 0) / 60000, rule.operator, parseInt(value) || 0);
-  default:
-    return true;
-}
-        });
+            // Direct comparison
+            if (rule.operator === 'greaterThan') {
+              return trackCount > ruleCount;
+            } else if (rule.operator === 'lessThan') {
+              return trackCount < ruleCount;
+            } else if (rule.operator === 'equals') {
+              return trackCount === ruleCount;
+            }
+            
+            // Fallback
+            return applyOperator(trackCount, rule.operator, ruleCount);
+          case 'playTime':
+            // Always work with numbers for comparison
+            const trackTime = Number((track.totalPlayed || 0) / 60000);
+            const ruleTime = Number(value);
+            
+            // Direct comparison
+            if (rule.operator === 'greaterThan') {
+              return trackTime > ruleTime;
+            } else if (rule.operator === 'lessThan') {
+              return trackTime < ruleTime;
+            } else if (rule.operator === 'equals') {
+              return trackTime === ruleTime;
+            }
+            
+            // Fallback
+            return applyOperator(trackTime, rule.operator, ruleTime);
+          default:
+            return true;
+        }
       });
-      
-      // Add to results
-      results = [...results, ...batchMatches];
-      processingIndex = endIndex;
-      
-      // Check if we're done or should process the next batch
-      if (processingIndex < tracks.length && results.length < 100) {
-        // Schedule next batch
-        setTimeout(processNextBatch, 10);
-      } else {
-        // We're done, call the callback with results
-        resultCallback(results.slice(0, 100));
-      }
-    }
+    });
     
-    // Start processing
-    processNextBatch();
-  };
+    // Add matches to results
+    results = [...results, ...batchMatches];
+    processingIndex = endIndex;
+    
+    // Continue processing or finish
+    if (processingIndex < tracks.length && results.length < 100) {
+      // Schedule next batch
+      setTimeout(processNextBatch, 10);
+    } else {
+      // We're done, call the callback with results
+      resultCallback(results.slice(0, 100));
+    }
+  }
+  
+  // Start processing
+  processNextBatch();
+};
   
 // Generate a playlist from rules - using batched processing
 const generateFromRules = () => {
