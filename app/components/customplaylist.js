@@ -464,64 +464,91 @@ const trackMap = useMemo(() => {
     processNextBatch();
   };
   
-  // Generate a playlist from rules - using batched processing
-  const generateFromRules = () => {
-    // Early exit if no valid rules
-    if (smartRules.every(rule => !rule.value.trim())) {
-      alert('Please add at least one rule with a value');
-      return;
+// Generate a playlist from rules - using batched processing
+const generateFromRules = () => {
+  // Early exit if no valid rules
+  if (smartRules.every(rule => !rule.value.trim())) {
+    alert('Please add at least one rule with a value');
+    return;
+  }
+  
+  // Show processing indicator
+  setSelectedTracks([{ 
+    id: 'processing',
+    trackName: 'Processing...',
+    artist: 'Please wait while your playlist is being generated',
+    albumName: '',
+    totalPlayed: 0,
+    playCount: 0
+  }]);
+  
+  // Only use valid rules (with a value)
+  const validRules = smartRules.filter(rule => rule.value.trim());
+  
+  // Force a refresh of the track data before filtering
+  // This ensures play counts are fully calculated
+  const tracksToProcess = [...Array.from(trackMap.values())];
+  
+  // Log the rules we're applying for debugging
+  console.log("Applying rules:", validRules.map(r => 
+    `${r.type} ${r.operator} ${r.value}`
+  ));
+  
+  // Log some sample tracks to verify their structure
+  console.log("Sample tracks being filtered:", 
+    tracksToProcess.slice(0, 3).map(t => ({
+      name: t.trackName,
+      artist: t.artist,
+      playCount: t.playCount,
+      totalPlayed: t.totalPlayed
+    }))
+  );
+  
+  // Start processing after a slightly longer delay to ensure everything is loaded
+  setTimeout(() => {
+    try {
+      // Process tracks in batches
+      processBatches(tracksToProcess, validRules, 300, (matchingTracks) => {
+        // Update the selected tracks
+        if (matchingTracks.length === 0) {
+          setSelectedTracks([{
+            id: 'no-matches',
+            trackName: 'No matches found',
+            artist: 'Try adjusting your smart playlist rules',
+            albumName: '',
+            totalPlayed: 0,
+            playCount: 0
+          }]);
+          
+          // Clear the no-matches message after 3 seconds
+          setTimeout(() => {
+            setSelectedTracks([]);
+          }, 3000);
+        } else {
+          setSelectedTracks(matchingTracks);
+        }
+      });
+    } catch (error) {
+      console.error("Error generating playlist:", error);
+      setSelectedTracks([{
+        id: 'error',
+        trackName: 'Error generating playlist',
+        artist: error.message || 'Please try again with different rules',
+        albumName: '',
+        totalPlayed: 0,
+        playCount: 0
+      }]);
     }
-    
-    // Show processing indicator
-    setSelectedTracks([{ 
-      id: 'processing',
-      trackName: 'Processing...',
-      artist: 'Please wait while your playlist is being generated',
-      albumName: '',
-      totalPlayed: 0,
-      playCount: 0
-    }]);
-    
-    // Only use valid rules (with a value)
-    const validRules = smartRules.filter(rule => rule.value.trim());
-    
-    // Start processing after a short delay to allow UI to update
-    setTimeout(() => {
-      try {
-        // Process tracks in batches
-        processBatches(allTracks, validRules, 300, (matchingTracks) => {
-          // Update the selected tracks
-          if (matchingTracks.length === 0) {
-            setSelectedTracks([{
-              id: 'no-matches',
-              trackName: 'No matches found',
-              artist: 'Try adjusting your smart playlist rules',
-              albumName: '',
-              totalPlayed: 0,
-              playCount: 0
-            }]);
-            
-            // Clear the no-matches message after 3 seconds
-            setTimeout(() => {
-              setSelectedTracks([]);
-            }, 3000);
-          } else {
-            setSelectedTracks(matchingTracks);
-          }
-        });
-      } catch (error) {
-        console.error("Error generating playlist:", error);
-        setSelectedTracks([{
-          id: 'error',
-          trackName: 'Error generating playlist',
-          artist: error.message || 'Please try again with different rules',
-          albumName: '',
-          totalPlayed: 0,
-          playCount: 0
-        }]);
-      }
-    }, 100);
-  };
+  }, 300); // Increased delay to ensure everything is properly loaded
+};
+
+useEffect(() => {
+  // Reset any previous processing when rules change
+  if (creationMode === 'smart' && 
+      selectedTracks.some(t => ['processing', 'no-matches', 'error'].includes(t.id))) {
+    setSelectedTracks([]);
+  }
+}, [smartRules, creationMode]);
   
   // Helper function to apply operators
   const applyOperator = (fieldValue, operator, ruleValue) => {
