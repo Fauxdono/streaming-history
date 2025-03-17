@@ -817,7 +817,7 @@ case 'updates':
   <button
     onClick={handleLoadSampleData}
     disabled={isProcessing}
-    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+    className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-black rounded-lg hover:bg-purple-700 transition-colors"
   >
     <Download size={16} />
     Try with Sample Data
@@ -833,6 +833,8 @@ case 'updates':
             <div className="p-4 border rounded bg-green-50">
               <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
               <div className="space-y-2 text-green-700">
+          
+                <div className="space-y-1">
                   <h4 className="font-medium text-green-800">Desktop:</h4>
                   <p>1. Open the site in Chrome/Edge</p>
                   <p>2. Click the "+" or install icon in the address bar</p>
@@ -845,7 +847,7 @@ case 'updates':
              
                 </div>
                 <p className="text-sm text-green-600">
-                  Enjoy offline access and storage of files.
+                  Enjoy offline access
                 </p>
               </div>
             </div>
