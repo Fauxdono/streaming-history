@@ -912,6 +912,6 @@ const CustomTrackRankings = ({
       )}
     </div>
   );
-};
+}
 
 export default CustomTrackRankings;
