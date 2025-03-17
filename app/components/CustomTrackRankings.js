@@ -1,21 +1,48 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, subDays, format } from 'date-fns';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
+import { Download, Plus, Save } from 'lucide-react';
 
-const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists = [] }) => {
+const CustomTrackRankings = ({ 
+  rawPlayData = [], 
+  formatDuration, 
+  initialArtists = [] 
+}) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [topN, setTopN] = useState(50);
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
+  const [selectedAlbums, setSelectedAlbums] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
+  const [albumSearch, setAlbumSearch] = useState('');
   const [includeFeatures, setIncludeFeatures] = useState(false); // Toggle for including features
-  const [onlyFeatures, setOnlyFeatures] = useState(false); // New toggle for showing only features
+  const [onlyFeatures, setOnlyFeatures] = useState(false); // Toggle for showing only features
+  const [showExportOptions, setShowExportOptions] = useState(false);
+  const [musicBasePath, setMusicBasePath] = useState('/Music/Downloads');
+  const [fileExtension, setFileExtension] = useState('mp3');
+  const [pathFormat, setPathFormat] = useState('default');
+  const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{artist}-{album}/{track}.{ext}');
+  const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
   
   const addArtistFromTrack = (artist) => {
     // Prevent duplicate artists
     if (!selectedArtists.includes(artist)) {
       setSelectedArtists(prev => [...prev, artist]);
+    }
+  };
+  
+  const addAlbumFromTrack = (album, artist) => {
+    // Create a unique identifier for the album
+    const albumKey = `${album} - ${artist}`;
+    
+    // Prevent duplicate albums
+    if (!selectedAlbums.some(a => a.key === albumKey)) {
+      setSelectedAlbums(prev => [...prev, { 
+        name: album, 
+        artist: artist, 
+        key: albumKey 
+      }]);
     }
   };
 
@@ -45,6 +72,25 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
     return Array.from(artists).sort();
   }, [rawPlayData]);
 
+  // Get unique albums from raw play data
+  const allAlbums = useMemo(() => {
+    const albumMap = new Map();
+    
+    rawPlayData
+      .filter(entry => entry.master_metadata_album_album_name && entry.master_metadata_album_artist_name)
+      .forEach(entry => {
+        const album = entry.master_metadata_album_album_name;
+        const artist = entry.master_metadata_album_artist_name;
+        const key = `${album} - ${artist}`;
+        
+        if (!albumMap.has(key)) {
+          albumMap.set(key, { name: album, artist: artist, key: key });
+        }
+      });
+    
+    return Array.from(albumMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [rawPlayData]);
+
   const filteredArtists = useMemo(() => {
     return allArtists
       .filter(artist => 
@@ -53,6 +99,16 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
       )
       .slice(0, 10);
   }, [allArtists, artistSearch, selectedArtists]);
+  
+  const filteredAlbums = useMemo(() => {
+    return allAlbums
+      .filter(album => 
+        (album.name.toLowerCase().includes(albumSearch.toLowerCase()) || 
+         album.artist.toLowerCase().includes(albumSearch.toLowerCase())) &&
+        !selectedAlbums.some(a => a.key === album.key)
+      )
+      .slice(0, 10);
+  }, [allAlbums, albumSearch, selectedAlbums]);
 
   // Create a mapping of track/artist keys to album names
   const albumMap = useMemo(() => {
@@ -108,6 +164,17 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
             console.warn('Error normalizing track name:', err);
           }
           
+          // Album filtering
+          const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+          let isAlbumMatch = true;
+          
+          if (selectedAlbums.length > 0) {
+            isAlbumMatch = selectedAlbums.some(album => 
+              album.name === albumName && 
+              album.artist === entry.master_metadata_album_artist_name
+            );
+          }
+          
           // Check if this is a main artist match
           const isArtistMatch = selectedArtists.length === 0 || 
             selectedArtists.includes(entry.master_metadata_album_artist_name);
@@ -122,17 +189,21 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
           
           // Handle filter logic for different toggle states
           const shouldInclude = (
-            // No artists selected - include everything
-            selectedArtists.length === 0 ||
-            
-            // Only features mode - only include feature matches
-            (onlyFeatures && isFeatureMatch) ||
-            
-            // Main artist matches (when not in only-features mode)
-            (!onlyFeatures && isArtistMatch) ||
-            
-            // Include features mode - include feature matches
-            (!onlyFeatures && includeFeatures && isFeatureMatch)
+            // Album filter must match if albums are selected
+            isAlbumMatch &&
+            (
+              // No artists selected - include everything
+              selectedArtists.length === 0 ||
+              
+              // Only features mode - only include feature matches
+              (onlyFeatures && isFeatureMatch) ||
+              
+              // Main artist matches (when not in only-features mode)
+              (!onlyFeatures && isArtistMatch) ||
+              
+              // Include features mode - include feature matches
+              (!onlyFeatures && includeFeatures && isFeatureMatch)
+            )
           );
           
           if (!shouldInclude) {
@@ -153,7 +224,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
           
           // Get the album name if available
           const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
-          let albumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
+          const lookupAlbumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
           
           if (!trackStats[key]) {
             // New track, create its stats object
@@ -161,7 +232,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
               key,
               trackName: entry.master_metadata_track_name,
               artist: entry.master_metadata_album_artist_name,
-              albumName: albumName,
+              albumName: lookupAlbumName,
               totalPlayed: 0,
               playCount: 0,
               featureArtists,
@@ -181,9 +252,9 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
             }
             
             // Update album name if this entry has a better one
-            if (albumName !== 'Unknown Album' && 
+            if (lookupAlbumName !== 'Unknown Album' && 
                 (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
-              trackStats[key].albumName = albumName;
+              trackStats[key].albumName = lookupAlbumName;
             }
           }
           
@@ -199,7 +270,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
     return Object.values(trackStats)
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, includeFeatures, onlyFeatures, albumMap]);
+  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
   const setQuickRange = (days) => {
     const end = new Date();
@@ -218,6 +289,15 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
   const removeArtist = (artist) => {
     setSelectedArtists(prev => prev.filter(a => a !== artist));
   };
+  
+  const addAlbum = (album) => {
+    setSelectedAlbums(prev => [...prev, album]);
+    setAlbumSearch('');
+  };
+
+  const removeAlbum = (albumKey) => {
+    setSelectedAlbums(prev => prev.filter(a => a.key !== albumKey));
+  };
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
@@ -234,6 +314,93 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
         setIncludeFeatures(false);
       }
     }
+  };
+
+  // Helper function to clean path components for file system compatibility
+  const cleanPathComponent = (text) => {
+    if (!text) return 'Unknown';
+    
+    return text
+      .replace(/[/\\?%*:|"<>]/g, '') // Remove characters not allowed in file paths
+      .replace(/\s+/g, ' ')          // Normalize whitespace
+      .trim();
+  };
+  
+  // Create M3U playlist content
+  const createM3UContent = () => {
+    if (filteredTracks.length === 0) {
+      return '';
+    }
+    
+    // Create the M3U content
+    let content = '#EXTM3U\n';
+    
+    filteredTracks.forEach((track, index) => {
+      // Skip system messages
+      if (['processing', 'no-matches', 'error'].includes(track.id)) {
+        return;
+      }
+      
+      // Calculate track duration in seconds (avoid division by zero)
+      const durationSecs = Math.round(track.totalPlayed / (track.playCount || 1) / 1000);
+      
+      // Basic info line
+      content += `#EXTINF:${durationSecs},${track.artist} - ${track.trackName}\n`;
+      
+      // File path line - create a clean path without special characters
+      const artist = cleanPathComponent(track.artist);
+      const album = cleanPathComponent(track.albumName || 'Unknown Album');
+      const trackName = cleanPathComponent(track.trackName);
+      
+      // Build the file path
+      let filePath;
+      
+      if (pathFormat === 'default') {
+        // Default format: BasePath/Artist/Artist-Album/Track.ext
+        filePath = `${musicBasePath}/${artist}/${artist}-${album}/${trackName}.${fileExtension}`;
+      } else {
+        // Custom format using the template
+        filePath = customPathFormat
+          .replace('{basePath}', musicBasePath)
+          .replace('{artist}', artist)
+          .replace('{album}', album)
+          .replace('{track}', trackName)
+          .replace('{ext}', fileExtension)
+          .replace('{index}', (index + 1).toString().padStart(3, '0'));
+      }
+      
+      content += `${filePath}\n`;
+    });
+    
+    return content;
+  };
+  
+  // Export the playlist
+  const exportPlaylist = () => {
+    if (filteredTracks.length === 0) {
+      alert('No tracks to export');
+      return;
+    }
+    
+    const content = createM3UContent();
+    if (!content) {
+      alert('Error creating playlist content');
+      return;
+    }
+    
+    // Create filename with timestamp
+    const timestamp = new Date().toISOString().split('T')[0];
+    const sanitizedPlaylistName = playlistName.replace(/[/\\?%*:|"<>]/g, '_');
+    const filename = `${sanitizedPlaylistName}-${timestamp}.m3u`;
+    
+    // Download the file
+    const blob = new Blob([content], { type: 'audio/x-mpegurl' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -289,7 +456,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
 
       {/* Artist Selection */}
       <div className="relative">
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-2">
           {selectedArtists.map(artist => (
             <div 
               key={artist} 
@@ -306,7 +473,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
           ))}
         </div>
 
-        <div className="relative">
+        <div className="relative mb-4">
           <input
             type="text"
             value={artistSearch}
@@ -320,9 +487,50 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                 <div
                   key={artist}
                   onClick={() => addArtist(artist)}
-                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer text-orange-700"
+                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer"
                 >
                   {artist}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Album Selection */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedAlbums.map(album => (
+            <div 
+              key={album.key} 
+              className="flex items-center bg-orange-500 text-white px-2 py-1 rounded text-sm"
+            >
+              {album.name} <span className="text-xs ml-1">({album.artist})</span>
+              <button 
+                onClick={() => removeAlbum(album.key)}
+                className="ml-2 text-white hover:text-orange-200"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="relative mb-4">
+          <input
+            type="text"
+            value={albumSearch}
+            onChange={(e) => setAlbumSearch(e.target.value)}
+            placeholder="Search albums..."
+            className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+          />
+          {albumSearch && filteredAlbums.length > 0 && (
+            <div className="absolute z-10 w-full bg-white border rounded shadow-lg mt-1">
+              {filteredAlbums.map(album => (
+                <div
+                  key={album.key}
+                  onClick={() => addAlbum(album)}
+                  className="px-2 py-1 hover:bg-orange-100 cursor-pointer"
+                >
+                  {album.name} <span className="text-xs text-gray-600">({album.artist})</span>
                 </div>
               ))}
             </div>
@@ -371,6 +579,152 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
         )}
       </div>
 
+      {/* Export playlist toggle */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center">
+          <button
+            onClick={() => setShowExportOptions(!showExportOptions)}
+            className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-2"
+          >
+            <Download size={16} />
+            {showExportOptions ? 'Hide Export Options' : 'Export as M3U Playlist'}
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSortBy('totalPlayed')}
+            className={`px-3 py-1 rounded-full ${
+              sortBy === 'totalPlayed'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Sort by Time
+          </button>
+          <button
+            onClick={() => setSortBy('playCount')}
+            className={`px-3 py-1 rounded-full ${
+              sortBy === 'playCount'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Sort by Plays
+          </button>
+        </div>
+      </div>
+      
+      {/* Export Options */}
+      {showExportOptions && (
+        <div className="p-4 border border-orange-300 rounded bg-orange-50 mt-2">
+          <h4 className="font-bold text-orange-700 mb-2">M3U Playlist Export Options</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-orange-700 mb-1">Playlist Name:</label>
+              <input
+                type="text"
+                value={playlistName}
+                onChange={(e) => setPlaylistName(e.target.value)}
+                className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-orange-700 mb-1">File Extension:</label>
+              <select
+                value={fileExtension}
+                onChange={(e) => setFileExtension(e.target.value)}
+                className="w-full border rounded px-2 py-1 text-orange-700"
+              >
+                <option value="mp3">mp3</option>
+                <option value="flac">flac</option>
+                <option value="m4a">m4a</option>
+                <option value="ogg">ogg</option>
+                <option value="wav">wav</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="mt-3">
+            <label className="block text-orange-700 mb-1">Base Music Path:</label>
+            <input
+              type="text"
+              value={musicBasePath}
+              onChange={(e) => setMusicBasePath(e.target.value)}
+              className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              placeholder="e.g. /Music or C:/Music"
+            />
+          </div>
+          
+          <div className="mt-3">
+            <label className="block text-orange-700 mb-1">Path Format:</label>
+            <div className="flex gap-4 mb-2">
+              <label className="flex items-center text-orange-700">
+                <input
+                  type="radio"
+                  checked={pathFormat === 'default'}
+                  onChange={() => setPathFormat('default')}
+                  className="mr-2"
+                />
+                <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
+              </label>
+              <label className="flex items-center text-orange-700">
+                <input
+                  type="radio"
+                  checked={pathFormat === 'custom'}
+                  onChange={() => setPathFormat('custom')}
+                  className="mr-2"
+                />
+                <span>Custom Format</span>
+              </label>
+            </div>
+            
+            {pathFormat === 'custom' && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  value={customPathFormat}
+                  onChange={(e) => setCustomPathFormat(e.target.value)}
+                  className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+                />
+                <div className="text-xs text-orange-600 mt-1">
+                  <p>Available placeholders: {'{basePath}'}, {'{artist}'}, {'{album}'}, {'{track}'}, {'{ext}'}, {'{index}'}</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="text-sm text-orange-600 p-3 bg-orange-100 rounded mt-3">
+            <p className="font-medium">Path Preview:</p>
+            <p className="font-mono mt-1">
+              {pathFormat === 'default' 
+                ? `${musicBasePath}/Artist/Artist-Album/Track.${fileExtension}`
+                : customPathFormat
+                    .replace('{basePath}', musicBasePath)
+                    .replace('{artist}', 'Artist')
+                    .replace('{album}', 'Album')
+                    .replace('{track}', 'Track')
+                    .replace('{ext}', fileExtension)
+                    .replace('{index}', '001')
+              }
+            </p>
+          </div>
+          
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={exportPlaylist}
+              disabled={filteredTracks.length === 0}
+              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <Download size={16} />
+              Export Playlist ({filteredTracks.length} tracks)
+            </button>
+          </div>
+        </div>
+      )}
+
       {filteredTracks.length > 0 ? (
         <div className="overflow-x-auto -mx-4 px-4">
           <div className="min-w-[640px]">
@@ -382,13 +736,17 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                   <th className="p-2 text-left text-orange-700">Artist</th>
                   <th className="p-2 text-left text-orange-700">Album</th>
                   <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
+                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                      sortBy === 'totalPlayed' ? 'font-bold' : ''
+                    }`}
                     onClick={() => setSortBy('totalPlayed')}
                   >
                     Total Time {sortBy === 'totalPlayed' && '▼'}
                   </th>
                   <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${sortBy === 'playCount' ? 'font-bold' : ''}`}
+                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                      sortBy === 'playCount' ? 'font-bold' : ''
+                    }`}
                     onClick={() => setSortBy('playCount')}
                   >
                     Play Count {sortBy === 'playCount' && '▼'}
@@ -411,17 +769,6 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                         )}
                         <div>
                           {song.trackName}
-                          {song.featureArtists && song.featureArtists.length > 0 && (
-                            <div className="text-xs text-orange-500 mt-0.5">
-                              feat. {song.featureArtists.join(', ')}
-                            </div>
-                          )}
-                          {song.variations && song.variations.length > 1 && (
-                            <div className="text-xs text-orange-400 mt-0.5">
-                              Also: {song.variations.filter(v => v !== song.trackName)[0]}
-                              {song.variations.length > 2 ? ` +${song.variations.length - 2} more` : ''}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </td>
@@ -431,7 +778,12 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
                     > 
                       {song.artist} 
                     </td>
-                    <td className="p-2 text-orange-700">{song.albumName}</td>
+                    <td 
+                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
+                      onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+                    >
+                      {song.albumName}
+                    </td>
                     <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
                     <td className="p-2 text-right text-orange-700">{song.playCount}</td>
                   </tr>
@@ -442,7 +794,7 @@ const CustomTrackRankings = ({ rawPlayData = [], formatDuration, initialArtists 
         </div>
       ) : (
         <div className="text-center py-4 text-orange-500">
-          {startDate || endDate || selectedArtists.length > 0 
+          {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
             ? 'No tracks found matching your filters' 
             : 'Select filters to view tracks'}
         </div>
