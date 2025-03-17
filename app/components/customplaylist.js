@@ -380,33 +380,25 @@ const trackMap = useMemo(() => {
   };
   
 const updateRule = (id, field, value) => {
-  setSmartRules(prev => {
-    return prev.map(rule => {
+  setSmartRules(prev => 
+    prev.map(rule => {
       if (rule.id === id) {
-        // Create a new rule object with the updated field
+        // Create updated rule with new field value
         const updatedRule = { ...rule, [field]: value };
         
-        // If changing the type to a numeric field, ensure proper operator is set
+        // If changing to a numeric field type, ensure operator is appropriate
         if (field === 'type' && (value === 'playCount' || value === 'playTime')) {
-          // Force numeric operators for numeric types
+          // For numeric fields, use numeric operators
           if (['contains', 'startsWith', 'endsWith'].includes(updatedRule.operator)) {
-            updatedRule.operator = 'greaterThan'; // Default to greaterThan for numeric fields
-          }
-        } 
-        // If changing from a numeric field to a text field, ensure proper operator is set
-        else if (field === 'type' && rule.type !== value && 
-                (rule.type === 'playCount' || rule.type === 'playTime')) {
-          // Coming from numeric field to text field, reset operator if needed
-          if (['greaterThan', 'lessThan', 'equals'].includes(updatedRule.operator)) {
-            updatedRule.operator = 'contains'; // Default to contains for text fields
+            updatedRule.operator = 'greaterThan'; // Default numeric operator
           }
         }
         
         return updatedRule;
       }
       return rule;
-    });
-  });
+    })
+  );
 };
 
 // And when creating the initial smart rules in useState, ensure proper operator:
@@ -424,36 +416,7 @@ const generateFromRules = () => {
     alert('Please add at least one rule with a value');
     return;
   }
-  
-  // Only use valid rules (with values)
-  let validRules = smartRules.filter(rule => rule.value.trim());
-  
-  // IMPORTANT: Fix any incorrectly set operators (this is the key part)
-  validRules = validRules.map(rule => {
-    // Make a copy of the rule
-    const fixedRule = { ...rule };
-    
-    // Force correct operators based on type
-    if (rule.type === 'playCount' || rule.type === 'playTime') {
-      // For numeric fields, only allow numeric operators
-      if (['contains', 'startsWith', 'endsWith'].includes(rule.operator)) {
-        console.log(`FIXING OPERATOR: Changing ${rule.operator} to greaterThan for ${rule.type}`);
-        fixedRule.operator = 'greaterThan';
-      }
-    } else {
-      // For text fields, only allow text operators
-      if (['greaterThan', 'lessThan'].includes(rule.operator)) {
-        console.log(`FIXING OPERATOR: Changing ${rule.operator} to contains for ${rule.type}`);
-        fixedRule.operator = 'contains';
-      }
-    }
-    
-    return fixedRule;
-  });
-  
-  console.log("Rules after operator validation:", validRules);
-  
-  // Show processing indicator
+ // Show processing indicator
   setSelectedTracks([{ 
     id: 'processing',
     trackName: 'Processing...',
@@ -462,6 +425,27 @@ const generateFromRules = () => {
     totalPlayed: 0,
     playCount: 0
   }]);
+
+ let validRules = smartRules.filter(rule => rule.value.trim());
+  
+  // CRITICAL FIX: Ensure proper operators for numeric fields
+  validRules = validRules.map(rule => {
+    // Make a copy to avoid mutating the original rule
+    const fixedRule = { ...rule };
+    
+    // For numeric fields, ensure numeric operators
+    if (rule.type === 'playCount' || rule.type === 'playTime') {
+      if (['contains', 'startsWith', 'endsWith'].includes(rule.operator)) {
+        console.log(`FIXING OPERATOR: Changing ${rule.operator} to greaterThan for ${rule.type}`);
+        fixedRule.operator = 'greaterThan';
+      }
+    }
+    
+    return fixedRule;
+  });
+  
+  console.log("Rules after validation:", validRules);
+  
   
   // Only use valid rules (with values)
   const validRules = smartRules.filter(rule => rule.value.trim());
