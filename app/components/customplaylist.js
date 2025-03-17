@@ -377,20 +377,31 @@ const CustomPlaylistCreator = ({
         return validRules.every(rule => {
           const value = rule.value.toLowerCase();
             
-          switch(rule.type) {
-            case 'artist':
-              return applyOperator(track.artist?.toLowerCase() || '', rule.operator, value);
-            case 'album':
-              return applyOperator(track.albumName?.toLowerCase() || '', rule.operator, value);
-            case 'track':
-              return applyOperator(track.trackName?.toLowerCase() || '', rule.operator, value);
-            case 'playCount':
-              return applyOperator(track.playCount || 0, rule.operator, parseInt(value) || 0);
-            case 'playTime':
-              return applyOperator((track.totalPlayed || 0) / 60000, rule.operator, parseInt(value) || 0);
-            default:
-              return true;
-          }
+     switch(rule.type) {
+  case 'artist':
+    return applyOperator(track.artist?.toLowerCase() || '', rule.operator, value);
+  case 'album':
+    return applyOperator(track.albumName?.toLowerCase() || '', rule.operator, value);
+  case 'track':
+    return applyOperator(track.trackName?.toLowerCase() || '', rule.operator, value);
+  case 'playCount':
+    const trackPlayCount = Number(track.playCount || 0);
+    const ruleValueNum = Number(parseInt(value) || 0);
+    switch(rule.operator) {
+      case 'greaterThan':
+        return trackPlayCount > ruleValueNum;
+      case 'lessThan': 
+        return trackPlayCount < ruleValueNum;
+      case 'equals':
+        return trackPlayCount === ruleValueNum;
+      default:
+        return applyOperator(trackPlayCount, rule.operator, ruleValueNum);
+    }
+  case 'playTime':
+    return applyOperator((track.totalPlayed || 0) / 60000, rule.operator, parseInt(value) || 0);
+  default:
+    return true;
+}
         });
       });
       
