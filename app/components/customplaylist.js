@@ -401,12 +401,7 @@ const updateRule = (id, field, value) => {
   );
 };
 
-// And when creating the initial smart rules in useState, ensure proper operator:
-const [smartRules, setSmartRules] = useState([
-  { type: 'artist', operator: 'contains', value: '', id: Date.now() }
-]);
 
-// Add a type validation check in your generateFromRules function:
 const generateFromRules = () => {
   console.clear();
   console.log("======= STARTING PLAYLIST GENERATION =======");
@@ -416,7 +411,8 @@ const generateFromRules = () => {
     alert('Please add at least one rule with a value');
     return;
   }
- // Show processing indicator
+  
+  // Show processing indicator
   setSelectedTracks([{ 
     id: 'processing',
     trackName: 'Processing...',
@@ -425,8 +421,9 @@ const generateFromRules = () => {
     totalPlayed: 0,
     playCount: 0
   }]);
-
- let validRules = smartRules.filter(rule => rule.value.trim());
+  
+  // Only use valid rules (with a value)
+  let validRules = smartRules.filter(rule => rule.value.trim());
   
   // CRITICAL FIX: Ensure proper operators for numeric fields
   validRules = validRules.map(rule => {
@@ -445,18 +442,13 @@ const generateFromRules = () => {
   });
   
   console.log("Rules after validation:", validRules);
-  
-  
-  // Only use valid rules (with values)
-  const validRules = smartRules.filter(rule => rule.value.trim());
-  console.log("Valid rules:", validRules);
+  console.log(`Processing ${allTracks.length} total tracks`);
   
   // Skip all complex pre-processing and go straight to filtering
   setTimeout(() => {
     try {
       // Get all tracks as an array
       const allTracks = Array.from(trackMap.values());
-      console.log(`Processing ${allTracks.length} total tracks`);
       
       // DIRECT FILTERING - no batching, no callbacks, just direct filtering
       const matchingTracks = [];
@@ -604,7 +596,6 @@ const generateFromRules = () => {
     }
   }, 100);
 };
-
 // Also replace the applyOperator function with this version for numeric comparisons:
 const applyOperator = (fieldValue, operator, ruleValue) => {
   switch(operator) {
