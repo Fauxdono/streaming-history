@@ -1271,7 +1271,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     placeholder={`Enter ${rule.type} value...`}
                     min={rule.type === 'playCount' || rule.type === 'playTime' ? "0" : undefined}
                   />
-                  
+                  )}
                   <button 
                     onClick={() => removeRule(rule.id)}
                     className="p-2 text-red-600 hover:text-red-800"
