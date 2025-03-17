@@ -394,7 +394,7 @@ const trackMap = useMemo(() => {
   };
   
 
-// Generate a playlist from rules - using batched processing
+// Replace your generateFromRules function with this version:
 const generateFromRules = () => {
   // Early exit if no valid rules
   if (smartRules.every(rule => !rule.value.trim())) {
@@ -414,69 +414,185 @@ const generateFromRules = () => {
   
   // Only use valid rules (with a value)
   const validRules = smartRules.filter(rule => rule.value.trim());
+
+  // PRE-PROCESS TRACKS - VERY IMPORTANT
+  // Force a deep clone of all tracks with explicit number conversion
+  const tracksToProcess = [];
   
-  // Force a refresh of the track data before filtering
-  // This ensures play counts are fully calculated and properly converted to numbers
-  const tracksToProcess = Array.from(trackMap.values()).map(track => {
-    // Make a copy of the track to avoid reference issues
-    const trackCopy = {...track};
+  // Add all tracks from the map with numeric values explicitly enforced
+  trackMap.forEach((track, key) => {
+    if (!track) return;
     
-    // Ensure playCount is a number
-    if (trackCopy.playCount !== undefined) {
-      trackCopy.playCount = Number(trackCopy.playCount);
-    } else {
-      trackCopy.playCount = 0;
+    // Create a fresh copy of the track
+    const trackCopy = {
+      ...track,
+      // Force these to be numbers with explicit conversion
+      playCount: Number(track.playCount || 0),
+      totalPlayed: Number(track.totalPlayed || 0)
+    };
+    
+    // Log sample tracks for debugging
+    if (tracksToProcess.length < 5) {
+      console.log(`Track ${trackCopy.trackName} prepared with playCount: ${trackCopy.playCount} (${typeof trackCopy.playCount})`);
     }
     
-    // Ensure totalPlayed is a number
-    if (trackCopy.totalPlayed !== undefined) {
-      trackCopy.totalPlayed = Number(trackCopy.totalPlayed);
-    } else {
-      trackCopy.totalPlayed = 0;
-    }
-    
-    return trackCopy;
+    tracksToProcess.push(trackCopy);
   });
   
-  // Log some sample tracks to verify their structure
-  console.log("Sample tracks for filtering:", 
-    tracksToProcess.slice(0, 3).map(t => ({
-      name: t.trackName,
-      artist: t.artist,
-      playCount: t.playCount,
-      totalPlayed: t.totalPlayed
-    }))
-  );
+  console.log(`Prepared ${tracksToProcess.length} tracks for filtering`);
   
-  // Log the rules we're applying for debugging
-  console.log("Applying rules:", validRules.map(r => 
-    `${r.type} ${r.operator} ${r.value}`
-  ));
+  // Log the rules we're applying for better debugging
+  validRules.forEach(rule => {
+    if (rule.type === 'playCount' || rule.type === 'playTime') {
+      console.log(`Processing numeric rule: ${rule.type} ${rule.operator} ${rule.value} (${typeof Number(rule.value)})`);
+    }
+  });
   
-  // Start processing with a slight delay to ensure UI updates
+  // Immediate filter for playCount rules to verify if they work
+  if (validRules.some(rule => rule.type === 'playCount')) {
+    const sampleRule = validRules.find(rule => rule.type === 'playCount');
+    const ruleValue = Number(sampleRule.value);
+    const operator = sampleRule.operator;
+    
+    // Test filtering with just the playCount rule on a few tracks
+    const testMatches = tracksToProcess.slice(0, 100).filter(track => {
+      const trackCount = track.playCount;
+      let matches = false;
+      
+      if (operator === 'greaterThan') {
+        matches = trackCount > ruleValue;
+      } else if (operator === 'lessThan') {
+        matches = trackCount < ruleValue;
+      } else if (operator === 'equals') {
+        matches = trackCount === ruleValue;
+      }
+      
+      // Log if it matches
+      if (matches) {
+        console.log(`Track "${track.trackName}" MATCHES with playCount ${trackCount} ${operator} ${ruleValue}`);
+      }
+      
+      return matches;
+    });
+    
+    console.log(`${testMatches.length} matches out of 100 sample tracks`);
+  }
+  
+  // Process tracks in batches with a very clear numeric evaluation
   setTimeout(() => {
     try {
-      // Process tracks in batches
-      processBatches(tracksToProcess, validRules, 300, (matchingTracks) => {
-        // Update the selected tracks
-        if (matchingTracks.length === 0) {
-          setSelectedTracks([{
-            id: 'no-matches',
-            trackName: 'No matches found',
-            artist: 'Try adjusting your smart playlist rules',
-            albumName: '',
-            totalPlayed: 0,
-            playCount: 0
-          }]);
+      let results = [];
+      let processedTracks = 0;
+      const batchSize = 300;
+      
+      function processNextBatch() {
+        // Update processing status
+        setSelectedTracks([{ 
+          id: 'processing',
+          trackName: `Processing... (${Math.min(processedTracks + batchSize, tracksToProcess.length)}/${tracksToProcess.length})`,
+          artist: `Found ${results.length} matching tracks so far`,
+          albumName: '',
+          totalPlayed: 0,
+          playCount: 0
+        }]);
+        
+        // Get current batch
+        const startIndex = processedTracks;
+        const endIndex = Math.min(startIndex + batchSize, tracksToProcess.length);
+        const currentBatch = tracksToProcess.slice(startIndex, endIndex);
+        
+        // Process this batch with very explicit filtering
+        currentBatch.forEach(track => {
+          // Check all rules against this track
+          const matchesAllRules = validRules.every(rule => {
+            // Handle different rule types
+            switch(rule.type) {
+              case 'artist':
+                return String(track.artist || '').toLowerCase().includes(rule.value.toLowerCase());
+                
+              case 'album':
+                return String(track.albumName || '').toLowerCase().includes(rule.value.toLowerCase());
+                
+              case 'track':
+                return String(track.trackName || '').toLowerCase().includes(rule.value.toLowerCase());
+                
+              case 'playCount': {
+                // Convert both values to numbers and perform direct comparison
+                const trackCount = track.playCount; // Already converted to number
+                const ruleValue = Number(rule.value);
+                
+                // Direct comparison with very explicit operators
+                switch(rule.operator) {
+                  case 'greaterThan':
+                    return trackCount > ruleValue;
+                  case 'lessThan':
+                    return trackCount < ruleValue;
+                  case 'equals':
+                    return trackCount === ruleValue;
+                  default:
+                    return false;
+                }
+              }
+              
+              case 'playTime': {
+                // Convert both values to numbers and perform direct comparison
+                const trackMinutes = track.totalPlayed / 60000; // Convert ms to minutes
+                const ruleValue = Number(rule.value);
+                
+                // Direct comparison with very explicit operators
+                switch(rule.operator) {
+                  case 'greaterThan':
+                    return trackMinutes > ruleValue;
+                  case 'lessThan':
+                    return trackMinutes < ruleValue;
+                  case 'equals':
+                    return trackMinutes === ruleValue;
+                  default:
+                    return false;
+                }
+              }
+              
+              default:
+                return true;
+            }
+          });
           
-          // Clear the no-matches message after 3 seconds
-          setTimeout(() => {
-            setSelectedTracks([]);
-          }, 3000);
+          // If this track matches all rules, add it to results
+          if (matchesAllRules) {
+            results.push(track);
+          }
+        });
+        
+        // Update processed count
+        processedTracks = endIndex;
+        
+        // Continue processing or finish
+        if (processedTracks < tracksToProcess.length && results.length < 100) {
+          setTimeout(processNextBatch, 10);
         } else {
-          setSelectedTracks(matchingTracks);
+          // We're done, update the selected tracks
+          if (results.length === 0) {
+            setSelectedTracks([{
+              id: 'no-matches',
+              trackName: 'No matches found',
+              artist: 'Try adjusting your smart playlist rules',
+              albumName: '',
+              totalPlayed: 0,
+              playCount: 0
+            }]);
+            
+            // Clear the no-matches message after 3 seconds
+            setTimeout(() => {
+              setSelectedTracks([]);
+            }, 3000);
+          } else {
+            setSelectedTracks(results.slice(0, 100));
+          }
         }
-      });
+      }
+      
+      // Start processing
+      processNextBatch();
     } catch (error) {
       console.error("Error generating playlist:", error);
       setSelectedTracks([{
@@ -488,7 +604,7 @@ const generateFromRules = () => {
         playCount: 0
       }]);
     }
-  }, 300); // Increased delay to ensure everything is properly loaded
+  }, 300);
 };
 
 // Also replace the applyOperator function with this version for numeric comparisons:
