@@ -393,6 +393,12 @@ const updateRule = (id, field, value) => {
             updatedRule.operator = 'greaterThan'; // Default numeric operator
           }
         }
+        // For date fields, use date operators
+        else if (field === 'type' && value === 'playDate') {
+          if (['contains', 'startsWith', 'endsWith'].includes(updatedRule.operator)) {
+            updatedRule.operator = 'after'; // Default date operator
+          }
+        }
         
         return updatedRule;
       }
@@ -400,7 +406,6 @@ const updateRule = (id, field, value) => {
     })
   );
 };
-
 
 const generateFromRules = () => {
   console.clear();
@@ -557,6 +562,45 @@ const generateFromRules = () => {
           
           matchingTracks.push(track);
         }
+case 'playDate': {
+  // Get timestamp from track entry
+  const trackDate = new Date(track.ts);
+  
+  // For "between" operator, we need to parse two dates
+  if (rule.operator === 'between') {
+    const [startDateStr, endDateStr] = ruleValue.split('|');
+    if (!startDateStr || !endDateStr) return false;
+    
+    const startDate = new Date(startDateStr);
+    // Set end date to end of day for inclusive filtering
+    const endDate = new Date(endDateStr);
+    endDate.setHours(23, 59, 59, 999);
+    
+    // Check if track date is between start and end
+    return trackDate >= startDate && trackDate <= endDate;
+  }
+  
+  // For other operators, parse single date
+  const ruleDate = new Date(ruleValue);
+  
+  // For "on" operator, compare year, month, and day only
+  if (rule.operator === 'on') {
+    return trackDate.getFullYear() === ruleDate.getFullYear() &&
+          trackDate.getMonth() === ruleDate.getMonth() &&
+          trackDate.getDate() === ruleDate.getDate();
+  }
+  
+  // For after/before, compare full timestamps
+  if (rule.operator === 'after') {
+    return trackDate >= ruleDate;
+  } else if (rule.operator === 'before') {
+    // Set rule date to end of day for more intuitive "before" filtering
+    ruleDate.setHours(23, 59, 59, 999);
+    return trackDate <= ruleDate;
+  }
+  
+  return false;
+}
       });
       
       // Limit to 100 tracks
@@ -1156,6 +1200,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     <option value="track">Track Name</option>
                     <option value="playCount">Play Count</option>
                     <option value="playTime">Play Time (minutes)</option>
+                    <option value="playDate">Play Date</option>
                   </select>
                   
                   <select
@@ -1170,6 +1215,13 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         <option value="startsWith">starts with</option>
                         <option value="endsWith">ends with</option>
                       </>
+  ) : rule.type === 'playDate' ? (
+    <>
+      <option value="after">after</option>
+      <option value="before">before</option>
+      <option value="between">between</option>
+      <option value="on">on</option>
+    </>
                     ) : (
                       <>
                         <option value="greaterThan">greater than</option>
@@ -1178,7 +1230,38 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                       </>
                     )}
                   </select>
-                  
+                  {rule.type === 'playDate' ? (
+  rule.operator === 'between' ? (
+    <div className="flex-1 flex gap-2 items-center">
+      <input
+        type="date"
+        value={rule.value.split('|')[0] || ''}
+        onChange={(e) => {
+          const endDate = rule.value.split('|')[1] || '';
+          updateRule(rule.id, 'value', `${e.target.value}|${endDate}`);
+        }}
+        className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+      />
+      <span className="text-red-600">to</span>
+      <input
+        type="date"
+        value={rule.value.split('|')[1] || ''}
+        onChange={(e) => {
+          const startDate = rule.value.split('|')[0] || '';
+          updateRule(rule.id, 'value', `${startDate}|${e.target.value}`);
+        }}
+        className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+      />
+    </div>
+  ) : (
+    <input
+      type="date"
+      value={rule.value}
+      onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
+      className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+    />
+  )
+) : (
                   <input
                     type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
                     value={rule.value}
