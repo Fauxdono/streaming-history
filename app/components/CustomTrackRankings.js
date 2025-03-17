@@ -273,13 +273,40 @@ const CustomTrackRankings = ({
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
-  const setQuickRange = (days) => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - days);
+  // Adjust date range functions
+  const adjustDateRange = (days) => {
+    // Create copy of current start/end date
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : new Date();
     
+    // Modify both dates by the number of days
+    start.setDate(start.getDate() + days);
+    end.setDate(end.getDate() + days);
+    
+    // Update state with formatted dates
     setStartDate(format(start, 'yyyy-MM-dd'));
     setEndDate(format(end, 'yyyy-MM-dd'));
+  };
+  
+  // Expand or shrink the date range
+  const expandDateRange = (days) => {
+    // Move start date earlier
+    const start = startDate ? new Date(startDate) : new Date();
+    start.setDate(start.getDate() - days);
+    setStartDate(format(start, 'yyyy-MM-dd'));
+  };
+  
+  const shrinkDateRange = (days) => {
+    // Only shrink if we still have a valid range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const newStart = new Date(startDate);
+    newStart.setDate(newStart.getDate() + days);
+    
+    // Only update if it doesn't create an invalid range
+    if (newStart < end) {
+      setStartDate(format(newStart, 'yyyy-MM-dd'));
+    }
   };
 
   const addArtist = (artist) => {
@@ -406,54 +433,142 @@ const CustomTrackRankings = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-orange-700">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          <span>to</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-4 items-start">
+          {/* Date Range Selector */}
+          <div className="w-full md:w-auto">
+            <label className="block text-orange-700 mb-1 font-medium">Date Range:</label>
+            <div className="flex items-center gap-2 text-orange-700">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+              <span>to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+            </div>
+            
+            {/* Date adjustment controls */}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <div className="flex flex-col items-center">
+                <label className="text-xs text-orange-600 mb-1">Move Range</label>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => adjustDateRange(-7)} 
+                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                    title="Move 7 days earlier"
+                  >
+                    ←
+                  </button>
+                  <button 
+                    onClick={() => adjustDateRange(7)} 
+                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                    title="Move 7 days later"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <label className="text-xs text-orange-600 mb-1">Range Size</label>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => expandDateRange(7)} 
+                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                    title="Include 7 more days"
+                  >
+                    +
+                  </button>
+                  <button 
+                    onClick={() => shrinkDateRange(7)} 
+                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+                    title="Reduce range by 7 days"
+                  >
+                    -
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <label className="text-xs text-orange-600 mb-1">Quick Ranges</label>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date();
+                      start.setDate(start.getDate() - 30);
+                      setStartDate(format(start, 'yyyy-MM-dd'));
+                      setEndDate(format(end, 'yyyy-MM-dd'));
+                    }} 
+                    className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+                    title="Last 30 days"
+                  >
+                    Month
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const end = new Date();
+                      const start = new Date();
+                      start.setDate(start.getDate() - 7);
+                      setStartDate(format(start, 'yyyy-MM-dd'));
+                      setEndDate(format(end, 'yyyy-MM-dd'));
+                    }} 
+                    className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+                    title="Last 7 days"
+                  >
+                    Week
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="w-full md:w-auto">
+            <label className="block text-orange-700 mb-1 font-medium">Limits:</label>
+            <div className="flex items-center gap-2 text-orange-700">
+              <label>Top</label>
+              <input
+                type="number"
+                min="1"
+                max="999"
+                value={topN}
+                onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
+                className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+              <label>tracks</label>
+              
+              <span className="ml-3">
+                <button
+                  onClick={() => setSortBy('totalPlayed')}
+                  className={`px-3 py-1 rounded-full ${
+                    sortBy === 'totalPlayed'
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                  }`}
+                >
+                  By Time
+                </button>
+                <button
+                  onClick={() => setSortBy('playCount')}
+                  className={`ml-1 px-3 py-1 rounded-full ${
+                    sortBy === 'playCount'
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                  }`}
+                >
+                  By Plays
+                </button>
+              </span>
+            </div>
+          </div>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => setQuickRange(0)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Day
-          </button>
-          <button onClick={() => setQuickRange(7)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Week
-          </button>
-          <button onClick={() => setQuickRange(30)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Month
-          </button>
-          <button onClick={() => setQuickRange(90)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Quarter
-          </button>
-          <button onClick={() => setQuickRange(365)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Year
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 text-orange-700">
-          <label>Top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
-            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          <label>tracks</label>
-        </div>
-      </div>
 
       {/* Unified Artist and Album Selection */}
       <div className="relative">
@@ -596,39 +711,19 @@ const CustomTrackRankings = ({
       </div>
 
       {/* Export playlist toggle */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center">
-          <button
-            onClick={() => setShowExportOptions(!showExportOptions)}
-            className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-2"
-          >
-            <Download size={16} />
-            {showExportOptions ? 'Hide Export Options' : 'Export as M3U Playlist'}
-          </button>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSortBy('totalPlayed')}
-            className={`px-3 py-1 rounded-full ${
-              sortBy === 'totalPlayed'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Sort by Time
-          </button>
-          <button
-            onClick={() => setSortBy('playCount')}
-            className={`px-3 py-1 rounded-full ${
-              sortBy === 'playCount'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Sort by Plays
-          </button>
-        </div>
+      <div className="flex items-center mt-4">
+        <button
+          onClick={() => setShowExportOptions(!showExportOptions)}
+          className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center gap-2"
+        >
+          <Download size={16} />
+          {showExportOptions ? 'Hide Export Options' : 'Export as M3U Playlist'}
+        </button>
+        {filteredTracks.length > 0 && (
+          <span className="ml-2 text-orange-600 font-medium">
+            {filteredTracks.length} tracks found
+          </span>
+        )}
       </div>
       
       {/* Export Options */}
@@ -816,7 +911,6 @@ const CustomTrackRankings = ({
         </div>
       )}
     </div>
-  );
-};
+  );};
 
 export default CustomTrackRankings;
