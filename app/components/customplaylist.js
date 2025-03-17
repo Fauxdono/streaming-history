@@ -378,6 +378,11 @@ const trackMap = useMemo(() => {
       { type: 'artist', operator: 'contains', value: '', id: Date.now() }
     ]);
   };
+
+  // Remove a rule
+  const removeRule = (ruleId) => {
+    setSmartRules(prev => prev.filter(rule => rule.id !== ruleId));
+  };
   
 const updateRule = (id, field, value) => {
   setSmartRules(prev => 
