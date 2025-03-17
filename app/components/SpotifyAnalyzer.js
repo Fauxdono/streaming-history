@@ -97,12 +97,19 @@ const handleLoadSampleData = async () => {
       '/sampledata/Streaming4.json'
     ];
     
-    // Fetch all files and create proper File objects
+    // Fetch all files and create proper File objects with the original filenames
     const files = await Promise.all(
       sampleFileUrls.map(async (url, index) => {
         const response = await fetch(url);
-        const blob = await response.blob(); // Get the raw binary data
-        return new File([blob], `sample-${index+1}.json`, { type: 'application/json' });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+        }
+        
+        const blob = await response.blob();
+        // Use the original file name instead of "sample-N.json"
+        const fileName = url.split('/').pop(); // Gets "Streaming1.json" from the URL
+        return new File([blob], fileName, { type: 'application/json' });
       })
     );
     
@@ -113,14 +120,7 @@ const handleLoadSampleData = async () => {
     setUploadedFiles(files.map(file => file.name));
     
     // Process the files - important to wait for this to complete
-    const results = await processFiles(files);
-    
-    // If stats aren't properly populated, ensure they are
-    if (!stats || !stats.totalListeningTime) {
-      console.log("Ensuring stats are properly set");
-      // The processFiles function should have set all necessary state
-      // but we can verify here if needed
-    }
+    await processFiles(files);
     
     // After processing completes, switch to stats tab
     setActiveTab('stats');
