@@ -3,12 +3,36 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
 
-
-
-
 const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
-  const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays'); // 'plays' or 'average';
+  const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays'); // 'plays' or 'average'
+  const [selectedYear, setSelectedYear] = useState('all'); // 'all' for all-time data, or specific year
+  
+  // Get all available years from data
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set();
+    
+    rawPlayData.forEach(entry => {
+      if (entry.ms_played >= 30000) {
+        const date = new Date(entry.ts);
+        yearsSet.add(date.getFullYear());
+      }
+    });
+    
+    return Array.from(yearsSet).sort((a, b) => b - a); // Sort in descending order (newest first)
+  }, [rawPlayData]);
+  
+  // Filter data by selected year
+  const filteredData = useMemo(() => {
+    if (selectedYear === 'all') {
+      return rawPlayData;
+    }
+    
+    return rawPlayData.filter(entry => {
+      const date = new Date(entry.ts);
+      return date.getFullYear() === parseInt(selectedYear);
+    });
+  }, [rawPlayData, selectedYear]);
 
   // Time of day analysis
   const timeOfDayData = useMemo(() => {
@@ -22,7 +46,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     
     const hourlyData = [...hours];
     
-    rawPlayData.forEach(entry => {
+    filteredData.forEach(entry => {
       if (entry.ms_played >= 30000) { // Only count plays of at least 30 seconds
         const date = new Date(entry.ts);
         const hour = date.getHours();
@@ -57,63 +81,63 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     });
     
     return { hourly: hourlyData, periods: timePeriods };
-  }, [rawPlayData]);
+  }, [filteredData]);
 
-const dayOfWeekData = useMemo(() => {
-  const days = [
-    { name: 'Sunday', shortName: 'Sun', dayNum: 0, count: 0, totalMs: 0, color: '#FF8042' },
-    { name: 'Monday', shortName: 'Mon', dayNum: 1, count: 0, totalMs: 0, color: '#00C49F' },
-    { name: 'Tuesday', shortName: 'Tue', dayNum: 2, count: 0, totalMs: 0, color: '#FFBB28' },
-    { name: 'Wednesday', shortName: 'Wed', dayNum: 3, count: 0, totalMs: 0, color: '#FF8042' },
-    { name: 'Thursday', shortName: 'Thu', dayNum: 4, count: 0, totalMs: 0, color: '#0088FE' },
-    { name: 'Friday', shortName: 'Fri', dayNum: 5, count: 0, totalMs: 0, color: '#8884d8' },
-    { name: 'Saturday', shortName: 'Sat', dayNum: 6, count: 0, totalMs: 0, color: '#82ca9d' }
-  ];
-  
-  rawPlayData.forEach(entry => {
-    if (entry.ms_played >= 30000) {
-      const date = new Date(entry.ts);
-      const day = date.getDay();
-      
-      days[day].count += 1;
-      days[day].totalMs += entry.ms_played;
-    }
-  });
-  
-  // Calculate average time per day
-  const totalDays = {};
-  
-  rawPlayData.forEach(entry => {
-    if (entry.ms_played >= 30000) {
-      const date = new Date(entry.ts);
-      const day = date.getDay();
-      const dateString = date.toISOString().split('T')[0];
-      
-      if (!totalDays[day]) {
-        totalDays[day] = new Set();
+  const dayOfWeekData = useMemo(() => {
+    const days = [
+      { name: 'Sunday', shortName: 'Sun', dayNum: 0, count: 0, totalMs: 0, color: '#FF8042' },
+      { name: 'Monday', shortName: 'Mon', dayNum: 1, count: 0, totalMs: 0, color: '#00C49F' },
+      { name: 'Tuesday', shortName: 'Tue', dayNum: 2, count: 0, totalMs: 0, color: '#FFBB28' },
+      { name: 'Wednesday', shortName: 'Wed', dayNum: 3, count: 0, totalMs: 0, color: '#FF8042' },
+      { name: 'Thursday', shortName: 'Thu', dayNum: 4, count: 0, totalMs: 0, color: '#0088FE' },
+      { name: 'Friday', shortName: 'Fri', dayNum: 5, count: 0, totalMs: 0, color: '#8884d8' },
+      { name: 'Saturday', shortName: 'Sat', dayNum: 6, count: 0, totalMs: 0, color: '#82ca9d' }
+    ];
+    
+    filteredData.forEach(entry => {
+      if (entry.ms_played >= 30000) {
+        const date = new Date(entry.ts);
+        const day = date.getDay();
+        
+        days[day].count += 1;
+        days[day].totalMs += entry.ms_played;
       }
-      
-      totalDays[day].add(dateString);
-    }
-  });
-  
-  days.forEach((day, index) => {
-    const uniqueDayCount = totalDays[index] ? totalDays[index].size : 0;
-    day.avgPerDay = uniqueDayCount > 0 ? day.count / uniqueDayCount : 0;
-  });
-  
-  // Find the day with most listens (both by total and by average)
-  const maxPlaysDay = [...days].sort((a, b) => b.count - a.count)[0];
-  const maxAvgDay = [...days].sort((a, b) => b.avgPerDay - a.avgPerDay)[0];
-  
-  // Mark the top days with a star
-  days.forEach(day => {
-    day.isTopByCount = day.name === maxPlaysDay.name;
-    day.isTopByAverage = day.name === maxAvgDay.name;
-  });
-  
-  return days;
-}, [rawPlayData]);
+    });
+    
+    // Calculate average time per day
+    const totalDays = {};
+    
+    filteredData.forEach(entry => {
+      if (entry.ms_played >= 30000) {
+        const date = new Date(entry.ts);
+        const day = date.getDay();
+        const dateString = date.toISOString().split('T')[0];
+        
+        if (!totalDays[day]) {
+          totalDays[day] = new Set();
+        }
+        
+        totalDays[day].add(dateString);
+      }
+    });
+    
+    days.forEach((day, index) => {
+      const uniqueDayCount = totalDays[index] ? totalDays[index].size : 0;
+      day.avgPerDay = uniqueDayCount > 0 ? day.count / uniqueDayCount : 0;
+    });
+    
+    // Find the day with most listens (both by total and by average)
+    const maxPlaysDay = [...days].sort((a, b) => b.count - a.count)[0];
+    const maxAvgDay = [...days].sort((a, b) => b.avgPerDay - a.avgPerDay)[0];
+    
+    // Mark the top days with a star
+    days.forEach(day => {
+      day.isTopByCount = day.name === maxPlaysDay.name;
+      day.isTopByAverage = day.name === maxAvgDay.name;
+    });
+    
+    return days;
+  }, [filteredData]);
   
   // Monthly/seasonal analysis
   const monthlyData = useMemo(() => {
@@ -140,7 +164,7 @@ const dayOfWeekData = useMemo(() => {
       { name: 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: '#4B9CD3' }
     ];
     
-    rawPlayData.forEach(entry => {
+    filteredData.forEach(entry => {
       if (entry.ms_played >= 30000) {
         const date = new Date(entry.ts);
         const month = date.getMonth();
@@ -166,7 +190,7 @@ const dayOfWeekData = useMemo(() => {
     });
     
     return { months, seasons };
-  }, [rawPlayData]);
+  }, [filteredData]);
 
   const TabButton = ({ id, label }) => (
     <button
@@ -183,6 +207,28 @@ const dayOfWeekData = useMemo(() => {
 
   return (
     <div className="space-y-4">
+      {/* Year selector */}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-bold text-purple-700">
+          {selectedYear === 'all' 
+            ? 'All-time Listening Patterns' 
+            : `Listening Patterns for ${selectedYear}`}
+        </h3>
+        <div className="flex items-center">
+          <span className="text-purple-600 mr-2">Filter by year:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="border rounded-md p-1 text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="all">All Time</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Horizontally scrollable tabs */}
       <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
         <div className="flex min-w-max">
@@ -263,87 +309,88 @@ const dayOfWeekData = useMemo(() => {
           </div>
         </div>
       )}
-{activeTab === 'dayOfWeek' && (
-  <div className="space-y-6">
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h3 className="text-lg font-bold text-purple-700">Listening by Day of Week</h3>
-          <p className="text-purple-600">Which days do you stream music the most?</p>
-        </div>
-        <div className="flex bg-purple-100 rounded-full p-1">
-          <button
-            onClick={() => setDayOfWeekViewMode('plays')}
-            className={`px-3 py-1 rounded-full text-sm ${
-              dayOfWeekViewMode === 'plays' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-purple-700 hover:bg-purple-200'
-            }`}
-          >
-            Total Plays
-          </button>
-          <button
-            onClick={() => setDayOfWeekViewMode('average')}
-            className={`px-3 py-1 rounded-full text-sm ${
-              dayOfWeekViewMode === 'average' 
-                ? 'bg-purple-600 text-white' 
-                : 'text-purple-700 hover:bg-purple-200'
-            }`}
-          >
-            Average per Day
-          </button>
-        </div>
-      </div>
-      
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={dayOfWeekData}
-            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="shortName" />
-            <YAxis />
-            <Tooltip 
-              formatter={(value, name) => {
-                if (name === 'totalMs') return formatDuration(value);
-                if (name === 'count') return `${value} plays`;
-                if (name === 'avgPerDay') return `${value.toFixed(1)} plays per day`;
-                return value;
-              }}
-            />
-            <Legend />
-            {dayOfWeekViewMode === 'plays' ? (
-              <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
-            ) : (
-              <Bar name="Average per Day" dataKey="avgPerDay" fill="#82ca9d" />
-            )}
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-    
-    <div>
-      <h3 className="text-lg font-bold text-purple-700 mb-2">Day of Week Stats</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {dayOfWeekData.map((day, index) => (
-          <div key={index} className="p-3 bg-purple-50 rounded border border-purple-100 relative">
-            {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
-             (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
-              <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
-            ) : null}
-            <h4 className="font-bold text-purple-700">{day.name}</h4>
-            <div className="text-sm text-purple-600">
-              <div>Total Plays: {day.count}</div>
-              <div>Listening Time: {formatDuration(day.totalMs)}</div>
-              <div>Avg. Plays Per Day: {day.avgPerDay.toFixed(1)}</div>
+
+      {activeTab === 'dayOfWeek' && (
+        <div className="space-y-6">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-purple-700">Listening by Day of Week</h3>
+                <p className="text-purple-600">Which days do you stream music the most?</p>
+              </div>
+              <div className="flex bg-purple-100 rounded-full p-1">
+                <button
+                  onClick={() => setDayOfWeekViewMode('plays')}
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    dayOfWeekViewMode === 'plays' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'text-purple-700 hover:bg-purple-200'
+                  }`}
+                >
+                  Total Plays
+                </button>
+                <button
+                  onClick={() => setDayOfWeekViewMode('average')}
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    dayOfWeekViewMode === 'average' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'text-purple-700 hover:bg-purple-200'
+                  }`}
+                >
+                  Average per Day
+                </button>
+              </div>
+            </div>
+            
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={dayOfWeekData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="shortName" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value, name) => {
+                      if (name === 'totalMs') return formatDuration(value);
+                      if (name === 'count') return `${value} plays`;
+                      if (name === 'avgPerDay') return `${value.toFixed(1)} plays per day`;
+                      return value;
+                    }}
+                  />
+                  <Legend />
+                  {dayOfWeekViewMode === 'plays' ? (
+                    <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
+                  ) : (
+                    <Bar name="Average per Day" dataKey="avgPerDay" fill="#82ca9d" />
+                  )}
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+          
+          <div>
+            <h3 className="text-lg font-bold text-purple-700 mb-2">Day of Week Stats</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {dayOfWeekData.map((day, index) => (
+                <div key={index} className="p-3 bg-purple-50 rounded border border-purple-100 relative">
+                  {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
+                  (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
+                    <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
+                  ) : null}
+                  <h4 className="font-bold text-purple-700">{day.name}</h4>
+                  <div className="text-sm text-purple-600">
+                    <div>Total Plays: {day.count}</div>
+                    <div>Listening Time: {formatDuration(day.totalMs)}</div>
+                    <div>Avg. Plays Per Day: {day.avgPerDay.toFixed(1)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'seasonal' && (
         <div className="space-y-6">
@@ -417,7 +464,7 @@ const dayOfWeekData = useMemo(() => {
 
       {activeTab === 'streaming' && (
         <StreamingByYear 
-          rawPlayData={rawPlayData} 
+          rawPlayData={filteredData} 
           formatDuration={formatDuration} 
         />
       )}
