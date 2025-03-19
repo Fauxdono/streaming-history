@@ -215,11 +215,11 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
             : `Listening Patterns for ${selectedYear}`}
         </h3>
         <div className="flex items-center">
-          <span className="bg-purple-600 text-white mr-2">Filter by year:</span>
+          <span className="text-purple-600 mr-2">Filter by year:</span>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="border rounded-md p-1 text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="border rounded-md p-1 bg-purple-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="all">All Time</option>
             {availableYears.map(year => (
