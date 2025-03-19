@@ -73,7 +73,7 @@ const SpotifyAnalyzer = () => {
     },
     youtube_music: {
       unselected: 'bg-red-600 text-black',
-      selected: 'bg-red-800 text-black'
+      selected: 'bg-white text-red-600'
     },
     deezer: {
       unselected: 'bg-purple-300 text-black',
