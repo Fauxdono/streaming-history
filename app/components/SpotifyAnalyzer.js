@@ -64,8 +64,8 @@ const SpotifyAnalyzer = () => {
   // Define service colors
   const serviceColors = {
     spotify: {
-      unselected: 'bg-lime-400 text-black',
-      selected: 'bg-lime-500 text-black'
+      unselected: 'bg-green-500 text-black',
+      selected: 'bg-lime-400 text-black'
     },
     apple_music: {
       unselected: 'bg-red-400 text-white',
