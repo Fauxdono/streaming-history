@@ -5,6 +5,33 @@ import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 
 const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('behavior');
+  const [selectedYear, setSelectedYear] = useState('all'); // 'all' for all-time data, or specific year
+  
+  // Get all available years from data
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set();
+    
+    rawPlayData.forEach(entry => {
+      if (entry.ms_played >= 30000) {
+        const date = new Date(entry.ts);
+        yearsSet.add(date.getFullYear());
+      }
+    });
+    
+    return Array.from(yearsSet).sort((a, b) => b - a); // Sort in descending order (newest first)
+  }, [rawPlayData]);
+  
+  // Filter data by selected year
+  const filteredData = useMemo(() => {
+    if (selectedYear === 'all') {
+      return rawPlayData;
+    }
+    
+    return rawPlayData.filter(entry => {
+      const date = new Date(entry.ts);
+      return date.getFullYear() === parseInt(selectedYear);
+    });
+  }, [rawPlayData, selectedYear]);
   
   // Analyze user behavior (skips, shuffle, etc.)
   const behaviorData = useMemo(() => {
@@ -19,7 +46,7 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
     const reasonStartCounts = {};
     const platforms = {};
     
-    rawPlayData.forEach(entry => {
+    filteredData.forEach(entry => {
       if (entry.ms_played >= 1000) { // Only analyze meaningful plays (more than 1 second)
         totalTracks++;
         
@@ -98,7 +125,7 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
       skipData,
       platformData
     };
-  }, [rawPlayData]);
+  }, [filteredData]);
   
   // Analyze listening sessions
   const sessionData = useMemo(() => {
@@ -108,7 +135,7 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
     let currentSession = null;
     
     // Sort all entries by timestamp
-    const sortedEntries = [...rawPlayData].sort((a, b) => {
+    const sortedEntries = [...filteredData].sort((a, b) => {
       return new Date(a.ts) - new Date(b.ts);
     });
     
@@ -158,6 +185,7 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
       const hour = session.start.getHours();
       return {
         date: session.start.toLocaleDateString(),
+        fullDate: session.start,
         dayOfWeek,
         hour,
         tracksCount: session.tracks.length,
@@ -166,6 +194,59 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
         averageTrackLength: Math.round(session.totalDuration / session.tracks.length)
       };
     });
+    
+    // Find days with most activity
+    const dayStats = {};
+    const monthStats = {};
+    
+    sortedEntries.forEach(entry => {
+      if (entry.ms_played < 30000) return; // Only count meaningful plays
+      
+      const date = new Date(entry.ts);
+      const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; // YYYY-MM
+      
+      // Track day stats
+      if (!dayStats[dayKey]) {
+        dayStats[dayKey] = {
+          date: date,
+          displayDate: date.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }),
+          totalPlays: 0,
+          totalTime: 0
+        };
+      }
+      dayStats[dayKey].totalPlays++;
+      dayStats[dayKey].totalTime += entry.ms_played;
+      
+      // Track month stats
+      if (!monthStats[monthKey]) {
+        monthStats[monthKey] = {
+          date: new Date(date.getFullYear(), date.getMonth(), 1),
+          displayDate: date.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'long'
+          }),
+          totalPlays: 0,
+          totalTime: 0
+        };
+      }
+      monthStats[monthKey].totalPlays++;
+      monthStats[monthKey].totalTime += entry.ms_played;
+    });
+    
+    // Find top days and months
+    const mostActiveDay = Object.values(dayStats)
+      .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
+    
+    const longestListeningDay = Object.values(dayStats)
+      .sort((a, b) => b.totalTime - a.totalTime)[0] || null;
+    
+    const mostActiveMonth = Object.values(monthStats)
+      .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
     
     // Group sessions by duration
     const durationGroups = [
@@ -197,6 +278,14 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
     const averageTracksPerSession = totalSessions ? 
       Math.round(sessionLengths.reduce((sum, session) => sum + session.tracksCount, 0) / totalSessions) : 0;
     
+    // Find longest session with date
+    const longestSession = sessionLengths.length ? 
+      sessionLengths.sort((a, b) => b.durationMinutes - a.durationMinutes)[0] : null;
+    
+    // Find session with most tracks with date
+    const mostTracksSession = sessionLengths.length ?
+      sessionLengths.sort((a, b) => b.tracksCount - a.tracksCount)[0] : null;
+    
     return {
       sessions,
       sessionLengths,
@@ -204,12 +293,13 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
       averageSessionDuration,
       averageTracksPerSession,
       durationGroups,
-      longestSession: sessionLengths.length ? 
-        Math.max(...sessionLengths.map(s => s.durationMinutes)) : 0,
-      mostTracks: sessionLengths.length ? 
-        Math.max(...sessionLengths.map(s => s.tracksCount)) : 0
+      longestSession,
+      mostTracksSession,
+      mostActiveDay,
+      longestListeningDay,
+      mostActiveMonth
     };
-  }, [rawPlayData]);
+  }, [filteredData]);
 
   const TabButton = ({ id, label }) => (
     <button
@@ -226,6 +316,28 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
 
   return (
     <div className="space-y-4">
+      {/* Year selector */}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-bold text-indigo-700">
+          {selectedYear === 'all' 
+            ? 'All-time Listening Behavior' 
+            : `Listening Behavior for ${selectedYear}`}
+        </h3>
+        <div className="flex items-center">
+          <span className="text-indigo-600 mr-2">Filter by year:</span>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="border rounded-md p-1 bg-indigo-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All Time</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
       {/* Horizontally scrollable tabs */}
       <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
         <div className="flex min-w-max">
@@ -405,14 +517,36 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
             <div>
               <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Statistics</h3>
               <ul className="space-y-2">
-                <li className="p-2 bg-indigo-50 rounded">
-                  <span className="font-bold text-indigo-700">Longest Session:</span>
-                  <span className="ml-2 text-indigo-600">{sessionData.longestSession} minutes</span>
-                </li>
-                <li className="p-2 bg-indigo-50 rounded">
-                  <span className="font-bold text-indigo-700">Most Tracks in a Session:</span>
-                  <span className="ml-2 text-indigo-600">{sessionData.mostTracks} tracks</span>
-                </li>
+                {sessionData.longestSession && (
+                  <li className="p-2 bg-indigo-50 rounded">
+                    <span className="font-bold text-indigo-700">Longest Session:</span>
+                    <span className="ml-2 text-indigo-600">{sessionData.longestSession.durationMinutes} minutes</span>
+                    <div className="text-sm text-indigo-500">
+                      on {sessionData.longestSession.fullDate.toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </li>
+                )}
+                
+                {sessionData.mostTracksSession && (
+                  <li className="p-2 bg-indigo-50 rounded">
+                    <span className="font-bold text-indigo-700">Most Tracks in a Session:</span>
+                    <span className="ml-2 text-indigo-600">{sessionData.mostTracksSession.tracksCount} tracks</span>
+                    <div className="text-sm text-indigo-500">
+                      on {sessionData.mostTracksSession.fullDate.toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </li>
+                )}
+                
                 <li className="p-2 bg-indigo-50 rounded">
                   <span className="font-bold text-indigo-700">Total Listening Time:</span>
                   <span className="ml-2 text-indigo-600">
@@ -423,26 +557,62 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
             </div>
             
             <div>
-              <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Insights</h3>
-              <div className="p-3 bg-indigo-50 rounded space-y-2">
-                <p className="text-indigo-700">
-                  Most of your listening sessions are 
-                  <span className="font-bold"> {
-                    sessionData.durationGroups.sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
-                  }</span>.
-                </p>
-                <p className="text-indigo-700">
-                  On average, you listen to {sessionData.averageTracksPerSession} tracks per session
-                  for about {sessionData.averageSessionDuration} minutes.
-                </p>
+              <h3 className="text-lg font-bold text-indigo-700 mb-2">Notable Days & Months</h3>
+              <div className="space-y-3">
+                {sessionData.mostActiveDay && (
+                  <div className="p-3 bg-indigo-50 rounded">
+                    <h4 className="font-medium text-indigo-700">Most Active Day:</h4>
+                    <div className="text-indigo-600 font-bold">{sessionData.mostActiveDay.displayDate}</div>
+                    <div className="text-sm text-indigo-500">
+                      {sessionData.mostActiveDay.totalPlays} tracks played
+                    </div>
+                  </div>
+                )}
+                
+                {sessionData.longestListeningDay && (
+                  <div className="p-3 bg-indigo-50 rounded">
+                    <h4 className="font-medium text-indigo-700">Longest Listening Day:</h4>
+                    <div className="text-indigo-600 font-bold">{sessionData.longestListeningDay.displayDate}</div>
+                    <div className="text-sm text-indigo-500">
+                      {formatDuration(sessionData.longestListeningDay.totalTime)} of listening
+                    </div>
+                  </div>
+                )}
+                
+                {sessionData.mostActiveMonth && (
+                  <div className="p-3 bg-indigo-50 rounded">
+                    <h4 className="font-medium text-indigo-700">Most Active Month:</h4>
+                    <div className="text-indigo-600 font-bold">{sessionData.mostActiveMonth.displayDate}</div>
+                    <div className="text-sm text-indigo-500">
+                      {sessionData.mostActiveMonth.totalPlays} tracks played
+                    </div>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Insights</h3>
+            <div className="p-3 bg-indigo-50 rounded space-y-2">
+              <p className="text-indigo-700">
+                Most of your listening sessions are 
+                <span className="font-bold"> {
+                  sessionData.durationGroups.sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
+                }</span>.
+              </p>
+              <p className="text-indigo-700">
+                On average, you listen to {sessionData.averageTracksPerSession} tracks per session
+                for about {sessionData.averageSessionDuration} minutes.
+              </p>
             </div>
           </div>
         </div>
       )}
+      
       {activeTab === 'artistsTime' && (
         <ArtistByTimeOfDay
-          rawPlayData={rawPlayData}
+          rawPlayData={filteredData}
           formatDuration={formatDuration}
         />
       )}
