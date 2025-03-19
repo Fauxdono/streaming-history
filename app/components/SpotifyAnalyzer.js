@@ -85,7 +85,7 @@ const SpotifyAnalyzer = () => {
     },
   tidal: {
     unselected: 'bg-black text-white',
-    selected: 'bg-black text-white border-2 border-gray-400'
+    selected: 'bg-white text-black'
   }
   };
 const handleLoadSampleData = async () => {
