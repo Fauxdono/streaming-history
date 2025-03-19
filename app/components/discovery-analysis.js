@@ -287,7 +287,7 @@ const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 font-medium ${
+      className={`px-4 py-2 whitespace-nowrap font-medium ${
         activeTab === id
           ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
           : 'bg-green-200 text-green-600 hover:bg-green-300'
@@ -312,11 +312,14 @@ const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 border-b">
-        <TabButton id="discovery" label="Artist Discovery" />
-        <TabButton id="loyalty" label="Artist Loyalty" />
-        <TabButton id="depth" label="Listening Depth" />
-        <TabButton id="variety" label="Music Variety" />
+      {/* Horizontally scrollable tabs */}
+      <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
+        <div className="flex min-w-max">
+          <TabButton id="discovery" label="Artist Discovery" />
+          <TabButton id="loyalty" label="Artist Loyalty" />
+          <TabButton id="depth" label="Listening Depth" />
+          <TabButton id="variety" label="Music Variety" />
+        </div>
       </div>
 
       {activeTab === 'discovery' && (
@@ -551,7 +554,7 @@ const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
       
       {activeTab === 'variety' && (
         <div className="space-y-6">
-          <div className="flex justify-center gap-3 mb-4">
+          <div className="flex justify-center gap-3 mb-4 overflow-x-auto pb-1">
             <TimeframeButton id="day" label="Daily" />
             <TimeframeButton id="week" label="Weekly" />
             <TimeframeButton id="month" label="Monthly" />
@@ -653,4 +656,3 @@ const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
 };
 
 export default DiscoveryAnalysis;
-              
