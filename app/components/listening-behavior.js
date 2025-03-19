@@ -214,7 +214,7 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 font-medium ${
+      className={`px-4 py-2 whitespace-nowrap font-medium ${
         activeTab === id
           ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
           : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300'
@@ -226,10 +226,13 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 border-b">
-        <TabButton id="behavior" label="Listening Behavior" />
-        <TabButton id="sessions" label="Listening Sessions" />
-        <TabButton id="artistsTime" label="Artists by Time" />
+      {/* Horizontally scrollable tabs */}
+      <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
+        <div className="flex min-w-max">
+          <TabButton id="behavior" label="Listening Behavior" />
+          <TabButton id="sessions" label="Listening Sessions" />
+          <TabButton id="artistsTime" label="Artists by Time" />
+        </div>
       </div>
 
       {activeTab === 'behavior' && (
@@ -437,13 +440,12 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
           </div>
         </div>
       )}
-  {activeTab === 'artistsTime' && (
-  <ArtistByTimeOfDay
-    rawPlayData={rawPlayData}
-    formatDuration={formatDuration}
-  />
-  )}
-
+      {activeTab === 'artistsTime' && (
+        <ArtistByTimeOfDay
+          rawPlayData={rawPlayData}
+          formatDuration={formatDuration}
+        />
+      )}
     </div>
   );
 };

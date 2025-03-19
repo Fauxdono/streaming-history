@@ -158,7 +158,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 font-medium ${
+      className={`px-4 py-2 whitespace-nowrap font-medium ${
         activeTab === id
           ? 'bg-purple-50 text-purple-600 border-b-2 border-purple-600'
           : 'bg-purple-200 text-purple-600 hover:bg-purple-300'
@@ -170,11 +170,14 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 border-b">
-        <TabButton id="timeOfDay" label="Time of Day" />
-        <TabButton id="dayOfWeek" label="Day of Week" />
-        <TabButton id="seasonal" label="Seasonal" />
-        <TabButton id="streaming" label="Streaming Services" />
+      {/* Horizontally scrollable tabs */}
+      <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
+        <div className="flex min-w-max">
+          <TabButton id="timeOfDay" label="Time of Day" />
+          <TabButton id="dayOfWeek" label="Day of Week" />
+          <TabButton id="seasonal" label="Seasonal" />
+          <TabButton id="streaming" label="Streaming Services" />
+        </div>
       </div>
 
       {activeTab === 'timeOfDay' && (
@@ -364,14 +367,14 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
             </div>
           </div>
         </div>
-)}
-{activeTab === 'streaming' && (
-  <StreamingByYear 
-    rawPlayData={rawPlayData} 
-    formatDuration={formatDuration} 
-  />
-)}
-     
+      )}
+
+      {activeTab === 'streaming' && (
+        <StreamingByYear 
+          rawPlayData={rawPlayData} 
+          formatDuration={formatDuration} 
+        />
+      )}
     </div>
   );
 };
