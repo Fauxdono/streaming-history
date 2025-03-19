@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, format } from 'date-fns';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus, Save } from 'lucide-react';
+import DateRangeControls from './datecontrols.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
@@ -431,52 +432,26 @@ const CustomTrackRankings = ({
     window.URL.revokeObjectURL(url);
   };
 
-  // Set quick date range
-  const setQuickRange = (days) => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - days);
-    
-    setStartDate(format(start, 'yyyy-MM-dd'));
-    setEndDate(format(end, 'yyyy-MM-dd'));
-  };
+// Set quick date range
+const setQuickRange = (days) => {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - days);
+  
+  setStartDate(start.toISOString().split('T')[0]);
+  setEndDate(end.toISOString().split('T')[0]);
+};
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-orange-700">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          <span>to</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => setQuickRange(0)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Day
-          </button>
-          <button onClick={() => setQuickRange(7)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Week
-          </button>
-          <button onClick={() => setQuickRange(30)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Month
-          </button>
-          <button onClick={() => setQuickRange(90)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Quarter
-          </button>
-          <button onClick={() => setQuickRange(365)} className="px-3 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-            Year
-          </button>
-        </div>
+   <DateRangeControls 
+  startDate={startDate}
+  endDate={endDate}
+  setStartDate={setStartDate}
+  setEndDate={setEndDate}
+  setQuickRange={setQuickRange}
+/>
+      
 
         <div className="flex items-center gap-2 text-orange-700">
           <label>Top</label>
