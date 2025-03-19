@@ -43,6 +43,12 @@ export const STREAMING_SERVICES = {
     instructions: 'You have to send customer service a mail for your SoundCloud history. Mine only went back to 2024 so it isn\'t that comprehensive for me',
     downloadUrl: 'https://soundcloud.com/settings/account',
     acceptedFormats: '.csv'
+  },
+  [STREAMING_TYPES.TIDAL]: {
+    name: 'Tidal',
+    downloadUrl: 'https://listen.tidal.com/account/export',
+    instructions: 'Go to your Tidal account settings, select "Download my data", choose "Export data" and download the CSV files.',
+    acceptedFormats: '.csv'
   }
 };
 
@@ -692,6 +698,109 @@ async function processDeezerXLSX(file) {
     console.error('Error processing Deezer XLSX file:', error);
     return [];
   }
+
+
+// Add this function to process Tidal CSV data
+async function processTidalCSV(streamingContent, favoritesContent) {
+  // Initialize result arrays
+  const streamingData = [];
+  const favoritesData = [];
+  
+  // Process streaming history if available
+  if (streamingContent) {
+    await new Promise((resolve) => {
+      Papa.parse(streamingContent, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        delimitersToGuess: [',', '\t', '|', ';'],
+        complete: (results) => {
+          console.log('Tidal streaming CSV headers:', results.meta.fields);
+          
+          if (results.data && results.data.length > 0) {
+            // Transform each streaming entry to our common format
+            results.data.forEach(entry => {
+              if (entry.artist_name && entry.track_title) {
+                const playTime = new Date(entry.entry_date || Date.now());
+                
+                streamingData.push({
+                  ts: playTime,
+                  ms_played: entry.stream_duration_ms || 180000, // Default to 3 minutes if duration missing
+                  master_metadata_track_name: entry.track_title,
+                  master_metadata_album_artist_name: entry.artist_name,
+                  master_metadata_album_album_name: 'Unknown Album', // Tidal streaming doesn't include album
+                  reason_start: "trackdone",
+                  reason_end: "trackdone",
+                  shuffle: false,
+                  skipped: false,
+                  platform: entry.client_name_from_session || "TIDAL",
+                  source: "tidal",
+                  country: entry.country_name,
+                  city: entry.city_name
+                });
+              }
+            });
+          }
+          
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error parsing Tidal streaming CSV:', error);
+          resolve();
+        }
+      });
+    });
+  }
+  
+  // Process favorites if available
+  if (favoritesContent) {
+    await new Promise((resolve) => {
+      Papa.parse(favoritesContent, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        delimitersToGuess: [',', '\t', '|', ';'],
+        complete: (results) => {
+          console.log('Tidal favorites CSV headers:', results.meta.fields);
+          
+          if (results.data && results.data.length > 0) {
+            // Transform each favorite track to our common format
+            results.data.forEach(entry => {
+              if (entry.artist_name && entry.track_title) {
+                const playTime = new Date(entry.date_added || Date.now());
+                const durationMs = entry.duration ? entry.duration * 1000 : 180000; // Convert to ms
+                
+                favoritesData.push({
+                  ts: playTime,
+                  ms_played: durationMs,
+                  master_metadata_track_name: entry.track_title,
+                  master_metadata_album_artist_name: entry.artist_name,
+                  master_metadata_album_album_name: entry.album_title || 'Unknown Album',
+                  reason_start: "trackdone",
+                  reason_end: "trackdone",
+                  shuffle: false,
+                  skipped: false,
+                  platform: "TIDAL-FAVORITE",
+                  source: "tidal",
+                  favorite: true
+                });
+              }
+            });
+          }
+          
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error parsing Tidal favorites CSV:', error);
+          resolve();
+        }
+      });
+    });
+  }
+  
+  // Combine both streaming and favorites data
+  return [...streamingData, ...favoritesData];
+}
 }
 
 // This patch should be applied to the calculatePlayStats function in streaming-adapter.js
@@ -1852,6 +1961,28 @@ export const streamingProcessor = {
   async processFiles(files) {
     try {
       let allProcessedData = [];
+
+   // Create maps to hold Tidal-specific files
+      const tidalStreaming = files.find(file => file.name.toLowerCase().includes('streaming') && file.name.endsWith('.csv'));
+      const tidalFavorites = files.find(file => file.name.toLowerCase().includes('favorite') && file.name.endsWith('.csv'));
+      
+      // Process Tidal files if found
+      if (tidalStreaming || tidalFavorites) {
+        let streamingContent = null;
+        let favoritesContent = null;
+        
+        if (tidalStreaming) {
+          streamingContent = await tidalStreaming.text();
+        }
+        
+        if (tidalFavorites) {
+          favoritesContent = await tidalFavorites.text();
+        }
+        
+        const tidalData = await processTidalCSV(streamingContent, favoritesContent);
+        allProcessedData = [...allProcessedData, ...tidalData];
+        console.log(`Processed ${tidalData.length} Tidal entries`);
+      }
       
       const processedData = await Promise.all(
         Array.from(files).map(async (file) => {
