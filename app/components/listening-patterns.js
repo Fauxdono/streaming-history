@@ -3,12 +3,13 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
 
-const [activeTab, setActiveTab] = useState('timeOfDay');
-const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays'); // 'plays' or 'average'
+
+
 
 const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
-  
+  const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays'); // 'plays' or 'average';
+
   // Time of day analysis
   const timeOfDayData = useMemo(() => {
     const hours = Array(24).fill(0).map((_, i) => ({
