@@ -720,7 +720,11 @@ const filteredDisplayedArtists = useMemo(() => {
 const TabButton = ({ id, label }) => {
     const getTabColor = (tabId) => {
       switch (tabId) {
-        case 'upload':
+       case 'updates':
+  return activeTab === tabId 
+    ? 'bg-cyan-50 text-cyan-600 border-b-2 border-cyan-600' 
+    : 'bg-cyan-200 text-cyan-600 hover:bg-cyan-300';
+ case 'upload':
           return activeTab === tabId 
             ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600' 
             : 'bg-orange-200 text-orange-600 hover:bg-orange-300';
@@ -728,10 +732,7 @@ const TabButton = ({ id, label }) => {
           return activeTab === tabId 
             ? 'bg-purple-100 text-purple-600 border-b-2 border-purple-600' 
             : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
-case 'updates':
-  return activeTab === tabId 
-    ? 'bg-cyan-50 text-cyan-600 border-b-2 border-cyan-600' 
-    : 'bg-cyan-200 text-cyan-600 hover:bg-cyan-300';
+
         case 'artists':
           return activeTab === tabId 
             ? 'bg-emerald-50 text-teal-600 border-b-2 border-teal-600' 
