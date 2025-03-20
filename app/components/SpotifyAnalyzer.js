@@ -20,7 +20,7 @@ import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 import sampleData from './sampledata.js';
 import { selectedPatternYear, yearPatternRange, patternYearRangeMode } from './listening-patterns.js';
-import ListeningBehavior, { selectedBehaviorYear, yearBehaviorRange, behaviorYearRangeMode } from './listening-behavior.js';
+import { selectedBehaviorYear, yearBehaviorRange, behaviorYearRangeMode } from './listening-behavior.js';
 
 
 
