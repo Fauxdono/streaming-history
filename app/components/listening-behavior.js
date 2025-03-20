@@ -1,11 +1,32 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
+import YearSelector from './year-selector.js';
+
+// Export variables for SpotifyAnalyzer.js to use for dynamic tab names
+export let selectedBehaviorYear = 'all';
+export let yearBehaviorRange = { startYear: '', endYear: '' };
+export let behaviorYearRangeMode = false;
 
 const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('behavior');
   const [selectedYear, setSelectedYear] = useState('all'); // 'all' for all-time data, or specific year
+  const [yearRangeMode, setYearRangeMode] = useState(false);
+  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+
+  // Update exported variables whenever state changes
+  useEffect(() => {
+    selectedBehaviorYear = selectedYear;
+  }, [selectedYear]);
+  
+  useEffect(() => {
+    yearBehaviorRange = yearRange;
+  }, [yearRange]);
+  
+  useEffect(() => {
+    behaviorYearRangeMode = yearRangeMode;
+  }, [yearRangeMode]);
   
   // Get all available years from data
   const availableYears = useMemo(() => {
@@ -21,17 +42,26 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
     return Array.from(yearsSet).sort((a, b) => b - a); // Sort in descending order (newest first)
   }, [rawPlayData]);
   
-  // Filter data by selected year
+  // Filter data by selected year or year range
   const filteredData = useMemo(() => {
-    if (selectedYear === 'all') {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      const startYear = parseInt(yearRange.startYear);
+      const endYear = parseInt(yearRange.endYear);
+      
+      return rawPlayData.filter(entry => {
+        const date = new Date(entry.ts);
+        const year = date.getFullYear();
+        return year >= startYear && year <= endYear;
+      });
+    } else if (selectedYear === 'all') {
       return rawPlayData;
+    } else {
+      return rawPlayData.filter(entry => {
+        const date = new Date(entry.ts);
+        return date.getFullYear() === parseInt(selectedYear);
+      });
     }
-    
-    return rawPlayData.filter(entry => {
-      const date = new Date(entry.ts);
-      return date.getFullYear() === parseInt(selectedYear);
-    });
-  }, [rawPlayData, selectedYear]);
+  }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
   
   // Analyze user behavior (skips, shuffle, etc.)
   const behaviorData = useMemo(() => {
@@ -301,6 +331,27 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
     };
   }, [filteredData]);
 
+  // Custom pie chart label renderer - just show the percentage inside
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+    
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        fontSize="12px"
+        fontWeight="bold"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -314,28 +365,69 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
     </button>
   );
 
+  // Handle year change from the slider
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+  };
+
+  // Handle year range change
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    setYearRange({ startYear, endYear });
+  };
+
+  // Toggle between single year and year range modes
+  const toggleYearRangeMode = (value) => {
+    // If value is provided, use it directly; otherwise toggle the current state
+    const newMode = typeof value === 'boolean' ? value : !yearRangeMode;
+    setYearRangeMode(newMode);
+    
+    // Reset selected year when switching to range mode
+    if (newMode) {
+      setSelectedYear('all');
+      
+      // If we're switching to range mode, set a default range
+      if (availableYears.length > 0) {
+        setYearRange({
+          startYear: availableYears[availableYears.length - 1],
+          endYear: availableYears[0]
+        });
+      }
+    }
+  };
+
+  // Function to get title based on year selection mode
+  const getPageTitle = () => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      return `Listening Behavior (${yearRange.startYear}-${yearRange.endYear})`;
+    } else if (selectedYear === 'all') {
+      return 'All-time Listening Behavior';
+    } else {
+      return `Listening Behavior for ${selectedYear}`;
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Year selector */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col mb-4">
         <h3 className="font-bold text-indigo-700">
-          {selectedYear === 'all' 
-            ? 'All-time Listening Behavior' 
-            : `Listening Behavior for ${selectedYear}`}
+          {getPageTitle()}
         </h3>
-        <div className="flex items-center">
-          <span className="text-indigo-600 mr-2">Filter by year:</span>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="border rounded-md p-1 bg-indigo-700 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="all">All Time</option>
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </div>
+        
+        {availableYears.length > 0 && (
+          <div className="mt-2">
+            <YearSelector
+              artistsByYear={{ ...availableYears.reduce((obj, year) => ({ ...obj, [year]: [] }), {}) }}
+              onYearChange={handleYearChange}
+              onYearRangeChange={handleYearRangeChange}
+              initialYear={selectedYear !== 'all' ? selectedYear : null}
+              initialYearRange={yearRange}
+              isRangeMode={yearRangeMode}
+              onToggleRangeMode={toggleYearRangeMode}
+              colorTheme="indigo"
+            />
+          </div>
+        )}
       </div>
       
       {/* Horizontally scrollable tabs */}
@@ -362,16 +454,19 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                     >
                       {behaviorData.shuffleData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => value} />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+    
               <div className="text-sm text-indigo-600 text-center mt-2">
                 You listen in shuffle mode {behaviorData.shufflePercentage}% of the time
               </div>
@@ -389,13 +484,15 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                     >
                       {behaviorData.skipData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip formatter={(value) => value} />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -501,13 +598,15 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                    label={renderCustomizedLabel}
                   >
                     {sessionData.durationGroups.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => value} />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -606,7 +705,7 @@ const ListeningBehavior = ({ rawPlayData = [], formatDuration }) => {
                 for about {sessionData.averageSessionDuration} minutes.
               </p>
             </div>
-          </div>
+      </div>
         </div>
       )}
       
