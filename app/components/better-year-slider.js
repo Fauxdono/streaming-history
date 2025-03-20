@@ -28,6 +28,42 @@ const BetterYearSlider = ({ years, onYearChange, initialYear, colorTheme = 'teal
           textBold: 'text-pink-700',
           bg: 'bg-pink-600'
         };
+      case 'purple':
+        return {
+          text: 'text-purple-700',
+          textBold: 'text-purple-700',
+          bg: 'bg-purple-600'
+        };
+      case 'indigo':
+        return {
+          text: 'text-indigo-700',
+          textBold: 'text-indigo-700',
+          bg: 'bg-indigo-600'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700',
+          textBold: 'text-blue-700',
+          bg: 'bg-blue-600'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700',
+          textBold: 'text-green-700',
+          bg: 'bg-green-600'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700',
+          textBold: 'text-yellow-700',
+          bg: 'bg-yellow-500'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700',
+          textBold: 'text-red-700',
+          bg: 'bg-red-600'
+        };
       case 'teal':
       default:
         return {

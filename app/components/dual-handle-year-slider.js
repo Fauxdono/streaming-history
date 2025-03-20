@@ -37,6 +37,78 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
           buttonBg: 'bg-pink-600',
           buttonHover: 'hover:bg-pink-700'
         };
+      case 'purple':
+        return {
+          text: 'text-purple-700',
+          textBold: 'text-purple-800',
+          bgMed: 'bg-purple-600',
+          bgLight: 'bg-purple-100',
+          textLight: 'text-purple-600',
+          borderActive: 'border-purple-600',
+          borderInactive: 'border-purple-800',
+          buttonBg: 'bg-purple-600',
+          buttonHover: 'hover:bg-purple-700'
+        };
+      case 'indigo':
+        return {
+          text: 'text-indigo-700',
+          textBold: 'text-indigo-800',
+          bgMed: 'bg-indigo-600',
+          bgLight: 'bg-indigo-100',
+          textLight: 'text-indigo-600',
+          borderActive: 'border-indigo-600',
+          borderInactive: 'border-indigo-800',
+          buttonBg: 'bg-indigo-600',
+          buttonHover: 'hover:bg-indigo-700'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700',
+          textBold: 'text-blue-800',
+          bgMed: 'bg-blue-600',
+          bgLight: 'bg-blue-100',
+          textLight: 'text-blue-600',
+          borderActive: 'border-blue-600',
+          borderInactive: 'border-blue-800',
+          buttonBg: 'bg-blue-600',
+          buttonHover: 'hover:bg-blue-700'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700',
+          textBold: 'text-green-800',
+          bgMed: 'bg-green-600',
+          bgLight: 'bg-green-100',
+          textLight: 'text-green-600',
+          borderActive: 'border-green-600',
+          borderInactive: 'border-green-800',
+          buttonBg: 'bg-green-600',
+          buttonHover: 'hover:bg-green-700'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700',
+          textBold: 'text-yellow-800',
+          bgMed: 'bg-yellow-500',
+          bgLight: 'bg-yellow-100',
+          textLight: 'text-yellow-600',
+          borderActive: 'border-yellow-500',
+          borderInactive: 'border-yellow-700',
+          buttonBg: 'bg-yellow-500',
+          buttonHover: 'hover:bg-yellow-600'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700',
+          textBold: 'text-red-800',
+          bgMed: 'bg-red-600',
+          bgLight: 'bg-red-100',
+          textLight: 'text-red-600',
+          borderActive: 'border-red-600',
+          borderInactive: 'border-red-800',
+          buttonBg: 'bg-red-600',
+          buttonHover: 'hover:bg-red-700'
+        };
       case 'teal':
       default:
         return {
