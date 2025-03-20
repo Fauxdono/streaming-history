@@ -20,6 +20,7 @@ import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 import sampleData from './sampledata.js';
 import { selectedPatternYear, yearPatternRange, patternYearRangeMode } from './listening-patterns.js';
+import ListeningBehavior, { selectedBehaviorYear, yearBehaviorRange, behaviorYearRangeMode } from './listening-behavior.js';
 
 
 
@@ -145,6 +146,14 @@ const getPatternsTabLabel = () => {
     return 'All-time Patterns';
   }
   return `${selectedPatternYear} Patterns`;
+};
+const getBehaviorTabLabel = () => {
+  if (behaviorYearRangeMode && yearBehaviorRange.startYear && yearBehaviorRange.endYear) {
+    return `Behavior (${yearBehaviorRange.startYear}-${yearBehaviorRange.endYear})`;
+  } else if (selectedBehaviorYear === 'all') {
+    return 'Listening Behavior';
+  }
+  return `Behavior (${selectedBehaviorYear})`;
 };
 
 const formatDuration = (ms) => {
@@ -816,7 +825,7 @@ const TabButton = ({ id, label }) => {
             {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
             {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
             {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-            {processedData.length > 0 && <TabButton id="behavior" label="Listening Behavior" />}
+            {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
             {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
           </div>
         </div>
