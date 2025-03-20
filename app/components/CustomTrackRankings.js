@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, format } from 'date-fns';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus, Save } from 'lucide-react';
-import EnhancedDateSelector from './components/EnhancedDateSelector';
+import EnhancedDateSelector from './dateselector.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
