@@ -151,7 +151,7 @@ const getBehaviorTabLabel = () => {
   if (behaviorYearRangeMode && yearBehaviorRange.startYear && yearBehaviorRange.endYear) {
     return `Behavior (${yearBehaviorRange.startYear}-${yearBehaviorRange.endYear})`;
   } else if (selectedBehaviorYear === 'all') {
-    return 'Listening Behavior';
+    return All-time Behavior';
   }
   return ` ${selectedBehaviorYear} Behavior`;
 };
