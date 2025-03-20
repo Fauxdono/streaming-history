@@ -149,9 +149,9 @@ const getPatternsTabLabel = () => {
 };
 const getBehaviorTabLabel = () => {
   if (behaviorYearRangeMode && yearBehaviorRange.startYear && yearBehaviorRange.endYear) {
-    return `Behavior (${yearBehaviorRange.startYear}-${yearBehaviorRange.endYear})`;
+    return `${yearBehaviorRange.startYear}-${yearBehaviorRange.endYear} Behavior`;
   } else if (selectedBehaviorYear === 'all') {
-    return All-time Behavior';
+    return 'All-time Behavior';
   }
   return ` ${selectedBehaviorYear} Behavior`;
 };
