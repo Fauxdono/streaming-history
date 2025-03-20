@@ -153,7 +153,7 @@ const getBehaviorTabLabel = () => {
   } else if (selectedBehaviorYear === 'all') {
     return 'Listening Behavior';
   }
-  return `Behavior (${selectedBehaviorYear})`;
+  return ` ${selectedBehaviorYear} Behavior`;
 };
 
 const formatDuration = (ms) => {
