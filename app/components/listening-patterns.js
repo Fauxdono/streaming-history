@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
+import BetterYearSlider from './better-year-slider.js';
 
 const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
@@ -226,28 +227,38 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     </button>
   );
 
+  // Generate the years array for the year slider
+  const yearsForSlider = useMemo(() => {
+    return availableYears.length > 0 ? 
+      availableYears.sort((a, b) => a - b) : // Sort ascending for the slider
+      [];
+  }, [availableYears]);
+
+  // Handle year change from the slider
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+  };
+
   return (
     <div className="space-y-4">
-      {/* Year selector */}
-      <div className="flex justify-between items-center mb-4">
+      {/* Year slider instead of dropdown */}
+      <div className="flex flex-col mb-4">
         <h3 className="font-bold text-purple-700">
           {selectedYear === 'all' 
             ? 'All-time Listening Patterns' 
             : `Listening Patterns for ${selectedYear}`}
         </h3>
-        <div className="flex items-center">
-          <span className="text-purple-600 mr-2">Filter by year:</span>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="border rounded-md p-1 bg-purple-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            <option value="all">All Time</option>
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </div>
+        
+        {yearsForSlider.length > 0 && (
+          <div className="mt-2">
+            <BetterYearSlider 
+              years={yearsForSlider}
+              onYearChange={handleYearChange}
+              initialYear={selectedYear !== 'all' ? selectedYear : null}
+              colorTheme="purple"
+            />
+          </div>
+        )}
       </div>
 
       {/* Horizontally scrollable tabs */}
