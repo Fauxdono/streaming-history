@@ -395,7 +395,7 @@ const CustomTrackRankings = ({
           />
           <label>tracks</label>
         </div>
- 
+       </div>
  {/* Artist Selection */}
       <div className="relative">
         <div className="flex flex-wrap gap-2 mb-2">
