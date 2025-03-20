@@ -204,7 +204,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration }) => {
         <select
           value={selectedYear}
           onChange={e => setSelectedYear(e.target.value)}
-          className="px-3 py-1 rounded border border-purple-300 text-purple-700 focus:outline-none focus:ring-1 focus:ring-purple-600"
+          className="px-3 py-1 rounded border border-purple-300 bg-purple-700 text-white focus:outline-none focus:ring-1 focus:ring-purple-600"
         >
           <option value="all">All Years</option>
           {serviceData.years.map(year => (
