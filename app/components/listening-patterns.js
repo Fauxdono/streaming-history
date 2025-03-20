@@ -1,8 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
 import YearSelector from './year-selector.js';
+
+// Export variables for SpotifyAnalyzer.js to use for dynamic tab names
+export let selectedPatternYear = 'all';
+export let yearPatternRange = { startYear: '', endYear: '' };
+export let patternYearRangeMode = false;
 
 const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
@@ -10,6 +15,19 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const [selectedYear, setSelectedYear] = useState('all'); // 'all' for all-time data, or specific year
   const [yearRangeMode, setYearRangeMode] = useState(false);
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+  
+  // Update exported variables whenever state changes
+  useEffect(() => {
+    selectedPatternYear = selectedYear;
+  }, [selectedYear]);
+  
+  useEffect(() => {
+    yearPatternRange = yearRange;
+  }, [yearRange]);
+  
+  useEffect(() => {
+    patternYearRangeMode = yearRangeMode;
+  }, [yearRangeMode]);
   
   // Get all available years from data
   const availableYears = useMemo(() => {
@@ -289,7 +307,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
         
         {availableYears.length > 0 && (
           <div className="mt-2">
-            <YearSelector 
+            <YearSelector
               artistsByYear={{ ...availableYears.reduce((obj, year) => ({ ...obj, [year]: [] }), {}) }}
               onYearChange={handleYearChange}
               onYearRangeChange={handleYearRangeChange}
