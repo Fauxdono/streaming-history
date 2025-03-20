@@ -19,6 +19,9 @@ import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 import sampleData from './sampledata.js';
+import { selectedPatternYear, yearPatternRange, patternYearRangeMode } from './listening-patterns.js';
+
+
 
 const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
   const now = new Date();
@@ -134,6 +137,16 @@ const handleLoadSampleData = async () => {
     setIsProcessing(false);
   }
 };
+
+const getPatternsTabLabel = () => {
+  if (patternYearRangeMode && yearPatternRange.startYear && yearPatternRange.endYear) {
+    return `${yearPatternRange.startYear}-${yearPatternRange.endYear} Patterns`;
+  } else if (selectedPatternYear === 'all') {
+    return 'All-time Patterns';
+  }
+  return `${selectedPatternYear} Patterns`;
+};
+
 const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
@@ -802,7 +815,7 @@ const TabButton = ({ id, label }) => {
             {processedData.length > 0 && <TabButton id="custom" label="Custom Date Range" />}
             {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
             {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-            {processedData.length > 0 && <TabButton id="patterns" label="Listening Patterns" />}
+            {processedData.length > 0 && <TabButton <TabButton id="patterns" label={getPatternsTabLabel()} />}
             {processedData.length > 0 && <TabButton id="behavior" label="Listening Behavior" />}
             {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
           </div>
