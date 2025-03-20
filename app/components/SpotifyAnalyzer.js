@@ -1407,19 +1407,19 @@ const TabButton = ({ id, label }) => {
           </div>
         )}
 
-        {activeTab === 'custom' && (
-          <div 
-            id="custom-track-rankings"
-            className="p-4 bg-orange-100 rounded border-2 border-orange-300"
-          >
-            <h3 className="font-bold mb-2 text-orange-700">Custom Date Range Analysis</h3>
-            <CustomTrackRankings 
-              rawPlayData={rawPlayData}
-              formatDuration={formatDuration}
-              initialArtists={selectedArtists}
-            />
-          </div>
-        )}
+   {activeTab === 'custom' && (
+  <div 
+    id="custom-track-rankings"
+    className="p-4 bg-orange-100 rounded border-2 border-orange-300"
+  >
+    <h3 className="font-bold mb-2 text-orange-700">Custom Date Range Analysis</h3>
+    <CustomTrackRankings 
+      rawPlayData={rawPlayData}
+      formatDuration={formatDuration}
+      initialArtists={selectedArtists}
+    />
+  </div>
+)}
 
 {activeTab === 'playlists' && (
   <div className="p-4 bg-red-100 rounded border-2 border-red-300">

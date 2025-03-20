@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { startOfDay, endOfDay, format } from 'date-fns';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus, Save } from 'lucide-react';
-import DateRangeControls from './datecontrols.js';
+import EnhancedDateSelector from './components/EnhancedDateSelector';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
@@ -48,21 +48,15 @@ const CustomTrackRankings = ({
     }
   };
 
-  useEffect(() => {
-    if (!startDate && !endDate && rawPlayData.length > 0) {
-      let earliest = new Date(rawPlayData[0].ts);
-      let latest = new Date(rawPlayData[0].ts);
-      
-      for (const entry of rawPlayData) {
-        const date = new Date(entry.ts);
-        if (date < earliest) earliest = date;
-        if (date > latest) latest = date;
-      }
-      
-      setStartDate(format(earliest, 'yyyy-MM-dd'));
-      setEndDate(format(latest, 'yyyy-MM-dd'));
-    }
-  }, [rawPlayData, startDate, endDate]);
+  // Set quick date range
+  const setQuickRange = (days) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    
+    setStartDate(format(start, 'yyyy-MM-dd'));
+    setEndDate(format(end, 'yyyy-MM-dd'));
+  };
 
   // Get unique artists from raw play data
   const allArtists = useMemo(() => {
@@ -274,60 +268,6 @@ const CustomTrackRankings = ({
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
-  // Adjust date range functions
-  const adjustDateRange = (days) => {
-    // Create copy of current start/end date
-    const start = startDate ? new Date(startDate) : new Date();
-    const end = endDate ? new Date(endDate) : new Date();
-    
-    // Modify both dates by the number of days
-    start.setDate(start.getDate() + days);
-    end.setDate(end.getDate() + days);
-    
-    // Update state with formatted dates
-    setStartDate(format(start, 'yyyy-MM-dd'));
-    setEndDate(format(end, 'yyyy-MM-dd'));
-  };
-  
-  // Expand or shrink the date range
-  const expandDateRange = (days) => {
-    // Move start date earlier
-    const start = startDate ? new Date(startDate) : new Date();
-    start.setDate(start.getDate() - days);
-    setStartDate(format(start, 'yyyy-MM-dd'));
-  };
-  
-  const shrinkDateRange = (days) => {
-    // Only shrink if we still have a valid range
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const newStart = new Date(startDate);
-    newStart.setDate(newStart.getDate() + days);
-    
-    // Only update if it doesn't create an invalid range
-    if (newStart < end) {
-      setStartDate(format(newStart, 'yyyy-MM-dd'));
-    }
-  };
-
-  const addArtist = (artist) => {
-    setSelectedArtists(prev => [...prev, artist]);
-    setArtistSearch('');
-  };
-
-  const removeArtist = (artist) => {
-    setSelectedArtists(prev => prev.filter(a => a !== artist));
-  };
-  
-  const addAlbum = (album) => {
-    setSelectedAlbums(prev => [...prev, album]);
-    setAlbumSearch('');
-  };
-
-  const removeAlbum = (albumKey) => {
-    setSelectedAlbums(prev => prev.filter(a => a.key !== albumKey));
-  };
-
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
     if (toggleType === 'include') {
@@ -365,11 +305,6 @@ const CustomTrackRankings = ({
     let content = '#EXTM3U\n';
     
     filteredTracks.forEach((track, index) => {
-      // Skip system messages
-      if (track.id === 'processing' || track.id === 'no-matches' || track.id === 'error') {
-        return;
-      }
-      
       // Calculate track duration in seconds (avoid division by zero)
       const durationSecs = Math.round(track.totalPlayed / (track.playCount || 1) / 1000);
       
@@ -432,27 +367,22 @@ const CustomTrackRankings = ({
     window.URL.revokeObjectURL(url);
   };
 
-// Set quick date range
-const setQuickRange = (days) => {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - days);
-  
-  setStartDate(start.toISOString().split('T')[0]);
-  setEndDate(end.toISOString().split('T')[0]);
-};
-
   return (
     <div className="space-y-4">
-   <DateRangeControls 
-  startDate={startDate}
-  endDate={endDate}
-  setStartDate={setStartDate}
-  setEndDate={setEndDate}
-  setQuickRange={setQuickRange}
-/>
+      {/* Enhanced Date Selector */}
+      <div>
+        <h3 className="font-bold text-orange-700 mb-2">Date Range Selection</h3>
+        <EnhancedDateSelector
+          startDate={startDate}
+          endDate={endDate}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
+          setQuickRange={setQuickRange}
+          rawPlayData={rawPlayData}
+        />
+      </div>
       
-
+      <div className="flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2 text-orange-700">
           <label>Top</label>
           <input
@@ -465,8 +395,8 @@ const setQuickRange = (days) => {
           />
           <label>tracks</label>
         </div>
-     
-      {/* Artist Selection */}
+ 
+ {/* Artist Selection */}
       <div className="relative">
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedArtists.map(artist => (
@@ -476,7 +406,7 @@ const setQuickRange = (days) => {
             >
               {artist}
               <button 
-                onClick={() => removeArtist(artist)}
+                onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
                 className="ml-2 text-white hover:text-orange-200"
               >
                 ×
@@ -491,7 +421,7 @@ const setQuickRange = (days) => {
             >
               <span className="mr-1">💿</span> {album.name} <span className="text-xs ml-1">({album.artist})</span>
               <button 
-                onClick={() => removeAlbum(album.key)}
+                onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
                 className="ml-2 text-white hover:text-orange-200"
               >
                 ×
@@ -523,7 +453,7 @@ const setQuickRange = (days) => {
                     <div
                       key={artist}
                       onClick={() => {
-                        addArtist(artist);
+                        addArtistFromTrack(artist);
                         setUnifiedSearch('');
                       }}
                       className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
@@ -541,7 +471,7 @@ const setQuickRange = (days) => {
                     <div
                       key={album.key}
                       onClick={() => {
-                        addAlbum(album);
+                        addAlbumFromTrack(album.name, album.artist);
                         setUnifiedSearch('');
                       }}
                       className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
