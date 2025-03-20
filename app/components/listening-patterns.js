@@ -2,12 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
-import BetterYearSlider from './better-year-slider.js';
+import YearSelector from './year-selector.js';
 
 const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays'); // 'plays' or 'average'
   const [selectedYear, setSelectedYear] = useState('all'); // 'all' for all-time data, or specific year
+  const [yearRangeMode, setYearRangeMode] = useState(false);
+  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   
   // Get all available years from data
   const availableYears = useMemo(() => {
@@ -20,20 +22,29 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
       }
     });
     
-    return Array.from(yearsSet).sort((a, b) => b - a); // Sort in descending order (newest first)
+    return Array.from(yearsSet).sort((a, b) => a - b); // Sort in ascending order
   }, [rawPlayData]);
   
-  // Filter data by selected year
+  // Filter data by selected year or year range
   const filteredData = useMemo(() => {
-    if (selectedYear === 'all') {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      const startYear = parseInt(yearRange.startYear);
+      const endYear = parseInt(yearRange.endYear);
+      
+      return rawPlayData.filter(entry => {
+        const date = new Date(entry.ts);
+        const year = date.getFullYear();
+        return year >= startYear && year <= endYear;
+      });
+    } else if (selectedYear === 'all') {
       return rawPlayData;
+    } else {
+      return rawPlayData.filter(entry => {
+        const date = new Date(entry.ts);
+        return date.getFullYear() === parseInt(selectedYear);
+      });
     }
-    
-    return rawPlayData.filter(entry => {
-      const date = new Date(entry.ts);
-      return date.getFullYear() === parseInt(selectedYear);
-    });
-  }, [rawPlayData, selectedYear]);
+  }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
 
   // Time of day analysis
   const timeOfDayData = useMemo(() => {
@@ -227,34 +238,65 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     </button>
   );
 
-  // Generate the years array for the year slider
-  const yearsForSlider = useMemo(() => {
-    return availableYears.length > 0 ? 
-      availableYears.sort((a, b) => a - b) : // Sort ascending for the slider
-      [];
-  }, [availableYears]);
-
   // Handle year change from the slider
   const handleYearChange = (year) => {
     setSelectedYear(year);
   };
 
+  // Handle year range change
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    setYearRange({ startYear, endYear });
+  };
+
+  // Toggle between single year and year range modes
+  const toggleYearRangeMode = (value) => {
+    // If value is provided, use it directly; otherwise toggle the current state
+    const newMode = typeof value === 'boolean' ? value : !yearRangeMode;
+    setYearRangeMode(newMode);
+    
+    // Reset selected year when switching to range mode
+    if (newMode) {
+      setSelectedYear('all');
+      
+      // If we're switching to range mode, set a default range
+      if (availableYears.length > 0) {
+        setYearRange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
+    }
+  };
+
+  // Function to get title based on year selection mode
+  const getPageTitle = () => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      return `Listening Patterns (${yearRange.startYear}-${yearRange.endYear})`;
+    } else if (selectedYear === 'all') {
+      return 'All-time Listening Patterns';
+    } else {
+      return `Listening Patterns for ${selectedYear}`;
+    }
+  };
+
   return (
     <div className="space-y-4">
-      {/* Year slider instead of dropdown */}
+      {/* Year selector */}
       <div className="flex flex-col mb-4">
         <h3 className="font-bold text-purple-700">
-          {selectedYear === 'all' 
-            ? 'All-time Listening Patterns' 
-            : `Listening Patterns for ${selectedYear}`}
+          {getPageTitle()}
         </h3>
         
-        {yearsForSlider.length > 0 && (
+        {availableYears.length > 0 && (
           <div className="mt-2">
-            <BetterYearSlider 
-              years={yearsForSlider}
+            <YearSelector 
+              artistsByYear={{ ...availableYears.reduce((obj, year) => ({ ...obj, [year]: [] }), {}) }}
               onYearChange={handleYearChange}
+              onYearRangeChange={handleYearRangeChange}
               initialYear={selectedYear !== 'all' ? selectedYear : null}
+              initialYearRange={yearRange}
+              isRangeMode={yearRangeMode}
+              onToggleRangeMode={toggleYearRangeMode}
               colorTheme="purple"
             />
           </div>
