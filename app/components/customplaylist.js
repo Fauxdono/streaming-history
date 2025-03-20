@@ -562,10 +562,24 @@ const generateFromRules = () => {
             }
 
 case 'playDate': {
-  // Get timestamp from track entry
-  const trackDate = new Date(track.ts);
+  // For date rules, we need to search in the raw play data
+  // Find this track in rawPlayData by matching name and artist
+  const trackName = track.trackName?.toLowerCase();
+  const artistName = track.artist?.toLowerCase();
   
- if (rule.operator === 'between') {
+  if (!trackName || !artistName) return false;
+  
+  // Find all instances where this track appears in the raw data
+  const matchingEntries = rawPlayData.filter(entry => 
+    entry.master_metadata_track_name?.toLowerCase() === trackName &&
+    entry.master_metadata_album_artist_name?.toLowerCase() === artistName
+  );
+  
+  // If no matching entries found, we can't judge based on date
+  if (matchingEntries.length === 0) return false;
+  
+  // Now check the date criterion based on the operator
+  if (rule.operator === 'between') {
     const [startDateStr, endDateStr] = ruleValue.split('|');
     if (!startDateStr || !endDateStr) return false;
     
@@ -575,59 +589,44 @@ case 'playDate': {
     const endDate = new Date(endDateStr);
     endDate.setHours(23, 59, 59, 999);
     
-    // Look for this track in the raw data to check its timestamp
-    // We need to match it by name and artist
-    const matchingRawEntries = rawPlayData.filter(entry => 
-      entry.master_metadata_track_name?.toLowerCase() === track.trackName?.toLowerCase() &&
-      entry.master_metadata_album_artist_name?.toLowerCase() === track.artist?.toLowerCase()
-    );
-    
-    // Check if any of the track's plays fall within the date range
-    return matchingRawEntries.some(entry => {
+    // Track is included if any play falls within the date range
+    return matchingEntries.some(entry => {
       const entryDate = new Date(entry.ts);
       return entryDate >= startDate && entryDate <= endDate;
     });
-  }
-  
-  // For "on" operator, compare year, month, and day only
+  } 
   else if (rule.operator === 'on') {
     const ruleDate = new Date(ruleValue);
+    const ruleYear = ruleDate.getFullYear();
+    const ruleMonth = ruleDate.getMonth();
+    const ruleDay = ruleDate.getDate();
     
-    // Look for this track in the raw data to check its timestamp
-    const matchingRawEntries = rawPlayData.filter(entry => 
-      entry.master_metadata_track_name?.toLowerCase() === track.trackName?.toLowerCase() &&
-      entry.master_metadata_album_artist_name?.toLowerCase() === track.artist?.toLowerCase()
-    );
-    
-    // Check if any of the track's plays occurred on the specified date
-    return matchingRawEntries.some(entry => {
+    // Track is included if any play was on the specified date
+    return matchingEntries.some(entry => {
       const entryDate = new Date(entry.ts);
-      return entryDate.getFullYear() === ruleDate.getFullYear() &&
-             entryDate.getMonth() === ruleDate.getMonth() &&
-             entryDate.getDate() === ruleDate.getDate();
+      return entryDate.getFullYear() === ruleYear &&
+             entryDate.getMonth() === ruleMonth &&
+             entryDate.getDate() === ruleDay;
     });
   }
-  
-  // For after/before, compare full timestamps
-  else if (rule.operator === 'after' || rule.operator === 'before') {
+  else if (rule.operator === 'after') {
     const ruleDate = new Date(ruleValue);
-    if (rule.operator === 'before') {
-      // Set rule date to end of day for more intuitive "before" filtering
-      ruleDate.setHours(23, 59, 59, 999);
-    }
     
-    // Look for this track in the raw data
-    const matchingRawEntries = rawPlayData.filter(entry => 
-      entry.master_metadata_track_name?.toLowerCase() === track.trackName?.toLowerCase() &&
-      entry.master_metadata_album_artist_name?.toLowerCase() === track.artist?.toLowerCase()
-    );
-    
-    // Check if any of the track's plays match the date criterion
-    return matchingRawEntries.some(entry => {
+    // Track is included if any play was after the specified date
+    return matchingEntries.some(entry => {
       const entryDate = new Date(entry.ts);
-      return rule.operator === 'after' ? 
-        entryDate >= ruleDate : 
-        entryDate <= ruleDate;
+      return entryDate >= ruleDate;
+    });
+  }
+  else if (rule.operator === 'before') {
+    const ruleDate = new Date(ruleValue);
+    // Set rule date to end of day for more intuitive "before" filtering
+    ruleDate.setHours(23, 59, 59, 999);
+    
+    // Track is included if any play was before the specified date
+    return matchingEntries.some(entry => {
+      const entryDate = new Date(entry.ts);
+      return entryDate <= ruleDate;
     });
   }
   
