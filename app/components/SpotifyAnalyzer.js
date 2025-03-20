@@ -815,7 +815,7 @@ const TabButton = ({ id, label }) => {
             {processedData.length > 0 && <TabButton id="custom" label="Custom Date Range" />}
             {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
             {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-            {processedData.length > 0 && <TabButton <TabButton id="patterns" label={getPatternsTabLabel()} />}
+            {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
             {processedData.length > 0 && <TabButton id="behavior" label="Listening Behavior" />}
             {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
           </div>
