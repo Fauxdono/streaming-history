@@ -58,10 +58,10 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     
     // Group into time periods for better visualization
     const timePeriods = [
-      { name: 'Morning (5-11)', count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'Afternoon (12-16)', count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'Evening (17-21)', count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'Night (22-4)', count: 0, totalMs: 0, color: '#4B9CD3' }
+      { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0, color: '#8884d8' },
+      { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0, color: '#82ca9d' },
+      { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0, color: '#ffc658' },
+      { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0, color: '#4B9CD3' }
     ];
     
     hourlyData.forEach((hour) => {
@@ -85,13 +85,13 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
 
   const dayOfWeekData = useMemo(() => {
     const days = [
-      { name: 'Sunday', shortName: 'Sun', dayNum: 0, count: 0, totalMs: 0, color: '#FF8042' },
-      { name: 'Monday', shortName: 'Mon', dayNum: 1, count: 0, totalMs: 0, color: '#00C49F' },
-      { name: 'Tuesday', shortName: 'Tue', dayNum: 2, count: 0, totalMs: 0, color: '#FFBB28' },
-      { name: 'Wednesday', shortName: 'Wed', dayNum: 3, count: 0, totalMs: 0, color: '#FF8042' },
-      { name: 'Thursday', shortName: 'Thu', dayNum: 4, count: 0, totalMs: 0, color: '#0088FE' },
-      { name: 'Friday', shortName: 'Fri', dayNum: 5, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'Saturday', shortName: 'Sat', dayNum: 6, count: 0, totalMs: 0, color: '#82ca9d' }
+      { name: 'Sun', fullName: 'Sunday', dayNum: 0, count: 0, totalMs: 0, color: '#FF8042' },
+      { name: 'Mon', fullName: 'Monday', dayNum: 1, count: 0, totalMs: 0, color: '#00C49F' },
+      { name: 'Tue', fullName: 'Tuesday', dayNum: 2, count: 0, totalMs: 0, color: '#FFBB28' },
+      { name: 'Wed', fullName: 'Wednesday', dayNum: 3, count: 0, totalMs: 0, color: '#FF8042' },
+      { name: 'Thu', fullName: 'Thursday', dayNum: 4, count: 0, totalMs: 0, color: '#0088FE' },
+      { name: 'Fri', fullName: 'Friday', dayNum: 5, count: 0, totalMs: 0, color: '#8884d8' },
+      { name: 'Sat', fullName: 'Saturday', dayNum: 6, count: 0, totalMs: 0, color: '#82ca9d' }
     ];
     
     filteredData.forEach(entry => {
@@ -132,8 +132,8 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     
     // Mark the top days with a star
     days.forEach(day => {
-      day.isTopByCount = day.name === maxPlaysDay.name;
-      day.isTopByAverage = day.name === maxAvgDay.name;
+      day.isTopByCount = day.fullName === maxPlaysDay.fullName;
+      day.isTopByAverage = day.fullName === maxAvgDay.fullName;
     });
     
     return days;
@@ -142,26 +142,26 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   // Monthly/seasonal analysis
   const monthlyData = useMemo(() => {
     const months = [
-      { name: 'January', shortName: 'Jan', monthNum: 0, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'February', shortName: 'Feb', monthNum: 1, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'March', shortName: 'Mar', monthNum: 2, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'April', shortName: 'Apr', monthNum: 3, count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'May', shortName: 'May', monthNum: 4, count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'June', shortName: 'Jun', monthNum: 5, count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'July', shortName: 'Jul', monthNum: 6, count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'August', shortName: 'Aug', monthNum: 7, count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'September', shortName: 'Sep', monthNum: 8, count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'October', shortName: 'Oct', monthNum: 9, count: 0, totalMs: 0, color: '#4B9CD3' },
-      { name: 'November', shortName: 'Nov', monthNum: 10, count: 0, totalMs: 0, color: '#4B9CD3' },
-      { name: 'December', shortName: 'Dec', monthNum: 11, count: 0, totalMs: 0, color: '#4B9CD3' }
+      { name: 'Jan', fullName: 'January', monthNum: 0, count: 0, totalMs: 0, color: '#8884d8' },
+      { name: 'Feb', fullName: 'February', monthNum: 1, count: 0, totalMs: 0, color: '#8884d8' },
+      { name: 'Mar', fullName: 'March', monthNum: 2, count: 0, totalMs: 0, color: '#8884d8' },
+      { name: 'Apr', fullName: 'April', monthNum: 3, count: 0, totalMs: 0, color: '#82ca9d' },
+      { name: 'May', fullName: 'May', monthNum: 4, count: 0, totalMs: 0, color: '#82ca9d' },
+      { name: 'Jun', fullName: 'June', monthNum: 5, count: 0, totalMs: 0, color: '#82ca9d' },
+      { name: 'Jul', fullName: 'July', monthNum: 6, count: 0, totalMs: 0, color: '#ffc658' },
+      { name: 'Aug', fullName: 'August', monthNum: 7, count: 0, totalMs: 0, color: '#ffc658' },
+      { name: 'Sep', fullName: 'September', monthNum: 8, count: 0, totalMs: 0, color: '#ffc658' },
+      { name: 'Oct', fullName: 'October', monthNum: 9, count: 0, totalMs: 0, color: '#4B9CD3' },
+      { name: 'Nov', fullName: 'November', monthNum: 10, count: 0, totalMs: 0, color: '#4B9CD3' },
+      { name: 'Dec', fullName: 'December', monthNum: 11, count: 0, totalMs: 0, color: '#4B9CD3' }
     ];
     
     // Group months into seasons
     const seasons = [
-      { name: 'Spring (Mar-May)', count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'Summer (Jun-Aug)', count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'Fall (Sep-Nov)', count: 0, totalMs: 0, color: '#FF8042' },
-      { name: 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: '#4B9CD3' }
+      { name: 'Spring', fullName: 'Spring (Mar-May)', count: 0, totalMs: 0, color: '#82ca9d' },
+      { name: 'Summer', fullName: 'Summer (Jun-Aug)', count: 0, totalMs: 0, color: '#ffc658' },
+      { name: 'Fall', fullName: 'Fall (Sep-Nov)', count: 0, totalMs: 0, color: '#FF8042' },
+      { name: 'Winter', fullName: 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: '#4B9CD3' }
     ];
     
     filteredData.forEach(entry => {
@@ -191,6 +191,27 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     
     return { months, seasons };
   }, [filteredData]);
+
+  // Custom pie chart label renderer - just show the percentage inside
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+    
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        fontSize="12px"
+        fontWeight="bold"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
 
   const TabButton = ({ id, label }) => (
     <button
@@ -280,13 +301,21 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                     >
                       {timeOfDayData.periods.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => value} />
+                    <Tooltip 
+                      formatter={(value) => value}
+                      labelFormatter={(name) => {
+                        const period = timeOfDayData.periods.find(p => p.name === name);
+                        return period ? period.fullName : name;
+                      }}
+                    />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -297,7 +326,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
               <ul className="space-y-2">
                 {timeOfDayData.periods.map((period, index) => (
                   <li key={index} className="p-2 bg-purple-50 rounded">
-                    <span className="font-bold" style={{ color: period.color }}>{period.name}:</span>
+                    <span className="font-bold" style={{ color: period.color }}>{period.fullName}:</span>
                     <div className="ml-2 text-purple-400">
                       <div>{period.count} plays</div>
                       <div>{formatDuration(period.totalMs)} listening time</div>
@@ -349,7 +378,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="shortName" />
+                  <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip 
                     formatter={(value, name) => {
@@ -357,6 +386,10 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
                       if (name === 'count') return `${value} plays`;
                       if (name === 'avgPerDay') return `${value.toFixed(1)} plays per day`;
                       return value;
+                    }}
+                    labelFormatter={(label) => {
+                      const day = dayOfWeekData.find(d => d.name === label);
+                      return day ? day.fullName : label;
                     }}
                   />
                   <Legend />
@@ -379,7 +412,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
                   (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
                     <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
                   ) : null}
-                  <h4 className="font-bold text-purple-700">{day.name}</h4>
+                  <h4 className="font-bold text-purple-700">{day.fullName}</h4>
                   <div className="text-sm text-purple-600">
                     <div>Total Plays: {day.count}</div>
                     <div>Listening Time: {formatDuration(day.totalMs)}</div>
@@ -405,11 +438,15 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
                   margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="shortName" />
+                  <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip 
                     formatter={(value, name) => {
                       return name === 'totalMs' ? formatDuration(value) : value;
+                    }}
+                    labelFormatter={(label) => {
+                      const month = monthlyData.months.find(m => m.name === label);
+                      return month ? month.fullName : label;
                     }}
                   />
                   <Legend />
@@ -432,13 +469,21 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
                     >
                       {monthlyData.seasons.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => value} />
+                    <Tooltip 
+                      formatter={(value) => value}
+                      labelFormatter={(name) => {
+                        const season = monthlyData.seasons.find(s => s.name === name);
+                        return season ? season.fullName : name;
+                      }}
+                    />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -449,7 +494,7 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
               <ul className="space-y-2">
                 {monthlyData.seasons.map((season, index) => (
                   <li key={index} className="p-2 bg-purple-50 rounded">
-                    <span className="font-bold" style={{ color: season.color }}>{season.name}:</span>
+                    <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
                     <div className="ml-2 text-purple-400">
                       <div>{season.count} plays</div>
                       <div>{formatDuration(season.totalMs)} listening time</div>
