@@ -68,6 +68,72 @@ const YearSelector = ({
           borderActive: 'border-pink-600',
           borderInactive: 'border-pink-800'
         };
+      case 'purple':
+        return {
+          text: 'text-purple-700',
+          bg: 'bg-purple-600',
+          bgHover: 'hover:bg-purple-700',
+          bgLight: 'bg-purple-100',
+          textLight: 'text-purple-700',
+          bgHoverLight: 'hover:bg-purple-200',
+          borderActive: 'border-purple-600',
+          borderInactive: 'border-purple-800'
+        };
+      case 'indigo':
+        return {
+          text: 'text-indigo-700',
+          bg: 'bg-indigo-600',
+          bgHover: 'hover:bg-indigo-700',
+          bgLight: 'bg-indigo-100',
+          textLight: 'text-indigo-700',
+          bgHoverLight: 'hover:bg-indigo-200',
+          borderActive: 'border-indigo-600',
+          borderInactive: 'border-indigo-800'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700',
+          bg: 'bg-blue-600',
+          bgHover: 'hover:bg-blue-700',
+          bgLight: 'bg-blue-100',
+          textLight: 'text-blue-700',
+          bgHoverLight: 'hover:bg-blue-200',
+          borderActive: 'border-blue-600',
+          borderInactive: 'border-blue-800'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700',
+          bg: 'bg-green-600',
+          bgHover: 'hover:bg-green-700',
+          bgLight: 'bg-green-100',
+          textLight: 'text-green-700',
+          bgHoverLight: 'hover:bg-green-200',
+          borderActive: 'border-green-600',
+          borderInactive: 'border-green-800'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700',
+          bg: 'bg-yellow-500',
+          bgHover: 'hover:bg-yellow-600',
+          bgLight: 'bg-yellow-100',
+          textLight: 'text-yellow-700',
+          bgHoverLight: 'hover:bg-yellow-200',
+          borderActive: 'border-yellow-500',
+          borderInactive: 'border-yellow-700'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700',
+          bg: 'bg-red-600',
+          bgHover: 'hover:bg-red-700',
+          bgLight: 'bg-red-100',
+          textLight: 'text-red-700',
+          bgHoverLight: 'hover:bg-red-200',
+          borderActive: 'border-red-600',
+          borderInactive: 'border-red-800'
+        };
       case 'teal':
       default:
         return {
