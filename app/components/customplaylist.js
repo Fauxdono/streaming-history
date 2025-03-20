@@ -391,17 +391,24 @@ const updateRule = (id, field, value) => {
         // Create updated rule with new field value
         const updatedRule = { ...rule, [field]: value };
         
-        // If changing to a numeric field type, ensure operator is appropriate
-        if (field === 'type' && (value === 'playCount' || value === 'playTime')) {
-          // For numeric fields, use numeric operators
-          if (['contains', 'startsWith', 'endsWith'].includes(updatedRule.operator)) {
-            updatedRule.operator = 'greaterThan'; // Default numeric operator
+        // If changing to a date field type, ensure value is properly formatted
+        if (field === 'type' && value === 'playDate') {
+          // For date fields, initialize with today's date if empty
+          if (!updatedRule.value) {
+            const today = new Date();
+            updatedRule.value = today.toISOString().split('T')[0]; // YYYY-MM-DD format
           }
         }
-        // For date fields, use date operators
-        else if (field === 'type' && value === 'playDate') {
-          if (['contains', 'startsWith', 'endsWith'].includes(updatedRule.operator)) {
-            updatedRule.operator = 'after'; // Default date operator
+        
+        // If changing operator to 'between' for a date field, ensure proper format
+        if (field === 'operator' && value === 'between' && rule.type === 'playDate') {
+          // Start with today and a week from today if not already in the correct format
+          if (!rule.value.includes('|')) {
+            const today = new Date();
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            
+            updatedRule.value = `${today.toISOString().split('T')[0]}|${nextWeek.toISOString().split('T')[0]}`;
           }
         }
         
@@ -413,6 +420,7 @@ const updateRule = (id, field, value) => {
 };
 
 const generateFromRules = () => {
+
   console.clear();
   console.log("======= STARTING PLAYLIST GENERATION =======");
   
@@ -557,37 +565,70 @@ case 'playDate': {
   // Get timestamp from track entry
   const trackDate = new Date(track.ts);
   
-  // For "between" operator, we need to parse two dates
-  if (rule.operator === 'between') {
+ if (rule.operator === 'between') {
     const [startDateStr, endDateStr] = ruleValue.split('|');
     if (!startDateStr || !endDateStr) return false;
     
+    // Convert to Date objects
     const startDate = new Date(startDateStr);
     // Set end date to end of day for inclusive filtering
     const endDate = new Date(endDateStr);
     endDate.setHours(23, 59, 59, 999);
     
-    // Check if track date is between start and end
-    return trackDate >= startDate && trackDate <= endDate;
+    // Look for this track in the raw data to check its timestamp
+    // We need to match it by name and artist
+    const matchingRawEntries = rawPlayData.filter(entry => 
+      entry.master_metadata_track_name?.toLowerCase() === track.trackName?.toLowerCase() &&
+      entry.master_metadata_album_artist_name?.toLowerCase() === track.artist?.toLowerCase()
+    );
+    
+    // Check if any of the track's plays fall within the date range
+    return matchingRawEntries.some(entry => {
+      const entryDate = new Date(entry.ts);
+      return entryDate >= startDate && entryDate <= endDate;
+    });
   }
   
-  // For other operators, parse single date
-  const ruleDate = new Date(ruleValue);
-  
   // For "on" operator, compare year, month, and day only
-  if (rule.operator === 'on') {
-    return trackDate.getFullYear() === ruleDate.getFullYear() &&
-          trackDate.getMonth() === ruleDate.getMonth() &&
-          trackDate.getDate() === ruleDate.getDate();
+  else if (rule.operator === 'on') {
+    const ruleDate = new Date(ruleValue);
+    
+    // Look for this track in the raw data to check its timestamp
+    const matchingRawEntries = rawPlayData.filter(entry => 
+      entry.master_metadata_track_name?.toLowerCase() === track.trackName?.toLowerCase() &&
+      entry.master_metadata_album_artist_name?.toLowerCase() === track.artist?.toLowerCase()
+    );
+    
+    // Check if any of the track's plays occurred on the specified date
+    return matchingRawEntries.some(entry => {
+      const entryDate = new Date(entry.ts);
+      return entryDate.getFullYear() === ruleDate.getFullYear() &&
+             entryDate.getMonth() === ruleDate.getMonth() &&
+             entryDate.getDate() === ruleDate.getDate();
+    });
   }
   
   // For after/before, compare full timestamps
-  if (rule.operator === 'after') {
-    return trackDate >= ruleDate;
-  } else if (rule.operator === 'before') {
-    // Set rule date to end of day for more intuitive "before" filtering
-    ruleDate.setHours(23, 59, 59, 999);
-    return trackDate <= ruleDate;
+  else if (rule.operator === 'after' || rule.operator === 'before') {
+    const ruleDate = new Date(ruleValue);
+    if (rule.operator === 'before') {
+      // Set rule date to end of day for more intuitive "before" filtering
+      ruleDate.setHours(23, 59, 59, 999);
+    }
+    
+    // Look for this track in the raw data
+    const matchingRawEntries = rawPlayData.filter(entry => 
+      entry.master_metadata_track_name?.toLowerCase() === track.trackName?.toLowerCase() &&
+      entry.master_metadata_album_artist_name?.toLowerCase() === track.artist?.toLowerCase()
+    );
+    
+    // Check if any of the track's plays match the date criterion
+    return matchingRawEntries.some(entry => {
+      const entryDate = new Date(entry.ts);
+      return rule.operator === 'after' ? 
+        entryDate >= ruleDate : 
+        entryDate <= ruleDate;
+    });
   }
   
   return false;
