@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 const RangeSlider = ({ 
   values, 
@@ -7,11 +7,13 @@ const RangeSlider = ({
   initialEndValue, 
   displayFormat,
   title,
-  colorTheme = 'orange' 
+  colorTheme = 'orange',
+  disabled = false
 }) => {
   // Make sure we have an array of values and they're sorted
-  const sortedValues = Array.isArray(values) ? 
-    [...values].sort((a, b) => parseInt(a) - parseInt(b)) : [];
+  const sortedValues = useMemo(() => 
+    Array.isArray(values) ? [...values].sort((a, b) => parseInt(a) - parseInt(b)) : []
+  , [values]);
   
   // If no values, nothing to render
   if (sortedValues.length === 0) {
@@ -27,11 +29,12 @@ const RangeSlider = ({
   const [startValue, setStartValue] = useState(initialStartValue || minValue);
   const [endValue, setEndValue] = useState(initialEndValue || maxValue);
   const [activeDragHandle, setActiveDragHandle] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   const sliderRef = useRef(null);
   
   // Map color theme to actual color values
-  const getColors = () => {
+  const colors = useMemo(() => {
     switch (colorTheme) {
       case 'pink':
         return {
@@ -57,6 +60,18 @@ const RangeSlider = ({
           buttonBg: 'bg-teal-600',
           buttonHover: 'hover:bg-teal-700'
         };
+      case 'blue':
+        return {
+          text: 'text-blue-700',
+          textBold: 'text-blue-800',
+          bgMed: 'bg-blue-600',
+          bgLight: 'bg-blue-100',
+          textLight: 'text-blue-600',
+          borderActive: 'border-blue-600',
+          borderInactive: 'border-blue-800',
+          buttonBg: 'bg-blue-600',
+          buttonHover: 'hover:bg-blue-700'
+        };
       case 'orange':
       default:
         return {
@@ -71,9 +86,7 @@ const RangeSlider = ({
           buttonHover: 'hover:bg-orange-700'
         };
     }
-  };
-
-  const colors = getColors();
+  }, [colorTheme]);
   
   // Initialize the slider positions based on the initial values
   useEffect(() => {
@@ -103,7 +116,7 @@ const RangeSlider = ({
   }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue]);
   
   // Handler for when the position changes, updates the value
-  const updateValueFromPosition = (position, isStart) => {
+  const updateValueFromPosition = useCallback((position, isStart) => {
     const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
     const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
     
@@ -112,20 +125,25 @@ const RangeSlider = ({
     } else {
       setEndValue(newValue);
     }
-    
-    // Notify parent of value range change
-    if (onValuesChange) {
+  }, [sortedValues]);
+  
+  // Debounced notification to parent - only when drag ends
+  useEffect(() => {
+    if (!isDragging && onValuesChange && startValue && endValue) {
       onValuesChange({
-        startValue: isStart ? newValue : startValue,
-        endValue: isStart ? endValue : newValue
+        startValue,
+        endValue
       });
     }
-  };
+  }, [isDragging, onValuesChange, startValue, endValue]);
   
   // Handle mouse events
-  const handleMouseDown = (e, isStartHandle) => {
+  const handleMouseDown = useCallback((e, isStartHandle) => {
+    if (disabled) return;
+    
     e.preventDefault();
     setActiveDragHandle(isStartHandle ? 'start' : 'end');
+    setIsDragging(true);
     
     const handleMouseMove = (e) => {
       const slider = sliderRef.current;
@@ -156,6 +174,7 @@ const RangeSlider = ({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       setActiveDragHandle(null);
+      setIsDragging(false);
     };
     
     document.addEventListener('mousemove', handleMouseMove);
@@ -163,11 +182,11 @@ const RangeSlider = ({
     
     // Initial position update
     handleMouseMove(e);
-  };
+  }, [disabled, endPosition, startPosition, updateValueFromPosition]);
   
   // Handle click on the track (moves the nearest handle)
-  const handleTrackClick = (e) => {
-    if (activeDragHandle !== null) return; // Ignore during active drag
+  const handleTrackClick = useCallback((e) => {
+    if (disabled || activeDragHandle !== null) return; // Ignore during active drag
     
     const slider = sliderRef.current;
     if (!slider) return;
@@ -184,6 +203,9 @@ const RangeSlider = ({
     const startDistance = Math.abs(percentage - startPosition);
     const endDistance = Math.abs(percentage - endPosition);
     
+    // Set temporary dragging state to prevent immediate updates
+    setIsDragging(true);
+    
     if (startDistance <= endDistance) {
       setStartPosition(percentage);
       updateValueFromPosition(percentage, true);
@@ -191,26 +213,18 @@ const RangeSlider = ({
       setEndPosition(percentage);
       updateValueFromPosition(percentage, false);
     }
-  };
-  
-  // Add a useEffect to call onValuesChange when the component mounts
-  // This ensures the parent component gets the initial value range
-  useEffect(() => {
-    if (onValuesChange && startValue && endValue) {
-      onValuesChange({
-        startValue,
-        endValue
-      });
-    }
-  }, []);
+    
+    // Clear dragging state after brief delay
+    setTimeout(() => setIsDragging(false), 50);
+  }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition]);
   
   // Format the display value if a formatter is provided
-  const formatValue = (value) => {
+  const formatValue = useCallback((value) => {
     if (typeof displayFormat === 'function') {
       return displayFormat(value);
     }
     return value;
-  };
+  }, [displayFormat]);
   
   return (
     <div className="my-3">
@@ -223,7 +237,7 @@ const RangeSlider = ({
       
       <div 
         ref={sliderRef}
-        className="relative h-10 cursor-pointer select-none" 
+        className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`} 
         onClick={handleTrackClick}
       >
         {/* Background Line */}
@@ -242,22 +256,30 @@ const RangeSlider = ({
         <div 
           className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
             activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
-          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md cursor-move z-20`}
+          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ left: `${startPosition}%` }}
-          onMouseDown={(e) => handleMouseDown(e, true)}
+          onMouseDown={e => handleMouseDown(e, true)}
         ></div>
         
         {/* End Handle */}
         <div 
           className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
             activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
-          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md cursor-move z-20`}
+          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ left: `${endPosition}%` }}
-          onMouseDown={(e) => handleMouseDown(e, false)}
+          onMouseDown={e => handleMouseDown(e, false)}
         ></div>
         
-        {/* Value markers */}
+        {/* Value markers - render fewer to improve performance */}
         {sortedValues.map((value, index) => {
+          // Only render every nth marker based on the total count
+          const markersToShow = Math.max(7, Math.min(20, sortedValues.length / 10));
+          const skipFactor = Math.ceil(sortedValues.length / markersToShow);
+          
+          if (index % skipFactor !== 0 && index !== 0 && index !== sortedValues.length - 1) {
+            return null;
+          }
+          
           const position = (index / (sortedValues.length - 1)) * 100;
           const isInRange = position >= startPosition && position <= endPosition;
           
@@ -269,12 +291,9 @@ const RangeSlider = ({
               }`}
               style={{ left: `${position}%` }}
             >
-              {/* Only show some value labels to avoid crowding */}
-              {index % Math.ceil(sortedValues.length / 7) === 0 && (
-                <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${colors.text} font-medium`}>
-                  {formatValue(value)}
-                </div>
-              )}
+              <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${colors.text} font-medium`}>
+                {formatValue(value)}
+              </div>
             </div>
           );
         })}
@@ -287,40 +306,57 @@ const TripleRangeSelector = ({
   onDateRangeChange, 
   initialStartDate,
   initialEndDate,
-  colorTheme = 'orange'
+  colorTheme = 'orange',
+  availableYears = []
 }) => {
-  // Generate years from 2000 to current year
+  // First, determine the range of years to use
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1999 }, (_, i) => (2000 + i).toString());
+  
+  // Use availableYears if provided, otherwise use a default range
+  const years = useMemo(() => {
+    if (availableYears && availableYears.length > 0) {
+      return [...new Set(availableYears)].sort((a, b) => parseInt(a) - parseInt(b));
+    }
+    return Array.from({ length: currentYear - 1999 }, (_, i) => (2000 + i).toString());
+  }, [availableYears, currentYear]);
   
   // Generate months 1-12
-  const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
+  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => (i + 1).toString()), []);
   
   // Generate days 1-31
-  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+  const days = useMemo(() => Array.from({ length: 31 }, (_, i) => (i + 1).toString()), []);
   
   // State for each range
-  const [yearRange, setYearRange] = useState({ startValue: currentYear.toString(), endValue: currentYear.toString() });
-  const [monthRange, setMonthRange] = useState({ startValue: '1', endValue: '12' });
-  const [dayRange, setDayRange] = useState({ startValue: '1', endValue: '31' });
+  const [useAllTime, setUseAllTime] = useState(false);
+  const [yearRange, setYearRange] = useState({ 
+    startValue: initialStartDate ? new Date(initialStartDate).getFullYear().toString() : years[0], 
+    endValue: initialEndDate ? new Date(initialEndDate).getFullYear().toString() : years[years.length - 1] 
+  });
+  const [monthRange, setMonthRange] = useState({ 
+    startValue: initialStartDate ? (new Date(initialStartDate).getMonth() + 1).toString() : '1', 
+    endValue: initialEndDate ? (new Date(initialEndDate).getMonth() + 1).toString() : '12' 
+  });
+  const [dayRange, setDayRange] = useState({ 
+    startValue: initialStartDate ? new Date(initialStartDate).getDate().toString() : '1', 
+    endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
+  });
   
-  // Format functions
-  const formatMonth = (monthNum) => {
+  // Format functions for display
+  const formatMonth = useCallback((monthNum) => {
     const monthNames = [
-      'January', 'February', 'March', 'April', 
-      'May', 'June', 'July', 'August', 
-      'September', 'October', 'November', 'December'
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     return monthNames[parseInt(monthNum) - 1];
-  };
+  }, []);
   
-  const formatDay = (day) => {
+  const formatDay = useCallback((day) => {
     const num = parseInt(day);
     if (num === 1 || num === 21 || num === 31) return day + 'st';
     if (num === 2 || num === 22) return day + 'nd';
     if (num === 3 || num === 23) return day + 'rd';
     return day + 'th';
-  };
+  }, []);
   
   // Parse initial dates if provided
   useEffect(() => {
@@ -329,56 +365,47 @@ const TripleRangeSelector = ({
       const endDate = new Date(initialEndDate);
       
       if (!isNaN(startDate) && !isNaN(endDate)) {
-        setYearRange({
-          startValue: startDate.getFullYear().toString(),
-          endValue: endDate.getFullYear().toString()
-        });
+        // Check if the range is "all time"
+        const isAllTime = 
+          startDate.getFullYear() === parseInt(years[0]) && 
+          startDate.getMonth() === 0 && 
+          startDate.getDate() === 1 &&
+          endDate.getFullYear() === parseInt(years[years.length - 1]) &&
+          endDate.getMonth() === 11 &&
+          endDate.getDate() === 31;
         
-        setMonthRange({
-          startValue: (startDate.getMonth() + 1).toString(),
-          endValue: (endDate.getMonth() + 1).toString()
-        });
-        
-        setDayRange({
-          startValue: startDate.getDate().toString(),
-          endValue: endDate.getDate().toString()
-        });
+        if (isAllTime) {
+          setUseAllTime(true);
+        } else {
+          setYearRange({
+            startValue: startDate.getFullYear().toString(),
+            endValue: endDate.getFullYear().toString()
+          });
+          
+          setMonthRange({
+            startValue: (startDate.getMonth() + 1).toString(),
+            endValue: (endDate.getMonth() + 1).toString()
+          });
+          
+          setDayRange({
+            startValue: startDate.getDate().toString(),
+            endValue: endDate.getDate().toString()
+          });
+        }
       }
     }
-  }, [initialStartDate, initialEndDate]);
-  
-  // Update the parent component when ranges change
-  useEffect(() => {
-    if (onDateRangeChange) {
-      const startDate = new Date(
-        parseInt(yearRange.startValue),
-        parseInt(monthRange.startValue) - 1,
-        parseInt(dayRange.startValue)
-      );
-      
-      const endDate = new Date(
-        parseInt(yearRange.endValue),
-        parseInt(monthRange.endValue) - 1,
-        parseInt(dayRange.endValue)
-      );
-      
-      // Format as YYYY-MM-DD for consistency
-      const formatDate = (date) => {
-        return date.toISOString().split('T')[0];
-      };
-      
-      onDateRangeChange(formatDate(startDate), formatDate(endDate));
-    }
-  }, [yearRange, monthRange, dayRange, onDateRangeChange]);
+  }, [initialStartDate, initialEndDate, years]);
   
   // Get the days in the selected month
-  const getDaysInMonth = (year, month) => {
+  const getDaysInMonth = useCallback((year, month) => {
     // Month is 1-based in our UI but 0-based in Date
     return new Date(parseInt(year), parseInt(month), 0).getDate();
-  };
+  }, []);
   
   // Adjust days when month/year changes to avoid invalid dates
   useEffect(() => {
+    if (useAllTime) return;
+    
     const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
     const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
     
@@ -398,63 +425,136 @@ const TripleRangeSelector = ({
     if (updated) {
       setDayRange(newDayRange);
     }
-  }, [yearRange, monthRange]);
+  }, [yearRange, monthRange, dayRange, getDaysInMonth, useAllTime]);
   
-  // Apply button handler
-  const handleApply = () => {
-    // Explicitly trigger the date range change
-    const startDate = new Date(
-      parseInt(yearRange.startValue),
-      parseInt(monthRange.startValue) - 1,
-      parseInt(dayRange.startValue)
-    );
-    
-    const endDate = new Date(
-      parseInt(yearRange.endValue),
-      parseInt(monthRange.endValue) - 1,
-      parseInt(dayRange.endValue)
-    );
-    
-    // Format as YYYY-MM-DD for consistency
-    const formatDate = (date) => {
-      return date.toISOString().split('T')[0];
-    };
-    
-    if (onDateRangeChange) {
-      onDateRangeChange(formatDate(startDate), formatDate(endDate));
+  // Send the date range to the parent component
+  const applyDateRange = useCallback(() => {
+    if (useAllTime) {
+      // Use the full available range of years
+      const minYear = years[0];
+      const maxYear = years[years.length - 1];
+      
+      // Format as YYYY-MM-DD for consistency
+      const startDate = `${minYear}-01-01`;
+      const endDate = `${maxYear}-12-31`;
+      
+      if (onDateRangeChange) {
+        onDateRangeChange(startDate, endDate);
+      }
+    } else {
+      // Use the selected range
+      const startDate = new Date(
+        parseInt(yearRange.startValue),
+        parseInt(monthRange.startValue) - 1,
+        parseInt(dayRange.startValue)
+      );
+      
+      const endDate = new Date(
+        parseInt(yearRange.endValue),
+        parseInt(monthRange.endValue) - 1,
+        parseInt(dayRange.endValue)
+      );
+      
+      // Format as YYYY-MM-DD for consistency
+      const formatDate = (date) => {
+        return date.toISOString().split('T')[0];
+      };
+      
+      if (onDateRangeChange) {
+        onDateRangeChange(formatDate(startDate), formatDate(endDate));
+      }
     }
-  };
+  }, [years, yearRange, monthRange, dayRange, useAllTime, onDateRangeChange]);
+  
+  // Toggle "All Time" mode
+  const toggleAllTime = useCallback(() => {
+    const newAllTimeState = !useAllTime;
+    setUseAllTime(newAllTimeState);
+    
+    if (newAllTimeState) {
+      // When enabling "All Time", use the full range
+      applyDateRange();
+    }
+  }, [useAllTime, applyDateRange]);
   
   // Map color theme to actual color values
-  const getColors = () => {
+  const colors = useMemo(() => {
     switch (colorTheme) {
       case 'pink':
         return {
           buttonBg: 'bg-pink-600',
           buttonHover: 'hover:bg-pink-700',
-          textTitle: 'text-pink-700'
+          textTitle: 'text-pink-700',
+          tabActive: 'bg-pink-600 text-white',
+          tabInactive: 'bg-pink-100 text-pink-700 hover:bg-pink-200'
         };
       case 'teal':
         return {
           buttonBg: 'bg-teal-600',
           buttonHover: 'hover:bg-teal-700',
-          textTitle: 'text-teal-700'
+          textTitle: 'text-teal-700',
+          tabActive: 'bg-teal-600 text-white',
+          tabInactive: 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+        };
+      case 'blue':
+        return {
+          buttonBg: 'bg-blue-600',
+          buttonHover: 'hover:bg-blue-700',
+          textTitle: 'text-blue-700',
+          tabActive: 'bg-blue-600 text-white',
+          tabInactive: 'bg-blue-100 text-blue-700 hover:bg-blue-200'
         };
       case 'orange':
       default:
         return {
           buttonBg: 'bg-orange-600',
           buttonHover: 'hover:bg-orange-700',
-          textTitle: 'text-orange-700'
+          textTitle: 'text-orange-700',
+          tabActive: 'bg-orange-600 text-white',
+          tabInactive: 'bg-orange-100 text-orange-700 hover:bg-orange-200'
         };
     }
-  };
-
-  const colors = getColors();
+  }, [colorTheme]);
+  
+  // Formatted date range display (for user reference)
+  const formattedDateRange = useMemo(() => {
+    if (useAllTime) {
+      return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
+    } else {
+      return `${yearRange.startValue}-${monthRange.startValue.padStart(2, '0')}-${dayRange.startValue.padStart(2, '0')} to ${yearRange.endValue}-${monthRange.endValue.padStart(2, '0')}-${dayRange.endValue.padStart(2, '0')}`;
+    }
+  }, [years, yearRange, monthRange, dayRange, useAllTime]);
+  
+  // The "All Time" option only appears if we have any years data
+  const showAllTimeOption = years.length > 0;
   
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-white">
-      <h3 className={`font-bold ${colors.textTitle} mb-4`}>Date Range Selection</h3>
+      <div className="flex justify-between items-center">
+        <h3 className={`font-bold ${colors.textTitle}`}>Date Range Selection</h3>
+        
+        {/* Mode Switcher */}
+        {showAllTimeOption && (
+          <div className="flex">
+            <button
+              onClick={toggleAllTime}
+              className={`px-3 py-1 rounded-md ${useAllTime ? colors.tabActive : colors.tabInactive}`}
+            >
+              All Time
+            </button>
+            <button
+              onClick={() => {
+                if (useAllTime) {
+                  setUseAllTime(false);
+                }
+              }}
+              className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
+            >
+              Custom Range
+            </button>
+          </div>
+        )}
+      </div>
       
       <RangeSlider 
         values={years} 
@@ -463,6 +563,7 @@ const TripleRangeSelector = ({
         initialEndValue={yearRange.endValue}
         title="Year Range"
         colorTheme={colorTheme}
+        disabled={useAllTime}
       />
       
       <RangeSlider 
@@ -473,6 +574,7 @@ const TripleRangeSelector = ({
         displayFormat={formatMonth}
         title="Month Range"
         colorTheme={colorTheme}
+        disabled={useAllTime}
       />
       
       <RangeSlider 
@@ -483,11 +585,12 @@ const TripleRangeSelector = ({
         displayFormat={formatDay}
         title="Day Range"
         colorTheme={colorTheme}
+        disabled={useAllTime}
       />
       
       <div className="flex justify-center mt-4">
         <button
-          onClick={handleApply}
+          onClick={applyDateRange}
           className={`px-4 py-2 ${colors.buttonBg} text-white rounded ${colors.buttonHover}`}
         >
           Apply Date Range
@@ -495,7 +598,7 @@ const TripleRangeSelector = ({
       </div>
       
       <div className="mt-3 text-sm text-gray-600">
-        Selected range: {yearRange.startValue}-{monthRange.startValue.padStart(2, '0')}-{dayRange.startValue.padStart(2, '0')} to {yearRange.endValue}-{monthRange.endValue.padStart(2, '0')}-{dayRange.endValue.padStart(2, '0')}
+        Selected range: {formattedDateRange}
       </div>
     </div>
   );
