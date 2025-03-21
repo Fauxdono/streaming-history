@@ -115,7 +115,7 @@ const MonthDaySelector = ({
   }, [currentStartDate, currentEndDate, dateData]);
   
   // Handle quick selections
-  const setQuickRange = (selection) => {
+  const handleQuickSelection = (selection) => {
     if (!dateData.hasData) return;
     
     const today = new Date();
@@ -353,118 +353,11 @@ const MonthDaySelector = ({
             </div>
           </div>
           
-          {/* Quick select tabs */}
-          <div>
-            <div className="flex border-b mb-4">
-              <button
-                onClick={() => setQuickSelectMode('month')}
-                className={`px-4 py-2 font-medium ${
-                  quickSelectMode === 'month' 
-                    ? `${colors.text} border-b-2 ${colors.border.replace('border', 'border-b')}` 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Month
-              </button>
-              <button
-                onClick={() => setQuickSelectMode('quarter')}
-                className={`px-4 py-2 font-medium ${
-                  quickSelectMode === 'quarter' 
-                    ? `${colors.text} border-b-2 ${colors.border.replace('border', 'border-b')}` 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Quarter
-              </button>
-              <button
-                onClick={() => setQuickSelectMode('custom')}
-                className={`px-4 py-2 font-medium ${
-                  quickSelectMode === 'custom' 
-                    ? `${colors.text} border-b-2 ${colors.border.replace('border', 'border-b')}` 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Custom
-              </button>
-            </div>
-            
-            {/* Month quick selections */}
-            {quickSelectMode === 'month' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                <button
-                  onClick={() => setQuickRange('today')}
-                  className={`px-3 py-1 ${colors.bgLight} ${colors.text} rounded ${colors.bgHoverLight}`}
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => setQuickRange('thisMonth')}
-                  className={`px-3 py-1 ${colors.bgLight} ${colors.text} rounded ${colors.bgHoverLight}`}
-                >
-                  This Month
-                </button>
-                <button
-                  onClick={() => setQuickRange('lastMonth')}
-                  className={`px-3 py-1 ${colors.bgLight} ${colors.text} rounded ${colors.bgHoverLight}`}
-                >
-                  Last Month
-                </button>
-                <button
-                  onClick={() => setQuickRange('all')}
-                  className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
-                >
-                  All Time
-                </button>
-              </div>
-            )}
-            
-            {/* Quarter quick selections */}
-            {quickSelectMode === 'quarter' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                <button
-                  onClick={() => setQuickRange('thisQuarter')}
-                  className={`px-3 py-1 ${colors.bgLight} ${colors.text} rounded ${colors.bgHoverLight}`}
-                >
-                  This Quarter
-                </button>
-                <button
-                  onClick={() => setQuickRange('lastQuarter')}
-                  className={`px-3 py-1 ${colors.bgLight} ${colors.text} rounded ${colors.bgHoverLight}`}
-                >
-                  Last Quarter
-                </button>
-                <button
-                  onClick={() => setQuickRange('all')}
-                  className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
-                >
-                  All Time
-                </button>
-              </div>
-            )}
-            
-            {/* Custom quick selections */}
-            {quickSelectMode === 'custom' && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                <button
-                  onClick={() => setQuickRange('last30')}
-                  className={`px-3 py-1 ${colors.bgLight} ${colors.text} rounded ${colors.bgHoverLight}`}
-                >
-                  Last 30 Days
-                </button>
-                <button
-                  onClick={() => setQuickRange('last90')}
-                  className={`px-3 py-1 ${colors.bgLight} ${colors.text} rounded ${colors.bgHoverLight}`}
-                >
-                  Last 90 Days
-                </button>
-                <button
-                  onClick={() => setQuickRange('all')}
-                  className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
-                >
-                  All Time
-                </button>
-              </div>
-            )}
+          {/* Date range hints */}
+          <div className="mt-4 text-sm text-center">
+            <p className={`${colors.text}`}>
+              Tip: Select a specific day or range by using the inputs above
+            </p>
           </div>
         </div>
       )}
