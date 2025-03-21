@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import BetterYearSlider from './better-year-slider.js';
+import DualHandleYearSlider from './dual-handle-year-slider.js';
 
-const HierarchicalDateSelector = ({ 
+const ImprovedDateSelector = ({ 
   startDate, 
   endDate, 
   setStartDate, 
   setEndDate, 
   rawPlayData = [],
-  formatDuration = (ms) => `${Math.floor(ms / 60000)}m`
+  formatDuration = (ms) => `${Math.floor(ms / 60000)}m`,
+  colorTheme = 'orange'
 }) => {
-  // States for each level
-  const [selectedYear, setSelectedYear] = useState(null);
-  const [selectedMonth, setSelectedMonth] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [isRangeMode, setIsRangeMode] = useState(startDate !== endDate);
+  const [selectedDate, setSelectedDate] = useState('all');
+  const [dateRange, setDateRange] = useState({ startYear: '', endYear: '' });
   
   // Data analysis for date availability
   const dateData = useMemo(() => {
@@ -66,18 +67,6 @@ const HierarchicalDateSelector = ({
     // Convert to sorted arrays
     const sortedYears = Array.from(years).sort((a, b) => a - b);
     
-    // Process months
-    const monthsArray = {};
-    Object.entries(monthsByYear).forEach(([year, months]) => {
-      monthsArray[year] = Array.from(months).sort((a, b) => a - b);
-    });
-    
-    // Process days
-    const daysArray = {};
-    Object.entries(daysByYearMonth).forEach(([yearMonth, days]) => {
-      daysArray[yearMonth] = Array.from(days).sort((a, b) => a - b);
-    });
-    
     // Find min and max dates
     let minDate = null;
     let maxDate = null;
@@ -86,202 +75,103 @@ const HierarchicalDateSelector = ({
       const minYear = sortedYears[0];
       const maxYear = sortedYears[sortedYears.length - 1];
       
-      if (monthsArray[minYear]?.length > 0) {
-        const minMonth = monthsArray[minYear][0];
-        const maxMonth = monthsArray[maxYear][monthsArray[maxYear].length - 1];
-        
-        const minYearMonthKey = `${minYear}-${minMonth}`;
-        const maxYearMonthKey = `${maxYear}-${maxMonth}`;
-        
-        if (daysArray[minYearMonthKey]?.length > 0 && daysArray[maxYearMonthKey]?.length > 0) {
-          const minDay = daysArray[minYearMonthKey][0];
-          const maxDay = daysArray[maxYearMonthKey][daysArray[maxYearMonthKey].length - 1];
-          
-          minDate = new Date(minYear, minMonth, minDay);
-          maxDate = new Date(maxYear, maxMonth, maxDay);
-        }
-      }
+      // Set the min date to the beginning of the first year
+      minDate = `${minYear}-01-01`;
+      
+      // Set the max date to the end of the last year
+      maxDate = `${maxYear}-12-31`;
     }
     
     return {
       years: sortedYears,
-      monthsByYear: monthsArray,
-      daysByYearMonth: daysArray,
       playsCountByDate,
       timeByDate,
-      minDate: minDate ? minDate.toISOString().split('T')[0] : null,
-      maxDate: maxDate ? maxDate.toISOString().split('T')[0] : null
+      minDate,
+      maxDate
     };
   }, [rawPlayData]);
   
-  // Initialize dates and selections based on available data
+  // Initialize dates based on available data
   useEffect(() => {
     if (dateData.minDate && dateData.maxDate) {
       if (!startDate && !endDate) {
         // Initialize with the full date range
         setStartDate(dateData.minDate);
         setEndDate(dateData.maxDate);
-      } else if (startDate && !selectedYear) {
-        // Extract selected year from startDate
-        const startDateObj = new Date(startDate);
-        const year = startDateObj.getFullYear();
-        
-        if (dateData.years.includes(year)) {
-          setSelectedYear(year);
-          
-          // Check if we should also set a month
-          const month = startDateObj.getMonth();
-          if (dateData.monthsByYear[year]?.includes(month)) {
-            setSelectedMonth(month);
-            
-            // Check if we should also set a day
-            const day = startDateObj.getDate();
-            const yearMonthKey = `${year}-${month}`;
-            if (dateData.daysByYearMonth[yearMonthKey]?.includes(day)) {
-              setSelectedDay(day);
-            }
-          }
-        }
+        setSelectedDate('all');
+      } else if (startDate === endDate) {
+        // Single date mode
+        const date = new Date(startDate);
+        const year = date.getFullYear();
+        setSelectedDate(year.toString());
+        setIsRangeMode(false);
+      } else {
+        // Range mode
+        const startYear = new Date(startDate).getFullYear();
+        const endYear = new Date(endDate).getFullYear();
+        setDateRange({ startYear: startYear.toString(), endYear: endYear.toString() });
+        setIsRangeMode(true);
       }
     }
-  }, [dateData, startDate, endDate, setStartDate, setEndDate, selectedYear]);
+  }, [dateData, startDate, endDate, setStartDate, setEndDate]);
   
-  // Get month name
-  const getMonthName = (monthNum) => {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[monthNum];
-  };
-  
-  // Format date for display
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
+  // Handle year change in single mode
+  const handleYearChange = (year) => {
+    setSelectedDate(year);
     
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = getMonthName(date.getMonth());
-    const day = date.getDate();
-    
-    return `${month} ${day}, ${year}`;
-  };
-  
-  // Handle year selection
-  const handleYearSelect = (year) => {
-    setSelectedYear(year);
-    
-    // Reset month and day selections
-    setSelectedMonth(null);
-    setSelectedDay(null);
-    
-    // Set date range to the entire year
-    setStartDate(`${year}-01-01`);
-    
-    // Set end date to the last day of the year
-    const lastDay = new Date(year, 11, 31);
-    setEndDate(lastDay.toISOString().split('T')[0]);
-  };
-  
-  // Handle month selection
-  const handleMonthSelect = (month) => {
-    if (!selectedYear) return;
-    
-    setSelectedMonth(month);
-    
-    // Reset day selection
-    setSelectedDay(null);
-    
-    // Set date range to the entire month
-    setStartDate(`${selectedYear}-${String(month + 1).padStart(2, '0')}-01`);
-    
-    // Set end date to the last day of the month
-    const lastDay = new Date(selectedYear, month + 1, 0);
-    setEndDate(`${selectedYear}-${String(month + 1).padStart(2, '0')}-${lastDay.getDate()}`);
-  };
-  
-  // Handle day selection
-  const handleDaySelect = (day) => {
-    if (!selectedYear || selectedMonth === null) return;
-    
-    setSelectedDay(day);
-    
-    // Set both start and end dates to the selected day
-    const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    setStartDate(dateStr);
-    setEndDate(dateStr);
-  };
-  
-  // Calculate month slider position and percentage
-  const getMonthPercentage = (month) => {
-    if (selectedYear === null || !dateData.monthsByYear[selectedYear]) return '0%';
-    
-    const availableMonths = dateData.monthsByYear[selectedYear];
-    
-    if (availableMonths.length === 0) return '0%';
-    
-    // Default to the first month if no month selected
-    const activeMonth = selectedMonth !== null ? selectedMonth : availableMonths[0];
-    const minMonth = availableMonths[0];
-    const maxMonth = availableMonths[availableMonths.length - 1];
-    
-    const percentage = ((activeMonth - minMonth) / Math.max(1, maxMonth - minMonth)) * 100;
-    return `${percentage}%`;
-  };
-  
-  // Calculate day slider position and percentage
-  const getDayPercentage = () => {
-    if (selectedYear === null || selectedMonth === null) return '0%';
-    
-    const yearMonthKey = `${selectedYear}-${selectedMonth}`;
-    const availableDays = dateData.daysByYearMonth[yearMonthKey];
-    
-    if (!availableDays || availableDays.length === 0) return '0%';
-    
-    // Default to the first day if no day selected
-    const activeDay = selectedDay !== null ? selectedDay : availableDays[0];
-    const minDay = availableDays[0];
-    const maxDay = availableDays[availableDays.length - 1];
-    
-    const percentage = ((activeDay - minDay) / Math.max(1, maxDay - minDay)) * 100;
-    return `${percentage}%`;
-  };
-  
-  // Reset to all time
-  const handleResetToAllTime = () => {
-    setSelectedYear(null);
-    setSelectedMonth(null);
-    setSelectedDay(null);
-    setStartDate(dateData.minDate);
-    setEndDate(dateData.maxDate);
-  };
-  
-  // Generate details about the selected date range
-  const getDateRangeDetails = () => {
-    if (!startDate || !endDate) return '';
-    
-    // Check if it's all time
-    if (startDate === dateData.minDate && endDate === dateData.maxDate) {
-      return 'All Time';
+    if (year === 'all') {
+      // All-time selection
+      setStartDate(dateData.minDate);
+      setEndDate(dateData.maxDate);
+    } else {
+      // Specific year selection
+      setStartDate(`${year}-01-01`);
+      setEndDate(`${year}-12-31`);
     }
+  };
+  
+  // Handle year range change in range mode
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    setDateRange({ startYear, endYear });
     
-    // Check if it's a single day
-    if (startDate === endDate) {
-      return `Single Day: ${formatDate(startDate)}`;
+    // Set date range based on selected years
+    setStartDate(`${startYear}-01-01`);
+    setEndDate(`${endYear}-12-31`);
+  };
+  
+  // Toggle between range and single mode
+  const toggleRangeMode = (value) => {
+    const newMode = typeof value === 'boolean' ? value : !isRangeMode;
+    setIsRangeMode(newMode);
+    
+    if (newMode) {
+      // Switching to range mode
+      if (selectedDate === 'all') {
+        // If "all" was selected, use full range
+        const years = dateData.years;
+        if (years.length > 0) {
+          handleYearRangeChange({
+            startYear: years[0].toString(),
+            endYear: years[years.length - 1].toString()
+          });
+        }
+      } else {
+        // If a specific year was selected, use that year as both start and end
+        handleYearRangeChange({
+          startYear: selectedDate,
+          endYear: selectedDate
+        });
+      }
+    } else {
+      // Switching to single mode
+      if (dateRange.startYear === dateRange.endYear) {
+        // If range was for a single year, keep that year selected
+        handleYearChange(dateRange.startYear);
+      } else {
+        // If range spanned multiple years, reset to "all"
+        handleYearChange('all');
+      }
     }
-    
-    // Check if it's a full month
-    if (selectedYear !== null && selectedMonth !== null && selectedDay === null) {
-      return `${getMonthName(selectedMonth)} ${selectedYear}`;
-    }
-    
-    // Check if it's a full year
-    if (selectedYear !== null && selectedMonth === null) {
-      return `Full Year: ${selectedYear}`;
-    }
-    
-    // Default: show date range
-    return `${formatDate(startDate)} to ${formatDate(endDate)}`;
   };
   
   // Calculate statistics for the selected range
@@ -308,263 +198,115 @@ const HierarchicalDateSelector = ({
   
   const stats = getRangeStatistics();
   
+  // Get page title based on selection mode
+  const getPageTitle = () => {
+    if (isRangeMode && dateRange.startYear && dateRange.endYear) {
+      if (dateRange.startYear === dateRange.endYear) {
+        return `Date Selection (${dateRange.startYear})`;
+      }
+      return `Date Selection (${dateRange.startYear}-${dateRange.endYear})`;
+    } else if (selectedDate === 'all') {
+      return 'All-time Date Selection';
+    } else {
+      return `Date Selection for ${selectedDate}`;
+    }
+  };
+
+  // Map color theme to actual color values
+  const getColors = () => {
+    switch (colorTheme) {
+      case 'orange':
+      default:
+        return {
+          text: 'text-orange-700',
+          bg: 'bg-orange-600',
+          bgHover: 'hover:bg-orange-700',
+          bgLight: 'bg-orange-100',
+          textLight: 'text-orange-700',
+          bgHoverLight: 'hover:bg-orange-200'
+        };
+    }
+  };
+
+  const colors = getColors();
+  
   return (
-    <div className="space-y-6 bg-orange-50 p-4 rounded-lg border border-orange-200">
-      {/* Current Selection */}
+    <div className="space-y-4">
+      {/* Header with statistics */}
       <div>
-        <h3 className="text-lg font-bold text-orange-700 flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          {getDateRangeDetails()}
+        <h3 className="font-bold text-orange-700">
+          {getPageTitle()}
         </h3>
         <div className="text-sm text-orange-600 mt-1">
           {stats.totalPlays} plays • {formatDuration(stats.totalTime)} listening time
         </div>
       </div>
       
-      {/* Year Slider */}
-      <div className="space-y-2">
-        <div className="flex justify-between">
-          <h4 className="font-medium text-orange-700">Year Selection</h4>
-          {selectedYear && (
-            <button 
-              onClick={handleResetToAllTime}
-              className="text-sm text-orange-600 hover:text-orange-800"
-            >
-              Reset to All Time
-            </button>
-          )}
-        </div>
+      {/* Mode toggle buttons */}
+      <div className="flex justify-between items-center mb-4">
+        <label className={colors.text + " font-medium"}>
+          {isRangeMode ? 'Date Range Selection' : 'Single Year Selection'}
+        </label>
         
-        <div className="relative h-10 bg-orange-100 rounded-full p-2">
-          {dateData.years.length > 0 ? (
-            <>
-              {/* Year ticks and labels */}
-              <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 flex justify-between px-2">
-                {dateData.years.map((year, index) => (
-                  <div 
-                    key={year} 
-                    className={`h-6 flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 ${
-                      selectedYear === year ? 'text-orange-800 font-bold' : 'text-orange-600'
-                    }`}
-                    style={{ 
-                      position: 'absolute', 
-                      left: `${(index / (dateData.years.length - 1)) * 100}%`,
-                      transform: 'translateX(-50%)'
-                    }}
-                    onClick={() => handleYearSelect(year)}
-                  >
-                    <div 
-                      className={`w-3 h-3 rounded-full ${
-                        selectedYear === year ? 'bg-orange-500' : 'bg-orange-300 hover:bg-orange-400'
-                      }`}
-                    />
-                    <span className="text-xs mt-1 whitespace-nowrap">{year}</span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Active year indicator */}
-              {selectedYear !== null && (
-                <div 
-                  className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-orange-500 rounded-full border-2 border-white shadow-md z-10"
-                  style={{ 
-                    left: `${(dateData.years.indexOf(selectedYear) / (dateData.years.length - 1)) * 100}%` 
-                  }}
-                />
-              )}
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full text-orange-500 text-sm font-medium">
-              No date data available
-            </div>
-          )}
+        {/* Toggle between modes */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => toggleRangeMode(false)}
+            className={`px-2 py-1 rounded text-sm ${
+              !isRangeMode 
+                ? colors.bg + ' text-white' 
+                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+            }`}
+          >
+            Single Year
+          </button>
+          
+          <button
+            onClick={() => toggleRangeMode(true)}
+            className={`px-2 py-1 rounded text-sm ${
+              isRangeMode 
+                ? colors.bg + ' text-white' 
+                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+            }`}
+          >
+            Date Range
+          </button>
         </div>
       </div>
       
-      {/* Month Slider - Only show if a year is selected */}
-      {selectedYear !== null && (
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <h4 className="font-medium text-orange-700">Month Selection</h4>
-            {selectedMonth !== null && (
-              <button 
-                onClick={() => {
-                  setSelectedMonth(null);
-                  setSelectedDay(null);
-                  handleYearSelect(selectedYear);
-                }}
-                className="text-sm text-orange-600 hover:text-orange-800"
-              >
-                Reset to Full Year
-              </button>
-            )}
-          </div>
-          
-          <div className="relative h-10 bg-orange-100 rounded-full p-2">
-            {dateData.monthsByYear[selectedYear]?.length > 0 ? (
-              <>
-                {/* Month ticks and labels */}
-                <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 flex justify-between px-2">
-                  {dateData.monthsByYear[selectedYear].map((month, index, arr) => (
-                    <div 
-                      key={month} 
-                      className={`h-6 flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 ${
-                        selectedMonth === month ? 'text-orange-800 font-bold' : 'text-orange-600'
-                      }`}
-                      style={{ 
-                        position: 'absolute', 
-                        left: `${(index / (arr.length - 1)) * 100}%`,
-                        transform: 'translateX(-50%)'
-                      }}
-                      onClick={() => handleMonthSelect(month)}
-                    >
-                      <div 
-                        className={`w-3 h-3 rounded-full ${
-                          selectedMonth === month ? 'bg-orange-500' : 'bg-orange-300 hover:bg-orange-400'
-                        }`}
-                      />
-                      <span className="text-xs mt-1 whitespace-nowrap">{getMonthName(month).substring(0, 3)}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Active month indicator */}
-                {selectedMonth !== null && (
-                  <div 
-                    className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-orange-500 rounded-full border-2 border-white shadow-md z-10"
-                    style={{ 
-                      left: getMonthPercentage() 
-                    }}
-                  />
-                )}
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full text-orange-500 text-sm font-medium">
-                No month data available for {selectedYear}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {/* Day Slider - Only show if a month is selected */}
-      {selectedYear !== null && selectedMonth !== null && (
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <h4 className="font-medium text-orange-700">Day Selection</h4>
-            {selectedDay !== null && (
-              <button 
-                onClick={() => {
-                  setSelectedDay(null);
-                  handleMonthSelect(selectedMonth);
-                }}
-                className="text-sm text-orange-600 hover:text-orange-800"
-              >
-                Reset to Full Month
-              </button>
-            )}
-          </div>
-          
-          <div className="relative h-10 bg-orange-100 rounded-full p-2">
-            {(() => {
-              const yearMonthKey = `${selectedYear}-${selectedMonth}`;
-              const availableDays = dateData.daysByYearMonth[yearMonthKey];
-              
-              if (availableDays && availableDays.length > 0) {
-                return (
-                  <>
-                    {/* Day ticks and labels */}
-                    <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 flex justify-between px-2">
-                      {availableDays.map((day, index, arr) => (
-                        <div 
-                          key={day} 
-                          className={`h-6 flex flex-col items-center justify-center cursor-pointer transition-colors duration-200 ${
-                            selectedDay === day ? 'text-orange-800 font-bold' : 'text-orange-600'
-                          }`}
-                          style={{ 
-                            position: 'absolute', 
-                            left: `${(index / (arr.length - 1)) * 100}%`,
-                            transform: 'translateX(-50%)'
-                          }}
-                          onClick={() => handleDaySelect(day)}
-                        >
-                          <div 
-                            className={`w-2 h-2 rounded-full ${
-                              selectedDay === day ? 'bg-orange-500' : 'bg-orange-300 hover:bg-orange-400'
-                            }`}
-                          />
-                          <span className="text-xs mt-1">{day}</span>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Active day indicator */}
-                    {selectedDay !== null && (
-                      <div 
-                        className="absolute top-1/2 transform -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-orange-500 rounded-full border-2 border-white shadow-md z-10"
-                        style={{ 
-                          left: getDayPercentage() 
-                        }}
-                      />
-                    )}
-                  </>
-                );
-              } else {
-                return (
-                  <div className="flex items-center justify-center h-full text-orange-500 text-sm font-medium">
-                    No day data available for {getMonthName(selectedMonth)} {selectedYear}
-                  </div>
-                );
-              }
-            })()}
-          </div>
-        </div>
-      )}
-      
-      {/* Quick Selection Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <button 
-          onClick={handleResetToAllTime}
-          className="px-3 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-        >
-          All Time
-        </button>
-        
-        {/* Only show year buttons if we have at least 2 years */}
-        {dateData.years.length >= 2 && (
+      {/* Year selector */}
+      <div className="px-4">
+        {!isRangeMode ? (
+          // Single year slider
           <>
-            {/* Last year button */}
-            <button 
-              onClick={() => handleYearSelect(dateData.years[dateData.years.length - 1])}
-              className="px-3 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-            >
-              {dateData.years[dateData.years.length - 1]}
-            </button>
-            
-            {/* Previous year button if available */}
-            {dateData.years.length >= 2 && (
-              <button 
-                onClick={() => handleYearSelect(dateData.years[dateData.years.length - 2])}
-                className="px-3 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+            <BetterYearSlider 
+              years={dateData.years.map(year => year.toString())} 
+              onYearChange={handleYearChange}
+              initialYear={selectedDate !== 'all' ? selectedDate : null}
+              colorTheme={colorTheme}
+            />
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => handleYearChange('all')}
+                className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
               >
-                {dateData.years[dateData.years.length - 2]}
+                Show All Time
               </button>
-            )}
+            </div>
           </>
-        )}
-        
-        {/* Show current month button if a year is selected */}
-        {selectedYear !== null && dateData.monthsByYear[selectedYear]?.length > 0 && (
-          <button
-            onClick={() => handleMonthSelect(dateData.monthsByYear[selectedYear][dateData.monthsByYear[selectedYear].length - 1])}
-            className="px-3 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-          >
-            Latest Month
-          </button>
+        ) : (
+          // Year range slider
+          <DualHandleYearSlider 
+            years={dateData.years.map(year => year.toString())}
+            onYearRangeChange={handleYearRangeChange}
+            initialStartYear={dateRange.startYear}
+            initialEndYear={dateRange.endYear}
+            colorTheme={colorTheme}
+          />
         )}
       </div>
     </div>
   );
 };
 
-export default HierarchicalDateSelector;
+export default ImprovedDateSelector;
