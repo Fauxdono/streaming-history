@@ -468,21 +468,13 @@ return (
       <h3 className="font-bold text-orange-700 mb-2">{getPageTitle()}</h3>
       
       <div className="mt-2">
-        {useTripleSelector ? (
-          <TripleRangeSelector
-            onDateRangeChange={handleDateChange}
-            initialStartDate={startDate}
-            initialEndDate={endDate}
-            colorTheme="orange"
-          />
-        ) : (
-          // You need an alternative component here, or null if you only want the triple selector
-          null
-        )}
+        <TripleRangeSelector
+          onDateRangeChange={handleDateChange}
+          initialStartDate={startDate}
+          initialEndDate={endDate}
+          colorTheme="orange"
+        />
       </div>
-    </div>
-  </div>
-
         {/* Top N tracks control */}
         <div className="mt-4 flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2 text-orange-700">
