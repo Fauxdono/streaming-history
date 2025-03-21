@@ -372,20 +372,35 @@ const CustomTrackRankings = ({
     window.URL.revokeObjectURL(url);
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Date Range Selection using Enhanced Date Selector */}
-      <div className="border rounded-lg p-4 bg-orange-50">
-        <h3 className="font-bold text-orange-700 mb-2">Date Range Selection</h3>
-        <EnhancedDateSelector
+return (
+  <div className="space-y-4">
+    {/* Date Range Selection using Enhanced Date Selector */}
+    <div className="border rounded-lg p-4 bg-orange-50">
+      <h3 className="font-bold text-orange-700 mb-2">Date Range Selection</h3>
+      <EnhancedDateSelector
+        startDate={startDate}
+        endDate={endDate}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
+        setQuickRange={setQuickRange}
+        rawPlayData={rawPlayData}
+      />
+      
+      {/* Month and Day Selection */}
+      <div className="mt-4">
+        <MonthDaySelector
           startDate={startDate}
           endDate={endDate}
-          setStartDate={setStartDate}
-          setEndDate={setEndDate}
-          setQuickRange={setQuickRange}
+          onRangeChange={(newStart, newEnd) => {
+            setStartDate(newStart);
+            setEndDate(newEnd);
+          }}
           rawPlayData={rawPlayData}
+          formatDuration={formatDuration}
+          colorTheme="orange"
         />
       </div>
+    </div>
       
       <div className="flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2 text-orange-700">
