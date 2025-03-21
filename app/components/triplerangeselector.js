@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const RangeSlider = ({ 
   values, 
@@ -14,9 +14,9 @@ const RangeSlider = ({
   isSingleMode = false
 }) => {
   // Make sure we have an array of values and they're sorted
-  const sortedValues = useMemo(() => 
-    Array.isArray(values) ? [...values].sort((a, b) => parseInt(a) - parseInt(b)) : []
-  , [values]);
+  const sortedValues = Array.isArray(values) 
+    ? [...values].sort((a, b) => parseInt(a) - parseInt(b)) 
+    : [];
   
   // If no values, nothing to render
   if (sortedValues.length === 0) {
@@ -42,7 +42,7 @@ const RangeSlider = ({
   const sliderRef = useRef(null);
   
   // Map color theme to actual color values
-  const colors = useMemo(() => {
+  const getColors = () => {
     switch (colorTheme) {
       case 'pink':
         return {
@@ -94,7 +94,9 @@ const RangeSlider = ({
           buttonHover: 'hover:bg-orange-700'
         };
     }
-  }, [colorTheme]);
+  };
+  
+  const colors = getColors();
   
   // Initialize the slider positions based on the initial values
   useEffect(() => {
@@ -142,7 +144,7 @@ const RangeSlider = ({
   }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue, isSingleMode, singleValue]);
   
   // Handler for when the position changes, updates the value
-  const updateValueFromPosition = useCallback((position, isStart) => {
+  const updateValueFromPosition = (position, isStart) => {
     const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
     const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
     
@@ -151,15 +153,15 @@ const RangeSlider = ({
     } else {
       setEndValue(newValue);
     }
-  }, [sortedValues]);
+  };
   
   // Handler for updating single value slider
-  const updateSingleValueFromPosition = useCallback((position) => {
+  const updateSingleValueFromPosition = (position) => {
     const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
     const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
     setCurrentSingleValue(newValue);
     return newValue;
-  }, [sortedValues]);
+  };
   
   // Debounced notification to parent - only when drag ends
   useEffect(() => {
@@ -176,7 +178,7 @@ const RangeSlider = ({
   }, [isDragging, onValuesChange, startValue, endValue, isSingleMode, onSingleValueChange, currentSingleValue]);
   
   // Handle mouse events for single value slider
-  const handleSingleMouseDown = useCallback((e) => {
+  const handleSingleMouseDown = (e) => {
     if (disabled) return;
     
     e.preventDefault();
@@ -210,10 +212,10 @@ const RangeSlider = ({
     
     // Initial position update
     handleMouseMove(e);
-  }, [disabled, updateSingleValueFromPosition]);
+  };
   
   // Handle mouse events for range slider
-  const handleMouseDown = useCallback((e, isStartHandle) => {
+  const handleMouseDown = (e, isStartHandle) => {
     if (disabled) return;
     
     e.preventDefault();
@@ -257,10 +259,10 @@ const RangeSlider = ({
     
     // Initial position update
     handleMouseMove(e);
-  }, [disabled, endPosition, startPosition, updateValueFromPosition]);
+  };
   
   // Handle click on the track (moves the nearest handle)
-  const handleTrackClick = useCallback((e) => {
+  const handleTrackClick = (e) => {
     if (disabled || activeDragHandle !== null) return; // Ignore during active drag
     
     const slider = sliderRef.current;
@@ -297,15 +299,15 @@ const RangeSlider = ({
     
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 50);
-  }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition, isSingleMode, updateSingleValueFromPosition]);
+  };
   
   // Format the display value if a formatter is provided
-  const formatValue = useCallback((value) => {
+  const formatValue = (value) => {
     if (typeof displayFormat === 'function') {
       return displayFormat(value);
     }
     return value;
-  }, [displayFormat]);
+  };
   
   return (
     <div className="my-3">
@@ -418,18 +420,20 @@ const EnhancedTripleRangeSelector = ({
   const currentYear = new Date().getFullYear();
   
   // Use availableYears if provided, otherwise use a default range
-  const years = useMemo(() => {
+  const getYears = () => {
     if (availableYears && availableYears.length > 0) {
       return [...new Set(availableYears)].sort((a, b) => parseInt(a) - parseInt(b));
     }
     return Array.from({ length: currentYear - 1999 }, (_, i) => (2000 + i).toString());
-  }, [availableYears, currentYear]);
+  };
+  
+  const years = getYears();
   
   // Generate months 1-12
-  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => (i + 1).toString()), []);
+  const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
   
   // Generate days 1-31
-  const days = useMemo(() => Array.from({ length: 31 }, (_, i) => (i + 1).toString()), []);
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
   
   // State for selection modes and visibility
   const [useAllTime, setUseAllTime] = useState(false);
@@ -457,21 +461,21 @@ const EnhancedTripleRangeSelector = ({
   });
   
   // Format functions for display
-  const formatMonth = useCallback((monthNum) => {
+  const formatMonth = (monthNum) => {
     const monthNames = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     return monthNames[parseInt(monthNum) - 1];
-  }, []);
+  };
   
-  const formatDay = useCallback((day) => {
+  const formatDay = (day) => {
     const num = parseInt(day);
     if (num === 1 || num === 21 || num === 31) return day + 'st';
     if (num === 2 || num === 22) return day + 'nd';
     if (num === 3 || num === 23) return day + 'rd';
     return day + 'th';
-  }, []);
+  };
   
   // Parse initial dates if provided
   useEffect(() => {
@@ -544,10 +548,10 @@ const EnhancedTripleRangeSelector = ({
   }, [initialStartDate, initialEndDate, years]);
   
   // Get the days in the selected month
-  const getDaysInMonth = useCallback((year, month) => {
+  const getDaysInMonth = (year, month) => {
     // Month is 1-based in our UI but 0-based in Date
     return new Date(parseInt(year), parseInt(month), 0).getDate();
-  }, []);
+  };
   
   // Adjust days when month/year changes to avoid invalid dates
   useEffect(() => {
@@ -592,59 +596,9 @@ const EnhancedTripleRangeSelector = ({
         }
       }
     }
-  }, [yearValue, monthValue, dayValue, yearRange, monthRange, dayRange, showMonths, showDays, getDaysInMonth, useAllTime, isSingleMode]);
+  }, [yearValue, monthValue, dayValue, yearRange, monthRange, dayRange, showMonths, showDays, useAllTime, isSingleMode]);
   
-  // Update date range based on current selections
-  const updateDateRange = useCallback(() => {
-    if (useAllTime) {
-      // Use the full available range of years
-      const minYear = years[0];
-      const maxYear = years[years.length - 1];
-      
-      // Format as YYYY-MM-DD for consistency
-      const startDate = `${minYear}-01-01`;
-      const endDate = `${maxYear}-12-31`;
-      
-      if (onDateRangeChange) {
-        onDateRangeChange(startDate, endDate);
-      }
-    } else if (isSingleMode) {
-      // Single mode selection
-      let start, end;
-      
-      if (!showMonths) {
-        // Year only
-        start = `${yearValue}-01-01`;
-        end = `${yearValue}-12-31`;
-      } else if (!showDays) {
-        // Year + Month
-        const lastDay = getDaysInMonth(yearValue, monthValue);
-        start = `${yearValue}-${monthValue.padStart(2, '0')}-01`;
-        end = `${yearValue}-${monthValue.padStart(2, '0')}-${lastDay}`;
-      } else {
-        // Year + Month + Day (single date)
-        start = `${yearValue}-${monthValue.padStart(2, '0')}-${dayValue.padStart(2, '0')}`;
-        end = start; // Same date for start and end
-      }
-      
-      if (onDateRangeChange) {
-        onDateRangeChange(start, end);
-      }
-    } else {
-      // Range mode selection
-      let start, end;
-      
-      if (!showMonths) {
-        // Year range only
-        start = `${yearRange.startValue}-01-01`;
-        end = `${yearRange.endValue}-12-31`;
-      } else if (!showDays) {
-        // Year + Month range
-        const useYearRange = yearRange.startValue !== yearRange.endValue;
-        const startYear = useYearRange ? yearRange.startValue : yearValue;
-        const endYear = useYearRange ? yearRange.endValue : yearValue;
-        
-        const lastDay = getDaysInMonth(endYear, monthRange.endValue);
+aysInMonth(endYear, monthRange.endValue);
         start = `${startYear}-${monthRange.startValue.padStart(2, '0')}-01`;
         end = `${endYear}-${monthRange.endValue.padStart(2, '0')}-${lastDay}`;
       } else {
@@ -676,11 +630,11 @@ const EnhancedTripleRangeSelector = ({
     updateDateRange();
   }, [
     yearValue, monthValue, dayValue, yearRange, monthRange, dayRange,
-    showMonths, showDays, useAllTime, isSingleMode, updateDateRange
+    showMonths, showDays, useAllTime, isSingleMode
   ]);
   
   // Toggle "All Time" mode
-  const toggleAllTime = useCallback(() => {
+  const toggleAllTime = () => {
     const newAllTimeState = !useAllTime;
     setUseAllTime(newAllTimeState);
     
@@ -688,7 +642,7 @@ const EnhancedTripleRangeSelector = ({
       // When enabling "All Time", use the full range
       updateDateRange();
     }
-  }, [useAllTime, updateDateRange]);
+  };
   
   // Handle year selection changes
   const handleYearChange = (newYear) => {
@@ -747,7 +701,7 @@ const EnhancedTripleRangeSelector = ({
   };
   
   // Map color theme to actual color values
-  const colors = useMemo(() => {
+  const getColors = () => {
     switch (colorTheme) {
       case 'pink':
         return {
@@ -783,10 +737,12 @@ const EnhancedTripleRangeSelector = ({
           tabInactive: 'bg-orange-100 text-orange-700 hover:bg-orange-200'
         };
     }
-  }, [colorTheme]);
+  };
+  
+  const colors = getColors();
   
   // Formatted date range display (for user reference)
-  const formattedDateRange = useMemo(() => {
+  const getFormattedDateRange = () => {
     if (useAllTime) {
       return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
     } else if (isSingleMode) {
@@ -806,10 +762,9 @@ const EnhancedTripleRangeSelector = ({
         return `${formatMonth(monthRange.startValue || monthValue)} ${dayRange.startValue}, ${yearRange.startValue || yearValue} to ${formatMonth(monthRange.endValue || monthValue)} ${dayRange.endValue}, ${yearRange.endValue || yearValue}`;
       }
     }
-  }, [
-    years, yearValue, monthValue, dayValue, yearRange, monthRange, dayRange,
-    showMonths, showDays, useAllTime, isSingleMode, formatMonth
-  ]);
+  };
+  
+  const formattedDateRange = getFormattedDateRange();
   
   // The "All Time" option only appears if we have any years data
   const showAllTimeOption = years.length > 0;
