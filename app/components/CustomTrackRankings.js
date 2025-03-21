@@ -376,14 +376,13 @@ return (
     {/* Date Range Selection using Enhanced Date Selector */}
     <div className="border rounded-lg p-4 bg-orange-50">
       <h3 className="font-bold text-orange-700 mb-2">Date Range Selection</h3>
-      <EnhancedDateSelector
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
-        setQuickRange={setQuickRange}
-        rawPlayData={rawPlayData}
-      />
+   <DateRangeControls
+  startDate={startDate}
+  endDate={endDate}
+  setStartDate={setStartDate}
+  setEndDate={setEndDate}
+  setQuickRange={setQuickRange}
+/>
       {/* Month and Day Selection - Simple Version */}
       <div className="mt-4 p-3 bg-orange-100 rounded border border-orange-200">
         <h4 className="font-medium text-orange-700 mb-2">Specific Date Selection</h4>
