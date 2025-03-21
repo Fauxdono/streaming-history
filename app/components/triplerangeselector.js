@@ -87,39 +87,6 @@ const RangeSlider = ({
         };
     }
   }, [colorTheme]);
-    // Add a useEffect to reset day ranges when month changes
-  useEffect(() => {
-    if (isSingleYearSelected) {
-      // When month changes, validate the day range
-      const availableDays = getAvailableDays(yearRange.startValue, monthRange.startValue);
-      
-      // Ensure current day range is valid
-      if (availableDays.length > 0) {
-        let newDayRange = { ...dayRange };
-        let updated = false;
-        
-        // If start day isn't in available days, use the first available
-        if (!availableDays.includes(dayRange.startValue)) {
-          newDayRange.startValue = availableDays[0];
-          updated = true;
-        }
-        
-        // If end day isn't in available days, use the last available
-        if (!availableDays.includes(dayRange.endValue)) {
-          newDayRange.endValue = availableDays[availableDays.length - 1];
-          updated = true;
-        }
-        
-        if (updated) {
-          setDayRange(newDayRange);
-        }
-      }
-    }
-  }, [isSingleYearSelected, yearRange, monthRange, getAvailableDays]);  // Get the days in the selected month
-  const getDaysInMonth = useCallback((year, month) => {
-    // Month is 1-based in our UI but 0-based in Date
-    return new Date(parseInt(year), parseInt(month), 0).getDate();
-  }, []);
 
   // Initialize the slider positions based on the initial values
   useEffect(() => {
@@ -576,6 +543,7 @@ const TripleRangeSelector = ({
       applyDateRange();
     }
   }, [useAllTime, applyDateRange]);
+  
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
