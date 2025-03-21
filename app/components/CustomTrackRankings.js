@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
-import EnhancedDateSelector from './dateselector.js';
+import DateRangeControls from './datecontrols.js';
+import MonthDaySelector from './dayselector.js';
+import YearSelector from './year-selector.js';
+import DualHandleYearSlider from './dual-handle-year-slider.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
