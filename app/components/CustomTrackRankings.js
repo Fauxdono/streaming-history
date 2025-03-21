@@ -384,31 +384,31 @@ return (
         setQuickRange={setQuickRange}
         rawPlayData={rawPlayData}
       />
-{/* Month and Day Selection - Simple Version */}
-<div className="mt-4 p-3 bg-orange-100 rounded border border-orange-200">
-  <h4 className="font-medium text-orange-700 mb-2">Specific Date Selection</h4>
-  <div className="flex flex-wrap gap-4 items-center">
-    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-      <label className="text-orange-700 whitespace-nowrap">From:</label>
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        className="border rounded px-2 py-1 text-orange-700"
-      />
-    </div>
-    
-    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-      <label className="text-orange-700 whitespace-nowrap">To:</label>
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        className="border rounded px-2 py-1 text-orange-700"
-      />
-    </div>
-  
-</div> 
+      {/* Month and Day Selection - Simple Version */}
+      <div className="mt-4 p-3 bg-orange-100 rounded border border-orange-200">
+        <h4 className="font-medium text-orange-700 mb-2">Specific Date Selection</h4>
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <label className="text-orange-700 whitespace-nowrap">From:</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border rounded px-2 py-1 text-orange-700"
+            />
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <label className="text-orange-700 whitespace-nowrap">To:</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border rounded px-2 py-1 text-orange-700"
+            />
+          </div>
+        </div>
+      </div> 
       <div className="flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2 text-orange-700">
           <label>Top</label>
@@ -423,6 +423,9 @@ return (
           <label>tracks</label>
         </div>
       </div>
+    </div>
+  </div>
+);
       
       {/* Artist and Album Selection */}
       <div className="relative">
