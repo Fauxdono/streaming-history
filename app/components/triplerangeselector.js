@@ -270,14 +270,20 @@ const RangeSlider = ({
           onMouseDown={e => handleMouseDown(e, false)}
         ></div>
         
-        {/* Value markers - render fewer to improve performance */}
+        {/* Value markers - show all values for months, but fewer for years and days */}
         {sortedValues.map((value, index) => {
-          // Only render every nth marker based on the total count
-          const markersToShow = Math.max(7, Math.min(20, sortedValues.length / 10));
-          const skipFactor = Math.ceil(sortedValues.length / markersToShow);
+          // For months, always show all markers (there are only 12)
+          // For years and days, show fewer markers based on count
+          const isMonthSlider = title === "Month Range";
           
-          if (index % skipFactor !== 0 && index !== 0 && index !== sortedValues.length - 1) {
-            return null;
+          // Only render every nth marker based on the total count (for years and days)
+          if (!isMonthSlider) {
+            const markersToShow = Math.max(7, Math.min(20, sortedValues.length / 10));
+            const skipFactor = Math.ceil(sortedValues.length / markersToShow);
+            
+            if (index % skipFactor !== 0 && index !== 0 && index !== sortedValues.length - 1) {
+              return null;
+            }
           }
           
           const position = (index / (sortedValues.length - 1)) * 100;
@@ -574,8 +580,8 @@ const TripleRangeSelector = ({
         disabled={useAllTime}
       />
       
-      {/* Only show month selector if not in all-time mode */}
-      {!useAllTime && (
+      {/* Only show month selector if not in all-time mode and a single year is selected */}
+      {!useAllTime && isSingleYearSelected && (
         <RangeSlider 
           values={months} 
           onValuesChange={setMonthRange}
@@ -584,7 +590,7 @@ const TripleRangeSelector = ({
           displayFormat={formatMonth}
           title="Month Range"
           colorTheme={colorTheme}
-          disabled={useAllTime || !isSingleYearSelected}
+          disabled={useAllTime}
         />
       )}
       
