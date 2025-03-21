@@ -424,7 +424,7 @@ return (
         </div>
       </div>
     </div>
-  </div>
+
 );
       
       {/* Artist and Album Selection */}
