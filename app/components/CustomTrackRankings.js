@@ -3,6 +3,7 @@ import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
 import DateSelector from './dateselector.js';
 import YearSelector from './year-selector.js';
+import TripleRangeSelector from './TripleRangeSelector.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
@@ -461,89 +462,27 @@ const handleDateChange = (start, end) => {
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {/* Date Range Selection using YearSelector */}
-      <div className="border rounded-lg p-4 bg-orange-50">
-        <h3 className="font-bold text-orange-700 mb-2">{getPageTitle()}</h3>
-        
-<div className="mt-2">
-  {availableYears.length > 0 ? (
-    <YearSelector
-      artistsByYear={yearsForYearSelector}
-      onYearChange={handleYearChange}
-      onYearRangeChange={handleYearRangeChange}
-      initialYear={selectedYear !== 'all' ? selectedYear : null}
-      initialYearRange={yearRange}
-      isRangeMode={yearRangeMode}
-      onToggleRangeMode={toggleYearRangeMode}
-      colorTheme="orange"
-    />
-  ) : (
-    <div className="text-orange-700 italic">No year data available</div>
-  )}
-</div>
-        
-{/* Additional date refinement (for precise dates) */}
-<div className="mt-4 p-3 bg-orange-100 rounded border border-orange-200">
-  <h4 className="font-medium text-orange-700 mb-2">Refine Date Selection</h4>
-  <div className="flex flex-wrap gap-4 items-center">
-    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-      <label className="text-orange-700 whitespace-nowrap">From:</label>
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        className="border rounded px-2 py-1 text-orange-700"
-      />
-    </div>
-    
-    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-      <label className="text-orange-700 whitespace-nowrap">To:</label>
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        className="border rounded px-2 py-1 text-orange-700"
-      />
+return (
+  <div className="space-y-4">
+    <div className="border rounded-lg p-4 bg-orange-50">
+      <h3 className="font-bold text-orange-700 mb-2">{getPageTitle()}</h3>
+      
+      <div className="mt-2">
+        {useTripleSelector ? (
+          <TripleRangeSelector
+            onDateRangeChange={handleDateChange}
+            initialStartDate={startDate}
+            initialEndDate={endDate}
+            colorTheme="orange"
+          />
+        ) : (
+          // You need an alternative component here, or null if you only want the triple selector
+          null
+        )}
+      </div>
     </div>
   </div>
-  
-  {/* Quick date range buttons */}
-  <div className="flex flex-wrap gap-2 mt-3">
-    <button 
-      onClick={() => setQuickRange(1)}
-      className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-    >
-      Today
-    </button>
-    <button 
-      onClick={() => setQuickRange(7)}
-      className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-    >
-      Last 7 days
-    </button>
-    <button 
-      onClick={() => setQuickRange(30)}
-      className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-    >
-      Last 30 days
-    </button>
-    <button 
-      onClick={() => setQuickRange(90)}
-      className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-    >
-      Last 90 days
-    </button>
-    <button 
-      onClick={() => setQuickRange(365)}
-      className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
-    >
-      Last year
-    </button>
-  </div>
-</div>
-        
+);
         {/* Top N tracks control */}
         <div className="mt-4 flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2 text-orange-700">
