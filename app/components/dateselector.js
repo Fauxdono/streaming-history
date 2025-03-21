@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BetterYearSlider from './better-year-slider.js';
 import DualHandleYearSlider from './dual-handle-year-slider.js';
-import TripleRangeSelector from './TripleRangeSelector.js';
+import TripleRangeSelector from './triplerangeselector.js';
 
 const DateSelector = ({ 
   availableYears, 
