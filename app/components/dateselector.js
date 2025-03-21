@@ -17,8 +17,11 @@ const DateSelector = ({
   
   // Convert available years to strings if they aren't already
   const years = Array.isArray(availableYears) 
-    ? availableYears.map(year => year.toString()).sort((a, b) => a - b)
+    ? availableYears.map(year => year.toString()).sort()
     : [];
+    
+  // Log for debugging
+  console.log('DateSelector received years:', years);
 
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
@@ -94,12 +97,22 @@ const DateSelector = ({
           const minYear = Math.min(...years.map(y => parseInt(y)));
           const maxYear = Math.max(...years.map(y => parseInt(y)));
           onDateChange(`${minYear}-01-01`, `${maxYear}-12-31`);
+        } else if (years.length === 1) {
+          // If we only have one year, use that
+          onDateChange(`${years[0]}-01-01`, `${years[0]}-12-31`);
+        } else {
+          // Fallback to current year
+          const currentYear = new Date().getFullYear();
+          onDateChange(`${currentYear}-01-01`, `${currentYear}-12-31`);
         }
       } else {
         // For a specific year, set the range to cover the full year
         onDateChange(`${year}-01-01`, `${year}-12-31`);
       }
     }
+    
+    // Log what we're doing
+    console.log(`Year change to ${year} - sending dates to parent component`);
   };
   
   // Handle year range change in range mode
