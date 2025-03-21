@@ -469,11 +469,12 @@ const handleDateChange = (start, end) => {
         
 <div className="mt-2">
   {availableYears.length > 0 ? (
-    <DateSelector
-      availableYears={availableYears}
-      onDateChange={handleDateChange}
-      initialStartDate={startDate}
-      initialEndDate={endDate}
+    <YearSelector
+      artistsByYear={yearsForYearSelector}
+      onYearChange={handleYearChange}
+      onYearRangeChange={handleYearRangeChange}
+      initialYear={selectedYear !== 'all' ? selectedYear : null}
+      initialYearRange={yearRange}
       isRangeMode={yearRangeMode}
       onToggleRangeMode={toggleYearRangeMode}
       colorTheme="orange"
