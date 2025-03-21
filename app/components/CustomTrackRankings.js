@@ -407,7 +407,7 @@ return (
         className="border rounded px-2 py-1 text-orange-700"
       />
     </div>
-  </div>
+  
 </div> 
       <div className="flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2 text-orange-700">
