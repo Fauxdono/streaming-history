@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { startOfDay, endOfDay, format } from 'date-fns';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
-import { Download, Plus, Save } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import EnhancedDateSelector from './dateselector.js';
 
 const CustomTrackRankings = ({ 
@@ -54,8 +53,8 @@ const CustomTrackRankings = ({
     const start = new Date();
     start.setDate(start.getDate() - days);
     
-    setStartDate(format(start, 'yyyy-MM-dd'));
-    setEndDate(format(end, 'yyyy-MM-dd'));
+    setStartDate(start.toISOString().split('T')[0]);
+    setEndDate(end.toISOString().split('T')[0]);
   };
 
   // Get unique artists from raw play data
@@ -137,8 +136,11 @@ const CustomTrackRankings = ({
   const filteredTracks = useMemo(() => {
     if (!rawPlayData?.length) return [];
     
-    const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
-    const end = endDate ? endOfDay(new Date(endDate)) : new Date();
+    const start = startDate ? new Date(startDate) : new Date(0);
+    start.setHours(0, 0, 0, 0); // Start of day
+    
+    const end = endDate ? new Date(endDate) : new Date();
+    end.setHours(23, 59, 59, 999); // End of day
     
     const trackStats = {};
     rawPlayData.forEach(entry => {
@@ -369,8 +371,8 @@ const CustomTrackRankings = ({
 
   return (
     <div className="space-y-4">
-      {/* Enhanced Date Selector */}
-      <div>
+      {/* Date Range Selection using Enhanced Date Selector */}
+      <div className="border rounded-lg p-4 bg-orange-50">
         <h3 className="font-bold text-orange-700 mb-2">Date Range Selection</h3>
         <EnhancedDateSelector
           startDate={startDate}
@@ -395,8 +397,9 @@ const CustomTrackRankings = ({
           />
           <label>tracks</label>
         </div>
-       </div>
- {/* Artist Selection */}
+      </div>
+      
+      {/* Artist and Album Selection */}
       <div className="relative">
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedArtists.map(artist => (
