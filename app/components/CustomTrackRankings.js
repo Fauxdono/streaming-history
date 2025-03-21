@@ -482,7 +482,7 @@ return (
       </div>
     </div>
   </div>
-);
+
         {/* Top N tracks control */}
         <div className="mt-4 flex flex-wrap gap-4 items-center">
           <div className="flex items-center gap-2 text-orange-700">
