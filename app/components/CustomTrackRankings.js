@@ -3,7 +3,7 @@ import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
 import DateSelector from './dateselector.js';
 import YearSelector from './year-selector.js';
-import TripleRangeSelector from './TripleRangeSelector.js';
+import TripleRangeSelector from './triplerangeselector.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
