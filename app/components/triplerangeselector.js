@@ -1,4 +1,36 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+  // Add a useEffect to reset day ranges when month changes
+  useEffect(() => {
+    if (isSingleYearSelected) {
+      // When month changes, validate the day range
+      const availableDays = getAvailableDays(yearRange.startValue, monthRange.startValue);
+      
+      // Ensure current day range is valid
+      if (availableDays.length > 0) {
+        let newDayRange = { ...dayRange };
+        let updated = false;
+        
+        // If start day isn't in available days, use the first available
+        if (!availableDays.includes(dayRange.startValue)) {
+          newDayRange.startValue = availableDays[0];
+          updated = true;
+        }
+        
+        // If end day isn't in available days, use the last available
+        if (!availableDays.includes(dayRange.endValue)) {
+          newDayRange.endValue = availableDays[availableDays.length - 1];
+          updated = true;
+        }
+        
+        if (updated) {
+          setDayRange(newDayRange);
+        }
+      }
+    }
+  }, [isSingleYearSelected, yearRange, monthRange, getAvailableDays]);  // Get the days in the selected month
+  const getDaysInMonth = useCallback((year, month) => {
+    // Month is 1-based in our UI but 0-based in Date
+    return new Date(parseInt(year), parseInt(month), 0).getDate();
+  }, []);import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 const RangeSlider = ({ 
   values, 
@@ -272,12 +304,11 @@ const RangeSlider = ({
         
         {/* Value markers - show all values for months, but fewer for years and days */}
         {sortedValues.map((value, index) => {
-          // For months, always show all markers (there are only 12)
-          // For years and days, show fewer markers based on count
-          const isMonthSlider = title === "Month Range";
+          // For months and days, always show all notches
+          const isMonthOrDaySlider = title === "Month Range" || title === "Day Range";
           
-          // Only render every nth marker based on the total count (for years and days)
-          if (!isMonthSlider) {
+          // Only render every nth marker based on the total count (for years)
+          if (!isMonthOrDaySlider) {
             const markersToShow = Math.max(7, Math.min(20, sortedValues.length / 10));
             const skipFactor = Math.ceil(sortedValues.length / markersToShow);
             
@@ -313,7 +344,8 @@ const TripleRangeSelector = ({
   initialStartDate,
   initialEndDate,
   colorTheme = 'orange',
-  availableYears = []
+  availableYears = [],
+  availableData = null // New prop to receive data about available months and days
 }) => {
   // First, determine the range of years to use
   const currentYear = new Date().getFullYear();
@@ -399,11 +431,41 @@ const TripleRangeSelector = ({
     }
   }, [initialStartDate, initialEndDate, years]);
   
-  // Get the days in the selected month
-  const getDaysInMonth = useCallback((year, month) => {
-    // Month is 1-based in our UI but 0-based in Date
-    return new Date(parseInt(year), parseInt(month), 0).getDate();
-  }, []);
+  // Use available months and days if provided
+  const getAvailableMonths = useCallback((year) => {
+    if (availableData && availableData[year] && availableData[year].availableMonths) {
+      return availableData[year].availableMonths.map(m => m.toString());
+    }
+    // Default to all months
+    return months;
+  }, [availableData, months]);
+  
+  const getAvailableDays = useCallback((year, month) => {
+    if (availableData && availableData[year] && 
+        availableData[year].monthDays && availableData[year].monthDays[month]) {
+      return availableData[year].monthDays[month].map(d => d.toString());
+    }
+    
+    // Default to all days in the month
+    const daysInMonth = getDaysInMonth(year, month);
+    return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+  }, [availableData, getDaysInMonth]);
+  
+  // Filtered months and days based on year selection
+  const filteredMonths = useMemo(() => {
+    if (isSingleYearSelected) {
+      return getAvailableMonths(yearRange.startValue);
+    }
+    return months;
+  }, [isSingleYearSelected, yearRange, months, getAvailableMonths]);
+  
+  // Filtered days based on year and month selection
+  const filteredDays = useMemo(() => {
+    if (isSingleYearSelected) {
+      return getAvailableDays(yearRange.startValue, monthRange.startValue);
+    }
+    return days;
+  }, [isSingleYearSelected, yearRange, monthRange, days, getAvailableDays]);
   
   // Adjust days when month/year changes to avoid invalid dates
   useEffect(() => {
@@ -430,16 +492,39 @@ const TripleRangeSelector = ({
     }
   }, [yearRange, monthRange, dayRange, getDaysInMonth, useAllTime]);
   
-  // When year range changes, reset month and day ranges if needed
+  // Add a useEffect to reset month and day ranges when year changes
   useEffect(() => {
     if (isSingleYearSelected) {
-      // Keep current values but ensure they're valid
+      // When switching to a single year, validate the month range
+      const availableMonths = getAvailableMonths(yearRange.startValue);
+      
+      // Ensure current month range is valid
+      if (availableMonths.length > 0) {
+        let newMonthRange = { ...monthRange };
+        let updated = false;
+        
+        // If start month isn't in available months, use the first available
+        if (!availableMonths.includes(monthRange.startValue)) {
+          newMonthRange.startValue = availableMonths[0];
+          updated = true;
+        }
+        
+        // If end month isn't in available months, use the last available
+        if (!availableMonths.includes(monthRange.endValue)) {
+          newMonthRange.endValue = availableMonths[availableMonths.length - 1];
+          updated = true;
+        }
+        
+        if (updated) {
+          setMonthRange(newMonthRange);
+        }
+      }
     } else {
       // For multi-year range, default to full month/day range
       setMonthRange({ startValue: '1', endValue: '12' });
       setDayRange({ startValue: '1', endValue: '31' });
     }
-  }, [isSingleYearSelected, yearRange]);
+  }, [isSingleYearSelected, yearRange, getAvailableMonths]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
@@ -583,7 +668,7 @@ const TripleRangeSelector = ({
       {/* Only show month selector if not in all-time mode and a single year is selected */}
       {!useAllTime && isSingleYearSelected && (
         <RangeSlider 
-          values={months} 
+          values={filteredMonths} 
           onValuesChange={setMonthRange}
           initialStartValue={monthRange.startValue}
           initialEndValue={monthRange.endValue}
@@ -597,7 +682,7 @@ const TripleRangeSelector = ({
       {/* Only show day selector if not in all-time mode and a single year is selected */}
       {!useAllTime && isSingleYearSelected && (
         <RangeSlider 
-          values={days} 
+          values={filteredDays} 
           onValuesChange={setDayRange}
           initialStartValue={dayRange.startValue}
           initialEndValue={dayRange.endValue}
