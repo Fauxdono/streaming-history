@@ -341,21 +341,18 @@ const TripleRangeSelector = ({
     endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
   });
   
+  // Check if we have a single year selected
+  const isSingleYearSelected = yearRange.startValue === yearRange.endValue;
+  
   // Format functions for display
   const formatMonth = useCallback((monthNum) => {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return monthNames[parseInt(monthNum) - 1];
+    // Just return the month number instead of abbreviation
+    return monthNum;
   }, []);
   
   const formatDay = useCallback((day) => {
-    const num = parseInt(day);
-    if (num === 1 || num === 21 || num === 31) return day + 'st';
-    if (num === 2 || num === 22) return day + 'nd';
-    if (num === 3 || num === 23) return day + 'rd';
-    return day + 'th';
+    // Just return the day number
+    return day;
   }, []);
   
   // Parse initial dates if provided
@@ -426,6 +423,17 @@ const TripleRangeSelector = ({
       setDayRange(newDayRange);
     }
   }, [yearRange, monthRange, dayRange, getDaysInMonth, useAllTime]);
+  
+  // When year range changes, reset month and day ranges if needed
+  useEffect(() => {
+    if (isSingleYearSelected) {
+      // Keep current values but ensure they're valid
+    } else {
+      // For multi-year range, default to full month/day range
+      setMonthRange({ startValue: '1', endValue: '12' });
+      setDayRange({ startValue: '1', endValue: '31' });
+    }
+  }, [isSingleYearSelected, yearRange]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
@@ -566,27 +574,33 @@ const TripleRangeSelector = ({
         disabled={useAllTime}
       />
       
-      <RangeSlider 
-        values={months} 
-        onValuesChange={setMonthRange}
-        initialStartValue={monthRange.startValue}
-        initialEndValue={monthRange.endValue}
-        displayFormat={formatMonth}
-        title="Month Range"
-        colorTheme={colorTheme}
-        disabled={useAllTime}
-      />
+      {/* Only show month selector if not in all-time mode */}
+      {!useAllTime && (
+        <RangeSlider 
+          values={months} 
+          onValuesChange={setMonthRange}
+          initialStartValue={monthRange.startValue}
+          initialEndValue={monthRange.endValue}
+          displayFormat={formatMonth}
+          title="Month Range"
+          colorTheme={colorTheme}
+          disabled={useAllTime || !isSingleYearSelected}
+        />
+      )}
       
-      <RangeSlider 
-        values={days} 
-        onValuesChange={setDayRange}
-        initialStartValue={dayRange.startValue}
-        initialEndValue={dayRange.endValue}
-        displayFormat={formatDay}
-        title="Day Range"
-        colorTheme={colorTheme}
-        disabled={useAllTime}
-      />
+      {/* Only show day selector if not in all-time mode and a single year is selected */}
+      {!useAllTime && isSingleYearSelected && (
+        <RangeSlider 
+          values={days} 
+          onValuesChange={setDayRange}
+          initialStartValue={dayRange.startValue}
+          initialEndValue={dayRange.endValue}
+          displayFormat={formatDay}
+          title="Day Range"
+          colorTheme={colorTheme}
+          disabled={useAllTime}
+        />
+      )}
       
       <div className="flex justify-center mt-4">
         <button
