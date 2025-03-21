@@ -3,7 +3,6 @@ import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
 import DateRangeControls from './datecontrols.js';
 import YearSelector from './year-selector.js';
-import DualHandleYearSlider from './dual-handle-year-slider.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
@@ -27,6 +26,63 @@ const CustomTrackRankings = ({
   const [pathFormat, setPathFormat] = useState('default');
   const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{artist}-{album}/{track}.{ext}');
   const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
+  
+  // Year-based date selection
+  const [yearRangeMode, setYearRangeMode] = useState(false);
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+  
+  // Get available years from data
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set();
+    
+    rawPlayData.forEach(entry => {
+      if (entry.ms_played >= 30000) {
+        const date = new Date(entry.ts);
+        yearsSet.add(date.getFullYear().toString());
+      }
+    });
+    
+    return Array.from(yearsSet).sort();
+  }, [rawPlayData]);
+  
+  // When year or year range changes, update the date range
+  useEffect(() => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      setStartDate(`${yearRange.startYear}-01-01`);
+      setEndDate(`${yearRange.endYear}-12-31`);
+    } else if (selectedYear !== 'all') {
+      setStartDate(`${selectedYear}-01-01`);
+      setEndDate(`${selectedYear}-12-31`);
+    } else {
+      // All years - find min and max dates
+      if (availableYears.length > 0) {
+        const minYear = Math.min(...availableYears.map(y => parseInt(y)));
+        const maxYear = Math.max(...availableYears.map(y => parseInt(y)));
+        setStartDate(`${minYear}-01-01`);
+        setEndDate(`${maxYear}-12-31`);
+      } else {
+        // No data, use defaults
+        setStartDate('');
+        setEndDate('');
+      }
+    }
+  }, [selectedYear, yearRangeMode, yearRange, availableYears]);
+  
+  // Handle year change
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+  };
+  
+  // Handle year range change
+  const handleYearRangeChange = (range) => {
+    setYearRange(range);
+  };
+  
+  // Toggle between single year and year range modes
+  const toggleYearRangeMode = (value) => {
+    setYearRangeMode(value);
+  };
   
   const addArtistFromTrack = (artist) => {
     // Prevent duplicate artists
@@ -371,63 +427,125 @@ const CustomTrackRankings = ({
     window.URL.revokeObjectURL(url);
   };
 
-return (
-  <div className="space-y-4">
-    {/* Date Range Selection using Enhanced Date Selector */}
-    <div className="border rounded-lg p-4 bg-orange-50">
-      <h3 className="font-bold text-orange-700 mb-2">Date Range Selection</h3>
-   <DateRangeControls
-  startDate={startDate}
-  endDate={endDate}
-  setStartDate={setStartDate}
-  setEndDate={setEndDate}
-  setQuickRange={setQuickRange}
-/>
-      {/* Month and Day Selection - Simple Version */}
-      <div className="mt-4 p-3 bg-orange-100 rounded border border-orange-200">
-        <h4 className="font-medium text-orange-700 mb-2">Specific Date Selection</h4>
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <label className="text-orange-700 whitespace-nowrap">From:</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border rounded px-2 py-1 text-orange-700"
-            />
+  // Create an object with years for YearSelector
+  const yearsForYearSelector = useMemo(() => {
+    const yearsObj = {};
+    availableYears.forEach(year => {
+      yearsObj[year] = []; // YearSelector expects an object with years as keys
+    });
+    return yearsObj;
+  }, [availableYears]);
+
+  // Function to get page title based on date selection
+  const getPageTitle = () => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      return `Custom Track Range (${yearRange.startYear}-${yearRange.endYear})`;
+    } else if (selectedYear !== 'all') {
+      return `Custom Track Range for ${selectedYear}`;
+    } else {
+      return 'Custom Date Range Selection';
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Date Range Selection using YearSelector */}
+      <div className="border rounded-lg p-4 bg-orange-50">
+        <h3 className="font-bold text-orange-700 mb-2">{getPageTitle()}</h3>
+        
+        {/* Year Selector from artists tab */}
+        <YearSelector
+          artistsByYear={yearsForYearSelector}
+          onYearChange={handleYearChange}
+          onYearRangeChange={handleYearRangeChange}
+          initialYear={selectedYear !== 'all' ? selectedYear : null}
+          initialYearRange={yearRange}
+          isRangeMode={yearRangeMode}
+          onToggleRangeMode={toggleYearRangeMode}
+          colorTheme="orange"
+        />
+        
+        {/* Additional date refinement (for precise dates) */}
+        <div className="mt-4 p-3 bg-orange-100 rounded border border-orange-200">
+          <h4 className="font-medium text-orange-700 mb-2">Refine Date Selection</h4>
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <label className="text-orange-700 whitespace-nowrap">From:</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border rounded px-2 py-1 text-orange-700"
+              />
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <label className="text-orange-700 whitespace-nowrap">To:</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border rounded px-2 py-1 text-orange-700"
+              />
+            </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <label className="text-orange-700 whitespace-nowrap">To:</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border rounded px-2 py-1 text-orange-700"
-            />
+          {/* Quick date range buttons */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            <button 
+              onClick={() => setQuickRange(1)}
+              className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+            >
+              Today
+            </button>
+            <button 
+              onClick={() => setQuickRange(7)}
+              className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+            >
+              Last 7 days
+            </button>
+            <button 
+              onClick={() => setQuickRange(30)}
+              className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+            >
+              Last 30 days
+            </button>
+            <button 
+              onClick={() => setQuickRange(90)}
+              className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+            >
+              Last 90 days
+            </button>
+            <button 
+              onClick={() => setQuickRange(365)}
+              className="px-2 py-1 bg-orange-200 text-orange-700 rounded hover:bg-orange-300"
+            >
+              Last year
+            </button>
           </div>
         </div>
-      </div> 
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-orange-700">
-          <label>Top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
-            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          <label>tracks</label>
+        
+        {/* Top N tracks control */}
+        <div className="mt-4 flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2 text-orange-700">
+            <label>Show top</label>
+            <input
+              type="number"
+              min="1"
+              max="999"
+              value={topN}
+              onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
+              className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+            />
+            <label>tracks</label>
+          </div>
         </div>
       </div>
-    </div>
 
-);
-      
       {/* Artist and Album Selection */}
-      <div className="relative">
+      <div className="border rounded-lg p-4 bg-orange-50">
+        <h3 className="font-bold text-orange-700 mb-2">Artist and Album Selection</h3>
+        
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedArtists.map(artist => (
             <div 
@@ -619,6 +737,7 @@ return (
         )}
       </div>
 
+      {/* Results section */}
       {filteredTracks.length > 0 ? (
         <div className="overflow-x-auto -mx-4 px-4">
           <div className="min-w-[640px]">
