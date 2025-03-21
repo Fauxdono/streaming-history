@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BetterYearSlider from './better-year-slider.js';
 import DualHandleYearSlider from './dual-handle-year-slider.js';
+import TripleRangeSelector from './TripleRangeSelector.js';
 
 const DateSelector = ({ 
   availableYears, 
@@ -14,14 +15,12 @@ const DateSelector = ({
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   const [selectedYear, setSelectedYear] = useState('all');
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+  const [useAdvancedSelector, setUseAdvancedSelector] = useState(false);
   
   // Convert available years to strings if they aren't already
   const years = Array.isArray(availableYears) 
     ? availableYears.map(year => year.toString()).sort()
     : [];
-    
-  // Log for debugging
-  console.log('DateSelector received years:', years);
 
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
@@ -110,9 +109,6 @@ const DateSelector = ({
         onDateChange(`${year}-01-01`, `${year}-12-31`);
       }
     }
-    
-    // Log what we're doing
-    console.log(`Year change to ${year} - sending dates to parent component`);
   };
   
   // Handle year range change in range mode
@@ -170,17 +166,22 @@ const DateSelector = ({
     <div className="mt-2 mb-6">
       <div className="flex justify-between items-center mb-4">
         <label className={colors.text + " font-medium"}>
-          {mode === 'range' 
-            ? 'Date Range Selection' 
-            : 'Single Year Selection'}
+          {useAdvancedSelector 
+            ? 'Advanced Date Selection' 
+            : mode === 'range' 
+              ? 'Date Range Selection' 
+              : 'Single Year Selection'}
         </label>
         
         {/* Toggle between modes */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleModeChange('single')}
+            onClick={() => {
+              setUseAdvancedSelector(false);
+              handleModeChange('single');
+            }}
             className={`px-2 py-1 rounded text-sm ${
-              mode === 'single' 
+              !useAdvancedSelector && mode === 'single' 
                 ? colors.bg + ' text-white' 
                 : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
             }`}
@@ -189,20 +190,41 @@ const DateSelector = ({
           </button>
           
           <button
-            onClick={() => handleModeChange('range')}
+            onClick={() => {
+              setUseAdvancedSelector(false);
+              handleModeChange('range');
+            }}
             className={`px-2 py-1 rounded text-sm ${
-              mode === 'range' 
+              !useAdvancedSelector && mode === 'range' 
                 ? colors.bg + ' text-white' 
                 : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
             }`}
           >
             Year Range
           </button>
+          
+          <button
+            onClick={() => setUseAdvancedSelector(true)}
+            className={`px-2 py-1 rounded text-sm ${
+              useAdvancedSelector 
+                ? colors.bg + ' text-white' 
+                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+            }`}
+          >
+            Advanced
+          </button>
         </div>
       </div>
       
-      {/* Render the appropriate slider based on mode */}
-      {mode === 'single' ? (
+      {/* Render the appropriate selector based on mode */}
+      {useAdvancedSelector ? (
+        <TripleRangeSelector
+          onDateRangeChange={onDateChange}
+          initialStartDate={initialStartDate}
+          initialEndDate={initialEndDate}
+          colorTheme={colorTheme}
+        />
+      ) : mode === 'single' ? (
         <div className="px-4">
           <BetterYearSlider 
             years={years} 
