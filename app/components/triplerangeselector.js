@@ -598,7 +598,57 @@ const EnhancedTripleRangeSelector = ({
     }
   }, [yearValue, monthValue, dayValue, yearRange, monthRange, dayRange, showMonths, showDays, useAllTime, isSingleMode]);
   
-aysInMonth(endYear, monthRange.endValue);
+  // Update date range based on current selections
+  const updateDateRange = () => {
+    if (useAllTime) {
+      // Use the full available range of years
+      const minYear = years[0];
+      const maxYear = years[years.length - 1];
+      
+      // Format as YYYY-MM-DD for consistency
+      const startDate = `${minYear}-01-01`;
+      const endDate = `${maxYear}-12-31`;
+      
+      if (onDateRangeChange) {
+        onDateRangeChange(startDate, endDate);
+      }
+    } else if (isSingleMode) {
+      // Single mode selection
+      let start, end;
+      
+      if (!showMonths) {
+        // Year only
+        start = `${yearValue}-01-01`;
+        end = `${yearValue}-12-31`;
+      } else if (!showDays) {
+        // Year + Month
+        const lastDay = getDaysInMonth(yearValue, monthValue);
+        start = `${yearValue}-${monthValue.padStart(2, '0')}-01`;
+        end = `${yearValue}-${monthValue.padStart(2, '0')}-${lastDay}`;
+      } else {
+        // Year + Month + Day (single date)
+        start = `${yearValue}-${monthValue.padStart(2, '0')}-${dayValue.padStart(2, '0')}`;
+        end = start; // Same date for start and end
+      }
+      
+      if (onDateRangeChange) {
+        onDateRangeChange(start, end);
+      }
+    } else {
+      // Range mode selection
+      let start, end;
+      
+      if (!showMonths) {
+        // Year range only
+        start = `${yearRange.startValue}-01-01`;
+        end = `${yearRange.endValue}-12-31`;
+      } else if (!showDays) {
+        // Year + Month range
+        const useYearRange = yearRange.startValue !== yearRange.endValue;
+        const startYear = useYearRange ? yearRange.startValue : yearValue;
+        const endYear = useYearRange ? yearRange.endValue : yearValue;
+        
+        const lastDay = getDaysInMonth(endYear, monthRange.endValue);
         start = `${startYear}-${monthRange.startValue.padStart(2, '0')}-01`;
         end = `${endYear}-${monthRange.endValue.padStart(2, '0')}-${lastDay}`;
       } else {
@@ -620,10 +670,7 @@ aysInMonth(endYear, monthRange.endValue);
         onDateRangeChange(start, end);
       }
     }
-  }, [
-    years, yearValue, monthValue, dayValue, yearRange, monthRange, dayRange, 
-    showMonths, showDays, useAllTime, isSingleMode, onDateRangeChange, getDaysInMonth
-  ]);
+  };
   
   // Auto-update when selection changes
   useEffect(() => {
