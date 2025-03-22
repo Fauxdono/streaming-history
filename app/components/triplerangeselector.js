@@ -463,17 +463,15 @@ const TripleRangeSelector = ({
   
   // Filtered days based on year and month selection
   const filteredDays = useMemo(() => {
-    // Only show days for single months (when start and end month are the same)
+    // For single month - exact number of days in that month
     if (isSingleYearSelected && monthRange.startValue === monthRange.endValue) {
       const daysInMonth = getDaysInMonth(yearRange.startValue, monthRange.startValue);
       return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
     }
     
-    // For different months, we show max 31 days but ensure end day is valid for end month
-    const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
-    const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
-    
-    return Array.from({ length: Math.max(maxStartDay, maxEndDay) }, (_, i) => (i + 1).toString());
+    // For different months/years - always show 31 days (maximum possible in any month)
+    // We'll adjust the valid range during validation
+    return Array.from({ length: 31 }, (_, i) => (i + 1).toString());
   }, [isSingleYearSelected, yearRange, monthRange]);
   
   // Adjust days when month/year changes to avoid invalid dates
@@ -707,10 +705,8 @@ const TripleRangeSelector = ({
     yearRange.endValue - yearRange.startValue <= 2 // Or when range is small enough
   );
   
-  // Check if day slider should be enabled
-  const enableDaySlider = !useAllTime && (
-    isSingleYearSelected && monthRange.startValue === monthRange.endValue // Only for single month
-  );
+  // Check if day slider should be enabled - now shown whenever months are shown
+  const enableDaySlider = enableMonthSlider; // Show days whenever months are shown
   
   // Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
@@ -752,53 +748,7 @@ const TripleRangeSelector = ({
         )}
       </div>
       
-      {/* Quick selection buttons */}
-      {!useAllTime && (
-        <div className="flex flex-wrap gap-2 mb-3">
-          <button 
-            onClick={() => quickSelect('1w')}
-            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
-          >
-            Last Week
-          </button>
-          <button 
-            onClick={() => quickSelect('1m')}
-            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
-          >
-            Last Month
-          </button>
-          <button 
-            onClick={() => quickSelect('3m')}
-            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
-          >
-            Last 3 Months
-          </button>
-          <button 
-            onClick={() => quickSelect('6m')}
-            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
-          >
-            Last 6 Months
-          </button>
-          <button 
-            onClick={() => quickSelect('1y')}
-            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
-          >
-            Last Year
-          </button>
-          <button 
-            onClick={() => quickSelect('ytd')}
-            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
-          >
-            Year to Date
-          </button>
-          <button 
-            onClick={() => quickSelect('prevyear')}
-            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
-          >
-            Previous Year
-          </button>
-        </div>
-      )}
+      {/* Quick selection buttons removed as requested */}
       
       <RangeSlider 
         values={years} 
