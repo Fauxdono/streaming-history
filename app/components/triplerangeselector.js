@@ -96,42 +96,53 @@ const RangeSlider = ({
     }
   }, [colorTheme]);
 
-  // Initialize the slider positions based on the initial values
+  // Function to convert a value to its corresponding position percentage
+  const valueToPosition = useCallback((value) => {
+    if (!sortedValues.includes(value.toString())) {
+      // Find the closest value if the exact one doesn't exist
+      const numericValue = parseInt(value);
+      const closestValue = sortedValues.reduce((prev, curr) => {
+        return Math.abs(parseInt(curr) - numericValue) < Math.abs(parseInt(prev) - numericValue) ? curr : prev;
+      });
+      const index = sortedValues.indexOf(closestValue);
+      return (index / (sortedValues.length - 1)) * 100;
+    }
+    
+    const index = sortedValues.indexOf(value.toString());
+    return (index / (sortedValues.length - 1)) * 100;
+  }, [sortedValues]);
+
+  // Update positions whenever the mode or initialValues change
   useEffect(() => {
     if (sortedValues.length === 0) return;
     
-    // Important: Ensure all state updates happen in a single batch to avoid flicker
-    let newStartPos = 0;
-    let newEndPos = 100;
-    let newStartVal = minValue;
-    let newEndVal = maxValue;
+    let startVal = initialStartValue || minValue;
+    let endVal = initialEndValue || maxValue;
     
-    // Calculate start position and value
-    if (initialStartValue && sortedValues.includes(initialStartValue.toString())) {
-      const valueIndex = sortedValues.indexOf(initialStartValue.toString());
-      newStartPos = (valueIndex / (sortedValues.length - 1)) * 100;
-      newStartVal = initialStartValue;
+    // Make sure values exist in our sorted list
+    if (!sortedValues.includes(startVal.toString())) {
+      startVal = minValue;
     }
     
-    // Calculate end position and value
-    if (initialEndValue && sortedValues.includes(initialEndValue.toString())) {
-      const valueIndex = sortedValues.indexOf(initialEndValue.toString());
-      newEndPos = (valueIndex / (sortedValues.length - 1)) * 100;
-      newEndVal = initialEndValue;
+    if (!sortedValues.includes(endVal.toString())) {
+      endVal = maxValue;
     }
     
-    // In single value mode, ensure both handles have the same position
+    // In single value mode, set both to the start value
     if (singleValueMode) {
-      newEndPos = newStartPos;
-      newEndVal = newStartVal;
+      endVal = startVal;
     }
     
-    // Batch all state updates
-    setStartPosition(newStartPos);
-    setEndPosition(newEndPos);
-    setStartValue(newStartVal);
-    setEndValue(newEndVal);
-  }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue, singleValueMode]);
+    // Convert values to positions
+    const startPos = valueToPosition(startVal);
+    const endPos = singleValueMode ? startPos : valueToPosition(endVal);
+    
+    // Apply all state updates together
+    setStartValue(startVal);
+    setEndValue(endVal);
+    setStartPosition(startPos);
+    setEndPosition(endPos);
+  }, [initialStartValue, initialEndValue, minValue, maxValue, singleValueMode, sortedValues, valueToPosition]);
   
   // Handler for when the position changes, updates the value
   const updateValueFromPosition = useCallback((position, isStart) => {
@@ -425,6 +436,9 @@ const TripleRangeSelector = ({
     endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
   });
   
+  // Key to force re-render of sliders when mode changes
+  const [sliderKey, setSliderKey] = useState(0);
+  
   // Check if we have a single year selected
   const isSingleYearSelected = yearRange.startValue === yearRange.endValue;
   
@@ -492,43 +506,6 @@ const TripleRangeSelector = ({
     return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
   }, [availableData]);
   
-  // Toggle single year mode function
-  const toggleSingleYearMode = () => {
-    // Toggle the state
-    setSingleYearMode(!singleYearMode);
-    
-    if (!singleYearMode) {
-      // Switching TO single year mode
-      // Use current start year for both start and end
-      const currentYear = yearRange.startValue;
-      
-      // Important: Update both state variables in one batch
-      setYearRange({
-        startValue: currentYear,
-        endValue: currentYear
-      });
-      
-      // Reset month and day to full ranges
-      setMonthRange({ startValue: '1', endValue: '12' });
-      setDayRange({ startValue: '1', endValue: '31' });
-    } else {
-      // Switching FROM single year mode back to range mode
-      // Keep current single year as start, but extend to the next available year if possible
-      const currentYearIndex = years.indexOf(yearRange.startValue);
-      let endYearIndex = currentYearIndex;
-      
-      // Try to set end year to next year if available
-      if (currentYearIndex < years.length - 1) {
-        endYearIndex = currentYearIndex + 1;
-      }
-      
-      setYearRange({
-        startValue: yearRange.startValue,
-        endValue: years[endYearIndex]
-      });
-    }
-  };
-  
   // Check if month slider should be enabled
   const enableMonthSlider = !useAllTime && !singleYearMode; // Hide in single year mode
   
@@ -558,9 +535,6 @@ const TripleRangeSelector = ({
   
   // Modified useEffect to validate month/day ranges but not reset them when year changes
   useEffect(() => {
-    // Only validate the month and day ranges - don't reset them
-    // This allows keeping the month/day selection when changing years
-    
     // Skip validation in single year mode (handled by another effect)
     if (singleYearMode) return;
     
@@ -600,14 +574,60 @@ const TripleRangeSelector = ({
     }
   }, [yearRange, monthRange, dayRange, singleYearMode]);
   
-  // Effect to update months and days when entering or changing year in single year mode
-  useEffect(() => {
-    if (singleYearMode) {
-      // When in single year mode, reset months and days to full range
+  // Toggle single year mode function - key point for fixing the lag issue
+  const toggleSingleYearMode = () => {
+    // Toggle the state
+    const newSingleYearMode = !singleYearMode;
+    setSingleYearMode(newSingleYearMode);
+    
+    // Increment the slider key to force re-render
+    setSliderKey(prevKey => prevKey + 1);
+    
+    if (newSingleYearMode) {
+      // Switching TO single year mode
+      // Use current start year for both start and end
+      const currentYear = yearRange.startValue;
+      
+      // Important: Update both state variables in one batch
+      setYearRange({
+        startValue: currentYear,
+        endValue: currentYear
+      });
+      
+      // Reset month and day to full ranges
       setMonthRange({ startValue: '1', endValue: '12' });
       setDayRange({ startValue: '1', endValue: '31' });
+    } else {
+      // Switching FROM single year mode back to range mode
+      // Keep current single year as start, but extend to the next available year if possible
+      const currentYearIndex = years.indexOf(yearRange.startValue);
+      let endYearIndex = currentYearIndex;
+      
+      // Try to set end year to next year if available
+      if (currentYearIndex < years.length - 1) {
+        endYearIndex = currentYearIndex + 1;
+      }
+      
+      setYearRange({
+        startValue: yearRange.startValue,
+        endValue: years[endYearIndex]
+      });
     }
-  }, [singleYearMode, yearRange.startValue]);
+  };
+  
+  // Toggle "All Time" mode
+  const toggleAllTime = useCallback(() => {
+    const newAllTimeState = !useAllTime;
+    setUseAllTime(newAllTimeState);
+    
+    // Force re-render of sliders
+    setSliderKey(prevKey => prevKey + 1);
+    
+    if (newAllTimeState) {
+      // When enabling "All Time", use the full range
+      applyDateRange();
+    }
+  }, [useAllTime]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
@@ -648,17 +668,6 @@ const TripleRangeSelector = ({
     }
   }, [years, yearRange, monthRange, dayRange, useAllTime, onDateRangeChange]);
   
-  // Toggle "All Time" mode
-  const toggleAllTime = useCallback(() => {
-    const newAllTimeState = !useAllTime;
-    setUseAllTime(newAllTimeState);
-    
-    if (newAllTimeState) {
-      // When enabling "All Time", use the full range
-      applyDateRange();
-    }
-  }, [useAllTime, applyDateRange]);
-  
   // Map color theme to actual color values
   const colors = useMemo(() => {
     switch (colorTheme) {
@@ -689,7 +698,7 @@ const TripleRangeSelector = ({
       case 'orange':
       default:
         return {
-          buttonBg: 'bg-orange-600',
+                            buttonBg: 'bg-orange-600',
           buttonHover: 'hover:bg-orange-700',
           textTitle: 'text-orange-700',
           tabActive: 'bg-orange-600 text-white',
@@ -698,7 +707,7 @@ const TripleRangeSelector = ({
     }
   }, [colorTheme]);
   
-// Formatted date range display (for user reference)
+  // Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
     if (useAllTime) {
       return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
@@ -729,6 +738,7 @@ const TripleRangeSelector = ({
                 onClick={() => {
                   if (useAllTime) {
                     setUseAllTime(false);
+                    setSliderKey(prevKey => prevKey + 1); // Force re-render
                   }
                 }}
                 className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
@@ -752,6 +762,7 @@ const TripleRangeSelector = ({
       
       {/* Year Range Slider - Modified to handle both single and range modes */}
       <RangeSlider 
+        key={`year-slider-${sliderKey}`} // Key changes force complete re-render
         values={years} 
         onValuesChange={(values) => {
           // Ensure we don't create loops
@@ -792,6 +803,7 @@ const TripleRangeSelector = ({
       {/* Only show month selector if not in all-time mode */}
       {enableMonthSlider && (
         <RangeSlider 
+          key={`month-slider-${sliderKey}`} // Key changes force complete re-render
           values={filteredMonths} 
           onValuesChange={setMonthRange}
           initialStartValue={monthRange.startValue}
@@ -807,6 +819,7 @@ const TripleRangeSelector = ({
       {/* Only show day selector if not in all-time mode */}
       {enableDaySlider && (
         <RangeSlider 
+          key={`day-slider-${sliderKey}`} // Key changes force complete re-render
           values={filteredDays} 
           onValuesChange={setDayRange}
           initialStartValue={dayRange.startValue}
@@ -835,3 +848,4 @@ const TripleRangeSelector = ({
 };
 
 export default TripleRangeSelector;
+        
