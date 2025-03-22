@@ -19,9 +19,20 @@ const RangeSlider = ({
   singleValueMode = false // Forces both handles to move together as a unit
 }) => {
   // Make sure we have an array of values and they're sorted
-  const sortedValues = useMemo(() => 
-    Array.isArray(values) ? [...values].sort((a, b) => parseInt(a) - parseInt(b)) : []
-  , [values]);
+  // Add 'all' as the first position if not already included
+  const sortedValues = useMemo(() => {
+    if (!Array.isArray(values)) return [];
+    
+    // Create a copy of the array and sort it numerically
+    const sorted = [...values].sort((a, b) => parseInt(a) - parseInt(b));
+    
+    // Check if we want to add "all" at the beginning
+    if (!values.includes('all') && allowSingleValueSelection) {
+      return ['all', ...sorted];
+    }
+    
+    return sorted;
+  }, [values, allowSingleValueSelection]);
   
   // If no values, nothing to render
   if (sortedValues.length === 0) {
@@ -309,6 +320,9 @@ const RangeSlider = ({
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
+    if (value === 'all') {
+      return 'All-Time';
+    }
     if (typeof displayFormat === 'function') {
       return displayFormat(value);
     }
@@ -378,18 +392,31 @@ const RangeSlider = ({
           const isStartMarker = value === startValue;
           const isEndMarker = value === endValue;
           const isExactMarker = isStartMarker || isEndMarker;
+          const isAllTimeMarker = value === 'all';
+          
+          // Skip showing every marker for years to avoid crowding (but always show 'all')
+          const shouldShowLabel = isAllTimeMarker || 
+                               isExactMarker || 
+                               index % Math.max(1, Math.floor(sortedValues.length / 10)) === 0;
           
           return (
             <div 
               key={value}
-              className={`absolute top-1/2 ${isExactMarker ? 'w-1.5 h-4' : 'w-1 h-3'} transform -translate-x-1/2 -translate-y-1/2 z-10 ${
+              className={`absolute top-1/2 ${isExactMarker || isAllTimeMarker ? 'w-1.5 h-4' : 'w-1 h-3'} transform -translate-x-1/2 -translate-y-1/2 z-10 ${
+                isAllTimeMarker ? `${colors.bgMed}` : 
                 isInRange ? colors.bgMed : 'bg-gray-400'
               }`}
               style={{ left: `${position}%` }}
             >
-              <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${isExactMarker ? `${colors.textBold} font-bold` : `${colors.text} font-medium`}`}>
-                {formatValue(value)}
-              </div>
+              {shouldShowLabel && (
+                <div className={`absolute w-16 text-xs text-center -translate-x-1/2 mt-4 ${
+                  isAllTimeMarker ? `${colors.textBold} font-bold` :
+                  isExactMarker ? `${colors.textBold} font-bold` : 
+                  `${colors.text} font-medium`
+                }`}>
+                  {formatValue(value)}
+                </div>
+              )}
             </div>
           );
         })}
@@ -766,6 +793,25 @@ const TripleRangeSelector = ({
         values={years} 
         onValuesChange={(values) => {
           // Ensure we don't create loops
+          // Special handling for 'all' value
+          if (values.startValue === 'all' || values.endValue === 'all') {
+            // Set to full range when 'all' is selected
+            setYearRange({
+              startValue: years[0],
+              endValue: years[years.length - 1]
+            });
+            
+            // Reset month and day to full range
+            setMonthRange({ startValue: '1', endValue: '12' });
+            setDayRange({ startValue: '1', endValue: '31' });
+            
+            // Notify parent of all-time selection
+            if (onDateRangeChange) {
+              onDateRangeChange(`${years[0]}-01-01`, `${years[years.length - 1]}-12-31`);
+            }
+            return;
+          }
+          
           if (singleYearMode) {
             // In single year mode, enforce both start and end to be the same
             const changedValue = values.startValue !== yearRange.startValue ? 
