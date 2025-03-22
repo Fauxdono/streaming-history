@@ -14,7 +14,8 @@ const RangeSlider = ({
   displayFormat,
   title,
   colorTheme = 'orange',
-  disabled = false
+  disabled = false,
+  allowSingleValueSelection = true // New prop to allow selection of a single value
 }) => {
   // Make sure we have an array of values and they're sorted
   const sortedValues = useMemo(() => 
@@ -165,12 +166,16 @@ const RangeSlider = ({
       
       if (isStartHandle) {
         // Don't let start handle pass end handle
-        percentage = Math.min(percentage, endPosition - 5);
+        // Allow equal positions if single value selection is enabled
+        const minSeparation = allowSingleValueSelection ? 0 : 5;
+        percentage = Math.min(percentage, endPosition - minSeparation);
         setStartPosition(percentage);
         updateValueFromPosition(percentage, true);
       } else {
         // Don't let end handle pass start handle
-        percentage = Math.max(percentage, startPosition + 5);
+        // Allow equal positions if single value selection is enabled
+        const minSeparation = allowSingleValueSelection ? 0 : 5;
+        percentage = Math.max(percentage, startPosition + minSeparation);
         setEndPosition(percentage);
         updateValueFromPosition(percentage, false);
       }
@@ -188,7 +193,7 @@ const RangeSlider = ({
     
     // Initial position update
     handleMouseMove(e);
-  }, [disabled, endPosition, startPosition, updateValueFromPosition]);
+  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection]);
   
   // Handle click on the track (moves the nearest handle)
   const handleTrackClick = useCallback((e) => {
@@ -205,6 +210,13 @@ const RangeSlider = ({
     let percentage = (x / width) * 100;
     percentage = Math.max(0, Math.min(100, percentage));
     
+    // Calculate the exact value at this position
+    const valueIndex = Math.round((percentage / 100) * (sortedValues.length - 1));
+    const exactValue = sortedValues[valueIndex];
+    
+    // Check if this click is directly on a marker
+    const isExactMarker = Math.abs(percentage - ((valueIndex / (sortedValues.length - 1)) * 100)) < 2;
+    
     // Determine which handle to move (the closest one)
     const startDistance = Math.abs(percentage - startPosition);
     const endDistance = Math.abs(percentage - endPosition);
@@ -212,17 +224,47 @@ const RangeSlider = ({
     // Set temporary dragging state to prevent immediate updates
     setIsDragging(true);
     
-    if (startDistance <= endDistance) {
-      setStartPosition(percentage);
-      updateValueFromPosition(percentage, true);
+    // If clicking directly on a marker, we want to either:
+    // 1. If it's already the start or end value, make it a single-day selection
+    // 2. Otherwise, move the closest handle to this marker
+    if (isExactMarker) {
+      if (exactValue === startValue) {
+        // Already the start value, move end handle here for single value selection
+        if (allowSingleValueSelection) {
+          setEndPosition(percentage);
+          setEndValue(exactValue);
+        }
+      } else if (exactValue === endValue) {
+        // Already the end value, move start handle here for single value selection
+        if (allowSingleValueSelection) {
+          setStartPosition(percentage);
+          setStartValue(exactValue);
+        }
+      } else {
+        // Not already selected, move closest handle
+        if (startDistance <= endDistance) {
+          setStartPosition(percentage);
+          setStartValue(exactValue);
+        } else {
+          setEndPosition(percentage);
+          setEndValue(exactValue);
+        }
+      }
     } else {
-      setEndPosition(percentage);
-      updateValueFromPosition(percentage, false);
+      // Normal click, not directly on a marker
+      if (startDistance <= endDistance) {
+        setStartPosition(percentage);
+        updateValueFromPosition(percentage, true);
+      } else {
+        setEndPosition(percentage);
+        updateValueFromPosition(percentage, false);
+      }
     }
     
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 50);
-  }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition]);
+  }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition, 
+      sortedValues, startValue, endValue, allowSingleValueSelection]);
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
@@ -237,7 +279,9 @@ const RangeSlider = ({
       <div className="flex justify-between mb-1 items-center">
         <span className={`${colors.text} text-sm`}>{title}</span>
         <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
-          {formatValue(startValue)} - {formatValue(endValue)}
+          {startValue === endValue 
+            ? formatValue(startValue) 
+            : `${formatValue(startValue)} - ${formatValue(endValue)}`}
         </div>
       </div>
       
@@ -254,7 +298,7 @@ const RangeSlider = ({
           className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
           style={{ 
             left: `${startPosition}%`, 
-            width: `${endPosition - startPosition}%` 
+            width: `${Math.max(0.5, endPosition - startPosition)}%` 
           }}
         ></div>
         
@@ -278,31 +322,23 @@ const RangeSlider = ({
         
         {/* Value markers - show all values for months, but fewer for years and days */}
         {sortedValues.map((value, index) => {
-          // For months and days, always show all notches
-          const isMonthOrDaySlider = title === "Month Range" || title === "Day Range";
-          
-          // Only render every nth marker based on the total count (for years)
-          if (!isMonthOrDaySlider) {
-            const markersToShow = Math.max(7, Math.min(20, sortedValues.length / 10));
-            const skipFactor = Math.ceil(sortedValues.length / markersToShow);
-            
-            if (index % skipFactor !== 0 && index !== 0 && index !== sortedValues.length - 1) {
-              return null;
-            }
-          }
-          
           const position = (index / (sortedValues.length - 1)) * 100;
           const isInRange = position >= startPosition && position <= endPosition;
+          
+          // Emphasize exact match markers
+          const isStartMarker = value === startValue;
+          const isEndMarker = value === endValue;
+          const isExactMarker = isStartMarker || isEndMarker;
           
           return (
             <div 
               key={value}
-              className={`absolute top-1/2 w-1 h-3 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
+              className={`absolute top-1/2 ${isExactMarker ? 'w-1.5 h-4' : 'w-1 h-3'} transform -translate-x-1/2 -translate-y-1/2 z-10 ${
                 isInRange ? colors.bgMed : 'bg-gray-400'
               }`}
               style={{ left: `${position}%` }}
             >
-              <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${colors.text} font-medium`}>
+              <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${isExactMarker ? `${colors.textBold} font-bold` : `${colors.text} font-medium`}`}>
                 {formatValue(value)}
               </div>
             </div>
@@ -319,7 +355,7 @@ const TripleRangeSelector = ({
   initialEndDate,
   colorTheme = 'orange',
   availableYears = [],
-  availableData = null // New prop to receive data about available months and days
+  availableData = null // Prop to receive data about available months and days
 }) => {
   // First, determine the range of years to use
   const currentYear = new Date().getFullYear();
@@ -334,9 +370,6 @@ const TripleRangeSelector = ({
   
   // Generate months 1-12
   const months = useMemo(() => Array.from({ length: 12 }, (_, i) => (i + 1).toString()), []);
-  
-  // Generate days 1-31
-  const days = useMemo(() => Array.from({ length: 31 }, (_, i) => (i + 1).toString()), []);
   
   // State for each range
   const [useAllTime, setUseAllTime] = useState(false);
@@ -358,13 +391,8 @@ const TripleRangeSelector = ({
   
   // Format functions for display
   const formatMonth = useCallback((monthNum) => {
-    // Just return the month number instead of abbreviation
-    return monthNum;
-  }, []);
-  
-  const formatDay = useCallback((day) => {
-    // Just return the day number
-    return day;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return monthNames[parseInt(monthNum) - 1];
   }, []);
   
   // Parse initial dates if provided
@@ -435,11 +463,18 @@ const TripleRangeSelector = ({
   
   // Filtered days based on year and month selection
   const filteredDays = useMemo(() => {
-    if (isSingleYearSelected) {
-      return getAvailableDays(yearRange.startValue, monthRange.startValue);
+    // Only show days for single months (when start and end month are the same)
+    if (isSingleYearSelected && monthRange.startValue === monthRange.endValue) {
+      const daysInMonth = getDaysInMonth(yearRange.startValue, monthRange.startValue);
+      return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
     }
-    return days;
-  }, [isSingleYearSelected, yearRange, monthRange, days, getAvailableDays]);
+    
+    // For different months, we show max 31 days but ensure end day is valid for end month
+    const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
+    const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
+    
+    return Array.from({ length: Math.max(maxStartDay, maxEndDay) }, (_, i) => (i + 1).toString());
+  }, [isSingleYearSelected, yearRange, monthRange]);
   
   // Adjust days when month/year changes to avoid invalid dates
   useEffect(() => {
@@ -589,6 +624,94 @@ const TripleRangeSelector = ({
     }
   }, [colorTheme]);
   
+  // Add quick selection buttons for common date ranges
+  const quickSelect = useCallback((option) => {
+    const currentDate = new Date();
+    let startDate, endDate;
+    
+    switch(option) {
+      case '1w':
+        startDate = new Date(currentDate);
+        startDate.setDate(currentDate.getDate() - 7);
+        endDate = currentDate;
+        break;
+      case '1m':
+        startDate = new Date(currentDate);
+        startDate.setMonth(currentDate.getMonth() - 1);
+        endDate = currentDate;
+        break;
+      case '3m':
+        startDate = new Date(currentDate);
+        startDate.setMonth(currentDate.getMonth() - 3);
+        endDate = currentDate;
+        break;
+      case '6m':
+        startDate = new Date(currentDate);
+        startDate.setMonth(currentDate.getMonth() - 6);
+        endDate = currentDate;
+        break;
+      case '1y':
+        startDate = new Date(currentDate);
+        startDate.setFullYear(currentDate.getFullYear() - 1);
+        endDate = currentDate;
+        break;
+      case 'ytd':
+        startDate = new Date(currentDate.getFullYear(), 0, 1); // January 1st of current year
+        endDate = currentDate;
+        break;
+      case 'prevyear':
+        const prevYear = currentDate.getFullYear() - 1;
+        startDate = new Date(prevYear, 0, 1); // January 1st of previous year
+        endDate = new Date(prevYear, 11, 31); // December 31st of previous year
+        break;
+      default:
+        return;
+    }
+    
+    // Update the state to reflect the new selection
+    setUseAllTime(false);
+    
+    // Set the year range
+    setYearRange({
+      startValue: startDate.getFullYear().toString(),
+      endValue: endDate.getFullYear().toString()
+    });
+    
+    // Set the month range
+    setMonthRange({
+      startValue: (startDate.getMonth() + 1).toString(),
+      endValue: (endDate.getMonth() + 1).toString()
+    });
+    
+    // Set the day range
+    setDayRange({
+      startValue: startDate.getDate().toString(),
+      endValue: endDate.getDate().toString()
+    });
+    
+    // Immediately apply the new date range
+    setTimeout(() => {
+      if (onDateRangeChange) {
+        onDateRangeChange(
+          startDate.toISOString().split('T')[0],
+          endDate.toISOString().split('T')[0]
+        );
+      }
+    }, 50);
+    
+  }, [onDateRangeChange]);
+  
+  // Check if month slider should be enabled
+  const enableMonthSlider = !useAllTime && (
+    isSingleYearSelected || // Always enable for single year
+    yearRange.endValue - yearRange.startValue <= 2 // Or when range is small enough
+  );
+  
+  // Check if day slider should be enabled
+  const enableDaySlider = !useAllTime && (
+    isSingleYearSelected && monthRange.startValue === monthRange.endValue // Only for single month
+  );
+  
   // Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
     if (useAllTime) {
@@ -629,6 +752,54 @@ const TripleRangeSelector = ({
         )}
       </div>
       
+      {/* Quick selection buttons */}
+      {!useAllTime && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          <button 
+            onClick={() => quickSelect('1w')}
+            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
+          >
+            Last Week
+          </button>
+          <button 
+            onClick={() => quickSelect('1m')}
+            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
+          >
+            Last Month
+          </button>
+          <button 
+            onClick={() => quickSelect('3m')}
+            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
+          >
+            Last 3 Months
+          </button>
+          <button 
+            onClick={() => quickSelect('6m')}
+            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
+          >
+            Last 6 Months
+          </button>
+          <button 
+            onClick={() => quickSelect('1y')}
+            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
+          >
+            Last Year
+          </button>
+          <button 
+            onClick={() => quickSelect('ytd')}
+            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
+          >
+            Year to Date
+          </button>
+          <button 
+            onClick={() => quickSelect('prevyear')}
+            className={`px-2 py-1 text-xs rounded ${colors.tabInactive}`}
+          >
+            Previous Year
+          </button>
+        </div>
+      )}
+      
       <RangeSlider 
         values={years} 
         onValuesChange={setYearRange}
@@ -639,8 +810,8 @@ const TripleRangeSelector = ({
         disabled={useAllTime}
       />
       
-      {/* Only show month selector if not in all-time mode and a single year is selected */}
-      {!useAllTime && isSingleYearSelected && (
+      {/* Only show month selector if not in all-time mode */}
+      {enableMonthSlider && (
         <RangeSlider 
           values={filteredMonths} 
           onValuesChange={setMonthRange}
@@ -650,20 +821,21 @@ const TripleRangeSelector = ({
           title="Month Range"
           colorTheme={colorTheme}
           disabled={useAllTime}
+          allowSingleValueSelection={true}
         />
       )}
       
-      {/* Only show day selector if not in all-time mode and a single year is selected */}
-      {!useAllTime && isSingleYearSelected && (
+      {/* Only show day selector if not in all-time mode and a single month is selected */}
+      {enableDaySlider && (
         <RangeSlider 
           values={filteredDays} 
           onValuesChange={setDayRange}
           initialStartValue={dayRange.startValue}
           initialEndValue={dayRange.endValue}
-          displayFormat={formatDay}
           title="Day Range"
           colorTheme={colorTheme}
           disabled={useAllTime}
+          allowSingleValueSelection={true}
         />
       )}
       
