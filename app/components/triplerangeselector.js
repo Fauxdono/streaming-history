@@ -109,14 +109,29 @@ const RangeSlider = ({
 
   // Function to convert a value to its corresponding position percentage
   const valueToPosition = useCallback((value) => {
+    if (value === 'all') {
+      // 'all' is always the first position
+      return 0;
+    }
+    
     if (!sortedValues.includes(value.toString())) {
       // Find the closest value if the exact one doesn't exist
-      const numericValue = parseInt(value);
-      const closestValue = sortedValues.reduce((prev, curr) => {
-        return Math.abs(parseInt(curr) - numericValue) < Math.abs(parseInt(prev) - numericValue) ? curr : prev;
-      });
-      const index = sortedValues.indexOf(closestValue);
-      return (index / (sortedValues.length - 1)) * 100;
+      try {
+        const numericValue = parseInt(value);
+        if (isNaN(numericValue)) return 0; // Default to first position if not a number
+        
+        // Find closest numeric value (excluding 'all')
+        const numericValues = sortedValues.filter(v => v !== 'all');
+        const closestValue = numericValues.reduce((prev, curr) => {
+          return Math.abs(parseInt(curr) - numericValue) < Math.abs(parseInt(prev) - numericValue) ? curr : prev;
+        });
+        
+        const index = sortedValues.indexOf(closestValue);
+        return (index / (sortedValues.length - 1)) * 100;
+      } catch (e) {
+        console.warn('Error finding position for value:', value, e);
+        return 0; // Default to first position
+      }
     }
     
     const index = sortedValues.indexOf(value.toString());
@@ -669,8 +684,8 @@ const TripleRangeSelector = ({
   const applyDateRange = useCallback(() => {
     if (yearRange.startValue === 'all' || yearRange.endValue === 'all') {
       // Use the full available range of years
-      const minYear = years[0];
-      const maxYear = years[years.length - 1];
+      const minYear = years.length > 0 ? years[0] : new Date().getFullYear().toString();
+      const maxYear = years.length > 0 ? years[years.length - 1] : new Date().getFullYear().toString();
       
       // Format as YYYY-MM-DD for consistency
       const startDate = `${minYear}-01-01`;
@@ -679,7 +694,10 @@ const TripleRangeSelector = ({
       if (onDateRangeChange) {
         onDateRangeChange(startDate, endDate);
       }
-    } else {
+      return;
+    }
+    
+    try {
       // Use the selected range
       const startDate = new Date(
         parseInt(yearRange.startValue),
@@ -693,6 +711,14 @@ const TripleRangeSelector = ({
         parseInt(dayRange.endValue)
       );
       
+      // Check for invalid dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.warn('Invalid date created in applyDateRange', {
+          yearRange, monthRange, dayRange
+        });
+        return;
+      }
+      
       // Format as YYYY-MM-DD for consistency
       const formatDate = (date) => {
         return date.toISOString().split('T')[0];
@@ -700,6 +726,13 @@ const TripleRangeSelector = ({
       
       if (onDateRangeChange) {
         onDateRangeChange(formatDate(startDate), formatDate(endDate));
+      }
+    } catch (e) {
+      console.error('Error in applyDateRange:', e);
+      // Use the current year as fallback in case of error
+      const currentYear = new Date().getFullYear().toString();
+      if (onDateRangeChange) {
+        onDateRangeChange(`${currentYear}-01-01`, `${currentYear}-12-31`);
       }
     }
   }, [years, yearRange, monthRange, dayRange, onDateRangeChange]);
@@ -746,7 +779,9 @@ const TripleRangeSelector = ({
   // Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
     if (yearRange.startValue === 'all' || yearRange.endValue === 'all') {
-      return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
+      const minYear = years.length > 0 ? years[0] : new Date().getFullYear().toString();
+      const maxYear = years.length > 0 ? years[years.length - 1] : new Date().getFullYear().toString();
+      return `All Time (${minYear}-01-01 to ${maxYear}-12-31)`;
     } else {
       return `${yearRange.startValue}-${monthRange.startValue.padStart(2, '0')}-${dayRange.startValue.padStart(2, '0')} to ${yearRange.endValue}-${monthRange.endValue.padStart(2, '0')}-${dayRange.endValue.padStart(2, '0')}`;
     }
