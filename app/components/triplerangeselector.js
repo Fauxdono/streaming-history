@@ -448,11 +448,10 @@ const TripleRangeSelector = ({
   const months = useMemo(() => Array.from({ length: 12 }, (_, i) => (i + 1).toString()), []);
   
   // State variables
-  const [useAllTime, setUseAllTime] = useState(false);
   const [singleYearMode, setSingleYearMode] = useState(false);
   const [yearRange, setYearRange] = useState({ 
-    startValue: initialStartDate ? new Date(initialStartDate).getFullYear().toString() : years[0], 
-    endValue: initialEndDate ? new Date(initialEndDate).getFullYear().toString() : years[years.length - 1] 
+    startValue: 'all', // Default to 'all' instead of a specific year
+    endValue: 'all'
   });
   const [monthRange, setMonthRange] = useState({ 
     startValue: initialStartDate ? (new Date(initialStartDate).getMonth() + 1).toString() : '1', 
@@ -492,7 +491,11 @@ const TripleRangeSelector = ({
           endDate.getDate() === 31;
         
         if (isAllTime) {
-          setUseAllTime(true);
+          // For "all time", set the slider to the "all" position
+          setYearRange({
+            startValue: 'all',
+            endValue: 'all'
+          });
         } else {
           setYearRange({
             startValue: startDate.getFullYear().toString(),
@@ -510,6 +513,12 @@ const TripleRangeSelector = ({
           });
         }
       }
+    } else {
+      // If no initial dates provided, default to "all time"
+      setYearRange({
+        startValue: 'all',
+        endValue: 'all'
+      });
     }
   }, [initialStartDate, initialEndDate, years]);
   
@@ -534,10 +543,10 @@ const TripleRangeSelector = ({
   }, [availableData]);
   
   // Check if month slider should be enabled
-  const enableMonthSlider = !useAllTime && !singleYearMode; // Hide in single year mode
+  const enableMonthSlider = !singleYearMode && yearRange.startValue !== 'all' && yearRange.endValue !== 'all';
   
   // Check if day slider should be enabled
-  const enableDaySlider = enableMonthSlider; // Show days whenever months are shown
+  const enableDaySlider = enableMonthSlider;
   
   // Filtered months and days based on year selection
   const filteredMonths = useMemo(() => {
@@ -658,7 +667,7 @@ const TripleRangeSelector = ({
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
-    if (useAllTime) {
+    if (yearRange.startValue === 'all' || yearRange.endValue === 'all') {
       // Use the full available range of years
       const minYear = years[0];
       const maxYear = years[years.length - 1];
@@ -693,7 +702,7 @@ const TripleRangeSelector = ({
         onDateRangeChange(formatDate(startDate), formatDate(endDate));
       }
     }
-  }, [years, yearRange, monthRange, dayRange, useAllTime, onDateRangeChange]);
+  }, [years, yearRange, monthRange, dayRange, onDateRangeChange]);
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
@@ -736,12 +745,12 @@ const TripleRangeSelector = ({
   
   // Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
-    if (useAllTime) {
+    if (yearRange.startValue === 'all' || yearRange.endValue === 'all') {
       return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
     } else {
       return `${yearRange.startValue}-${monthRange.startValue.padStart(2, '0')}-${dayRange.startValue.padStart(2, '0')} to ${yearRange.endValue}-${monthRange.endValue.padStart(2, '0')}-${dayRange.endValue.padStart(2, '0')}`;
     }
-  }, [years, yearRange, monthRange, dayRange, useAllTime]);
+  }, [years, yearRange, monthRange, dayRange]);
   
   // The "All Time" option only appears if we have any years data
   const showAllTimeOption = years.length > 0;
@@ -753,37 +762,44 @@ const TripleRangeSelector = ({
         
         <div className="flex flex-wrap gap-2">
           {/* Mode Switcher */}
-          {showAllTimeOption && (
-            <div className="flex">
-              <button
-                onClick={toggleAllTime}
-                className={`px-3 py-1 rounded-md ${useAllTime ? colors.tabActive : colors.tabInactive}`}
-              >
-                All Time
-              </button>
-              <button
-                onClick={() => {
-                  if (useAllTime) {
-                    setUseAllTime(false);
-                    setSliderKey(prevKey => prevKey + 1); // Force re-render
-                  }
-                }}
-                className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
-              >
-                Custom Range
-              </button>
-            </div>
-          )}
+          <div className="flex">
+            <button
+              onClick={() => {
+                // Set to All-Time position
+                setYearRange({
+                  startValue: 'all',
+                  endValue: 'all'
+                });
+                setSliderKey(prevKey => prevKey + 1); // Force re-render
+              }}
+              className={`px-3 py-1 rounded-md ${yearRange.startValue === 'all' ? colors.tabActive : colors.tabInactive}`}
+            >
+              All Time
+            </button>
+            <button
+              onClick={() => {
+                // If currently at All-Time, set to some actual year range
+                if (yearRange.startValue === 'all') {
+                  setYearRange({
+                    startValue: years[0],
+                    endValue: years[years.length - 1]
+                  });
+                  setSliderKey(prevKey => prevKey + 1); // Force re-render
+                }
+              }}
+              className={`px-3 py-1 ml-2 rounded-md ${yearRange.startValue !== 'all' ? colors.tabActive : colors.tabInactive}`}
+            >
+              Custom Range
+            </button>
+          </div>
           
           {/* Single Year Toggle Button */}
-          {!useAllTime && (
-            <button
-              onClick={toggleSingleYearMode}
-              className={`px-3 py-1 rounded-md ${singleYearMode ? colors.tabActive : colors.tabInactive}`}
-            >
-              Single Year
-            </button>
-          )}
+          <button
+            onClick={toggleSingleYearMode}
+            className={`px-3 py-1 rounded-md ${singleYearMode ? colors.tabActive : colors.tabInactive}`}
+          >
+            Single Year
+          </button>
         </div>
       </div>
       
@@ -795,13 +811,13 @@ const TripleRangeSelector = ({
           // Ensure we don't create loops
           // Special handling for 'all' value
           if (values.startValue === 'all' || values.endValue === 'all') {
-            // Set to full range when 'all' is selected
+            // Set to 'all' for both start and end
             setYearRange({
-              startValue: years[0],
-              endValue: years[years.length - 1]
+              startValue: 'all',
+              endValue: 'all'
             });
             
-            // Reset month and day to full range
+            // Reset month and day to full range but they won't be shown when 'all' is selected
             setMonthRange({ startValue: '1', endValue: '12' });
             setDayRange({ startValue: '1', endValue: '31' });
             
@@ -841,7 +857,7 @@ const TripleRangeSelector = ({
         initialEndValue={yearRange.endValue}
         title="Year Range"
         colorTheme={colorTheme}
-        disabled={useAllTime}
+        disabled={false}
         singleValueMode={singleYearMode} // Pass single year mode to the slider
         allowSingleValueSelection={true}
       />
