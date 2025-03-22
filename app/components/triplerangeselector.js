@@ -19,20 +19,9 @@ const RangeSlider = ({
   singleValueMode = false // Forces both handles to move together as a unit
 }) => {
   // Make sure we have an array of values and they're sorted
-  // Add 'all' as the first position if not already included
-  const sortedValues = useMemo(() => {
-    if (!Array.isArray(values)) return [];
-    
-    // Create a copy of the array and sort it numerically
-    const sorted = [...values].sort((a, b) => parseInt(a) - parseInt(b));
-    
-    // Check if we want to add "all" at the beginning
-    if (!values.includes('all') && allowSingleValueSelection) {
-      return ['all', ...sorted];
-    }
-    
-    return sorted;
-  }, [values, allowSingleValueSelection]);
+  const sortedValues = useMemo(() => 
+    Array.isArray(values) ? [...values].sort((a, b) => parseInt(a) - parseInt(b)) : []
+  , [values]);
   
   // If no values, nothing to render
   if (sortedValues.length === 0) {
@@ -107,68 +96,42 @@ const RangeSlider = ({
     }
   }, [colorTheme]);
 
-  // Function to convert a value to its corresponding position percentage
-  const valueToPosition = useCallback((value) => {
-    if (value === 'all') {
-      // 'all' is always the first position
-      return 0;
-    }
-    
-    if (!sortedValues.includes(value.toString())) {
-      // Find the closest value if the exact one doesn't exist
-      try {
-        const numericValue = parseInt(value);
-        if (isNaN(numericValue)) return 0; // Default to first position if not a number
-        
-        // Find closest numeric value (excluding 'all')
-        const numericValues = sortedValues.filter(v => v !== 'all');
-        const closestValue = numericValues.reduce((prev, curr) => {
-          return Math.abs(parseInt(curr) - numericValue) < Math.abs(parseInt(prev) - numericValue) ? curr : prev;
-        });
-        
-        const index = sortedValues.indexOf(closestValue);
-        return (index / (sortedValues.length - 1)) * 100;
-      } catch (e) {
-        console.warn('Error finding position for value:', value, e);
-        return 0; // Default to first position
-      }
-    }
-    
-    const index = sortedValues.indexOf(value.toString());
-    return (index / (sortedValues.length - 1)) * 100;
-  }, [sortedValues]);
-
-  // Update positions whenever the mode or initialValues change
+  // Initialize the slider positions based on the initial values
   useEffect(() => {
     if (sortedValues.length === 0) return;
     
-    let startVal = initialStartValue || minValue;
-    let endVal = initialEndValue || maxValue;
+    // Important: Ensure all state updates happen in a single batch to avoid flicker
+    let newStartPos = 0;
+    let newEndPos = 100;
+    let newStartVal = minValue;
+    let newEndVal = maxValue;
     
-    // Make sure values exist in our sorted list
-    if (!sortedValues.includes(startVal.toString())) {
-      startVal = minValue;
+    // Calculate start position and value
+    if (initialStartValue && sortedValues.includes(initialStartValue.toString())) {
+      const valueIndex = sortedValues.indexOf(initialStartValue.toString());
+      newStartPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      newStartVal = initialStartValue;
     }
     
-    if (!sortedValues.includes(endVal.toString())) {
-      endVal = maxValue;
+    // Calculate end position and value
+    if (initialEndValue && sortedValues.includes(initialEndValue.toString())) {
+      const valueIndex = sortedValues.indexOf(initialEndValue.toString());
+      newEndPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      newEndVal = initialEndValue;
     }
     
-    // In single value mode, set both to the start value
+    // In single value mode, ensure both handles have the same position
     if (singleValueMode) {
-      endVal = startVal;
+      newEndPos = newStartPos;
+      newEndVal = newStartVal;
     }
     
-    // Convert values to positions
-    const startPos = valueToPosition(startVal);
-    const endPos = singleValueMode ? startPos : valueToPosition(endVal);
-    
-    // Apply all state updates together
-    setStartValue(startVal);
-    setEndValue(endVal);
-    setStartPosition(startPos);
-    setEndPosition(endPos);
-  }, [initialStartValue, initialEndValue, minValue, maxValue, singleValueMode, sortedValues, valueToPosition]);
+    // Batch all state updates
+    setStartPosition(newStartPos);
+    setEndPosition(newEndPos);
+    setStartValue(newStartVal);
+    setEndValue(newEndVal);
+  }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue, singleValueMode]);
   
   // Handler for when the position changes, updates the value
   const updateValueFromPosition = useCallback((position, isStart) => {
@@ -335,9 +298,6 @@ const RangeSlider = ({
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
-    if (value === 'all') {
-      return 'All-Time';
-    }
     if (typeof displayFormat === 'function') {
       return displayFormat(value);
     }
@@ -407,31 +367,18 @@ const RangeSlider = ({
           const isStartMarker = value === startValue;
           const isEndMarker = value === endValue;
           const isExactMarker = isStartMarker || isEndMarker;
-          const isAllTimeMarker = value === 'all';
-          
-          // Skip showing every marker for years to avoid crowding (but always show 'all')
-          const shouldShowLabel = isAllTimeMarker || 
-                               isExactMarker || 
-                               index % Math.max(1, Math.floor(sortedValues.length / 10)) === 0;
           
           return (
             <div 
               key={value}
-              className={`absolute top-1/2 ${isExactMarker || isAllTimeMarker ? 'w-1.5 h-4' : 'w-1 h-3'} transform -translate-x-1/2 -translate-y-1/2 z-10 ${
-                isAllTimeMarker ? `${colors.bgMed}` : 
+              className={`absolute top-1/2 ${isExactMarker ? 'w-1.5 h-4' : 'w-1 h-3'} transform -translate-x-1/2 -translate-y-1/2 z-10 ${
                 isInRange ? colors.bgMed : 'bg-gray-400'
               }`}
               style={{ left: `${position}%` }}
             >
-              {shouldShowLabel && (
-                <div className={`absolute w-16 text-xs text-center -translate-x-1/2 mt-4 ${
-                  isAllTimeMarker ? `${colors.textBold} font-bold` :
-                  isExactMarker ? `${colors.textBold} font-bold` : 
-                  `${colors.text} font-medium`
-                }`}>
-                  {formatValue(value)}
-                </div>
-              )}
+              <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${isExactMarker ? `${colors.textBold} font-bold` : `${colors.text} font-medium`}`}>
+                {formatValue(value)}
+              </div>
             </div>
           );
         })}
@@ -463,10 +410,11 @@ const TripleRangeSelector = ({
   const months = useMemo(() => Array.from({ length: 12 }, (_, i) => (i + 1).toString()), []);
   
   // State variables
+  const [useAllTime, setUseAllTime] = useState(false);
   const [singleYearMode, setSingleYearMode] = useState(false);
   const [yearRange, setYearRange] = useState({ 
-    startValue: 'all', // Default to 'all' instead of a specific year
-    endValue: 'all'
+    startValue: initialStartDate ? new Date(initialStartDate).getFullYear().toString() : years[0], 
+    endValue: initialEndDate ? new Date(initialEndDate).getFullYear().toString() : years[years.length - 1] 
   });
   const [monthRange, setMonthRange] = useState({ 
     startValue: initialStartDate ? (new Date(initialStartDate).getMonth() + 1).toString() : '1', 
@@ -476,9 +424,6 @@ const TripleRangeSelector = ({
     startValue: initialStartDate ? new Date(initialStartDate).getDate().toString() : '1', 
     endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
   });
-  
-  // Key to force re-render of sliders when mode changes
-  const [sliderKey, setSliderKey] = useState(0);
   
   // Check if we have a single year selected
   const isSingleYearSelected = yearRange.startValue === yearRange.endValue;
@@ -506,11 +451,7 @@ const TripleRangeSelector = ({
           endDate.getDate() === 31;
         
         if (isAllTime) {
-          // For "all time", set the slider to the "all" position
-          setYearRange({
-            startValue: 'all',
-            endValue: 'all'
-          });
+          setUseAllTime(true);
         } else {
           setYearRange({
             startValue: startDate.getFullYear().toString(),
@@ -528,12 +469,6 @@ const TripleRangeSelector = ({
           });
         }
       }
-    } else {
-      // If no initial dates provided, default to "all time"
-      setYearRange({
-        startValue: 'all',
-        endValue: 'all'
-      });
     }
   }, [initialStartDate, initialEndDate, years]);
   
@@ -557,11 +492,48 @@ const TripleRangeSelector = ({
     return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
   }, [availableData]);
   
+  // Toggle single year mode function
+  const toggleSingleYearMode = () => {
+    // Toggle the state
+    setSingleYearMode(!singleYearMode);
+    
+    if (!singleYearMode) {
+      // Switching TO single year mode
+      // Use current start year for both start and end
+      const currentYear = yearRange.startValue;
+      
+      // Important: Update both state variables in one batch
+      setYearRange({
+        startValue: currentYear,
+        endValue: currentYear
+      });
+      
+      // Reset month and day to full ranges
+      setMonthRange({ startValue: '1', endValue: '12' });
+      setDayRange({ startValue: '1', endValue: '31' });
+    } else {
+      // Switching FROM single year mode back to range mode
+      // Keep current single year as start, but extend to the next available year if possible
+      const currentYearIndex = years.indexOf(yearRange.startValue);
+      let endYearIndex = currentYearIndex;
+      
+      // Try to set end year to next year if available
+      if (currentYearIndex < years.length - 1) {
+        endYearIndex = currentYearIndex + 1;
+      }
+      
+      setYearRange({
+        startValue: yearRange.startValue,
+        endValue: years[endYearIndex]
+      });
+    }
+  };
+  
   // Check if month slider should be enabled
-  const enableMonthSlider = !singleYearMode && yearRange.startValue !== 'all' && yearRange.endValue !== 'all';
+  const enableMonthSlider = !useAllTime && !singleYearMode; // Hide in single year mode
   
   // Check if day slider should be enabled
-  const enableDaySlider = enableMonthSlider;
+  const enableDaySlider = enableMonthSlider; // Show days whenever months are shown
   
   // Filtered months and days based on year selection
   const filteredMonths = useMemo(() => {
@@ -586,6 +558,9 @@ const TripleRangeSelector = ({
   
   // Modified useEffect to validate month/day ranges but not reset them when year changes
   useEffect(() => {
+    // Only validate the month and day ranges - don't reset them
+    // This allows keeping the month/day selection when changing years
+    
     // Skip validation in single year mode (handled by another effect)
     if (singleYearMode) return;
     
@@ -625,67 +600,21 @@ const TripleRangeSelector = ({
     }
   }, [yearRange, monthRange, dayRange, singleYearMode]);
   
-  // Toggle single year mode function - key point for fixing the lag issue
-  const toggleSingleYearMode = () => {
-    // Toggle the state
-    const newSingleYearMode = !singleYearMode;
-    setSingleYearMode(newSingleYearMode);
-    
-    // Increment the slider key to force re-render
-    setSliderKey(prevKey => prevKey + 1);
-    
-    if (newSingleYearMode) {
-      // Switching TO single year mode
-      // Use current start year for both start and end
-      const currentYear = yearRange.startValue;
-      
-      // Important: Update both state variables in one batch
-      setYearRange({
-        startValue: currentYear,
-        endValue: currentYear
-      });
-      
-      // Reset month and day to full ranges
+  // Effect to update months and days when entering or changing year in single year mode
+  useEffect(() => {
+    if (singleYearMode) {
+      // When in single year mode, reset months and days to full range
       setMonthRange({ startValue: '1', endValue: '12' });
       setDayRange({ startValue: '1', endValue: '31' });
-    } else {
-      // Switching FROM single year mode back to range mode
-      // Keep current single year as start, but extend to the next available year if possible
-      const currentYearIndex = years.indexOf(yearRange.startValue);
-      let endYearIndex = currentYearIndex;
-      
-      // Try to set end year to next year if available
-      if (currentYearIndex < years.length - 1) {
-        endYearIndex = currentYearIndex + 1;
-      }
-      
-      setYearRange({
-        startValue: yearRange.startValue,
-        endValue: years[endYearIndex]
-      });
     }
-  };
-  
-  // Toggle "All Time" mode
-  const toggleAllTime = useCallback(() => {
-    const newAllTimeState = !useAllTime;
-    setUseAllTime(newAllTimeState);
-    
-    // Force re-render of sliders
-    setSliderKey(prevKey => prevKey + 1);
-    
-    if (newAllTimeState) {
-      // When enabling "All Time", use the full range
-      applyDateRange();
-    }
-  }, [useAllTime]);
+  }, [singleYearMode, yearRange.startValue]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
-    if (yearRange.startValue === 'all' || yearRange.endValue === 'all') {
+    if (useAllTime) {
       // Use the full available range of years
-      const minYear = years.length > 0 ? years[0] : new Date().getFullYear().toString();
-      const maxYear = years.length > 0 ? years[years.length - 1] : new Date().getFullYear().toString();
+      const minYear = years[0];
+      const maxYear = years[years.length - 1];
       
       // Format as YYYY-MM-DD for consistency
       const startDate = `${minYear}-01-01`;
@@ -694,10 +623,7 @@ const TripleRangeSelector = ({
       if (onDateRangeChange) {
         onDateRangeChange(startDate, endDate);
       }
-      return;
-    }
-    
-    try {
+    } else {
       // Use the selected range
       const startDate = new Date(
         parseInt(yearRange.startValue),
@@ -711,14 +637,6 @@ const TripleRangeSelector = ({
         parseInt(dayRange.endValue)
       );
       
-      // Check for invalid dates
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-        console.warn('Invalid date created in applyDateRange', {
-          yearRange, monthRange, dayRange
-        });
-        return;
-      }
-      
       // Format as YYYY-MM-DD for consistency
       const formatDate = (date) => {
         return date.toISOString().split('T')[0];
@@ -727,15 +645,19 @@ const TripleRangeSelector = ({
       if (onDateRangeChange) {
         onDateRangeChange(formatDate(startDate), formatDate(endDate));
       }
-    } catch (e) {
-      console.error('Error in applyDateRange:', e);
-      // Use the current year as fallback in case of error
-      const currentYear = new Date().getFullYear().toString();
-      if (onDateRangeChange) {
-        onDateRangeChange(`${currentYear}-01-01`, `${currentYear}-12-31`);
-      }
     }
-  }, [years, yearRange, monthRange, dayRange, onDateRangeChange]);
+  }, [years, yearRange, monthRange, dayRange, useAllTime, onDateRangeChange]);
+  
+  // Toggle "All Time" mode
+  const toggleAllTime = useCallback(() => {
+    const newAllTimeState = !useAllTime;
+    setUseAllTime(newAllTimeState);
+    
+    if (newAllTimeState) {
+      // When enabling "All Time", use the full range
+      applyDateRange();
+    }
+  }, [useAllTime, applyDateRange]);
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
@@ -767,7 +689,7 @@ const TripleRangeSelector = ({
       case 'orange':
       default:
         return {
-                            buttonBg: 'bg-orange-600',
+          buttonBg: 'bg-orange-600',
           buttonHover: 'hover:bg-orange-700',
           textTitle: 'text-orange-700',
           tabActive: 'bg-orange-600 text-white',
@@ -776,16 +698,14 @@ const TripleRangeSelector = ({
     }
   }, [colorTheme]);
   
-  // Formatted date range display (for user reference)
+// Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
-    if (yearRange.startValue === 'all' || yearRange.endValue === 'all') {
-      const minYear = years.length > 0 ? years[0] : new Date().getFullYear().toString();
-      const maxYear = years.length > 0 ? years[years.length - 1] : new Date().getFullYear().toString();
-      return `All Time (${minYear}-01-01 to ${maxYear}-12-31)`;
+    if (useAllTime) {
+      return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
     } else {
       return `${yearRange.startValue}-${monthRange.startValue.padStart(2, '0')}-${dayRange.startValue.padStart(2, '0')} to ${yearRange.endValue}-${monthRange.endValue.padStart(2, '0')}-${dayRange.endValue.padStart(2, '0')}`;
     }
-  }, [years, yearRange, monthRange, dayRange]);
+  }, [years, yearRange, monthRange, dayRange, useAllTime]);
   
   // The "All Time" option only appears if we have any years data
   const showAllTimeOption = years.length > 0;
@@ -797,72 +717,44 @@ const TripleRangeSelector = ({
         
         <div className="flex flex-wrap gap-2">
           {/* Mode Switcher */}
-          <div className="flex">
-            <button
-              onClick={() => {
-                // Set to All-Time position
-                setYearRange({
-                  startValue: 'all',
-                  endValue: 'all'
-                });
-                setSliderKey(prevKey => prevKey + 1); // Force re-render
-              }}
-              className={`px-3 py-1 rounded-md ${yearRange.startValue === 'all' ? colors.tabActive : colors.tabInactive}`}
-            >
-              All Time
-            </button>
-            <button
-              onClick={() => {
-                // If currently at All-Time, set to some actual year range
-                if (yearRange.startValue === 'all') {
-                  setYearRange({
-                    startValue: years[0],
-                    endValue: years[years.length - 1]
-                  });
-                  setSliderKey(prevKey => prevKey + 1); // Force re-render
-                }
-              }}
-              className={`px-3 py-1 ml-2 rounded-md ${yearRange.startValue !== 'all' ? colors.tabActive : colors.tabInactive}`}
-            >
-              Custom Range
-            </button>
-          </div>
+          {showAllTimeOption && (
+            <div className="flex">
+              <button
+                onClick={toggleAllTime}
+                className={`px-3 py-1 rounded-md ${useAllTime ? colors.tabActive : colors.tabInactive}`}
+              >
+                All Time
+              </button>
+              <button
+                onClick={() => {
+                  if (useAllTime) {
+                    setUseAllTime(false);
+                  }
+                }}
+                className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
+              >
+                Custom Range
+              </button>
+            </div>
+          )}
           
           {/* Single Year Toggle Button */}
-          <button
-            onClick={toggleSingleYearMode}
-            className={`px-3 py-1 rounded-md ${singleYearMode ? colors.tabActive : colors.tabInactive}`}
-          >
-            Single Year
-          </button>
+          {!useAllTime && (
+            <button
+              onClick={toggleSingleYearMode}
+              className={`px-3 py-1 rounded-md ${singleYearMode ? colors.tabActive : colors.tabInactive}`}
+            >
+              Single Year
+            </button>
+          )}
         </div>
       </div>
       
       {/* Year Range Slider - Modified to handle both single and range modes */}
       <RangeSlider 
-        key={`year-slider-${sliderKey}`} // Key changes force complete re-render
         values={years} 
         onValuesChange={(values) => {
           // Ensure we don't create loops
-          // Special handling for 'all' value
-          if (values.startValue === 'all' || values.endValue === 'all') {
-            // Set to 'all' for both start and end
-            setYearRange({
-              startValue: 'all',
-              endValue: 'all'
-            });
-            
-            // Reset month and day to full range but they won't be shown when 'all' is selected
-            setMonthRange({ startValue: '1', endValue: '12' });
-            setDayRange({ startValue: '1', endValue: '31' });
-            
-            // Notify parent of all-time selection
-            if (onDateRangeChange) {
-              onDateRangeChange(`${years[0]}-01-01`, `${years[years.length - 1]}-12-31`);
-            }
-            return;
-          }
-          
           if (singleYearMode) {
             // In single year mode, enforce both start and end to be the same
             const changedValue = values.startValue !== yearRange.startValue ? 
@@ -892,7 +784,7 @@ const TripleRangeSelector = ({
         initialEndValue={yearRange.endValue}
         title="Year Range"
         colorTheme={colorTheme}
-        disabled={false}
+        disabled={useAllTime}
         singleValueMode={singleYearMode} // Pass single year mode to the slider
         allowSingleValueSelection={true}
       />
@@ -900,7 +792,6 @@ const TripleRangeSelector = ({
       {/* Only show month selector if not in all-time mode */}
       {enableMonthSlider && (
         <RangeSlider 
-          key={`month-slider-${sliderKey}`} // Key changes force complete re-render
           values={filteredMonths} 
           onValuesChange={setMonthRange}
           initialStartValue={monthRange.startValue}
@@ -916,7 +807,6 @@ const TripleRangeSelector = ({
       {/* Only show day selector if not in all-time mode */}
       {enableDaySlider && (
         <RangeSlider 
-          key={`day-slider-${sliderKey}`} // Key changes force complete re-render
           values={filteredDays} 
           onValuesChange={setDayRange}
           initialStartValue={dayRange.startValue}
@@ -945,4 +835,3 @@ const TripleRangeSelector = ({
 };
 
 export default TripleRangeSelector;
-        
