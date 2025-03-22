@@ -420,6 +420,11 @@ const TripleRangeSelector = ({
       return availableData[year].monthDays[month].map(d => d.toString());
     }
     
+    // Default to all days in the month
+    const daysInMonth = getDaysInMonth(year, month);
+    return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+  }, [availableData]);
+  
   // Filtered months and days based on year selection
   const filteredMonths = useMemo(() => {
     if (isSingleYearSelected) {
@@ -436,30 +441,30 @@ const TripleRangeSelector = ({
     return days;
   }, [isSingleYearSelected, yearRange, monthRange, days, getAvailableDays]);
   
-// Adjust days when month/year changes to avoid invalid dates
-useEffect(() => {
-  if (useAllTime) return;
-  
-  const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
-  const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
-  
-  let newDayRange = { ...dayRange };
-  let updated = false;
-  
-  if (parseInt(dayRange.startValue) > maxStartDay) {
-    newDayRange.startValue = maxStartDay.toString();
-    updated = true;
-  }
-  
-  if (parseInt(dayRange.endValue) > maxEndDay) {
-    newDayRange.endValue = maxEndDay.toString();
-    updated = true;
-  }
-  
-  if (updated) {
-    setDayRange(newDayRange);
-  }
-}, [yearRange, monthRange, dayRange, useAllTime]);
+  // Adjust days when month/year changes to avoid invalid dates
+  useEffect(() => {
+    if (useAllTime) return;
+    
+    const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
+    const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
+    
+    let newDayRange = { ...dayRange };
+    let updated = false;
+    
+    if (parseInt(dayRange.startValue) > maxStartDay) {
+      newDayRange.startValue = maxStartDay.toString();
+      updated = true;
+    }
+    
+    if (parseInt(dayRange.endValue) > maxEndDay) {
+      newDayRange.endValue = maxEndDay.toString();
+      updated = true;
+    }
+    
+    if (updated) {
+      setDayRange(newDayRange);
+    }
+  }, [yearRange, monthRange, dayRange, useAllTime]);
   
   // Add a useEffect to reset month and day ranges when year changes
   useEffect(() => {
@@ -544,7 +549,6 @@ useEffect(() => {
       applyDateRange();
     }
   }, [useAllTime, applyDateRange]);
-  
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
@@ -677,6 +681,6 @@ useEffect(() => {
       </div>
     </div>
   );
-};
+}
 
 export default TripleRangeSelector;
