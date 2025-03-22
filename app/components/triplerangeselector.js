@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
+// Helper function to get days in a month
+function getDaysInMonth(year, month) {
+  // JavaScript months are 0-based, but our input is 1-based
+  return new Date(parseInt(year), parseInt(month), 0).getDate();
+}
+
 const RangeSlider = ({ 
   values, 
   onValuesChange, 
@@ -414,11 +420,6 @@ const TripleRangeSelector = ({
       return availableData[year].monthDays[month].map(d => d.toString());
     }
     
-    // Default to all days in the month
-    const daysInMonth = getDaysInMonth(year, month);
-    return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
-  }, [availableData, getDaysInMonth]);
-  
   // Filtered months and days based on year selection
   const filteredMonths = useMemo(() => {
     if (isSingleYearSelected) {
@@ -435,30 +436,30 @@ const TripleRangeSelector = ({
     return days;
   }, [isSingleYearSelected, yearRange, monthRange, days, getAvailableDays]);
   
-  // Adjust days when month/year changes to avoid invalid dates
-  useEffect(() => {
-    if (useAllTime) return;
-    
-    const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
-    const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
-    
-    let newDayRange = { ...dayRange };
-    let updated = false;
-    
-    if (parseInt(dayRange.startValue) > maxStartDay) {
-      newDayRange.startValue = maxStartDay.toString();
-      updated = true;
-    }
-    
-    if (parseInt(dayRange.endValue) > maxEndDay) {
-      newDayRange.endValue = maxEndDay.toString();
-      updated = true;
-    }
-    
-    if (updated) {
-      setDayRange(newDayRange);
-    }
-  }, [yearRange, monthRange, dayRange, getDaysInMonth, useAllTime]);
+// Adjust days when month/year changes to avoid invalid dates
+useEffect(() => {
+  if (useAllTime) return;
+  
+  const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
+  const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
+  
+  let newDayRange = { ...dayRange };
+  let updated = false;
+  
+  if (parseInt(dayRange.startValue) > maxStartDay) {
+    newDayRange.startValue = maxStartDay.toString();
+    updated = true;
+  }
+  
+  if (parseInt(dayRange.endValue) > maxEndDay) {
+    newDayRange.endValue = maxEndDay.toString();
+    updated = true;
+  }
+  
+  if (updated) {
+    setDayRange(newDayRange);
+  }
+}, [yearRange, monthRange, dayRange, useAllTime]);
   
   // Add a useEffect to reset month and day ranges when year changes
   useEffect(() => {
