@@ -100,7 +100,6 @@ const RangeSlider = ({
   useEffect(() => {
     if (sortedValues.length === 0) return;
     
-    // Important: Ensure all state updates happen in a single batch to avoid flicker
     let newStartPos = 0;
     let newEndPos = 100;
     let newStartVal = minValue;
@@ -120,7 +119,7 @@ const RangeSlider = ({
       newEndVal = initialEndValue;
     }
     
-    // In single value mode, ensure both handles have the same position
+    // In single value mode, ensure both handles have the same position and value
     if (singleValueMode) {
       newEndPos = newStartPos;
       newEndVal = newStartVal;
@@ -332,8 +331,6 @@ const RangeSlider = ({
           }}
         ></div>
         
-        {/* In single value mode, we still render both handles, but they overlap */}
-        
         {/* Start Handle */}
         <div 
           className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
@@ -425,6 +422,9 @@ const TripleRangeSelector = ({
     endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
   });
   
+  // Track when Apply button is clicked to help with state synchronization
+  const [applyClicked, setApplyClicked] = useState(false);
+  
   // Check if we have a single year selected
   const isSingleYearSelected = yearRange.startValue === yearRange.endValue;
   
@@ -467,6 +467,13 @@ const TripleRangeSelector = ({
             startValue: startDate.getDate().toString(),
             endValue: endDate.getDate().toString()
           });
+          
+          // Check if this is a single year selection
+          if (startDate.getFullYear() === endDate.getFullYear() &&
+              startDate.getMonth() === 0 && startDate.getDate() === 1 &&
+              endDate.getMonth() === 11 && endDate.getDate() === 31) {
+            setSingleYearMode(true);
+          }
         }
       }
     }
@@ -492,43 +499,6 @@ const TripleRangeSelector = ({
     return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
   }, [availableData]);
   
-  // Toggle single year mode function
-  const toggleSingleYearMode = () => {
-    // Toggle the state
-    setSingleYearMode(!singleYearMode);
-    
-    if (!singleYearMode) {
-      // Switching TO single year mode
-      // Use current start year for both start and end
-      const currentYear = yearRange.startValue;
-      
-      // Important: Update both state variables in one batch
-      setYearRange({
-        startValue: currentYear,
-        endValue: currentYear
-      });
-      
-      // Reset month and day to full ranges
-      setMonthRange({ startValue: '1', endValue: '12' });
-      setDayRange({ startValue: '1', endValue: '31' });
-    } else {
-      // Switching FROM single year mode back to range mode
-      // Keep current single year as start, but extend to the next available year if possible
-      const currentYearIndex = years.indexOf(yearRange.startValue);
-      let endYearIndex = currentYearIndex;
-      
-      // Try to set end year to next year if available
-      if (currentYearIndex < years.length - 1) {
-        endYearIndex = currentYearIndex + 1;
-      }
-      
-      setYearRange({
-        startValue: yearRange.startValue,
-        endValue: years[endYearIndex]
-      });
-    }
-  };
-  
   // Check if month slider should be enabled
   const enableMonthSlider = !useAllTime && !singleYearMode; // Hide in single year mode
   
@@ -537,11 +507,11 @@ const TripleRangeSelector = ({
   
   // Filtered months and days based on year selection
   const filteredMonths = useMemo(() => {
-    if (isSingleYearSelected || singleYearMode) {
+    if (isSingleYearSelected) {
       return getAvailableMonths(yearRange.startValue);
     }
     return months;
-  }, [isSingleYearSelected, singleYearMode, yearRange.startValue, getAvailableMonths, months]);
+  }, [isSingleYearSelected, yearRange.startValue, getAvailableMonths, months]);
   
   // Filtered days based on year and month selection
   const filteredDays = useMemo(() => {
@@ -551,17 +521,16 @@ const TripleRangeSelector = ({
       return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
     }
     
-    // For different months/years - always show 31 days (maximum possible in any month)
-    // We'll adjust the valid range during validation
+    // For different months/years - show 31 days (maximum possible in any month)
     return Array.from({ length: 31 }, (_, i) => (i + 1).toString());
   }, [isSingleYearSelected, yearRange, monthRange]);
   
-  // Modified useEffect to validate month/day ranges but not reset them when year changes
+  // Validate days and months based on selected years (but don't reset them automatically)
   useEffect(() => {
-    // Only validate the month and day ranges - don't reset them
-    // This allows keeping the month/day selection when changing years
+    // Skip validation for all-time mode
+    if (useAllTime) return;
     
-    // Skip validation in single year mode (handled by another effect)
+    // Skip validation in single year mode
     if (singleYearMode) return;
     
     // For single or multi-year, just make sure days are valid for selected months
@@ -598,19 +567,41 @@ const TripleRangeSelector = ({
       setMonthRange(newMonthRange);
       setDayRange(newDayRange);
     }
-  }, [yearRange, monthRange, dayRange, singleYearMode]);
+  }, [yearRange, monthRange, dayRange, singleYearMode, useAllTime]);
   
-  // Effect to update months and days when entering or changing year in single year mode
+  // Effect for single year mode state changes
   useEffect(() => {
-    if (singleYearMode) {
-      // When in single year mode, reset months and days to full range
+    // If we transition to singleYearMode, make sure start and end years are the same
+    if (singleYearMode && yearRange.startValue !== yearRange.endValue) {
+      setYearRange({
+        startValue: yearRange.startValue,
+        endValue: yearRange.startValue
+      });
+      
+      // Reset month and day to full range for the selected year
       setMonthRange({ startValue: '1', endValue: '12' });
       setDayRange({ startValue: '1', endValue: '31' });
     }
-  }, [singleYearMode, yearRange.startValue]);
+  }, [singleYearMode]);
+  
+  // Effect to update months and days when the year changes in single year mode
+  useEffect(() => {
+    if (singleYearMode && applyClicked) {
+      // When in single year mode and Apply button is clicked,
+      // reset months and days to full range for a cleaner UI
+      setMonthRange({ startValue: '1', endValue: '12' });
+      setDayRange({ startValue: '1', endValue: '31' });
+      
+      // Reset the apply click flag
+      setApplyClicked(false);
+    }
+  }, [singleYearMode, applyClicked]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
+    // Set the apply clicked flag to synchronize state updates
+    setApplyClicked(true);
+    
     if (useAllTime) {
       // Use the full available range of years
       const minYear = years[0];
@@ -625,28 +616,39 @@ const TripleRangeSelector = ({
       }
     } else {
       // Use the selected range
-      const startDate = new Date(
-        parseInt(yearRange.startValue),
-        parseInt(monthRange.startValue) - 1,
-        parseInt(dayRange.startValue)
-      );
+      let startYear = parseInt(yearRange.startValue);
+      let startMonth = parseInt(monthRange.startValue);
+      let startDay = parseInt(dayRange.startValue);
       
-      const endDate = new Date(
-        parseInt(yearRange.endValue),
-        parseInt(monthRange.endValue) - 1,
-        parseInt(dayRange.endValue)
-      );
+      let endYear = parseInt(yearRange.endValue);
+      let endMonth = parseInt(monthRange.endValue);
+      let endDay = parseInt(dayRange.endValue);
+      
+      // In single year mode, use full year range
+      if (singleYearMode) {
+        startMonth = 1;
+        startDay = 1;
+        endMonth = 12;
+        endDay = 31;
+      }
+      
+      // Create date objects
+      const startDate = new Date(startYear, startMonth - 1, startDay);
+      const endDate = new Date(endYear, endMonth - 1, endDay);
       
       // Format as YYYY-MM-DD for consistency
       const formatDate = (date) => {
-        return date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
       };
       
       if (onDateRangeChange) {
         onDateRangeChange(formatDate(startDate), formatDate(endDate));
       }
     }
-  }, [years, yearRange, monthRange, dayRange, useAllTime, onDateRangeChange]);
+  }, [years, yearRange, monthRange, dayRange, useAllTime, singleYearMode, onDateRangeChange]);
   
   // Toggle "All Time" mode
   const toggleAllTime = useCallback(() => {
@@ -658,6 +660,28 @@ const TripleRangeSelector = ({
       applyDateRange();
     }
   }, [useAllTime, applyDateRange]);
+  
+  // Toggle single year mode
+  const toggleSingleYearMode = useCallback(() => {
+    const newMode = !singleYearMode;
+    setSingleYearMode(newMode);
+    
+    if (newMode) {
+      // Switching TO single year mode
+      // Use current start year for both start and end
+      const currentYear = yearRange.startValue;
+      
+      // Set both start and end to the same year
+      setYearRange({
+        startValue: currentYear,
+        endValue: currentYear
+      });
+      
+      // Reset month and day to full range for the selected year
+      setMonthRange({ startValue: '1', endValue: '12' });
+      setDayRange({ startValue: '1', endValue: '31' });
+    }
+  }, [singleYearMode, yearRange.startValue]);
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
@@ -698,14 +722,16 @@ const TripleRangeSelector = ({
     }
   }, [colorTheme]);
   
-// Formatted date range display (for user reference)
+  // Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
     if (useAllTime) {
       return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
+    } else if (singleYearMode) {
+      return `Full Year ${yearRange.startValue} (${yearRange.startValue}-01-01 to ${yearRange.startValue}-12-31)`;
     } else {
       return `${yearRange.startValue}-${monthRange.startValue.padStart(2, '0')}-${dayRange.startValue.padStart(2, '0')} to ${yearRange.endValue}-${monthRange.endValue.padStart(2, '0')}-${dayRange.endValue.padStart(2, '0')}`;
     }
-  }, [years, yearRange, monthRange, dayRange, useAllTime]);
+  }, [years, yearRange, monthRange, dayRange, useAllTime, singleYearMode]);
   
   // The "All Time" option only appears if we have any years data
   const showAllTimeOption = years.length > 0;
@@ -754,30 +780,21 @@ const TripleRangeSelector = ({
       <RangeSlider 
         values={years} 
         onValuesChange={(values) => {
-          // Ensure we don't create loops
           if (singleYearMode) {
-            // In single year mode, enforce both start and end to be the same
-            const changedValue = values.startValue !== yearRange.startValue ? 
-                              values.startValue : values.endValue;
+            // In single year mode, ensure both start and end are the same value
+            const newYear = values.startValue !== yearRange.startValue ? 
+                           values.startValue : values.endValue;
             
-            // For stability, only update if actually changed
-            if (changedValue !== yearRange.startValue) {
+            // Only update if there's an actual change to avoid unnecessary renders
+            if (newYear !== yearRange.startValue || yearRange.endValue !== newYear) {
               setYearRange({
-                startValue: changedValue,
-                endValue: changedValue
+                startValue: newYear,
+                endValue: newYear
               });
-              
-              // Reset month and day ranges for the selected year
-              setMonthRange({ startValue: '1', endValue: '12' });
-              setDayRange({ startValue: '1', endValue: '31' });
             }
           } else {
-            // Normal range mode - allow different start and end values
-            // Only update if there's a real change
-            if (values.startValue !== yearRange.startValue || 
-                values.endValue !== yearRange.endValue) {
-              setYearRange(values);
-            }
+            // Normal range mode
+            setYearRange(values);
           }
         }}
         initialStartValue={yearRange.startValue}
@@ -785,11 +802,11 @@ const TripleRangeSelector = ({
         title="Year Range"
         colorTheme={colorTheme}
         disabled={useAllTime}
-        singleValueMode={singleYearMode} // Pass single year mode to the slider
+        singleValueMode={singleYearMode} // Pass single year mode to slider
         allowSingleValueSelection={true}
       />
       
-      {/* Only show month selector if not in all-time mode */}
+      {/* Only show month selector if not in all-time or single year mode */}
       {enableMonthSlider && (
         <RangeSlider 
           values={filteredMonths} 
@@ -799,12 +816,12 @@ const TripleRangeSelector = ({
           displayFormat={formatMonth}
           title="Month Range"
           colorTheme={colorTheme}
-          disabled={useAllTime}
+          disabled={useAllTime || singleYearMode}
           allowSingleValueSelection={true}
         />
       )}
       
-      {/* Only show day selector if not in all-time mode */}
+      {/* Only show day selector if not in all-time or single year mode */}
       {enableDaySlider && (
         <RangeSlider 
           values={filteredDays} 
@@ -813,14 +830,16 @@ const TripleRangeSelector = ({
           initialEndValue={dayRange.endValue}
           title="Day Range"
           colorTheme={colorTheme}
-          disabled={useAllTime}
+          disabled={useAllTime || singleYearMode}
           allowSingleValueSelection={true}
         />
       )}
       
       <div className="flex justify-center mt-4">
         <button
-          onClick={applyDateRange}
+          onClick={() => {
+            applyDateRange();
+          }}
           className={`px-4 py-2 ${colors.buttonBg} text-white rounded ${colors.buttonHover}`}
         >
           Apply Date Range
