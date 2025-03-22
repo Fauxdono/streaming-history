@@ -484,7 +484,7 @@ return (
               min="1"
               max="69420"
               value={topN}
-              onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
+              onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value))))}
               className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
             />
             <label>tracks</label>
