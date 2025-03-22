@@ -15,7 +15,8 @@ const RangeSlider = ({
   title,
   colorTheme = 'orange',
   disabled = false,
-  allowSingleValueSelection = true // New prop to allow selection of a single value
+  allowSingleValueSelection = true, // Allows selection of a single value
+  singleValueMode = false // Forces both handles to move together as a unit
 }) => {
   // Make sure we have an array of values and they're sorted
   const sortedValues = useMemo(() => 
@@ -119,8 +120,20 @@ const RangeSlider = ({
         setEndValue(maxValue);
         setEndPosition(100);
       }
+      
+      // In single value mode, ensure both handles are at the same position
+      if (singleValueMode && initialStartValue) {
+        const valueIndex = sortedValues.indexOf(initialStartValue.toString());
+        const percentage = (valueIndex / (sortedValues.length - 1)) * 100;
+        
+        setStartPosition(percentage);
+        setEndPosition(percentage);
+        
+        setStartValue(initialStartValue);
+        setEndValue(initialStartValue);
+      }
     }
-  }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue]);
+  }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue, singleValueMode]);
   
   // Handler for when the position changes, updates the value
   const updateValueFromPosition = useCallback((position, isStart) => {
@@ -164,7 +177,17 @@ const RangeSlider = ({
       let percentage = (x / width) * 100;
       percentage = Math.max(0, Math.min(100, percentage));
       
-      if (isStartHandle) {
+      if (singleValueMode) {
+        // In single value mode, both handles move together
+        setStartPosition(percentage);
+        setEndPosition(percentage);
+        
+        // Update both values to the same value
+        const valueIndex = Math.round((percentage / 100) * (sortedValues.length - 1));
+        const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
+        setStartValue(newValue);
+        setEndValue(newValue);
+      } else if (isStartHandle) {
         // Don't let start handle pass end handle
         // Allow equal positions if single value selection is enabled
         const minSeparation = allowSingleValueSelection ? 0 : 5;
@@ -193,7 +216,7 @@ const RangeSlider = ({
     
     // Initial position update
     handleMouseMove(e);
-  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection]);
+  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues]);
   
   // Handle click on the track (moves the nearest handle)
   const handleTrackClick = useCallback((e) => {
@@ -217,54 +240,63 @@ const RangeSlider = ({
     // Check if this click is directly on a marker
     const isExactMarker = Math.abs(percentage - ((valueIndex / (sortedValues.length - 1)) * 100)) < 2;
     
-    // Determine which handle to move (the closest one)
-    const startDistance = Math.abs(percentage - startPosition);
-    const endDistance = Math.abs(percentage - endPosition);
-    
     // Set temporary dragging state to prevent immediate updates
     setIsDragging(true);
     
-    // If clicking directly on a marker, we want to either:
-    // 1. If it's already the start or end value, make it a single-day selection
-    // 2. Otherwise, move the closest handle to this marker
-    if (isExactMarker) {
-      if (exactValue === startValue) {
-        // Already the start value, move end handle here for single value selection
-        if (allowSingleValueSelection) {
-          setEndPosition(percentage);
-          setEndValue(exactValue);
-        }
-      } else if (exactValue === endValue) {
-        // Already the end value, move start handle here for single value selection
-        if (allowSingleValueSelection) {
-          setStartPosition(percentage);
-          setStartValue(exactValue);
+    if (singleValueMode) {
+      // In single value mode, set both handles to the clicked position
+      setStartPosition(percentage);
+      setEndPosition(percentage);
+      
+      setStartValue(exactValue);
+      setEndValue(exactValue);
+    } else {
+      // Determine which handle to move (the closest one)
+      const startDistance = Math.abs(percentage - startPosition);
+      const endDistance = Math.abs(percentage - endPosition);
+      
+      // If clicking directly on a marker, we want to either:
+      // 1. If it's already the start or end value, make it a single-day selection
+      // 2. Otherwise, move the closest handle to this marker
+      if (isExactMarker) {
+        if (exactValue === startValue) {
+          // Already the start value, move end handle here for single value selection
+          if (allowSingleValueSelection) {
+            setEndPosition(percentage);
+            setEndValue(exactValue);
+          }
+        } else if (exactValue === endValue) {
+          // Already the end value, move start handle here for single value selection
+          if (allowSingleValueSelection) {
+            setStartPosition(percentage);
+            setStartValue(exactValue);
+          }
+        } else {
+          // Not already selected, move closest handle
+          if (startDistance <= endDistance) {
+            setStartPosition(percentage);
+            setStartValue(exactValue);
+          } else {
+            setEndPosition(percentage);
+            setEndValue(exactValue);
+          }
         }
       } else {
-        // Not already selected, move closest handle
+        // Normal click, not directly on a marker
         if (startDistance <= endDistance) {
           setStartPosition(percentage);
-          setStartValue(exactValue);
+          updateValueFromPosition(percentage, true);
         } else {
           setEndPosition(percentage);
-          setEndValue(exactValue);
+          updateValueFromPosition(percentage, false);
         }
-      }
-    } else {
-      // Normal click, not directly on a marker
-      if (startDistance <= endDistance) {
-        setStartPosition(percentage);
-        updateValueFromPosition(percentage, true);
-      } else {
-        setEndPosition(percentage);
-        updateValueFromPosition(percentage, false);
       }
     }
     
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 50);
   }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition, 
-      sortedValues, startValue, endValue, allowSingleValueSelection]);
+      sortedValues, startValue, endValue, allowSingleValueSelection, singleValueMode]);
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
@@ -279,7 +311,7 @@ const RangeSlider = ({
       <div className="flex justify-between mb-1 items-center">
         <span className={`${colors.text} text-sm`}>{title}</span>
         <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
-          {startValue === endValue 
+          {singleValueMode || startValue === endValue 
             ? formatValue(startValue) 
             : `${formatValue(startValue)} - ${formatValue(endValue)}`}
         </div>
@@ -298,16 +330,21 @@ const RangeSlider = ({
           className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
           style={{ 
             left: `${startPosition}%`, 
-            width: `${Math.max(0.5, endPosition - startPosition)}%` 
+            width: singleValueMode ? '0.5%' : `${Math.max(0.5, endPosition - startPosition)}%`
           }}
         ></div>
+        
+        {/* In single value mode, we still render both handles, but they overlap */}
         
         {/* Start Handle */}
         <div 
           className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
             activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
-          style={{ left: `${startPosition}%` }}
+          style={{ 
+            left: `${startPosition}%`,
+            opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1
+          }}
           onMouseDown={e => handleMouseDown(e, true)}
         ></div>
         
@@ -316,7 +353,10 @@ const RangeSlider = ({
           className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
             activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
-          style={{ left: `${endPosition}%` }}
+          style={{ 
+            left: `${endPosition}%`,
+            opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1
+          }}
           onMouseDown={e => handleMouseDown(e, false)}
         ></div>
         
@@ -709,10 +749,10 @@ const TripleRangeSelector = ({
   // Add a state for toggling between single year and year range mode
   const [singleYearMode, setSingleYearMode] = useState(false);
   
-  // Check if month slider should be enabled - now we show it regardless of year range
-  const enableMonthSlider = !useAllTime; // Always enable when not in "All Time" mode
+  // Check if month slider should be enabled
+  const enableMonthSlider = !useAllTime && !singleYearMode; // Hide in single year mode
   
-  // Check if day slider should be enabled - now shown whenever months are shown
+  // Check if day slider should be enabled
   const enableDaySlider = enableMonthSlider; // Show days whenever months are shown
   
   // Formatted date range display (for user reference)
@@ -779,54 +819,31 @@ const TripleRangeSelector = ({
       
       {/* Quick selection buttons removed as requested */}
       
-      {singleYearMode ? (
-        // Single Year Selector - Just use one slider with the same value for start and end
-        <div className="my-3">
-          <div className="flex justify-between mb-1 items-center">
-            <span className={`${colors.text} text-sm`}>Year</span>
-            <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
-              {yearRange.startValue}
-            </div>
-          </div>
-          
-          <input
-            type="range"
-            min="0"
-            max={years.length - 1}
-            value={years.indexOf(yearRange.startValue.toString())}
-            onChange={(e) => {
-              const yearIndex = parseInt(e.target.value);
-              const selectedYear = years[yearIndex];
-              setYearRange({
-                startValue: selectedYear,
-                endValue: selectedYear
-              });
-            }}
-            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
-            style={{ accentColor: colorTheme === 'orange' ? '#ea580c' : 
-                                 colorTheme === 'blue' ? '#2563eb' : 
-                                 colorTheme === 'teal' ? '#0d9488' : 
-                                 colorTheme === 'pink' ? '#db2777' : '#ea580c' }}
-            disabled={useAllTime}
-          />
-          
-          <div className="flex justify-between mt-1">
-            <span className={`${colors.text} text-xs`}>{years[0]}</span>
-            <span className={`${colors.text} text-xs`}>{years[years.length - 1]}</span>
-          </div>
-        </div>
-      ) : (
-        // Year Range Slider
-        <RangeSlider 
-          values={years} 
-          onValuesChange={setYearRange}
-          initialStartValue={yearRange.startValue}
-          initialEndValue={yearRange.endValue}
-          title="Year Range"
-          colorTheme={colorTheme}
-          disabled={useAllTime}
-        />
-      )}
+      {/* Year Range Slider - Modified to handle both single and range modes */}
+      <RangeSlider 
+        values={years} 
+        onValuesChange={(values) => {
+          if (singleYearMode) {
+            // In single year mode, set both start and end to the same value
+            // Use the changing handle as the value
+            const newYear = values.startValue !== yearRange.startValue ? 
+                           values.startValue : values.endValue;
+            setYearRange({
+              startValue: newYear,
+              endValue: newYear
+            });
+          } else {
+            // Normal range mode
+            setYearRange(values);
+          }
+        }}
+        initialStartValue={yearRange.startValue}
+        initialEndValue={yearRange.endValue}
+        title="Year Range"
+        colorTheme={colorTheme}
+        disabled={useAllTime}
+        singleValueMode={singleYearMode} // Pass single year mode to the slider
+      />
       
       {/* Only show month selector if not in all-time mode */}
       {enableMonthSlider && (
