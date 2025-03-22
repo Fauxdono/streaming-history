@@ -1,11 +1,4 @@
-  // Effect to update months and days when entering or changing year in single year mode
-  useEffect(() => {
-    if (singleYearMode) {
-      // When in single year mode, reset months and days to full range
-      setMonthRange({ startValue: '1', endValue: '12' });
-      setDayRange({ startValue: '1', endValue: '31' });
-    }
-  }, [singleYearMode, yearRange.startValue]);import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // Helper function to get days in a month
 function getDaysInMonth(year, month) {
@@ -418,8 +411,9 @@ const TripleRangeSelector = ({
   // Generate months 1-12
   const months = useMemo(() => Array.from({ length: 12 }, (_, i) => (i + 1).toString()), []);
   
-  // State for each range
+  // State variables
   const [useAllTime, setUseAllTime] = useState(false);
+  const [singleYearMode, setSingleYearMode] = useState(false);
   const [yearRange, setYearRange] = useState({ 
     startValue: initialStartDate ? new Date(initialStartDate).getFullYear().toString() : years[0], 
     endValue: initialEndDate ? new Date(initialEndDate).getFullYear().toString() : years[years.length - 1] 
@@ -500,6 +494,12 @@ const TripleRangeSelector = ({
     return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
   }, [availableData]);
   
+  // Check if month slider should be enabled
+  const enableMonthSlider = !useAllTime && !singleYearMode; // Hide in single year mode
+  
+  // Check if day slider should be enabled
+  const enableDaySlider = enableMonthSlider; // Show days whenever months are shown
+  
   // Filtered months and days based on year selection
   const filteredMonths = useMemo(() => {
     if (isSingleYearSelected) {
@@ -520,31 +520,6 @@ const TripleRangeSelector = ({
     // We'll adjust the valid range during validation
     return Array.from({ length: 31 }, (_, i) => (i + 1).toString());
   }, [isSingleYearSelected, yearRange, monthRange]);
-  
-  // Adjust days when month/year changes to avoid invalid dates
-  useEffect(() => {
-    if (useAllTime) return;
-    
-    const maxStartDay = getDaysInMonth(yearRange.startValue, monthRange.startValue);
-    const maxEndDay = getDaysInMonth(yearRange.endValue, monthRange.endValue);
-    
-    let newDayRange = { ...dayRange };
-    let updated = false;
-    
-    if (parseInt(dayRange.startValue) > maxStartDay) {
-      newDayRange.startValue = maxStartDay.toString();
-      updated = true;
-    }
-    
-    if (parseInt(dayRange.endValue) > maxEndDay) {
-      newDayRange.endValue = maxEndDay.toString();
-      updated = true;
-    }
-    
-    if (updated) {
-      setDayRange(newDayRange);
-    }
-  }, [yearRange, monthRange, dayRange, useAllTime]);
   
   // Modified useEffect to validate month/day ranges but not reset them when year changes
   useEffect(() => {
@@ -589,6 +564,15 @@ const TripleRangeSelector = ({
       setDayRange(newDayRange);
     }
   }, [yearRange, monthRange, dayRange, singleYearMode]);
+  
+  // Effect to update months and days when entering or changing year in single year mode
+  useEffect(() => {
+    if (singleYearMode) {
+      // When in single year mode, reset months and days to full range
+      setMonthRange({ startValue: '1', endValue: '12' });
+      setDayRange({ startValue: '1', endValue: '31' });
+    }
+  }, [singleYearMode, yearRange.startValue]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
@@ -679,92 +663,6 @@ const TripleRangeSelector = ({
     }
   }, [colorTheme]);
   
-  // Add quick selection buttons for common date ranges
-  const quickSelect = useCallback((option) => {
-    const currentDate = new Date();
-    let startDate, endDate;
-    
-    switch(option) {
-      case '1w':
-        startDate = new Date(currentDate);
-        startDate.setDate(currentDate.getDate() - 7);
-        endDate = currentDate;
-        break;
-      case '1m':
-        startDate = new Date(currentDate);
-        startDate.setMonth(currentDate.getMonth() - 1);
-        endDate = currentDate;
-        break;
-      case '3m':
-        startDate = new Date(currentDate);
-        startDate.setMonth(currentDate.getMonth() - 3);
-        endDate = currentDate;
-        break;
-      case '6m':
-        startDate = new Date(currentDate);
-        startDate.setMonth(currentDate.getMonth() - 6);
-        endDate = currentDate;
-        break;
-      case '1y':
-        startDate = new Date(currentDate);
-        startDate.setFullYear(currentDate.getFullYear() - 1);
-        endDate = currentDate;
-        break;
-      case 'ytd':
-        startDate = new Date(currentDate.getFullYear(), 0, 1); // January 1st of current year
-        endDate = currentDate;
-        break;
-      case 'prevyear':
-        const prevYear = currentDate.getFullYear() - 1;
-        startDate = new Date(prevYear, 0, 1); // January 1st of previous year
-        endDate = new Date(prevYear, 11, 31); // December 31st of previous year
-        break;
-      default:
-        return;
-    }
-    
-    // Update the state to reflect the new selection
-    setUseAllTime(false);
-    
-    // Set the year range
-    setYearRange({
-      startValue: startDate.getFullYear().toString(),
-      endValue: endDate.getFullYear().toString()
-    });
-    
-    // Set the month range
-    setMonthRange({
-      startValue: (startDate.getMonth() + 1).toString(),
-      endValue: (endDate.getMonth() + 1).toString()
-    });
-    
-    // Set the day range
-    setDayRange({
-      startValue: startDate.getDate().toString(),
-      endValue: endDate.getDate().toString()
-    });
-    
-    // Immediately apply the new date range
-    setTimeout(() => {
-      if (onDateRangeChange) {
-        onDateRangeChange(
-          startDate.toISOString().split('T')[0],
-          endDate.toISOString().split('T')[0]
-        );
-      }
-    }, 50);
-    
-  }, [onDateRangeChange]);
-  
-  // Add a state for toggling between single year and year range mode
-  const [singleYearMode, setSingleYearMode] = useState(false);
-  
-  // Check if month slider should be enabled
-  const enableMonthSlider = !useAllTime && !singleYearMode; // Hide in single year mode
-  
-  // Check if day slider should be enabled
-  const enableDaySlider = enableMonthSlider; // Show days whenever months are shown
-  
   // Formatted date range display (for user reference)
   const formattedDateRange = useMemo(() => {
     if (useAllTime) {
@@ -788,16 +686,6 @@ const TripleRangeSelector = ({
             <div className="flex">
               <button
                 onClick={toggleAllTime}
-                className={`px-3 py-1 rounded-md ${useAllTime ? colors.tabActive : colors.tabInactive}`}
-              >
-                All Time
-              </button>
-              <button
-                onClick={() => {
-                  if (useAllTime) {
-                    setUseAllTime(false);
-                  }
-                }}
                 className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
               >
                 Custom Range
@@ -836,7 +724,6 @@ const TripleRangeSelector = ({
       
       {/* Year Range Slider - Modified to handle both single and range modes */}
       <RangeSlider 
-        // Use regular years array for consistency
         values={years} 
         onValuesChange={(values) => {
           if (singleYearMode) {
@@ -882,7 +769,7 @@ const TripleRangeSelector = ({
         />
       )}
       
-      {/* Only show day selector if not in all-time mode and a single month is selected */}
+      {/* Only show day selector if not in all-time mode */}
       {enableDaySlider && (
         <RangeSlider 
           values={filteredDays} 
