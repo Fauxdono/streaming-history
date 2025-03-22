@@ -389,6 +389,9 @@ const RangeSlider = ({
   );
 };
 
+// The last part of the file needs to be fixed - removing the misplaced button elements
+// and properly closing the component.
+
 const TripleRangeSelector = ({ 
   onDateRangeChange, 
   initialStartDate,
@@ -686,6 +689,16 @@ const TripleRangeSelector = ({
             <div className="flex">
               <button
                 onClick={toggleAllTime}
+                className={`px-3 py-1 rounded-md ${useAllTime ? colors.tabActive : colors.tabInactive}`}
+              >
+                All Time
+              </button>
+              <button
+                onClick={() => {
+                  if (useAllTime) {
+                    setUseAllTime(false);
+                  }
+                }}
                 className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
               >
                 Custom Range
@@ -719,8 +732,6 @@ const TripleRangeSelector = ({
           )}
         </div>
       </div>
-      
-      {/* Quick selection buttons removed as requested */}
       
       {/* Year Range Slider - Modified to handle both single and range modes */}
       <RangeSlider 
@@ -797,6 +808,6 @@ const TripleRangeSelector = ({
       </div>
     </div>
   );
-}
+};
 
 export default TripleRangeSelector;
