@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+  // Effect to update months and days when entering or changing year in single year mode
+  useEffect(() => {
+    if (singleYearMode) {
+      // When in single year mode, reset months and days to full range
+      setMonthRange({ startValue: '1', endValue: '12' });
+      setDayRange({ startValue: '1', endValue: '31' });
+    }
+  }, [singleYearMode, yearRange.startValue]);import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // Helper function to get days in a month
 function getDaysInMonth(year, month) {
@@ -544,6 +551,9 @@ const TripleRangeSelector = ({
     // Only validate the month and day ranges - don't reset them
     // This allows keeping the month/day selection when changing years
     
+    // Skip validation in single year mode (handled by another effect)
+    if (singleYearMode) return;
+    
     // For single or multi-year, just make sure days are valid for selected months
     let newMonthRange = { ...monthRange };
     let newDayRange = { ...dayRange };
@@ -578,7 +588,7 @@ const TripleRangeSelector = ({
       setMonthRange(newMonthRange);
       setDayRange(newDayRange);
     }
-  }, [yearRange, monthRange, dayRange]);
+  }, [yearRange, monthRange, dayRange, singleYearMode]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
@@ -802,11 +812,16 @@ const TripleRangeSelector = ({
                 setSingleYearMode(!singleYearMode);
                 
                 if (!singleYearMode) {
-                  // Switching to single year mode
+                  // Switching to single year mode - keep current year but reset to full year
+                  const currentYear = yearRange.startValue;
                   setYearRange({
-                    startValue: yearRange.startValue,
-                    endValue: yearRange.startValue
+                    startValue: currentYear,
+                    endValue: currentYear
                   });
+                  
+                  // Reset month and day to full range for the year
+                  setMonthRange({ startValue: '1', endValue: '12' });
+                  setDayRange({ startValue: '1', endValue: '31' });
                 }
               }}
               className={`px-3 py-1 rounded-md ${singleYearMode ? colors.tabActive : colors.tabInactive}`}
@@ -821,6 +836,7 @@ const TripleRangeSelector = ({
       
       {/* Year Range Slider - Modified to handle both single and range modes */}
       <RangeSlider 
+        // Use regular years array for consistency
         values={years} 
         onValuesChange={(values) => {
           if (singleYearMode) {
@@ -828,10 +844,16 @@ const TripleRangeSelector = ({
             // Use the changing handle as the value
             const newYear = values.startValue !== yearRange.startValue ? 
                            values.startValue : values.endValue;
+                           
+            // Set both start and end to the same year
             setYearRange({
               startValue: newYear,
               endValue: newYear
             });
+            
+            // Always reset month and day to full range for the selected year
+            setMonthRange({ startValue: '1', endValue: '12' });
+            setDayRange({ startValue: '1', endValue: '31' });
           } else {
             // Normal range mode
             setYearRange(values);
