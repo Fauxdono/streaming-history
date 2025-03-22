@@ -499,39 +499,46 @@ const TripleRangeSelector = ({
     }
   }, [yearRange, monthRange, dayRange, useAllTime]);
   
-  // Add a useEffect to reset month and day ranges when year changes
+  // Modified useEffect to validate month/day ranges but not reset them when year changes
   useEffect(() => {
-    if (isSingleYearSelected) {
-      // When switching to a single year, validate the month range
-      const availableMonths = getAvailableMonths(yearRange.startValue);
-      
-      // Ensure current month range is valid
-      if (availableMonths.length > 0) {
-        let newMonthRange = { ...monthRange };
-        let updated = false;
-        
-        // If start month isn't in available months, use the first available
-        if (!availableMonths.includes(monthRange.startValue)) {
-          newMonthRange.startValue = availableMonths[0];
-          updated = true;
-        }
-        
-        // If end month isn't in available months, use the last available
-        if (!availableMonths.includes(monthRange.endValue)) {
-          newMonthRange.endValue = availableMonths[availableMonths.length - 1];
-          updated = true;
-        }
-        
-        if (updated) {
-          setMonthRange(newMonthRange);
-        }
-      }
-    } else {
-      // For multi-year range, default to full month/day range
-      setMonthRange({ startValue: '1', endValue: '12' });
-      setDayRange({ startValue: '1', endValue: '31' });
+    // Only validate the month and day ranges - don't reset them
+    // This allows keeping the month/day selection when changing years
+    
+    // For single or multi-year, just make sure days are valid for selected months
+    let newMonthRange = { ...monthRange };
+    let newDayRange = { ...dayRange };
+    let updated = false;
+    
+    // Make sure selected months are in valid range (1-12)
+    if (parseInt(newMonthRange.startValue) < 1 || parseInt(newMonthRange.startValue) > 12) {
+      newMonthRange.startValue = '1';
+      updated = true;
     }
-  }, [isSingleYearSelected, yearRange, getAvailableMonths]);
+    
+    if (parseInt(newMonthRange.endValue) < 1 || parseInt(newMonthRange.endValue) > 12) {
+      newMonthRange.endValue = '12';
+      updated = true;
+    }
+    
+    // Adjust days to be valid for the selected months
+    const maxStartDay = getDaysInMonth(yearRange.startValue, newMonthRange.startValue);
+    const maxEndDay = getDaysInMonth(yearRange.endValue, newMonthRange.endValue);
+    
+    if (parseInt(newDayRange.startValue) > maxStartDay) {
+      newDayRange.startValue = maxStartDay.toString();
+      updated = true;
+    }
+    
+    if (parseInt(newDayRange.endValue) > maxEndDay) {
+      newDayRange.endValue = maxEndDay.toString();
+      updated = true;
+    }
+    
+    if (updated) {
+      setMonthRange(newMonthRange);
+      setDayRange(newDayRange);
+    }
+  }, [yearRange, monthRange, dayRange]);
   
   // Send the date range to the parent component
   const applyDateRange = useCallback(() => {
@@ -699,11 +706,11 @@ const TripleRangeSelector = ({
     
   }, [onDateRangeChange]);
   
-  // Check if month slider should be enabled
-  const enableMonthSlider = !useAllTime && (
-    isSingleYearSelected || // Always enable for single year
-    yearRange.endValue - yearRange.startValue <= 2 // Or when range is small enough
-  );
+  // Add a state for toggling between single year and year range mode
+  const [singleYearMode, setSingleYearMode] = useState(false);
+  
+  // Check if month slider should be enabled - now we show it regardless of year range
+  const enableMonthSlider = !useAllTime; // Always enable when not in "All Time" mode
   
   // Check if day slider should be enabled - now shown whenever months are shown
   const enableDaySlider = enableMonthSlider; // Show days whenever months are shown
@@ -725,40 +732,101 @@ const TripleRangeSelector = ({
       <div className="flex justify-between items-center">
         <h3 className={`font-bold ${colors.textTitle}`}>Date Range Selection</h3>
         
-        {/* Mode Switcher */}
-        {showAllTimeOption && (
-          <div className="flex">
-            <button
-              onClick={toggleAllTime}
-              className={`px-3 py-1 rounded-md ${useAllTime ? colors.tabActive : colors.tabInactive}`}
-            >
-              All Time
-            </button>
+        <div className="flex flex-wrap gap-2">
+          {/* Mode Switcher */}
+          {showAllTimeOption && (
+            <div className="flex">
+              <button
+                onClick={toggleAllTime}
+                className={`px-3 py-1 rounded-md ${useAllTime ? colors.tabActive : colors.tabInactive}`}
+              >
+                All Time
+              </button>
+              <button
+                onClick={() => {
+                  if (useAllTime) {
+                    setUseAllTime(false);
+                  }
+                }}
+                className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
+              >
+                Custom Range
+              </button>
+            </div>
+          )}
+          
+          {/* Single Year Toggle Button */}
+          {!useAllTime && (
             <button
               onClick={() => {
-                if (useAllTime) {
-                  setUseAllTime(false);
+                setSingleYearMode(!singleYearMode);
+                
+                if (!singleYearMode) {
+                  // Switching to single year mode
+                  setYearRange({
+                    startValue: yearRange.startValue,
+                    endValue: yearRange.startValue
+                  });
                 }
               }}
-              className={`px-3 py-1 ml-2 rounded-md ${!useAllTime ? colors.tabActive : colors.tabInactive}`}
+              className={`px-3 py-1 rounded-md ${singleYearMode ? colors.tabActive : colors.tabInactive}`}
             >
-              Custom Range
+              Single Year
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
       {/* Quick selection buttons removed as requested */}
       
-      <RangeSlider 
-        values={years} 
-        onValuesChange={setYearRange}
-        initialStartValue={yearRange.startValue}
-        initialEndValue={yearRange.endValue}
-        title="Year Range"
-        colorTheme={colorTheme}
-        disabled={useAllTime}
-      />
+      {singleYearMode ? (
+        // Single Year Selector - Just use one slider with the same value for start and end
+        <div className="my-3">
+          <div className="flex justify-between mb-1 items-center">
+            <span className={`${colors.text} text-sm`}>Year</span>
+            <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
+              {yearRange.startValue}
+            </div>
+          </div>
+          
+          <input
+            type="range"
+            min="0"
+            max={years.length - 1}
+            value={years.indexOf(yearRange.startValue.toString())}
+            onChange={(e) => {
+              const yearIndex = parseInt(e.target.value);
+              const selectedYear = years[yearIndex];
+              setYearRange({
+                startValue: selectedYear,
+                endValue: selectedYear
+              });
+            }}
+            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+            style={{ accentColor: colorTheme === 'orange' ? '#ea580c' : 
+                                 colorTheme === 'blue' ? '#2563eb' : 
+                                 colorTheme === 'teal' ? '#0d9488' : 
+                                 colorTheme === 'pink' ? '#db2777' : '#ea580c' }}
+            disabled={useAllTime}
+          />
+          
+          <div className="flex justify-between mt-1">
+            <span className={`${colors.text} text-xs`}>{years[0]}</span>
+            <span className={`${colors.text} text-xs`}>{years[years.length - 1]}</span>
+          </div>
+        </div>
+      ) : (
+        // Year Range Slider
+        <RangeSlider 
+          values={years} 
+          onValuesChange={setYearRange}
+          initialStartValue={yearRange.startValue}
+          initialEndValue={yearRange.endValue}
+          title="Year Range"
+          colorTheme={colorTheme}
+          disabled={useAllTime}
+        />
+      )}
       
       {/* Only show month selector if not in all-time mode */}
       {enableMonthSlider && (
