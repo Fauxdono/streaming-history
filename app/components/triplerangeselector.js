@@ -7,7 +7,10 @@ function getDaysInMonth(year, month) {
 }
 
 
-// Focus on the RangeSlider component in triplerangeselector.js
+function getDaysInMonth(year, month) {
+  // JavaScript months are 0-based, but our input is 1-based
+  return new Date(parseInt(year), parseInt(month), 0).getDate();
+}
 
 const RangeSlider = ({ 
   values, 
@@ -104,10 +107,10 @@ const RangeSlider = ({
     }
   }, [colorTheme]);
 
-  // Use 0% position for "All Time", just like in BetterYearSlider
+  // Use 0% position for "All Time"
   const ALL_TIME_POSITION = 0;
   
-  // Handle normal initialization 
+  // Initialize the slider positions based on the initial values
   useEffect(() => {
     if (sortedValues.length === 0) return;
     
@@ -277,7 +280,7 @@ const RangeSlider = ({
       // Allow mouse position to extend left of the slider for "all time" option
       const rawX = e.clientX - rect.left;
       
-      // FIX: Improved handling of mouse position
+      // Improved handling of mouse position
       let position;
       
       // Check if mouse is in the "All Time" zone (left of the slider)
@@ -377,7 +380,7 @@ const RangeSlider = ({
       // Allow touch to go slightly left of the slider for "all time" option
       const rawX = touch.clientX - rect.left;
       
-      // FIX: Improved handling of touch position
+      // Improved handling of touch position
       let position;
       
       // Check if touch is in the "All Time" zone (left of the slider)
@@ -471,12 +474,12 @@ const RangeSlider = ({
     // Allow clicks to the left of the slider for "all time" option
     const rawX = e.clientX - rect.left;
     
-    // FIX: Improved handling of click position
+    // Improved handling of click position
     let position;
     
     // Check if click is in the "All Time" zone (left of the slider)
-    if (showAllTimeOption && rawX < 10) { // Reduced detection area
-      position = ALL_TIME_POSITION; // Use our fixed position for "All Time"
+    if (showAllTimeOption && rawX < 10) { // Use a small detection area
+      position = ALL_TIME_POSITION; // Special position for "All Time"
     } else {
       // Normal slider range (0-100%)
       const sliderX = Math.max(0, Math.min(rect.width, rawX));
@@ -498,21 +501,40 @@ const RangeSlider = ({
         setEndPosition(position);
         
         // Update both values
-        const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
-        const exactValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
-        setStartValue(exactValue);
-        setEndValue(exactValue);
+        if (showAllTimeOption) {
+          // Adjust for "All Time" at position 0
+          const totalPositions = sortedValues.length + 1;
+          const adjustedIndex = Math.round((position / 100) * (totalPositions - 1));
+          
+          if (adjustedIndex === 0) {
+            setStartValue("all");
+            setEndValue("all");
+          } else {
+            const valueIndex = adjustedIndex - 1;
+            const boundedIndex = Math.min(Math.max(0, valueIndex), sortedValues.length - 1);
+            const newValue = sortedValues[boundedIndex];
+            setStartValue(newValue);
+            setEndValue(newValue);
+          }
+        } else {
+          // Standard calculation
+          const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
+          const boundedIndex = Math.min(Math.max(0, valueIndex), sortedValues.length - 1);
+          const newValue = sortedValues[boundedIndex];
+          setStartValue(newValue);
+          setEndValue(newValue);
+        }
       }
     } else {
       // Determine which handle to move (the closest one)
-      // For "All Time" position, factor in the visual gap
-      let startDistance = position === ALL_TIME_POSITION ? 
-                         Math.abs(ALL_TIME_POSITION - startPosition) : 
-                         Math.abs(position - startPosition);
+      let startDistance = Math.abs(position - startPosition);
+      let endDistance = Math.abs(position - endPosition);
       
-      let endDistance = position === ALL_TIME_POSITION ? 
-                       Math.abs(ALL_TIME_POSITION - endPosition) : 
-                       Math.abs(position - endPosition);
+      // Special case: All Time position
+      if (position === ALL_TIME_POSITION) {
+        startDistance = startPosition; // Distance from start handle to left edge
+        endDistance = endPosition; // Distance from end handle to left edge
+      }
       
       if (startDistance <= endDistance) {
         // Move start handle
@@ -538,7 +560,7 @@ const RangeSlider = ({
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 50);
   }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition, 
-      sortedValues, startValue, endValue, allowSingleValueSelection, singleValueMode, showAllTimeOption, ALL_TIME_POSITION]);
+      sortedValues, startValue, endValue, singleValueMode, showAllTimeOption, ALL_TIME_POSITION]);
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
@@ -548,9 +570,6 @@ const RangeSlider = ({
     }
     return value;
   }, [displayFormat]);
-  
-  // No need for extra area - All Time is at position 0
-  const allTimeAreaWidth = 0;
   
   return (
     <div className="my-3">
@@ -565,13 +584,12 @@ const RangeSlider = ({
         </div>
       </div>
       
-      {/* Slider container with padding for the "All Time" area */}
+      {/* Slider container */}
       <div 
         ref={sliderRef}
         className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
         onClick={handleTrackClick}
       >
-        
         {/* Background Line */}
         <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 transform -translate-y-1/2 rounded-full"></div>
         
@@ -580,8 +598,7 @@ const RangeSlider = ({
           className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
           style={{ 
             left: `${startPosition}%`, 
-            width: singleValueMode ? '0.5%' : `${Math.max(0.5, endPosition - startPosition)}%`,
-            // Don't need special handling for ALL_TIME_POSITION since it's at 0%
+            width: singleValueMode ? '0.5%' : `${Math.max(0.5, endPosition - startPosition)}%`
           }}
         ></div>
         
@@ -592,7 +609,6 @@ const RangeSlider = ({
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ 
             left: `${startPosition}%`,
-            // For single value mode, make the inactive handle semi-transparent 
             opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1,
           }}
           onMouseDown={e => handleMouseDown(e, true)}
@@ -606,19 +622,24 @@ const RangeSlider = ({
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ 
             left: `${endPosition}%`,
-            // For single value mode, make the inactive handle semi-transparent
             opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1,
           }}
           onMouseDown={e => handleMouseDown(e, false)}
           onTouchStart={e => handleTouchStart(e, false)}
         ></div>
         
-        {/* All-Time marker - just like in BetterYearSlider */}
+        {/* All-Time marker - special marker at position 0 when All-Time is enabled */}
         {showAllTimeOption && (
           <div 
             className={`absolute top-1/2 w-1 h-4 ${colors.bgMed} transform -translate-x-1/2 -translate-y-1/2`}
             style={{ left: '0%' }}
-          />
+          >
+            <div className={`absolute w-16 text-xs text-center -translate-x-1/2 mt-4 ${
+              (isAllTimeStart || isAllTimeEnd) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
+            }`}>
+              All Time
+            </div>
+          </div>
         )}
         
         {/* Value markers - adjusted to distribute evenly across the slider, accounting for All Time */}
@@ -673,6 +694,7 @@ const RangeSlider = ({
     </div>
   );
 };
+
 
 const TripleRangeSelector = ({ 
   onDateRangeChange, 
