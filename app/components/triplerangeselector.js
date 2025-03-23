@@ -846,61 +846,52 @@ const TripleRangeSelector = ({
     return months;
   }, [isSingleYearSelected, yearRange.startValue, getAvailableMonths, months]);
   
-  // Filtered days based on year and month selection
-  const filteredDays = useMemo(() => {
-    // For single month - exact number of days in that month
-    if (isSingleYearSelected && monthRange.startValue === monthRange.endValue) {
-      const daysInMonth = getDaysInMonth(yearRange.startValue, monthRange.startValue);
-      return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
-    }
-    
-    // For different months/years - show 31 days (maximum possible in any month)
-    return Array.from({ length: 31 }, (_, i) => (i + 1).toString());
-  }, [isSingleYearSelected, yearRange, monthRange]);
+// Filtered days based on year and month selection
+const filteredDays = useMemo(() => {
+  // Always use a fixed array of 31 days for consistent positioning
+  return Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+}, []);
+
+// Validate days and months based on selected years
+useEffect(() => {
+  // Skip validation for all-time mode
+  if (yearRange.startValue === "all" || yearRange.endValue === "all") return;
   
-  // Validate days and months based on selected years (but don't reset them automatically)
-  useEffect(() => {
-    // Skip validation for all-time mode
-    if (yearRange.startValue === "all" || yearRange.endValue === "all") return;
-    
-    // Skip validation in single year mode 
-    if (singleYearMode) return;
-    
-    // For single or multi-year, just make sure days are valid for selected months
-    let newMonthRange = { ...monthRange };
-    let newDayRange = { ...dayRange };
-    let updated = false;
-    
-    // Make sure selected months are in valid range (1-12)
-    if (parseInt(newMonthRange.startValue) < 1 || parseInt(newMonthRange.startValue) > 12) {
-      newMonthRange.startValue = '1';
-      updated = true;
-    }
-    
-    if (parseInt(newMonthRange.endValue) < 1 || parseInt(newMonthRange.endValue) > 12) {
-      newMonthRange.endValue = '12';
-      updated = true;
-    }
-    
-    // Adjust days to be valid for the selected months
-    const maxStartDay = getDaysInMonth(yearRange.startValue, newMonthRange.startValue);
-    const maxEndDay = getDaysInMonth(yearRange.endValue, newMonthRange.endValue);
-    
-    if (parseInt(newDayRange.startValue) > maxStartDay) {
-      newDayRange.startValue = maxStartDay.toString();
-      updated = true;
-    }
-    
-    if (parseInt(newDayRange.endValue) > maxEndDay) {
-      newDayRange.endValue = maxEndDay.toString();
-      updated = true;
-    }
-    
-    if (updated) {
-      setMonthRange(newMonthRange);
-      setDayRange(newDayRange);
-    }
-  }, [yearRange, monthRange, dayRange, singleYearMode]);
+  // For single or multi-year, make sure days are valid for selected months
+  let newMonthRange = { ...monthRange };
+  let newDayRange = { ...dayRange };
+  let updated = false;
+  
+  // Make sure selected months are in valid range (1-12)
+  if (parseInt(newMonthRange.startValue) < 1 || parseInt(newMonthRange.startValue) > 12) {
+    newMonthRange.startValue = '1';
+    updated = true;
+  }
+  
+  if (parseInt(newMonthRange.endValue) < 1 || parseInt(newMonthRange.endValue) > 12) {
+    newMonthRange.endValue = '12';
+    updated = true;
+  }
+  
+  // Adjust days to be valid for the selected months
+  const maxStartDay = getDaysInMonth(yearRange.startValue, newMonthRange.startValue);
+  const maxEndDay = getDaysInMonth(yearRange.endValue, newMonthRange.endValue);
+  
+  if (parseInt(newDayRange.startValue) > maxStartDay) {
+    newDayRange.startValue = maxStartDay.toString();
+    updated = true;
+  }
+  
+  if (parseInt(newDayRange.endValue) > maxEndDay) {
+    newDayRange.endValue = maxEndDay.toString();
+    updated = true;
+  }
+  
+  if (updated) {
+    setMonthRange(newMonthRange);
+    setDayRange(newDayRange);
+  }
+}, [yearRange, monthRange, dayRange, singleYearMode]);
   
   // Effect for single year mode state changes
   useEffect(() => {
