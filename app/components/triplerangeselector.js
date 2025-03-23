@@ -107,44 +107,76 @@ const RangeSlider = ({
   // Use 0% position for "All Time", just like in BetterYearSlider
   const ALL_TIME_POSITION = 0;
   
-  // Handle the special "all" value case with our fixed position
+  // Handle normal initialization 
   useEffect(() => {
-    if (showAllTimeOption) {
+    if (sortedValues.length === 0) return;
+    
+    // Handle initialization based on initial values provided
+    if (initialStartValue === "all" || initialEndValue === "all") {
+      // Initialize All Time values
       if (initialStartValue === "all") {
         setStartValue("all");
-        setStartPosition(ALL_TIME_POSITION);
+        setStartPosition(0); // All Time at position 0
       }
       
       if (initialEndValue === "all") {
         setEndValue("all");
-        setEndPosition(ALL_TIME_POSITION);
+        setEndPosition(0); // All Time at position 0
       }
+      
+      // For mixed cases (one All Time, one regular year)
+      if (initialStartValue !== "all" && initialStartValue) {
+        const valueIndex = sortedValues.indexOf(initialStartValue.toString());
+        if (valueIndex >= 0) {
+          // Adjust for All Time position
+          const totalPositions = sortedValues.length + 1; // +1 for All Time
+          const position = ((valueIndex + 1) / (totalPositions - 1)) * 100; // +1 to skip position 0
+          setStartPosition(position);
+          setStartValue(initialStartValue);
+        }
+      }
+      
+      if (initialEndValue !== "all" && initialEndValue) {
+        const valueIndex = sortedValues.indexOf(initialEndValue.toString());
+        if (valueIndex >= 0) {
+          // Adjust for All Time position
+          const totalPositions = sortedValues.length + 1; // +1 for All Time
+          const position = ((valueIndex + 1) / (totalPositions - 1)) * 100; // +1 to skip position 0
+          setEndPosition(position);
+          setEndValue(initialEndValue);
+        }
+      }
+      
+      return; // Exit early
     }
-  }, [showAllTimeOption, initialStartValue, initialEndValue]);
-
-  // Normal initialization for regular values
-  useEffect(() => {
-    if (sortedValues.length === 0) return;
     
-    // Skip if all-time is selected to avoid overriding the special position
-    if (initialStartValue === "all" || initialEndValue === "all") return;
-    
+    // Regular initialization for year values
     let newStartPos = 0;
     let newEndPos = 100;
     let newStartVal = minValue;
     let newEndVal = maxValue;
     
-    // Calculate start position and value
     if (initialStartValue && sortedValues.includes(initialStartValue.toString())) {
       const valueIndex = sortedValues.indexOf(initialStartValue.toString());
-      newStartPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      if (showAllTimeOption) {
+        // Adjust for All Time position
+        const totalPositions = sortedValues.length + 1; // +1 for All Time
+        newStartPos = ((valueIndex + 1) / (totalPositions - 1)) * 100; // +1 to skip position 0
+      } else {
+        newStartPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      }
       newStartVal = initialStartValue;
     }
     
-    // Calculate end position and value
     if (initialEndValue && sortedValues.includes(initialEndValue.toString())) {
       const valueIndex = sortedValues.indexOf(initialEndValue.toString());
-      newEndPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      if (showAllTimeOption) {
+        // Adjust for All Time position
+        const totalPositions = sortedValues.length + 1; // +1 for All Time
+        newEndPos = ((valueIndex + 1) / (totalPositions - 1)) * 100; // +1 to skip position 0
+      } else {
+        newEndPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      }
       newEndVal = initialEndValue;
     }
     
@@ -154,33 +186,61 @@ const RangeSlider = ({
       newEndVal = newStartVal;
     }
     
-    // Batch all state updates
+    // Update state
     setStartPosition(newStartPos);
     setEndPosition(newEndPos);
     setStartValue(newStartVal);
     setEndValue(newEndVal);
-  }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue, singleValueMode]);
+  }, [sortedValues, initialStartValue, initialEndValue, minValue, maxValue, singleValueMode, showAllTimeOption]);
   
   // Handler for when the position changes, updates the value
   const updateValueFromPosition = useCallback((position, isStart) => {
-    // FIX: Special case for the "all time" position - use our fixed position
-    if (showAllTimeOption && position <= ALL_TIME_POSITION + 10) {
+    // If this is very close to 0% position and All Time is enabled, set to "all"
+    if (showAllTimeOption && position < 3) {
       if (isStart) {
         setStartValue("all");
-        // Ensure the position is exactly at our ALL_TIME_POSITION
-        setStartPosition(ALL_TIME_POSITION);
       } else {
         setEndValue("all");
-        // Ensure the position is exactly at our ALL_TIME_POSITION
-        setEndPosition(ALL_TIME_POSITION);
       }
       return;
     }
     
-    // Normal value selection from slider - only use values within the 0-100 range
+    // For normal year selection, adjust the index to account for "All Time" at position 0
     if (position >= 0 && position <= 100) {
-      const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
-      const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
+      // Calculate what proportion of the slider this position represents
+      const sliderProportion = position / 100;
+      
+      // If we have "All Time" enabled, we need to adjust the calculation:
+      // The year values should be distributed from positions 1/(n+1) to 100%
+      // where n is the number of years
+      let valueIndex;
+      
+      if (showAllTimeOption) {
+        // Adjust for "All Time" at position 0
+        // The real years are shifted slightly to the right
+        const totalPositions = sortedValues.length + 1; // +1 for "All Time"
+        const adjustedIndex = Math.round(sliderProportion * (totalPositions - 1));
+        
+        // If position 0 is selected, it means "All Time"
+        if (adjustedIndex === 0) {
+          if (isStart) {
+            setStartValue("all");
+          } else {
+            setEndValue("all");
+          }
+          return;
+        }
+        
+        // Otherwise, select a regular year (adjusting for "All Time" at index 0)
+        valueIndex = adjustedIndex - 1;  // -1 because "All Time" takes index 0
+      } else {
+        // Regular calculation without "All Time" adjustment
+        valueIndex = Math.round(sliderProportion * (sortedValues.length - 1));
+      }
+      
+      // Ensure the index is within bounds
+      valueIndex = Math.min(Math.max(0, valueIndex), sortedValues.length - 1);
+      const newValue = sortedValues[valueIndex];
       
       if (isStart) {
         setStartValue(newValue);
@@ -188,7 +248,7 @@ const RangeSlider = ({
         setEndValue(newValue);
       }
     }
-  }, [sortedValues, showAllTimeOption, ALL_TIME_POSITION]);
+  }, [sortedValues, showAllTimeOption]);
   
   // Debounced notification to parent - only when drag ends
   useEffect(() => {
@@ -561,12 +621,31 @@ const RangeSlider = ({
           />
         )}
         
-        {/* Value markers */}
+        {/* Value markers - adjusted to distribute evenly across the slider, accounting for All Time */}
         {sortedValues.map((value, index) => {
-          const position = (index / (sortedValues.length - 1)) * 100;
-          const isInRange = 
-            position >= startPosition && 
-            position <= endPosition;
+          // If All Time is enabled, adjust the position calculation to distribute years from 1/(n+1) to 100%
+          let position;
+          if (showAllTimeOption) {
+            const totalPositions = sortedValues.length + 1; // +1 for All Time
+            position = ((index + 1) / (totalPositions - 1)) * 100; // +1 to skip position 0 for All Time
+          } else {
+            position = (index / (sortedValues.length - 1)) * 100; // Standard distribution
+          }
+          
+          // Determine if this marker is within the selected range
+          let isInRange = false;
+          if (startValue === "all" && endValue === "all") {
+            isInRange = false; // No regular years in range when All Time is selected
+          } else if (startValue === "all") {
+            // Start is All Time, check if end is this year or greater
+            isInRange = value <= endValue;
+          } else if (endValue === "all") {
+            // End is All Time, check if start is this year or less
+            isInRange = value >= startValue;
+          } else {
+            // Regular range check
+            isInRange = value >= startValue && value <= endValue;
+          }
           
           // Emphasize exact match markers
           const isStartMarker = value === startValue && !isAllTimeStart;
