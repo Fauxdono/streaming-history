@@ -7,6 +7,7 @@ function getDaysInMonth(year, month) {
 }
 
 
+// Focus on the RangeSlider component in triplerangeselector.js
 
 const RangeSlider = ({ 
   values, 
@@ -103,8 +104,8 @@ const RangeSlider = ({
     }
   }, [colorTheme]);
 
-  // FIX: Create a fixed position for "All Time" that's well to the left of the slider
-  const ALL_TIME_POSITION = -25; // Move it further left to avoid overlap
+  // Use 0% position for "All Time", just like in BetterYearSlider
+  const ALL_TIME_POSITION = 0;
   
   // Handle the special "all" value case with our fixed position
   useEffect(() => {
@@ -220,7 +221,7 @@ const RangeSlider = ({
       let position;
       
       // Check if mouse is in the "All Time" zone (left of the slider)
-      if (showAllTimeOption && rawX < 15) {
+      if (showAllTimeOption && rawX < 10) { // Reduced detection area
         position = ALL_TIME_POSITION; // Use our fixed position for "All Time"
       } else {
         // Normal slider range (0-100%)
@@ -320,7 +321,7 @@ const RangeSlider = ({
       let position;
       
       // Check if touch is in the "All Time" zone (left of the slider)
-      if (showAllTimeOption && rawX < 15) {
+      if (showAllTimeOption && rawX < 10) { // Reduced detection area
         position = ALL_TIME_POSITION; // Use our fixed position for "All Time"
       } else {
         // Normal slider range (0-100%)
@@ -414,7 +415,7 @@ const RangeSlider = ({
     let position;
     
     // Check if click is in the "All Time" zone (left of the slider)
-    if (showAllTimeOption && rawX < 15) {
+    if (showAllTimeOption && rawX < 10) { // Reduced detection area
       position = ALL_TIME_POSITION; // Use our fixed position for "All Time"
     } else {
       // Normal slider range (0-100%)
@@ -488,8 +489,8 @@ const RangeSlider = ({
     return value;
   }, [displayFormat]);
   
-  // Calculate the visual width of the all-time area (space to the left of the slider)
-  const allTimeAreaWidth = showAllTimeOption ? 40 : 0;
+  // No need for extra area - All Time is at position 0
+  const allTimeAreaWidth = 0;
   
   return (
     <div className="my-3">
@@ -508,17 +509,8 @@ const RangeSlider = ({
       <div 
         ref={sliderRef}
         className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
-        style={{ paddingLeft: allTimeAreaWidth + 'px' }}
         onClick={handleTrackClick}
       >
-        {/* All Time Option */}
-        {showAllTimeOption && (
-          <div className="absolute left-0 top-0 bottom-0" style={{ width: allTimeAreaWidth + 'px' }}>
-            <div className={`absolute left-2 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded ${colors.bgLight} text-xs ${colors.text} cursor-pointer`}>
-              All
-            </div>
-          </div>
-        )}
         
         {/* Background Line */}
         <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 transform -translate-y-1/2 rounded-full"></div>
@@ -527,10 +519,9 @@ const RangeSlider = ({
         <div 
           className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
           style={{ 
-            left: `${Math.max(0, startPosition)}%`, 
-            width: singleValueMode ? '0.5%' : `${Math.max(0.5, Math.max(0, endPosition) - Math.max(0, startPosition))}%`,
-            // Hide the range line if one or both handles are at the "All Time" position
-            display: isAllTimeStart || isAllTimeEnd ? 'none' : 'block'
+            left: `${startPosition}%`, 
+            width: singleValueMode ? '0.5%' : `${Math.max(0.5, endPosition - startPosition)}%`,
+            // Don't need special handling for ALL_TIME_POSITION since it's at 0%
           }}
         ></div>
         
@@ -540,12 +531,9 @@ const RangeSlider = ({
             activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ 
-            // Position the handle at ALL_TIME_POSITION if start value is "all"
-            left: isAllTimeStart ? `${ALL_TIME_POSITION}%` : `${Math.max(0, startPosition)}%`,
-            // For single value mode, make the inactive handle semi-transparent
+            left: `${startPosition}%`,
+            // For single value mode, make the inactive handle semi-transparent 
             opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1,
-            // Adjust position for "All Time" to appear in the left area
-            marginLeft: isAllTimeStart ? allTimeAreaWidth + 'px' : '0',
           }}
           onMouseDown={e => handleMouseDown(e, true)}
           onTouchStart={e => handleTouchStart(e, true)}
@@ -557,24 +545,28 @@ const RangeSlider = ({
             activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ 
-            // Position the handle at ALL_TIME_POSITION if end value is "all"
-            left: isAllTimeEnd ? `${ALL_TIME_POSITION}%` : `${Math.max(0, endPosition)}%`,
+            left: `${endPosition}%`,
             // For single value mode, make the inactive handle semi-transparent
             opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1,
-            // Adjust position for "All Time" to appear in the left area
-            marginLeft: isAllTimeEnd ? allTimeAreaWidth + 'px' : '0',
           }}
           onMouseDown={e => handleMouseDown(e, false)}
           onTouchStart={e => handleTouchStart(e, false)}
         ></div>
         
+        {/* All-Time marker - just like in BetterYearSlider */}
+        {showAllTimeOption && (
+          <div 
+            className={`absolute top-1/2 w-1 h-4 ${colors.bgMed} transform -translate-x-1/2 -translate-y-1/2`}
+            style={{ left: '0%' }}
+          />
+        )}
+        
         {/* Value markers */}
         {sortedValues.map((value, index) => {
           const position = (index / (sortedValues.length - 1)) * 100;
           const isInRange = 
-            !isAllTimeStart && !isAllTimeEnd && 
-            position >= Math.max(0, startPosition) && 
-            position <= Math.max(0, endPosition);
+            position >= startPosition && 
+            position <= endPosition;
           
           // Emphasize exact match markers
           const isStartMarker = value === startValue && !isAllTimeStart;
