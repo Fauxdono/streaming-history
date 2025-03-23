@@ -6,12 +6,6 @@ function getDaysInMonth(year, month) {
   return new Date(parseInt(year), parseInt(month), 0).getDate();
 }
 
-
-function getDaysInMonth(year, month) {
-  // JavaScript months are 0-based, but our input is 1-based
-  return new Date(parseInt(year), parseInt(month), 0).getDate();
-}
-
 const RangeSlider = ({ 
   values, 
   onValuesChange, 
