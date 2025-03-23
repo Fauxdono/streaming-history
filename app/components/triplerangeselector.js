@@ -6,6 +6,7 @@ function getDaysInMonth(year, month) {
   return new Date(parseInt(year), parseInt(month), 0).getDate();
 }
 
+
 const RangeSlider = ({ 
   values, 
   onValuesChange, 
@@ -15,9 +16,9 @@ const RangeSlider = ({
   title,
   colorTheme = 'orange',
   disabled = false,
-  allowSingleValueSelection = true, // Allows selection of a single value
-  singleValueMode = false, // Forces both handles to move together as a unit
-  showAllTimeOption = false // New prop to show "All Time" option in single year mode
+  allowSingleValueSelection = true,
+  singleValueMode = false,
+  showAllTimeOption = false
 }) => {
   // Make sure we have an array of values and they're sorted
   const sortedValues = useMemo(() => 
@@ -101,17 +102,20 @@ const RangeSlider = ({
     }
   }, [colorTheme]);
 
-  // Handle the special "all" value case
+  // FIX: Create a fixed position for "All Time" that's well to the left of the slider
+  const ALL_TIME_POSITION = -25; // Move it further left to avoid overlap
+  
+  // Handle the special "all" value case with our fixed position
   useEffect(() => {
     if (showAllTimeOption) {
       if (initialStartValue === "all") {
         setStartValue("all");
-        setStartPosition(-10); // Position slightly to the left of the slider
+        setStartPosition(ALL_TIME_POSITION);
       }
       
       if (initialEndValue === "all") {
         setEndValue("all");
-        setEndPosition(-10);
+        setEndPosition(ALL_TIME_POSITION);
       }
     }
   }, [showAllTimeOption, initialStartValue, initialEndValue]);
@@ -120,13 +124,13 @@ const RangeSlider = ({
   useEffect(() => {
     if (sortedValues.length === 0) return;
     
+    // Skip if all-time is selected to avoid overriding the special position
+    if (initialStartValue === "all" || initialEndValue === "all") return;
+    
     let newStartPos = 0;
     let newEndPos = 100;
     let newStartVal = minValue;
     let newEndVal = maxValue;
-    
-    // Skip if all-time is selected
-    if (initialStartValue === "all" || initialEndValue === "all") return;
     
     // Calculate start position and value
     if (initialStartValue && sortedValues.includes(initialStartValue.toString())) {
@@ -157,26 +161,32 @@ const RangeSlider = ({
   
   // Handler for when the position changes, updates the value
   const updateValueFromPosition = useCallback((position, isStart) => {
-    // Special case for the "all time" position (slightly left of the slider)
-    if (showAllTimeOption && position < -5) {
+    // FIX: Special case for the "all time" position - use our fixed position
+    if (showAllTimeOption && position <= ALL_TIME_POSITION + 10) {
       if (isStart) {
         setStartValue("all");
+        // Ensure the position is exactly at our ALL_TIME_POSITION
+        setStartPosition(ALL_TIME_POSITION);
       } else {
         setEndValue("all");
+        // Ensure the position is exactly at our ALL_TIME_POSITION
+        setEndPosition(ALL_TIME_POSITION);
       }
       return;
     }
     
-    // Normal value selection from slider
-    const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
-    const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
-    
-    if (isStart) {
-      setStartValue(newValue);
-    } else {
-      setEndValue(newValue);
+    // Normal value selection from slider - only use values within the 0-100 range
+    if (position >= 0 && position <= 100) {
+      const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
+      const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
+      
+      if (isStart) {
+        setStartValue(newValue);
+      } else {
+        setEndValue(newValue);
+      }
     }
-  }, [sortedValues, showAllTimeOption]);
+  }, [sortedValues, showAllTimeOption, ALL_TIME_POSITION]);
   
   // Debounced notification to parent - only when drag ends
   useEffect(() => {
@@ -202,75 +212,69 @@ const RangeSlider = ({
       
       const rect = slider.getBoundingClientRect();
       
-      // Allow mouse to go slightly left of the slider for "all time" option
+      // Allow mouse position to extend left of the slider for "all time" option
       const rawX = e.clientX - rect.left;
-      const x = showAllTimeOption ? rawX : Math.max(0, Math.min(rect.width, rawX));
-      const width = rect.width;
       
-      // Calculate position as percentage (0-100)
-      let percentage = (x / width) * 100;
+      // FIX: Improved handling of mouse position
+      let position;
       
-      // Handle all-time option (left of the slider)
-      if (showAllTimeOption && percentage < -10) {
-        percentage = -10;
-        
-        // Set to "all" time
-        if (isStartHandle) {
-          setStartPosition(percentage);
-          setStartValue("all");
-          
-          // In single value mode, move both handles
-          if (singleValueMode) {
-            setEndPosition(percentage);
-            setEndValue("all");
-          }
-        } else {
-          setEndPosition(percentage);
-          setEndValue("all");
-        }
-        return;
+      // Check if mouse is in the "All Time" zone (left of the slider)
+      if (showAllTimeOption && rawX < 15) {
+        position = ALL_TIME_POSITION; // Use our fixed position for "All Time"
+      } else {
+        // Normal slider range (0-100%)
+        const sliderX = Math.max(0, Math.min(rect.width, rawX));
+        position = (sliderX / rect.width) * 100;
       }
-      
-      // Clamp to normal slider range for regular values
-      percentage = Math.max(0, Math.min(100, percentage));
       
       if (singleValueMode) {
         // In single value mode, both handles move together
-        setStartPosition(percentage);
-        setEndPosition(percentage);
-        
-        // Update both values to the same value
-        const valueIndex = Math.round((percentage / 100) * (sortedValues.length - 1));
-        const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
-        setStartValue(newValue);
-        setEndValue(newValue);
+        if (position === ALL_TIME_POSITION) {
+          // Both handles to "All Time"
+          setStartPosition(ALL_TIME_POSITION);
+          setEndPosition(ALL_TIME_POSITION);
+          setStartValue("all");
+          setEndValue("all");
+        } else if (position >= 0 && position <= 100) {
+          // Both handles to the same regular position
+          setStartPosition(position);
+          setEndPosition(position);
+          
+          // Update both values to the same value
+          const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
+          const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
+          setStartValue(newValue);
+          setEndValue(newValue);
+        }
       } else if (isStartHandle) {
-        // Don't let start handle pass end handle
-        // Allow equal positions if single value selection is enabled
-        const minSeparation = allowSingleValueSelection ? 0 : 5;
-        
-        // IMPORTANT CHANGE: Force start handle to stay to the left of end handle
-        percentage = Math.min(percentage, endPosition - minSeparation);
-        
-        // If current percentage represents a valid value on our slider,
-        // update the start position and value
-        if (percentage >= 0 && percentage <= 100) {
-          setStartPosition(percentage);
-          updateValueFromPosition(percentage, true);
+        // Start handle being dragged
+        if (position === ALL_TIME_POSITION) {
+          // Set to "All Time"
+          setStartPosition(ALL_TIME_POSITION);
+          setStartValue("all");
+        } else if (position >= 0 && position <= 100) {
+          // Don't let start handle pass end handle (unless end handle is at "All Time")
+          if (endValue === "all" || position <= endPosition) {
+            const minSeparation = allowSingleValueSelection ? 0 : 5;
+            const constrainedPosition = Math.min(position, endPosition - minSeparation);
+            setStartPosition(constrainedPosition);
+            updateValueFromPosition(constrainedPosition, true);
+          }
         }
       } else {
-        // Don't let end handle pass start handle
-        // Allow equal positions if single value selection is enabled
-        const minSeparation = allowSingleValueSelection ? 0 : 5;
-        
-        // IMPORTANT CHANGE: Force end handle to stay to the right of start handle
-        percentage = Math.max(percentage, startPosition + minSeparation);
-        
-        // If current percentage represents a valid value on our slider,
-        // update the end position and value
-        if (percentage >= 0 && percentage <= 100) {
-          setEndPosition(percentage);
-          updateValueFromPosition(percentage, false);
+        // End handle being dragged
+        if (position === ALL_TIME_POSITION) {
+          // Set to "All Time"
+          setEndPosition(ALL_TIME_POSITION);
+          setEndValue("all");
+        } else if (position >= 0 && position <= 100) {
+          // Don't let end handle pass start handle (unless start handle is at "All Time")
+          if (startValue === "all" || position >= startPosition) {
+            const minSeparation = allowSingleValueSelection ? 0 : 5;
+            const constrainedPosition = Math.max(position, startPosition + minSeparation);
+            setEndPosition(constrainedPosition);
+            updateValueFromPosition(constrainedPosition, false);
+          }
         }
       }
     };
@@ -287,107 +291,7 @@ const RangeSlider = ({
     
     // Initial position update
     handleMouseMove(e);
-  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues, showAllTimeOption]);
-  
-  // Handle touch events for mobile
-  const handleTouchStart = useCallback((e, isStartHandle) => {
-    if (disabled) return;
-    
-    // Prevent default to avoid page scrolling while dragging
-    e.preventDefault();
-    
-    setActiveDragHandle(isStartHandle ? 'start' : 'end');
-    setIsDragging(true);
-    
-    const handleTouchMove = (e) => {
-      if (!e.touches[0]) return;
-      
-      const slider = sliderRef.current;
-      if (!slider) return;
-      
-      const rect = slider.getBoundingClientRect();
-      const touch = e.touches[0];
-      
-      // Allow touch to go slightly left of the slider for "all time" option
-      const rawX = touch.clientX - rect.left;
-      const x = showAllTimeOption ? rawX : Math.max(0, Math.min(rect.width, rawX));
-      const width = rect.width;
-      
-      // Calculate position as percentage (0-100)
-      let percentage = (x / width) * 100;
-      
-      // Handle all-time option (left of the slider)
-      if (showAllTimeOption && percentage < -10) {
-        percentage = -10;
-        
-        // Set to "all" time
-        if (isStartHandle) {
-          setStartPosition(percentage);
-          setStartValue("all");
-          
-          // In single value mode, move both handles
-          if (singleValueMode) {
-            setEndPosition(percentage);
-            setEndValue("all");
-          }
-        } else {
-          setEndPosition(percentage);
-          setEndValue("all");
-        }
-        return;
-      }
-      
-      // Clamp to normal slider range for regular values
-      percentage = Math.max(0, Math.min(100, percentage));
-      
-      if (singleValueMode) {
-        // In single value mode, both handles move together
-        setStartPosition(percentage);
-        setEndPosition(percentage);
-        
-        // Update both values to the same value
-        const valueIndex = Math.round((percentage / 100) * (sortedValues.length - 1));
-        const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
-        setStartValue(newValue);
-        setEndValue(newValue);
-      } else if (isStartHandle) {
-        // IMPORTANT: Ensure start handle stays to the left of end handle
-        const minSeparation = allowSingleValueSelection ? 0 : 5;
-        percentage = Math.min(percentage, endPosition - minSeparation);
-        
-        if (percentage >= 0 && percentage <= 100) {
-          setStartPosition(percentage);
-          updateValueFromPosition(percentage, true);
-        }
-      } else {
-        // IMPORTANT: Ensure end handle stays to the right of start handle
-        const minSeparation = allowSingleValueSelection ? 0 : 5;
-        percentage = Math.max(percentage, startPosition + minSeparation);
-        
-        if (percentage >= 0 && percentage <= 100) {
-          setEndPosition(percentage);
-          updateValueFromPosition(percentage, false);
-        }
-      }
-    };
-    
-    const handleTouchEnd = () => {
-      document.removeEventListener('touchmove', handleTouchMove, { passive: false });
-      document.removeEventListener('touchend', handleTouchEnd);
-      document.removeEventListener('touchcancel', handleTouchEnd);
-      setActiveDragHandle(null);
-      setIsDragging(false);
-    };
-    
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
-    document.addEventListener('touchcancel', handleTouchEnd);
-    
-    // Initial position update
-    if (e.touches[0]) {
-      handleTouchMove(e);
-    }
-  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues, showAllTimeOption]);
+  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues, showAllTimeOption, startValue, endValue, ALL_TIME_POSITION]);
   
   // Handle click on the track
   const handleTrackClick = useCallback((e) => {
@@ -398,155 +302,69 @@ const RangeSlider = ({
     
     const rect = slider.getBoundingClientRect();
     
-    // Allow mouse to go slightly left of the slider for "all time" option
+    // Allow clicks to the left of the slider for "all time" option
     const rawX = e.clientX - rect.left;
-    const x = showAllTimeOption ? rawX : Math.max(0, Math.min(rect.width, rawX));
-    const width = rect.width;
     
-    // Calculate position as percentage (0-100)
-    let percentage = (x / width) * 100;
+    // FIX: Improved handling of click position
+    let position;
     
-    // Handle all-time option (left of the slider)
-    if (showAllTimeOption && percentage < -10) {
-      percentage = -10;
-      
-      // Set temporary dragging state to prevent immediate updates
-      setIsDragging(true);
-      
-      // In single value mode, set both handles
-      if (singleValueMode) {
-        setStartPosition(percentage);
-        setEndPosition(percentage);
-        setStartValue("all");
-        setEndValue("all");
-      } else {
-        // Determine which handle to move (the closest one)
-        const startDistance = Math.abs(percentage - startPosition);
-        const endDistance = Math.abs(percentage - endPosition);
-        
-        if (startDistance <= endDistance) {
-          setStartPosition(percentage);
-          setStartValue("all");
-        } else {
-          setEndPosition(percentage);
-          setEndValue("all");
-        }
-      }
-      
-      // Clear dragging state after brief delay
-      setTimeout(() => setIsDragging(false), 50);
-      return;
+    // Check if click is in the "All Time" zone (left of the slider)
+    if (showAllTimeOption && rawX < 15) {
+      position = ALL_TIME_POSITION; // Use our fixed position for "All Time"
+    } else {
+      // Normal slider range (0-100%)
+      const sliderX = Math.max(0, Math.min(rect.width, rawX));
+      position = (sliderX / rect.width) * 100;
     }
-    
-    // Clamp to normal slider range for regular values
-    percentage = Math.max(0, Math.min(100, percentage));
-    
-    // Calculate the exact value at this position
-    const valueIndex = Math.round((percentage / 100) * (sortedValues.length - 1));
-    const exactValue = sortedValues[valueIndex];
-    
-    // Check if this click is directly on a marker
-    const isExactMarker = Math.abs(percentage - ((valueIndex / (sortedValues.length - 1)) * 100)) < 2;
     
     // Set temporary dragging state to prevent immediate updates
     setIsDragging(true);
     
     if (singleValueMode) {
       // In single value mode, set both handles to the clicked position
-      setStartPosition(percentage);
-      setEndPosition(percentage);
-      
-      setStartValue(exactValue);
-      setEndValue(exactValue);
+      if (position === ALL_TIME_POSITION) {
+        setStartPosition(ALL_TIME_POSITION);
+        setEndPosition(ALL_TIME_POSITION);
+        setStartValue("all");
+        setEndValue("all");
+      } else {
+        setStartPosition(position);
+        setEndPosition(position);
+        
+        // Update both values
+        const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
+        const exactValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
+        setStartValue(exactValue);
+        setEndValue(exactValue);
+      }
     } else {
       // Determine which handle to move (the closest one)
-      const startDistance = Math.abs(percentage - startPosition);
-      const endDistance = Math.abs(percentage - endPosition);
+      // For "All Time" position, factor in the visual gap
+      let startDistance = position === ALL_TIME_POSITION ? 
+                         Math.abs(ALL_TIME_POSITION - startPosition) : 
+                         Math.abs(position - startPosition);
       
-      // ADDED LOGIC: Check if the click would cause handles to cross
-      const wouldCrossBoundaries = 
-        (startDistance <= endDistance && percentage > endPosition) || 
-        (endDistance < startDistance && percentage < startPosition);
+      let endDistance = position === ALL_TIME_POSITION ? 
+                       Math.abs(ALL_TIME_POSITION - endPosition) : 
+                       Math.abs(position - endPosition);
       
-      if (wouldCrossBoundaries) {
-        // Prevent crossing by moving both handles to this position if allowed
-        if (allowSingleValueSelection) {
-          setStartPosition(percentage);
-          setStartValue(exactValue);
-          setEndPosition(percentage);
-          setEndValue(exactValue);
+      if (startDistance <= endDistance) {
+        // Move start handle
+        if (position === ALL_TIME_POSITION) {
+          setStartPosition(ALL_TIME_POSITION);
+          setStartValue("all");
+        } else if (endValue === "all" || position <= endPosition) {
+          setStartPosition(position);
+          updateValueFromPosition(position, true);
         }
-        // Otherwise, do nothing
       } else {
-        // If clicking directly on a marker, handle special cases
-        if (isExactMarker) {
-          if (exactValue === startValue) {
-            // Already the start value, move end handle here for single value selection
-            if (allowSingleValueSelection) {
-              setEndPosition(percentage);
-              setEndValue(exactValue);
-            }
-          } else if (exactValue === endValue) {
-            // Already the end value, move start handle here for single value selection
-            if (allowSingleValueSelection) {
-              setStartPosition(percentage);
-              setStartValue(exactValue);
-            }
-          } else {
-            // Not already selected, move closest handle if it won't cross the other handle
-            if (startDistance <= endDistance) {
-              // Only move start handle if it won't go beyond the end handle
-              if (percentage <= endPosition) {
-                setStartPosition(percentage);
-                setStartValue(exactValue);
-              } else if (allowSingleValueSelection) {
-                // If we allow single value selection, set both to this value
-                setStartPosition(percentage);
-                setStartValue(exactValue);
-                setEndPosition(percentage);
-                setEndValue(exactValue);
-              }
-            } else {
-              // Only move end handle if it won't go beyond the start handle
-              if (percentage >= startPosition) {
-                setEndPosition(percentage);
-                setEndValue(exactValue);
-              } else if (allowSingleValueSelection) {
-                // If we allow single value selection, set both to this value
-                setStartPosition(percentage);
-                setStartValue(exactValue);
-                setEndPosition(percentage);
-                setEndValue(exactValue);
-              }
-            }
-          }
-        } else {
-          // Normal click, not directly on a marker
-          if (startDistance <= endDistance) {
-            // Only move start handle if it won't go beyond the end handle
-            if (percentage <= endPosition) {
-              setStartPosition(percentage);
-              updateValueFromPosition(percentage, true);
-            } else if (allowSingleValueSelection) {
-              // If we allow single value selection, set both to this value
-              setStartPosition(percentage);
-              updateValueFromPosition(percentage, true);
-              setEndPosition(percentage);
-              updateValueFromPosition(percentage, false);
-            }
-          } else {
-            // Only move end handle if it won't go beyond the start handle
-            if (percentage >= startPosition) {
-              setEndPosition(percentage);
-              updateValueFromPosition(percentage, false);
-            } else if (allowSingleValueSelection) {
-              // If we allow single value selection, set both to this value
-              setStartPosition(percentage);
-              updateValueFromPosition(percentage, true);
-              setEndPosition(percentage);
-              updateValueFromPosition(percentage, false);
-            }
-          }
+        // Move end handle
+        if (position === ALL_TIME_POSITION) {
+          setEndPosition(ALL_TIME_POSITION);
+          setEndValue("all");
+        } else if (startValue === "all" || position >= startPosition) {
+          setEndPosition(position);
+          updateValueFromPosition(position, false);
         }
       }
     }
@@ -554,7 +372,7 @@ const RangeSlider = ({
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 50);
   }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition, 
-      sortedValues, startValue, endValue, allowSingleValueSelection, singleValueMode, showAllTimeOption]);
+      sortedValues, startValue, endValue, allowSingleValueSelection, singleValueMode, showAllTimeOption, ALL_TIME_POSITION]);
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
@@ -565,8 +383,12 @@ const RangeSlider = ({
     return value;
   }, [displayFormat]);
   
+  // Calculate the visual width of the all-time area (space to the left of the slider)
+  const allTimeAreaWidth = showAllTimeOption ? 40 : 0;
+  
   return (
     <div className="my-3">
+      {/* Title and value display */}
       <div className="flex justify-between mb-1 items-center">
         <span className={`${colors.text} text-sm`}>{title}</span>
         <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
@@ -577,15 +399,17 @@ const RangeSlider = ({
         </div>
       </div>
       
+      {/* Slider container with padding for the "All Time" area */}
       <div 
         ref={sliderRef}
-        className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`} 
+        className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
+        style={{ paddingLeft: allTimeAreaWidth + 'px' }}
         onClick={handleTrackClick}
       >
         {/* All Time Option */}
         {showAllTimeOption && (
-          <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center">
-            <div className={`absolute left-0 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded ${colors.bgLight} text-xs ${colors.text} cursor-pointer`}>
+          <div className="absolute left-0 top-0 bottom-0" style={{ width: allTimeAreaWidth + 'px' }}>
+            <div className={`absolute left-2 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded ${colors.bgLight} text-xs ${colors.text} cursor-pointer`}>
               All
             </div>
           </div>
@@ -599,46 +423,55 @@ const RangeSlider = ({
           className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
           style={{ 
             left: `${Math.max(0, startPosition)}%`, 
-            width: singleValueMode ? '0.5%' : `${Math.max(0.5, Math.max(0, endPosition) - Math.max(0, startPosition))}%`
+            width: singleValueMode ? '0.5%' : `${Math.max(0.5, Math.max(0, endPosition) - Math.max(0, startPosition))}%`,
+            // Hide the range line if one or both handles are at the "All Time" position
+            display: isAllTimeStart || isAllTimeEnd ? 'none' : 'block'
           }}
         ></div>
         
-        {/* Start Handle - Don't show if it's at the "all time" position and not active */}
-        {(!isAllTimeStart || activeDragHandle === 'start') && (
-          <div 
-            className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
-              activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
-            } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
-            style={{ 
-              left: `${Math.max(0, startPosition)}%`,
-              opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1
-            }}
-            onMouseDown={e => handleMouseDown(e, true)}
-          ></div>
-        )}
+        {/* Start Handle */}
+        <div 
+          className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
+            activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
+          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
+          style={{ 
+            // Position the handle at ALL_TIME_POSITION if start value is "all"
+            left: isAllTimeStart ? `${ALL_TIME_POSITION}%` : `${Math.max(0, startPosition)}%`,
+            // For single value mode, make the inactive handle semi-transparent
+            opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1,
+            // Adjust position for "All Time" to appear in the left area
+            marginLeft: isAllTimeStart ? allTimeAreaWidth + 'px' : '0',
+          }}
+          onMouseDown={e => handleMouseDown(e, true)}
+        ></div>
         
-        {/* End Handle - Don't show if it's at the "all time" position and not active */}
-        {(!isAllTimeEnd || activeDragHandle === 'end') && (
-          <div 
-            className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
-              activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
-            } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
-            style={{ 
-              left: `${Math.max(0, endPosition)}%`,
-              opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1
-            }}
-            onMouseDown={e => handleMouseDown(e, false)}
-          ></div>
-        )}
+        {/* End Handle */}
+        <div 
+          className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
+            activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
+          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
+          style={{ 
+            // Position the handle at ALL_TIME_POSITION if end value is "all"
+            left: isAllTimeEnd ? `${ALL_TIME_POSITION}%` : `${Math.max(0, endPosition)}%`,
+            // For single value mode, make the inactive handle semi-transparent
+            opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1,
+            // Adjust position for "All Time" to appear in the left area
+            marginLeft: isAllTimeEnd ? allTimeAreaWidth + 'px' : '0',
+          }}
+          onMouseDown={e => handleMouseDown(e, false)}
+        ></div>
         
-        {/* Value markers - show all values for months, but fewer for years and days */}
+        {/* Value markers */}
         {sortedValues.map((value, index) => {
           const position = (index / (sortedValues.length - 1)) * 100;
-          const isInRange = position >= Math.max(0, startPosition) && position <= Math.max(0, endPosition);
+          const isInRange = 
+            !isAllTimeStart && !isAllTimeEnd && 
+            position >= Math.max(0, startPosition) && 
+            position <= Math.max(0, endPosition);
           
           // Emphasize exact match markers
-          const isStartMarker = value === startValue;
-          const isEndMarker = value === endValue;
+          const isStartMarker = value === startValue && !isAllTimeStart;
+          const isEndMarker = value === endValue && !isAllTimeEnd;
           const isExactMarker = isStartMarker || isEndMarker;
           
           return (
@@ -649,9 +482,12 @@ const RangeSlider = ({
               }`}
               style={{ left: `${position}%` }}
             >
-              <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${isExactMarker ? `${colors.textBold} font-bold` : `${colors.text} font-medium`}`}>
-                {formatValue(value)}
-              </div>
+              {/* Only show every few labels to avoid crowding */}
+              {(index % Math.max(1, Math.floor(sortedValues.length / 12)) === 0 || isExactMarker) && (
+                <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${isExactMarker ? `${colors.textBold} font-bold` : `${colors.text} font-medium`}`}>
+                  {formatValue(value)}
+                </div>
+              )}
             </div>
           );
         })}
