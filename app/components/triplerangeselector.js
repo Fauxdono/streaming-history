@@ -32,9 +32,7 @@ const RangeSlider = ({
   const minValue = sortedValues[0];
   const maxValue = sortedValues[sortedValues.length - 1];
   
-  // Special handling for "all-time" value
-  const isAllTimeStart = startValue === "all";
-  const isAllTimeEnd = endValue === "all";
+
   
   // State for the slider positions
   const [startPosition, setStartPosition] = useState(0);
@@ -43,8 +41,12 @@ const RangeSlider = ({
   const [endValue, setEndValue] = useState(initialEndValue || maxValue);
   const [activeDragHandle, setActiveDragHandle] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Special handling for "all-time" value
+  const isAllTimeStart = startValue === "all";
+  const isAllTimeEnd = endValue === "all";
   
-  const sliderRef = useRef(null);
+ const sliderRef = useRef(null);
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
