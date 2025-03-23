@@ -7,6 +7,7 @@ function getDaysInMonth(year, month) {
 }
 
 
+
 const RangeSlider = ({ 
   values, 
   onValuesChange, 
@@ -293,6 +294,110 @@ const RangeSlider = ({
     handleMouseMove(e);
   }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues, showAllTimeOption, startValue, endValue, ALL_TIME_POSITION]);
   
+  // Handle touch events for mobile
+  const handleTouchStart = useCallback((e, isStartHandle) => {
+    if (disabled) return;
+    
+    // Prevent default to avoid page scrolling while dragging
+    e.preventDefault();
+    
+    setActiveDragHandle(isStartHandle ? 'start' : 'end');
+    setIsDragging(true);
+    
+    const handleTouchMove = (e) => {
+      if (!e.touches[0]) return;
+      
+      const slider = sliderRef.current;
+      if (!slider) return;
+      
+      const rect = slider.getBoundingClientRect();
+      const touch = e.touches[0];
+      
+      // Allow touch to go slightly left of the slider for "all time" option
+      const rawX = touch.clientX - rect.left;
+      
+      // FIX: Improved handling of touch position
+      let position;
+      
+      // Check if touch is in the "All Time" zone (left of the slider)
+      if (showAllTimeOption && rawX < 15) {
+        position = ALL_TIME_POSITION; // Use our fixed position for "All Time"
+      } else {
+        // Normal slider range (0-100%)
+        const sliderX = Math.max(0, Math.min(rect.width, rawX));
+        position = (sliderX / rect.width) * 100;
+      }
+      
+      if (singleValueMode) {
+        // In single value mode, both handles move together
+        if (position === ALL_TIME_POSITION) {
+          // Both handles to "All Time"
+          setStartPosition(ALL_TIME_POSITION);
+          setEndPosition(ALL_TIME_POSITION);
+          setStartValue("all");
+          setEndValue("all");
+        } else if (position >= 0 && position <= 100) {
+          // Both handles to the same regular position
+          setStartPosition(position);
+          setEndPosition(position);
+          
+          // Update both values to the same value
+          const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
+          const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
+          setStartValue(newValue);
+          setEndValue(newValue);
+        }
+      } else if (isStartHandle) {
+        // Start handle being dragged
+        if (position === ALL_TIME_POSITION) {
+          // Set to "All Time"
+          setStartPosition(ALL_TIME_POSITION);
+          setStartValue("all");
+        } else if (position >= 0 && position <= 100) {
+          // Don't let start handle pass end handle (unless end handle is at "All Time")
+          if (endValue === "all" || position <= endPosition) {
+            const minSeparation = allowSingleValueSelection ? 0 : 5;
+            const constrainedPosition = Math.min(position, endPosition - minSeparation);
+            setStartPosition(constrainedPosition);
+            updateValueFromPosition(constrainedPosition, true);
+          }
+        }
+      } else {
+        // End handle being dragged
+        if (position === ALL_TIME_POSITION) {
+          // Set to "All Time"
+          setEndPosition(ALL_TIME_POSITION);
+          setEndValue("all");
+        } else if (position >= 0 && position <= 100) {
+          // Don't let end handle pass start handle (unless start handle is at "All Time")
+          if (startValue === "all" || position >= startPosition) {
+            const minSeparation = allowSingleValueSelection ? 0 : 5;
+            const constrainedPosition = Math.max(position, startPosition + minSeparation);
+            setEndPosition(constrainedPosition);
+            updateValueFromPosition(constrainedPosition, false);
+          }
+        }
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      document.removeEventListener('touchmove', handleTouchMove, { passive: false });
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
+      setActiveDragHandle(null);
+      setIsDragging(false);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchcancel', handleTouchEnd);
+    
+    // Initial position update
+    if (e.touches[0]) {
+      handleTouchMove(e);
+    }
+  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues, showAllTimeOption, startValue, endValue, ALL_TIME_POSITION]);
+  
   // Handle click on the track
   const handleTrackClick = useCallback((e) => {
     if (disabled || activeDragHandle !== null) return; // Ignore during active drag
@@ -443,6 +548,7 @@ const RangeSlider = ({
             marginLeft: isAllTimeStart ? allTimeAreaWidth + 'px' : '0',
           }}
           onMouseDown={e => handleMouseDown(e, true)}
+          onTouchStart={e => handleTouchStart(e, true)}
         ></div>
         
         {/* End Handle */}
@@ -459,6 +565,7 @@ const RangeSlider = ({
             marginLeft: isAllTimeEnd ? allTimeAreaWidth + 'px' : '0',
           }}
           onMouseDown={e => handleMouseDown(e, false)}
+          onTouchStart={e => handleTouchStart(e, false)}
         ></div>
         
         {/* Value markers */}
