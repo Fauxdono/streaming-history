@@ -32,8 +32,6 @@ const RangeSlider = ({
   const minValue = sortedValues[0];
   const maxValue = sortedValues[sortedValues.length - 1];
   
-
-  
   // State for the slider positions
   const [startPosition, setStartPosition] = useState(0);
   const [endPosition, setEndPosition] = useState(100);
@@ -46,7 +44,7 @@ const RangeSlider = ({
   const isAllTimeStart = startValue === "all";
   const isAllTimeEnd = endValue === "all";
   
- const sliderRef = useRef(null);
+  const sliderRef = useRef(null);
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
@@ -250,16 +248,30 @@ const RangeSlider = ({
         // Don't let start handle pass end handle
         // Allow equal positions if single value selection is enabled
         const minSeparation = allowSingleValueSelection ? 0 : 5;
+        
+        // IMPORTANT CHANGE: Force start handle to stay to the left of end handle
         percentage = Math.min(percentage, endPosition - minSeparation);
-        setStartPosition(percentage);
-        updateValueFromPosition(percentage, true);
+        
+        // If current percentage represents a valid value on our slider,
+        // update the start position and value
+        if (percentage >= 0 && percentage <= 100) {
+          setStartPosition(percentage);
+          updateValueFromPosition(percentage, true);
+        }
       } else {
         // Don't let end handle pass start handle
         // Allow equal positions if single value selection is enabled
         const minSeparation = allowSingleValueSelection ? 0 : 5;
+        
+        // IMPORTANT CHANGE: Force end handle to stay to the right of start handle
         percentage = Math.max(percentage, startPosition + minSeparation);
-        setEndPosition(percentage);
-        updateValueFromPosition(percentage, false);
+        
+        // If current percentage represents a valid value on our slider,
+        // update the end position and value
+        if (percentage >= 0 && percentage <= 100) {
+          setEndPosition(percentage);
+          updateValueFromPosition(percentage, false);
+        }
       }
     };
     
@@ -277,7 +289,107 @@ const RangeSlider = ({
     handleMouseMove(e);
   }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues, showAllTimeOption]);
   
-  // Handle click on the track (moves the nearest handle)
+  // Handle touch events for mobile
+  const handleTouchStart = useCallback((e, isStartHandle) => {
+    if (disabled) return;
+    
+    // Prevent default to avoid page scrolling while dragging
+    e.preventDefault();
+    
+    setActiveDragHandle(isStartHandle ? 'start' : 'end');
+    setIsDragging(true);
+    
+    const handleTouchMove = (e) => {
+      if (!e.touches[0]) return;
+      
+      const slider = sliderRef.current;
+      if (!slider) return;
+      
+      const rect = slider.getBoundingClientRect();
+      const touch = e.touches[0];
+      
+      // Allow touch to go slightly left of the slider for "all time" option
+      const rawX = touch.clientX - rect.left;
+      const x = showAllTimeOption ? rawX : Math.max(0, Math.min(rect.width, rawX));
+      const width = rect.width;
+      
+      // Calculate position as percentage (0-100)
+      let percentage = (x / width) * 100;
+      
+      // Handle all-time option (left of the slider)
+      if (showAllTimeOption && percentage < -10) {
+        percentage = -10;
+        
+        // Set to "all" time
+        if (isStartHandle) {
+          setStartPosition(percentage);
+          setStartValue("all");
+          
+          // In single value mode, move both handles
+          if (singleValueMode) {
+            setEndPosition(percentage);
+            setEndValue("all");
+          }
+        } else {
+          setEndPosition(percentage);
+          setEndValue("all");
+        }
+        return;
+      }
+      
+      // Clamp to normal slider range for regular values
+      percentage = Math.max(0, Math.min(100, percentage));
+      
+      if (singleValueMode) {
+        // In single value mode, both handles move together
+        setStartPosition(percentage);
+        setEndPosition(percentage);
+        
+        // Update both values to the same value
+        const valueIndex = Math.round((percentage / 100) * (sortedValues.length - 1));
+        const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
+        setStartValue(newValue);
+        setEndValue(newValue);
+      } else if (isStartHandle) {
+        // IMPORTANT: Ensure start handle stays to the left of end handle
+        const minSeparation = allowSingleValueSelection ? 0 : 5;
+        percentage = Math.min(percentage, endPosition - minSeparation);
+        
+        if (percentage >= 0 && percentage <= 100) {
+          setStartPosition(percentage);
+          updateValueFromPosition(percentage, true);
+        }
+      } else {
+        // IMPORTANT: Ensure end handle stays to the right of start handle
+        const minSeparation = allowSingleValueSelection ? 0 : 5;
+        percentage = Math.max(percentage, startPosition + minSeparation);
+        
+        if (percentage >= 0 && percentage <= 100) {
+          setEndPosition(percentage);
+          updateValueFromPosition(percentage, false);
+        }
+      }
+    };
+    
+    const handleTouchEnd = () => {
+      document.removeEventListener('touchmove', handleTouchMove, { passive: false });
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
+      setActiveDragHandle(null);
+      setIsDragging(false);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchcancel', handleTouchEnd);
+    
+    // Initial position update
+    if (e.touches[0]) {
+      handleTouchMove(e);
+    }
+  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode, sortedValues, showAllTimeOption]);
+  
+  // Handle click on the track
   const handleTrackClick = useCallback((e) => {
     if (disabled || activeDragHandle !== null) return; // Ignore during active drag
     
@@ -351,40 +463,90 @@ const RangeSlider = ({
       const startDistance = Math.abs(percentage - startPosition);
       const endDistance = Math.abs(percentage - endPosition);
       
-      // If clicking directly on a marker, we want to either:
-      // 1. If it's already the start or end value, make it a single-day selection
-      // 2. Otherwise, move the closest handle to this marker
-      if (isExactMarker) {
-        if (exactValue === startValue) {
-          // Already the start value, move end handle here for single value selection
-          if (allowSingleValueSelection) {
-            setEndPosition(percentage);
-            setEndValue(exactValue);
-          }
-        } else if (exactValue === endValue) {
-          // Already the end value, move start handle here for single value selection
-          if (allowSingleValueSelection) {
-            setStartPosition(percentage);
-            setStartValue(exactValue);
-          }
-        } else {
-          // Not already selected, move closest handle
-          if (startDistance <= endDistance) {
-            setStartPosition(percentage);
-            setStartValue(exactValue);
-          } else {
-            setEndPosition(percentage);
-            setEndValue(exactValue);
-          }
-        }
-      } else {
-        // Normal click, not directly on a marker
-        if (startDistance <= endDistance) {
+      // ADDED LOGIC: Check if the click would cause handles to cross
+      const wouldCrossBoundaries = 
+        (startDistance <= endDistance && percentage > endPosition) || 
+        (endDistance < startDistance && percentage < startPosition);
+      
+      if (wouldCrossBoundaries) {
+        // Prevent crossing by moving both handles to this position if allowed
+        if (allowSingleValueSelection) {
           setStartPosition(percentage);
-          updateValueFromPosition(percentage, true);
-        } else {
+          setStartValue(exactValue);
           setEndPosition(percentage);
-          updateValueFromPosition(percentage, false);
+          setEndValue(exactValue);
+        }
+        // Otherwise, do nothing
+      } else {
+        // If clicking directly on a marker, handle special cases
+        if (isExactMarker) {
+          if (exactValue === startValue) {
+            // Already the start value, move end handle here for single value selection
+            if (allowSingleValueSelection) {
+              setEndPosition(percentage);
+              setEndValue(exactValue);
+            }
+          } else if (exactValue === endValue) {
+            // Already the end value, move start handle here for single value selection
+            if (allowSingleValueSelection) {
+              setStartPosition(percentage);
+              setStartValue(exactValue);
+            }
+          } else {
+            // Not already selected, move closest handle if it won't cross the other handle
+            if (startDistance <= endDistance) {
+              // Only move start handle if it won't go beyond the end handle
+              if (percentage <= endPosition) {
+                setStartPosition(percentage);
+                setStartValue(exactValue);
+              } else if (allowSingleValueSelection) {
+                // If we allow single value selection, set both to this value
+                setStartPosition(percentage);
+                setStartValue(exactValue);
+                setEndPosition(percentage);
+                setEndValue(exactValue);
+              }
+            } else {
+              // Only move end handle if it won't go beyond the start handle
+              if (percentage >= startPosition) {
+                setEndPosition(percentage);
+                setEndValue(exactValue);
+              } else if (allowSingleValueSelection) {
+                // If we allow single value selection, set both to this value
+                setStartPosition(percentage);
+                setStartValue(exactValue);
+                setEndPosition(percentage);
+                setEndValue(exactValue);
+              }
+            }
+          }
+        } else {
+          // Normal click, not directly on a marker
+          if (startDistance <= endDistance) {
+            // Only move start handle if it won't go beyond the end handle
+            if (percentage <= endPosition) {
+              setStartPosition(percentage);
+              updateValueFromPosition(percentage, true);
+            } else if (allowSingleValueSelection) {
+              // If we allow single value selection, set both to this value
+              setStartPosition(percentage);
+              updateValueFromPosition(percentage, true);
+              setEndPosition(percentage);
+              updateValueFromPosition(percentage, false);
+            }
+          } else {
+            // Only move end handle if it won't go beyond the start handle
+            if (percentage >= startPosition) {
+              setEndPosition(percentage);
+              updateValueFromPosition(percentage, false);
+            } else if (allowSingleValueSelection) {
+              // If we allow single value selection, set both to this value
+              setStartPosition(percentage);
+              updateValueFromPosition(percentage, true);
+              setEndPosition(percentage);
+              updateValueFromPosition(percentage, false);
+            }
+          }
         }
       }
     }
