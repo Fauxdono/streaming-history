@@ -767,6 +767,9 @@ useEffect(() => {
       startValue: ALL_TIME_VALUE,
       endValue: ALL_TIME_VALUE
     });
+    // Make sure month and day ranges are also set to default values
+    setMonthRange({ startValue: '1', endValue: '12' });
+    setDayRange({ startValue: '1', endValue: '31' });
     isInitialized.current = true;
     return;
   }
@@ -792,6 +795,9 @@ useEffect(() => {
           startValue: ALL_TIME_VALUE,
           endValue: ALL_TIME_VALUE
         });
+        // Make sure month and day ranges are also set to default values
+        setMonthRange({ startValue: '1', endValue: '12' });
+        setDayRange({ startValue: '1', endValue: '31' });
       } else {
           // Check if this is a single year selection (full year)
           const isSingleFullYear = 
@@ -806,6 +812,9 @@ useEffect(() => {
               startValue: startDate.getFullYear().toString(),
               endValue: startDate.getFullYear().toString()
             });
+            // Make sure month and day ranges are also set to default values
+            setMonthRange({ startValue: '1', endValue: '12' });
+            setDayRange({ startValue: '1', endValue: '31' });
           } else if (startDate.getFullYear() === endDate.getFullYear()) {
             // Same year but not full year - still use single year mode
             setSingleYearMode(true);
@@ -843,6 +852,7 @@ useEffect(() => {
     
     isInitialized.current = true;
   }, [initialStartDate, initialEndDate, years, ALL_TIME_VALUE]);
+
 // Use available months and days if provided
   const getAvailableMonths = useCallback((year) => {
     if (availableData && availableData[year] && availableData[year].availableMonths) {
@@ -954,59 +964,91 @@ useEffect(() => {
   }, [singleYearMode, applyClicked]);
   
   // Send the date range to the parent component
-  const applyDateRange = useCallback(() => {
-    // Set the apply clicked flag to synchronize state updates
-    setApplyClicked(true);
-    
-    // Check for "all time" selection in single year mode
-    if (yearRange.startValue === ALL_TIME_VALUE || yearRange.endValue === ALL_TIME_VALUE) {
-      // Use the full available range of years
-      const minYear = years[0];
-      const maxYear = years[years.length - 1];
-      
-      // Format as YYYY-MM-DD for consistency
-      const startDate = `${minYear}-01-01`;
-      const endDate = `${maxYear}-12-31`;
-      
-      if (onDateRangeChange) {
-        onDateRangeChange(startDate, endDate);
-      }
-    } else {
-      // Use the selected range
-      let startYear = parseInt(yearRange.startValue);
-      let startMonth = parseInt(monthRange.startValue);
-      let startDay = parseInt(dayRange.startValue);
-      
-      let endYear = parseInt(yearRange.endValue);
-      let endMonth = parseInt(monthRange.endValue);
-      let endDay = parseInt(dayRange.endValue);
-      
-      // In single year mode, use full year range
-      if (singleYearMode) {
-        startMonth = 1;
-        startDay = 1;
-        endMonth = 12;
-        endDay = 31;
-      }
-      
-      // Create date objects
-      const startDate = new Date(startYear, startMonth - 1, startDay);
-      const endDate = new Date(endYear, endMonth - 1, endDay);
-      
-      // Format as YYYY-MM-DD for consistency
-      const formatDate = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
-      
-      if (onDateRangeChange) {
-        onDateRangeChange(formatDate(startDate), formatDate(endDate));
-      }
-    }
-  }, [years, yearRange, monthRange, dayRange, singleYearMode, onDateRangeChange, ALL_TIME_VALUE]);
+ const applyDateRange = useCallback(() => {
+  // Set the apply clicked flag to synchronize state updates
+  setApplyClicked(true);
   
+  // Check for "all time" selection in single year mode
+  if (yearRange.startValue === ALL_TIME_VALUE || yearRange.endValue === ALL_TIME_VALUE) {
+    console.log("Applying ALL TIME date range");
+    
+    // Use empty strings to indicate "All Time" to the parent component
+    if (onDateRangeChange) {
+      onDateRangeChange("", "");
+      return;
+    }
+  } 
+  
+  // Use the selected range
+  let startYear, startMonth, startDay, endYear, endMonth, endDay;
+  
+  // Extract values with validation
+  try {
+    startYear = parseInt(yearRange.startValue);
+    startMonth = parseInt(monthRange.startValue);
+    startDay = parseInt(dayRange.startValue);
+    
+    endYear = parseInt(yearRange.endValue);
+    endMonth = parseInt(monthRange.endValue);
+    endDay = parseInt(dayRange.endValue);
+  } catch (err) {
+    console.error("Error parsing date components:", err);
+    
+    // Fallback to min/max years if parsing fails
+    startYear = parseInt(years[0]);
+    startMonth = 1;
+    startDay = 1;
+    
+    endYear = parseInt(years[years.length - 1]);
+    endMonth = 12;
+    endDay = 31;
+  }
+  
+  // In single year mode, use full year range
+  if (singleYearMode && yearRange.startValue !== ALL_TIME_VALUE) {
+    startMonth = 1;
+    startDay = 1;
+    endMonth = 12;
+    endDay = 31;
+  }
+  
+  // Create date objects with validation
+  try {
+    // Validate month and day values
+    startMonth = Math.max(1, Math.min(12, startMonth));
+    endMonth = Math.max(1, Math.min(12, endMonth));
+    
+    const maxStartDay = getDaysInMonth(startYear, startMonth);
+    const maxEndDay = getDaysInMonth(endYear, endMonth);
+    
+    startDay = Math.max(1, Math.min(maxStartDay, startDay));
+    endDay = Math.max(1, Math.min(maxEndDay, endDay));
+    
+    const startDate = new Date(startYear, startMonth - 1, startDay);
+    const endDate = new Date(endYear, endMonth - 1, endDay);
+    
+    // Format as YYYY-MM-DD for consistency
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    if (onDateRangeChange) {
+      onDateRangeChange(formatDate(startDate), formatDate(endDate));
+    }
+  } catch (err) {
+    console.error("Error creating date objects:", err);
+    
+    // Fallback to using full year range if date creation fails
+    if (onDateRangeChange) {
+      const startYear = years[0];
+      const endYear = years[years.length - 1];
+      onDateRangeChange(`${startYear}-01-01`, `${endYear}-12-31`);
+    }
+  }
+}, [years, yearRange, monthRange, dayRange, singleYearMode, onDateRangeChange, ALL_TIME_VALUE]);
   // Toggle single year mode
   const toggleSingleYearMode = useCallback(() => {
     const newMode = !singleYearMode;

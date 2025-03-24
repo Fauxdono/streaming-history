@@ -113,6 +113,45 @@ const getInitialDates = () => {
   return { initialStartDate: '', initialEndDate: '' };
 };
 
+// Replace the handleDateChange function in CustomTrackRankings
+const handleDateChange = (start, end) => {
+  console.log("Date change:", { start, end });
+  
+  // Note: empty strings mean "All Time" selection
+  setStartDate(start);
+  setEndDate(end);
+  
+  // Update year sliders to match
+  if (!start || !end || start === "" || end === "") {
+    // Empty dates indicate "All Time"
+    console.log("Setting All Time: selectedYear='all', yearRangeMode=false");
+    setSelectedYear('all');
+    setYearRangeMode(false);
+  } else {
+    try {
+      const startYear = new Date(start).getFullYear().toString();
+      const endYear = new Date(end).getFullYear().toString();
+      
+      if (startYear === endYear) {
+        // Single year selection
+        console.log(`Setting single year: ${startYear}`);
+        setSelectedYear(startYear);
+        setYearRangeMode(false);
+      } else {
+        // Year range
+        console.log(`Setting year range: ${startYear}-${endYear}`);
+        setYearRange({ startYear, endYear });
+        setYearRangeMode(true);
+      }
+    } catch (err) {
+      console.error("Error parsing dates:", err);
+      // Fallback to "All Time" if date parsing fails
+      setSelectedYear('all');
+      setYearRangeMode(false);
+    }
+  }
+};
+
 const handleDateChange = (start, end) => {
   console.log("Date change:", { start, end });
   
@@ -252,25 +291,30 @@ const handleDateChange = (start, end) => {
     return map;
   }, [rawPlayData]);
 
-  const filteredTracks = useMemo(() => {
-    if (!rawPlayData?.length) return [];
-    
-    const start = startDate ? new Date(startDate) : new Date(0);
-    start.setHours(0, 0, 0, 0); // Start of day
-    
-    const end = endDate ? new Date(endDate) : new Date();
-    end.setHours(23, 59, 59, 999); // End of day
-    
-    const trackStats = {};
-    rawPlayData.forEach(entry => {
-      try {
-        const timestamp = new Date(entry.ts);
-        
-        // Check if the entry is within the selected date range and has sufficient play time
-        if (timestamp >= start && 
-            timestamp <= end && 
-            entry.ms_played >= 30000 && 
-            entry.master_metadata_track_name) {
+ const filteredTracks = useMemo(() => {
+  if (!rawPlayData?.length) return [];
+  
+  // Handle "All Time" selection
+  const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
+  
+  const start = isAllTime ? new Date(0) : new Date(startDate);
+  start.setHours(0, 0, 0, 0); // Start of day
+  
+  const end = isAllTime ? new Date() : new Date(endDate);
+  end.setHours(23, 59, 59, 999); // End of day
+  
+  console.log(`Filtering tracks with date range: ${start.toISOString()} to ${end.toISOString()}`);
+  
+  const trackStats = {};
+  rawPlayData.forEach(entry => {
+    try {
+      const timestamp = new Date(entry.ts);
+      
+      // Check if the entry is within the selected date range and has sufficient play time
+      if (timestamp >= start && 
+          timestamp <= end && 
+          entry.ms_played >= 30000 && 
+          entry.master_metadata_track_name) {
           
           // Extract feature artists
           let featureArtists = null;
