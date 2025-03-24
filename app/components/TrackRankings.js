@@ -1,11 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PlaylistExporter from './playlist-exporter.js';
+import YearSelector from './year-selector.js';
 
 const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear = {}, formatDuration, onYearChange }) => {
   const [activeTab, setActiveTab] = useState('top250');
   const [selectedYear, setSelectedYear] = useState('all');
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [showExporter, setShowExporter] = useState(false);
+  const [yearRangeMode, setYearRangeMode] = useState(false);
+  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+  
+  // Create an object with years for YearSelector
+  const artistsByYear = useMemo(() => {
+    const yearsObj = {};
+    Object.keys(songsByYear).forEach(year => {
+      yearsObj[year] = []; // YearSelector expects an object with years as keys
+    });
+    return yearsObj;
+  }, [songsByYear]);
   
   useEffect(() => {
     if (onYearChange) {
@@ -22,6 +34,27 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
   // Sort the tracks based on the selected sort method
   const getSortedTracks = (tracks) => {
     return [...tracks].sort((a, b) => b[sortBy] - a[sortBy]);
+  };
+  
+  // Handle year range changes
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    setYearRange({ startYear, endYear });
+    // For now, we'll just use the start year since the current implementation 
+    // doesn't support year ranges for tracks
+    setSelectedYear(startYear);
+  };
+  
+  // Toggle between single year and year range modes
+  const toggleYearRangeMode = (value) => {
+    setYearRangeMode(value);
+  };
+  
+  // Function to get the appropriate label for the tracks tab
+  const getTracksTabLabel = () => { 
+    if (selectedYear === 'all') { 
+      return 'All-time Top 250'; 
+    } 
+    return `Top 100 ${selectedYear}`; 
   };
 
   const TrackTable = ({ tracks }) => (
@@ -101,7 +134,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          {selectedYear === 'all' ? 'Top 250 Tracks' : `Top 100 Tracks ${selectedYear}`}
+          {getTracksTabLabel()}
         </button>
         <button
           onClick={() => setActiveTab('obsessions')}
@@ -113,18 +146,6 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         >
           Top 100 Brief Obsessions
         </button>
-        {activeTab === 'top250' && years.length > 0 && (
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="ml-auto px-3 py-1 border rounded text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Time</option>
-            {years.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        )}
       </div>
 
       <div className="flex justify-between items-center mb-4">
@@ -169,6 +190,20 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
           </button>
         </div>
       </div>
+      
+      {/* Add Year Selector when in top250 tab */}
+      {activeTab === 'top250' && Object.keys(artistsByYear).length > 0 && (
+        <YearSelector 
+          artistsByYear={artistsByYear}
+          onYearChange={setSelectedYear}
+          onYearRangeChange={handleYearRangeChange}
+          initialYear={selectedYear !== 'all' ? selectedYear : null}
+          initialYearRange={yearRange}
+          isRangeMode={yearRangeMode}
+          onToggleRangeMode={toggleYearRangeMode}
+          colorTheme="blue"
+        />
+      )}
       
       {showExporter && (
         <PlaylistExporter 
