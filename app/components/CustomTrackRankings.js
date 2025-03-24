@@ -113,7 +113,7 @@ const getInitialDates = () => {
   return { initialStartDate: '', initialEndDate: '' };
 };
 
-// Replace the handleDateChange function in CustomTrackRankings
+
 const handleDateChange = (start, end) => {
   console.log("Date change:", { start, end });
   
@@ -152,33 +152,6 @@ const handleDateChange = (start, end) => {
   }
 };
 
-const handleDateChange = (start, end) => {
-  console.log("Date change:", { start, end });
-  
-  // Note: empty strings mean "All Time" selection
-  setStartDate(start);
-  setEndDate(end);
-  
-  // Update year sliders to match
-  if (!start || !end) {
-    // Empty dates indicate "All Time"
-    setSelectedYear('all');
-    setYearRangeMode(false);
-  } else {
-    const startYear = new Date(start).getFullYear().toString();
-    const endYear = new Date(end).getFullYear().toString();
-    
-    if (startYear === endYear) {
-      // Single year selection
-      setSelectedYear(startYear);
-      setYearRangeMode(false);
-    } else {
-      // Year range
-      setYearRange({ startYear, endYear });
-      setYearRangeMode(true);
-    }
-  }
-};
   // Toggle between single year and year range modes
   const toggleYearRangeMode = (value) => {
     setYearRangeMode(value);
@@ -294,7 +267,6 @@ const handleDateChange = (start, end) => {
  const filteredTracks = useMemo(() => {
   if (!rawPlayData?.length) return [];
   
-  // Handle "All Time" selection
   const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
   
   const start = isAllTime ? new Date(0) : new Date(startDate);
