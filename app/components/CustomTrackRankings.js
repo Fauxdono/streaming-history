@@ -97,12 +97,19 @@ useEffect(() => {
 }, []); // Empty dependency array ensures it only runs on mount
 
 const getInitialDates = () => {
-  // If explicit dates are set, use those
+  // If we're in "All Time" mode (selectedYear === 'all'), 
+  // use empty strings for All Time
+  if (selectedYear === 'all' && !yearRangeMode) {
+    console.log("Using empty strings for All Time");
+    return { initialStartDate: '', initialEndDate: '' };
+  }
+  
+  // Otherwise use the actual dates
   if (startDate && endDate) {
     return { initialStartDate: startDate, initialEndDate: endDate };
   }
   
-  // Otherwise, provide empty strings which TripleRangeSelector will interpret as "All Time"
+  // Default to empty strings
   return { initialStartDate: '', initialEndDate: '' };
 };
 
