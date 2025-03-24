@@ -146,6 +146,18 @@ const YearSelector = ({
           borderActive: 'border-teal-600',
           borderInactive: 'border-teal-800'
         };
+    case 'orange':
+      default:
+        return {
+          text: 'text-orange-700',
+          bg: 'bg-orange-600',
+          bgHover: 'hover:bg-orange-700',
+          bgLight: 'bg-orange-100',
+          textLight: 'text-orange-700',
+          bgHoverLight: 'hover:bg-orange-200',
+          borderActive: 'border-orange-600',
+          borderInactive: 'border-orange-800'
+        };
     }
   };
 
