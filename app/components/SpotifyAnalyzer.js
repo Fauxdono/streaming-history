@@ -823,10 +823,10 @@ const TabButton = ({ id, label }) => {
             {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
             {processedData.length > 0 && <TabButton id="custom" label="Custom Date Range" />}
             {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
-            {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-            {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
+          {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
             {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
             {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
+         {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
           </div>
         </div>
         
