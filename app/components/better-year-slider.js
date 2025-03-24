@@ -64,6 +64,12 @@ const BetterYearSlider = ({ years, onYearChange, initialYear, colorTheme = 'teal
           textBold: 'text-red-700',
           bg: 'bg-red-600'
         };
+    case 'orange':
+        return {
+          text: 'text-orange-700',
+          textBold: 'text-orange-700',
+          bg: 'bg-orange-600'
+        };
       case 'teal':
       default:
         return {
