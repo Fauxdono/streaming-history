@@ -380,21 +380,6 @@ useEffect(() => {
     handleMouseMove(e);
   }, [disabled, endPosition, endValue, startPosition, startValue, updateValueFromPosition, 
       allowSingleValueSelection, singleValueMode, showAllTimeOption, ALL_TIME_POSITION, ALL_TIME_VALUE]);
-
-const getYearPosition = (index) => {
-  if (showAllTimeOption) {
-    // For sliders with All Time option, reserve position 0 for All Time
-    // and spread the year markers across positions 1 to 100
-    const availableWidth = 100; // Full slider width percentage
-    const startOffset = 10; // Give some space for the All Time marker
-    
-    // Map index 0 to startOffset, and the last index to 100%
-    return startOffset + ((availableWidth - startOffset) * index / (sortedValues.length - 1));
-  } else {
-    // Standard evenly-spaced distribution
-    return (index / (sortedValues.length - 1)) * 100;
-  }
-};
   
   // Handle touch events for mobile
   const handleTouchStart = useCallback((e, isStartHandle) => {
@@ -590,125 +575,129 @@ const getYearPosition = (index) => {
   const isAllTimeStart = startValue === ALL_TIME_VALUE;
   const isAllTimeEnd = endValue === ALL_TIME_VALUE;
   
-// This is the updated RangeSlider component section from triplerangeselector.js
-
-return (
-  <div className="my-3">
-    {/* Title and value display */}
-    <div className="flex justify-between mb-1 items-center">
-      <span className={`${colors.text} text-sm`}>{title}</span>
-      <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
-        {isAllTimeStart && isAllTimeEnd ? "All Time" : 
-         singleValueMode || startValue === endValue 
-          ? formatValue(startValue) 
-          : `${formatValue(startValue)} - ${formatValue(endValue)}`}
+  return (
+    <div className="my-3">
+      {/* Title and value display */}
+      <div className="flex justify-between mb-1 items-center">
+        <span className={`${colors.text} text-sm`}>{title}</span>
+        <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
+          {isAllTimeStart && isAllTimeEnd ? "All Time" : 
+           singleValueMode || startValue === endValue 
+            ? formatValue(startValue) 
+            : `${formatValue(startValue)} - ${formatValue(endValue)}`}
+        </div>
+      </div>
+      
+      {/* Slider container */}
+      <div 
+        ref={sliderRef}
+        className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
+        onClick={handleTrackClick}
+      >
+        {/* Background Line */}
+        <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 transform -translate-y-1/2 rounded-full"></div>
+        
+        {/* Selected Range */}
+        <div 
+          className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
+          style={{ 
+            left: `${startPosition}%`, 
+            width: singleValueMode ? '0.5%' : `${Math.max(0.5, endPosition - startPosition)}%`
+          }}
+        ></div>
+        
+        {/* Start Handle */}
+        <div 
+          className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
+            activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
+          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
+          style={{ 
+            left: `${startPosition}%`,
+            opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1,
+          }}
+          onMouseDown={e => handleMouseDown(e, true)}
+          onTouchStart={e => handleTouchStart(e, true)}
+        ></div>
+        
+        {/* End Handle */}
+        <div 
+          className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
+            activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
+          } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
+          style={{ 
+            left: `${endPosition}%`,
+            opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1,
+          }}
+          onMouseDown={e => handleMouseDown(e, false)}
+          onTouchStart={e => handleTouchStart(e, false)}
+        ></div>
+        
+        {/* All-Time marker - special marker at position 0 when All-Time is enabled */}
+        {showAllTimeOption && (
+          <div 
+            className={`absolute top-1/2 w-1 h-4 ${colors.bgMed} transform -translate-x-1/2 -translate-y-1/2`}
+            style={{ left: '0%' }}
+          >
+            <div className={`absolute w-16 text-xs text-center -translate-x-1/2 mt-4 ${
+              (isAllTimeStart || isAllTimeEnd) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
+            }`}>
+              All Time
+            </div>
+          </div>
+        )}
+{/* Value markers - adjusted to distribute evenly */}
+        {sortedValues.map((value, index) => {
+          // Calculate position, adjusted for All Time if needed
+          let position;
+          if (showAllTimeOption) {
+            const totalPositions = sortedValues.length + 1; // 0 for All Time
+            position = ((index + 1) / (totalPositions - 1)) * 100; // +1 to skip position 0 for All Time
+          } else {
+            position = (index / (sortedValues.length - 1)) * 100; // Standard distribution
+          }
+          
+          // Determine if this marker is within the selected range
+          let isInRange = false;
+          if (startValue === ALL_TIME_VALUE && endValue === ALL_TIME_VALUE) {
+            isInRange = false; // No regular years in range when All Time is selected
+          } else if (startValue === ALL_TIME_VALUE) {
+            // Start is All Time, check if end is this year or greater
+            isInRange = value <= endValue;
+          } else if (endValue === ALL_TIME_VALUE) {
+            // End is All Time, check if start is this year or less
+            isInRange = value >= startValue;
+          } else {
+            // Regular range check
+            isInRange = value >= startValue && value <= endValue;
+          }
+          
+          // Emphasize exact match markers
+          const isStartMarker = value === startValue && startValue !== ALL_TIME_VALUE;
+          const isEndMarker = value === endValue && endValue !== ALL_TIME_VALUE;
+          const isExactMarker = isStartMarker || isEndMarker;
+          
+          return (
+            <div 
+              key={value}
+              className={`absolute top-1/2 ${isExactMarker ? 'w-1.5 h-4' : 'w-1 h-3'} transform -translate-x-1/2 -translate-y-1/2 z-10 ${
+                isInRange ? colors.bgMed : 'bg-gray-400'
+              }`}
+              style={{ left: `${position}%` }}
+            >
+              {/* Only show some labels to avoid crowding */}
+              {(index % Math.max(1, Math.floor(sortedValues.length / 12)) === 0 || isExactMarker) && (
+                <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${
+                  isExactMarker ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
+                }`}>
+                  {formatValue(value)}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
-    
-    {/* Slider container */}
-    <div 
-      ref={sliderRef}
-      className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
-      onClick={handleTrackClick}
-    >
-      {/* Background Line */}
-      <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 transform -translate-y-1/2 rounded-full"></div>
-      
-      {/* Selected Range */}
-      <div 
-        className={`absolute top-1/2 h-1 ${colors.bgMed} transform -translate-y-1/2 rounded-full`}
-        style={{ 
-          left: `${startPosition}%`, 
-          width: singleValueMode ? '0.5%' : `${Math.max(0.5, endPosition - startPosition)}%`
-        }}
-      ></div>
-      
-      {/* Start Handle */}
-      <div 
-        className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
-          activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
-        } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
-        style={{ 
-          left: `${startPosition}%`,
-          opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1,
-        }}
-        onMouseDown={e => handleMouseDown(e, true)}
-        onTouchStart={e => handleTouchStart(e, true)}
-      ></div>
-      
-      {/* End Handle */}
-      <div 
-        className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
-          activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
-        } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
-        style={{ 
-          left: `${endPosition}%`,
-          opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1,
-        }}
-        onMouseDown={e => handleMouseDown(e, false)}
-        onTouchStart={e => handleTouchStart(e, false)}
-      ></div>
-      
-      {/* All-Time marker - COMPLETELY SEPARATE from regular year markers */}
-      {showAllTimeOption && (
-        <div 
-          className={`absolute top-1/2 ${isAllTimeStart || isAllTimeEnd ? 'w-1.5 h-4' : 'w-1 h-3'} ${colors.bgMed} transform -translate-x-1/2 -translate-y-1/2 z-10`}
-          style={{ left: '0%' }}
-        >
-          <div className={`absolute w-16 text-xs text-center -translate-x-1/2 mt-4 ${
-            (isAllTimeStart || isAllTimeEnd) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
-          }`}>
-            All Time
-          </div>
-        </div>
-      )}
-
-      {/* Value markers - using the custom positioning function */}
-      {sortedValues.map((value, index) => {
-        const position = getYearPosition(index);
-        
-        // Determine if this marker is within the selected range
-        let isInRange = false;
-        if (startValue === ALL_TIME_VALUE && endValue === ALL_TIME_VALUE) {
-          isInRange = false; // No regular years in range when All Time is selected
-        } else if (startValue === ALL_TIME_VALUE) {
-          // Start is All Time, check if end is this year or greater
-          isInRange = value <= endValue;
-        } else if (endValue === ALL_TIME_VALUE) {
-          // End is All Time, check if start is this year or less
-          isInRange = value >= startValue;
-        } else {
-          // Regular range check
-          isInRange = value >= startValue && value <= endValue;
-        }
-        
-        // Emphasize exact match markers
-        const isStartMarker = value === startValue && startValue !== ALL_TIME_VALUE;
-        const isEndMarker = value === endValue && endValue !== ALL_TIME_VALUE;
-        const isExactMarker = isStartMarker || isEndMarker;
-        
-        return (
-          <div 
-            key={value}
-            className={`absolute top-1/2 ${isExactMarker ? 'w-1.5 h-4' : 'w-1 h-3'} transform -translate-x-1/2 -translate-y-1/2 z-10 ${
-              isInRange ? colors.bgMed : 'bg-gray-400'
-            }`}
-            style={{ left: `${position}%` }}
-          >
-            {/* Only show some labels to avoid crowding */}
-            {(index % Math.max(1, Math.floor(sortedValues.length / 12)) === 0 || isExactMarker) && (
-              <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${
-                isExactMarker ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
-              }`}>
-                {formatValue(value)}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  </div>
-);
+  );
 };
 
 const TripleRangeSelector = ({ 
