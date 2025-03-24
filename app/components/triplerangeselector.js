@@ -110,7 +110,7 @@ const RangeSlider = ({
     }
   }, [colorTheme]);
 
-  // Initialize the slider positions based on the initial values
+// Initialize the slider positions based on the initial values
 useEffect(() => {
   // Only run once on mount or when initialization is truly needed
   if (!needsInitialization.current) return;
@@ -142,15 +142,15 @@ useEffect(() => {
     if ((!initialStartValue && !initialEndValue) || 
         (initialStartValue === "" && initialEndValue === "")) {
       console.log("Setting ALL_TIME for both handles due to empty values");
-      newStartPos = ALL_TIME_POSITION;
-      newEndPos = ALL_TIME_POSITION;
+      newStartPos = 0; // Always use exactly 0, not ALL_TIME_POSITION variable
+      newEndPos = 0;   // Always use exactly 0, not ALL_TIME_POSITION variable
       newStartVal = ALL_TIME_VALUE;
       newEndVal = ALL_TIME_VALUE;
     } else {
       // Use simplified logic that clearly separates "All Time" from regular values
       if (initialStartValue === ALL_TIME_VALUE || initialStartValue === "") {
         // When "All Time" is selected, use a fixed position for it
-        newStartPos = ALL_TIME_POSITION; // This should be 0
+        newStartPos = 0; // Always use exactly 0, not ALL_TIME_POSITION variable
         newStartVal = ALL_TIME_VALUE;
       } else if (initialStartValue) {
         // For regular years, calculate position with adjustment for "All Time"
@@ -164,7 +164,7 @@ useEffect(() => {
       
       // Same for end value
       if (initialEndValue === ALL_TIME_VALUE || initialEndValue === "") {
-        newEndPos = ALL_TIME_POSITION;
+        newEndPos = 0; // Always use exactly 0, not ALL_TIME_POSITION variable
         newEndVal = ALL_TIME_VALUE;
       } else if (initialEndValue) {
         const valueIndex = sortedValues.indexOf(initialEndValue.toString());
@@ -215,7 +215,7 @@ useEffect(() => {
   isInitializing.current = false;
   
 }, [initialStartValue, initialEndValue, minValue, maxValue, sortedValues, 
-    singleValueMode, showAllTimeOption, ALL_TIME_VALUE, ALL_TIME_POSITION]);
+    singleValueMode, showAllTimeOption, ALL_TIME_VALUE]);
   
   // When props change, consider re-initialization
   // This ensures that when switching modes, the component is reinitialized properly
@@ -756,12 +756,12 @@ const TripleRangeSelector = ({
     return monthNames[parseInt(monthNum) - 1];
   }, []);
   
-  // Parse initial dates if provided
- useEffect(() => {
+useEffect(() => {
   if (isInitialized.current) return;
   
   // Default to "All Time" when no dates are provided
-  if (!initialStartDate || !initialEndDate) {
+  if (!initialStartDate || !initialEndDate || initialStartDate === "" || initialEndDate === "") {
+    console.log("Triple Range Selector - Setting default 'All Time'");
     setSingleYearMode(true);
     setYearRange({
       startValue: ALL_TIME_VALUE,
