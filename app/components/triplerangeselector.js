@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import YearSelector from './year-selector.js';
 
+// Global state for the date range selector (persists between component unmounts)
+const persistentState = {
+  yearRangeMode: false,
+  selectedYear: 'all',
+  yearRange: { startYear: '', endYear: '' },
+  monthRange: { startValue: '1', endValue: '12' },
+  dayRange: { startValue: '1', endValue: '31' }
+};
+
 // Helper function to get days in a month
 function getDaysInMonth(year, month) {
   // JavaScript months are 0-based, but our input is 1-based
@@ -363,8 +372,8 @@ const TripleRangeSelector = ({
   }, [years]);
   
   // State for year selection
-  const [yearRangeMode, setYearRangeMode] = useState(false);
-  const [selectedYear, setSelectedYear] = useState('all');
+  const [yearRangeMode, setYearRangeMode] = useState(persistentState.yearRangeMode);
+  const [selectedYear, setSelectedYear] = useState(persistentState.selectedYear);
   const [yearRange, setYearRange] = useState({ 
     startYear: initialStartDate ? new Date(initialStartDate).getFullYear().toString() : years[0], 
     endYear: initialEndDate ? new Date(initialEndDate).getFullYear().toString() : years[years.length - 1] 
