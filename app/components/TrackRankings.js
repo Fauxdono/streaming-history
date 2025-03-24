@@ -56,6 +56,29 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
     } 
     return `Top 100 ${selectedYear}`; 
   };
+  
+  // Function to get the appropriate label for the obsessions tab
+  const getObsessionsTabLabel = () => {
+    if (selectedYear === 'all') {
+      return 'All-time Brief Obsessions';
+    }
+    return `Brief Obsessions ${selectedYear}`;
+  };
+
+  // Filter brief obsessions based on selected year
+  const filteredObsessions = useMemo(() => {
+    if (selectedYear === 'all') {
+      return briefObsessions;
+    }
+    
+    // Filter obsessions that occurred in the selected year
+    return briefObsessions.filter(song => {
+      if (!song.intensePeriod || !song.intensePeriod.weekStart) return false;
+      
+      const weekYear = song.intensePeriod.weekStart.getFullYear().toString();
+      return weekYear === selectedYear;
+    });
+  }, [briefObsessions, selectedYear]);
 
   const TrackTable = ({ tracks }) => (
     <table className="w-full">
@@ -96,7 +119,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
     </table>
   );
 
-  const ObsessionsTable = () => (
+  const ObsessionsTable = ({ obsessions }) => (
     <table className="w-full">
       <thead>
         <tr className="border-b">
@@ -109,7 +132,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         </tr>
       </thead>
       <tbody>
-        {briefObsessions.map((song, index) => (
+        {obsessions.map((song, index) => (
           <tr key={song.key} className="border-b hover:bg-blue-50">
             <td className="p-2 text-blue-700">{index + 1}</td>
             <td className="p-2 text-blue-700">{song.trackName}</td>
@@ -144,7 +167,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Top 100 Brief Obsessions
+          {getObsessionsTabLabel()}
         </button>
       </div>
 
@@ -152,7 +175,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         <h3 className="font-bold text-blue-700">
           {activeTab === 'top250' 
             ? (selectedYear === 'all' ? 'All-time Top 250' : `Top 100 ${selectedYear}`)
-            : 'Top 100 Brief Obsessions'}
+            : (selectedYear === 'all' ? 'Top 100 Brief Obsessions' : `Brief Obsessions ${selectedYear}`)}
         </h3>
 
         <div className="flex items-center gap-2">
@@ -191,8 +214,8 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         </div>
       </div>
       
-      {/* Add Year Selector when in top250 tab */}
-      {activeTab === 'top250' && Object.keys(artistsByYear).length > 0 && (
+      {/* Year Selector - show for both tabs */}
+      {Object.keys(artistsByYear).length > 0 && (
         <YearSelector 
           artistsByYear={artistsByYear}
           onYearChange={setSelectedYear}
@@ -219,7 +242,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
           {activeTab === 'top250' ? (
             <TrackTable tracks={selectedYear === 'all' ? processedData : (songsByYear[selectedYear] || [])} />
           ) : (
-            <ObsessionsTable />
+            <ObsessionsTable obsessions={filteredObsessions} />
           )}
         </div>
       </div>
