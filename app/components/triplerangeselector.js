@@ -342,9 +342,6 @@ const TripleRangeSelector = ({
   colorTheme = 'orange',
   availableYears = []
 }) => {
-  // Determine if we're dealing with "All Time" selection
-  const isAllTime = !initialStartDate && !initialEndDate;
-  
   // Process available years
   const years = useMemo(() => {
     if (availableYears && availableYears.length > 0) {
@@ -410,29 +407,9 @@ const TripleRangeSelector = ({
         const startYear = startDate.getFullYear().toString();
         const endYear = endDate.getFullYear().toString();
         
-        // Check if this is a full year selection
-        const isFullYearRange = 
-          startDate.getMonth() === 0 && startDate.getDate() === 1 &&
-          endDate.getMonth() === 11 && endDate.getDate() === 31;
-          
-        if (startYear === endYear && isFullYearRange) {
-          // Single full year selection
-          setSelectedYear(startYear);
-          setYearRangeMode(false);
-        } else if (startYear === endYear) {
-          // Same year but not full year
-          setSelectedYear(startYear);
-          setYearRangeMode(false);
-          setMonthRange({
-            startValue: (startDate.getMonth() + 1).toString(),
-            endValue: (endDate.getMonth() + 1).toString()
-          });
-          setDayRange({
-            startValue: startDate.getDate().toString(),
-            endValue: endDate.getDate().toString()
-          });
-        } else {
-          // Multiple years
+        // Check if years are different (year range)
+        if (startYear !== endYear) {
+          // Multiple years - enable year range mode
           setYearRangeMode(true);
           setYearRange({
             startYear: startYear,
@@ -446,6 +423,27 @@ const TripleRangeSelector = ({
             startValue: startDate.getDate().toString(),
             endValue: endDate.getDate().toString()
           });
+        } else {
+          // Same year - single year mode
+          setSelectedYear(startYear);
+          setYearRangeMode(false);
+          
+          // Check if this is a full year selection
+          const isFullYearRange = 
+            startDate.getMonth() === 0 && startDate.getDate() === 1 &&
+            endDate.getMonth() === 11 && endDate.getDate() === 31;
+            
+          // For partial year, still set month and day ranges
+          if (!isFullYearRange) {
+            setMonthRange({
+              startValue: (startDate.getMonth() + 1).toString(),
+              endValue: (endDate.getMonth() + 1).toString()
+            });
+            setDayRange({
+              startValue: startDate.getDate().toString(),
+              endValue: endDate.getDate().toString()
+            });
+          }
         }
       }
     } catch (err) {
@@ -483,11 +481,9 @@ const TripleRangeSelector = ({
   const handleMonthRangeChange = ({ startValue, endValue }) => {
     setMonthRange({ startValue, endValue });
     
-    // Apply the date range with updated months
+    // Only apply in year range mode
     if (yearRangeMode) {
       applyDateRange(yearRange.startYear, yearRange.endYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
-    } else if (selectedYear !== 'all') {
-      applyDateRange(selectedYear, selectedYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
     }
   };
   
@@ -495,17 +491,22 @@ const TripleRangeSelector = ({
   const handleDayRangeChange = ({ startValue, endValue }) => {
     setDayRange({ startValue, endValue });
     
-    // Apply the date range with updated days
+    // Only apply in year range mode
     if (yearRangeMode) {
       applyDateRange(yearRange.startYear, yearRange.endYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
-    } else if (selectedYear !== 'all') {
-      applyDateRange(selectedYear, selectedYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
     }
   };
   
   // Toggle between single year and year range modes
   const handleToggleRangeMode = (isRange) => {
     setYearRangeMode(isRange);
+    
+    // If switching from range to single, set default date range for the selected year
+    if (!isRange && selectedYear !== 'all') {
+      if (onDateRangeChange) {
+        onDateRangeChange(`${selectedYear}-01-01`, `${selectedYear}-12-31`);
+      }
+    }
   };
   
   // Apply date range with specific values
@@ -532,6 +533,7 @@ const TripleRangeSelector = ({
   
   // Apply custom date range when clicked
   const applyCustomDateRange = () => {
+    // Only apply in year range mode
     if (yearRangeMode) {
       applyDateRange(
         yearRange.startYear, 
@@ -541,16 +543,7 @@ const TripleRangeSelector = ({
         dayRange.startValue, 
         dayRange.endValue
       );
-    } else if (selectedYear !== 'all') {
-      applyDateRange(
-        selectedYear, 
-        selectedYear, 
-        monthRange.startValue, 
-        monthRange.endValue, 
-        dayRange.startValue, 
-        dayRange.endValue
-      );
-    } else {
+    } else if (selectedYear === 'all') {
       // All time
       if (onDateRangeChange) {
         onDateRangeChange("", "");
@@ -569,7 +562,7 @@ const TripleRangeSelector = ({
     if (selectedYear === 'all' && !yearRangeMode) {
       return `All Time (${years[0]}-01-01 to ${years[years.length - 1]}-12-31)`;
     } else if (!yearRangeMode) {
-      return `${selectedYear}-${monthRange.startValue.padStart(2, '0')}-${dayRange.startValue.padStart(2, '0')} to ${selectedYear}-${monthRange.endValue.padStart(2, '0')}-${dayRange.endValue.padStart(2, '0')}`;
+      return `Full Year ${selectedYear} (${selectedYear}-01-01 to ${selectedYear}-12-31)`;
     } else {
       return `${yearRange.startYear}-${monthRange.startValue.padStart(2, '0')}-${dayRange.startValue.padStart(2, '0')} to ${yearRange.endYear}-${monthRange.endValue.padStart(2, '0')}-${dayRange.endValue.padStart(2, '0')}`;
     }
@@ -632,46 +625,52 @@ const TripleRangeSelector = ({
         colorTheme={colorTheme}
       />
       
-      {/* Month and Day selection - only show when not in "all" mode */}
-      {selectedYear !== 'all' && (
-        <div className="mt-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className={`font-medium ${colors.textTitle}`}>Refine Date Range</h4>
-          </div>
-          
-          {/* Month Range Slider */}
-          <RangeSlider
-            values={months}
-            onValuesChange={handleMonthRangeChange}
-            initialStartValue={monthRange.startValue}
-            initialEndValue={monthRange.endValue}
-            displayFormat={formatMonth}
-            title="Month Range"
-            colorTheme={colorTheme}
-            allowSingleValueSelection={true}
-          />
-          
-          {/* Day Range Slider */}
-          <RangeSlider
-            values={Array.from({ length: 31 }, (_, i) => (i + 1).toString())}
-            onValuesChange={handleDayRangeChange}
-            initialStartValue={dayRange.startValue}
-            initialEndValue={dayRange.endValue}
-            title="Day Range"
-            colorTheme={colorTheme}
-            allowSingleValueSelection={true}
-          />
-          
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={applyCustomDateRange}
-              className={`px-4 py-2 ${colors.buttonBg} text-white rounded ${colors.buttonHover}`}
-            >
-              Apply Date Range
-            </button>
-          </div>
+      {/* Always show Month and Day selection underneath, but disable when not in year range mode */}
+      <div className={`mt-4 space-y-4 ${yearRangeMode ? '' : 'opacity-70 pointer-events-none'}`}>
+        <div className="flex justify-between items-center">
+          <h4 className={`font-medium ${colors.textTitle}`}>Refine Date Range</h4>
+          {!yearRangeMode && (
+            <div className="text-sm text-gray-500">
+              (Enable Year Range to use)
+            </div>
+          )}
         </div>
-      )}
+        
+        {/* Month Range Slider */}
+        <RangeSlider
+          values={months}
+          onValuesChange={handleMonthRangeChange}
+          initialStartValue={monthRange.startValue}
+          initialEndValue={monthRange.endValue}
+          displayFormat={formatMonth}
+          title="Month Range"
+          colorTheme={colorTheme}
+          allowSingleValueSelection={true}
+          disabled={!yearRangeMode}
+        />
+        
+        {/* Day Range Slider */}
+        <RangeSlider
+          values={Array.from({ length: 31 }, (_, i) => (i + 1).toString())}
+          onValuesChange={handleDayRangeChange}
+          initialStartValue={dayRange.startValue}
+          initialEndValue={dayRange.endValue}
+          title="Day Range"
+          colorTheme={colorTheme}
+          allowSingleValueSelection={true}
+          disabled={!yearRangeMode}
+        />
+        
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={applyCustomDateRange}
+            disabled={!yearRangeMode}
+            className={`px-4 py-2 ${colors.buttonBg} text-white rounded ${colors.buttonHover} ${!yearRangeMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            Apply Date Range
+          </button>
+        </div>
+      </div>
       
       <div className="mt-3 text-sm text-gray-600">
         Selected range: {getFormattedDateRange()}
