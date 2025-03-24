@@ -109,6 +109,18 @@ const DualHandleYearSlider = ({ years, onYearRangeChange, initialStartYear, init
           buttonBg: 'bg-red-600',
           buttonHover: 'hover:bg-red-700'
         };
+   case 'orange':
+        return {
+          text: 'text-orange-700',
+          textBold: 'text-orange-800',
+          bgMed: 'bg-orange-600',
+          bgLight: 'bg-orange-100',
+          textLight: 'text-orange-600',
+          borderActive: 'border-orange-600',
+          borderInactive: 'border-orange-800',
+          buttonBg: 'bg-orange-600',
+          buttonHover: 'hover:bg-orange-700'
+        };
       case 'teal':
       default:
         return {
