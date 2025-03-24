@@ -65,35 +65,74 @@ const availableYears = useMemo(() => {
   return Array.from(yearsSet).sort();
 }, [rawPlayData]);
   
-  // When year or year range changes, update the date range
-  useEffect(() => {
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      setStartDate(`${yearRange.startYear}-01-01`);
-      setEndDate(`${yearRange.endYear}-12-31`);
-    } else if (selectedYear !== 'all') {
-      setStartDate(`${selectedYear}-01-01`);
-      setEndDate(`${selectedYear}-12-31`);
-    } else {
-      // All years - find min and max dates
-      if (availableYears.length > 0) {
-        const minYear = Math.min(...availableYears.map(y => parseInt(y)));
-        const maxYear = Math.max(...availableYears.map(y => parseInt(y)));
-        setStartDate(`${minYear}-01-01`);
-        setEndDate(`${maxYear}-12-31`);
-      } else {
-        // No data, use defaults
-        setStartDate('');
-        setEndDate('');
-      }
-    }
-  }, [selectedYear, yearRangeMode, yearRange, availableYears]);
+// When year or year range changes, update the date range
+useEffect(() => {
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    setStartDate(`${yearRange.startYear}-01-01`);
+    setEndDate(`${yearRange.endYear}-12-31`);
+  } else if (selectedYear !== 'all') {
+    setStartDate(`${selectedYear}-01-01`);
+    setEndDate(`${selectedYear}-12-31`);
+  } else {
+    // All years - use empty strings to represent "All Time" selection
+    // This will be properly interpreted by TripleRangeSelector
+    setStartDate('');
+    setEndDate('');
+    
+    // Also log for debugging
+    console.log("Setting 'All Time' selection with empty date strings");
+  }
+}, [selectedYear, yearRangeMode, yearRange, availableYears]);
+
+// Add an initialization effect to set default view to "All Time" on component mount
+useEffect(() => {
+  // This runs once on component mount
+  console.log("CustomTrackRankings mounted, initializing to 'All Time'");
   
-// Use this simplified function
+  // Set to "All Time" by default
+  setSelectedYear('all');
+  setYearRangeMode(false);
+  setStartDate('');
+  setEndDate('');
+}, []); // Empty dependency array ensures it only runs on mount
+
+const getInitialDates = () => {
+  // If explicit dates are set, use those
+  if (startDate && endDate) {
+    return { initialStartDate: startDate, initialEndDate: endDate };
+  }
+  
+  // Otherwise, provide empty strings which TripleRangeSelector will interpret as "All Time"
+  return { initialStartDate: '', initialEndDate: '' };
+};
+
 const handleDateChange = (start, end) => {
+  console.log("Date change:", { start, end });
+  
+  // Note: empty strings mean "All Time" selection
   setStartDate(start);
   setEndDate(end);
-};
   
+  // Update year sliders to match
+  if (!start || !end) {
+    // Empty dates indicate "All Time"
+    setSelectedYear('all');
+    setYearRangeMode(false);
+  } else {
+    const startYear = new Date(start).getFullYear().toString();
+    const endYear = new Date(end).getFullYear().toString();
+    
+    if (startYear === endYear) {
+      // Single year selection
+      setSelectedYear(startYear);
+      setYearRangeMode(false);
+    } else {
+      // Year range
+      setYearRange({ startYear, endYear });
+      setYearRangeMode(true);
+    }
+  }
+};
   // Toggle between single year and year range modes
   const toggleYearRangeMode = (value) => {
     setYearRangeMode(value);
@@ -469,8 +508,8 @@ return (
 <div className="mt-2">
 <TripleRangeSelector
   onDateRangeChange={handleDateChange}
-  initialStartDate={startDate || ''}
-  initialEndDate={endDate || ''}
+  initialStartDate={getInitialDates().initialStartDate}
+  initialEndDate={getInitialDates().initialEndDate}
   colorTheme="orange"
   availableYears={availableYears}
 />

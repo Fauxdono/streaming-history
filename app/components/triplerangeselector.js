@@ -111,24 +111,44 @@ const RangeSlider = ({
   }, [colorTheme]);
 
   // Initialize the slider positions based on the initial values
-  useEffect(() => {
-    // Only run once on mount or when initialization is truly needed
-    if (!needsInitialization.current) return;
-    if (isInitializing.current) return; // Prevent overlapping initialization
-    
-    isInitializing.current = true;
-    lastAction.current = "initializing";
-    
-    // Start with default values
-    let newStartPos = 0;
-    let newEndPos = 100;
-    let newStartVal = initialStartValue || minValue;
-    let newEndVal = initialEndValue || maxValue;
-    
-    // Special handling for "All Time" option
-    if (showAllTimeOption) {
+useEffect(() => {
+  // Only run once on mount or when initialization is truly needed
+  if (!needsInitialization.current) return;
+  if (isInitializing.current) return; // Prevent overlapping initialization
+  
+  isInitializing.current = true;
+  lastAction.current = "initializing";
+  
+  // Start with default values
+  let newStartPos = 0;
+  let newEndPos = 100;
+  let newStartVal = initialStartValue || minValue;
+  let newEndVal = initialEndValue || maxValue;
+  
+  // Log what we're initializing with
+  console.log("Slider initialization:", { 
+    initialStartValue, 
+    initialEndValue, 
+    minValue, 
+    maxValue,
+    ALL_TIME_VALUE,
+    ALL_TIME_POSITION,
+    showAllTimeOption
+  });
+  
+  // Special handling for "All Time" option
+  if (showAllTimeOption) {
+    // Handle the case where both values are empty/null/undefined - default to ALL_TIME
+    if ((!initialStartValue && !initialEndValue) || 
+        (initialStartValue === "" && initialEndValue === "")) {
+      console.log("Setting ALL_TIME for both handles due to empty values");
+      newStartPos = ALL_TIME_POSITION;
+      newEndPos = ALL_TIME_POSITION;
+      newStartVal = ALL_TIME_VALUE;
+      newEndVal = ALL_TIME_VALUE;
+    } else {
       // Use simplified logic that clearly separates "All Time" from regular values
-      if (initialStartValue === ALL_TIME_VALUE) {
+      if (initialStartValue === ALL_TIME_VALUE || initialStartValue === "") {
         // When "All Time" is selected, use a fixed position for it
         newStartPos = ALL_TIME_POSITION; // This should be 0
         newStartVal = ALL_TIME_VALUE;
@@ -143,7 +163,7 @@ const RangeSlider = ({
       }
       
       // Same for end value
-      if (initialEndValue === ALL_TIME_VALUE) {
+      if (initialEndValue === ALL_TIME_VALUE || initialEndValue === "") {
         newEndPos = ALL_TIME_POSITION;
         newEndVal = ALL_TIME_VALUE;
       } else if (initialEndValue) {
@@ -154,39 +174,48 @@ const RangeSlider = ({
           newEndVal = initialEndValue;
         }
       }
-    } else {
-      // Standard initialization without "All Time" option
-      if (initialStartValue && sortedValues.includes(initialStartValue.toString())) {
-        const valueIndex = sortedValues.indexOf(initialStartValue.toString());
-        newStartPos = (valueIndex / (sortedValues.length - 1)) * 100;
-        newStartVal = initialStartValue;
-      }
-      
-      if (initialEndValue && sortedValues.includes(initialEndValue.toString())) {
-        const valueIndex = sortedValues.indexOf(initialEndValue.toString());
-        newEndPos = (valueIndex / (sortedValues.length - 1)) * 100;
-        newEndVal = initialEndValue;
-      }
+    }
+  } else {
+    // Standard initialization without "All Time" option
+    if (initialStartValue && sortedValues.includes(initialStartValue.toString())) {
+      const valueIndex = sortedValues.indexOf(initialStartValue.toString());
+      newStartPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      newStartVal = initialStartValue;
     }
     
-    // In single value mode, ensure both handles have the same position and value
-    if (singleValueMode) {
-      newEndPos = newStartPos;
-      newEndVal = newStartVal;
+    if (initialEndValue && sortedValues.includes(initialEndValue.toString())) {
+      const valueIndex = sortedValues.indexOf(initialEndValue.toString());
+      newEndPos = (valueIndex / (sortedValues.length - 1)) * 100;
+      newEndVal = initialEndValue;
     }
-    
-    // Set all states together to avoid flickering
-    setStartPosition(newStartPos);
-    setEndPosition(newEndPos);
-    setStartValue(newStartVal);
-    setEndValue(newEndVal);
-    
-    // Initialization is complete
-    needsInitialization.current = false;
-    isInitializing.current = false;
-    
-  }, [initialStartValue, initialEndValue, minValue, maxValue, sortedValues, 
-      singleValueMode, showAllTimeOption, ALL_TIME_VALUE, ALL_TIME_POSITION]);
+  }
+  
+  // In single value mode, ensure both handles have the same position and value
+  if (singleValueMode) {
+    newEndPos = newStartPos;
+    newEndVal = newStartVal;
+  }
+  
+  // Log what we're setting
+  console.log("Setting slider positions:", {
+    newStartPos,
+    newEndPos,
+    newStartVal,
+    newEndVal
+  });
+  
+  // Set all states together to avoid flickering
+  setStartPosition(newStartPos);
+  setEndPosition(newEndPos);
+  setStartValue(newStartVal);
+  setEndValue(newEndVal);
+  
+  // Initialization is complete
+  needsInitialization.current = false;
+  isInitializing.current = false;
+  
+}, [initialStartValue, initialEndValue, minValue, maxValue, sortedValues, 
+    singleValueMode, showAllTimeOption, ALL_TIME_VALUE, ALL_TIME_POSITION]);
   
   // When props change, consider re-initialization
   // This ensures that when switching modes, the component is reinitialized properly
@@ -728,31 +757,42 @@ const TripleRangeSelector = ({
   }, []);
   
   // Parse initial dates if provided
-  useEffect(() => {
-    if (isInitialized.current) return;
+ useEffect(() => {
+  if (isInitialized.current) return;
+  
+  // Default to "All Time" when no dates are provided
+  if (!initialStartDate || !initialEndDate) {
+    setSingleYearMode(true);
+    setYearRange({
+      startValue: ALL_TIME_VALUE,
+      endValue: ALL_TIME_VALUE
+    });
+    isInitialized.current = true;
+    return;
+  }
+  
+  if (initialStartDate && initialEndDate) {
+    const startDate = new Date(initialStartDate);
+    const endDate = new Date(initialEndDate);
     
-    if (initialStartDate && initialEndDate) {
-      const startDate = new Date(initialStartDate);
-      const endDate = new Date(initialEndDate);
+    if (!isNaN(startDate) && !isNaN(endDate)) {
+      // Check if the range is "all time" or very close to it
+      const isAllTime = 
+        (startDate.getFullYear() <= parseInt(years[0]) && 
+         startDate.getMonth() === 0 && 
+         startDate.getDate() === 1 &&
+         endDate.getFullYear() >= parseInt(years[years.length - 1]) &&
+         endDate.getMonth() === 11 &&
+         endDate.getDate() >= 28);
       
-      if (!isNaN(startDate) && !isNaN(endDate)) {
-        // Check if the range is "all time"
-        const isAllTime = 
-          startDate.getFullYear() === parseInt(years[0]) && 
-          startDate.getMonth() === 0 && 
-          startDate.getDate() === 1 &&
-          endDate.getFullYear() === parseInt(years[years.length - 1]) &&
-          endDate.getMonth() === 11 &&
-          endDate.getDate() === 31;
-        
-        if (isAllTime) {
-          // In our new design, "all time" is a special position in single year mode
-          setSingleYearMode(true);
-          setYearRange({
-            startValue: ALL_TIME_VALUE,
-            endValue: ALL_TIME_VALUE
-          });
-        } else {
+      if (isAllTime) {
+        // "All time" is a special position in single year mode
+        setSingleYearMode(true);
+        setYearRange({
+          startValue: ALL_TIME_VALUE,
+          endValue: ALL_TIME_VALUE
+        });
+      } else {
           // Check if this is a single year selection (full year)
           const isSingleFullYear = 
             startDate.getFullYear() === endDate.getFullYear() &&
