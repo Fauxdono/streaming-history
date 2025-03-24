@@ -147,7 +147,6 @@ const YearSelector = ({
           borderInactive: 'border-teal-800'
         };
     case 'orange':
-      default:
         return {
           text: 'text-orange-700',
           bg: 'bg-orange-600',
