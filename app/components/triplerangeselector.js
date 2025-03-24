@@ -380,6 +380,21 @@ useEffect(() => {
     handleMouseMove(e);
   }, [disabled, endPosition, endValue, startPosition, startValue, updateValueFromPosition, 
       allowSingleValueSelection, singleValueMode, showAllTimeOption, ALL_TIME_POSITION, ALL_TIME_VALUE]);
+
+const getYearPosition = (index) => {
+  if (showAllTimeOption) {
+    // For sliders with All Time option, reserve position 0 for All Time
+    // and spread the year markers across positions 1 to 100
+    const availableWidth = 100; // Full slider width percentage
+    const startOffset = 10; // Give some space for the All Time marker
+    
+    // Map index 0 to startOffset, and the last index to 100%
+    return startOffset + ((availableWidth - startOffset) * index / (sortedValues.length - 1));
+  } else {
+    // Standard evenly-spaced distribution
+    return (index / (sortedValues.length - 1)) * 100;
+  }
+};
   
   // Handle touch events for mobile
   const handleTouchStart = useCallback((e, isStartHandle) => {
@@ -634,10 +649,10 @@ return (
         onTouchStart={e => handleTouchStart(e, false)}
       ></div>
       
-      {/* All-Time marker - special marker at position 0 when All-Time is enabled */}
+      {/* All-Time marker - COMPLETELY SEPARATE from regular year markers */}
       {showAllTimeOption && (
         <div 
-          className={`absolute top-1/2 w-1 h-4 ${colors.bgMed} transform -translate-x-1/2 -translate-y-1/2`}
+          className={`absolute top-1/2 ${isAllTimeStart || isAllTimeEnd ? 'w-1.5 h-4' : 'w-1 h-3'} ${colors.bgMed} transform -translate-x-1/2 -translate-y-1/2 z-10`}
           style={{ left: '0%' }}
         >
           <div className={`absolute w-16 text-xs text-center -translate-x-1/2 mt-4 ${
@@ -648,22 +663,9 @@ return (
         </div>
       )}
 
-      {/* Value markers - adjusted to distribute evenly */}
+      {/* Value markers - using the custom positioning function */}
       {sortedValues.map((value, index) => {
-        // Calculate position, adjusted for All Time if needed
-        let position;
-        if (showAllTimeOption) {
-          // With All Time option, we need to shift all regular values rightward
-          // The slider is divided into sortedValues.length + 1 segments (extra one for All Time)
-          const totalPositions = sortedValues.length + 1; // +1 for All Time
-          
-          // Key fix: This ensures the first year value (at index 0) doesn't overlap with All Time
-          // by adding 1 to the index, ensuring a clear visual separation
-          position = ((index + 1) / (totalPositions - 1)) * 100;
-        } else {
-          // Standard distribution without All Time option
-          position = (index / (sortedValues.length - 1)) * 100;
-        }
+        const position = getYearPosition(index);
         
         // Determine if this marker is within the selected range
         let isInRange = false;
