@@ -1977,6 +1977,7 @@ async processFiles(files) {
             console.error('Error processing Tidal CSV file:', error);
             return [];
           }
+}
 
   
 else if (file.name.endsWith('.csv')) {
