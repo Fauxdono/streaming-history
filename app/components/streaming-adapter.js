@@ -1986,44 +1986,6 @@ export const streamingProcessor = {
     try {
       let allProcessedData = [];
       
-      const processedData = await Promise.all(
-        Array.from(files).map(async (file) => {
-          // Spotify JSON files
-          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-            try {
-              const content = await file.text();
-              const data = JSON.parse(content);
-              const dataWithSource = data.map(entry => ({
-                ...entry,
-                source: 'spotify'
-              }));
-              allProcessedData = [...allProcessedData, ...dataWithSource];
-              return dataWithSource;
-            } catch (error) {
-              console.error('Error parsing JSON:', error);
-              return [];
-            }
-          }
-          
-          // Apple Music CSV files
-          else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-            try {
-              const content = await file.text();
-              const transformedData = await processAppleMusicCSV(content);
-              allProcessedData = [...allProcessedData, ...transformedData];
-              return transformedData;
-            } catch (error) {
-              console.error('Error processing Apple Music CSV file:', error);
-              return [];
-            }
-          }
-
-// Main processor
-export const streamingProcessor = {
-  async processFiles(files) {
-    try {
-      let allProcessedData = [];
-      
       // Create maps to hold Tidal-specific files
       const tidalStreaming = files.find(file => 
         file.name.toLowerCase().includes('tidal') && 
