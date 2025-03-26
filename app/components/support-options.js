@@ -158,7 +158,7 @@ const SupportOptions = ({ className = "" }) => {
           </div>
           
           <div className="mt-4 text-xs text-center text-gray-600">
-            Support keeps this project running without ads 💖
+            Love Yourz💖
           </div>
         </CardContent>
       )}
