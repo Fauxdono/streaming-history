@@ -701,7 +701,6 @@ async function processDeezerXLSX(file) {
     return [];
   }
 }
-// Process Tidal CSV data
 async function processTidalCSV(content) {
   return new Promise((resolve) => {
     Papa.parse(content, {
@@ -713,7 +712,14 @@ async function processTidalCSV(content) {
         console.log('Tidal CSV headers:', results.meta.fields);
         
         const transformedData = results.data
-          .filter(row => row.track_title && row.artist_name)
+          .filter(row => {
+            // Add explicit checks for required fields
+            return row.track_title && 
+                   row.artist_name && 
+                   // Ensure these are actually strings
+                   typeof row.track_title === 'string' && 
+                   typeof row.artist_name === 'string';
+          })
           .map(row => {
             // Parse the timestamp
             let timestamp;
@@ -735,12 +741,13 @@ async function processTidalCSV(content) {
               parseFloat(row.stream_duration_ms) || 210000; // Default to 3.5 minutes if parsing fails
             
             // Create standardized entry
+            // Ensure strings are used
             return {
               ts: timestamp,
               ms_played: duration,
-              master_metadata_track_name: row.track_title,
-              master_metadata_album_artist_name: row.artist_name,
-              master_metadata_album_album_name: "Unknown Album", // Tidal CSV doesn't include album name
+              master_metadata_track_name: String(row.track_title || 'Unknown Track'),
+              master_metadata_album_artist_name: String(row.artist_name || 'Unknown Artist'),
+              master_metadata_album_album_name: String(row.album_name || "Unknown Album"),
               reason_start: "trackdone",
               reason_end: "trackdone",
               shuffle: false,
@@ -1270,29 +1277,31 @@ function calculateBriefObsessions(songs, songPlayHistory) {
 
 function isTidalCSV(content) {
   try {
-    // Validate content is a string
+    // Validate input
     if (!content || typeof content !== 'string') {
       return false;
     }
     
     // Split by lines and get the first line
-    const lines = content.split('\n');
-    if (!lines || lines.length === 0) {
+    const lines = content.split('\n').filter(line => line.trim() !== '');
+    if (lines.length === 0) {
       return false;
     }
     
-    const firstLine = lines[0];
-    if (!firstLine || typeof firstLine !== 'string') {
-      return false;
-    }
+    const firstLine = lines[0].toLowerCase();
     
-    // Convert to lowercase and check for Tidal headers
-    const lowercaseLine = firstLine.toLowerCase();
-    const requiredHeaders = ['artist_name', 'track_title', 'entry_date'];
-    return requiredHeaders.every(header => lowercaseLine.includes(header));
+    // Define required Tidal-specific headers
+    const requiredHeaders = [
+      'artist_name', 
+      'track_title', 
+      'entry_date', 
+      'stream_duration_ms' // Added to make detection more specific
+    ];
+    
+    // Check if ALL required headers are present
+    return requiredHeaders.every(header => firstLine.includes(header));
   } catch (error) {
-    // Just log a simple message, avoid any operations on the error object
-    console.warn('Error checking if CSV is Tidal format');
+    console.warn('Error checking if CSV is Tidal format:', error);
     return false;
   }
 }
