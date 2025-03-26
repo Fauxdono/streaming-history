@@ -1,3 +1,4 @@
+'use client'; 
 import Papa from 'papaparse';
 import _ from 'lodash';
 import * as XLSX from 'xlsx';
@@ -1838,6 +1839,7 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
     
     const artist = entry.master_metadata_album_artist_name;
     let timestamp;
+    let year;
     try {
       timestamp = entry.ts instanceof Date 
         ? entry.ts 
@@ -1849,22 +1851,23 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
         return;
       }
       
+      // Get the year before any potential modifications
+      year = timestamp.getFullYear();
+      
       // Check if date is from the future
       const currentYear = new Date().getFullYear();
-      const year = timestamp.getFullYear();
       
       if (year > currentYear) {
         console.warn(`Future year detected: ${year} for artist ${artist}. Defaulting to current year.`);
         dateErrors++;
         timestamp = new Date(); // Default to current date for future dates
+        year = timestamp.getFullYear(); // Update year after modification
       }
     } catch (e) {
       console.warn("Error parsing timestamp:", entry.ts, e);
       dateErrors++;
       return;
     }
-    
-    const year = timestamp.getFullYear();
     
     if (!artistsByYear[year]) {
       artistsByYear[year] = {};
