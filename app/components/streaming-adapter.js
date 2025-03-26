@@ -1979,7 +1979,9 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
   return result;
 }
 
-// Update the streamingProcessor.processFiles method with Tidal support
+// Main processor
+export const streamingProcessor = {
+ // Update the streamingProcessor.processFiles method with Tidal support
 // Place this code inside your existing streamingProcessor object
 async processFiles(files) {
   try {
