@@ -1270,27 +1270,28 @@ function calculateBriefObsessions(songs, songPlayHistory) {
 
 function isTidalCSV(content) {
   try {
-    // Make sure content is a string
-    if (!content) return false;
-    
-    // Force content to be a string if it's not already
-    const contentStr = String(content);
+    // Validate content is a string
+    if (!content || typeof content !== 'string') {
+      return false;
+    }
     
     // Split by lines and get the first line
-    const lines = contentStr.split('\n');
-    if (!lines || lines.length === 0) return false;
+    const lines = content.split('\n');
+    if (!lines || lines.length === 0) {
+      return false;
+    }
     
     const firstLine = lines[0];
-    if (!firstLine) return false;
+    if (!firstLine || typeof firstLine !== 'string') {
+      return false;
+    }
     
-    // Force firstLine to be a string and convert to lowercase
-    const lowercaseLine = String(firstLine).toLowerCase();
-    
-    // Check for required Tidal headers
+    // Convert to lowercase and check for Tidal headers
+    const lowercaseLine = firstLine.toLowerCase();
     const requiredHeaders = ['artist_name', 'track_title', 'entry_date'];
     return requiredHeaders.every(header => lowercaseLine.includes(header));
-  } catch (e) {
-    // Avoid any operations on the error object itself
+  } catch (error) {
+    // Just log a simple message, avoid any operations on the error object
     console.warn('Error checking if CSV is Tidal format');
     return false;
   }
@@ -2013,14 +2014,16 @@ else if (file.name.endsWith('.csv')) {
       return [];
     }
     
-    // Basic content validation
+    // Basic content validation - ensure it's a string
     if (!content || typeof content !== 'string') {
       console.warn(`File ${file.name} has invalid content`);
       return [];
     }
     
-    // Check if it's a Soundcloud CSV
-    if (content.includes('play_time') && content.includes('track_title')) {
+    // Check if it's a Soundcloud CSV - with safer string checks
+    if (typeof content === 'string' && 
+        content.includes('play_time') && 
+        content.includes('track_title')) {
       console.log(`Processing ${file.name} as a Soundcloud CSV file`);
       try {
         const soundcloudData = await processSoundcloudCSV(content);
@@ -2031,26 +2034,30 @@ else if (file.name.endsWith('.csv')) {
       }
     }
     
-    // Check if it's a Tidal CSV
-    try {
-      const isTidal = isTidalCSV(content);
-      if (isTidal) {
-        console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
-        const tidalData = await processTidalCSV(content);
-        return tidalData;
+    // Check if it's a Tidal CSV - make sure we're passing a string
+    if (typeof content === 'string') {
+      try {
+        const isTidal = isTidalCSV(content);
+        if (isTidal) {
+          console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
+          const tidalData = await processTidalCSV(content);
+          return tidalData;
+        }
+      } catch (formatCheckError) {
+        // Just log the error, don't use it for anything else
+        console.error('Error checking file format');
+        return [];
       }
-    } catch (formatCheckError) {
-      console.error('Error checking file format:', formatCheckError);
     }
     
     console.log(`File ${file.name} doesn't match any known format pattern`);
     return [];
   } catch (error) {
+    // Avoid any operations on the error object
     console.error(`Error processing CSV file ${file.name}`);
     return [];
   }
-}     
-          return [];
+}          return [];
         })
       );
       
