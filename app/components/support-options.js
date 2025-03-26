@@ -120,17 +120,19 @@ const SupportOptions = ({ className = "" }) => {
 
   return (
     <Card className={`w-full ${className}`}>
-      <CardContent className="flex justify-between items-center p-3">
-        <div className="flex items-center space-x-2">
-          <span className="text-purple-600 text-sm">no ads, just vibes</span>
-          {!showOptions && <span className="text-red-500">❤️</span>}
+      <CardContent className="p-2">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <span className="text-purple-600 text-xs">no ads, just vibes</span>
+            {!showOptions && <span className="text-red-500">❤️</span>}
+          </div>
+          <button
+            onClick={() => setShowOptions(!showOptions)}
+            className="text-purple-500 hover:text-purple-700 text-xs"
+          >
+            {showOptions ? "Hide" : "Support"}
+          </button>
         </div>
-        <button
-          onClick={() => setShowOptions(!showOptions)}
-          className="text-purple-500 hover:text-purple-700 text-sm"
-        >
-          {showOptions ? "Hide" : "Support"}
-        </button>
       </CardContent>
 
       {showOptions && (
