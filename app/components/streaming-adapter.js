@@ -1926,7 +1926,6 @@ export const streamingProcessor = {
 
    // Create maps to hold Tidal-specific files
       const tidalStreaming = files.find(file => file.name.toLowerCase().includes('streaming') && file.name.endsWith('.csv'));
-      const tidalFavorites = files.find(file => file.name.toLowerCase().includes('favorite') && file.name.endsWith('.csv'));
       
       // Process Tidal files if found
       if (tidalStreaming || tidalFavorites) {
