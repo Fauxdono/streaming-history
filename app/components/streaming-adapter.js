@@ -1967,7 +1967,7 @@ async processFiles(files) {
 
         // Tidal CSV files
         else if (file.name.toLowerCase().includes('tidal') && file.name.endsWith('.csv')) 
-                 file.name === 'streaming.csv'){
+           {
           try {
             const content = await file.text();
             console.log(`Processing ${file.name} as a Tidal CSV file`);
