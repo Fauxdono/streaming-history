@@ -1268,7 +1268,8 @@ function calculateBriefObsessions(songs, songPlayHistory) {
   ).slice(0, 100);
 }
 
-// Update this function in streaming-adapter.js
+// This is a correctly fixed version of the isTidalCSV function
+// Add this function to your streaming-adapter.js file
 function isTidalCSV(content) {
   try {
     // Make sure content is a string
@@ -1292,41 +1293,8 @@ function isTidalCSV(content) {
   }
 }
 
-// Update the code block that handles generic CSV files
-else if (file.name.endsWith('.csv')) {
-  try {
-    const content = await file.text();
-    
-    // Basic content validation
-    if (!content || typeof content !== 'string') {
-      console.warn(`File ${file.name} has invalid content`);
-      return [];
-    }
-    
-    // Check if it's a Soundcloud CSV by looking at content
-    if (content.includes('play_time') && content.includes('track_title')) {
-      console.log(`Processing ${file.name} as a Soundcloud CSV file`);
-      const soundcloudData = await processSoundcloudCSV(content);
-      return soundcloudData;
-    }
-    
-    // Check if it's a Tidal CSV
-    const isTidal = isTidalCSV(content);
-    if (isTidal) {
-      console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
-      const tidalData = await processTidalCSV(content);
-      return tidalData;
-    }
-    
-    console.log(`File ${file.name} doesn't match any known format pattern`);
-    // No matching format found
-    return [];
-  } catch (error) {
-    console.error('Error processing CSV file:', error);
-    return [];
-  }
-}
-  
+
+          
 
 function calculateSongsByYear(songs, songPlayHistory) {
   const songsByYear = {};
@@ -1980,6 +1948,9 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
   return result;
 }
 
+// For the processFiles function, you need to modify this entire function rather than 
+// just inserting the else-if block. Here's how the complete processFiles should be modified:
+
 export const streamingProcessor = {
   async processFiles(files) {
     try {
@@ -2030,10 +2001,16 @@ export const streamingProcessor = {
             }
           }
           
-          // Generic CSV files - check if they're Tidal by content
+          // Generic CSV files - check if they're Tidal or Soundcloud by content
           else if (file.name.endsWith('.csv')) {
             try {
               const content = await file.text();
+              
+              // Basic content validation
+              if (!content || typeof content !== 'string') {
+                console.warn(`File ${file.name} has invalid content`);
+                return [];
+              }
               
               // Check if it's a Soundcloud CSV by looking at content
               if (content.includes('play_time') && content.includes('track_title')) {
@@ -2042,14 +2019,15 @@ export const streamingProcessor = {
                 return soundcloudData;
               }
               
-              // If we have a Tidal detection function, use it
-              // Note: You'll need to have implemented isTidalCSV elsewhere
-              if (typeof isTidalCSV === 'function' && isTidalCSV(content)) {
+              // Check if it's a Tidal CSV
+              const isTidal = isTidalCSV(content);
+              if (isTidal) {
                 console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
                 const tidalData = await processTidalCSV(content);
                 return tidalData;
               }
               
+              console.log(`File ${file.name} doesn't match any known format pattern`);
               // No matching format found
               return [];
             } catch (error) {
@@ -2067,8 +2045,7 @@ export const streamingProcessor = {
               console.error('Error processing Deezer XLSX file:', error);
               return [];
             }
-          }
-          
+          }          
           return [];
         })
       );
