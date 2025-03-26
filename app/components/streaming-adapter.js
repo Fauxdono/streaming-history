@@ -2028,6 +2028,20 @@ export const streamingProcessor = {
               return [];
             }
           }
+
+// Tidal CSV files
+else if ((file.name.toLowerCase().includes('tidal') || file.name === 'streaming.csv') && file.name.endsWith('.csv')) {
+  try {
+    const content = await file.text();
+    console.log(`Processing ${file.name} as a Tidal CSV file`);
+    const tidalData = await processTidalCSV(content);
+    allProcessedData = [...allProcessedData, ...tidalData];
+    return tidalData;
+  } catch (error) {
+    console.error('Error processing Tidal CSV file:', error);
+    return [];
+  }
+}
           
           // Soundcloud CSV files
           else if (file.name.endsWith('.csv')) {
@@ -2058,20 +2072,6 @@ export const streamingProcessor = {
               return [];
             }
           }
-
-// Tidal CSV files
-else if ((file.name.toLowerCase().includes('tidal') || file.name === 'streaming.csv') && file.name.endsWith('.csv')) {
-  try {
-    const content = await file.text();
-    console.log(`Processing ${file.name} as a Tidal CSV file`);
-    const tidalData = await processTidalCSV(content);
-    allProcessedData = [...allProcessedData, ...tidalData];
-    return tidalData;
-  } catch (error) {
-    console.error('Error processing Tidal CSV file:', error);
-    return [];
-  }
-}
           
           return [];
         })
