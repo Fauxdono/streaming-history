@@ -154,6 +154,17 @@ function createMatchKey(trackName, artistName) {
   return `${cleanTrack}-${cleanArtist}`;
 }
 
+function isTidalCSV(content) {
+  try {
+    // Check the first line for Tidal-specific headers
+    const firstLine = content.split('\n')[0].toLowerCase();
+    const requiredHeaders = ['artist_name', 'track_title', 'entry_date'];
+    return requiredHeaders.every(header => firstLine.includes(header));
+  } catch (e) {
+    return false;
+  }
+}
+
 function parseListeningTime(timeValue) {
   // Default play time (3.5 minutes)
   let ms_played = 210000;
@@ -1955,7 +1966,8 @@ async processFiles(files) {
         }
 
         // Tidal CSV files
-        else if (file.name.toLowerCase().includes('tidal') && file.name.endsWith('.csv')) {
+        else if (file.name.toLowerCase().includes('tidal') && file.name.endsWith('.csv')) 
+                 file.name === 'streaming.csv'){
           try {
             const content = await file.text();
             console.log(`Processing ${file.name} as a Tidal CSV file`);
@@ -1965,7 +1977,25 @@ async processFiles(files) {
             console.error('Error processing Tidal CSV file:', error);
             return [];
           }
-        }
+
+  
+else if (file.name.endsWith('.csv')) {
+  try {
+    const content = await file.text();
+    
+    // Check if it's a Tidal CSV based on content
+    if (isTidalCSV(content)) {
+      console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
+      const tidalData = await processTidalCSV(content);
+      return tidalData;
+    }
+    
+    // Try other CSV formats...
+  } catch (error) {
+    console.error('Error processing CSV file:', error);
+    return [];
+  }
+}
         
         // Soundcloud CSV files
         else if (file.name.endsWith('.csv')) {
