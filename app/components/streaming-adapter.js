@@ -1271,32 +1271,30 @@ function calculateBriefObsessions(songs, songPlayHistory) {
 function isTidalCSV(content) {
   try {
     // Make sure content is a string
-    if (!content || typeof content !== 'string') {
-      return false;
-    }
+    if (!content) return false;
+    
+    // Force content to be a string if it's not already
+    const contentStr = String(content);
     
     // Split by lines and get the first line
-    const lines = content.split('\n');
-    if (!lines || lines.length === 0) {
-      return false;
-    }
+    const lines = contentStr.split('\n');
+    if (!lines || lines.length === 0) return false;
     
     const firstLine = lines[0];
-    if (!firstLine || typeof firstLine !== 'string') {
-      return false;
-    }
+    if (!firstLine) return false;
     
-    // Convert to lowercase and check for Tidal headers
-    const lowercaseLine = firstLine.toLowerCase();
+    // Force firstLine to be a string and convert to lowercase
+    const lowercaseLine = String(firstLine).toLowerCase();
+    
+    // Check for required Tidal headers
     const requiredHeaders = ['artist_name', 'track_title', 'entry_date'];
     return requiredHeaders.every(header => lowercaseLine.includes(header));
-  } catch (error) {
-    // Avoid any operations on the error object
+  } catch (e) {
+    // Avoid any operations on the error object itself
     console.warn('Error checking if CSV is Tidal format');
     return false;
   }
 }
-          
 
 function calculateSongsByYear(songs, songPlayHistory) {
   const songsByYear = {};
