@@ -699,132 +699,70 @@ async function processDeezerXLSX(file) {
     return [];
   }
 
-
 // Process Tidal CSV data
-async function processTidalCSV(content, favoritesContent) {
-  // Initialize arrays to hold the different types of data
-  const streamingData = [];
-  const favoritesData = [];
-
-  // Process main streaming data
-  if (content) {
-    await new Promise((resolve) => {
-      Papa.parse(content, {
-        header: true,
-        dynamicTyping: true,
-        skipEmptyLines: true,
-        delimitersToGuess: [',', '\t', '|', ';'],
-        complete: (results) => {
-          console.log('Tidal CSV headers:', results.meta.fields);
-          
-          const parsedData = results.data
-            .filter(row => row.track_title && row.artist_name)
-            .map(row => {
-              // Parse the timestamp
-              let timestamp;
-              try {
-                timestamp = new Date(row.entry_date);
-                // If timestamp parsing fails, use current date as fallback
-                if (isNaN(timestamp.getTime())) {
-                  console.warn('Invalid timestamp in Tidal data:', row.entry_date);
-                  timestamp = new Date();
-                }
-              } catch (e) {
-                console.warn('Error parsing Tidal timestamp:', e);
-                timestamp = new Date(); // Fallback to current date
+async function processTidalCSV(content) {
+  return new Promise((resolve) => {
+    Papa.parse(content, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      delimitersToGuess: [',', '\t', '|', ';'],
+      complete: (results) => {
+        console.log('Tidal CSV headers:', results.meta.fields);
+        
+        const transformedData = results.data
+          .filter(row => row.track_title && row.artist_name)
+          .map(row => {
+            // Parse the timestamp
+            let timestamp;
+            try {
+              timestamp = new Date(row.entry_date);
+              // If timestamp parsing fails, use current date as fallback
+              if (isNaN(timestamp.getTime())) {
+                console.warn('Invalid timestamp in Tidal data:', row.entry_date);
+                timestamp = new Date();
               }
-              
-              // Make sure stream_duration_ms is a number
-              const duration = typeof row.stream_duration_ms === 'number' ? 
-                row.stream_duration_ms : 
-                parseFloat(row.stream_duration_ms) || 210000; // Default to 3.5 minutes if parsing fails
-              
-              // Create standardized entry
-              return {
-                ts: timestamp,
-                ms_played: duration,
-                master_metadata_track_name: row.track_title,
-                master_metadata_album_artist_name: row.artist_name,
-                master_metadata_album_album_name: "Unknown Album", // Tidal CSV doesn't include album name
-                reason_start: "trackdone",
-                reason_end: "trackdone",
-                shuffle: false,
-                skipped: false,
-                platform: "TIDAL",
-                source: "tidal",
-                product_type: row.product_type,
-                client_name: row.client_name_from_session,
-                country: row.country_name,
-                region: row.region_name,
-                city: row.city_name
-              };
-            });
-          
-          streamingData.push(...parsedData);
-          console.log(`Transformed ${parsedData.length} Tidal entries`);
-          resolve();
-        },
-        error: (error) => {
-          console.error('Error parsing Tidal CSV:', error);
-          resolve();
-        }
-      });
+            } catch (e) {
+              console.warn('Error parsing Tidal timestamp:', e);
+              timestamp = new Date(); // Fallback to current date
+            }
+            
+            // Make sure stream_duration_ms is a number
+            const duration = typeof row.stream_duration_ms === 'number' ? 
+              row.stream_duration_ms : 
+              parseFloat(row.stream_duration_ms) || 210000; // Default to 3.5 minutes if parsing fails
+            
+            // Create standardized entry
+            return {
+              ts: timestamp,
+              ms_played: duration,
+              master_metadata_track_name: row.track_title,
+              master_metadata_album_artist_name: row.artist_name,
+              master_metadata_album_album_name: "Unknown Album", // Tidal CSV doesn't include album name
+              reason_start: "trackdone",
+              reason_end: "trackdone",
+              shuffle: false,
+              skipped: false,
+              platform: "TIDAL",
+              source: "tidal",
+              product_type: row.product_type,
+              client_name: row.client_name_from_session,
+              country: row.country_name,
+              region: row.region_name,
+              city: row.city_name
+            };
+          });
+        
+        console.log(`Transformed ${transformedData.length} Tidal entries`);
+        resolve(transformedData);
+      },
+      error: (error) => {
+        console.error('Error parsing Tidal CSV:', error);
+        resolve([]);
+      }
     });
-  }
-  
-  // Process favorites if available
-  if (favoritesContent) {
-    await new Promise((resolve) => {
-      Papa.parse(favoritesContent, {
-        header: true,
-        dynamicTyping: true,
-        skipEmptyLines: true,
-        delimitersToGuess: [',', '\t', '|', ';'],
-        complete: (results) => {
-          console.log('Tidal favorites CSV headers:', results.meta.fields);
-          
-          if (results.data && results.data.length > 0) {
-            // Transform each favorite track to our common format
-            results.data.forEach(entry => {
-              if (entry.artist_name && entry.track_title) {
-                const playTime = new Date(entry.date_added || Date.now());
-                const durationMs = entry.duration ? entry.duration * 1000 : 180000; // Convert to ms
-                
-                favoritesData.push({
-                  ts: playTime,
-                  ms_played: durationMs,
-                  master_metadata_track_name: entry.track_title,
-                  master_metadata_album_artist_name: entry.artist_name,
-                  master_metadata_album_album_name: entry.album_title || 'Unknown Album',
-                  reason_start: "trackdone",
-                  reason_end: "trackdone",
-                  shuffle: false,
-                  skipped: false,
-                  platform: "TIDAL-FAVORITE",
-                  source: "tidal",
-                  favorite: true
-                });
-              }
-            });
-          }
-          
-          console.log(`Transformed ${favoritesData.length} Tidal favorites entries`);
-          resolve();
-        },
-        error: (error) => {
-          console.error('Error parsing Tidal favorites CSV:', error);
-          resolve();
-        }
-      });
-    });
-  }
-  
-  // Combine both streaming and favorites data
-  const combinedData = [...streamingData, ...favoritesData];
-  console.log(`Returning ${combinedData.length} total Tidal entries`);
-  return combinedData;
+  });
 }
-
 
 // This patch should be applied to the calculatePlayStats function in streaming-adapter.js
 
@@ -1981,48 +1919,32 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
 
 // Main processor
 export const streamingProcessor = {
- // Update the streamingProcessor.processFiles method with Tidal support
-// Place this code inside your existing streamingProcessor object
 async processFiles(files) {
   try {
     let allProcessedData = [];
     
-    // Find Tidal-specific files
+    // Find Tidal streaming file
     const tidalStreaming = files.find(file => 
       file.name.toLowerCase().includes('tidal') && 
-      file.name.toLowerCase().includes('streaming') && 
       file.name.endsWith('.csv')
     );
     
-    const tidalFavorites = files.find(file => 
-      file.name.toLowerCase().includes('tidal') && 
-      file.name.toLowerCase().includes('favorite') && 
-      file.name.endsWith('.csv')
-    );
-    
-    // Process Tidal files together if found
-    if (tidalStreaming || tidalFavorites) {
-      let streamingContent = null;
-      let favoritesContent = null;
-      
-      if (tidalStreaming) {
-        streamingContent = await tidalStreaming.text();
+    // Process Tidal file if found
+    if (tidalStreaming) {
+      try {
+        const streamingContent = await tidalStreaming.text();
+        const tidalData = await processTidalCSV(streamingContent);
+        allProcessedData = [...allProcessedData, ...tidalData];
+        console.log(`Processed ${tidalData.length} Tidal entries`);
+      } catch (error) {
+        console.error('Error processing Tidal file:', error);
       }
-      
-      if (tidalFavorites) {
-        favoritesContent = await tidalFavorites.text();
-      }
-      
-      const tidalData = await processTidalCSV(streamingContent, favoritesContent);
-      allProcessedData = [...allProcessedData, ...tidalData];
-      console.log(`Processed ${tidalData.length} Tidal entries`);
     }
     
     const processedData = await Promise.all(
       Array.from(files).map(async (file) => {
-        // Skip Tidal files that were already processed
-        if ((tidalStreaming && file === tidalStreaming) || 
-            (tidalFavorites && file === tidalFavorites)) {
+        // Skip Tidal file that was already processed
+        if (tidalStreaming && file === tidalStreaming) {
           return [];
         }
 
@@ -2105,6 +2027,8 @@ async processFiles(files) {
       })
     );
 
+    // Rest of your processFiles method continues here...
+    
     // Handle ISRC codes from Deezer data
     allProcessedData.forEach(item => {
       if (item.source === 'deezer' && item.isrc) {
