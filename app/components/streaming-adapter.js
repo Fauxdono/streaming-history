@@ -700,57 +700,70 @@ async function processDeezerXLSX(file) {
   }
 
 
-// Add this function to process Tidal CSV data
-async function processTidalCSV(streamingContent, favoritesContent) {
-  // Initialize result arrays
-  const streamingData = [];
-  const favoritesData = [];
-  
-  // Process streaming history if available
-  if (streamingContent) {
-    await new Promise((resolve) => {
-      Papa.parse(streamingContent, {
-        header: true,
-        dynamicTyping: true,
-        skipEmptyLines: true,
-        delimitersToGuess: [',', '\t', '|', ';'],
-        complete: (results) => {
-          console.log('Tidal streaming CSV headers:', results.meta.fields);
-          
-          if (results.data && results.data.length > 0) {
-            // Transform each streaming entry to our common format
-            results.data.forEach(entry => {
-              if (entry.artist_name && entry.track_title) {
-                const playTime = new Date(entry.entry_date || Date.now());
-                
-                streamingData.push({
-                  ts: playTime,
-                  ms_played: entry.stream_duration_ms || 180000, // Default to 3 minutes if duration missing
-                  master_metadata_track_name: entry.track_title,
-                  master_metadata_album_artist_name: entry.artist_name,
-                  master_metadata_album_album_name: 'Unknown Album', // Tidal streaming doesn't include album
-                  reason_start: "trackdone",
-                  reason_end: "trackdone",
-                  shuffle: false,
-                  skipped: false,
-                  platform: entry.client_name_from_session || "TIDAL",
-                  source: "tidal",
-                  country: entry.country_name,
-                  city: entry.city_name
-                });
+/// Process Tidal CSV data
+async function processTidalCSV(content) {
+  return new Promise((resolve) => {
+    Papa.parse(content, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      delimitersToGuess: [',', '\t', '|', ';'],
+      complete: (results) => {
+        console.log('Tidal CSV headers:', results.meta.fields);
+        
+        const transformedData = results.data
+          .filter(row => row.track_title && row.artist_name)
+          .map(row => {
+            // Parse the timestamp
+            let timestamp;
+            try {
+              timestamp = new Date(row.entry_date);
+              // If timestamp parsing fails, use current date as fallback
+              if (isNaN(timestamp.getTime())) {
+                console.warn('Invalid timestamp in Tidal data:', row.entry_date);
+                timestamp = new Date();
               }
-            });
-          }
-          
-          resolve();
-        },
-        error: (error) => {
-          console.error('Error parsing Tidal streaming CSV:', error);
-          resolve();
-        }
-      });
+            } catch (e) {
+              console.warn('Error parsing Tidal timestamp:', e);
+              timestamp = new Date(); // Fallback to current date
+            }
+            
+            // Make sure stream_duration_ms is a number
+            const duration = typeof row.stream_duration_ms === 'number' ? 
+              row.stream_duration_ms : 
+              parseFloat(row.stream_duration_ms) || 210000; // Default to 3.5 minutes if parsing fails
+            
+            // Create standardized entry
+            return {
+              ts: timestamp,
+              ms_played: duration,
+              master_metadata_track_name: row.track_title,
+              master_metadata_album_artist_name: row.artist_name,
+              master_metadata_album_album_name: "Unknown Album", // Tidal CSV doesn't include album name
+              reason_start: "trackdone",
+              reason_end: "trackdone",
+              shuffle: false,
+              skipped: false,
+              platform: "TIDAL",
+              source: "tidal",
+              product_type: row.product_type,
+              client_name: row.client_name_from_session,
+              country: row.country_name,
+              region: row.region_name,
+              city: row.city_name
+            };
+          });
+        
+        console.log(`Transformed ${transformedData.length} Tidal entries`);
+        resolve(transformedData);
+      },
+      error: (error) => {
+        console.error('Error parsing Tidal CSV:', error);
+        resolve([]);
+      }
     });
-  }
+  });
+}
   
   // Process favorites if available
   if (favoritesContent) {
@@ -2045,6 +2058,20 @@ export const streamingProcessor = {
               return [];
             }
           }
+
+// Tidal CSV files
+else if ((file.name.toLowerCase().includes('tidal') || file.name === 'streaming.csv') && file.name.endsWith('.csv')) {
+  try {
+    const content = await file.text();
+    console.log(`Processing ${file.name} as a Tidal CSV file`);
+    const tidalData = await processTidalCSV(content);
+    allProcessedData = [...allProcessedData, ...tidalData];
+    return tidalData;
+  } catch (error) {
+    console.error('Error processing Tidal CSV file:', error);
+    return [];
+  }
+}
           
           return [];
         })
