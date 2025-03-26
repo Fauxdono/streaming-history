@@ -154,14 +154,62 @@ function createMatchKey(trackName, artistName) {
   return `${cleanTrack}-${cleanArtist}`;
 }
 
+// Update this function in streaming-adapter.js
 function isTidalCSV(content) {
   try {
+    // Make sure content is a string
+    if (typeof content !== 'string') {
+      return false;
+    }
+    
+    // Split by lines and get the first line
+    const lines = content.split('\n');
+    if (lines.length === 0) {
+      return false;
+    }
+    
     // Check the first line for Tidal-specific headers
-    const firstLine = content.split('\n')[0].toLowerCase();
+    const firstLine = lines[0].toLowerCase();
     const requiredHeaders = ['artist_name', 'track_title', 'entry_date'];
     return requiredHeaders.every(header => firstLine.includes(header));
   } catch (e) {
+    console.warn('Error checking if CSV is Tidal format:', e);
     return false;
+  }
+}
+
+// Update the code block that handles generic CSV files
+else if (file.name.endsWith('.csv')) {
+  try {
+    const content = await file.text();
+    
+    // Basic content validation
+    if (!content || typeof content !== 'string') {
+      console.warn(`File ${file.name} has invalid content`);
+      return [];
+    }
+    
+    // Check if it's a Soundcloud CSV by looking at content
+    if (content.includes('play_time') && content.includes('track_title')) {
+      console.log(`Processing ${file.name} as a Soundcloud CSV file`);
+      const soundcloudData = await processSoundcloudCSV(content);
+      return soundcloudData;
+    }
+    
+    // Check if it's a Tidal CSV
+    const isTidal = isTidalCSV(content);
+    if (isTidal) {
+      console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
+      const tidalData = await processTidalCSV(content);
+      return tidalData;
+    }
+    
+    console.log(`File ${file.name} doesn't match any known format pattern`);
+    // No matching format found
+    return [];
+  } catch (error) {
+    console.error('Error processing CSV file:', error);
+    return [];
   }
 }
 
