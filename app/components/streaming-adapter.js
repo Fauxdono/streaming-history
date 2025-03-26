@@ -678,53 +678,6 @@ async function processTidalCSV(content) {
     });
   });
 }
-  
-  // Process favorites if available
-  if (favoritesContent) {
-    await new Promise((resolve) => {
-      Papa.parse(favoritesContent, {
-        header: true,
-        dynamicTyping: true,
-        skipEmptyLines: true,
-        delimitersToGuess: [',', '\t', '|', ';'],
-        complete: (results) => {
-          console.log('Tidal favorites CSV headers:', results.meta.fields);
-          
-          if (results.data && results.data.length > 0) {
-            // Transform each favorite track to our common format
-            results.data.forEach(entry => {
-              if (entry.artist_name && entry.track_title) {
-                const playTime = new Date(entry.date_added || Date.now());
-                const durationMs = entry.duration ? entry.duration * 1000 : 180000; // Convert to ms
-                
-                favoritesData.push({
-                  ts: playTime,
-                  ms_played: durationMs,
-                  master_metadata_track_name: entry.track_title,
-                  master_metadata_album_artist_name: entry.artist_name,
-                  master_metadata_album_album_name: entry.album_title || 'Unknown Album',
-                  reason_start: "trackdone",
-                  reason_end: "trackdone",
-                  shuffle: false,
-                  skipped: false,
-                  platform: "TIDAL-FAVORITE",
-                  source: "tidal",
-                  favorite: true
-                });
-              }
-            });
-          }
-          
-          resolve();
-        },
-        error: (error) => {
-          console.error('Error parsing Tidal favorites CSV:', error);
-          resolve();
-        }
-      });
-    });
-  }
-
 
 // Process Deezer XLSX file
 async function processDeezerXLSX(file) {
