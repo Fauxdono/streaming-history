@@ -678,7 +678,7 @@ async function processTidalCSV(content) {
     });
   });
 }
-
+I
 // Process Deezer XLSX file
 async function processDeezerXLSX(file) {
   try {
@@ -763,6 +763,7 @@ async function processDeezerXLSX(file) {
     console.error('Error processing Deezer XLSX file:', error);
     return [];
   }
+}
 
 // This patch should be applied to the calculatePlayStats function in streaming-adapter.js
 
