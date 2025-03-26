@@ -120,7 +120,7 @@ const SupportOptions = ({ className = "" }) => {
 
   return (
     <Card className={`w-full ${className}`}>
-      <CardContent className="p-2">
+      <CardContent className="p-1">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <span className="text-purple-600 text-xs">no ads, just vibes</span>
