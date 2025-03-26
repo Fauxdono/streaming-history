@@ -1928,114 +1928,105 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
   return result;
 }
 
-// Main processor
 export const streamingProcessor = {
-async processFiles(files) {
-  try {
-    let allProcessedData = [];
-    
-    // Process all files through Promise.all - simpler approach
-    const processedData = await Promise.all(
-      Array.from(files).map(async (file) => {
-        // Spotify JSON files
-        if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-          try {
-            const content = await file.text();
-            const data = JSON.parse(content);
-            const dataWithSource = data.map(entry => ({
-              ...entry,
-              source: 'spotify'
-            }));
-            return dataWithSource;
-          } catch (error) {
-            console.error('Error parsing JSON:', error);
-            return [];
-          }
-        }
-        
-        // Apple Music CSV files
-        else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          try {
-            const content = await file.text();
-            const transformedData = await processAppleMusicCSV(content);
-            return transformedData;
-          } catch (error) {
-            console.error('Error processing Apple Music CSV file:', error);
-            return [];
-          }
-        }
-
-        // Tidal CSV files
-        else if ((file.name.toLowerCase().includes('tidal') && file.name.endsWith('.csv')) || 
-         (file.name && file.name === 'streaming.csv')) {
-          try {
-            const content = await file.text();
-            console.log(`Processing ${file.name} as a Tidal CSV file`);
-            const tidalData = await processTidalCSV(content);
-            return tidalData;
-          } catch (error) {
-            console.error('Error processing Tidal CSV file:', error);
-            return [];
-          }
-}
-
-  
-else if (file.name.endsWith('.csv')) {
-  try {
-    const content = await file.text();
-    
-    // Check if it's a Tidal CSV based on content
-    if (isTidalCSV(content)) {
-      console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
-      const tidalData = await processTidalCSV(content);
-      return tidalData;
-    }
-    
-    // Try other CSV formats...
-  } catch (error) {
-    console.error('Error processing CSV file:', error);
-    return [];
-  }
-}
-        
-        // Soundcloud CSV files
-        else if (file.name.endsWith('.csv')) {
-          try {
-            const content = await file.text();
-            // Check if it's a Soundcloud CSV by looking at content
-            if (content.includes('play_time') && content.includes('track_title')) {
-              console.log(`Processing ${file.name} as a Soundcloud CSV file`);
-              const soundcloudData = await processSoundcloudCSV(content);
-              return soundcloudData;
+  async processFiles(files) {
+    try {
+      let allProcessedData = [];
+      
+      // Process all files through Promise.all - simpler approach
+      const processedData = await Promise.all(
+        Array.from(files).map(async (file) => {
+          // Spotify JSON files
+          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
+            try {
+              const content = await file.text();
+              const data = JSON.parse(content);
+              const dataWithSource = data.map(entry => ({
+                ...entry,
+                source: 'spotify'
+              }));
+              return dataWithSource;
+            } catch (error) {
+              console.error('Error parsing JSON:', error);
+              return [];
             }
-            return [];
-          } catch (error) {
-            console.error('Error processing Soundcloud CSV file:', error);
-            return [];
           }
-        }
-        
-        // Deezer XLSX file
-        else if (file.name.toLowerCase().includes('deezer') && file.name.endsWith('.xlsx')) {
-          try {
-            const transformedData = await processDeezerXLSX(file);
-            return transformedData;
-          } catch (error) {
-            console.error('Error processing Deezer XLSX file:', error);
-            return [];
+          
+          // Apple Music CSV files
+          else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
+            try {
+              const content = await file.text();
+              const transformedData = await processAppleMusicCSV(content);
+              return transformedData;
+            } catch (error) {
+              console.error('Error processing Apple Music CSV file:', error);
+              return [];
+            }
           }
+          
+          // Tidal CSV files - handle by name OR by content detection
+          else if ((file.name.toLowerCase().includes('tidal') && file.name.endsWith('.csv')) || 
+                  (file.name === 'streaming.csv')) {
+            try {
+              const content = await file.text();
+              console.log(`Processing ${file.name} as a Tidal CSV file`);
+              const tidalData = await processTidalCSV(content);
+              return tidalData;
+            } catch (error) {
+              console.error('Error processing Tidal CSV file:', error);
+              return [];
+            }
+          }
+          
+          // Generic CSV files - check if they're Tidal by content
+          else if (file.name.endsWith('.csv')) {
+            try {
+              const content = await file.text();
+              
+              // Check if it's a Soundcloud CSV by looking at content
+              if (content.includes('play_time') && content.includes('track_title')) {
+                console.log(`Processing ${file.name} as a Soundcloud CSV file`);
+                const soundcloudData = await processSoundcloudCSV(content);
+                return soundcloudData;
+              }
+              
+              // If we have a Tidal detection function, use it
+              // Note: You'll need to have implemented isTidalCSV elsewhere
+              if (typeof isTidalCSV === 'function' && isTidalCSV(content)) {
+                console.log(`Processing ${file.name} as a Tidal CSV file based on content`);
+                const tidalData = await processTidalCSV(content);
+                return tidalData;
+              }
+              
+              // No matching format found
+              return [];
+            } catch (error) {
+              console.error('Error processing CSV file:', error);
+              return [];
+            }
+          }
+          
+          // Deezer XLSX file
+          else if (file.name.toLowerCase().includes('deezer') && file.name.endsWith('.xlsx')) {
+            try {
+              const transformedData = await processDeezerXLSX(file);
+              return transformedData;
+            } catch (error) {
+              console.error('Error processing Deezer XLSX file:', error);
+              return [];
+            }
+          }
+          
+          return [];
+        })
+      );
+      
+      // Flatten the results and combine into allProcessedData
+      processedData.forEach(dataArray => {
+        if (dataArray && dataArray.length > 0) {
+          allProcessedData = [...allProcessedData, ...dataArray];
         }
-        
-        return [];
-      })
-    );
-    
-    // Flatten the results and combine into allProcessedData
-    processedData.forEach(dataArray => {
-      if (dataArray && dataArray.length > 0) {
-        allProcessedData = [...allProcessedData, ...dataArray];
-      }
-    });
+      });
 
     // Handle ISRC codes from Deezer data
     allProcessedData.forEach(item => {
