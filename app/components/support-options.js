@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, Coffee, CreditCard, DollarSign, Copy, Check, MoreHorizontal } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 
 const SupportOptions = ({ className = "" }) => {
   const [showOptions, setShowOptions] = useState(false);
