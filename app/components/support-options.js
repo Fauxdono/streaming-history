@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, Coffee, CreditCard, DollarSign, Copy, Check } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { Card, CardContent } from './ui/Card';
 
 const SupportOptions = ({ className = "" }) => {
   const [showOptions, setShowOptions] = useState(false);
@@ -119,61 +119,46 @@ const SupportOptions = ({ className = "" }) => {
   };
 
   return (
-    <Card className={`w-full bg-gradient-to-r from-blue-50 to-purple-50 ${className}`}>
-      {!showOptions ? (
-        <CardContent className="flex justify-between items-center p-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-purple-600 text-sm">no ads, just vibes</span>
-            <Heart size={20} className="text-red-500" />
-          </div>
-          <button
-            onClick={() => setShowOptions(true)}
-            className="text-purple-500 hover:text-purple-700 text-sm"
-          >
-            Support
-          </button>
-        </CardContent>
-      ) : (
-        <>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex justify-between items-center">
-              <span className="text-purple-600 text-xs">no ads, just vibes</span>
+    <Card className={`w-full ${className}`}>
+      <CardContent className="flex justify-between items-center p-3">
+        <div className="flex items-center space-x-2">
+          <span className="text-purple-600 text-sm">no ads, just vibes</span>
+          {!showOptions && <span className="text-red-500">❤️</span>}
+        </div>
+        <button
+          onClick={() => setShowOptions(!showOptions)}
+          className="text-purple-500 hover:text-purple-700 text-sm"
+        >
+          {showOptions ? "Hide" : "Support"}
+        </button>
+      </CardContent>
+
+      {showOptions && (
+        <CardContent>
+          <div className="flex flex-wrap gap-2 justify-center mb-4">
+            {['ko-fi', 'buymeacoffee', 'paypal', 'venmo', 'crypto'].map(platform => (
               <button
-                onClick={() => setShowOptions(false)}
-                className="flex items-center space-x-1 text-sm font-normal text-purple-500 hover:text-purple-700"
+                key={platform}
+                onClick={() => setActivePlatform(platform)}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  activePlatform === platform 
+                    ? 'bg-purple-500 text-white' 
+                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                }`}
               >
-                <Heart size={16} className="text-red-500" />
-                <span>Hide</span>
+                {platform}
               </button>
-            </CardTitle>
-          </CardHeader>
+            ))}
+          </div>
           
-          <CardContent>
-            <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {['ko-fi', 'buymeacoffee', 'paypal', 'venmo', 'crypto'].map(platform => (
-                <button
-                  key={platform}
-                  onClick={() => setActivePlatform(platform)}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    activePlatform === platform 
-                      ? 'bg-purple-500 text-white' 
-                      : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-                  }`}
-                >
-                  {platform}
-                </button>
-              ))}
-            </div>
-            
-            <div className="p-4 border border-gray-200 rounded-lg bg-white">
-              {renderPlatformContent()}
-            </div>
-            
-            <div className="mt-4 text-xs text-center text-gray-600">
-              Support keeps this project running without ads 💖
-            </div>
-          </CardContent>
-        </>
+          <div className="p-4 border border-gray-200 rounded-lg bg-white">
+            {renderPlatformContent()}
+          </div>
+          
+          <div className="mt-4 text-xs text-center text-gray-600">
+            Support keeps this project running without ads 💖
+          </div>
+        </CardContent>
       )}
     </Card>
   );
