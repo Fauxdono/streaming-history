@@ -1979,209 +1979,210 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
   return result;
 }
 
-// Update the streamingProcessor.processFiles method with Tidal support
-// Place this code inside your existing streamingProcessor object
-async processFiles(files) {
-  try {
-    let allProcessedData = [];
-    
-    // Find Tidal-specific files
-    const tidalStreaming = files.find(file => 
-      file.name.toLowerCase().includes('tidal') && 
-      file.name.toLowerCase().includes('streaming') && 
-      file.name.endsWith('.csv')
-    );
-    
-    const tidalFavorites = files.find(file => 
-      file.name.toLowerCase().includes('tidal') && 
-      file.name.toLowerCase().includes('favorite') && 
-      file.name.endsWith('.csv')
-    );
-    
-    // Process Tidal files together if found
-    if (tidalStreaming || tidalFavorites) {
-      let streamingContent = null;
-      let favoritesContent = null;
-      
-      if (tidalStreaming) {
-        streamingContent = await tidalStreaming.text();
-      }
-      
-      if (tidalFavorites) {
-        favoritesContent = await tidalFavorites.text();
-      }
-      
-      const tidalData = await processTidalCSV(streamingContent, favoritesContent);
-      allProcessedData = [...allProcessedData, ...tidalData];
-      console.log(`Processed ${tidalData.length} Tidal entries`);
-    }
-    
-    const processedData = await Promise.all(
-      Array.from(files).map(async (file) => {
-        // Skip Tidal files that were already processed
-        if ((tidalStreaming && file === tidalStreaming) || 
-            (tidalFavorites && file === tidalFavorites)) {
-          return [];
-        }
+// Main processor
+export const streamingProcessor = {
+  async processFiles(files) {
+    try {
+      let allProcessedData = [];
 
-        // Spotify JSON files
-        if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-          try {
-            const content = await file.text();
-            const data = JSON.parse(content);
-            const dataWithSource = data.map(entry => ({
-              ...entry,
-              source: 'spotify'
-            }));
-            allProcessedData = [...allProcessedData, ...dataWithSource];
-            return dataWithSource;
-          } catch (error) {
-            console.error('Error parsing JSON:', error);
-            return [];
-          }
+      // Create maps to hold Tidal-specific files
+      const tidalStreaming = files.find(file => 
+        file.name.toLowerCase().includes('tidal') && 
+        file.name.toLowerCase().includes('streaming') && 
+        file.name.endsWith('.csv')
+      );
+      
+      const tidalFavorites = files.find(file => 
+        file.name.toLowerCase().includes('tidal') && 
+        file.name.toLowerCase().includes('favorite') && 
+        file.name.endsWith('.csv')
+      );
+      
+      // Process Tidal files if found
+      if (tidalStreaming || tidalFavorites) {
+        let streamingContent = null;
+        let favoritesContent = null;
+        
+        if (tidalStreaming) {
+          streamingContent = await tidalStreaming.text();
         }
         
-        // Apple Music CSV files
-        else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-          try {
-            const content = await file.text();
-            const transformedData = await processAppleMusicCSV(content);
-            allProcessedData = [...allProcessedData, ...transformedData];
-            return transformedData;
-          } catch (error) {
-            console.error('Error processing Apple Music CSV file:', error);
-            return [];
-          }
-        }
-
-        // Generic Tidal CSV file (not already processed above)
-        else if ((file.name.toLowerCase().includes('tidal') || file.name === 'streaming.csv') && 
-                  file.name.endsWith('.csv')) {
-          try {
-            const content = await file.text();
-            console.log(`Processing ${file.name} as a Tidal CSV file`);
-            const tidalData = await processTidalCSV(content);
-            allProcessedData = [...allProcessedData, ...tidalData];
-            return tidalData;
-          } catch (error) {
-            console.error('Error processing Tidal CSV file:', error);
-            return [];
-          }
+        if (tidalFavorites) {
+          favoritesContent = await tidalFavorites.text();
         }
         
-        // Soundcloud CSV files
-        else if (file.name.endsWith('.csv')) {
-          try {
-            const content = await file.text();
-            // Check if it's a Soundcloud CSV by looking at content
-            if (content.includes('play_time') && content.includes('track_title')) {
-              console.log(`Processing ${file.name} as a Soundcloud CSV file`);
-              const soundcloudData = await processSoundcloudCSV(content);
-              allProcessedData = [...allProcessedData, ...soundcloudData];
-              return soundcloudData;
+        const tidalData = await processTidalCSV(streamingContent, favoritesContent);
+        allProcessedData = [...allProcessedData, ...tidalData];
+        console.log(`Processed ${tidalData.length} Tidal entries`);
+      }
+      
+      const processedData = await Promise.all(
+        Array.from(files).map(async (file) => {
+          // Skip Tidal files that were already processed
+          if ((tidalStreaming && file === tidalStreaming) || 
+              (tidalFavorites && file === tidalFavorites)) {
+            return [];
+          }
+
+          // Spotify JSON files
+          if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
+            try {
+              const content = await file.text();
+              const data = JSON.parse(content);
+              const dataWithSource = data.map(entry => ({
+                ...entry,
+                source: 'spotify'
+              }));
+              allProcessedData = [...allProcessedData, ...dataWithSource];
+              return dataWithSource;
+            } catch (error) {
+              console.error('Error parsing JSON:', error);
+              return [];
             }
-            return [];
-          } catch (error) {
-            console.error('Error processing Soundcloud CSV file:', error);
-            return [];
           }
+          
+          // Apple Music CSV files
+          else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
+            try {
+              const content = await file.text();
+              const transformedData = await processAppleMusicCSV(content);
+              allProcessedData = [...allProcessedData, ...transformedData];
+              return transformedData;
+            } catch (error) {
+              console.error('Error processing Apple Music CSV file:', error);
+              return [];
+            }
+          }
+
+          // Generic Tidal CSV file (not already processed above)
+          else if ((file.name.toLowerCase().includes('tidal') || file.name === 'streaming.csv') && 
+                   file.name.endsWith('.csv')) {
+            try {
+              const content = await file.text();
+              console.log(`Processing ${file.name} as a Tidal CSV file`);
+              const tidalData = await processTidalCSV(content);
+              allProcessedData = [...allProcessedData, ...tidalData];
+              return tidalData;
+            } catch (error) {
+              console.error('Error processing Tidal CSV file:', error);
+              return [];
+            }
+          }
+          
+          // Soundcloud CSV files
+          else if (file.name.endsWith('.csv')) {
+            try {
+              const content = await file.text();
+              // Check if it's a Soundcloud CSV by looking at content
+              if (content.includes('play_time') && content.includes('track_title')) {
+                console.log(`Processing ${file.name} as a Soundcloud CSV file`);
+                const soundcloudData = await processSoundcloudCSV(content);
+                allProcessedData = [...allProcessedData, ...soundcloudData];
+                return soundcloudData;
+              }
+              return [];
+            } catch (error) {
+              console.error('Error processing Soundcloud CSV file:', error);
+              return [];
+            }
+          }
+          
+          // Deezer XLSX file
+          else if (file.name.toLowerCase().includes('deezer') && file.name.endsWith('.xlsx')) {
+            try {
+              const transformedData = await processDeezerXLSX(file);
+              allProcessedData = [...allProcessedData, ...transformedData];
+              return transformedData;
+            } catch (error) {
+              console.error('Error processing Deezer XLSX file:', error);
+              return [];
+            }
+          }
+          
+          return [];
+        })
+      );
+      // Handle ISRC codes from Deezer data
+      allProcessedData.forEach(item => {
+        if (item.source === 'deezer' && item.isrc) {
+          // Store the ISRC code if available for better track matching
+          item.master_metadata_external_ids = {
+            isrc: item.isrc
+          };
         }
-        
-        // Deezer XLSX file
-        else if (file.name.toLowerCase().includes('deezer') && file.name.endsWith('.xlsx')) {
-          try {
-            const transformedData = await processDeezerXLSX(file);
-            allProcessedData = [...allProcessedData, ...transformedData];
-            return transformedData;
-          } catch (error) {
-            console.error('Error processing Deezer XLSX file:', error);
-            return [];
-          }
-        }
-        
-        return [];
-      })
-    );
+      });
 
-    // Handle ISRC codes from Deezer data
-    allProcessedData.forEach(item => {
-      if (item.source === 'deezer' && item.isrc) {
-        // Store the ISRC code if available for better track matching
-        item.master_metadata_external_ids = {
-          isrc: item.isrc
-        };
-      }
-    });
+      // Calculate comprehensive stats using allProcessedData
+      const stats = calculatePlayStats(allProcessedData);
 
-    // Calculate comprehensive stats using allProcessedData
-    const stats = calculatePlayStats(allProcessedData);
 
-    const sortedArtists = Object.values(stats.artists)
-      .map(artist => {
-        const artistSongs = stats.songs.filter(song => song.artist === artist.name);
-        const mostPlayed = _.maxBy(artistSongs, 'playCount');
-        const artistPlays = [];
-        artistSongs.forEach(song => {
-          if (stats.playHistory[song.key]) {
-            artistPlays.push(...stats.playHistory[song.key]);
-          }
-        });
 
-        const streaks = calculateArtistStreaks(artistPlays);
+      const sortedArtists = Object.values(stats.artists)
+        .map(artist => {
+          const artistSongs = stats.songs.filter(song => song.artist === artist.name);
+          const mostPlayed = _.maxBy(artistSongs, 'playCount');
+          const artistPlays = [];
+          artistSongs.forEach(song => {
+            if (stats.playHistory[song.key]) {
+              artistPlays.push(...stats.playHistory[song.key]);
+            }
+          });
 
-        return {
-          ...artist,
-          mostPlayedSong: mostPlayed || { trackName: 'Unknown', playCount: 0 },
-          ...streaks
-        };
-      })
-      .sort((a, b) => b.totalPlayed - a.totalPlayed);
+          const streaks = calculateArtistStreaks(artistPlays);
 
-    const sortedAlbums = _.orderBy(
-      Object.values(stats.albums).map(album => ({
-        ...album,
-        trackCount: album.trackCount.size
-      })),
-      ['totalPlayed'],
-      ['desc']
-    );
+          return {
+            ...artist,
+            mostPlayedSong: mostPlayed || { trackName: 'Unknown', playCount: 0 },
+            ...streaks
+          };
+        })
+        .sort((a, b) => b.totalPlayed - a.totalPlayed);
 
-    const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
-
-    const verifiedAlbums = sortedAlbums.map(album => {
-      if (typeof album.trackCount === 'object' && album.trackCount instanceof Set) {
-        return {
+      const sortedAlbums = _.orderBy(
+        Object.values(stats.albums).map(album => ({
           ...album,
           trackCount: album.trackCount.size
-        };
-      }
-      return album;
-    });
+        })),
+        ['totalPlayed'],
+        ['desc']
+      );
 
+      const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
+ 
+const verifiedAlbums = sortedAlbums.map(album => {
+  if (typeof album.trackCount === 'object' && album.trackCount instanceof Set) {
     return {
-      stats: {
-        totalFiles: files.length,
-        totalEntries: allProcessedData.length,
-        processedSongs: stats.processedSongs,
-        nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
-        uniqueSongs: stats.songs.length, // Use the length of the songs array
-        shortPlays: stats.shortPlays,
-        totalListeningTime: stats.totalListeningTime,
-        serviceListeningTime: stats.serviceListeningTime
-      },
-      topArtists: sortedArtists,
-      topAlbums: verifiedAlbums,
-      processedTracks: sortedSongs,
-      songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
-      briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
-      artistsByYear: calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData),
-      albumsByYear: calculateAlbumsByYear(verifiedAlbums, allProcessedData),
-      rawPlayData: allProcessedData
+      ...album,
+      trackCount: album.trackCount.size
     };
-  } catch (error) {
-    console.error('Error processing files:', error);
-    throw error;
   }
-}
+  return album;
+});
+
+  return {
+  stats: {
+    totalFiles: files.length,
+    totalEntries: allProcessedData.length,
+    processedSongs: stats.processedSongs,
+    nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
+    uniqueSongs: stats.songs.length, // Use the length of the songs array
+    shortPlays: stats.shortPlays,
+    totalListeningTime: stats.totalListeningTime,
+    serviceListeningTime: stats.serviceListeningTime
+  },
+  topArtists: sortedArtists,
+  topAlbums: verifiedAlbums,
+  processedTracks: sortedSongs,
+  songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
+  briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
+  artistsByYear: calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData),
+albumsByYear: calculateAlbumsByYear(verifiedAlbums, allProcessedData),
+  rawPlayData: allProcessedData
+};
+    } catch (error) {
+      console.error('Error processing files:', error);
+      throw error;
+    }
+  }
 };
 export { normalizeString, createMatchKey};
