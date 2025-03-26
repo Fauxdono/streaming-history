@@ -1923,31 +1923,9 @@ async processFiles(files) {
   try {
     let allProcessedData = [];
     
-    // Find Tidal streaming file
-    const tidalStreaming = files.find(file => 
-      file.name.toLowerCase().includes('tidal') && 
-      file.name.endsWith('.csv')
-    );
-    
-    // Process Tidal file if found
-    if (tidalStreaming) {
-      try {
-        const streamingContent = await tidalStreaming.text();
-        const tidalData = await processTidalCSV(streamingContent);
-        allProcessedData = [...allProcessedData, ...tidalData];
-        console.log(`Processed ${tidalData.length} Tidal entries`);
-      } catch (error) {
-        console.error('Error processing Tidal file:', error);
-      }
-    }
-    
+    // Process all files through Promise.all - simpler approach
     const processedData = await Promise.all(
       Array.from(files).map(async (file) => {
-        // Skip Tidal file that was already processed
-        if (tidalStreaming && file === tidalStreaming) {
-          return [];
-        }
-
         // Spotify JSON files
         if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
           try {
@@ -1957,7 +1935,6 @@ async processFiles(files) {
               ...entry,
               source: 'spotify'
             }));
-            allProcessedData = [...allProcessedData, ...dataWithSource];
             return dataWithSource;
           } catch (error) {
             console.error('Error parsing JSON:', error);
@@ -1970,7 +1947,6 @@ async processFiles(files) {
           try {
             const content = await file.text();
             const transformedData = await processAppleMusicCSV(content);
-            allProcessedData = [...allProcessedData, ...transformedData];
             return transformedData;
           } catch (error) {
             console.error('Error processing Apple Music CSV file:', error);
@@ -1978,14 +1954,12 @@ async processFiles(files) {
           }
         }
 
-        // Generic Tidal CSV file (not already processed above)
-        else if ((file.name.toLowerCase().includes('tidal') || file.name === 'streaming.csv') && 
-                  file.name.endsWith('.csv')) {
+        // Tidal CSV files
+        else if (file.name.toLowerCase().includes('tidal') && file.name.endsWith('.csv')) {
           try {
             const content = await file.text();
             console.log(`Processing ${file.name} as a Tidal CSV file`);
             const tidalData = await processTidalCSV(content);
-            allProcessedData = [...allProcessedData, ...tidalData];
             return tidalData;
           } catch (error) {
             console.error('Error processing Tidal CSV file:', error);
@@ -2001,7 +1975,6 @@ async processFiles(files) {
             if (content.includes('play_time') && content.includes('track_title')) {
               console.log(`Processing ${file.name} as a Soundcloud CSV file`);
               const soundcloudData = await processSoundcloudCSV(content);
-              allProcessedData = [...allProcessedData, ...soundcloudData];
               return soundcloudData;
             }
             return [];
@@ -2015,7 +1988,6 @@ async processFiles(files) {
         else if (file.name.toLowerCase().includes('deezer') && file.name.endsWith('.xlsx')) {
           try {
             const transformedData = await processDeezerXLSX(file);
-            allProcessedData = [...allProcessedData, ...transformedData];
             return transformedData;
           } catch (error) {
             console.error('Error processing Deezer XLSX file:', error);
@@ -2026,9 +1998,14 @@ async processFiles(files) {
         return [];
       })
     );
-
-    // Rest of your processFiles method continues here...
     
+    // Flatten the results and combine into allProcessedData
+    processedData.forEach(dataArray => {
+      if (dataArray && dataArray.length > 0) {
+        allProcessedData = [...allProcessedData, ...dataArray];
+      }
+    });
+
     // Handle ISRC codes from Deezer data
     allProcessedData.forEach(item => {
       if (item.source === 'deezer' && item.isrc) {
