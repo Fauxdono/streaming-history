@@ -615,92 +615,6 @@ async function processAppleMusicCSV(content) {
   });
 }
 
-// Process Deezer XLSX file
-async function processDeezerXLSX(file) {
-  try {
-    // For XLSX files, we need to get the content as ArrayBuffer
-    const buffer = await file.arrayBuffer();
-    
-    // Parse the XLSX file
-    const workbook = XLSX.read(new Uint8Array(buffer), { 
-      type: 'array',
-      cellDates: true,
-      cellNF: true
-    });
-    
-    // Find the listening history sheet
-    const historySheetName = "10_listeningHistory";
-    if (!workbook.SheetNames.includes(historySheetName)) {
-      console.error('Listening history sheet not found in Deezer file');
-      return [];
-    }
-    
-    const historySheet = workbook.Sheets[historySheetName];
-    const data = XLSX.utils.sheet_to_json(historySheet);
-    
-    console.log(`Processing ${data.length} Deezer history entries`);
-    
-    // Transform Deezer data to common format
-    const transformedData = data.map(row => {
-      // Extract required fields, handling potential missing fields
-      const trackName = row['Song Title'] || '';
-      const artistName = row['Artist'] || 'Unknown Artist';
-      const albumName = row['Album Title'] || 'Unknown Album';
-      const isrc = row['ISRC'] || null;
-      
-      // Parse listening time (in seconds) 
-      let playDuration = 0;
-      if (row['Listening Time'] && !isNaN(row['Listening Time'])) {
-        // Convert seconds to milliseconds
-        playDuration = parseInt(row['Listening Time']) * 1000;
-      } else {
-        // Default to 3.5 minutes if no valid duration
-        playDuration = 210000;
-      }
-      
-      // Parse date
-      let timestamp;
-      try {
-        // If it's already a Date object, use it
-        if (row['Date'] instanceof Date) {
-          timestamp = row['Date'];
-        } else if (typeof row['Date'] === 'string') {
-          // Parse the date string
-          timestamp = new Date(row['Date']);
-        } else {
-          // Fallback to current time
-          timestamp = new Date();
-        }
-      } catch (e) {
-        console.warn('Error parsing Deezer timestamp:', e);
-        timestamp = new Date();
-      }
-      
-      // Get platform info
-      const platform = row['Platform Name'] || 'deezer';
-      const platformModel = row['Platform Model'] || '';
-      
-      // Create the standardized entry
-      return {
-        master_metadata_track_name: trackName,
-        ts: timestamp,
-        ms_played: playDuration,
-        master_metadata_album_artist_name: artistName,
-        master_metadata_album_album_name: albumName,
-        isrc: isrc, // Store ISRC for better track matching
-        platform: `DEEZER-${platform.toUpperCase()}${platformModel ? '-' + platformModel.toUpperCase() : ''}`,
-        source: 'deezer'
-      };
-    });
-    
-    console.log(`Transformed ${transformedData.length} Deezer entries`);
-    return transformedData;
-  } catch (error) {
-    console.error('Error processing Deezer XLSX file:', error);
-    return [];
-  }
-
-
 // Process Tidal CSV data
 async function processTidalCSV(content, favoritesContent) {
   // Initialize arrays to hold the different types of data
@@ -820,11 +734,90 @@ async function processTidalCSV(content, favoritesContent) {
     });
   }
   
-  // Combine both streaming and favorites data
-  const combinedData = [...streamingData, ...favoritesData];
-  console.log(`Returning ${combinedData.length} total Tidal entries`);
-  return combinedData;
-}
+// Process Deezer XLSX file
+async function processDeezerXLSX(file) {
+  try {
+    // For XLSX files, we need to get the content as ArrayBuffer
+    const buffer = await file.arrayBuffer();
+    
+    // Parse the XLSX file
+    const workbook = XLSX.read(new Uint8Array(buffer), { 
+      type: 'array',
+      cellDates: true,
+      cellNF: true
+    });
+    
+    // Find the listening history sheet
+    const historySheetName = "10_listeningHistory";
+    if (!workbook.SheetNames.includes(historySheetName)) {
+      console.error('Listening history sheet not found in Deezer file');
+      return [];
+    }
+    
+    const historySheet = workbook.Sheets[historySheetName];
+    const data = XLSX.utils.sheet_to_json(historySheet);
+    
+    console.log(`Processing ${data.length} Deezer history entries`);
+    
+    // Transform Deezer data to common format
+    const transformedData = data.map(row => {
+      // Extract required fields, handling potential missing fields
+      const trackName = row['Song Title'] || '';
+      const artistName = row['Artist'] || 'Unknown Artist';
+      const albumName = row['Album Title'] || 'Unknown Album';
+      const isrc = row['ISRC'] || null;
+      
+      // Parse listening time (in seconds) 
+      let playDuration = 0;
+      if (row['Listening Time'] && !isNaN(row['Listening Time'])) {
+        // Convert seconds to milliseconds
+        playDuration = parseInt(row['Listening Time']) * 1000;
+      } else {
+        // Default to 3.5 minutes if no valid duration
+        playDuration = 210000;
+      }
+      
+      // Parse date
+      let timestamp;
+      try {
+        // If it's already a Date object, use it
+        if (row['Date'] instanceof Date) {
+          timestamp = row['Date'];
+        } else if (typeof row['Date'] === 'string') {
+          // Parse the date string
+          timestamp = new Date(row['Date']);
+        } else {
+          // Fallback to current time
+          timestamp = new Date();
+        }
+      } catch (e) {
+        console.warn('Error parsing Deezer timestamp:', e);
+        timestamp = new Date();
+      }
+      
+      // Get platform info
+      const platform = row['Platform Name'] || 'deezer';
+      const platformModel = row['Platform Model'] || '';
+      
+      // Create the standardized entry
+      return {
+        master_metadata_track_name: trackName,
+        ts: timestamp,
+        ms_played: playDuration,
+        master_metadata_album_artist_name: artistName,
+        master_metadata_album_album_name: albumName,
+        isrc: isrc, // Store ISRC for better track matching
+        platform: `DEEZER-${platform.toUpperCase()}${platformModel ? '-' + platformModel.toUpperCase() : ''}`,
+        source: 'deezer'
+      };
+    });
+    
+    console.log(`Transformed ${transformedData.length} Deezer entries`);
+    return transformedData;
+  } catch (error) {
+    console.error('Error processing Deezer XLSX file:', error);
+    return [];
+  }
 
 
 // This patch should be applied to the calculatePlayStats function in streaming-adapter.js
