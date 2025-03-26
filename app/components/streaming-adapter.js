@@ -724,10 +724,6 @@ async function processTidalCSV(content) {
       });
     });
   }
-  
-  // Combine both streaming and favorites data
-  return [...streamingData, ...favoritesData];
-}
 
 
 // Process Deezer XLSX file
