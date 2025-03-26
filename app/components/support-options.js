@@ -8,8 +8,8 @@ const SupportOptions = ({ className = "" }) => {
   const [copied, setCopied] = useState(false);
 
   const accounts = {
-    'ko-fi': 'yourusername',
-    'buymeacoffee': 'yourusername', 
+    'ko-fi': 'fauxdono',
+    'buymeacoffee': 'fauxdono', 
     'paypal': 'youremail@example.com',
     'venmo': '@your-username',
     'crypto': 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' // Example BTC address
@@ -27,7 +27,7 @@ const SupportOptions = ({ className = "" }) => {
       case 'ko-fi':
         return (
           <div className="text-center space-y-3">
-            <div className="text-blue-500 font-medium">Support my work on Ko-fi</div>
+            <div className="text-blue-500 font-medium">Ko-fi</div>
             <a 
               href={`https://ko-fi.com/${accounts['ko-fi']}`}
               target="_blank" 
@@ -42,7 +42,7 @@ const SupportOptions = ({ className = "" }) => {
       case 'buymeacoffee':
         return (
           <div className="text-center space-y-3">
-            <div className="text-yellow-700 font-medium">Support on Buy Me A Coffee</div>
+            <div className="text-yellow-700 font-medium">Buy Me A Coffee</div>
             <a 
               href={`https://www.buymeacoffee.com/${accounts['buymeacoffee']}`}
               target="_blank" 
