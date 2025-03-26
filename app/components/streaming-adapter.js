@@ -698,7 +698,7 @@ async function processDeezerXLSX(file) {
     console.error('Error processing Deezer XLSX file:', error);
     return [];
   }
-
+}
 // Process Tidal CSV data
 async function processTidalCSV(content) {
   return new Promise((resolve) => {
