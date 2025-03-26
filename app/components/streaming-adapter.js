@@ -1923,27 +1923,6 @@ export const streamingProcessor = {
   async processFiles(files) {
     try {
       let allProcessedData = [];
-
-   // Create maps to hold Tidal-specific files
-      const tidalStreaming = files.find(file => file.name.toLowerCase().includes('streaming') && file.name.endsWith('.csv'));
-      
-      // Process Tidal files if found
-      if (tidalStreaming || tidalFavorites) {
-        let streamingContent = null;
-        let favoritesContent = null;
-        
-        if (tidalStreaming) {
-          streamingContent = await tidalStreaming.text();
-        }
-        
-        if (tidalFavorites) {
-          favoritesContent = await tidalFavorites.text();
-        }
-        
-        const tidalData = await processTidalCSV(streamingContent, favoritesContent);
-        allProcessedData = [...allProcessedData, ...tidalData];
-        console.log(`Processed ${tidalData.length} Tidal entries`);
-      }
       
       const processedData = await Promise.all(
         Array.from(files).map(async (file) => {
