@@ -785,68 +785,6 @@ return (
       )}
     </div>
 
-    {/* Basic Export Controls - simplified since we now have PlaylistExporter */}
-    <div>
-      <button
-        onClick={() => setShowExportOptions(!showExportOptions)}
-        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
-      >
-        <Download size={16} />
-        {showExportOptions ? 'Hide Basic Export Options' : 'Basic Export Options'}
-      </button>
-      
-      {showExportOptions && (
-        <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded">
-          <div>
-            <label className="block text-orange-700 mb-1">Playlist Name:</label>
-            <input
-              type="text"
-              value={playlistName}
-              onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
-              placeholder="Enter playlist name"
-            />
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1">Base Music Path:</label>
-            <input
-              type="text"
-              value={musicBasePath}
-              onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
-              placeholder="e.g. /Music/Downloads or C:/Music"
-            />
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1">File Extension:</label>
-            <select
-              value={fileExtension}
-              onChange={(e) => setFileExtension(e.target.value)}
-              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
-            >
-              <option value="mp3">mp3</option>
-              <option value="flac">flac</option>
-              <option value="m4a">m4a</option>
-              <option value="ogg">ogg</option>
-              <option value="wav">wav</option>
-            </select>
-          </div>
-          
-          <div className="mt-3">
-            <button
-              onClick={exportPlaylist}
-              disabled={filteredTracks.length === 0}
-              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed"
-            >
-              Download Basic Playlist ({filteredTracks.length} tracks)
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-
     {filteredTracks.length > 0 ? (
       <div className="overflow-x-auto -mx-4 px-4 mt-2">
         <div className="min-w-[640px]">
