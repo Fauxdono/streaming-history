@@ -847,16 +847,6 @@ return (
       )}
     </div>
 
-    {/* Results section with date range info */}
-    <div className="mt-4 flex justify-between items-center">
-      <div className="text-orange-700 font-medium">
-        Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
-      </div>
-      <div className="text-orange-700">
-        Found <span className="font-bold">{filteredTracks.length}</span> tracks
-      </div>
-    </div>
-
     {filteredTracks.length > 0 ? (
       <div className="overflow-x-auto -mx-4 px-4 mt-2">
         <div className="min-w-[640px]">
