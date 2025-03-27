@@ -29,8 +29,7 @@ export const STREAMING_SERVICES = {
   [STREAMING_TYPES.YOUTUBE_MUSIC]: {
     name: 'YouTube Music',
     downloadUrl: 'https://takeout.google.com/',
-    instructions: 'THIS ONE MIGHT NOT WORK BECAUSE I DONT HAVE YOUTUBE MUSIC FILES. PLEASE SEND ME IF YOU HAVE SO I CAN MAKE IT WORK :) 
-Select YouTube and YouTube Music data in Google Takeout',
+    instructions: 'THIS ONE MIGHT NOT WORK BECAUSE I DONT HAVE YOUTUBE MUSIC FILES. PLEASE SEND ME IF YOU HAVE SO I CAN MAKE IT WORK :), Select YouTube and YouTube Music data in Google Takeout',
     acceptedFormats: '.json,.csv'
   },
   [STREAMING_TYPES.DEEZER]: {
