@@ -5,7 +5,8 @@ const PlaylistExporter = ({
   processedData, 
   songsByYear, 
   selectedYear = 'all',
-  briefObsessions = []
+  briefObsessions = [],
+  colorTheme = 'blue' // Add colorTheme prop with blue as default
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
@@ -23,6 +24,141 @@ const PlaylistExporter = ({
   const downloadQueueRef = useRef([]);
   // Use a ref to track if we're currently processing the queue
   const processingQueueRef = useRef(false);
+
+  // Get color classes based on the provided theme
+  const getColors = () => {
+    switch (colorTheme) {
+      case 'pink':
+        return {
+          primary: 'text-pink-700',
+          lighter: 'text-pink-600',
+          lightest: 'text-pink-500',
+          darkest: 'text-pink-800',
+          bg: 'bg-pink-50',
+          bgAccent: 'bg-pink-100',
+          border: 'border-pink-200',
+          ring: 'ring-pink-500',
+          button: 'bg-pink-600 hover:bg-pink-700',
+          buttonDisabled: 'bg-pink-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'purple':
+        return {
+          primary: 'text-purple-700',
+          lighter: 'text-purple-600',
+          lightest: 'text-purple-500',
+          darkest: 'text-purple-800',
+          bg: 'bg-purple-50',
+          bgAccent: 'bg-purple-100',
+          border: 'border-purple-200',
+          ring: 'ring-purple-500',
+          button: 'bg-purple-600 hover:bg-purple-700',
+          buttonDisabled: 'bg-purple-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'indigo':
+        return {
+          primary: 'text-indigo-700',
+          lighter: 'text-indigo-600',
+          lightest: 'text-indigo-500',
+          darkest: 'text-indigo-800',
+          bg: 'bg-indigo-50',
+          bgAccent: 'bg-indigo-100',
+          border: 'border-indigo-200',
+          ring: 'ring-indigo-500',
+          button: 'bg-indigo-600 hover:bg-indigo-700',
+          buttonDisabled: 'bg-indigo-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'teal':
+        return {
+          primary: 'text-teal-700',
+          lighter: 'text-teal-600',
+          lightest: 'text-teal-500',
+          darkest: 'text-teal-800',
+          bg: 'bg-teal-50',
+          bgAccent: 'bg-teal-100',
+          border: 'border-teal-200',
+          ring: 'ring-teal-500',
+          button: 'bg-teal-600 hover:bg-teal-700',
+          buttonDisabled: 'bg-teal-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'green':
+        return {
+          primary: 'text-green-700',
+          lighter: 'text-green-600',
+          lightest: 'text-green-500',
+          darkest: 'text-green-800',
+          bg: 'bg-green-50',
+          bgAccent: 'bg-green-100',
+          border: 'border-green-200',
+          ring: 'ring-green-500',
+          button: 'bg-green-600 hover:bg-green-700',
+          buttonDisabled: 'bg-green-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'yellow':
+        return {
+          primary: 'text-yellow-700',
+          lighter: 'text-yellow-600',
+          lightest: 'text-yellow-500',
+          darkest: 'text-yellow-800',
+          bg: 'bg-yellow-50',
+          bgAccent: 'bg-yellow-100',
+          border: 'border-yellow-200',
+          ring: 'ring-yellow-500',
+          button: 'bg-yellow-600 hover:bg-yellow-700',
+          buttonDisabled: 'bg-yellow-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'red':
+        return {
+          primary: 'text-red-700',
+          lighter: 'text-red-600',
+          lightest: 'text-red-500',
+          darkest: 'text-red-800',
+          bg: 'bg-red-50',
+          bgAccent: 'bg-red-100',
+          border: 'border-red-200',
+          ring: 'ring-red-500',
+          button: 'bg-red-600 hover:bg-red-700',
+          buttonDisabled: 'bg-red-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'orange':
+        return {
+          primary: 'text-orange-700',
+          lighter: 'text-orange-600',
+          lightest: 'text-orange-500',
+          darkest: 'text-orange-800',
+          bg: 'bg-orange-50',
+          bgAccent: 'bg-orange-100',
+          border: 'border-orange-200',
+          ring: 'ring-orange-500',
+          button: 'bg-orange-600 hover:bg-orange-700',
+          buttonDisabled: 'bg-orange-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+      case 'blue':
+      default:
+        return {
+          primary: 'text-blue-700',
+          lighter: 'text-blue-600',
+          lightest: 'text-blue-500',
+          darkest: 'text-blue-800',
+          bg: 'bg-blue-50',
+          bgAccent: 'bg-blue-100',
+          border: 'border-blue-200',
+          ring: 'ring-blue-500',
+          button: 'bg-blue-600 hover:bg-blue-700',
+          buttonDisabled: 'bg-blue-400',
+          error: 'text-red-500 border-red-200 bg-red-50'
+        };
+    }
+  };
+
+  const colors = getColors();
 
   // Create M3U playlist content for a specific year or category
   const createM3UContent = (tracksToExport, yearLabel = null) => {
@@ -256,27 +392,27 @@ const PlaylistExporter = ({
   };
 
   return (
-    <div className="space-y-4 p-4 bg-blue-50 rounded border border-blue-200 mb-6">
-      <h3 className="font-bold text-blue-700">Export M3U Playlist</h3>
+    <div className={`space-y-4 p-4 ${colors.bg} rounded border ${colors.border} mb-6`}>
+      <h3 className={`font-bold ${colors.primary}`}>Export M3U Playlist</h3>
       
       <div>
-        <label className="block text-blue-700 mb-1">Base Music Path:</label>
+        <label className={`block ${colors.primary} mb-1`}>Base Music Path:</label>
         <input
           type="text"
           value={musicBasePath}
           onChange={(e) => setMusicBasePath(e.target.value)}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${colors.ring} ${colors.primary}`}
           placeholder="e.g. /Music/Downloads or C:/Music"
         />
-        <p className="text-xs text-blue-600 mt-1">
+        <p className={`text-xs ${colors.lighter} mt-1`}>
           This will be the base path for your music files in the exported playlist.
         </p>
       </div>
       
       <div>
-        <label className="block text-blue-700 mb-1">Path Format:</label>
+        <label className={`block ${colors.primary} mb-1`}>Path Format:</label>
         <div className="flex gap-4 mb-2">
-          <label className="flex items-center">
+          <label className={`flex items-center ${colors.primary}`}>
             <input
               type="radio"
               checked={pathFormat === 'default'}
@@ -285,7 +421,7 @@ const PlaylistExporter = ({
             />
             <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
           </label>
-          <label className="flex items-center">
+          <label className={`flex items-center ${colors.primary}`}>
             <input
               type="radio"
               checked={pathFormat === 'custom'}
@@ -302,12 +438,12 @@ const PlaylistExporter = ({
               type="text"
               value={customPathFormat}
               onChange={(e) => setCustomPathFormat(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${colors.ring} ${colors.primary}`}
               placeholder="Custom path format"
             />
-            <div className="text-xs text-blue-600 mt-1">
+            <div className={`text-xs ${colors.lighter} mt-1`}>
               <p>Available placeholders:</p>
-              <ul className="list-disc list-inside ml-2">
+              <ul className={`list-disc list-inside ml-2 ${colors.lighter}`}>
                 <li>{'{basePath}'} - Your base music path</li>
                 <li>{'{artist}'} - Artist name</li>
                 <li>{'{album}'} - Album name</li>
@@ -324,49 +460,49 @@ const PlaylistExporter = ({
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-blue-700 mb-1">File Extension:</label>
+          <label className={`block ${colors.primary} mb-1`}>File Extension:</label>
           <select
             value={fileExtension}
             onChange={(e) => setFileExtension(e.target.value)}
-            className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${colors.ring} ${colors.primary}`}
           >
-            <option value="mp3">mp3</option>
-            <option value="flac">flac</option>
-            <option value="m4a">m4a</option>
-            <option value="ogg">ogg</option>
-            <option value="wav">wav</option>
+            <option value="mp3" className={colors.primary}>mp3</option>
+            <option value="flac" className={colors.primary}>flac</option>
+            <option value="m4a" className={colors.primary}>m4a</option>
+            <option value="ogg" className={colors.primary}>ogg</option>
+            <option value="wav" className={colors.primary}>wav</option>
           </select>
         </div>
         
         <div>
-          <label className="block text-blue-700 mb-1">Max Tracks to Export:</label>
+          <label className={`block ${colors.primary} mb-1`}>Max Tracks to Export:</label>
           <select
             value={exportCount}
             onChange={(e) => setExportCount(parseInt(e.target.value))}
-            className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${colors.ring} ${colors.primary}`}
           >
-            <option value="100">Top 100</option>
-            <option value="250">Top 250 (All-time only)</option>
+            <option value="100" className={colors.primary}>Top 100</option>
+            <option value="250" className={colors.primary}>Top 250 (All-time only)</option>
           </select>
         </div>
         
         <div>
-          <label className="block text-blue-700 mb-1">Sort Tracks By:</label>
+          <label className={`block ${colors.primary} mb-1`}>Sort Tracks By:</label>
           <select
             value={sortMethod}
             onChange={(e) => setSortMethod(e.target.value)}
-            className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${colors.ring} ${colors.primary}`}
           >
-            <option value="totalPlayed">Total Listening Time</option>
-            <option value="playCount">Play Count</option>
+            <option value="totalPlayed" className={colors.primary}>Total Listening Time</option>
+            <option value="playCount" className={colors.primary}>Play Count</option>
           </select>
         </div>
       </div>
       
       <div>
-        <label className="block text-blue-700 mb-1">Playlist Type:</label>
+        <label className={`block ${colors.primary} mb-1`}>Playlist Type:</label>
         <div className="flex gap-4">
-          <label className="flex items-center">
+          <label className={`flex items-center ${colors.primary}`}>
             <input
               type="radio"
               checked={playlistType === 'top'}
@@ -375,7 +511,7 @@ const PlaylistExporter = ({
             />
             <span>Top Tracks</span>
           </label>
-          <label className="flex items-center">
+          <label className={`flex items-center ${colors.primary}`}>
             <input
               type="radio"
               checked={playlistType === 'obsessions'}
@@ -388,9 +524,9 @@ const PlaylistExporter = ({
       </div>
       
       <div>
-        <label className="block text-blue-700 mb-1">Export Mode:</label>
+        <label className={`block ${colors.primary} mb-1`}>Export Mode:</label>
         <div className="flex gap-4">
-          <label className="flex items-center">
+          <label className={`flex items-center ${colors.primary}`}>
             <input
               type="radio"
               checked={exportMode === 'current'}
@@ -399,7 +535,7 @@ const PlaylistExporter = ({
             />
             <span>Current Selection {selectedYear !== 'all' ? `(${selectedYear})` : '(All-time)'}</span>
           </label>
-          <label className="flex items-center">
+          <label className={`flex items-center ${colors.primary}`}>
             <input
               type="radio"
               checked={exportMode === 'all'}
@@ -415,7 +551,7 @@ const PlaylistExporter = ({
         <button
           onClick={exportPlaylist}
           disabled={isExporting}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+          className={`flex items-center gap-2 px-4 py-2 ${colors.button} text-white rounded disabled:${colors.buttonDisabled} disabled:cursor-not-allowed transition-colors`}
         >
           <Download size={16} />
           {isExporting 
@@ -425,12 +561,12 @@ const PlaylistExporter = ({
       </div>
       
       {error && (
-        <div className="p-3 text-red-500 border border-red-200 rounded bg-red-50">
+        <div className={`p-3 ${colors.error} border rounded`}>
           {error}
         </div>
       )}
       
-      <div className="text-sm text-blue-600 p-3 bg-blue-100 rounded">
+      <div className={`text-sm ${colors.lighter} p-3 ${colors.bgAccent} rounded`}>
         <p className="font-medium">Path Preview:</p>
         <p className="font-mono mt-1">
           {pathFormat === 'default' 
@@ -445,7 +581,7 @@ const PlaylistExporter = ({
                 .replace('{year}', '2023')
           }
         </p>
-        <p className="mt-2">
+        <p className={`mt-2 ${colors.primary}`}>
           {exportMode === 'current' ? (
             <>
               The playlist will include the {exportCount === 250 && selectedYear === 'all' ? 'top 250' : 'top 100'} tracks from {selectedYear === 'all' ? 'all time' : selectedYear} 
@@ -454,7 +590,7 @@ const PlaylistExporter = ({
           ) : (
             <>
               This will export separate playlist files for each year plus an all-time playlist, with tracks sorted by {sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.
-              <span className="block mt-1 text-blue-800">Note: Files will download one after another with progress tracking.</span>
+              <span className={`block mt-1 ${colors.darkest}`}>Note: Files will download one after another with progress tracking.</span>
             </>
           )}
         </p>
