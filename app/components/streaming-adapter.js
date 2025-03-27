@@ -17,7 +17,7 @@ export const STREAMING_SERVICES = {
   [STREAMING_TYPES.SPOTIFY]: {
     name: 'Spotify',
     downloadUrl: 'https://www.spotify.com/account/privacy/',
-    instructions: 'Request your "Extended streaming history" and wait for the email (can take up to 5 days)',
+    instructions: 'Request your "Extended streaming history" and wait for the email (can take up to 5 days). filenames:Streaming_History_Audio_2023-2024_14',
     acceptedFormats: '.json'
   },
   [STREAMING_TYPES.APPLE_MUSIC]: {
@@ -29,7 +29,8 @@ export const STREAMING_SERVICES = {
   [STREAMING_TYPES.YOUTUBE_MUSIC]: {
     name: 'YouTube Music',
     downloadUrl: 'https://takeout.google.com/',
-    instructions: 'Select YouTube and YouTube Music data in Google Takeout',
+    instructions: 'THIS ONE MIGHT NOT WORK BECAUSE I DONT HAVE YOUTUBE MUSIC FILES. PLEASE SEND ME IF YOU HAVE SO I CAN MAKE IT WORK :) 
+Select YouTube and YouTube Music data in Google Takeout',
     acceptedFormats: '.json,.csv'
   },
   [STREAMING_TYPES.DEEZER]: {
@@ -46,8 +47,8 @@ export const STREAMING_SERVICES = {
   },
   [STREAMING_TYPES.TIDAL]: {
     name: 'Tidal',
-    downloadUrl: 'https://listen.tidal.com/account/export',
-    instructions: 'Go to your Tidal account settings, select "Download my data", choose "Export data" and download the CSV files.',
+    downloadUrl: 'support@tidal.com',
+    instructions: 'send an email to Tidal to request data and wait for 2-4 weeks for it to come',
     acceptedFormats: '.csv'
   }
 };
