@@ -145,54 +145,75 @@ const RangeSlider = ({
     }
   }, [isDragging, onValuesChange, startValue, endValue]);
   
-const handleMouseMove = (e) => {
-  const slider = sliderRef.current;
-  if (!slider) return;
+const handleMouseDown = useCallback((e, isStartHandle) => {
+  if (disabled) return;
   
-  const rect = slider.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const width = rect.width;
+  e.preventDefault();
+  setActiveDragHandle(isStartHandle ? 'start' : 'end');
+  setIsDragging(true);
   
-  // Calculate position as percentage (0-100)
-  let percentage = (x / width) * 100;
-  percentage = Math.max(0, Math.min(100, percentage));
-  
-  // Find the closest notch
-  const exactIndex = (percentage / 100) * (sortedValues.length - 1);
-  const closestIndex = Math.round(exactIndex);
-  const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
-  
-  if (isStartHandle) {
-    // Don't let start handle pass end handle
-    if (closestIndex < sortedValues.indexOf(endValue)) {
+  const handleMouseMove = (e) => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+    
+    const rect = slider.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    
+    // Calculate position as percentage (0-100)
+    let percentage = (x / width) * 100;
+    percentage = Math.max(0, Math.min(100, percentage));
+    
+    // Find the closest notch
+    const exactIndex = (percentage / 100) * (sortedValues.length - 1);
+    const closestIndex = Math.round(exactIndex);
+    const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
+    
+    if (singleValueMode) {
+      // In single value mode, both handles move together
       setStartPosition(closestPosition);
-      setStartValue(sortedValues[closestIndex]);
-    }
-  } else {
-    // Don't let end handle pass start handle
-    if (closestIndex > sortedValues.indexOf(startValue)) {
       setEndPosition(closestPosition);
+      setStartValue(sortedValues[closestIndex]);
       setEndValue(sortedValues[closestIndex]);
+    } else if (isStartHandle) {
+      // Don't let start handle pass end handle
+      const endValueIndex = sortedValues.indexOf(endValue);
+      if (closestIndex <= endValueIndex || allowSingleValueSelection) {
+        setStartPosition(closestPosition);
+        setStartValue(sortedValues[closestIndex]);
+      }
+    } else {
+      // Don't let end handle pass start handle
+      const startValueIndex = sortedValues.indexOf(startValue);
+      if (closestIndex >= startValueIndex || allowSingleValueSelection) {
+        setEndPosition(closestPosition);
+        setEndValue(sortedValues[closestIndex]);
+      }
     }
-  }
-};
-    
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      setActiveDragHandle(null);
-      setIsDragging(false);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    
-    // Initial position update
-    handleMouseMove(e);
-  }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode]);
+  };
   
- const handleTrackClick = (e) => {
-  if (disabled || activeDragHandle !== null) return;
+  const handleMouseUp = () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    setActiveDragHandle(null);
+    setIsDragging(false);
+  };
+  
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+  
+  // Initial position update
+  handleMouseMove(e);
+}, [
+  disabled, 
+  sortedValues, 
+  endValue, 
+  startValue, 
+  singleValueMode, 
+  allowSingleValueSelection
+]);
+const handleTrackClick = useCallback((e) => {
+  if (disabled || activeDragHandle !== null) return; // Ignore during active drag
   
   const slider = sliderRef.current;
   if (!slider) return;
@@ -204,28 +225,49 @@ const handleMouseMove = (e) => {
   // Calculate position as percentage (0-100)
   let percentage = (x / width) * 100;
   percentage = Math.max(0, Math.min(100, percentage));
+  
+  // Set temporary dragging state to prevent immediate updates
+  setIsDragging(true);
   
   // Find the closest notch position
   const exactIndex = (percentage / 100) * (sortedValues.length - 1);
   const closestIndex = Math.round(exactIndex);
   const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
   
-  // Move the closest handle to the notch
-  const startDistance = Math.abs(closestPosition - startPosition);
-  const endDistance = Math.abs(closestPosition - endPosition);
-  
-  if (startDistance <= endDistance) {
+  if (singleValueMode) {
+    // In single value mode, set both handles to the clicked position
     setStartPosition(closestPosition);
-    updateValueFromPosition(closestIndex, true); // Pass index directly for accuracy
-  } else {
     setEndPosition(closestPosition);
-    updateValueFromPosition(closestIndex, false); // Pass index directly for accuracy
-  }
-}
+    setStartValue(sortedValues[closestIndex]);
+    setEndValue(sortedValues[closestIndex]);
+  } else {
+    // Determine which handle to move (the closest one)
+    const startDistance = Math.abs(percentage - startPosition);
+    const endDistance = Math.abs(percentage - endPosition);
     
-    // Clear dragging state after brief delay
-    setTimeout(() => setIsDragging(false), 100);
-  }, [activeDragHandle, disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode]);
+    if (startDistance <= endDistance) {
+      // Move start handle
+      const newPosition = closestPosition;
+      setStartPosition(newPosition);
+      setStartValue(sortedValues[closestIndex]);
+    } else {
+      // Move end handle
+      const newPosition = closestPosition;
+      setEndPosition(newPosition);
+      setEndValue(sortedValues[closestIndex]);
+    }
+  }
+  
+  // Clear dragging state after brief delay
+  setTimeout(() => setIsDragging(false), 100);
+}, [
+  activeDragHandle, 
+  disabled, 
+  endPosition, 
+  startPosition, 
+  singleValueMode,
+  sortedValues // Add this missing dependency
+]);
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
