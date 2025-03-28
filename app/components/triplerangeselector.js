@@ -439,6 +439,44 @@ const TripleRangeSelector = ({
     startValue: initialStartDate ? new Date(initialStartDate).getDate().toString() : '1', 
     endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
   });
+
+// Validate days when month changes
+useEffect(() => {
+  // Skip for "all time" selection
+  if (selectedYear === 'all') return;
+  
+  // Get max days in current month
+  const year = yearRangeMode ? yearRange.startYear : selectedYear;
+  const month = monthRange.startValue;
+  const maxDays = getDaysInMonth(year, month);
+  
+  // Validate day values
+  const validStartDay = Math.min(parseInt(dayRange.startValue), maxDays).toString();
+  const validEndDay = Math.min(parseInt(dayRange.endValue), maxDays).toString();
+  
+  // Update if needed
+  if (validStartDay !== dayRange.startValue || validEndDay !== dayRange.endValue) {
+    setDayRange({
+      startValue: validStartDay,
+      endValue: validEndDay
+    });
+  }
+}, [selectedYear, yearRangeMode, yearRange.startYear, monthRange.startValue, dayRange]);
+
+
+const daysInSelectedMonth = useMemo(() => {
+  // For "all" selection or invalid inputs, use a default of 31 days
+  if (selectedYear === 'all' || !monthRange.startValue) {
+    return Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+  }
+  
+  // Calculate actual days in the selected month/year
+  const year = yearRangeMode ? yearRange.startYear : selectedYear;
+  const month = monthRange.startValue;
+  const daysCount = getDaysInMonth(year, month);
+  
+  return Array.from({ length: daysCount }, (_, i) => (i + 1).toString());
+}, [selectedYear, yearRangeMode, yearRange.startYear, monthRange.startValue]);
   
   // Initialize component from provided dates
   useEffect(() => {
@@ -700,17 +738,16 @@ const TripleRangeSelector = ({
             colorTheme={colorTheme}
             allowSingleValueSelection={true}
           />
-          
-          {/* Day Range Slider */}
-          <RangeSlider
-            values={Array.from({ length: 31 }, (_, i) => (i + 1).toString())}
-            onValuesChange={handleDayRangeChange}
-            initialStartValue={dayRange.startValue}
-            initialEndValue={dayRange.endValue}
-            title="Day Range"
-            colorTheme={colorTheme}
-            allowSingleValueSelection={true}
-          />
+      {/* Day Range Slider */}
+<RangeSlider
+  values={daysInSelectedMonth}
+  onValuesChange={handleDayRangeChange}
+  initialStartValue={dayRange.startValue}
+  initialEndValue={dayRange.endValue}
+  title="Day Range"
+  colorTheme={colorTheme}
+  allowSingleValueSelection={true}
+/>
           
           <div className="flex justify-center mt-4">
             <button
