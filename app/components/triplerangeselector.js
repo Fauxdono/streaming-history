@@ -145,44 +145,37 @@ const RangeSlider = ({
     }
   }, [isDragging, onValuesChange, startValue, endValue]);
   
-  // Handle mouse events
-  const handleMouseDown = useCallback((e, isStartHandle) => {
-    if (disabled) return;
-    
-    e.preventDefault();
-    setActiveDragHandle(isStartHandle ? 'start' : 'end');
-    setIsDragging(true);
-    
-    const handleMouseMove = (e) => {
-      const slider = sliderRef.current;
-      if (!slider) return;
-      
-      const rect = slider.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const width = rect.width;
-      
-      // Calculate position as percentage (0-100)
-      let percentage = (x / width) * 100;
-      percentage = Math.max(0, Math.min(100, percentage));
-      
-      if (singleValueMode) {
-        // In single value mode, both handles move together
-        setStartPosition(percentage);
-        setEndPosition(percentage);
-        updateValueFromPosition(percentage, true);
-        updateValueFromPosition(percentage, false);
-      } else if (isStartHandle) {
-        // Don't let start handle pass end handle
-        percentage = Math.min(percentage, endPosition - (allowSingleValueSelection ? 0 : 5));
-        setStartPosition(percentage);
-        updateValueFromPosition(percentage, true);
-      } else {
-        // Don't let end handle pass start handle
-        percentage = Math.max(percentage, startPosition + (allowSingleValueSelection ? 0 : 5));
-        setEndPosition(percentage);
-        updateValueFromPosition(percentage, false);
-      }
-    };
+const handleMouseMove = (e) => {
+  const slider = sliderRef.current;
+  if (!slider) return;
+  
+  const rect = slider.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const width = rect.width;
+  
+  // Calculate position as percentage (0-100)
+  let percentage = (x / width) * 100;
+  percentage = Math.max(0, Math.min(100, percentage));
+  
+  // Find the closest notch
+  const exactIndex = (percentage / 100) * (sortedValues.length - 1);
+  const closestIndex = Math.round(exactIndex);
+  const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
+  
+  if (isStartHandle) {
+    // Don't let start handle pass end handle
+    if (closestIndex < sortedValues.indexOf(endValue)) {
+      setStartPosition(closestPosition);
+      setStartValue(sortedValues[closestIndex]);
+    }
+  } else {
+    // Don't let end handle pass start handle
+    if (closestIndex > sortedValues.indexOf(startValue)) {
+      setEndPosition(closestPosition);
+      setEndValue(sortedValues[closestIndex]);
+    }
+  }
+};
     
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
@@ -198,47 +191,37 @@ const RangeSlider = ({
     handleMouseMove(e);
   }, [disabled, endPosition, startPosition, updateValueFromPosition, allowSingleValueSelection, singleValueMode]);
   
-  // Handle click on the track (moves the nearest handle)
-  const handleTrackClick = useCallback((e) => {
-    if (disabled || activeDragHandle !== null) return; // Ignore during active drag
-    
-    const slider = sliderRef.current;
-    if (!slider) return;
-    
-    const rect = slider.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const width = rect.width;
-    
-    // Calculate position as percentage (0-100)
-    let percentage = (x / width) * 100;
-    percentage = Math.max(0, Math.min(100, percentage));
-    
-    // Set temporary dragging state to prevent immediate updates
-    setIsDragging(true);
-    
-    if (singleValueMode) {
-      // In single value mode, set both handles to the clicked position
-      setStartPosition(percentage);
-      setEndPosition(percentage);
-      updateValueFromPosition(percentage, true);
-      updateValueFromPosition(percentage, false);
-    } else {
-      // Determine which handle to move (the closest one)
-      const startDistance = Math.abs(percentage - startPosition);
-      const endDistance = Math.abs(percentage - endPosition);
-      
-      if (startDistance <= endDistance) {
-        // Move start handle
-        percentage = Math.min(percentage, endPosition - (allowSingleValueSelection ? 0 : 5));
-        setStartPosition(percentage);
-        updateValueFromPosition(percentage, true);
-      } else {
-        // Move end handle
-        percentage = Math.max(percentage, startPosition + (allowSingleValueSelection ? 0 : 5));
-        setEndPosition(percentage);
-        updateValueFromPosition(percentage, false);
-      }
-    }
+ const handleTrackClick = (e) => {
+  if (disabled || activeDragHandle !== null) return;
+  
+  const slider = sliderRef.current;
+  if (!slider) return;
+  
+  const rect = slider.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const width = rect.width;
+  
+  // Calculate position as percentage (0-100)
+  let percentage = (x / width) * 100;
+  percentage = Math.max(0, Math.min(100, percentage));
+  
+  // Find the closest notch position
+  const exactIndex = (percentage / 100) * (sortedValues.length - 1);
+  const closestIndex = Math.round(exactIndex);
+  const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
+  
+  // Move the closest handle to the notch
+  const startDistance = Math.abs(closestPosition - startPosition);
+  const endDistance = Math.abs(closestPosition - endPosition);
+  
+  if (startDistance <= endDistance) {
+    setStartPosition(closestPosition);
+    updateValueFromPosition(closestIndex, true); // Pass index directly for accuracy
+  } else {
+    setEndPosition(closestPosition);
+    updateValueFromPosition(closestIndex, false); // Pass index directly for accuracy
+  }
+}
     
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 100);
@@ -304,32 +287,57 @@ const RangeSlider = ({
           onMouseDown={e => handleMouseDown(e, false)}
         ></div>
         
-        {/* Value markers */}
-        {sortedValues.map((value, index) => {
-          const position = (index / (sortedValues.length - 1)) * 100;
-          const isInRange = position >= startPosition && position <= endPosition;
-          
-          return (
-            <div 
-              key={value}
-              className={`absolute top-1/2 w-1 h-3 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
-                isInRange ? colors.bgMed : 'bg-gray-400'
-              }`}
-              style={{ left: `${position}%` }}
-            >
-              {/* Only show some labels to avoid crowding */}
-              {(index % Math.ceil(sortedValues.length / 12) === 0 || 
-                value === startValue || 
-                value === endValue) && (
-                <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${
-                  (value === startValue || value === endValue) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
-                }`}>
-                  {formatValue(value)}
-                </div>
-              )}
-            </div>
-          );
-        })}
+{/* Value markers */}
+{sortedValues.map((value, index) => {
+  const position = (index / (sortedValues.length - 1)) * 100;
+  const isInRange = position >= startPosition && position <= endPosition;
+  
+  return (
+    <div 
+      key={value}
+      className={`absolute top-1/2 w-2 h-4 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
+        isInRange ? colors.bgMed : 'bg-gray-400'
+      } hover:h-5 cursor-pointer`}
+      style={{ left: `${position}%` }}
+      onClick={(e) => {
+        e.stopPropagation(); // Prevent the track click handler from also firing
+        
+        // Determine which handle to move (the closest one)
+        const startDistance = Math.abs(position - startPosition);
+        const endDistance = Math.abs(position - endPosition);
+        
+        if (startDistance <= endDistance) {
+          // Move start handle to this notch
+          setStartPosition(position);
+          setStartValue(value);
+        } else {
+          // Move end handle to this notch
+          setEndPosition(position);
+          setEndValue(value);
+        }
+        
+        // Notify parent component of the change
+        if (onValuesChange) {
+          onValuesChange({
+            startValue: startDistance <= endDistance ? value : startValue,
+            endValue: startDistance <= endDistance ? endValue : value
+          });
+        }
+      }}
+    >
+      {/* Only show some labels to avoid crowding */}
+      {(index % Math.ceil(sortedValues.length / 12) === 0 || 
+        value === startValue || 
+        value === endValue) && (
+        <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${
+          (value === startValue || value === endValue) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
+        }`}>
+          {formatValue(value)}
+        </div>
+      )}
+    </div>
+  );
+})}
       </div>
     </div>
   );
