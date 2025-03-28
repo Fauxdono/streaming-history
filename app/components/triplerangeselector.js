@@ -633,20 +633,23 @@ const TripleRangeSelector = ({
     }
   }, [initialStartDate, initialEndDate, years]);
   
-  // Handle year changes from YearSelector
-  const handleYearChange = (year) => {
-    setSelectedYear(year);
-    
-    // Handle "all" selection (all time)
-    if (year === 'all') {
-      // For "all", pass empty strings to indicate all time
-      if (onDateRangeChange) {
-        onDateRangeChange(startDateStr, endDateStr);
-      }
-    } catch (err) {
-      console.error("Error applying date range:", err);
+// Handle year changes from YearSelector
+const handleYearChange = (year) => {
+  setSelectedYear(year);
+  
+  // Handle "all" selection (all time)
+  if (year === 'all') {
+    // For "all", pass empty strings to indicate all time
+    if (onDateRangeChange) {
+      onDateRangeChange("", "");
     }
-  };
+  } else {
+    // For regular year, use full year range
+    if (onDateRangeChange) {
+      onDateRangeChange(`${year}-01-01`, `${year}-12-31`);
+    }
+  }
+};
   
   // Apply custom date range when clicked
   const applyCustomDateRange = () => {
