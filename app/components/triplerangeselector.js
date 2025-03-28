@@ -98,33 +98,91 @@ const RangeSlider = ({
     }
   }, [colorTheme]);
 
-  // Initialize the slider positions based on the initial values
+  // Update slider when values array changes (like when month changes and day count changes)
   useEffect(() => {
-    // Set start position
-    if (initialStartValue && sortedValues.includes(initialStartValue.toString())) {
-      const valueIndex = sortedValues.indexOf(initialStartValue.toString());
-      const percentage = (valueIndex / (sortedValues.length - 1)) * 100;
-      setStartPosition(percentage);
-      setStartValue(initialStartValue);
-    } else {
-      setStartValue(minValue);
-      setStartPosition(0);
+    // When the available values change (e.g., days in month changes), we need to 
+    // update the handle positions to match the values
+    
+    // First, ensure the start and end values are valid in the new array
+    let newStartValue = startValue;
+    let newEndValue = endValue;
+    
+    // If start value doesn't exist in new array, find closest valid value
+    if (!sortedValues.includes(startValue)) {
+      const startNum = parseInt(startValue);
+      // Find the closest valid value that doesn't exceed the original
+      const validValues = sortedValues.map(v => parseInt(v));
+      // Find the closest value without going over
+      const closestValid = validValues.filter(v => v <= startNum).sort((a, b) => b - a)[0] || validValues[0];
+      newStartValue = closestValid.toString();
     }
     
-    // Set end position
-    if (initialEndValue && sortedValues.includes(initialEndValue.toString())) {
-      const valueIndex = sortedValues.indexOf(initialEndValue.toString());
-      const percentage = (valueIndex / (sortedValues.length - 1)) * 100;
-      setEndPosition(percentage);
-      setEndValue(initialEndValue);
-    } else {
-      setEndValue(maxValue);
-      setEndPosition(100);
+    // If end value doesn't exist in new array, find closest valid value
+    if (!sortedValues.includes(endValue)) {
+      const endNum = parseInt(endValue);
+      // Find the closest valid value that doesn't exceed the original
+      const validValues = sortedValues.map(v => parseInt(v));
+      // Find the closest value without going over
+      const closestValid = validValues.filter(v => v <= endNum).sort((a, b) => b - a)[0] || validValues[0];
+      newEndValue = closestValid.toString();
     }
-  }, [initialStartValue, initialEndValue, minValue, maxValue, sortedValues]);
+    
+    // Calculate new positions based on the index in the new array
+    const startIndex = Math.max(0, sortedValues.indexOf(newStartValue));
+    const endIndex = Math.max(0, sortedValues.indexOf(newEndValue));
+    
+    // Calculate as percentage of the array length
+    const newStartPosition = sortedValues.length > 1 ? 
+      (startIndex / (sortedValues.length - 1)) * 100 : 0;
+    const newEndPosition = sortedValues.length > 1 ? 
+      (endIndex / (sortedValues.length - 1)) * 100 : 100;
+    
+    // Update state with new values and positions
+    setStartValue(newStartValue);
+    setEndValue(newEndValue);
+    setStartPosition(newStartPosition);
+    setEndPosition(newEndPosition);
+    
+    // Also notify parent of changes if values changed
+    if (newStartValue !== startValue || newEndValue !== endValue) {
+      if (onValuesChange) {
+        onValuesChange({
+          startValue: newStartValue,
+          endValue: newEndValue
+        });
+      }
+    }
+  }, [sortedValues, startValue, endValue, onValuesChange]);
+
+  // Initialize the slider positions based on the initial values
+  useEffect(() => {
+    if (!initialStartValue || !initialEndValue || sortedValues.length === 0) return;
+    
+    // Try to use the provided values if they exist in our array
+    let newStartValue = sortedValues.includes(initialStartValue) ? 
+      initialStartValue : minValue;
+    
+    let newEndValue = sortedValues.includes(initialEndValue) ? 
+      initialEndValue : maxValue;
+    
+    // Calculate positions
+    const startIndex = sortedValues.indexOf(newStartValue);
+    const endIndex = sortedValues.indexOf(newEndValue);
+    
+    const newStartPosition = (startIndex / (sortedValues.length - 1)) * 100;
+    const newEndPosition = (endIndex / (sortedValues.length - 1)) * 100;
+    
+    // Set state
+    setStartValue(newStartValue);
+    setEndValue(newEndValue);
+    setStartPosition(newStartPosition);
+    setEndPosition(newEndPosition);
+  }, [initialStartValue, initialEndValue, sortedValues, minValue, maxValue]);
   
   // Handler for when the position changes, updates the value
   const updateValueFromPosition = useCallback((position, isStart) => {
+    if (sortedValues.length === 0) return;
+    
     const valueIndex = Math.round((position / 100) * (sortedValues.length - 1));
     const newValue = sortedValues[Math.min(Math.max(0, valueIndex), sortedValues.length - 1)];
     
@@ -145,14 +203,77 @@ const RangeSlider = ({
     }
   }, [isDragging, onValuesChange, startValue, endValue]);
   
-const handleMouseDown = useCallback((e, isStartHandle) => {
-  if (disabled) return;
+  const handleMouseDown = useCallback((e, isStartHandle) => {
+    if (disabled) return;
+    
+    e.preventDefault();
+    setActiveDragHandle(isStartHandle ? 'start' : 'end');
+    setIsDragging(true);
+    
+    const handleMouseMove = (e) => {
+      const slider = sliderRef.current;
+      if (!slider) return;
+      
+      const rect = slider.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const width = rect.width;
+      
+      // Calculate position as percentage (0-100)
+      let percentage = (x / width) * 100;
+      percentage = Math.max(0, Math.min(100, percentage));
+      
+      // Find the closest notch
+      const exactIndex = (percentage / 100) * (sortedValues.length - 1);
+      const closestIndex = Math.round(exactIndex);
+      const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
+      
+      if (singleValueMode) {
+        // In single value mode, both handles move together
+        setStartPosition(closestPosition);
+        setEndPosition(closestPosition);
+        setStartValue(sortedValues[closestIndex]);
+        setEndValue(sortedValues[closestIndex]);
+      } else if (isStartHandle) {
+        // Don't let start handle pass end handle
+        const endValueIndex = sortedValues.indexOf(endValue);
+        if (closestIndex <= endValueIndex || allowSingleValueSelection) {
+          setStartPosition(closestPosition);
+          setStartValue(sortedValues[closestIndex]);
+        }
+      } else {
+        // Don't let end handle pass start handle
+        const startValueIndex = sortedValues.indexOf(startValue);
+        if (closestIndex >= startValueIndex || allowSingleValueSelection) {
+          setEndPosition(closestPosition);
+          setEndValue(sortedValues[closestIndex]);
+        }
+      }
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      setActiveDragHandle(null);
+      setIsDragging(false);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    // Initial position update
+    handleMouseMove(e);
+  }, [
+    disabled, 
+    sortedValues, 
+    endValue, 
+    startValue, 
+    singleValueMode, 
+    allowSingleValueSelection
+  ]);
   
-  e.preventDefault();
-  setActiveDragHandle(isStartHandle ? 'start' : 'end');
-  setIsDragging(true);
-  
-  const handleMouseMove = (e) => {
+  const handleTrackClick = useCallback((e) => {
+    if (disabled || activeDragHandle !== null) return; // Ignore during active drag
+    
     const slider = sliderRef.current;
     if (!slider) return;
     
@@ -164,110 +285,48 @@ const handleMouseDown = useCallback((e, isStartHandle) => {
     let percentage = (x / width) * 100;
     percentage = Math.max(0, Math.min(100, percentage));
     
-    // Find the closest notch
+    // Set temporary dragging state to prevent immediate updates
+    setIsDragging(true);
+    
+    // Find the closest notch position
     const exactIndex = (percentage / 100) * (sortedValues.length - 1);
     const closestIndex = Math.round(exactIndex);
     const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
     
     if (singleValueMode) {
-      // In single value mode, both handles move together
+      // In single value mode, set both handles to the clicked position
       setStartPosition(closestPosition);
       setEndPosition(closestPosition);
       setStartValue(sortedValues[closestIndex]);
       setEndValue(sortedValues[closestIndex]);
-    } else if (isStartHandle) {
-      // Don't let start handle pass end handle
-      const endValueIndex = sortedValues.indexOf(endValue);
-      if (closestIndex <= endValueIndex || allowSingleValueSelection) {
-        setStartPosition(closestPosition);
-        setStartValue(sortedValues[closestIndex]);
-      }
     } else {
-      // Don't let end handle pass start handle
-      const startValueIndex = sortedValues.indexOf(startValue);
-      if (closestIndex >= startValueIndex || allowSingleValueSelection) {
-        setEndPosition(closestPosition);
+      // Determine which handle to move (the closest one)
+      const startDistance = Math.abs(percentage - startPosition);
+      const endDistance = Math.abs(percentage - endPosition);
+      
+      if (startDistance <= endDistance) {
+        // Move start handle
+        const newPosition = closestPosition;
+        setStartPosition(newPosition);
+        setStartValue(sortedValues[closestIndex]);
+      } else {
+        // Move end handle
+        const newPosition = closestPosition;
+        setEndPosition(newPosition);
         setEndValue(sortedValues[closestIndex]);
       }
     }
-  };
-  
-  const handleMouseUp = () => {
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-    setActiveDragHandle(null);
-    setIsDragging(false);
-  };
-  
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
-  
-  // Initial position update
-  handleMouseMove(e);
-}, [
-  disabled, 
-  sortedValues, 
-  endValue, 
-  startValue, 
-  singleValueMode, 
-  allowSingleValueSelection
-]);
-const handleTrackClick = useCallback((e) => {
-  if (disabled || activeDragHandle !== null) return; // Ignore during active drag
-  
-  const slider = sliderRef.current;
-  if (!slider) return;
-  
-  const rect = slider.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const width = rect.width;
-  
-  // Calculate position as percentage (0-100)
-  let percentage = (x / width) * 100;
-  percentage = Math.max(0, Math.min(100, percentage));
-  
-  // Set temporary dragging state to prevent immediate updates
-  setIsDragging(true);
-  
-  // Find the closest notch position
-  const exactIndex = (percentage / 100) * (sortedValues.length - 1);
-  const closestIndex = Math.round(exactIndex);
-  const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
-  
-  if (singleValueMode) {
-    // In single value mode, set both handles to the clicked position
-    setStartPosition(closestPosition);
-    setEndPosition(closestPosition);
-    setStartValue(sortedValues[closestIndex]);
-    setEndValue(sortedValues[closestIndex]);
-  } else {
-    // Determine which handle to move (the closest one)
-    const startDistance = Math.abs(percentage - startPosition);
-    const endDistance = Math.abs(percentage - endPosition);
     
-    if (startDistance <= endDistance) {
-      // Move start handle
-      const newPosition = closestPosition;
-      setStartPosition(newPosition);
-      setStartValue(sortedValues[closestIndex]);
-    } else {
-      // Move end handle
-      const newPosition = closestPosition;
-      setEndPosition(newPosition);
-      setEndValue(sortedValues[closestIndex]);
-    }
-  }
-  
-  // Clear dragging state after brief delay
-  setTimeout(() => setIsDragging(false), 100);
-}, [
-  activeDragHandle, 
-  disabled, 
-  endPosition, 
-  startPosition, 
-  singleValueMode,
-  sortedValues // Add this missing dependency
-]);
+    // Clear dragging state after brief delay
+    setTimeout(() => setIsDragging(false), 100);
+  }, [
+    activeDragHandle, 
+    disabled, 
+    endPosition, 
+    startPosition, 
+    singleValueMode,
+    sortedValues
+  ]);
   
   // Format the display value if a formatter is provided
   const formatValue = useCallback((value) => {
@@ -329,57 +388,57 @@ const handleTrackClick = useCallback((e) => {
           onMouseDown={e => handleMouseDown(e, false)}
         ></div>
         
-{/* Value markers */}
-{sortedValues.map((value, index) => {
-  const position = (index / (sortedValues.length - 1)) * 100;
-  const isInRange = position >= startPosition && position <= endPosition;
-  
-  return (
-    <div 
-      key={value}
-      className={`absolute top-1/2 w-2 h-4 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
-        isInRange ? colors.bgMed : 'bg-gray-400'
-      } hover:h-5 cursor-pointer`}
-      style={{ left: `${position}%` }}
-      onClick={(e) => {
-        e.stopPropagation(); // Prevent the track click handler from also firing
-        
-        // Determine which handle to move (the closest one)
-        const startDistance = Math.abs(position - startPosition);
-        const endDistance = Math.abs(position - endPosition);
-        
-        if (startDistance <= endDistance) {
-          // Move start handle to this notch
-          setStartPosition(position);
-          setStartValue(value);
-        } else {
-          // Move end handle to this notch
-          setEndPosition(position);
-          setEndValue(value);
-        }
-        
-        // Notify parent component of the change
-        if (onValuesChange) {
-          onValuesChange({
-            startValue: startDistance <= endDistance ? value : startValue,
-            endValue: startDistance <= endDistance ? endValue : value
-          });
-        }
-      }}
-    >
-      {/* Only show some labels to avoid crowding */}
-      {(index % Math.ceil(sortedValues.length / 12) === 0 || 
-        value === startValue || 
-        value === endValue) && (
-        <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${
-          (value === startValue || value === endValue) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
-        }`}>
-          {formatValue(value)}
-        </div>
-      )}
-    </div>
-  );
-})}
+        {/* Value markers */}
+        {sortedValues.map((value, index) => {
+          const position = (index / (sortedValues.length - 1)) * 100;
+          const isInRange = position >= startPosition && position <= endPosition;
+          
+          return (
+            <div 
+              key={value}
+              className={`absolute top-1/2 w-2 h-4 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
+                isInRange ? colors.bgMed : 'bg-gray-400'
+              } hover:h-5 cursor-pointer`}
+              style={{ left: `${position}%` }}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent the track click handler from also firing
+                
+                // Determine which handle to move (the closest one)
+                const startDistance = Math.abs(position - startPosition);
+                const endDistance = Math.abs(position - endPosition);
+                
+                if (startDistance <= endDistance) {
+                  // Move start handle to this notch
+                  setStartPosition(position);
+                  setStartValue(value);
+                } else {
+                  // Move end handle to this notch
+                  setEndPosition(position);
+                  setEndValue(value);
+                }
+                
+                // Notify parent component of the change
+                if (onValuesChange) {
+                  onValuesChange({
+                    startValue: startDistance <= endDistance ? value : startValue,
+                    endValue: startDistance <= endDistance ? endValue : value
+                  });
+                }
+              }}
+            >
+              {/* Only show some labels to avoid crowding */}
+              {(index % Math.ceil(sortedValues.length / 12) === 0 || 
+                value === startValue || 
+                value === endValue) && (
+                <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${
+                  (value === startValue || value === endValue) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
+                }`}>
+                  {formatValue(value)}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -440,43 +499,76 @@ const TripleRangeSelector = ({
     endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
   });
 
-// Validate days when month changes
-useEffect(() => {
-  // Skip for "all time" selection
-  if (selectedYear === 'all') return;
+  // Calculate days in the selected month - update when year/month changes
+  const daysInSelectedMonths = useMemo(() => {
+    // For "all" selection or invalid inputs, use a default of 31 days
+    if (selectedYear === 'all' || !monthRange.startValue || !monthRange.endValue) {
+      return {
+        start: Array.from({ length: 31 }, (_, i) => (i + 1).toString()),
+        end: Array.from({ length: 31 }, (_, i) => (i + 1).toString())
+      };
+    }
+    
+    // Calculate days in the start month
+    const startYear = yearRangeMode ? yearRange.startYear : selectedYear;
+    const startMonth = monthRange.startValue;
+    const daysInStartMonth = getDaysInMonth(startYear, startMonth);
+    
+    // Calculate days in the end month
+    const endYear = yearRangeMode ? yearRange.endYear : selectedYear;
+    const endMonth = monthRange.endValue;
+    const daysInEndMonth = getDaysInMonth(endYear, endMonth);
+    
+    return {
+      start: Array.from({ length: daysInStartMonth }, (_, i) => (i + 1).toString()),
+      end: Array.from({ length: daysInEndMonth }, (_, i) => (i + 1).toString())
+    };
+  }, [selectedYear, yearRangeMode, yearRange, monthRange]);
   
-  // Get max days in current month
-  const year = yearRangeMode ? yearRange.startYear : selectedYear;
-  const month = monthRange.startValue;
-  const maxDays = getDaysInMonth(year, month);
-  
-  // Validate day values
-  const validStartDay = Math.min(parseInt(dayRange.startValue), maxDays).toString();
-  const validEndDay = Math.min(parseInt(dayRange.endValue), maxDays).toString();
-  
-  // Update if needed
-  if (validStartDay !== dayRange.startValue || validEndDay !== dayRange.endValue) {
-    setDayRange({
-      startValue: validStartDay,
-      endValue: validEndDay
-    });
-  }
-}, [selectedYear, yearRangeMode, yearRange.startYear, monthRange.startValue, dayRange]);
-
-
-const daysInSelectedMonth = useMemo(() => {
-  // For "all" selection or invalid inputs, use a default of 31 days
-  if (selectedYear === 'all' || !monthRange.startValue) {
-    return Array.from({ length: 31 }, (_, i) => (i + 1).toString());
-  }
-  
-  // Calculate actual days in the selected month/year
-  const year = yearRangeMode ? yearRange.startYear : selectedYear;
-  const month = monthRange.startValue;
-  const daysCount = getDaysInMonth(year, month);
-  
-  return Array.from({ length: daysCount }, (_, i) => (i + 1).toString());
-}, [selectedYear, yearRangeMode, yearRange.startYear, monthRange.startValue]);
+  // Validate and adjust day values when months change
+  useEffect(() => {
+    // Skip for "all time" selection
+    if (selectedYear === 'all') return;
+    
+    // Validate start day value
+    const maxStartDay = daysInSelectedMonths.start.length;
+    const currentStartDay = parseInt(dayRange.startValue);
+    const validStartDay = Math.min(currentStartDay, maxStartDay).toString();
+    
+    // Validate end day value
+    const maxEndDay = daysInSelectedMonths.end.length;
+    const currentEndDay = parseInt(dayRange.endValue);
+    const validEndDay = Math.min(currentEndDay, maxEndDay).toString();
+    
+    // Update if either value needs adjusting
+    if (validStartDay !== dayRange.startValue || validEndDay !== dayRange.endValue) {
+      setDayRange({
+        startValue: validStartDay,
+        endValue: validEndDay
+      });
+      
+      // Also apply the date range with the adjusted days
+      if (yearRangeMode) {
+        applyDateRange(
+          yearRange.startYear,
+          yearRange.endYear,
+          monthRange.startValue,
+          monthRange.endValue,
+          validStartDay,
+          validEndDay
+        );
+      } else {
+        applyDateRange(
+          selectedYear,
+          selectedYear,
+          monthRange.startValue,
+          monthRange.endValue,
+          validStartDay,
+          validEndDay
+        );
+      }
+    }
+  }, [daysInSelectedMonths, monthRange]);
   
   // Initialize component from provided dates
   useEffect(() => {
@@ -548,68 +640,6 @@ const daysInSelectedMonth = useMemo(() => {
     // Handle "all" selection (all time)
     if (year === 'all') {
       // For "all", pass empty strings to indicate all time
-      if (onDateRangeChange) {
-        onDateRangeChange("", "");
-      }
-    } else {
-      // For regular year, use full year range
-      if (onDateRangeChange) {
-        onDateRangeChange(`${year}-01-01`, `${year}-12-31`);
-      }
-    }
-  };
-  
-  // Handle year range changes from YearSelector
-  const handleYearRangeChange = ({ startYear, endYear }) => {
-    setYearRange({ startYear, endYear });
-    
-    // Apply the date range with current month/day selections
-    applyDateRange(startYear, endYear, monthRange.startValue, monthRange.endValue, dayRange.startValue, dayRange.endValue);
-  };
-  
-  // Handle month range changes
-  const handleMonthRangeChange = ({ startValue, endValue }) => {
-    setMonthRange({ startValue, endValue });
-    
-    // Apply the date range with updated months
-    if (yearRangeMode) {
-      applyDateRange(yearRange.startYear, yearRange.endYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
-    } else if (selectedYear !== 'all') {
-      applyDateRange(selectedYear, selectedYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
-    }
-  };
-  
-  // Handle day range changes
-  const handleDayRangeChange = ({ startValue, endValue }) => {
-    setDayRange({ startValue, endValue });
-    
-    // Apply the date range with updated days
-    if (yearRangeMode) {
-      applyDateRange(yearRange.startYear, yearRange.endYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
-    } else if (selectedYear !== 'all') {
-      applyDateRange(selectedYear, selectedYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
-    }
-  };
-  
-  // Toggle between single year and year range modes
-  const handleToggleRangeMode = (isRange) => {
-    setYearRangeMode(isRange);
-  };
-  
-  // Apply date range with specific values
-  const applyDateRange = (startYear, endYear, startMonth, endMonth, startDay, endDay) => {
-    try {
-      // Validate days against month maximums
-      const maxStartDay = getDaysInMonth(startYear, startMonth);
-      const maxEndDay = getDaysInMonth(endYear, endMonth);
-      
-      const validStartDay = Math.min(parseInt(startDay), maxStartDay);
-      const validEndDay = Math.min(parseInt(endDay), maxEndDay);
-      
-      // Format dates as YYYY-MM-DD
-      const startDateStr = `${startYear}-${startMonth.padStart(2, '0')}-${validStartDay.toString().padStart(2, '0')}`;
-      const endDateStr = `${endYear}-${endMonth.padStart(2, '0')}-${validEndDay.toString().padStart(2, '0')}`;
-      
       if (onDateRangeChange) {
         onDateRangeChange(startDateStr, endDateStr);
       }
@@ -738,16 +768,17 @@ const daysInSelectedMonth = useMemo(() => {
             colorTheme={colorTheme}
             allowSingleValueSelection={true}
           />
-      {/* Day Range Slider */}
-<RangeSlider
-  values={daysInSelectedMonth}
-  onValuesChange={handleDayRangeChange}
-  initialStartValue={dayRange.startValue}
-  initialEndValue={dayRange.endValue}
-  title="Day Range"
-  colorTheme={colorTheme}
-  allowSingleValueSelection={true}
-/>
+          
+          {/* Day Range Slider - now uses the correct days for each month */}
+          <RangeSlider
+            values={daysInSelectedMonths.start}
+            onValuesChange={handleDayRangeChange}
+            initialStartValue={dayRange.startValue}
+            initialEndValue={dayRange.endValue}
+            title="Day Range"
+            colorTheme={colorTheme}
+            allowSingleValueSelection={true}
+          />
           
           <div className="flex justify-center mt-4">
             <button
@@ -767,4 +798,4 @@ const daysInSelectedMonth = useMemo(() => {
   );
 };
 
-export default TripleRangeSelector;
+export default TripleRangeSelector
