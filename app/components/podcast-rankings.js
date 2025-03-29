@@ -4,7 +4,7 @@ import {
     startOfYear, endOfYear, // Import year functions
     format, differenceInMinutes, parseISO, addMilliseconds, max, min 
 } from 'date-fns';
-import YearSelector from './YearSelector'; // Import the new component
+import YearSelector from './year-selector.js';
 
 // Helper to safely parse dates
 const safeParseISO = (dateString) => {
