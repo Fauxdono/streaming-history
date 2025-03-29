@@ -633,7 +633,66 @@ const TripleRangeSelector = ({
     }
   }, [initialStartDate, initialEndDate, years]);
   
-// Handle year changes from YearSelector
+// Handle year range changes from YearSelector
+const handleYearRangeChange = ({ startYear, endYear }) => {
+  setYearRange({ startYear, endYear });
+  
+  // Apply the date range with current month/day selections
+  applyDateRange(startYear, endYear, monthRange.startValue, monthRange.endValue, dayRange.startValue, dayRange.endValue);
+};
+
+// Handle month range changes
+const handleMonthRangeChange = ({ startValue, endValue }) => {
+  setMonthRange({ startValue, endValue });
+  
+  // Apply the date range with updated months
+  if (yearRangeMode) {
+    applyDateRange(yearRange.startYear, yearRange.endYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
+  } else if (selectedYear !== 'all') {
+    applyDateRange(selectedYear, selectedYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
+  }
+};
+
+// Handle day range changes
+const handleDayRangeChange = ({ startValue, endValue }) => {
+  setDayRange({ startValue, endValue });
+  
+  // Apply the date range with updated days
+  if (yearRangeMode) {
+    applyDateRange(yearRange.startYear, yearRange.endYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
+  } else if (selectedYear !== 'all') {
+    applyDateRange(selectedYear, selectedYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
+  }
+};
+
+// Toggle between single year and year range modes
+const handleToggleRangeMode = (isRange) => {
+  setYearRangeMode(isRange);
+};
+
+// Apply date range with specific values
+const applyDateRange = (startYear, endYear, startMonth, endMonth, startDay, endDay) => {
+  try {
+    // Validate days against month maximums
+    const maxStartDay = getDaysInMonth(startYear, startMonth);
+    const maxEndDay = getDaysInMonth(endYear, endMonth);
+    
+    const validStartDay = Math.min(parseInt(startDay), maxStartDay);
+    const validEndDay = Math.min(parseInt(endDay), maxEndDay);
+    
+    // Format dates as YYYY-MM-DD
+    const startDateStr = `${startYear}-${startMonth.padStart(2, '0')}-${validStartDay.toString().padStart(2, '0')}`;
+    const endDateStr = `${endYear}-${endMonth.padStart(2, '0')}-${validEndDay.toString().padStart(2, '0')}`;
+    
+    if (onDateRangeChange) {
+      onDateRangeChange(startDateStr, endDateStr);
+    }
+  } catch (err) {
+    console.error("Error applying date range:", err);
+  }
+};
+
+// Fix the handleYearChange function
 const handleYearChange = (year) => {
   setSelectedYear(year);
   
@@ -650,7 +709,6 @@ const handleYearChange = (year) => {
     }
   }
 };
-  
   // Apply custom date range when clicked
   const applyCustomDateRange = () => {
     if (yearRangeMode) {
