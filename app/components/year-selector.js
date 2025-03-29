@@ -12,8 +12,7 @@ const YearSelector = ({
   onToggleRangeMode,
   colorTheme = 'teal' // Default to teal, but allow customization
 }) => {
-  // Add a new mode 'all-time' in addition to 'single' and 'range'
-  const [mode, setMode] = useState(isRangeMode ? 'range' : (initialYear === 'all' ? 'all-time' : 'single'));
+  const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -30,50 +29,28 @@ const YearSelector = ({
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
-    if (isRangeMode) {
-      setMode('range');
-    } else if (initialYear === 'all') {
-      setMode('all-time');
-    } else {
-      setMode('single');
-    }
-  }, [isRangeMode, initialYear]);
+    setMode(isRangeMode ? 'range' : 'single');
+  }, [isRangeMode]);
   
   const handleModeChange = (newMode) => {
     // Update internal mode state
     setMode(newMode);
     
-    // Notify parent component with different behaviors based on mode
-    if (newMode === 'all-time') {
-      // For all-time, set to single mode with 'all' year
-      if (onToggleRangeMode) {
-        onToggleRangeMode(false);
-      }
-      if (onYearChange) {
-        onYearChange('all');
-      }
+    // Notify parent component about mode change
+    if (onToggleRangeMode) {
+      onToggleRangeMode(newMode === 'range');
     }
-    else if (newMode === 'single') {
-      // For single, use the first year if currently all-time
-      if (onToggleRangeMode) {
-        onToggleRangeMode(false);
-      }
-      if (onYearChange && initialYear === 'all' && years.length > 0) {
-        onYearChange(years[years.length - 1]); // Use most recent year
-      }
+    
+    // If switching to single mode, default to 'all'
+    if (newMode === 'single' && onYearChange) {
+      onYearChange('all');
     } 
-    else if (newMode === 'range') {
-      // For range, switch to range mode
-      if (onToggleRangeMode) {
-        onToggleRangeMode(true);
-      }
-      // If switching to range mode, default to full range
-      if (onYearRangeChange && years.length >= 2) {
-        onYearRangeChange({
-          startYear: years[0],
-          endYear: years[years.length - 1]
-        });
-      }
+    // If switching to range mode, default to full range
+    else if (newMode === 'range' && onYearRangeChange && years.length >= 2) {
+      onYearRangeChange({
+        startYear: years[0],
+        endYear: years[years.length - 1]
+      });
     }
   };
   
@@ -157,6 +134,17 @@ const YearSelector = ({
           borderActive: 'border-red-600',
           borderInactive: 'border-red-800'
         };
+ case 'orange':
+      return {
+        text: 'text-orange-700',
+        bg: 'bg-orange-600',
+        bgHover: 'hover:bg-orange-700',
+        bgLight: 'bg-orange-100',
+        textLight: 'text-orange-700',
+        bgHoverLight: 'hover:bg-orange-200',
+        borderActive: 'border-orange-600',
+        borderInactive: 'border-orange-800'
+      };
       case 'teal':
       default:
         return {
@@ -178,26 +166,29 @@ const YearSelector = ({
     return <div className={colors.text + " italic"}>No year data available</div>;
   }
   
-  // Get the appropriate title text based on mode
-  const getTitleText = () => {
-    if (mode === 'all-time') return 'All-Time Selection';
-    if (mode === 'range') return 'Year Range Selection';
-    return 'Single Year Selection';
-  };
-  
   return (
     <div className="mt-2 mb-6">
       <div className="flex justify-between items-center mb-4">
         <label className={colors.text + " font-medium text-sm"}>
-          {getTitleText()}
+          {mode === 'range' 
+            ? 'Year Range Selection' 
+            : 'Single Year Selection'}
         </label>
         
         {/* Toggle between modes */}
         <div className="flex items-center gap-1 flex-wrap justify-end">
           <button
-            onClick={() => handleModeChange('all-time')}
+            onClick={() => {
+              setMode('single');
+              if (onToggleRangeMode) {
+                onToggleRangeMode(false);
+              }
+              if (onYearChange) {
+                onYearChange('all');
+              }
+            }}
             className={`px-2 py-1 rounded text-xs ${
-              mode === 'all-time'
+              mode === 'single' && initialYear === 'all'
                 ? colors.bg + ' text-white' 
                 : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
             }`}
@@ -206,9 +197,18 @@ const YearSelector = ({
           </button>
           
           <button
-            onClick={() => handleModeChange('single')}
+            onClick={() => {
+              setMode('single');
+              if (onToggleRangeMode) {
+                onToggleRangeMode(false);
+              }
+              // If currently on all-time, switch to most recent year
+              if (initialYear === 'all' && years.length > 0 && onYearChange) {
+                onYearChange(years[years.length - 1]);
+              }
+            }}
             className={`px-2 py-1 rounded text-xs ${
-              mode === 'single'
+              mode === 'single' && initialYear !== 'all'
                 ? colors.bg + ' text-white' 
                 : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
             }`}
@@ -230,21 +230,12 @@ const YearSelector = ({
       </div>
       
       {/* Render the appropriate slider based on mode */}
-      {mode === 'all-time' ? (
-        <div className="px-4 py-2 text-center">
-          <div className={`text-lg font-bold ${colors.text}`}>
-            Showing data from all available years
-          </div>
-          <div className={`text-sm ${colors.textLight} mt-1`}>
-            {years.length > 0 ? `${years[0]} - ${years[years.length - 1]}` : ''}
-          </div>
-        </div>
-      ) : mode === 'single' ? (
+      {mode === 'single' ? (
         <div className="px-4">
           <BetterYearSlider 
             years={years} 
             onYearChange={onYearChange}
-            initialYear={initialYear !== 'all' ? initialYear : null}
+            initialYear={initialYear}
             colorTheme={colorTheme}
           />
         </div>
