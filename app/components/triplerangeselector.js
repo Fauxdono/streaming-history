@@ -40,6 +40,7 @@ const RangeSlider = ({
   const [endValue, setEndValue] = useState(initialEndValue || maxValue);
   const [activeDragHandle, setActiveDragHandle] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [hoveredNotch, setHoveredNotch] = useState(null);
   
   const sliderRef = useRef(null);
   
@@ -143,16 +144,9 @@ const RangeSlider = ({
     setStartPosition(newStartPosition);
     setEndPosition(newEndPosition);
     
-    // Also notify parent of changes if values changed
-    if (newStartValue !== startValue || newEndValue !== endValue) {
-      if (onValuesChange) {
-        onValuesChange({
-          startValue: newStartValue,
-          endValue: newEndValue
-        });
-      }
-    }
-  }, [sortedValues, startValue, endValue, onValuesChange]);
+    // Also notify parent of changes if values changed - but don't trigger date updates
+    // We'll let the Apply button handle that
+  }, [sortedValues]);
 
   // Initialize the slider positions based on the initial values
   useEffect(() => {
@@ -193,7 +187,7 @@ const RangeSlider = ({
     }
   }, [sortedValues]);
   
-  // Notify parent of value range change
+  // Notify parent of value range change - but only when dragging stops
   useEffect(() => {
     if (!isDragging && onValuesChange && startValue && endValue) {
       onValuesChange({
@@ -201,7 +195,7 @@ const RangeSlider = ({
         endValue
       });
     }
-  }, [isDragging, onValuesChange, startValue, endValue]);
+  }, [isDragging]);
   
   const handleMouseDown = useCallback((e, isStartHandle) => {
     if (disabled) return;
@@ -336,6 +330,25 @@ const RangeSlider = ({
     return value;
   }, [displayFormat]);
   
+  // Calculate which notches to show labels for
+  const getNotchVisibility = useCallback((index, value) => {
+    // Always show first, last, selected values and hovered value
+    if (index === 0 || 
+        index === sortedValues.length - 1 || 
+        value === startValue || 
+        value === endValue ||
+        value === hoveredNotch) {
+      return true;
+    }
+    
+    // For longer arrays, show fewer labels
+    const interval = sortedValues.length <= 12 ? 1 : 
+                    sortedValues.length <= 24 ? 2 :
+                    sortedValues.length <= 60 ? 5 : 10;
+    
+    return index % interval === 0;
+  }, [sortedValues, startValue, endValue, hoveredNotch]);
+  
   return (
     <div className="my-3">
       <div className="flex justify-between mb-1 items-center">
@@ -349,7 +362,7 @@ const RangeSlider = ({
       
       <div 
         ref={sliderRef}
-        className={`relative h-10 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
+        className={`relative h-12 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
         onClick={handleTrackClick}
       >
         {/* Background Line */}
@@ -363,6 +376,65 @@ const RangeSlider = ({
             width: singleValueMode ? '0.5%' : `${Math.max(0.5, endPosition - startPosition)}%`
           }}
         ></div>
+        
+        {/* Value markers/notches */}
+        {sortedValues.map((value, index) => {
+          const position = (index / (sortedValues.length - 1)) * 100;
+          const isInRange = position >= startPosition && position <= endPosition;
+          const isSelected = value === startValue || value === endValue;
+          const showLabel = getNotchVisibility(index, value);
+          
+          return (
+            <div 
+              key={value}
+              className={`absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transition-all`}
+              style={{ left: `${position}%` }}
+              onMouseEnter={() => setHoveredNotch(value)}
+              onMouseLeave={() => setHoveredNotch(null)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent the track click handler from also firing
+                
+                // Determine which handle to move (the closest one)
+                const startDistance = Math.abs(position - startPosition);
+                const endDistance = Math.abs(position - endPosition);
+                
+                if (startDistance <= endDistance) {
+                  // Move start handle to this notch
+                  setStartPosition(position);
+                  setStartValue(value);
+                } else {
+                  // Move end handle to this notch
+                  setEndPosition(position);
+                  setEndValue(value);
+                }
+                
+                // Notify parent component of the change after a delay
+                setIsDragging(true);
+                setTimeout(() => setIsDragging(false), 100);
+              }}
+            >
+              {/* The notch/marker */}
+              <div className={`w-1 ${
+                isSelected ? `h-5 ${colors.bgMed} rounded-sm` : 
+                value === hoveredNotch ? `h-4 ${colors.bgMed} rounded-sm` :
+                isInRange ? `h-3 ${colors.bgMed} rounded-sm` : 
+                `h-3 bg-gray-400 rounded-sm`
+              }`}>
+              </div>
+              
+              {/* Label */}
+              {showLabel && (
+                <div className={`absolute w-8 text-xs text-center -translate-x-1/2 mt-5 ${
+                  isSelected ? `${colors.textBold} font-bold` : 
+                  value === hoveredNotch ? `${colors.textBold}` :
+                  `${colors.text} font-medium`
+                }`}>
+                  {formatValue(value)}
+                </div>
+              )}
+            </div>
+          );
+        })}
         
         {/* Start Handle */}
         <div 
@@ -387,58 +459,6 @@ const RangeSlider = ({
           }}
           onMouseDown={e => handleMouseDown(e, false)}
         ></div>
-        
-        {/* Value markers */}
-        {sortedValues.map((value, index) => {
-          const position = (index / (sortedValues.length - 1)) * 100;
-          const isInRange = position >= startPosition && position <= endPosition;
-          
-          return (
-            <div 
-              key={value}
-              className={`absolute top-1/2 w-2 h-4 transform -translate-x-1/2 -translate-y-1/2 z-10 ${
-                isInRange ? colors.bgMed : 'bg-gray-400'
-              } hover:h-5 cursor-pointer`}
-              style={{ left: `${position}%` }}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent the track click handler from also firing
-                
-                // Determine which handle to move (the closest one)
-                const startDistance = Math.abs(position - startPosition);
-                const endDistance = Math.abs(position - endPosition);
-                
-                if (startDistance <= endDistance) {
-                  // Move start handle to this notch
-                  setStartPosition(position);
-                  setStartValue(value);
-                } else {
-                  // Move end handle to this notch
-                  setEndPosition(position);
-                  setEndValue(value);
-                }
-                
-                // Notify parent component of the change
-                if (onValuesChange) {
-                  onValuesChange({
-                    startValue: startDistance <= endDistance ? value : startValue,
-                    endValue: startDistance <= endDistance ? endValue : value
-                  });
-                }
-              }}
-            >
-              {/* Only show some labels to avoid crowding */}
-              {(index % Math.ceil(sortedValues.length / 12) === 0 || 
-                value === startValue || 
-                value === endValue) && (
-                <div className={`absolute w-10 text-xs text-center -translate-x-1/2 mt-4 ${
-                  (value === startValue || value === endValue) ? `${colors.textBold} font-bold` : `${colors.text} font-medium`
-                }`}>
-                  {formatValue(value)}
-                </div>
-              )}
-            </div>
-          );
-        })}
       </div>
     </div>
   );
@@ -509,23 +529,32 @@ const TripleRangeSelector = ({
       };
     }
     
-    // Calculate days in the start month
-    const startYear = yearRangeMode ? yearRange.startYear : selectedYear;
-    const startMonth = monthRange.startValue;
-    const daysInStartMonth = getDaysInMonth(startYear, startMonth);
-    
-    // Calculate days in the end month
-    const endYear = yearRangeMode ? yearRange.endYear : selectedYear;
-    const endMonth = monthRange.endValue;
-    const daysInEndMonth = getDaysInMonth(endYear, endMonth);
-    
-    return {
-      start: Array.from({ length: daysInStartMonth }, (_, i) => (i + 1).toString()),
-      end: Array.from({ length: daysInEndMonth }, (_, i) => (i + 1).toString())
-    };
+    try {
+      // Calculate days in the start month
+      const startYear = yearRangeMode ? yearRange.startYear : selectedYear;
+      const startMonth = monthRange.startValue;
+      const daysInStartMonth = getDaysInMonth(startYear, startMonth);
+      
+      // Calculate days in the end month
+      const endYear = yearRangeMode ? yearRange.endYear : selectedYear;
+      const endMonth = monthRange.endValue;
+      const daysInEndMonth = getDaysInMonth(endYear, endMonth);
+      
+      return {
+        start: Array.from({ length: daysInStartMonth }, (_, i) => (i + 1).toString()),
+        end: Array.from({ length: daysInEndMonth }, (_, i) => (i + 1).toString())
+      };
+    } catch (err) {
+      console.warn("Error calculating days in month:", err);
+      // Default to 31 days if calculation fails
+      return {
+        start: Array.from({ length: 31 }, (_, i) => (i + 1).toString()),
+        end: Array.from({ length: 31 }, (_, i) => (i + 1).toString())
+      };
+    }
   }, [selectedYear, yearRangeMode, yearRange, monthRange]);
   
-  // Validate and adjust day values when months change
+  // Validate day values when months change, but don't trigger date updates
   useEffect(() => {
     // Skip for "all time" selection
     if (selectedYear === 'all') return;
@@ -547,28 +576,9 @@ const TripleRangeSelector = ({
         endValue: validEndDay
       });
       
-      // Also apply the date range with the adjusted days
-      if (yearRangeMode) {
-        applyDateRange(
-          yearRange.startYear,
-          yearRange.endYear,
-          monthRange.startValue,
-          monthRange.endValue,
-          validStartDay,
-          validEndDay
-        );
-      } else {
-        applyDateRange(
-          selectedYear,
-          selectedYear,
-          monthRange.startValue,
-          monthRange.endValue,
-          validStartDay,
-          validEndDay
-        );
-      }
+      // NOTE: We don't call applyDateRange here - only when button is clicked
     }
-  }, [daysInSelectedMonths, monthRange]);
+  }, [daysInSelectedMonths]);
   
   // Initialize component from provided dates
   useEffect(() => {
@@ -633,106 +643,77 @@ const TripleRangeSelector = ({
     }
   }, [initialStartDate, initialEndDate, years]);
   
-// Handle year range changes from YearSelector
-const handleYearRangeChange = ({ startYear, endYear }) => {
-  setYearRange({ startYear, endYear });
-  
-  // Apply the date range with current month/day selections
-  applyDateRange(startYear, endYear, monthRange.startValue, monthRange.endValue, dayRange.startValue, dayRange.endValue);
-};
-
-// Handle month range changes
-const handleMonthRangeChange = ({ startValue, endValue }) => {
-  setMonthRange({ startValue, endValue });
-  
-  // Apply the date range with updated months
-  if (yearRangeMode) {
-    applyDateRange(yearRange.startYear, yearRange.endYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
-  } else if (selectedYear !== 'all') {
-    applyDateRange(selectedYear, selectedYear, startValue, endValue, dayRange.startValue, dayRange.endValue);
-  }
-};
-
-// Handle day range changes
-const handleDayRangeChange = ({ startValue, endValue }) => {
-  setDayRange({ startValue, endValue });
-  
-  // Apply the date range with updated days
-  if (yearRangeMode) {
-    applyDateRange(yearRange.startYear, yearRange.endYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
-  } else if (selectedYear !== 'all') {
-    applyDateRange(selectedYear, selectedYear, monthRange.startValue, monthRange.endValue, startValue, endValue);
-  }
-};
-
-// Toggle between single year and year range modes
-const handleToggleRangeMode = (isRange) => {
-  setYearRangeMode(isRange);
-};
-
-// Apply date range with specific values
-const applyDateRange = (startYear, endYear, startMonth, endMonth, startDay, endDay) => {
-  try {
-    // Validate days against month maximums
-    const maxStartDay = getDaysInMonth(startYear, startMonth);
-    const maxEndDay = getDaysInMonth(endYear, endMonth);
+  // Handle year range changes from YearSelector
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    setYearRange({ startYear, endYear });
     
-    const validStartDay = Math.min(parseInt(startDay), maxStartDay);
-    const validEndDay = Math.min(parseInt(endDay), maxEndDay);
-    
-    // Format dates as YYYY-MM-DD
-    const startDateStr = `${startYear}-${startMonth.padStart(2, '0')}-${validStartDay.toString().padStart(2, '0')}`;
-    const endDateStr = `${endYear}-${endMonth.padStart(2, '0')}-${validEndDay.toString().padStart(2, '0')}`;
-    
-    if (onDateRangeChange) {
-      onDateRangeChange(startDateStr, endDateStr);
-    }
-  } catch (err) {
-    console.error("Error applying date range:", err);
-  }
-};
+    // Apply full year range automatically when user selects a year range
+    onDateRangeChange(`${startYear}-01-01`, `${endYear}-12-31`);
+  };
 
-// Fix the handleYearChange function
-const handleYearChange = (year) => {
-  setSelectedYear(year);
-  
-  // Handle "all" selection (all time)
-  if (year === 'all') {
-    // For "all", pass empty strings to indicate all time
-    if (onDateRangeChange) {
-      onDateRangeChange("", "");
+  // Handle month range changes - don't apply immediately, just store in state
+  const handleMonthRangeChange = ({ startValue, endValue }) => {
+    setMonthRange({ startValue, endValue });
+  };
+
+  // Handle day range changes - don't apply immediately, just store in state
+  const handleDayRangeChange = ({ startValue, endValue }) => {
+    setDayRange({ startValue, endValue });
+  };
+
+  // Toggle between single year and year range modes
+  const handleToggleRangeMode = (isRange) => {
+    setYearRangeMode(isRange);
+  };
+
+  // Apply date range with specific values
+  const applyDateRange = () => {
+    try {
+      // Check if we're in "all time" mode
+      if (selectedYear === 'all') {
+        if (onDateRangeChange) {
+          onDateRangeChange("", "");
+        }
+        return;
+      }
+      
+      // Get years based on mode
+      const startYear = yearRangeMode ? yearRange.startYear : selectedYear;
+      const endYear = yearRangeMode ? yearRange.endYear : selectedYear;
+      
+      // Validate days against month maximums
+      const maxStartDay = getDaysInMonth(startYear, monthRange.startValue);
+      const maxEndDay = getDaysInMonth(endYear, monthRange.endValue);
+      
+      const validStartDay = Math.min(parseInt(dayRange.startValue), maxStartDay);
+      const validEndDay = Math.min(parseInt(dayRange.endValue), maxEndDay);
+      
+      // Format dates as YYYY-MM-DD
+      const startDateStr = `${startYear}-${monthRange.startValue.padStart(2, '0')}-${validStartDay.toString().padStart(2, '0')}`;
+      const endDateStr = `${endYear}-${monthRange.endValue.padStart(2, '0')}-${validEndDay.toString().padStart(2, '0')}`;
+      
+      if (onDateRangeChange) {
+        onDateRangeChange(startDateStr, endDateStr);
+      }
+    } catch (err) {
+      console.error("Error applying date range:", err);
     }
-  } else {
-    // For regular year, use full year range
-    if (onDateRangeChange) {
-      onDateRangeChange(`${year}-01-01`, `${year}-12-31`);
-    }
-  }
-};
-  // Apply custom date range when clicked
-  const applyCustomDateRange = () => {
-    if (yearRangeMode) {
-      applyDateRange(
-        yearRange.startYear, 
-        yearRange.endYear, 
-        monthRange.startValue, 
-        monthRange.endValue, 
-        dayRange.startValue, 
-        dayRange.endValue
-      );
-    } else if (selectedYear !== 'all') {
-      applyDateRange(
-        selectedYear, 
-        selectedYear, 
-        monthRange.startValue, 
-        monthRange.endValue, 
-        dayRange.startValue, 
-        dayRange.endValue
-      );
-    } else {
-      // All time
+  };
+
+  // Handle year changes from YearSelector
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+    
+    // Handle "all" selection (all time)
+    if (year === 'all') {
+      // For "all", pass empty strings to indicate all time
       if (onDateRangeChange) {
         onDateRangeChange("", "");
+      }
+    } else {
+      // For regular year, use full year range
+      if (onDateRangeChange) {
+        onDateRangeChange(`${year}-01-01`, `${year}-12-31`);
       }
     }
   };
@@ -843,7 +824,7 @@ const handleYearChange = (year) => {
           
           <div className="flex justify-center mt-4">
             <button
-              onClick={applyCustomDateRange}
+              onClick={applyDateRange}
               className={`px-4 py-2 ${colors.buttonBg} text-white rounded ${colors.buttonHover}`}
             >
               Apply Date Range
@@ -858,5 +839,4 @@ const handleYearChange = (year) => {
     </div>
   );
 };
-
 export default TripleRangeSelector
