@@ -168,11 +168,11 @@ const YearSelector = ({
   
   return (
     <div className="mt-2 mb-6">
-      <div className="flex justify-between items-center mb-4">
+     <div className="flex justify-between items-center mb-4">
         <label className={colors.text + " font-medium text-sm"}>
           {mode === 'range' 
             ? 'Year Range Selection' 
-            : 'Single Year Selection'}
+            : initialYear === 'all' ? 'All-Time Selection' : 'Single Year Selection'}
         </label>
         
         {/* Toggle between modes */}
@@ -188,7 +188,7 @@ const YearSelector = ({
               }
             }}
             className={`px-2 py-1 rounded text-xs ${
-              mode === 'single' && initialYear === 'all'
+              initialYear === 'all' && mode === 'single'
                 ? colors.bg + ' text-white' 
                 : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
             }`}
