@@ -2,9 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
     startOfDay, endOfDay,
     startOfYear, endOfYear,
-    format, differenceInMinutes, parseISO, addMilliseconds, max, min, isValid // Import isValid
+    format, differenceInMinutes, parseISO, addMilliseconds, max, min, isValid
 } from 'date-fns';
-import YearSelector from './year-selector.js'; // Import the YearSelector
 
 // Helper to safely parse dates and check validity
 const safeParseISOAndValidate = (dateString) => {
@@ -48,9 +47,9 @@ const PodcastRankings = ({
   initialShows = []
 }) => {
   // State for year/date selection
-  const [selectionMode, setSelectionMode] = useState('all-time');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [selectedYearRange, setSelectedYearRange] = useState(null);
+  const [yearRangeMode, setYearRangeMode] = useState(false);
+  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
 
   // Other state variables
   const [topN, setTopN] = useState(50);
@@ -58,7 +57,7 @@ const PodcastRankings = ({
   const [selectedShows, setSelectedShows] = useState(initialShows);
   const [showSearch, setShowSearch] = useState('');
   const [mergeThresholdMinutes, setMergeThresholdMinutes] = useState(10);
-  const [showProcessingStats, setShowProcessingStats] = useState(false); // Default to false initially
+  const [showProcessingStats, setShowProcessingStats] = useState(false);
   const [processingStats, setProcessingStats] = useState({
     initialEvents: 0,
     filteredOutInvalidTsOrDuration: 0,
@@ -83,7 +82,7 @@ const PodcastRankings = ({
   const availableYears = useMemo(() => {
     const yearSet = new Set();
     rawPlayData.forEach(entry => {
-      const date = safeParseISOAndValidate(entry.ts); // Use validating parser
+      const date = safeParseISOAndValidate(entry.ts);
       if (date) {
         yearSet.add(format(date, 'yyyy'));
       }
@@ -91,85 +90,24 @@ const PodcastRankings = ({
     return Array.from(yearSet).sort((a, b) => parseInt(a) - parseInt(b));
   }, [rawPlayData]);
 
-   // Effect to set initial defaults when years become available or mode changes
-   useEffect(() => {
-      if (availableYears.length === 0) return; // Don't run if no years yet
+  // Create an object with years for YearSelector
+  const artistsByYear = useMemo(() => {
+    const yearsObj = {};
+    availableYears.forEach(year => {
+      yearsObj[year] = []; // YearSelector expects an object with years as keys
+    });
+    return yearsObj;
+  }, [availableYears]);
 
-      if (selectionMode === 'range' && selectedYearRange === null && availableYears.length >= 2) {
-         setSelectedYearRange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-         });
-      } else if (selectionMode === 'single' && selectedYear === 'all'){
-         setSelectedYear(availableYears[availableYears.length-1]); // Default to latest year
-      }
-   // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [availableYears, selectionMode]); // Rerun only when needed
-
-
-  // --- Callbacks for YearSelector ---
-  const handleYearChange = (year) => {
-    console.log("Parent received single year:", year);
-    setSelectedYear(year);
-    // Mode should already be 'single' if this callback is triggered by BetterYearSlider
+  // Handle year range changes
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    setYearRange({ startYear, endYear });
   };
-
-  const handleYearRangeChange = (range) => {
-     console.log("Parent received range:", range);
-     if(range && range.startYear && range.endYear) {
-        setSelectedYearRange(range);
-        // Mode should already be 'range' if this callback is triggered by DualHandleYearSlider
-    } else {
-        console.error("Invalid range received in Parent:", range);
-    }
+  
+  // Toggle between single year and year range modes
+  const toggleYearRangeMode = (value) => {
+    setYearRangeMode(value);
   };
-
-  const handleModeChange = (newMode) => {
-    console.log("Parent setting mode:", newMode);
-    // Only update if mode actually changes
-    if (newMode !== selectionMode) {
-        setSelectionMode(newMode);
-        // Reset/adjust other selections based on the *new* mode
-        if (newMode === 'all-time') {
-          setSelectedYear('all');
-          setSelectedYearRange(null);
-        } else if (newMode === 'single') {
-          setSelectedYearRange(null);
-          // Set default year if needed (or keep current if valid)
-          if (selectedYear === 'all' && availableYears.length > 0) {
-              setSelectedYear(availableYears[availableYears.length - 1]);
-          } else if (!availableYears.includes(selectedYear) && availableYears.length > 0){
-              setSelectedYear(availableYears[availableYears.length - 1]);
-          }
-        } else if (newMode === 'range') {
-          setSelectedYear('all');
-          // Set default range if needed (or keep current if valid)
-          if (selectedYearRange === null && availableYears.length >= 2) {
-              setSelectedYearRange({ startYear: availableYears[0], endYear: availableYears[availableYears.length - 1] });
-          }
-        }
-    }
-  };
-
-  // --- Show data derivation (unchanged) ---
-   const allShows = useMemo(() => {
-      const shows = new Set(
-        rawPlayData
-          .filter(entry => entry.episode_show_name)
-          .map(entry => entry.episode_show_name)
-      );
-      return Array.from(shows).sort((a, b) => a.localeCompare(b));
-  }, [rawPlayData]);
-
-  const filteredShows = useMemo(() => {
-      return allShows
-        .filter(show =>
-          show.toLowerCase().includes(showSearch.toLowerCase()) &&
-          !selectedShows.includes(show)
-        )
-        .slice(0, 10);
-  }, [allShows, showSearch, selectedShows]);
-
 
   // --- Episode Processing (useMemo with robust checks) ---
   const processedEpisodes = useMemo(() => {
@@ -182,23 +120,21 @@ const PodcastRankings = ({
     let startFilterDate = new Date(0);
     let endFilterDate = new Date(); // Default to all time
 
-    // Determine date range based on selectionMode
-    if (selectionMode === 'single' && selectedYear !== 'all') {
+    // Determine date range based on selection
+    if (!yearRangeMode && selectedYear !== 'all') {
         const yearNum = parseInt(selectedYear);
         if (!isNaN(yearNum)) {
             startFilterDate = startOfYear(new Date(yearNum, 0, 1));
             endFilterDate = endOfYear(new Date(yearNum, 11, 31));
         }
-    } else if (selectionMode === 'range' && selectedYearRange?.startYear && selectedYearRange?.endYear) {
-        const startYearNum = parseInt(selectedYearRange.startYear);
-        const endYearNum = parseInt(selectedYearRange.endYear);
+    } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+        const startYearNum = parseInt(yearRange.startYear);
+        const endYearNum = parseInt(yearRange.endYear);
         if (!isNaN(startYearNum) && !isNaN(endYearNum)) {
              startFilterDate = startOfYear(new Date(startYearNum, 0, 1));
              endFilterDate = endOfYear(new Date(endYearNum, 11, 31));
         }
     }
-    // console.log(`Filtering between ${format(startFilterDate, 'yyyy-MM-dd')} and ${format(endFilterDate, 'yyyy-MM-dd')}`);
-
 
     const mergeThresholdMs = mergeThresholdMinutes * 60 * 1000;
     const stats = { initialEvents: 0, filteredOutInvalidTsOrDuration: 0, filteredOutDateRange: 0, filteredOutNoEpisodeData: 0, filteredOutShowFilter: 0, filteredOutZeroDuration: 0, exactDuplicatesRemoved: 0, validEventsProcessed: 0, mergedEventsCount: 0, finalSegmentsCount: 0, finalEpisodesCount: 0 };
@@ -372,9 +308,9 @@ const PodcastRankings = ({
 
   }, [
       rawPlayData,
-      selectionMode,
+      yearRangeMode,
       selectedYear,
-      selectedYearRange,
+      yearRange,
       topN,
       sortBy,
       selectedShows,
@@ -382,77 +318,139 @@ const PodcastRankings = ({
   ]);
 
   // --- Show selection handlers ---
+  const allShows = useMemo(() => {
+    const shows = new Set(
+      rawPlayData
+        .filter(entry => entry.episode_show_name)
+        .map(entry => entry.episode_show_name)
+    );
+    return Array.from(shows).sort((a, b) => a.localeCompare(b));
+  }, [rawPlayData]);
+
+  const filteredShows = useMemo(() => {
+    return allShows
+      .filter(show =>
+        show.toLowerCase().includes(showSearch.toLowerCase()) &&
+        !selectedShows.includes(show)
+      )
+      .slice(0, 10);
+  }, [allShows, showSearch, selectedShows]);
+
   const addShow = (show) => {
-      if (show && !selectedShows.includes(show)) {
-          setSelectedShows(prev => [...prev, show]);
-      }
-      setShowSearch('');
+    if (show && !selectedShows.includes(show)) {
+      setSelectedShows(prev => [...prev, show]);
+    }
+    setShowSearch('');
   };
+  
   const removeShow = (show) => {
-      setSelectedShows(prev => prev.filter(s => s !== show));
+    setSelectedShows(prev => prev.filter(s => s !== show));
   };
 
+  // Function to get a more appropriate title for the selection
+  const getTitle = () => {
+    if (selectedYear === 'all') {
+      return 'All-Time Podcast Episodes';
+    } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      return `Podcast Episodes (${yearRange.startYear}-${yearRange.endYear})`;
+    }
+    return `Podcast Episodes (${selectedYear})`;
+  };
 
   return (
-    <div className="space-y-4 p-4 bg-white rounded shadow">
-      <h2 className="text-xl font-semibold text-indigo-800 mb-4">Podcast Episode Rankings</h2>
-
-      {/* YearSelector Component */}
-      <YearSelector
-        availableYears={availableYears}
-        currentMode={selectionMode}
-        selectedYear={selectedYear}
-        selectedYearRange={selectedYearRange}
-        onModeChange={handleModeChange}
-        onYearChange={handleYearChange}
-        onYearRangeChange={handleYearRangeChange}
-        colorTheme="indigo"
-      />
-
-     {/* Settings & Show Selection Grid */}
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Settings */}
-          <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 space-y-3">
-             <h3 className="font-medium text-indigo-700">Settings</h3>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-indigo-700">Top</label>
-                <input
-                  type="number" min="1" max="1000" value={topN}
-                  onChange={(e) => setTopN(Math.min(1000, Math.max(1, parseInt(e.target.value) || 50)))}
-                  className="border rounded w-16 px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400 text-sm"
-                />
-                <label className="text-sm text-indigo-700">episodes</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-indigo-700 whitespace-nowrap">Merge plays within:</label>
-                <input
-                  type="number" min="1" max="1440" value={mergeThresholdMinutes}
-                  onChange={(e) => setMergeThresholdMinutes(Math.min(1440, Math.max(1, parseInt(e.target.value) || 10)))}
-                  className="border rounded w-16 px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400 text-sm"
-                />
-                <span className="text-sm text-indigo-700">minutes</span>
-              </div>
-              <div className="flex items-center">
-                 <input
-                    type="checkbox"
-                    id="showStatsCheck"
-                    checked={showProcessingStats} // Corrected state variable name
-                    onChange={() => setShowProcessingStats(!showProcessingStats)} // Corrected state variable name
-                    className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                 />
-                 <label htmlFor="showStatsCheck" className="text-sm text-indigo-700">Show Processing Stats</label>
-              </div>
+    <div className="space-y-4">
+      <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+        <h3 className="font-bold text-indigo-800 mb-3">{getTitle()}</h3>
+        
+        {/* Import the YearSelector component using require() to avoid import issues */}
+        {React.createElement(require('./year-selector.js').default, {
+          artistsByYear: artistsByYear,
+          onYearChange: setSelectedYear,
+          onYearRangeChange: handleYearRangeChange,
+          initialYear: selectedYear !== 'all' ? selectedYear : null,
+          initialYearRange: yearRange,
+          isRangeMode: yearRangeMode,
+          onToggleRangeMode: toggleYearRangeMode,
+          colorTheme: 'indigo'
+        })}
+        
+        {/* Settings Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {/* Settings Panel */}
+          <div className="p-3 bg-white rounded border border-indigo-200 space-y-3">
+            <h4 className="font-medium text-indigo-700">Settings</h4>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-indigo-700">Show Top</label>
+              <input
+                type="number" min="1" max="1000" value={topN}
+                onChange={(e) => setTopN(Math.min(1000, Math.max(1, parseInt(e.target.value) || 50)))}
+                className="border rounded w-16 px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400 text-sm"
+              />
+              <label className="text-sm text-indigo-700">episodes</label>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-indigo-700 whitespace-nowrap">Merge plays within:</label>
+              <input
+                type="number" min="1" max="1440" value={mergeThresholdMinutes}
+                onChange={(e) => setMergeThresholdMinutes(Math.min(1440, Math.max(1, parseInt(e.target.value) || 10)))}
+                className="border rounded w-16 px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400 text-sm"
+              />
+              <span className="text-sm text-indigo-700">minutes</span>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="showStatsCheck"
+                checked={showProcessingStats}
+                onChange={() => setShowProcessingStats(!showProcessingStats)}
+                className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label htmlFor="showStatsCheck" className="text-sm text-indigo-700">Show Processing Stats</label>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-indigo-700">Sort by:</span>
+              <button
+                onClick={() => setSortBy('totalPlayed')}
+                className={`px-3 py-1 rounded text-xs ${
+                  sortBy === 'totalPlayed'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                }`}
+              >
+                Total Time
+              </button>
+              <button
+                onClick={() => setSortBy('longestSession')}
+                className={`px-3 py-1 rounded text-xs ${
+                  sortBy === 'longestSession'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                }`}
+              >
+                Longest Play
+              </button>
+              <button
+                onClick={() => setSortBy('segmentCount')}
+                className={`px-3 py-1 rounded text-xs ${
+                  sortBy === 'segmentCount'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                }`}
+              >
+                Sessions
+              </button>
+            </div>
           </div>
-
-          {/* Show Filter */}
-          <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 space-y-3">
-            <h3 className="font-medium text-indigo-700">Filter by Show(s)</h3>
+          
+          {/* Show Filter Panel */}
+          <div className="p-3 bg-white rounded border border-indigo-200 space-y-3">
+            <h4 className="font-medium text-indigo-700">Filter by Show(s)</h4>
             <div className="relative">
               <input
                 type="text"
                 value={showSearch}
                 onChange={(e) => setShowSearch(e.target.value)}
-                placeholder="Type to search shows..."
+                placeholder="Search shows..."
                 className="w-full border rounded px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400 text-sm"
               />
               {showSearch && filteredShows.length > 0 && (
@@ -469,7 +467,7 @@ const PodcastRankings = ({
                 </div>
               )}
             </div>
-            <div className="flex flex-wrap gap-2 min-h-[24px]"> {/* Added min-height */}
+            <div className="flex flex-wrap gap-2 min-h-[24px]">
               {selectedShows.length === 0 && <span className="text-sm text-indigo-500 italic">Showing all shows</span>}
               {selectedShows.map(show => (
                 <div key={show} className="flex items-center bg-indigo-600 text-white px-2 py-1 rounded-full text-xs">
@@ -478,84 +476,76 @@ const PodcastRankings = ({
                 </div>
               ))}
             </div>
-             {selectedShows.length > 0 && (
-                 <button
-                    onClick={() => setSelectedShows([])}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
-                 >
-                    Clear all show filters
-                 </button>
-             )}
+            {selectedShows.length > 0 && (
+              <button
+                onClick={() => setSelectedShows([])}
+                className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
+              >
+                Clear all show filters
+              </button>
+            )}
           </div>
+        </div>
       </div>
-
+      
       {/* Processing Stats Display */}
       {showProcessingStats && (
-         <div className="text-xs text-indigo-600 bg-indigo-100 p-3 rounded border border-indigo-200 flex flex-wrap gap-x-3 gap-y-1 leading-relaxed">
-            <span>Events: {processingStats.initialEvents}</span>|
-            <span>Invalid TS/Dur: {processingStats.filteredOutInvalidTsOrDuration}</span>|
-            <span>Out of Range: {processingStats.filteredOutDateRange}</span>|
-            <span>No Ep Data: {processingStats.filteredOutNoEpisodeData}</span>|
-            <span>Show Filtered: {processingStats.filteredOutShowFilter}</span>|
-            <span>Zero Dur: {processingStats.filteredOutZeroDuration}</span>|
-            <span>Exact Dup: {processingStats.exactDuplicatesRemoved}</span>|
-            <span>Valid Raw: {processingStats.validEventsProcessed}</span>|
-            <span>Merged Evts: {processingStats.mergedEventsCount}</span>|
-            <span>Final Segs: {processingStats.finalSegmentsCount}</span>|
-            <span>Final Eps: {processingStats.finalEpisodesCount}</span>
-         </div>
+        <div className="text-xs text-indigo-600 bg-indigo-100 p-3 rounded border border-indigo-200 flex flex-wrap gap-x-3 gap-y-1 leading-relaxed">
+          <span>Events: {processingStats.initialEvents}</span>|
+          <span>Invalid TS/Dur: {processingStats.filteredOutInvalidTsOrDuration}</span>|
+          <span>Out of Range: {processingStats.filteredOutDateRange}</span>|
+          <span>No Ep Data: {processingStats.filteredOutNoEpisodeData}</span>|
+          <span>Show Filtered: {processingStats.filteredOutShowFilter}</span>|
+          <span>Zero Dur: {processingStats.filteredOutZeroDuration}</span>|
+          <span>Exact Dup: {processingStats.exactDuplicatesRemoved}</span>|
+          <span>Valid Raw: {processingStats.validEventsProcessed}</span>|
+          <span>Merged Evts: {processingStats.mergedEventsCount}</span>|
+          <span>Final Segs: {processingStats.finalSegmentsCount}</span>|
+          <span>Final Eps: {processingStats.finalEpisodesCount}</span>
+        </div>
       )}
-
-      {/* Table Display */}
-       {processedEpisodes.length > 0 ? (
-        <div className="overflow-x-auto border border-indigo-200 rounded-lg shadow-sm">
-          <table className="w-full min-w-[800px] text-sm">
-            <thead className="bg-indigo-100">
-              <tr className="border-b border-indigo-200">
-                 <th className="p-2 text-left text-indigo-800 font-semibold">#</th>
-                <th className="p-2 text-left text-indigo-800 font-semibold">Episode</th>
-                <th className="p-2 text-left text-indigo-800 font-semibold">Show</th>
-                <th className={`p-2 text-right text-indigo-800 font-semibold cursor-pointer hover:bg-indigo-200 ${sortBy === 'totalPlayed' ? 'bg-indigo-200' : ''}`} onClick={() => setSortBy('totalPlayed')}>
-                  Total Played {sortBy === 'totalPlayed' && '▼'}
-                </th>
-                <th className={`p-2 text-right text-indigo-800 font-semibold cursor-pointer hover:bg-indigo-200 ${sortBy === 'longestSession' ? 'bg-indigo-200' : ''}`} onClick={() => setSortBy('longestSession')}>
-                  Longest Play {sortBy === 'longestSession' && '▼'}
-                </th>
-                <th className={`p-2 text-right text-indigo-800 font-semibold cursor-pointer hover:bg-indigo-200 ${sortBy === 'segmentCount' ? 'bg-indigo-200' : ''}`} onClick={() => setSortBy('segmentCount')}>
-                  Sessions {sortBy === 'segmentCount' && '▼'}
-                </th>
-                <th className="p-2 text-right text-indigo-800 font-semibold">Platforms</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-indigo-100">
-              {processedEpisodes.map((episode, index) => (
-                <tr key={episode.key} className="hover:bg-indigo-50">
-                  <td className="p-2 text-indigo-700 text-center">{index + 1}</td>
-                  <td className="p-2 text-indigo-900 max-w-xs truncate" title={episode.episodeName}>{episode.episodeName}</td>
-                  <td className="p-2 text-indigo-700 max-w-xs truncate cursor-pointer hover:underline"
-                      title={episode.showName}
-                      onClick={() => addShowFromEpisode(episode.showName)}>
-                      {episode.showName}
-                  </td>
-                  <td className="p-2 text-right text-indigo-700 font-medium whitespace-nowrap">
-                    {formatDuration(episode.totalPlayed)}
-                  </td>
-                  <td className="p-2 text-right text-indigo-700 whitespace-nowrap">
-                    {formatDuration(episode.longestSession)}
-                  </td>
-                  <td className="p-2 text-right text-indigo-700">
-                    {episode.segmentCount}
-                  </td>
-                  <td className="p-2 text-right text-indigo-700 text-xs max-w-[100px] truncate" title={episode.uniquePlatforms.join(', ')}>
-                     {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).join(', ')}
-                  </td>
+      
+      {/* Results */}
+      {processedEpisodes.length > 0 ? (
+        <div className="overflow-x-auto -mx-4 px-4">
+          <div className="min-w-[800px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-indigo-200">
+                  <th className="p-2 text-left text-indigo-800">#</th>
+                  <th className="p-2 text-left text-indigo-800">Episode</th>
+                  <th className="p-2 text-left text-indigo-800">Show</th>
+                  <th className="p-2 text-right text-indigo-800">Total Time</th>
+                  <th className="p-2 text-right text-indigo-800">Longest Play</th>
+                  <th className="p-2 text-right text-indigo-800">Sessions</th>
+                  <th className="p-2 text-right text-indigo-800">Platforms</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {processedEpisodes.map((episode, index) => (
+                  <tr key={episode.key} className="border-b hover:bg-indigo-50">
+                    <td className="p-2 text-indigo-700">{index + 1}</td>
+                    <td className="p-2 text-indigo-900">{episode.episodeName}</td>
+                    <td 
+                      className="p-2 text-indigo-700 cursor-pointer hover:underline"
+                      onClick={() => addShowFromEpisode(episode.showName)}
+                    >
+                      {episode.showName}
+                    </td>
+                    <td className="p-2 text-right text-indigo-700">{formatDuration(episode.totalPlayed)}</td>
+                    <td className="p-2 text-right text-indigo-700">{formatDuration(episode.longestSession)}</td>
+                    <td className="p-2 text-right text-indigo-700">{episode.segmentCount}</td>
+                    <td className="p-2 text-right text-indigo-700 text-xs">
+                      {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).join(', ')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
-        <div className="text-center py-6 text-indigo-500 italic">
+        <div className="text-center py-4 text-indigo-500">
           No podcast episodes found matching your filters.
         </div>
       )}
