@@ -1,17 +1,22 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
     startOfDay, endOfDay,
-    startOfYear, endOfYear, // Keep these
-    format, differenceInMinutes, parseISO, addMilliseconds, max, min
+    startOfYear, endOfYear,
+    format, differenceInMinutes, parseISO, addMilliseconds, max, min, isValid // Import isValid
 } from 'date-fns';
-import YearSelector from './year-selector.js'; // Import the new component
+import YearSelector from './year-selector.js'; // Import the YearSelector
 
-// Helper to safely parse dates
-const safeParseISO = (dateString) => {
+// Helper to safely parse dates and check validity
+const safeParseISOAndValidate = (dateString) => {
   if (!dateString) return null;
   try {
     const date = parseISO(dateString);
-    return isNaN(date.getTime()) ? null : date;
+    // Check if the parsed date is valid
+    if (isValid(date)) {
+      return date;
+    }
+    console.warn("Invalid date parsed:", dateString);
+    return null;
   } catch (error) {
     console.error("Error parsing date:", dateString, error);
     return null;
@@ -20,7 +25,9 @@ const safeParseISO = (dateString) => {
 
 // Helper to format duration
 const formatDurationFallback = (ms) => {
-  if (ms === null || ms === undefined || isNaN(ms) || ms <= 0) return 'N/A';
+  if (ms === null || ms === undefined || isNaN(ms) || ms < 0) return 'N/A'; // Allow 0ms now? Changed from <=0
+  if (ms === 0) return '0s'; // Explicitly handle 0
+
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -28,10 +35,10 @@ const formatDurationFallback = (ms) => {
 
   let parts = [];
   if (hours > 0) parts.push(`${hours}h`);
-  if (minutes > 0 || hours > 0) parts.push(`${minutes}m`); // Show minutes if hours > 0 or minutes > 0
-  if (hours === 0) parts.push(`${seconds}s`); // Only show seconds if less than an hour
+  if (minutes > 0 || hours > 0) parts.push(`${minutes}m`);
+  if (hours === 0 ) parts.push(`${seconds}s`); // Show seconds if less than an hour OR if exact minute
 
-  return parts.length > 0 ? parts.join(' ') : '0s';
+  return parts.length > 0 ? parts.join(' ') : '<1s'; // Handle very small durations
 };
 
 
@@ -40,25 +47,30 @@ const PodcastRankings = ({
   formatDuration = formatDurationFallback,
   initialShows = []
 }) => {
-  // State for year/date selection mode and values
-  const [selectionMode, setSelectionMode] = useState('all-time'); // 'single', 'range', 'all-time'
+  // State for year/date selection
+  const [selectionMode, setSelectionMode] = useState('all-time');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [selectedYearRange, setSelectedYearRange] = useState(null); // { startYear: string, endYear: string }
+  const [selectedYearRange, setSelectedYearRange] = useState(null);
 
-  // Other state variables (remain the same)
+  // Other state variables
   const [topN, setTopN] = useState(50);
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedShows, setSelectedShows] = useState(initialShows);
   const [showSearch, setShowSearch] = useState('');
   const [mergeThresholdMinutes, setMergeThresholdMinutes] = useState(10);
-  const [showDuplicateStats, setShowDuplicateStats] = useState(true);
+  const [showProcessingStats, setShowProcessingStats] = useState(false); // Default to false initially
   const [processingStats, setProcessingStats] = useState({
     initialEvents: 0,
-    filteredOutInvalid: 0,
+    filteredOutInvalidTsOrDuration: 0,
+    filteredOutDateRange: 0,
+    filteredOutNoEpisodeData: 0,
+    filteredOutShowFilter: 0,
     filteredOutZeroDuration: 0,
     exactDuplicatesRemoved: 0,
-    mergedEvents: 0,
-    finalSegments: 0
+    validEventsProcessed: 0,
+    mergedEventsCount: 0,
+    finalSegmentsCount: 0,
+    finalEpisodesCount: 0
   });
 
   const addShowFromEpisode = (show) => {
@@ -71,72 +83,76 @@ const PodcastRankings = ({
   const availableYears = useMemo(() => {
     const yearSet = new Set();
     rawPlayData.forEach(entry => {
-      const date = safeParseISO(entry.ts);
+      const date = safeParseISOAndValidate(entry.ts); // Use validating parser
       if (date) {
         yearSet.add(format(date, 'yyyy'));
       }
     });
-    const years = Array.from(yearSet).sort((a, b) => parseInt(a) - parseInt(b));
-    console.log("Available years:", years); // Debug log
-    return years;
+    return Array.from(yearSet).sort((a, b) => parseInt(a) - parseInt(b));
   }, [rawPlayData]);
 
-   // Set initial range state once years are available
+   // Effect to set initial defaults when years become available or mode changes
    useEffect(() => {
-      if (availableYears.length >= 2 && selectedYearRange === null && selectionMode === 'range') {
+      if (availableYears.length === 0) return; // Don't run if no years yet
+
+      if (selectionMode === 'range' && selectedYearRange === null && availableYears.length >= 2) {
          setSelectedYearRange({
             startYear: availableYears[0],
             endYear: availableYears[availableYears.length - 1]
          });
-      } else if (availableYears.length > 0 && selectedYear === 'all' && selectionMode === 'single'){
+      } else if (selectionMode === 'single' && selectedYear === 'all'){
          setSelectedYear(availableYears[availableYears.length-1]); // Default to latest year
       }
-   }, [availableYears, selectionMode]); // Rerun if mode changes or years load
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [availableYears, selectionMode]); // Rerun only when needed
 
 
   // --- Callbacks for YearSelector ---
   const handleYearChange = (year) => {
     console.log("Parent received single year:", year);
-    // No need to set mode here, as the slider is only active in 'single' mode
     setSelectedYear(year);
-    setSelectedYearRange(null);
+    // Mode should already be 'single' if this callback is triggered by BetterYearSlider
   };
 
   const handleYearRangeChange = (range) => {
      console.log("Parent received range:", range);
-    // No need to set mode here, as the slider is only active in 'range' mode
-    if(range && range.startYear && range.endYear) { // Basic validation
+     if(range && range.startYear && range.endYear) {
         setSelectedYearRange(range);
-        setSelectedYear('all');
+        // Mode should already be 'range' if this callback is triggered by DualHandleYearSlider
     } else {
-        console.error("Invalid range received:", range);
+        console.error("Invalid range received in Parent:", range);
     }
   };
 
   const handleModeChange = (newMode) => {
     console.log("Parent setting mode:", newMode);
-    setSelectionMode(newMode);
-    // Reset selections when switching modes
-    if (newMode === 'all-time') {
-      setSelectedYear('all');
-      setSelectedYearRange(null);
-    } else if (newMode === 'single') {
-      setSelectedYearRange(null);
-       // Set a default year if 'all' was selected, handled by useEffect now
-      if (selectedYear === 'all' && availableYears.length > 0) {
-          setSelectedYear(availableYears[availableYears.length - 1]);
-      }
-    } else if (newMode === 'range') {
-      setSelectedYear('all');
-      // Set a default range if none exists, handled by useEffect now
-      if (selectedYearRange === null && availableYears.length >= 2) {
-          setSelectedYearRange({ startYear: availableYears[0], endYear: availableYears[availableYears.length - 1] });
-      }
+    // Only update if mode actually changes
+    if (newMode !== selectionMode) {
+        setSelectionMode(newMode);
+        // Reset/adjust other selections based on the *new* mode
+        if (newMode === 'all-time') {
+          setSelectedYear('all');
+          setSelectedYearRange(null);
+        } else if (newMode === 'single') {
+          setSelectedYearRange(null);
+          // Set default year if needed (or keep current if valid)
+          if (selectedYear === 'all' && availableYears.length > 0) {
+              setSelectedYear(availableYears[availableYears.length - 1]);
+          } else if (!availableYears.includes(selectedYear) && availableYears.length > 0){
+              setSelectedYear(availableYears[availableYears.length - 1]);
+          }
+        } else if (newMode === 'range') {
+          setSelectedYear('all');
+          // Set default range if needed (or keep current if valid)
+          if (selectedYearRange === null && availableYears.length >= 2) {
+              setSelectedYearRange({ startYear: availableYears[0], endYear: availableYears[availableYears.length - 1] });
+          }
+        }
     }
   };
 
   // --- Show data derivation (unchanged) ---
-  const allShows = useMemo(() => {
+   const allShows = useMemo(() => {
       const shows = new Set(
         rawPlayData
           .filter(entry => entry.episode_show_name)
@@ -154,7 +170,8 @@ const PodcastRankings = ({
         .slice(0, 10);
   }, [allShows, showSearch, selectedShows]);
 
-  // --- Episode Processing (useMemo adapted for new state) ---
+
+  // --- Episode Processing (useMemo with robust checks) ---
   const processedEpisodes = useMemo(() => {
     console.time("Processing Episodes");
     if (!rawPlayData?.length) {
@@ -171,9 +188,6 @@ const PodcastRankings = ({
         if (!isNaN(yearNum)) {
             startFilterDate = startOfYear(new Date(yearNum, 0, 1));
             endFilterDate = endOfYear(new Date(yearNum, 11, 31));
-             console.log(`Filtering for single year: ${selectedYear}`, startFilterDate, endFilterDate);
-        } else {
-             console.warn("Invalid single year selected:", selectedYear);
         }
     } else if (selectionMode === 'range' && selectedYearRange?.startYear && selectedYearRange?.endYear) {
         const startYearNum = parseInt(selectedYearRange.startYear);
@@ -181,38 +195,42 @@ const PodcastRankings = ({
         if (!isNaN(startYearNum) && !isNaN(endYearNum)) {
              startFilterDate = startOfYear(new Date(startYearNum, 0, 1));
              endFilterDate = endOfYear(new Date(endYearNum, 11, 31));
-             console.log(`Filtering for range: ${startYearNum}-${endYearNum}`, startFilterDate, endFilterDate);
-        } else {
-            console.warn("Invalid year range selected:", selectedYearRange);
         }
-    } else {
-         console.log("Filtering for all time");
     }
+    // console.log(`Filtering between ${format(startFilterDate, 'yyyy-MM-dd')} and ${format(endFilterDate, 'yyyy-MM-dd')}`);
 
 
     const mergeThresholdMs = mergeThresholdMinutes * 60 * 1000;
-    const stats = { initialEvents: 0, filteredOutInvalid: 0, filteredOutZeroDuration: 0, exactDuplicatesRemoved: 0, mergedEvents: 0, finalSegments: 0 };
+    const stats = { initialEvents: 0, filteredOutInvalidTsOrDuration: 0, filteredOutDateRange: 0, filteredOutNoEpisodeData: 0, filteredOutShowFilter: 0, filteredOutZeroDuration: 0, exactDuplicatesRemoved: 0, validEventsProcessed: 0, mergedEventsCount: 0, finalSegmentsCount: 0, finalEpisodesCount: 0 };
     const episodeMap = {};
     const hashTracker = new Set();
 
     // Step 1: Initial Filtering and Grouping
     for (const entry of rawPlayData) {
       stats.initialEvents++;
-      const endTime = safeParseISO(entry.ts);
-      const durationMs = typeof entry.ms_played === 'number' ? entry.ms_played : 0;
+      const endTime = safeParseISOAndValidate(entry.ts); // Use validating parser
+      const durationMs = typeof entry.ms_played === 'number' && !isNaN(entry.ms_played) ? entry.ms_played : -1; // Treat non-numbers as invalid
 
-      if (!endTime || durationMs < 0 || endTime < startFilterDate || endTime > endFilterDate) { // Use calculated dates
-        stats.filteredOutInvalid++;
+      // Basic validity check
+      if (!endTime || durationMs < 0) {
+        stats.filteredOutInvalidTsOrDuration++;
+        continue;
+      }
+
+      // Date range check
+      if (endTime < startFilterDate || endTime > endFilterDate) {
+        stats.filteredOutDateRange++;
         continue;
       }
 
       const episodeKey = entry.spotify_episode_uri || `${entry.episode_name}|${entry.episode_show_name}`;
       if (!episodeKey || !entry.episode_show_name || !entry.episode_name) {
-          stats.filteredOutInvalid++;
+          stats.filteredOutNoEpisodeData++;
           continue;
       }
 
       if (selectedShows.length > 0 && !selectedShows.includes(entry.episode_show_name)) {
+          stats.filteredOutShowFilter++;
         continue;
       }
 
@@ -229,6 +247,14 @@ const PodcastRankings = ({
       hashTracker.add(eventHash);
 
       const startTime = new Date(endTime.getTime() - durationMs);
+      // Validate startTime as well
+      if (!isValid(startTime)) {
+          stats.filteredOutInvalidTsOrDuration++;
+          console.warn("Invalid start time calculated for entry:", entry);
+          continue;
+      }
+
+       stats.validEventsProcessed++;
 
       if (!episodeMap[episodeKey]) {
         episodeMap[episodeKey] = {
@@ -247,51 +273,82 @@ const PodcastRankings = ({
       episodeMap[episodeKey].longestSinglePlay = Math.max(episodeMap[episodeKey].longestSinglePlay, durationMs);
     }
 
-    // Step 2: Merge segments (logic remains the same)
+    // Step 2: Merge segments
     const finalEpisodeStats = [];
     Object.values(episodeMap).forEach(episode => {
        if (episode.events.length === 0) return;
-       episode.events.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+       // Filter out any events that might still have invalid dates *before* sorting
+       const validEvents = episode.events.filter(e => isValid(e.startTime) && isValid(e.endTime));
+       if (validEvents.length === 0) return;
+
+       validEvents.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
        const mergedSegments = [];
        let currentSegment = null;
-       let eventsMergedInCurrent = 0;
+       let eventsMergedInCurrentSegment = 0;
 
-       episode.events.forEach(event => {
+       validEvents.forEach(event => {
           if (!currentSegment) {
             currentSegment = { start: event.startTime, end: event.endTime, platforms: new Set([event.platform]), eventCount: 1 };
-            eventsMergedInCurrent = 1;
+            eventsMergedInCurrentSegment = 1;
           } else {
+            // Ensure dates are valid before comparison/calculation
+            if (!isValid(currentSegment.end) || !isValid(event.startTime) || !isValid(event.endTime)){
+                console.warn("Invalid date encountered during merge for episode", episode.key);
+                // Option: Skip this event or finalize previous segment? Let's skip.
+                return;
+            }
             const gapMs = event.startTime.getTime() - currentSegment.end.getTime();
             const startsBeforeOrShortlyAfter = gapMs <= mergeThresholdMs;
             const significantOverlap = event.startTime < currentSegment.end;
 
             if (startsBeforeOrShortlyAfter || significantOverlap) {
-              currentSegment.end = max(currentSegment.end, event.endTime);
+              currentSegment.end = max(currentSegment.end, event.endTime); // Use date-fns max
               currentSegment.platforms.add(event.platform);
               currentSegment.eventCount++;
-              eventsMergedInCurrent++;
+              eventsMergedInCurrentSegment++;
             } else {
-              currentSegment.duration = currentSegment.end.getTime() - currentSegment.start.getTime();
-              mergedSegments.push(currentSegment);
-              stats.finalSegments++;
-              stats.mergedEvents += (eventsMergedInCurrent - 1);
+              // Finalize previous segment only if its dates are valid
+              if(isValid(currentSegment.start) && isValid(currentSegment.end)) {
+                 currentSegment.duration = currentSegment.end.getTime() - currentSegment.start.getTime();
+                 // Add only if duration is positive
+                 if (currentSegment.duration > 0) {
+                     mergedSegments.push(currentSegment);
+                     stats.finalSegmentsCount++;
+                     stats.mergedEventsCount += (eventsMergedInCurrentSegment - 1);
+                 } else {
+                     console.warn("Segment skipped due to non-positive duration:", currentSegment);
+                 }
+              } else {
+                  console.warn("Segment skipped due to invalid dates:", currentSegment);
+              }
+
               currentSegment = { start: event.startTime, end: event.endTime, platforms: new Set([event.platform]), eventCount: 1 };
-              eventsMergedInCurrent = 1;
+              eventsMergedInCurrentSegment = 1;
             }
           }
        });
-       if (currentSegment) {
+
+       // Add the last valid segment
+       if (currentSegment && isValid(currentSegment.start) && isValid(currentSegment.end)) {
           currentSegment.duration = currentSegment.end.getTime() - currentSegment.start.getTime();
-          mergedSegments.push(currentSegment);
-          stats.finalSegments++;
-          stats.mergedEvents += (eventsMergedInCurrent - 1);
+          if (currentSegment.duration > 0) {
+              mergedSegments.push(currentSegment);
+              stats.finalSegmentsCount++;
+              stats.mergedEventsCount += (eventsMergedInCurrentSegment - 1);
+          } else {
+              console.warn("Last segment skipped due to non-positive duration:", currentSegment);
+          }
+       } else if (currentSegment) {
+           console.warn("Last segment skipped due to invalid dates:", currentSegment);
        }
 
        const totalPlayed = mergedSegments.reduce((sum, seg) => sum + seg.duration, 0);
        const segmentCount = mergedSegments.length;
 
-       if (totalPlayed > 60000) {
+       if (totalPlayed > 10000) { // Only show if > 10 seconds listened
+          stats.finalEpisodesCount++;
           finalEpisodeStats.push({
             key: episode.key,
             episodeName: episode.episodeName,
@@ -306,7 +363,7 @@ const PodcastRankings = ({
        }
     });
 
-    setProcessingStats(stats); // Update the stats state
+    setProcessingStats(stats);
     console.timeEnd("Processing Episodes");
 
     return finalEpisodeStats
@@ -322,7 +379,7 @@ const PodcastRankings = ({
       sortBy,
       selectedShows,
       mergeThresholdMinutes
-  ]); // Dependencies updated
+  ]);
 
   // --- Show selection handlers ---
   const addShow = (show) => {
@@ -352,8 +409,7 @@ const PodcastRankings = ({
         colorTheme="indigo"
       />
 
-      {/* Rest of the controls (unchanged from previous version) */}
-       {/* Settings & Show Selection */}
+     {/* Settings & Show Selection Grid */}
        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Settings */}
           <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 space-y-3">
@@ -380,8 +436,8 @@ const PodcastRankings = ({
                  <input
                     type="checkbox"
                     id="showStatsCheck"
-                    checked={showDuplicateStats}
-                    onChange={() => setShowDuplicateStats(!showDuplicateStats)}
+                    checked={showProcessingStats} // Corrected state variable name
+                    onChange={() => setShowProcessingStats(!showProcessingStats)} // Corrected state variable name
                     className="mr-2 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                  />
                  <label htmlFor="showStatsCheck" className="text-sm text-indigo-700">Show Processing Stats</label>
@@ -433,21 +489,25 @@ const PodcastRankings = ({
           </div>
       </div>
 
-
       {/* Processing Stats Display */}
-      {showDuplicateStats && (
-         <div className="text-xs text-indigo-600 bg-indigo-100 p-3 rounded border border-indigo-200 flex flex-wrap gap-x-4 gap-y-1">
-            <span>Initial: {processingStats.initialEvents}</span>
-            <span>| Invalid: {processingStats.filteredOutInvalid}</span>
-            <span>| Zero Dur: {processingStats.filteredOutZeroDuration}</span>
-            <span>| Exact Dup: {processingStats.exactDuplicatesRemoved}</span>
-            <span>| Merged Evts: {processingStats.mergedEvents}</span>
-            <span>| Final Segs: {processingStats.finalSegments}</span>
+      {showProcessingStats && (
+         <div className="text-xs text-indigo-600 bg-indigo-100 p-3 rounded border border-indigo-200 flex flex-wrap gap-x-3 gap-y-1 leading-relaxed">
+            <span>Events: {processingStats.initialEvents}</span>|
+            <span>Invalid TS/Dur: {processingStats.filteredOutInvalidTsOrDuration}</span>|
+            <span>Out of Range: {processingStats.filteredOutDateRange}</span>|
+            <span>No Ep Data: {processingStats.filteredOutNoEpisodeData}</span>|
+            <span>Show Filtered: {processingStats.filteredOutShowFilter}</span>|
+            <span>Zero Dur: {processingStats.filteredOutZeroDuration}</span>|
+            <span>Exact Dup: {processingStats.exactDuplicatesRemoved}</span>|
+            <span>Valid Raw: {processingStats.validEventsProcessed}</span>|
+            <span>Merged Evts: {processingStats.mergedEventsCount}</span>|
+            <span>Final Segs: {processingStats.finalSegmentsCount}</span>|
+            <span>Final Eps: {processingStats.finalEpisodesCount}</span>
          </div>
       )}
 
-      {/* Table Display (mostly unchanged) */}
-      {processedEpisodes.length > 0 ? (
+      {/* Table Display */}
+       {processedEpisodes.length > 0 ? (
         <div className="overflow-x-auto border border-indigo-200 rounded-lg shadow-sm">
           <table className="w-full min-w-[800px] text-sm">
             <thead className="bg-indigo-100">
@@ -470,17 +530,17 @@ const PodcastRankings = ({
             <tbody className="bg-white divide-y divide-indigo-100">
               {processedEpisodes.map((episode, index) => (
                 <tr key={episode.key} className="hover:bg-indigo-50">
-                  <td className="p-2 text-indigo-700">{index + 1}</td>
+                  <td className="p-2 text-indigo-700 text-center">{index + 1}</td>
                   <td className="p-2 text-indigo-900 max-w-xs truncate" title={episode.episodeName}>{episode.episodeName}</td>
                   <td className="p-2 text-indigo-700 max-w-xs truncate cursor-pointer hover:underline"
                       title={episode.showName}
                       onClick={() => addShowFromEpisode(episode.showName)}>
                       {episode.showName}
                   </td>
-                  <td className="p-2 text-right text-indigo-700 font-medium">
+                  <td className="p-2 text-right text-indigo-700 font-medium whitespace-nowrap">
                     {formatDuration(episode.totalPlayed)}
                   </td>
-                  <td className="p-2 text-right text-indigo-700">
+                  <td className="p-2 text-right text-indigo-700 whitespace-nowrap">
                     {formatDuration(episode.longestSession)}
                   </td>
                   <td className="p-2 text-right text-indigo-700">
