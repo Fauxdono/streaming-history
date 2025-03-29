@@ -146,17 +146,6 @@ const YearSelector = ({
           borderActive: 'border-teal-600',
           borderInactive: 'border-teal-800'
         };
-    case 'orange':
-        return {
-          text: 'text-orange-700',
-          bg: 'bg-orange-600',
-          bgHover: 'hover:bg-orange-700',
-          bgLight: 'bg-orange-100',
-          textLight: 'text-orange-700',
-          bgHoverLight: 'hover:bg-orange-200',
-          borderActive: 'border-orange-600',
-          borderInactive: 'border-orange-800'
-        };
     }
   };
 
@@ -169,18 +158,34 @@ const YearSelector = ({
   return (
     <div className="mt-2 mb-6">
       <div className="flex justify-between items-center mb-4">
-        <label className={colors.text + " font-medium"}>
+        <label className={colors.text + " font-medium text-sm"}>
           {mode === 'range' 
             ? 'Year Range Selection' 
             : 'Single Year Selection'}
         </label>
         
         {/* Toggle between modes */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-wrap justify-end">
+          <button
+            onClick={() => {
+              handleModeChange('single');
+              if (onYearChange) {
+                onYearChange('all');
+              }
+            }}
+            className={`px-2 py-1 rounded text-xs ${
+              mode === 'single' && initialYear === 'all'
+                ? colors.bg + ' text-white' 
+                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+            }`}
+          >
+            All-Time
+          </button>
+          
           <button
             onClick={() => handleModeChange('single')}
-            className={`px-2 py-1 rounded text-sm ${
-              mode === 'single' 
+            className={`px-2 py-1 rounded text-xs ${
+              mode === 'single' && initialYear !== 'all'
                 ? colors.bg + ' text-white' 
                 : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
             }`}
@@ -190,7 +195,7 @@ const YearSelector = ({
           
           <button
             onClick={() => handleModeChange('range')}
-            className={`px-2 py-1 rounded text-sm ${
+            className={`px-2 py-1 rounded text-xs ${
               mode === 'range' 
                 ? colors.bg + ' text-white' 
                 : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
@@ -210,28 +215,6 @@ const YearSelector = ({
             initialYear={initialYear}
             colorTheme={colorTheme}
           />
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={() => {
-                console.log("Show All Years clicked");
-                // Set to 'all' first
-                if (onYearChange) {
-                  onYearChange('all');
-                }
-                
-                // Force any BetterYearSlider to refresh
-                setTimeout(() => {
-                  const yearDisplays = document.querySelectorAll('.year-display');
-                  yearDisplays.forEach(display => {
-                    display.textContent = 'All-Time';
-                  });
-                }, 50);
-              }}
-              className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
-            >
-              Show All Years
-            </button>
-          </div>
         </div>
       ) : (
         <div className="px-4">
