@@ -82,12 +82,20 @@ const BetterYearSlider = ({ years, onYearChange, initialYear, colorTheme = 'teal
 
   const colors = getColors();
 
-  // Watch specifically for changes to initialYear
+// Watch specifically for changes to initialYear
   useEffect(() => {
     if (initialYear === 'all') {
       // For "all", set position to leftmost (position 0)
       setSliderPosition(0);
       setSelectedYear('all');
+      
+      // Ensure the year display shows "All-Time"
+      setTimeout(() => {
+        const yearDisplay = document.querySelector('.year-display');
+        if (yearDisplay && yearDisplay.textContent !== 'All-Time') {
+          yearDisplay.textContent = 'All-Time';
+        }
+      }, 50);
     } else if (initialYear && sortedYears.includes(initialYear.toString())) {
       // Add 1 to account for the "All-Time" position at index 0
       const yearIndex = sortedYears.indexOf(initialYear.toString()) + 1;
@@ -99,6 +107,14 @@ const BetterYearSlider = ({ years, onYearChange, initialYear, colorTheme = 'teal
       // Default to "All-Time"
       setSliderPosition(0);
       setSelectedYear('all');
+      
+      // Ensure the year display shows "All-Time"
+      setTimeout(() => {
+        const yearDisplay = document.querySelector('.year-display');
+        if (yearDisplay && yearDisplay.textContent !== 'All-Time') {
+          yearDisplay.textContent = 'All-Time';
+        }
+      }, 50);
     }
   }, [initialYear, sortedYears]);
 
