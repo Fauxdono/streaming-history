@@ -220,28 +220,37 @@ const RangeSlider = ({
       const exactIndex = (percentage / 100) * (sortedValues.length - 1);
       const closestIndex = Math.round(exactIndex);
       const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
-      
-      if (singleValueMode) {
-        // In single value mode, both handles move together
-        setStartPosition(closestPosition);
-        setEndPosition(closestPosition);
-        setStartValue(sortedValues[closestIndex]);
-        setEndValue(sortedValues[closestIndex]);
-      } else if (isStartHandle) {
-        // Don't let start handle pass end handle
-        const endValueIndex = sortedValues.indexOf(endValue);
-        if (closestIndex <= endValueIndex || allowSingleValueSelection) {
-          setStartPosition(closestPosition);
-          setStartValue(sortedValues[closestIndex]);
-        }
-      } else {
-        // Don't let end handle pass start handle
-        const startValueIndex = sortedValues.indexOf(startValue);
-        if (closestIndex >= startValueIndex || allowSingleValueSelection) {
-          setEndPosition(closestPosition);
-          setEndValue(sortedValues[closestIndex]);
-        }
-      }
+     if (singleValueMode) {
+  // In single value mode, both handles move together
+  setStartPosition(closestPosition);
+  setEndPosition(closestPosition);
+  setStartValue(sortedValues[closestIndex]);
+  setEndValue(sortedValues[closestIndex]);
+} else if (isStartHandle) {
+  // Don't let start handle pass end handle
+  const endValueIndex = sortedValues.indexOf(endValue);
+  if (closestIndex <= endValueIndex) {
+    // Normal case - handle stays to the left
+    setStartPosition(closestPosition);
+    setStartValue(sortedValues[closestIndex]);
+  } else if (allowSingleValueSelection) {
+    // Allow merging (not passing)
+    setStartPosition(endPosition);
+    setStartValue(endValue);
+  }
+} else {
+  // Don't let end handle pass start handle
+  const startValueIndex = sortedValues.indexOf(startValue);
+  if (closestIndex >= startValueIndex) {
+    // Normal case - handle stays to the right
+    setEndPosition(closestPosition);
+    setEndValue(sortedValues[closestIndex]);
+  } else if (allowSingleValueSelection) {
+    // Allow merging (not passing)
+    setEndPosition(startPosition);
+    setEndValue(startValue);
+  }
+}
     };
     
     const handleMouseUp = () => {
@@ -287,29 +296,45 @@ const RangeSlider = ({
     const closestIndex = Math.round(exactIndex);
     const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
     
-    if (singleValueMode) {
-      // In single value mode, set both handles to the clicked position
+if (singleValueMode) {
+  // In single value mode, set both handles to the clicked position
+  setStartPosition(closestPosition);
+  setEndPosition(closestPosition);
+  setStartValue(sortedValues[closestIndex]);
+  setEndValue(sortedValues[closestIndex]);
+} else {
+  // Determine which handle to move (the closest one)
+  const startDistance = Math.abs(percentage - startPosition);
+  const endDistance = Math.abs(percentage - endPosition);
+  
+  // Get current value indices
+  const endValueIndex = sortedValues.indexOf(endValue);
+  const startValueIndex = sortedValues.indexOf(startValue);
+  
+  if (startDistance <= endDistance) {
+    // Moving start handle - don't allow passing end handle
+    if (closestIndex <= endValueIndex) {
+      // Normal case - handle stays to the left
       setStartPosition(closestPosition);
-      setEndPosition(closestPosition);
       setStartValue(sortedValues[closestIndex]);
-      setEndValue(sortedValues[closestIndex]);
-    } else {
-      // Determine which handle to move (the closest one)
-      const startDistance = Math.abs(percentage - startPosition);
-      const endDistance = Math.abs(percentage - endPosition);
-      
-      if (startDistance <= endDistance) {
-        // Move start handle
-        const newPosition = closestPosition;
-        setStartPosition(newPosition);
-        setStartValue(sortedValues[closestIndex]);
-      } else {
-        // Move end handle
-        const newPosition = closestPosition;
-        setEndPosition(newPosition);
-        setEndValue(sortedValues[closestIndex]);
-      }
+    } else if (allowSingleValueSelection) {
+      // Allow merging (not passing)
+      setStartPosition(endPosition);
+      setStartValue(endValue);
     }
+  } else {
+    // Moving end handle - don't allow passing start handle
+    if (closestIndex >= startValueIndex) {
+      // Normal case - handle stays to the right
+      setEndPosition(closestPosition);
+      setEndValue(sortedValues[closestIndex]);
+    } else if (allowSingleValueSelection) {
+      // Allow merging (not passing)
+      setEndPosition(startPosition);
+      setEndValue(startValue);
+    }
+  }
+}
     
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 100);
