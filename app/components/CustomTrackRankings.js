@@ -591,6 +591,57 @@ return (
           </button>
         </div>
       </div>
+
+      {/* Date Range Selector */}
+      <div className="mt-2">
+        <TripleRangeSelector
+          onDateRangeChange={handleDateChange}
+          initialStartDate={getInitialDates().initialStartDate}
+          initialEndDate={getInitialDates().initialEndDate}
+          colorTheme="orange"
+          availableYears={availableYears}
+        />
+      </div>
+      
+      {/* Top N tracks control */}
+      <div className="mt-4 flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2 text-orange-700">
+          <label>Show top</label>
+          <input
+            type="number"
+            min="1"
+            max="69420"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value))))}
+            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+          />
+          <label>tracks</label>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-orange-700">Sort by:</span>
+          <button
+            onClick={() => setSortBy('totalPlayed')}
+            className={`px-2 py-1 rounded text-xs sm:text-sm ${
+              sortBy === 'totalPlayed'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Time
+          </button>
+          <button
+            onClick={() => setSortBy('playCount')}
+            className={`px-2 py-1 rounded text-xs sm:text-sm ${
+              sortBy === 'playCount'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Plays
+          </button>
+        </div>
+      </div>
     </div>
 
     {/* Conditional Playlist Exporter */}
@@ -822,59 +873,6 @@ return (
             : 'Select filters to view tracks'}
         </div>
       )}
-    </div>
-
-    {/* Date Range Selector section */}
-    <div className="border rounded-lg p-4 bg-orange-50">
-      <div className="mt-2">
-        <TripleRangeSelector
-          onDateRangeChange={handleDateChange}
-          initialStartDate={getInitialDates().initialStartDate}
-          initialEndDate={getInitialDates().initialEndDate}
-          colorTheme="orange"
-          availableYears={availableYears}
-        />
-      </div>
-      
-      {/* Top N tracks control */}
-      <div className="mt-4 flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-orange-700">
-          <label>Show top</label>
-          <input
-            type="number"
-            min="1"
-            max="69420"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value))))}
-            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          <label>tracks</label>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-orange-700">Sort by:</span>
-          <button
-            onClick={() => setSortBy('totalPlayed')}
-            className={`px-2 py-1 rounded text-xs sm:text-sm ${
-              sortBy === 'totalPlayed'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Time
-          </button>
-          <button
-            onClick={() => setSortBy('playCount')}
-            className={`px-2 py-1 rounded text-xs sm:text-sm ${
-              sortBy === 'playCount'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Plays
-          </button>
-        </div>
-      </div>
     </div>
 
     {/* Basic Export Controls - simplified since we now have PlaylistExporter */}
