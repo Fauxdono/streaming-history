@@ -1,11 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import YearSelector from './year-selector.js';
-
-// Helper function to get days in a month
-function getDaysInMonth(year, month) {
-  // JavaScript months are 0-based, but our input is 1-based
-  return new Date(parseInt(year), parseInt(month), 0).getDate();
-}
+// In triplerangeselector.js - focusing on the RangeSlider component
 
 // Inner component for range sliders (for month and day)
 const RangeSlider = ({ 
@@ -41,8 +34,25 @@ const RangeSlider = ({
   const [activeDragHandle, setActiveDragHandle] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [hoveredNotch, setHoveredNotch] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   
   const sliderRef = useRef(null);
+  
+  // Check for mobile viewport on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Map color theme to actual color values
   const colors = useMemo(() => {
@@ -143,9 +153,6 @@ const RangeSlider = ({
     setEndValue(newEndValue);
     setStartPosition(newStartPosition);
     setEndPosition(newEndPosition);
-    
-    // Also notify parent of changes if values changed - but don't trigger date updates
-    // We'll let the Apply button handle that
   }, [sortedValues]);
 
   // Initialize the slider positions based on the initial values
@@ -209,7 +216,13 @@ const RangeSlider = ({
       if (!slider) return;
       
       const rect = slider.getBoundingClientRect();
-      const x = e.clientX - rect.left;
+      // Get appropriate client coordinate based on touch or mouse
+      let clientX = e.clientX;
+      if (e.touches && e.touches[0]) {
+        clientX = e.touches[0].clientX;
+      }
+      
+      const x = clientX - rect.left;
       const width = rect.width;
       
       // Calculate position as percentage (0-100)
@@ -220,48 +233,54 @@ const RangeSlider = ({
       const exactIndex = (percentage / 100) * (sortedValues.length - 1);
       const closestIndex = Math.round(exactIndex);
       const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
-     if (singleValueMode) {
-  // In single value mode, both handles move together
-  setStartPosition(closestPosition);
-  setEndPosition(closestPosition);
-  setStartValue(sortedValues[closestIndex]);
-  setEndValue(sortedValues[closestIndex]);
-} else if (isStartHandle) {
-  // Don't let start handle pass end handle
-  const endValueIndex = sortedValues.indexOf(endValue);
-  if (closestIndex <= endValueIndex) {
-    // Normal case - handle stays to the left
-    setStartPosition(closestPosition);
-    setStartValue(sortedValues[closestIndex]);
-  } else if (allowSingleValueSelection) {
-    // Allow merging (not passing)
-    setStartPosition(endPosition);
-    setStartValue(endValue);
-  }
-} else {
-  // Don't let end handle pass start handle
-  const startValueIndex = sortedValues.indexOf(startValue);
-  if (closestIndex >= startValueIndex) {
-    // Normal case - handle stays to the right
-    setEndPosition(closestPosition);
-    setEndValue(sortedValues[closestIndex]);
-  } else if (allowSingleValueSelection) {
-    // Allow merging (not passing)
-    setEndPosition(startPosition);
-    setEndValue(startValue);
-  }
-}
+      
+      if (singleValueMode) {
+        // In single value mode, both handles move together
+        setStartPosition(closestPosition);
+        setEndPosition(closestPosition);
+        setStartValue(sortedValues[closestIndex]);
+        setEndValue(sortedValues[closestIndex]);
+      } else if (isStartHandle) {
+        // Don't let start handle pass end handle
+        const endValueIndex = sortedValues.indexOf(endValue);
+        if (closestIndex <= endValueIndex) {
+          // Normal case - handle stays to the left
+          setStartPosition(closestPosition);
+          setStartValue(sortedValues[closestIndex]);
+        } else if (allowSingleValueSelection) {
+          // Allow merging (not passing)
+          setStartPosition(endPosition);
+          setStartValue(endValue);
+        }
+      } else {
+        // Don't let end handle pass start handle
+        const startValueIndex = sortedValues.indexOf(startValue);
+        if (closestIndex >= startValueIndex) {
+          // Normal case - handle stays to the right
+          setEndPosition(closestPosition);
+          setEndValue(sortedValues[closestIndex]);
+        } else if (allowSingleValueSelection) {
+          // Allow merging (not passing)
+          setEndPosition(startPosition);
+          setEndValue(startValue);
+        }
+      }
     };
     
     const handleMouseUp = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleMouseMove);
+      document.removeEventListener('touchend', handleMouseUp);
       setActiveDragHandle(null);
       setIsDragging(false);
     };
     
+    // Add both mouse and touch event listeners
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleMouseMove, { passive: false });
+    document.addEventListener('touchend', handleMouseUp);
     
     // Initial position update
     handleMouseMove(e);
@@ -281,7 +300,13 @@ const RangeSlider = ({
     if (!slider) return;
     
     const rect = slider.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+    // Get appropriate client coordinate based on touch or mouse
+    let clientX = e.clientX;
+    if (e.touches && e.touches[0]) {
+      clientX = e.touches[0].clientX;
+    }
+    
+    const x = clientX - rect.left;
     const width = rect.width;
     
     // Calculate position as percentage (0-100)
@@ -296,45 +321,45 @@ const RangeSlider = ({
     const closestIndex = Math.round(exactIndex);
     const closestPosition = (closestIndex / (sortedValues.length - 1)) * 100;
     
-if (singleValueMode) {
-  // In single value mode, set both handles to the clicked position
-  setStartPosition(closestPosition);
-  setEndPosition(closestPosition);
-  setStartValue(sortedValues[closestIndex]);
-  setEndValue(sortedValues[closestIndex]);
-} else {
-  // Determine which handle to move (the closest one)
-  const startDistance = Math.abs(percentage - startPosition);
-  const endDistance = Math.abs(percentage - endPosition);
-  
-  // Get current value indices
-  const endValueIndex = sortedValues.indexOf(endValue);
-  const startValueIndex = sortedValues.indexOf(startValue);
-  
-  if (startDistance <= endDistance) {
-    // Moving start handle - don't allow passing end handle
-    if (closestIndex <= endValueIndex) {
-      // Normal case - handle stays to the left
+    if (singleValueMode) {
+      // In single value mode, set both handles to the clicked position
       setStartPosition(closestPosition);
-      setStartValue(sortedValues[closestIndex]);
-    } else if (allowSingleValueSelection) {
-      // Allow merging (not passing)
-      setStartPosition(endPosition);
-      setStartValue(endValue);
-    }
-  } else {
-    // Moving end handle - don't allow passing start handle
-    if (closestIndex >= startValueIndex) {
-      // Normal case - handle stays to the right
       setEndPosition(closestPosition);
+      setStartValue(sortedValues[closestIndex]);
       setEndValue(sortedValues[closestIndex]);
-    } else if (allowSingleValueSelection) {
-      // Allow merging (not passing)
-      setEndPosition(startPosition);
-      setEndValue(startValue);
+    } else {
+      // Determine which handle to move (the closest one)
+      const startDistance = Math.abs(percentage - startPosition);
+      const endDistance = Math.abs(percentage - endPosition);
+      
+      // Get current value indices
+      const endValueIndex = sortedValues.indexOf(endValue);
+      const startValueIndex = sortedValues.indexOf(startValue);
+      
+      if (startDistance <= endDistance) {
+        // Moving start handle - don't allow passing end handle
+        if (closestIndex <= endValueIndex) {
+          // Normal case - handle stays to the left
+          setStartPosition(closestPosition);
+          setStartValue(sortedValues[closestIndex]);
+        } else if (allowSingleValueSelection) {
+          // Allow merging (not passing)
+          setStartPosition(endPosition);
+          setStartValue(endValue);
+        }
+      } else {
+        // Moving end handle - don't allow passing start handle
+        if (closestIndex >= startValueIndex) {
+          // Normal case - handle stays to the right
+          setEndPosition(closestPosition);
+          setEndValue(sortedValues[closestIndex]);
+        } else if (allowSingleValueSelection) {
+          // Allow merging (not passing)
+          setEndPosition(startPosition);
+          setEndValue(startValue);
+        }
+      }
     }
-  }
-}
     
     // Clear dragging state after brief delay
     setTimeout(() => setIsDragging(false), 100);
@@ -355,7 +380,7 @@ if (singleValueMode) {
     return value;
   }, [displayFormat]);
   
-  // Calculate which notches to show labels for
+  // Calculate which notches to show labels for - much smarter for mobile
   const getNotchVisibility = useCallback((index, value) => {
     // Always show first, last, selected values and hovered value
     if (index === 0 || 
@@ -366,19 +391,32 @@ if (singleValueMode) {
       return true;
     }
     
-    // For longer arrays, show fewer labels
-    const interval = sortedValues.length <= 12 ? 1 : 
-                    sortedValues.length <= 24 ? 2 :
-                    sortedValues.length <= 60 ? 5 : 10;
+    // Adaptive intervals based on screen size and array length
+    let interval;
+    if (isMobile) {
+      // For mobile, show fewer labels
+      interval = sortedValues.length <= 6 ? 1 : 
+                sortedValues.length <= 12 ? 3 :
+                sortedValues.length <= 31 ? 5 : 10;
+    } else {
+      // For desktop, we can show more
+      interval = sortedValues.length <= 12 ? 1 : 
+                sortedValues.length <= 24 ? 2 :
+                sortedValues.length <= 60 ? 5 : 10;
+    }
     
     return index % interval === 0;
-  }, [sortedValues, startValue, endValue, hoveredNotch]);
+  }, [sortedValues, startValue, endValue, hoveredNotch, isMobile]);
+  
+  // Determine slider height based on viewport
+  const sliderHeight = isMobile ? 'h-16' : 'h-12';
+  const handleSize = isMobile ? 'h-6 w-6' : 'h-7 w-7';
   
   return (
     <div className="my-3">
       <div className="flex justify-between mb-1 items-center">
         <span className={`${colors.text} text-sm`}>{title}</span>
-        <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded`}>
+        <div className={`font-medium ${colors.textBold} ${colors.bgLight} px-3 py-1 rounded-full text-sm`}>
           {singleValueMode || startValue === endValue 
             ? formatValue(startValue) 
             : `${formatValue(startValue)} - ${formatValue(endValue)}`}
@@ -387,8 +425,9 @@ if (singleValueMode) {
       
       <div 
         ref={sliderRef}
-        className={`relative h-12 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
+        className={`relative ${sliderHeight} ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} select-none`}
         onClick={handleTrackClick}
+        onTouchStart={handleTrackClick}
       >
         {/* Background Line */}
         <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 transform -translate-y-1/2 rounded-full"></div>
@@ -408,6 +447,9 @@ if (singleValueMode) {
           const isInRange = position >= startPosition && position <= endPosition;
           const isSelected = value === startValue || value === endValue;
           const showLabel = getNotchVisibility(index, value);
+          
+          // Reduce height for mobile
+          const notchHeight = isSelected ? 'h-4' : (isInRange ? 'h-3' : 'h-2');
           
           return (
             <div 
@@ -440,16 +482,18 @@ if (singleValueMode) {
             >
               {/* The notch/marker */}
               <div className={`w-1 ${
-                isSelected ? `h-5 ${colors.bgMed} rounded-sm` : 
-                value === hoveredNotch ? `h-4 ${colors.bgMed} rounded-sm` :
-                isInRange ? `h-3 ${colors.bgMed} rounded-sm` : 
-                `h-3 bg-gray-400 rounded-sm`
+                isSelected ? `${notchHeight} ${colors.bgMed} rounded-sm` : 
+                value === hoveredNotch ? `${notchHeight} ${colors.bgMed} rounded-sm` :
+                isInRange ? `${notchHeight} ${colors.bgMed} rounded-sm` : 
+                `${notchHeight} bg-gray-400 rounded-sm`
               }`}>
               </div>
               
-              {/* Label */}
+              {/* Label - only show if visible and more adaptive width for mobile */}
               {showLabel && (
-                <div className={`absolute w-8 text-xs text-center -translate-x-1/2 mt-5 ${
+                <div className={`absolute text-xs text-center -translate-x-1/2 mt-4 ${
+                  isMobile ? 'w-6' : 'w-8'
+                } ${
                   isSelected ? `${colors.textBold} font-bold` : 
                   value === hoveredNotch ? `${colors.textBold}` :
                   `${colors.text} font-medium`
@@ -461,9 +505,9 @@ if (singleValueMode) {
           );
         })}
         
-        {/* Start Handle */}
+        {/* Start Handle - now with touch support */}
         <div 
-          className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
+          className={`absolute top-1/2 ${handleSize} bg-white border-2 ${
             activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ 
@@ -471,11 +515,12 @@ if (singleValueMode) {
             opacity: singleValueMode ? (activeDragHandle === 'start' ? 1 : 0.5) : 1,
           }}
           onMouseDown={e => handleMouseDown(e, true)}
+          onTouchStart={e => handleMouseDown(e, true)}
         ></div>
         
-        {/* End Handle */}
+        {/* End Handle - now with touch support */}
         <div 
-          className={`absolute top-1/2 h-7 w-7 bg-white border-2 ${
+          className={`absolute top-1/2 ${handleSize} bg-white border-2 ${
             activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
           } rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-md ${disabled ? 'cursor-not-allowed' : 'cursor-move'} z-20`}
           style={{ 
@@ -483,12 +528,14 @@ if (singleValueMode) {
             opacity: singleValueMode ? (activeDragHandle === 'end' ? 1 : 0.5) : 1,
           }}
           onMouseDown={e => handleMouseDown(e, false)}
+          onTouchStart={e => handleMouseDown(e, false)}
         ></div>
       </div>
     </div>
   );
 };
 
+// Update the TripleRangeSelector component too to make the entire UI more mobile-friendly
 const TripleRangeSelector = ({ 
   onDateRangeChange, 
   initialStartDate, 
@@ -498,6 +545,23 @@ const TripleRangeSelector = ({
 }) => {
   // Determine if we're dealing with "All Time" selection
   const isAllTime = !initialStartDate && !initialEndDate;
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check for mobile viewport on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Process available years
   const years = useMemo(() => {
@@ -600,8 +664,6 @@ const TripleRangeSelector = ({
         startValue: validStartDay,
         endValue: validEndDay
       });
-      
-      // NOTE: We don't call applyDateRange here - only when button is clicked
     }
   }, [daysInSelectedMonths]);
   
@@ -799,10 +861,13 @@ const TripleRangeSelector = ({
     }
   }, [colorTheme]);
   
+  // Responsive layout classes
+  const containerClasses = isMobile ? "space-y-3 p-3" : "space-y-4 p-4";
+  
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-white">
+    <div className={`${containerClasses} border rounded-lg bg-white`}>
       <div className="flex justify-between items-center">
-        <h3 className={`font-bold ${colors.textTitle}`}>Date Range Selection</h3>
+        <h3 className={`font-bold ${colors.textTitle} ${isMobile ? 'text-sm' : ''}`}>Date Range Selection</h3>
       </div>
       
       {/* Use YearSelector component for year selection */}
@@ -819,9 +884,9 @@ const TripleRangeSelector = ({
       
       {/* Month and Day selection - only show when not in "all" mode */}
       {selectedYear !== 'all' && (
-        <div className="mt-4 space-y-4">
+        <div className={isMobile ? "mt-3 space-y-3" : "mt-4 space-y-4"}>
           <div className="flex justify-between items-center">
-            <h4 className={`font-medium ${colors.textTitle}`}>Refine Date Range</h4>
+            <h4 className={`font-medium ${colors.textTitle} ${isMobile ? 'text-sm' : ''}`}>Refine Date Range</h4>
           </div>
           
           {/* Month Range Slider */}
@@ -847,7 +912,7 @@ const TripleRangeSelector = ({
             allowSingleValueSelection={true}
           />
           
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-2">
             <button
               onClick={applyDateRange}
               className={`px-4 py-2 ${colors.buttonBg} text-white rounded ${colors.buttonHover}`}
@@ -858,10 +923,11 @@ const TripleRangeSelector = ({
         </div>
       )}
       
-      <div className="mt-3 text-sm text-gray-600">
+      <div className={`mt-2 text-sm text-gray-600 ${isMobile ? 'text-xs' : ''}`}>
         Selected range: {getFormattedDateRange()}
       </div>
     </div>
   );
 };
-export default TripleRangeSelector
+
+export default TripleRangeSelector;
