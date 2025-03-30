@@ -1,4 +1,11 @@
-// In triplerangeselector.js - focusing on the RangeSlider component
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import YearSelector from './year-selector.js';
+
+// Helper function to get days in a month
+function getDaysInMonth(year, month) {
+  // JavaScript months are 0-based, but our input is 1-based
+  return new Date(parseInt(year), parseInt(month), 0).getDate();
+}
 
 // Inner component for range sliders (for month and day)
 const RangeSlider = ({ 
@@ -202,7 +209,7 @@ const RangeSlider = ({
         endValue
       });
     }
-  }, [isDragging]);
+  }, [isDragging, onValuesChange, startValue, endValue]);
   
   const handleMouseDown = useCallback((e, isStartHandle) => {
     if (disabled) return;
@@ -369,7 +376,10 @@ const RangeSlider = ({
     endPosition, 
     startPosition, 
     singleValueMode,
-    sortedValues
+    sortedValues,
+    endValue,
+    startValue,
+    allowSingleValueSelection
   ]);
   
   // Format the display value if a formatter is provided
@@ -491,7 +501,7 @@ const RangeSlider = ({
               
               {/* Label - only show if visible and more adaptive width for mobile */}
               {showLabel && (
-                <div className={`absolute text-xs text-center -translate-x-1/2 mt-4 ${
+                <div className={`absolute text-xs text-center -translate-x-1/2 mt-5 ${
                   isMobile ? 'w-6' : 'w-8'
                 } ${
                   isSelected ? `${colors.textBold} font-bold` : 
@@ -535,7 +545,6 @@ const RangeSlider = ({
   );
 };
 
-// Update the TripleRangeSelector component too to make the entire UI more mobile-friendly
 const TripleRangeSelector = ({ 
   onDateRangeChange, 
   initialStartDate, 
@@ -664,8 +673,10 @@ const TripleRangeSelector = ({
         startValue: validStartDay,
         endValue: validEndDay
       });
+
+// NOTE: We don't call applyDateRange here - only when button is clicked
     }
-  }, [daysInSelectedMonths]);
+  }, [daysInSelectedMonths, dayRange.startValue, dayRange.endValue, selectedYear]);
   
   // Initialize component from provided dates
   useEffect(() => {
