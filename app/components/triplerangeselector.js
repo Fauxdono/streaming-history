@@ -18,7 +18,10 @@ const RangeSlider = ({
   colorTheme = 'orange',
   disabled = false,
   allowSingleValueSelection = true,
-  singleValueMode = false
+  singleValueMode = false,
+  // Add new props for day validation
+  isDay = false,
+  validDays = null
 }) => {
   // Make sure we have an array of values and they're sorted
   const sortedValues = useMemo(() => 
@@ -118,8 +121,7 @@ const RangeSlider = ({
 
   // Update slider when values array changes (like when month changes and day count changes)
   useEffect(() => {
-    // When the available values change (e.g., days in month changes), we need to 
-    // update the handle positions to match the values
+    if (sortedValues.length === 0) return;
     
     // First, ensure the start and end values are valid in the new array
     let newStartValue = startValue;
@@ -211,6 +213,7 @@ const RangeSlider = ({
     }
   }, [isDragging, onValuesChange, startValue, endValue]);
   
+  // Handle mouse or touch down on the handles
   const handleMouseDown = useCallback((e, isStartHandle) => {
     if (disabled) return;
     
@@ -300,10 +303,9 @@ const RangeSlider = ({
     allowSingleValueSelection
   ]);
   
-const handleTrackClick = useCallback((e) => {
-  console.log('Track click event triggered', e.type);
-  if (disabled || activeDragHandle !== null) return;
-
+  // Handle click on the track
+  const handleTrackClick = useCallback((e) => {
+    if (disabled || activeDragHandle !== null) return; // Ignore during active drag
     
     const slider = sliderRef.current;
     if (!slider) return;
@@ -392,7 +394,7 @@ const handleTrackClick = useCallback((e) => {
     return value;
   }, [displayFormat]);
   
-  // Calculate which notches to show labels for - much smarter for mobile
+  // Calculate which notches to show labels for
   const getNotchVisibility = useCallback((index, value) => {
     // Always show first, last, selected values and hovered value
     if (index === 0 || 
@@ -419,6 +421,14 @@ const handleTrackClick = useCallback((e) => {
     
     return index % interval === 0;
   }, [sortedValues, startValue, endValue, hoveredNotch, isMobile]);
+  
+  // Check if a day is valid based on validDays prop
+  const isDayValid = useCallback((dayValue) => {
+    if (!isDay || !validDays) return true;
+    
+    const day = parseInt(dayValue);
+    return validDays.start >= day && validDays.end >= day;
+  }, [isDay, validDays]);
   
   // Determine slider height based on viewport
   const sliderHeight = isMobile ? 'h-16' : 'h-12';
@@ -459,6 +469,7 @@ const handleTrackClick = useCallback((e) => {
           const isInRange = position >= startPosition && position <= endPosition;
           const isSelected = value === startValue || value === endValue;
           const showLabel = getNotchVisibility(index, value);
+          const isValidDay = isDayValid(value);
           
           // Reduce height for mobile
           const notchHeight = isSelected ? 'h-4' : (isInRange ? 'h-3' : 'h-2');
@@ -466,11 +477,12 @@ const handleTrackClick = useCallback((e) => {
           return (
             <div 
               key={value}
-              className={`absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transition-all`}
+              className={`absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 cursor-pointer transition-all ${!isValidDay ? 'opacity-30' : ''}`}
               style={{ left: `${position}%` }}
               onMouseEnter={() => setHoveredNotch(value)}
               onMouseLeave={() => setHoveredNotch(null)}
               onClick={(e) => {
+                if (!isValidDay) return; // Skip clicks on invalid days
                 e.stopPropagation(); // Prevent the track click handler from also firing
                 
                 // Determine which handle to move (the closest one)
@@ -517,7 +529,7 @@ const handleTrackClick = useCallback((e) => {
           );
         })}
         
-        {/* Start Handle - now with touch support */}
+        {/* Start Handle */}
         <div 
           className={`absolute top-1/2 ${handleSize} bg-white border-2 ${
             activeDragHandle === 'start' ? colors.borderActive : colors.borderInactive
@@ -530,7 +542,7 @@ const handleTrackClick = useCallback((e) => {
           onTouchStart={e => handleMouseDown(e, true)}
         ></div>
         
-        {/* End Handle - now with touch support */}
+        {/* End Handle */}
         <div 
           className={`absolute top-1/2 ${handleSize} bg-white border-2 ${
             activeDragHandle === 'end' ? colors.borderActive : colors.borderInactive
@@ -546,6 +558,8 @@ const handleTrackClick = useCallback((e) => {
     </div>
   );
 };
+
+
 
 const TripleRangeSelector = ({ 
   onDateRangeChange, 
@@ -602,6 +616,11 @@ const TripleRangeSelector = ({
     endYear: initialEndDate ? new Date(initialEndDate).getFullYear().toString() : years[years.length - 1] 
   });
   
+  // Generate all possible days 1-31
+  const allDays = useMemo(() => 
+    Array.from({ length: 31 }, (_, i) => (i + 1).toString()), 
+  []);
+  
   // Generate months 1-12
   const months = useMemo(() => 
     Array.from({ length: 12 }, (_, i) => (i + 1).toString()), 
@@ -619,13 +638,13 @@ const TripleRangeSelector = ({
     endValue: initialEndDate ? new Date(initialEndDate).getDate().toString() : '31' 
   });
 
-  // Calculate days in the selected month - update when year/month changes
-  const daysInSelectedMonths = useMemo(() => {
-    // For "all" selection or invalid inputs, use a default of 31 days
+  // Calculate valid days in the selected months - update when year/month changes
+  const validDaysInSelectedMonths = useMemo(() => {
+    // For "all" selection or invalid inputs, use all 31 days as valid
     if (selectedYear === 'all' || !monthRange.startValue || !monthRange.endValue) {
       return {
-        start: Array.from({ length: 31 }, (_, i) => (i + 1).toString()),
-        end: Array.from({ length: 31 }, (_, i) => (i + 1).toString())
+        start: 31,
+        end: 31
       };
     }
     
@@ -641,15 +660,15 @@ const TripleRangeSelector = ({
       const daysInEndMonth = getDaysInMonth(endYear, endMonth);
       
       return {
-        start: Array.from({ length: daysInStartMonth }, (_, i) => (i + 1).toString()),
-        end: Array.from({ length: daysInEndMonth }, (_, i) => (i + 1).toString())
+        start: daysInStartMonth,
+        end: daysInEndMonth
       };
     } catch (err) {
       console.warn("Error calculating days in month:", err);
       // Default to 31 days if calculation fails
       return {
-        start: Array.from({ length: 31 }, (_, i) => (i + 1).toString()),
-        end: Array.from({ length: 31 }, (_, i) => (i + 1).toString())
+        start: 31,
+        end: 31
       };
     }
   }, [selectedYear, yearRangeMode, yearRange, monthRange]);
@@ -660,12 +679,12 @@ const TripleRangeSelector = ({
     if (selectedYear === 'all') return;
     
     // Validate start day value
-    const maxStartDay = daysInSelectedMonths.start.length;
+    const maxStartDay = validDaysInSelectedMonths.start;
     const currentStartDay = parseInt(dayRange.startValue);
     const validStartDay = Math.min(currentStartDay, maxStartDay).toString();
     
     // Validate end day value
-    const maxEndDay = daysInSelectedMonths.end.length;
+    const maxEndDay = validDaysInSelectedMonths.end;
     const currentEndDay = parseInt(dayRange.endValue);
     const validEndDay = Math.min(currentEndDay, maxEndDay).toString();
     
@@ -675,10 +694,9 @@ const TripleRangeSelector = ({
         startValue: validStartDay,
         endValue: validEndDay
       });
-
-// NOTE: We don't call applyDateRange here - only when button is clicked
+      // We're only correcting the values in state - no need to call applyDateRange here
     }
-  }, [daysInSelectedMonths, dayRange.startValue, dayRange.endValue, selectedYear]);
+  }, [validDaysInSelectedMonths, dayRange.startValue, dayRange.endValue, selectedYear]);
   
   // Initialize component from provided dates
   useEffect(() => {
@@ -782,8 +800,8 @@ const TripleRangeSelector = ({
       const endYear = yearRangeMode ? yearRange.endYear : selectedYear;
       
       // Validate days against month maximums
-      const maxStartDay = getDaysInMonth(startYear, monthRange.startValue);
-      const maxEndDay = getDaysInMonth(endYear, monthRange.endValue);
+      const maxStartDay = validDaysInSelectedMonths.start;
+      const maxEndDay = validDaysInSelectedMonths.end;
       
       const validStartDay = Math.min(parseInt(dayRange.startValue), maxStartDay);
       const validEndDay = Math.min(parseInt(dayRange.endValue), maxEndDay);
@@ -914,18 +932,18 @@ const TripleRangeSelector = ({
             allowSingleValueSelection={true}
           />
           
-          {/* Day Range Slider - now uses the correct days for each month */}
-          // Update the RangeSlider for days to use a combined array
-<RangeSlider
-  values={Array.from({ length: Math.max(daysInSelectedMonths.start.length, daysInSelectedMonths.end.length) }, 
-    (_, i) => (i + 1).toString())}
-  onValuesChange={handleDayRangeChange}
-  initialStartValue={dayRange.startValue}
-  initialEndValue={dayRange.endValue}
-  title="Day Range"
-  colorTheme={colorTheme}
-  allowSingleValueSelection={true}
-/>
+          {/* Day Range Slider - fixed implementation */}
+          <RangeSlider
+            values={allDays}
+            onValuesChange={handleDayRangeChange}
+            initialStartValue={dayRange.startValue}
+            initialEndValue={dayRange.endValue}
+            title="Day Range"
+            colorTheme={colorTheme}
+            allowSingleValueSelection={true}
+            isDay={true}
+            validDays={validDaysInSelectedMonths}
+          />
           
           <div className="flex justify-center mt-2">
             <button
@@ -944,5 +962,4 @@ const TripleRangeSelector = ({
     </div>
   );
 };
-
 export default TripleRangeSelector;
