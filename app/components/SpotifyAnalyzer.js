@@ -92,6 +92,8 @@ const SpotifyAnalyzer = () => {
     selected: 'bg-black text-white'
   }
   };
+// Update the demo button in SpotifyAnalyzer.js
+
 const handleLoadSampleData = async () => {
   setIsProcessing(true);
   setError(null);
@@ -845,14 +847,14 @@ const TabButton = ({ id, label }) => {
                 <li>Upload your file(s)</li>
 
 <div className="mt-4">
-  <button
-    onClick={handleLoadSampleData}
-    disabled={isProcessing}
-    className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
-  >
-    <Download size={16} />
-    DEMO
-  </button>
+<button
+  onClick={handleLoadSampleData}
+  disabled={isProcessing}
+  className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
+>
+  <Download size={14} className="hidden sm:inline" />
+  DEMO
+</button>
   <p className="text-sm text-gray-600 mt-1">
     Want to test the app without uploading your own data? Click DEMO to load sample streaming history.
   </p>

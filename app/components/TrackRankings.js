@@ -70,7 +70,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
             }`}
             onClick={() => setSortBy('totalPlayed')}
           >
-            Total Time {sortBy === 'totalPlayed' && '▼'}
+            Time {sortBy === 'totalPlayed' && '▼'}
           </th>
           <th 
             className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
@@ -78,7 +78,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
             }`}
             onClick={() => setSortBy('playCount')}
           >
-            Play Count {sortBy === 'playCount' && '▼'}
+            Plays {sortBy === 'playCount' && '▼'}
           </th>
         </tr>
       </thead>
@@ -104,8 +104,8 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
           <th className="p-2 text-left text-blue-700">Track</th>
           <th className="p-2 text-left text-blue-700">Artist</th>
           <th className="p-2 text-right text-blue-700">Peak Week</th>
-          <th className="p-2 text-right text-blue-700">Plays in Peak Week</th>
-          <th className="p-2 text-right text-blue-700">Total Plays</th>
+          <th className="p-2 text-right text-blue-700">Peak</th>
+          <th className="p-2 text-right text-blue-700">Total</th>
         </tr>
       </thead>
       <tbody>
@@ -114,7 +114,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
             <td className="p-2 text-blue-700">{index + 1}</td>
             <td className="p-2 text-blue-700">{song.trackName}</td>
             <td className="p-2 text-blue-700">{song.artist}</td>
-            <td className="p-2 text-right text-blue-700">{song.intensePeriod.weekStart.toLocaleDateString()}</td>
+            <td className="p-2 text-right text-blue-700">{new Date(song.intensePeriod.weekStart).toLocaleDateString()}</td>
             <td className="p-2 text-right text-blue-700">{song.intensePeriod.playsInWeek}</td>
             <td className="p-2 text-right text-blue-700">{song.playCount}</td>
           </tr>
@@ -128,7 +128,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
       <div className="flex border-b mb-4">
         <button
           onClick={() => setActiveTab('top250')}
-          className={`px-4 py-2 font-medium ${
+          className={`px-3 py-2 text-sm font-medium ${
             activeTab === 'top250' 
               ? 'text-blue-600 border-b-2 border-blue-600' 
               : 'text-gray-500 hover:text-gray-700'
@@ -138,18 +138,18 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         </button>
         <button
           onClick={() => setActiveTab('obsessions')}
-          className={`px-4 py-2 font-medium ${
+          className={`px-3 py-2 text-sm font-medium ${
             activeTab === 'obsessions' 
               ? 'text-blue-600 border-b-2 border-blue-600' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
         >
-          Top 100 Brief Obsessions
+          Top Obsessions
         </button>
       </div>
 
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-blue-700">
+        <h3 className="font-bold text-blue-700 text-sm sm:text-base">
           {activeTab === 'top250' 
             ? (selectedYear === 'all' ? 'All-time Top 250' : `Top 100 ${selectedYear}`)
             : 'Top 100 Brief Obsessions'}
@@ -157,36 +157,36 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
 
         <div className="flex items-center gap-2">
           {activeTab === 'top250' && (
-            <div className="flex items-center gap-2 mr-3">
-              <span className="text-blue-700">Sort by:</span>
+            <div className="flex items-center gap-1 mr-2">
+              <span className="text-blue-700 text-xs sm:text-sm">Sort:</span>
               <button
                 onClick={() => setSortBy('totalPlayed')}
-                className={`px-3 py-1 rounded ${
+                className={`px-2 py-1 rounded text-xs ${
                   sortBy === 'totalPlayed'
                     ? 'bg-blue-600 text-white'
                     : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 }`}
               >
-                Total Time
+                Time
               </button>
               <button
                 onClick={() => setSortBy('playCount')}
-                className={`px-3 py-1 rounded ${
+                className={`px-2 py-1 rounded text-xs ${
                   sortBy === 'playCount'
                     ? 'bg-blue-600 text-white'
                     : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 }`}
               >
-                Play Count
+                Plays
               </button>
             </div>
           )}
           
           <button
             onClick={() => setShowExporter(!showExporter)}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            {showExporter ? 'Hide Playlist Exporter' : 'Export M3U Playlist'}
+            {showExporter ? 'Hide' : 'Export'}
           </button>
         </div>
       </div>

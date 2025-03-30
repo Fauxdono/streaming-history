@@ -524,7 +524,7 @@ const PlaylistExporter = ({
       </div>
       
       <div>
-        <label className={`block ${colors.primary} mb-1`}>Export Mode:</label>
+        <label className={`flex items-center ${colors.primary} text-xs sm:text-sm`}>Export Mode:</label>
         <div className="flex gap-4">
           <label className={`flex items-center ${colors.primary}`}>
             <input
@@ -548,16 +548,17 @@ const PlaylistExporter = ({
       </div>
       
       <div className="pt-2">
-        <button
-          onClick={exportPlaylist}
-          disabled={isExporting}
-          className={`flex items-center gap-2 px-4 py-2 ${colors.button} text-white rounded disabled:${colors.buttonDisabled} disabled:cursor-not-allowed transition-colors`}
-        >
-          <Download size={16} />
-          {isExporting 
-            ? `Exporting... ${exportProgress.current}/${exportProgress.total}` 
-            : 'Export M3U Playlist'}
-        </button>
+// Update the export button
+<button
+  onClick={exportPlaylist}
+  disabled={isExporting}
+  className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm ${colors.button} text-white rounded disabled:${colors.buttonDisabled} disabled:cursor-not-allowed"
+>
+  <Download size={14} className="hidden sm:inline" />
+  {isExporting 
+    ? `Exporting... ${exportProgress.current}/${exportProgress.total}` 
+    : 'Export Playlist'}
+</button>
       </div>
       
       {error && (
