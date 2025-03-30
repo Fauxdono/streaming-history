@@ -801,24 +801,24 @@ const TabButton = ({ id, label }) => {
     };
 
     return (
-      <button
-        onClick={() => setActiveTab(id)}
-        className={`px-4 py-2 font-medium ${getTabColor(id)}`}
-      >
-        {label}
-      </button>
+<button
+  onClick={() => setActiveTab(id)}
+  className={`px-2 sm:px-4 py-2 font-medium text-sm sm:text-base ${getTabColor(id)}`}
+>
+  {label}
+</button>
     );
   };
 
   return (
-    <Card className="w-full max-w-4xl">
-      <CardHeader>
-        <CardTitle className="text-yellow-400">Streaming History Analyzer</CardTitle>
-      </CardHeader>
-      <CardContent>
-       <div className="space-y-4">
-         <div className="overflow-x-auto -mx-4 px-4">
-          <div className="flex gap-2 border-b border-violet-200 min-w-max"> 
+<Card className="w-full max-w-full sm:max-w-4xl h-full">
+  <CardHeader className="px-2 sm:px-6">
+    <CardTitle className="text-yellow-400">Streaming History Analyzer</CardTitle>
+  </CardHeader>
+  <CardContent className="px-2 sm:px-6">
+      <div className="space-y-4">
+  <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4">
+    <div className="flex gap-1 sm:gap-2 border-b border-violet-200 min-w-max text-sm sm:text-base">
               {stats && <TabButton id="updates" label="Updates" />} 
                <TabButton id="upload" label="Upload" />
             {stats && <TabButton id="stats" label="Statistics" />}
@@ -834,10 +834,10 @@ const TabButton = ({ id, label }) => {
           </div>
         </div>
         
-        {activeTab === 'upload' && (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 border rounded bg-blue-50">
+{activeTab === 'upload' && (
+  <div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
+    <div className="p-2 sm:p-4 border rounded bg-blue-50">
               <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
               <ol className="list-decimal list-inside space-y-1 text-blue-700">
                 <li>Select your streaming service below</li>
@@ -1021,8 +1021,8 @@ const TabButton = ({ id, label }) => {
           </div>
         )}
         
-        {activeTab === 'stats' && stats && (
-          <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
+{activeTab === 'stats' && stats && (
+  <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
             <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1077,14 +1077,14 @@ const TabButton = ({ id, label }) => {
         )}
 
 {activeTab === 'updates' && (
-  <div className="p-4 bg-cyan-200 rounded border-2 border-cyan-400">
+  <div className="p-2 sm:p-4 bg-cyan-200 rounded border-2 border-cyan-400">
     <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
     <UpdatesSection />
   </div>
 )}
                 
 {activeTab === 'artists' && (
-  <div className="p-4 bg-teal-100 rounded border-2 border-teal-300">
+  <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
     <div className="flex justify-between items-center mb-4">
       <h3 className="font-bold text-teal-700">
         {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
@@ -1275,7 +1275,7 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
 {activeTab === 'albums' && (
-  <div className="p-4 bg-pink-100 rounded border-2 border-pink-300">
+  <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300">
     <div className="flex justify-between items-center mb-2">
       <h3 className="font-bold text-pink-700">
         {selectedAlbumYear === 'all' ? 'Most Played Albums (All Time)' : 
@@ -1397,8 +1397,8 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
         
-        {activeTab === 'tracks' && (
-          <div className="p-4 bg-blue-100 rounded border-2 border-blue-300">
+      {activeTab === 'tracks' && (
+  <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
             <h3 className="font-bold mb-2 text-blue-700">Track Rankings</h3>
             <TrackRankings 
               processedData={processedData} 
@@ -1411,10 +1411,10 @@ const TabButton = ({ id, label }) => {
           </div>
         )}
 
-   {activeTab === 'custom' && (
+{activeTab === 'custom' && (
   <div 
     id="custom-track-rankings"
-    className="p-4 bg-orange-100 rounded border-2 border-orange-300"
+    className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300"
   >
     <h3 className="font-bold mb-2 text-orange-700">Custom Date Range Analysis</h3>
     <CustomTrackRankings 
@@ -1426,7 +1426,7 @@ const TabButton = ({ id, label }) => {
 )}
 
 {activeTab === 'playlists' && (
-  <div className="p-4 bg-red-100 rounded border-2 border-red-300">
+  <div className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
     <h3 className="font-bold mb-2 text-red-700">Custom Playlists</h3>
     <CustomPlaylistCreator
       processedData={processedData}
@@ -1436,11 +1436,11 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
         
-        {activeTab === 'podcasts' && (
-          <div 
-            id="podcast-rankings"
-            className="p-4 bg-indigo-100 rounded border-2 border-indigo-300"
-          >
+    {activeTab === 'podcasts' && (
+  <div 
+    id="podcast-rankings"
+    className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300"
+  >
             <h3 className="font-bold mb-2 text-indigo-700">Podcast Analysis</h3>
             <PodcastRankings 
               rawPlayData={rawPlayData}
@@ -1449,8 +1449,8 @@ const TabButton = ({ id, label }) => {
           </div>
         )}
         
-        {activeTab === 'patterns' && (
-          <div className="p-4 bg-purple-100 rounded border-2 border-purple-300">
+{activeTab === 'patterns' && (
+  <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
             <h3 className="font-bold mb-2 text-purple-700">Listening Patterns</h3>
             <ListeningPatterns 
               rawPlayData={rawPlayData} 
@@ -1458,9 +1458,8 @@ const TabButton = ({ id, label }) => {
             />
           </div>
         )}
-
-        {activeTab === 'behavior' && (
-          <div className="p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+{activeTab === 'behavior' && (
+  <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
             <h3 className="font-bold mb-2 text-indigo-700">Listening Behavior</h3>
             <ListeningBehavior 
               rawPlayData={rawPlayData} 
@@ -1468,9 +1467,8 @@ const TabButton = ({ id, label }) => {
             />
           </div>
         )}
-
-        {activeTab === 'discovery' && (
-          <div className="p-4 bg-green-100 rounded border-2 border-green-300">
+{activeTab === 'discovery' && (
+  <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
             <h3 className="font-bold mb-2 text-green-700">Music Discovery</h3>
             <DiscoveryAnalysis 
               rawPlayData={rawPlayData} 
