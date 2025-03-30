@@ -37,124 +37,124 @@ const CustomTrackRankings = ({
   const [selectedYear, setSelectedYear] = useState('all');
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   
-// Update the availableYears useMemo to ensure it properly extracts years from rawPlayData
-const availableYears = useMemo(() => {
-  const yearsSet = new Set();
-  
-  // Make sure we have valid data
-  if (!rawPlayData || !Array.isArray(rawPlayData) || rawPlayData.length === 0) {
-    console.warn('No raw play data available for year extraction');
-    return [];
-  }
-  
-  // Loop through all entries and collect years
-  let count = 0;
-  rawPlayData.forEach(entry => {
-    if (entry && entry.ts && entry.ms_played >= 30000) {
-      try {
-        const date = new Date(entry.ts);
-        if (!isNaN(date.getTime())) {
-          yearsSet.add(date.getFullYear().toString());
-          count++;
-        }
-      } catch (err) {
-        console.warn('Error parsing date:', entry.ts);
-      }
-    }
-  });
-  
-  console.log(`Extracted ${yearsSet.size} unique years from ${count} valid entries`);
-  
-  // Convert to sorted array
-  return Array.from(yearsSet).sort();
-}, [rawPlayData]);
-  
-// When year or year range changes, update the date range
-useEffect(() => {
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    setStartDate(`${yearRange.startYear}-01-01`);
-    setEndDate(`${yearRange.endYear}-12-31`);
-  } else if (selectedYear !== 'all') {
-    setStartDate(`${selectedYear}-01-01`);
-    setEndDate(`${selectedYear}-12-31`);
-  } else {
-    // All years - use empty strings to represent "All Time" selection
-    // This will be properly interpreted by TripleRangeSelector
-    setStartDate('');
-    setEndDate('');
+  // Update the availableYears useMemo to ensure it properly extracts years from rawPlayData
+  const availableYears = useMemo(() => {
+    const yearsSet = new Set();
     
-    // Also log for debugging
-    console.log("Setting 'All Time' selection with empty date strings");
-  }
-}, [selectedYear, yearRangeMode, yearRange, availableYears]);
+    // Make sure we have valid data
+    if (!rawPlayData || !Array.isArray(rawPlayData) || rawPlayData.length === 0) {
+      console.warn('No raw play data available for year extraction');
+      return [];
+    }
+    
+    // Loop through all entries and collect years
+    let count = 0;
+    rawPlayData.forEach(entry => {
+      if (entry && entry.ts && entry.ms_played >= 30000) {
+        try {
+          const date = new Date(entry.ts);
+          if (!isNaN(date.getTime())) {
+            yearsSet.add(date.getFullYear().toString());
+            count++;
+          }
+        } catch (err) {
+          console.warn('Error parsing date:', entry.ts);
+        }
+      }
+    });
+    
+    console.log(`Extracted ${yearsSet.size} unique years from ${count} valid entries`);
+    
+    // Convert to sorted array
+    return Array.from(yearsSet).sort();
+  }, [rawPlayData]);
+  
+  // When year or year range changes, update the date range
+  useEffect(() => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      setStartDate(`${yearRange.startYear}-01-01`);
+      setEndDate(`${yearRange.endYear}-12-31`);
+    } else if (selectedYear !== 'all') {
+      setStartDate(`${selectedYear}-01-01`);
+      setEndDate(`${selectedYear}-12-31`);
+    } else {
+      // All years - use empty strings to represent "All Time" selection
+      // This will be properly interpreted by TripleRangeSelector
+      setStartDate('');
+      setEndDate('');
+      
+      // Also log for debugging
+      console.log("Setting 'All Time' selection with empty date strings");
+    }
+  }, [selectedYear, yearRangeMode, yearRange, availableYears]);
 
-// Add an initialization effect to set default view to "All Time" on component mount
-useEffect(() => {
-  // This runs once on component mount
-  console.log("CustomTrackRankings mounted, initializing to 'All Time'");
-  
-  // Set to "All Time" by default
-  setSelectedYear('all');
-  setYearRangeMode(false);
-  setStartDate('');
-  setEndDate('');
-}, []); // Empty dependency array ensures it only runs on mount
-
-const getInitialDates = () => {
-  // If we're in "All Time" mode (selectedYear === 'all'), 
-  // use empty strings for All Time
-  if (selectedYear === 'all' && !yearRangeMode) {
-    console.log("Using empty strings for All Time");
-    return { initialStartDate: '', initialEndDate: '' };
-  }
-  
-  // Otherwise use the actual dates
-  if (startDate && endDate) {
-    return { initialStartDate: startDate, initialEndDate: endDate };
-  }
-  
-  // Default to empty strings
-  return { initialStartDate: '', initialEndDate: '' };
-};
-
-
-const handleDateChange = (start, end) => {
-  console.log("Date change:", { start, end });
-  
-  // Note: empty strings mean "All Time" selection
-  setStartDate(start);
-  setEndDate(end);
-  
-  // Update year sliders to match
-  if (!start || !end || start === "" || end === "") {
-    // Empty dates indicate "All Time"
-    console.log("Setting All Time: selectedYear='all', yearRangeMode=false");
+  // Add an initialization effect to set default view to "All Time" on component mount
+  useEffect(() => {
+    // This runs once on component mount
+    console.log("CustomTrackRankings mounted, initializing to 'All Time'");
+    
+    // Set to "All Time" by default
     setSelectedYear('all');
     setYearRangeMode(false);
-  } else {
-    try {
-      const startYear = new Date(start).getFullYear().toString();
-      const endYear = new Date(end).getFullYear().toString();
-      
-      if (startYear === endYear) {
-        // Single year selection
-        console.log(`Setting single year: ${startYear}`);
-        setSelectedYear(startYear);
-        setYearRangeMode(false);
-      } else {
-        // Year range
-        console.log(`Setting year range: ${startYear}-${endYear}`);
-        setYearRange({ startYear, endYear });
-        setYearRangeMode(true);
-      }
-    } catch (err) {
-      console.error("Error parsing dates:", err);
-      // Fallback to "All Time" if date parsing fails
+    setStartDate('');
+    setEndDate('');
+  }, []); // Empty dependency array ensures it only runs on mount
+
+  const getInitialDates = () => {
+    // If we're in "All Time" mode (selectedYear === 'all'), 
+    // use empty strings for All Time
+    if (selectedYear === 'all' && !yearRangeMode) {
+      console.log("Using empty strings for All Time");
+      return { initialStartDate: '', initialEndDate: '' };
+    }
+    
+    // Otherwise use the actual dates
+    if (startDate && endDate) {
+      return { initialStartDate: startDate, initialEndDate: endDate };
+    }
+    
+    // Default to empty strings
+    return { initialStartDate: '', initialEndDate: '' };
+  };
+
+
+  const handleDateChange = (start, end) => {
+    console.log("Date change:", { start, end });
+    
+    // Note: empty strings mean "All Time" selection
+    setStartDate(start);
+    setEndDate(end);
+    
+    // Update year sliders to match
+    if (!start || !end || start === "" || end === "") {
+      // Empty dates indicate "All Time"
+      console.log("Setting All Time: selectedYear='all', yearRangeMode=false");
       setSelectedYear('all');
       setYearRangeMode(false);
+    } else {
+      try {
+        const startYear = new Date(start).getFullYear().toString();
+        const endYear = new Date(end).getFullYear().toString();
+        
+        if (startYear === endYear) {
+          // Single year selection
+          console.log(`Setting single year: ${startYear}`);
+          setSelectedYear(startYear);
+          setYearRangeMode(false);
+        } else {
+          // Year range
+          console.log(`Setting year range: ${startYear}-${endYear}`);
+          setYearRange({ startYear, endYear });
+          setYearRangeMode(true);
+        }
+      } catch (err) {
+        console.error("Error parsing dates:", err);
+        // Fallback to "All Time" if date parsing fails
+        setSelectedYear('all');
+        setYearRangeMode(false);
+      }
     }
-  }
-};
+  };
 
   // Toggle between single year and year range modes
   const toggleYearRangeMode = (value) => {
@@ -540,7 +540,7 @@ const handleDateChange = (start, end) => {
     window.URL.revokeObjectURL(url);
   };
 
-      // Create an object with years for YearSelector
+  // Create an object with years for YearSelector
   const yearsForYearSelector = useMemo(() => {
     const yearsObj = {};
     availableYears.forEach(year => {
@@ -583,12 +583,99 @@ return (
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+            className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
           >
-            <Download size={16} />
-            {showPlaylistExporter ? "Hide Playlist Exporter" : "Export as M3U Playlist"}
+            <Download size={14} className="hidden sm:inline" />
+            {showPlaylistExporter ? "Hide Exporter" : "Export"}
           </button>
         </div>
+
+    {/* Results section with date range info */}
+    <div className="mt-4 flex justify-between items-center">
+      <div className="text-orange-700 font-medium">
+        Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+      </div>
+      <div className="text-orange-700">
+        Found <span className="font-bold">{filteredTracks.length}</span> tracks
+      </div>
+    </div>
+
+    {filteredTracks.length > 0 ? (
+      <div className="overflow-x-auto -mx-4 px-4 mt-2">
+        <div className="min-w-[640px]">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="p-2 text-left text-orange-700">Rank</th>
+                <th className="p-2 text-left text-orange-700">Track</th>
+                <th className="p-2 text-left text-orange-700">Artist</th>
+                <th className="p-2 text-left text-orange-700">Album</th>
+                <th 
+                  className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                    sortBy === 'totalPlayed' ? 'font-bold' : ''
+                  }`}
+                  onClick={() => setSortBy('totalPlayed')}
+                >
+                  Total Time {sortBy === 'totalPlayed' && '▼'}
+                </th>
+                <th 
+                  className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                    sortBy === 'playCount' ? 'font-bold' : ''
+                  }`}
+                  onClick={() => setSortBy('playCount')}
+                >
+                  Plays {sortBy === 'playCount' && '▼'}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTracks.map((song, index) => (
+                <tr 
+                  key={song.key} 
+                  className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+                >
+                  <td className="p-2 text-orange-700">{index + 1}</td>
+                  <td className="p-2 text-orange-700">
+                    <div className="flex items-center">
+                      {song.isFeatured && (
+                        <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+                          FEAT
+                        </span>
+                      )}
+                      <div>
+                        {song.trackName}
+                      </div>
+                    </div>
+                  </td>
+                  <td 
+                    className="p-2 text-orange-700 cursor-pointer hover:underline" 
+                    onClick={() => addArtistFromTrack(song.artist)}
+                  > 
+                    {song.artist} 
+                  </td>
+                  <td 
+                    className="p-2 text-orange-700 cursor-pointer hover:underline" 
+                    onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+                  >
+                    {song.albumName}
+                  </td>
+                  <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
+                  <td className="p-2 text-right text-orange-700">{song.playCount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ) : (
+      <div className="text-center py-4 text-orange-500">
+        {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
+          ? 'No tracks found matching your filters' 
+          : 'Select filters to view tracks'}
+      </div>
+    )}
+  </div>
+);
       </div>
 
       <div className="mt-2">
@@ -620,23 +707,23 @@ return (
           <span className="text-orange-700">Sort by:</span>
           <button
             onClick={() => setSortBy('totalPlayed')}
-            className={`px-3 py-1 rounded ${
+            className={`px-2 py-1 rounded text-xs sm:text-sm ${
               sortBy === 'totalPlayed'
                 ? 'bg-orange-600 text-white'
                 : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
             }`}
           >
-            Total Time
+            Time
           </button>
           <button
             onClick={() => setSortBy('playCount')}
-            className={`px-3 py-1 rounded ${
+            className={`px-2 py-1 rounded text-xs sm:text-sm ${
               sortBy === 'playCount'
                 ? 'bg-orange-600 text-white'
                 : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
             }`}
           >
-            Play Count
+            Plays
           </button>
         </div>
       </div>
@@ -785,81 +872,67 @@ return (
       )}
     </div>
 
-    {filteredTracks.length > 0 ? (
-      <div className="overflow-x-auto -mx-4 px-4 mt-2">
-        <div className="min-w-[640px]">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="p-2 text-left text-orange-700">Rank</th>
-                <th className="p-2 text-left text-orange-700">Track</th>
-                <th className="p-2 text-left text-orange-700">Artist</th>
-                <th className="p-2 text-left text-orange-700">Album</th>
-                <th 
-                  className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                    sortBy === 'totalPlayed' ? 'font-bold' : ''
-                  }`}
-                  onClick={() => setSortBy('totalPlayed')}
-                >
-                  Total Time {sortBy === 'totalPlayed' && '▼'}
-                </th>
-                <th 
-                  className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                    sortBy === 'playCount' ? 'font-bold' : ''
-                  }`}
-                  onClick={() => setSortBy('playCount')}
-                >
-                  Play Count {sortBy === 'playCount' && '▼'}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTracks.map((song, index) => (
-                <tr 
-                  key={song.key} 
-                  className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
-                >
-                  <td className="p-2 text-orange-700">{index + 1}</td>
-                  <td className="p-2 text-orange-700">
-                    <div className="flex items-center">
-                      {song.isFeatured && (
-                        <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
-                          FEAT
-                        </span>
-                      )}
-                      <div>
-                        {song.trackName}
-                      </div>
-                    </div>
-                  </td>
-                  <td 
-                    className="p-2 text-orange-700 cursor-pointer hover:underline" 
-                    onClick={() => addArtistFromTrack(song.artist)}
-                  > 
-                    {song.artist} 
-                  </td>
-                  <td 
-                    className="p-2 text-orange-700 cursor-pointer hover:underline" 
-                    onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-                  >
-                    {song.albumName}
-                  </td>
-                  <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
-                  <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    {/* Basic Export Controls - simplified since we now have PlaylistExporter */}
+    <div>
+      <button
+        onClick={() => setShowExportOptions(!showExportOptions)}
+        className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
+      >
+        <Download size={14} className="hidden sm:inline" />
+        {showExportOptions ? 'Hide Basic Options' : 'Basic Export'}
+      </button>
+      
+      {showExportOptions && (
+        <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded">
+          <div>
+            <label className="block text-orange-700 mb-1">Playlist Name:</label>
+            <input
+              type="text"
+              value={playlistName}
+              onChange={(e) => setPlaylistName(e.target.value)}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+              placeholder="Enter playlist name"
+            />
+          </div>
+          
+          <div className="mt-3">
+            <label className="block text-orange-700 mb-1">Base Music Path:</label>
+            <input
+              type="text"
+              value={musicBasePath}
+              onChange={(e) => setMusicBasePath(e.target.value)}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+              placeholder="e.g. /Music/Downloads or C:/Music"
+            />
+          </div>
+          
+          <div className="mt-3">
+            <label className="block text-orange-700 mb-1">File Extension:</label>
+            <select
+              value={fileExtension}
+              onChange={(e) => setFileExtension(e.target.value)}
+              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+            >
+              <option value="mp3">mp3</option>
+              <option value="flac">flac</option>
+              <option value="m4a">m4a</option>
+              <option value="ogg">ogg</option>
+              <option value="wav">wav</option>
+            </select>
+          </div>
+          
+          <div className="mt-3">
+            <button
+              onClick={exportPlaylist}
+              disabled={filteredTracks.length === 0}
+              className="px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed text-xs sm:text-sm"
+            >
+              Download ({filteredTracks.length})
+            </button>
+          </div>
         </div>
-      </div>
-    ) : (
-      <div className="text-center py-4 text-orange-500">
-        {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
-          ? 'No tracks found matching your filters' 
-          : 'Select filters to view tracks'}
-      </div>
-    )}
-  </div>
+      )}
+    </div>
 );
 };
 
