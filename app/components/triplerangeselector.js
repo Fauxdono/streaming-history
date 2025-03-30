@@ -300,8 +300,10 @@ const RangeSlider = ({
     allowSingleValueSelection
   ]);
   
-  const handleTrackClick = useCallback((e) => {
-    if (disabled || activeDragHandle !== null) return; // Ignore during active drag
+const handleTrackClick = useCallback((e) => {
+  console.log('Track click event triggered', e.type);
+  if (disabled || activeDragHandle !== null) return;
+
     
     const slider = sliderRef.current;
     if (!slider) return;
@@ -913,15 +915,17 @@ const TripleRangeSelector = ({
           />
           
           {/* Day Range Slider - now uses the correct days for each month */}
-          <RangeSlider
-            values={daysInSelectedMonths.start}
-            onValuesChange={handleDayRangeChange}
-            initialStartValue={dayRange.startValue}
-            initialEndValue={dayRange.endValue}
-            title="Day Range"
-            colorTheme={colorTheme}
-            allowSingleValueSelection={true}
-          />
+          // Update the RangeSlider for days to use a combined array
+<RangeSlider
+  values={Array.from({ length: Math.max(daysInSelectedMonths.start.length, daysInSelectedMonths.end.length) }, 
+    (_, i) => (i + 1).toString())}
+  onValuesChange={handleDayRangeChange}
+  initialStartValue={dayRange.startValue}
+  initialEndValue={dayRange.endValue}
+  title="Day Range"
+  colorTheme={colorTheme}
+  allowSingleValueSelection={true}
+/>
           
           <div className="flex justify-center mt-2">
             <button
