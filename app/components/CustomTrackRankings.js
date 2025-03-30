@@ -577,6 +577,7 @@ const CustomTrackRankings = ({
 
 return (
   <div className="space-y-4">
+    {/* First section: Header with export button */}
     <div className="border rounded-lg p-4 bg-orange-50">
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
@@ -590,143 +591,9 @@ return (
           </button>
         </div>
       </div>
-
-      {/* Results section with date range info */}
-      <div className="mt-4 flex justify-between items-center">
-        <div className="text-orange-700 font-medium">
-          Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
-        </div>
-        <div className="text-orange-700">
-          Found <span className="font-bold">{filteredTracks.length}</span> tracks
-        </div>
-      </div>
-
-      {filteredTracks.length > 0 ? (
-        <div className="overflow-x-auto -mx-4 px-4 mt-2">
-          <div className="min-w-[640px]">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="p-2 text-left text-orange-700">Rank</th>
-                  <th className="p-2 text-left text-orange-700">Track</th>
-                  <th className="p-2 text-left text-orange-700">Artist</th>
-                  <th className="p-2 text-left text-orange-700">Album</th>
-                  <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                      sortBy === 'totalPlayed' ? 'font-bold' : ''
-                    }`}
-                    onClick={() => setSortBy('totalPlayed')}
-                  >
-                    Total Time {sortBy === 'totalPlayed' && '▼'}
-                  </th>
-                  <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                      sortBy === 'playCount' ? 'font-bold' : ''
-                    }`}
-                    onClick={() => setSortBy('playCount')}
-                  >
-                    Plays {sortBy === 'playCount' && '▼'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTracks.map((song, index) => (
-                  <tr 
-                    key={song.key} 
-                    className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
-                  >
-                    <td className="p-2 text-orange-700">{index + 1}</td>
-                    <td className="p-2 text-orange-700">
-                      <div className="flex items-center">
-                        {song.isFeatured && (
-                          <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
-                            FEAT
-                          </span>
-                        )}
-                        <div>
-                          {song.trackName}
-                        </div>
-                      </div>
-                    </td>
-                    <td 
-                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
-                      onClick={() => addArtistFromTrack(song.artist)}
-                    > 
-                      {song.artist} 
-                    </td>
-                    <td 
-                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
-                      onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-                    >
-                      {song.albumName}
-                    </td>
-                    <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
-                    <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-4 text-orange-500">
-          {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
-            ? 'No tracks found matching your filters' 
-            : 'Select filters to view tracks'}
-        </div>
-      )}
-
-      <div className="mt-2">
-        <TripleRangeSelector
-          onDateRangeChange={handleDateChange}
-          initialStartDate={getInitialDates().initialStartDate}
-          initialEndDate={getInitialDates().initialEndDate}
-          colorTheme="orange"
-          availableYears={availableYears}
-        />
-      </div>
-      
-      {/* Top N tracks control */}
-      <div className="mt-4 flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-orange-700">
-          <label>Show top</label>
-          <input
-            type="number"
-            min="1"
-            max="69420"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value))))}
-            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          <label>tracks</label>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-orange-700">Sort by:</span>
-          <button
-            onClick={() => setSortBy('totalPlayed')}
-            className={`px-2 py-1 rounded text-xs sm:text-sm ${
-              sortBy === 'totalPlayed'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Time
-          </button>
-          <button
-            onClick={() => setSortBy('playCount')}
-            className={`px-2 py-1 rounded text-xs sm:text-sm ${
-              sortBy === 'playCount'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Plays
-          </button>
-        </div>
-      </div>
     </div>
 
+    {/* Conditional Playlist Exporter */}
     {showPlaylistExporter && (
       <PlaylistExporter
         processedData={filteredTracks}
@@ -867,6 +734,147 @@ return (
           </label>
         </div>
       )}
+    </div>
+
+    {/* Date Range and Track Results */}
+    <div className="border rounded-lg p-4 bg-orange-50">
+      {/* Results section with date range info */}
+      <div className="flex justify-between items-center">
+        <div className="text-orange-700 font-medium">
+          Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+        </div>
+        <div className="text-orange-700">
+          Found <span className="font-bold">{filteredTracks.length}</span> tracks
+        </div>
+      </div>
+
+      {filteredTracks.length > 0 ? (
+        <div className="overflow-x-auto -mx-4 px-4 mt-2">
+          <div className="min-w-[640px]">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="p-2 text-left text-orange-700">Rank</th>
+                  <th className="p-2 text-left text-orange-700">Track</th>
+                  <th className="p-2 text-left text-orange-700">Artist</th>
+                  <th className="p-2 text-left text-orange-700">Album</th>
+                  <th 
+                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                      sortBy === 'totalPlayed' ? 'font-bold' : ''
+                    }`}
+                    onClick={() => setSortBy('totalPlayed')}
+                  >
+                    Total Time {sortBy === 'totalPlayed' && '▼'}
+                  </th>
+                  <th 
+                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                      sortBy === 'playCount' ? 'font-bold' : ''
+                    }`}
+                    onClick={() => setSortBy('playCount')}
+                  >
+                    Plays {sortBy === 'playCount' && '▼'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTracks.map((song, index) => (
+                  <tr 
+                    key={song.key} 
+                    className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+                  >
+                    <td className="p-2 text-orange-700">{index + 1}</td>
+                    <td className="p-2 text-orange-700">
+                      <div className="flex items-center">
+                        {song.isFeatured && (
+                          <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+                            FEAT
+                          </span>
+                        )}
+                        <div>
+                          {song.trackName}
+                        </div>
+                      </div>
+                    </td>
+                    <td 
+                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
+                      onClick={() => addArtistFromTrack(song.artist)}
+                    > 
+                      {song.artist} 
+                    </td>
+                    <td 
+                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
+                      onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+                    >
+                      {song.albumName}
+                    </td>
+                    <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
+                    <td className="p-2 text-right text-orange-700">{song.playCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-4 text-orange-500">
+          {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
+            ? 'No tracks found matching your filters' 
+            : 'Select filters to view tracks'}
+        </div>
+      )}
+    </div>
+
+    {/* Date Range Selector section */}
+    <div className="border rounded-lg p-4 bg-orange-50">
+      <div className="mt-2">
+        <TripleRangeSelector
+          onDateRangeChange={handleDateChange}
+          initialStartDate={getInitialDates().initialStartDate}
+          initialEndDate={getInitialDates().initialEndDate}
+          colorTheme="orange"
+          availableYears={availableYears}
+        />
+      </div>
+      
+      {/* Top N tracks control */}
+      <div className="mt-4 flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2 text-orange-700">
+          <label>Show top</label>
+          <input
+            type="number"
+            min="1"
+            max="69420"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value))))}
+            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+          />
+          <label>tracks</label>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-orange-700">Sort by:</span>
+          <button
+            onClick={() => setSortBy('totalPlayed')}
+            className={`px-2 py-1 rounded text-xs sm:text-sm ${
+              sortBy === 'totalPlayed'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Time
+          </button>
+          <button
+            onClick={() => setSortBy('playCount')}
+            className={`px-2 py-1 rounded text-xs sm:text-sm ${
+              sortBy === 'playCount'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Plays
+          </button>
+        </div>
+      </div>
     </div>
 
     {/* Basic Export Controls - simplified since we now have PlaylistExporter */}
