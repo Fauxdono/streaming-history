@@ -1,7 +1,7 @@
 {
-  "id": "cakeculator-app",
-  "name": "Cakeculator",
-  "short_name": "Cakeculator",
+  "id": "cake-app",
+  "name": "Cake",
+  "short_name": "cake",
   "description": "Analyze your music streaming history in depth",
   "start_url": "/",
   "scope": "/",
