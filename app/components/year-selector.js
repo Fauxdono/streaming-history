@@ -10,13 +10,15 @@ const YearSelector = ({
   initialYearRange, 
   isRangeMode, 
   onToggleRangeMode,
-  colorTheme = 'teal', // Default to teal, but allow customization
-  asSidebar = false, // New prop to display as a fixed sidebar
-  position = 'right', // 'left' or 'right' when using sidebar mode
-  startMinimized = false // Option to start minimized
+  colorTheme = 'teal', 
+  asSidebar = false, 
+  position = 'right', 
+  startMinimized = false 
 }) => {
+  // Only apply startMinimized when asSidebar is true
+  const actuallyStartMinimized = asSidebar && startMinimized;
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
-  const [expanded, setExpanded] = useState(!startMinimized);
+  const [expanded, setExpanded] = useState(!actuallyStartMinimized);
   const [isMobile, setIsMobile] = useState(false);
   const [hoveredYear, setHoveredYear] = useState(null);
   const [currentPosition, setCurrentPosition] = useState(position);
@@ -226,18 +228,18 @@ const YearSelector = ({
     }
   };
   
-  // Get the appropriate label
-  const getYearLabel = () => {
-    if (mode === 'range' && initialYearRange) {
-      return `${initialYearRange.startYear}-${initialYearRange.endYear}`;
-    }
-    return initialYear === 'all' ? 'All Time' : initialYear;
-  };
-
   // Sidebar version
   if (asSidebar) {
     // Position styles for the sidebar
     const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
+    
+    // Get the appropriate label based on mode and current selection
+    const getYearLabel = () => {
+      if (mode === 'range' && initialYearRange && initialYearRange.startYear && initialYearRange.endYear) {
+        return `${initialYearRange.startYear}-${initialYearRange.endYear}`;
+      }
+      return initialYear === 'all' ? 'All Time' : initialYear;
+    };
 
     return (
       <div 
@@ -269,7 +271,7 @@ const YearSelector = ({
                   className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
                     mode === 'range' 
                       ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} hover:bg-white/20`
+                      : `${colors.text} ${colors.bgHover}`
                   }`}
                 >
                   Range
@@ -279,22 +281,27 @@ const YearSelector = ({
                   className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
                     mode === 'single' 
                       ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} hover:bg-white/20`
+                      : `${colors.text} ${colors.bgHover}`
                   }`}
                 >
                   Single
                 </button>
               </div>
               
+              {/* Years buttons - most recent first */}
               {years.slice().reverse().map((year) => (
                 <button
                   key={year}
                   className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
                     initialYear === year
                       ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} hover:bg-white/10`
+                      : `${colors.text} ${colors.bgHover}`
                   } ${hoveredYear === year ? 'scale-110' : ''}`}
-                  onClick={() => onYearChange(year)}
+                  onClick={() => {
+                    if (onYearChange) {
+                      onYearChange(year);
+                    }
+                  }}
                   onMouseEnter={() => setHoveredYear(year)}
                   onMouseLeave={() => setHoveredYear(null)}
                 >
@@ -303,24 +310,27 @@ const YearSelector = ({
               ))}
             </div>
             
-            {/* Position toggle button ABOVE the All-Time button */}
+            {/* Position toggle and All-Time buttons */}
             <div className="flex flex-col items-center mt-2 gap-2">
               <button 
                 onClick={togglePosition}
                 className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
                 aria-label="Toggle sidebar position"
               >
-                {/* Two opposing arrows */}
                 <span className="text-xs">⇄</span>
               </button>
               
               {/* All-Time button */}
               <button
-                onClick={() => onYearChange('all')}
+                onClick={() => {
+                  if (onYearChange) {
+                    onYearChange('all');
+                  }
+                }}
                 className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
                   initialYear === 'all'
                     ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                    : `${colors.text} hover:bg-white/10`
+                    : `${colors.text} ${colors.bgHover}`
                 } hover:scale-105 mb-2`}
               >
                 All Time
@@ -413,49 +423,18 @@ const YearSelector = ({
             Single Year
           </button>
           
-           <button
-                  onClick={() => {
-                    handleModeChange('range');
-                    // Make sure we update the parent component
-                    if (onToggleRangeMode) {
-                      onToggleRangeMode(true);
-                    }
-                    // Also set a default range if we have years
-                    if (onYearRangeChange && years.length >= 2) {
-                      onYearRangeChange({
-                        startYear: years[0],
-                        endYear: years[years.length - 1]
-                      });
-                    }
-                  }}
-                  className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
-                    mode === 'range' 
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} hover:bg-white/20`
-                  }`}
-                >
-                  Range
-                </button>
-                <button
-                  onClick={() => {
-                    handleModeChange('single');
-                    // Make sure we update the parent component
-                    if (onToggleRangeMode) {
-                      onToggleRangeMode(false);
-                    }
-                    // Default to 'all' for single mode
-                    if (onYearChange) {
-                      onYearChange('all');
-                    }
-                  }}
-                  className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
-                    mode === 'single' 
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} hover:bg-white/20`
-                  }`}
-                >
-                  Single
-                </button>
+          <button
+            onClick={() => {
+              handleModeChange('range');
+            }}
+            className={`px-2 py-1 rounded text-xs ${
+              mode === 'range'
+                ? colors.bgActive + ' text-white' 
+                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
+            }`}
+          >
+            Range
+          </button>
         </div>
       </div>
       
@@ -471,8 +450,6 @@ const YearSelector = ({
           <div className="flex justify-center mt-4">
             <button
               onClick={() => {
-                console.log("Show All Years clicked");
-                // Set to 'all' first
                 if (onYearChange) {
                   onYearChange('all');
                 }
@@ -481,11 +458,13 @@ const YearSelector = ({
                 setTimeout(() => {
                   const yearDisplays = document.querySelectorAll('.year-display');
                   yearDisplays.forEach(display => {
-                    display.textContent = 'All-Time';
+                    if (display) {
+                      display.textContent = 'All-Time';
+                    }
                   });
                 }, 50);
               }}
-              className={`px-3 py-1 ${colors.bgActive} text-white rounded hover:opacity-90`}
+              className={`px-3 py-1 ${colors.buttonBg} text-white rounded hover:opacity-90`}
             >
               Show All Years
             </button>
