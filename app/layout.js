@@ -1,16 +1,15 @@
 import { Geist, Geist_Mono, Comic_Neue } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
 const comicNeue = Comic_Neue({
   weight: ['700'],
   subsets: ['latin'],
@@ -43,10 +42,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="application-name" content="Cakeculator" />
+        <meta name="application-name" content="Cake" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Cakeculator" />
+        <meta name="apple-mobile-web-app-title" content="Cake" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#000000" />
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover" />
@@ -63,6 +62,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} antialiased`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
