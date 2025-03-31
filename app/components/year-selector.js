@@ -61,52 +61,52 @@ const YearSelector = ({
     switch (colorTheme) {
       case 'pink':
         return {
-          text: 'text-pink-400',
+          text: 'text-pink-800',
           textActive: 'text-white',
-          bgActive: 'bg-pink-500',
+          bgActive: 'bg-pink-300',
           bgHover: 'hover:bg-pink-600/50',
           bgLighter: 'bg-pink-400/20',
           bgDark: 'bg-pink-800',
-          sidebarBg: 'bg-pink/70', // Dark faded background
+          sidebarBg: 'bg-pink-200', // Lighter background
           glowActive: 'shadow-[0_0_15px_rgba(236,72,153,0.7)]', // Pink glow
           buttonBg: 'bg-pink-500',
           buttonHover: 'hover:bg-pink-400'
         };
       case 'purple':
         return {
-          text: 'text-purple-400',
+          text: 'text-purple-800',
           textActive: 'text-white',
           bgActive: 'bg-purple-500',
           bgHover: 'hover:bg-purple-600/50',
           bgLighter: 'bg-purple-400/20',
           bgDark: 'bg-purple-800',
-          sidebarBg: 'bg-purple/70', // Dark faded background
+          sidebarBg: 'bg-purple-200', // Lighter background
           glowActive: 'shadow-[0_0_15px_rgba(168,85,247,0.7)]', // Purple glow
           buttonBg: 'bg-purple-500',
           buttonHover: 'hover:bg-purple-400'
         };
       case 'indigo':
         return {
-          text: 'text-indigo-400',
+          text: 'text-indigo-800',
           textActive: 'text-white',
           bgActive: 'bg-indigo-500',
           bgHover: 'hover:bg-indigo-600/50',
           bgLighter: 'bg-indigo-400/20',
           bgDark: 'bg-indigo-800',
-          sidebarBg: 'bg-indigo/70', // Dark faded background
+          sidebarBg: 'bg-indigo-200', // Lighter background
           glowActive: 'shadow-[0_0_15px_rgba(99,102,241,0.7)]', // Indigo glow
           buttonBg: 'bg-indigo-500',
           buttonHover: 'hover:bg-indigo-400'
         };
       case 'blue':
         return {
-          text: 'text-blue-400',
+          text: 'text-blue-800',
           textActive: 'text-white',
           bgActive: 'bg-blue-500',
           bgHover: 'hover:bg-blue-600/50',
           bgLighter: 'bg-blue-400/20',
           bgDark: 'bg-blue-800',
-          sidebarBg: 'bg-blue/70', // Dark faded background
+          sidebarBg: 'bg-blue-200', // Lighter background
           glowActive: 'shadow-[0_0_15px_rgba(59,130,246,0.7)]', // Blue glow
           buttonBg: 'bg-blue-500',
           buttonHover: 'hover:bg-blue-400'
@@ -114,13 +114,13 @@ const YearSelector = ({
       case 'teal':
       default:
         return {
-          text: 'text-teal-400',
+          text: 'text-teal-900', // Darker text
           textActive: 'text-white',
           bgActive: 'bg-teal-500',
           bgHover: 'hover:bg-teal-600/50',
           bgLighter: 'bg-teal-400/20',
           bgDark: 'bg-teal-800',
-          sidebarBg: 'bg-teal-300', // Dark faded background
+          sidebarBg: 'bg-teal-200', // Light teal background
           glowActive: 'shadow-[0_0_15px_rgba(20,184,166,0.7)]', // Teal glow
           buttonBg: 'bg-teal-500',
           buttonHover: 'hover:bg-teal-400'
@@ -193,16 +193,16 @@ const YearSelector = ({
         
         {expanded && (
           <div className="h-full flex flex-col justify-between pt-10 pb-3">
-            <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-400 flex-grow flex flex-col items-center">
+            <div className="overflow-y-auto px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-400 flex-grow flex flex-col items-center">
               {/* Mode toggle buttons at top */}
               <div className="flex flex-col gap-2 items-center mb-6">
-                <div className="text-white/50 text-xs mb-1 font-medium">MODE</div>
+                <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
                 <button
                   onClick={() => handleModeChange('range')}
                   className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
                     mode === 'range' 
-                      ? `${colors.bgActive} text-white ${colors.glowActive}` 
-                      : `text-white/70 hover:text-white bg-white/10 hover:bg-white/20`
+                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                      : `${colors.text} hover:bg-white/20`
                   }`}
                 >
                   Range
@@ -211,8 +211,8 @@ const YearSelector = ({
                   onClick={() => handleModeChange('single')}
                   className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
                     mode === 'single' 
-                      ? `${colors.bgActive} text-white ${colors.glowActive}` 
-                      : `text-white/70 hover:text-white bg-white/10 hover:bg-white/20`
+                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                      : `${colors.text} hover:bg-white/20`
                   }`}
                 >
                   Single
@@ -225,7 +225,7 @@ const YearSelector = ({
                   className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
                     initialYear === year
                       ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : 'text-white/70 hover:text-white bg-transparent hover:bg-white/10'
+                      : `${colors.text} hover:bg-white/10`
                   } ${hoveredYear === year ? 'scale-110' : ''}`}
                   onClick={() => onYearChange(year)}
                   onMouseEnter={() => setHoveredYear(year)}
@@ -243,7 +243,7 @@ const YearSelector = ({
                 className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
                   initialYear === 'all'
                     ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                    : 'text-white/90 hover:text-white bg-white/10 hover:bg-white/20'
+                    : `${colors.text} hover:bg-white/10`
                 } hover:scale-105`}
               >
                 All Time
@@ -254,7 +254,7 @@ const YearSelector = ({
         
         {/* Mini version when collapsed */}
         {!expanded && (
-          <div className={`h-full pt-10 flex flex-col items-center justify-center text-white`}>
+          <div className={`h-full pt-10 flex flex-col items-center justify-center ${colors.text}`}>
             <div className="writing-mode-vertical text-xs font-bold my-2">
               {getYearLabel()}
             </div>
