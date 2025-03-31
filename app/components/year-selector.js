@@ -60,19 +60,132 @@ const YearSelector = ({
   // Map color theme to actual color values with bright and glowing effects
   const colors = (() => {
     switch (colorTheme) {
+      case 'pink':
+        return {
+          text: 'text-pink-700',
+          textActive: 'text-white',
+          bgActive: 'bg-pink-500',
+          bgHover: 'hover:bg-pink-600/50',
+          bgLighter: 'bg-pink-100',
+          bgDark: 'bg-pink-800',
+          sidebarBg: 'bg-pink-100',
+          glowActive: 'shadow-[0_0_15px_rgba(236,72,153,0.7)]',
+          buttonBg: 'bg-pink-500',
+          buttonHover: 'hover:bg-pink-400',
+          border: 'border-pink-300'
+        };
+      case 'purple':
+        return {
+          text: 'text-purple-700',
+          textActive: 'text-white',
+          bgActive: 'bg-purple-500',
+          bgHover: 'hover:bg-purple-600/50',
+          bgLighter: 'bg-purple-100',
+          bgDark: 'bg-purple-800',
+          sidebarBg: 'bg-purple-100',
+          glowActive: 'shadow-[0_0_15px_rgba(168,85,247,0.7)]',
+          buttonBg: 'bg-purple-500',
+          buttonHover: 'hover:bg-purple-400',
+          border: 'border-purple-300'
+        };
+      case 'indigo':
+        return {
+          text: 'text-indigo-700',
+          textActive: 'text-white',
+          bgActive: 'bg-indigo-500',
+          bgHover: 'hover:bg-indigo-600/50',
+          bgLighter: 'bg-indigo-100',
+          bgDark: 'bg-indigo-800',
+          sidebarBg: 'bg-indigo-100',
+          glowActive: 'shadow-[0_0_15px_rgba(99,102,241,0.7)]',
+          buttonBg: 'bg-indigo-500',
+          buttonHover: 'hover:bg-indigo-400',
+          border: 'border-indigo-300'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700',
+          textActive: 'text-white',
+          bgActive: 'bg-blue-500',
+          bgHover: 'hover:bg-blue-600/50',
+          bgLighter: 'bg-blue-100',
+          bgDark: 'bg-blue-800',
+          sidebarBg: 'bg-blue-100',
+          glowActive: 'shadow-[0_0_15px_rgba(59,130,246,0.7)]',
+          buttonBg: 'bg-blue-500',
+          buttonHover: 'hover:bg-blue-400',
+          border: 'border-blue-300'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700',
+          textActive: 'text-white',
+          bgActive: 'bg-green-500',
+          bgHover: 'hover:bg-green-600/50',
+          bgLighter: 'bg-green-100',
+          bgDark: 'bg-green-800',
+          sidebarBg: 'bg-green-100',
+          glowActive: 'shadow-[0_0_15px_rgba(34,197,94,0.7)]',
+          buttonBg: 'bg-green-500',
+          buttonHover: 'hover:bg-green-400',
+          border: 'border-green-300'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700',
+          textActive: 'text-white',
+          bgActive: 'bg-yellow-500',
+          bgHover: 'hover:bg-yellow-600/50',
+          bgLighter: 'bg-yellow-100',
+          bgDark: 'bg-yellow-700',
+          sidebarBg: 'bg-yellow-100',
+          glowActive: 'shadow-[0_0_15px_rgba(234,179,8,0.7)]',
+          buttonBg: 'bg-yellow-500',
+          buttonHover: 'hover:bg-yellow-400',
+          border: 'border-yellow-300'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700',
+          textActive: 'text-white',
+          bgActive: 'bg-red-500',
+          bgHover: 'hover:bg-red-600/50',
+          bgLighter: 'bg-red-100',
+          bgDark: 'bg-red-800',
+          sidebarBg: 'bg-red-100',
+          glowActive: 'shadow-[0_0_15px_rgba(239,68,68,0.7)]',
+          buttonBg: 'bg-red-500',
+          buttonHover: 'hover:bg-red-400',
+          border: 'border-red-300'
+        };
+      case 'orange':
+        return {
+          text: 'text-orange-700',
+          textActive: 'text-white',
+          bgActive: 'bg-orange-500',
+          bgHover: 'hover:bg-orange-600/50',
+          bgLighter: 'bg-orange-100',
+          bgDark: 'bg-orange-800',
+          sidebarBg: 'bg-orange-100',
+          glowActive: 'shadow-[0_0_15px_rgba(249,115,22,0.7)]',
+          buttonBg: 'bg-orange-500',
+          buttonHover: 'hover:bg-orange-400',
+          border: 'border-orange-300'
+        };
       case 'teal':
       default:
         return {
-          text: 'text-teal-900', // Darker text
+          text: 'text-teal-700',
           textActive: 'text-white',
           bgActive: 'bg-teal-500',
           bgHover: 'hover:bg-teal-600/50',
-          bgLighter: 'bg-teal-400/20',
+          bgLighter: 'bg-teal-100',
           bgDark: 'bg-teal-800',
-          sidebarBg: 'bg-teal-200', // Light teal background
-          glowActive: 'shadow-[0_0_15px_rgba(20,184,166,0.7)]', // Teal glow
+          sidebarBg: 'bg-teal-100',
+          glowActive: 'shadow-[0_0_15px_rgba(20,184,166,0.7)]',
           buttonBg: 'bg-teal-500',
-          buttonHover: 'hover:bg-teal-400'
+          buttonHover: 'hover:bg-teal-400',
+          border: 'border-teal-300'
         };
     }
   })();
@@ -130,7 +243,7 @@ const YearSelector = ({
       <div 
         className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 ${
           expanded ? 'w-16 sm:w-20' : 'w-8'
-        } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden`}
+        } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
         {/* Expand/Collapse toggle button */}
         <button 
@@ -145,18 +258,9 @@ const YearSelector = ({
           )}
         </button>
         
-        {/* Position toggle button */}
-        <button 
-          onClick={togglePosition}
-          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
-          aria-label="Toggle sidebar position"
-        >
-          {currentPosition === 'left' ? '→' : '←'}
-        </button>
-        
         {expanded && (
           <div className="h-full flex flex-col justify-between pt-16 pb-3">
-            <div className="overflow-y-auto max-h-[calc(100%-100px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-track-teal-100 scrollbar-thumb-teal-400 flex-grow flex flex-col items-center space-y-2">
+            <div className="overflow-y-auto max-h-[calc(100%-70px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
               {/* Mode toggle buttons at top */}
               <div className="flex flex-col gap-2 items-center mb-6">
                 <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
@@ -199,15 +303,25 @@ const YearSelector = ({
               ))}
             </div>
             
-            {/* All-Time button at bottom */}
-            <div className="flex flex-col items-center mt-4 mb-1">
+            {/* Position toggle button ABOVE the All-Time button */}
+            <div className="flex flex-col items-center mt-2 gap-2">
+              <button 
+                onClick={togglePosition}
+                className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
+                aria-label="Toggle sidebar position"
+              >
+                {/* Two opposing arrows */}
+                <span className="text-xs">⇄</span>
+              </button>
+              
+              {/* All-Time button */}
               <button
                 onClick={() => onYearChange('all')}
                 className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
                   initialYear === 'all'
                     ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
                     : `${colors.text} hover:bg-white/10`
-                } hover:scale-105`}
+                } hover:scale-105 mb-2`}
               >
                 All Time
               </button>
@@ -236,12 +350,12 @@ const YearSelector = ({
           .scrollbar-thin::-webkit-scrollbar {
             width: 6px;
           }
-          .scrollbar-track-teal-100::-webkit-scrollbar-track {
-            background-color: rgba(204, 251, 241, 0.5);
-          }
-          .scrollbar-thumb-teal-400::-webkit-scrollbar-thumb {
-            background-color: rgba(45, 212, 191, 0.7);
+          .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
             border-radius: 4px;
+          }
+          .scrollbar-thumb-current::-webkit-scrollbar-thumb {
+            background-color: currentColor;
+            opacity: 0.3;
           }
         `}</style>
       </div>
@@ -272,8 +386,8 @@ const YearSelector = ({
             }}
             className={`px-2 py-1 rounded text-xs ${
               mode === 'single' && initialYear === 'all'
-                ? colors.bg + ' text-white' 
-                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+                ? colors.bgActive + ' text-white' 
+                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
             }`}
           >
             All-Time
@@ -292,8 +406,8 @@ const YearSelector = ({
             }}
             className={`px-2 py-1 rounded text-xs ${
               mode === 'single' && initialYear !== 'all'
-                ? colors.bg + ' text-white' 
-                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+                ? colors.bgActive + ' text-white' 
+                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
             }`}
           >
             Single Year
@@ -303,8 +417,8 @@ const YearSelector = ({
             onClick={() => handleModeChange('range')}
             className={`px-2 py-1 rounded text-xs ${
               mode === 'range' 
-                ? colors.bg + ' text-white' 
-                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+                ? colors.bgActive + ' text-white' 
+                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
             }`}
           >
             Year Range
@@ -338,7 +452,7 @@ const YearSelector = ({
                   });
                 }, 50);
               }}
-              className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
+              className={`px-3 py-1 ${colors.bgActive} text-white rounded hover:opacity-90`}
             >
               Show All Years
             </button>
