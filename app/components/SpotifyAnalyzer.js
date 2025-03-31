@@ -1210,19 +1210,7 @@ const TabButton = ({ id, label }) => {
       </div>
     </div>
     
-<YearSelector 
-  artistsByYear={artistsByYear}
-  onYearChange={setSelectedArtistYear}
-  onYearRangeChange={handleYearRangeChange}
-  initialYear={selectedArtistYear !== 'all' ? selectedArtistYear : null}
-  initialYearRange={yearRange}
-  isRangeMode={yearRangeMode}
-  onToggleRangeMode={toggleYearRangeMode}
-  colorTheme="teal"
-  startMinimized={true}
-/>
-
-    {/* Artist Selection */}
+  {/* Artist Selection */}
     <div className="mb-4">
       <div className="flex flex-wrap gap-2 mb-2">
         {selectedArtists.map(artist => (
@@ -1400,19 +1388,7 @@ const TabButton = ({ id, label }) => {
         />
       </div>
     </div>
-    
-    {/* Year Selector for Albums */}
-<YearSelector 
-  artistsByYear={artistsByYear}
-  onYearChange={setSelectedAlbumYear}
-  onYearRangeChange={handleAlbumYearRangeChange}
-  initialYear={selectedAlbumYear !== 'all' ? selectedAlbumYear : null}
-  initialYearRange={albumYearRange}
-  isRangeMode={albumYearRangeMode}
-  onToggleRangeMode={toggleAlbumYearRangeMode}
-  colorTheme="pink"
-  startMinimized={true}
-/>
+   
     
     {/* Artist Selection */}
 
