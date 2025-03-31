@@ -4,7 +4,7 @@ import { Download, Plus } from 'lucide-react';
 import DateSelector from './dateselector.js';
 import YearSelector from './year-selector.js';
 import TripleRangeSelector from './triplerangeselector.js';
-import PlaylistExporter from './playlist-exporter.js'; // Import the PlaylistExporter component
+import PlaylistExporter from './playlist-exporter.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
@@ -20,56 +20,63 @@ const CustomTrackRankings = ({
   const [artistSearch, setArtistSearch] = useState('');
   const [albumSearch, setAlbumSearch] = useState('');
   const [unifiedSearch, setUnifiedSearch] = useState('');
-  const [includeFeatures, setIncludeFeatures] = useState(false); // Toggle for including features
-  const [onlyFeatures, setOnlyFeatures] = useState(false); // Toggle for showing only features
+  const [includeFeatures, setIncludeFeatures] = useState(false);
+  const [onlyFeatures, setOnlyFeatures] = useState(false);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [musicBasePath, setMusicBasePath] = useState('/Music/Downloads');
   const [fileExtension, setFileExtension] = useState('mp3');
   const [pathFormat, setPathFormat] = useState('default');
   const [customPathFormat, setCustomPathFormat] = useState('{basePath}/{artist}/{artist}-{album}/{track}.{ext}');
   const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
-  
-  // New state variable for toggling the PlaylistExporter
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   // Year-based date selection
   const [yearRangeMode, setYearRangeMode] = useState(false);
   const [selectedYear, setSelectedYear] = useState('all');
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   
-  // Update the availableYears useMemo to ensure it properly extracts years from rawPlayData
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Extract available years from raw play data
   const availableYears = useMemo(() => {
     const yearsSet = new Set();
     
-    // Make sure we have valid data
     if (!rawPlayData || !Array.isArray(rawPlayData) || rawPlayData.length === 0) {
-      console.warn('No raw play data available for year extraction');
       return [];
     }
     
-    // Loop through all entries and collect years
-    let count = 0;
     rawPlayData.forEach(entry => {
       if (entry && entry.ts && entry.ms_played >= 30000) {
         try {
           const date = new Date(entry.ts);
           if (!isNaN(date.getTime())) {
             yearsSet.add(date.getFullYear().toString());
-            count++;
           }
         } catch (err) {
-          console.warn('Error parsing date:', entry.ts);
+          // Skip invalid dates
         }
       }
     });
     
-    console.log(`Extracted ${yearsSet.size} unique years from ${count} valid entries`);
-    
-    // Convert to sorted array
     return Array.from(yearsSet).sort();
   }, [rawPlayData]);
   
-  // When year or year range changes, update the date range
+  // Update date range when year selection changes
   useEffect(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       setStartDate(`${yearRange.startYear}-01-01`);
@@ -78,57 +85,36 @@ const CustomTrackRankings = ({
       setStartDate(`${selectedYear}-01-01`);
       setEndDate(`${selectedYear}-12-31`);
     } else {
-      // All years - use empty strings to represent "All Time" selection
-      // This will be properly interpreted by TripleRangeSelector
       setStartDate('');
       setEndDate('');
-      
-      // Also log for debugging
-      console.log("Setting 'All Time' selection with empty date strings");
     }
   }, [selectedYear, yearRangeMode, yearRange, availableYears]);
 
-  // Add an initialization effect to set default view to "All Time" on component mount
+  // Set default to "All Time" on component mount
   useEffect(() => {
-    // This runs once on component mount
-    console.log("CustomTrackRankings mounted, initializing to 'All Time'");
-    
-    // Set to "All Time" by default
     setSelectedYear('all');
     setYearRangeMode(false);
     setStartDate('');
     setEndDate('');
-  }, []); // Empty dependency array ensures it only runs on mount
+  }, []);
 
   const getInitialDates = () => {
-    // If we're in "All Time" mode (selectedYear === 'all'), 
-    // use empty strings for All Time
     if (selectedYear === 'all' && !yearRangeMode) {
-      console.log("Using empty strings for All Time");
       return { initialStartDate: '', initialEndDate: '' };
     }
     
-    // Otherwise use the actual dates
     if (startDate && endDate) {
       return { initialStartDate: startDate, initialEndDate: endDate };
     }
     
-    // Default to empty strings
     return { initialStartDate: '', initialEndDate: '' };
   };
 
-
   const handleDateChange = (start, end) => {
-    console.log("Date change:", { start, end });
-    
-    // Note: empty strings mean "All Time" selection
     setStartDate(start);
     setEndDate(end);
     
-    // Update year sliders to match
     if (!start || !end || start === "" || end === "") {
-      // Empty dates indicate "All Time"
-      console.log("Setting All Time: selectedYear='all', yearRangeMode=false");
       setSelectedYear('all');
       setYearRangeMode(false);
     } else {
@@ -137,19 +123,13 @@ const CustomTrackRankings = ({
         const endYear = new Date(end).getFullYear().toString();
         
         if (startYear === endYear) {
-          // Single year selection
-          console.log(`Setting single year: ${startYear}`);
           setSelectedYear(startYear);
           setYearRangeMode(false);
         } else {
-          // Year range
-          console.log(`Setting year range: ${startYear}-${endYear}`);
           setYearRange({ startYear, endYear });
           setYearRangeMode(true);
         }
       } catch (err) {
-        console.error("Error parsing dates:", err);
-        // Fallback to "All Time" if date parsing fails
         setSelectedYear('all');
         setYearRangeMode(false);
       }
@@ -162,17 +142,14 @@ const CustomTrackRankings = ({
   };
   
   const addArtistFromTrack = (artist) => {
-    // Prevent duplicate artists
     if (!selectedArtists.includes(artist)) {
       setSelectedArtists(prev => [...prev, artist]);
     }
   };
   
   const addAlbumFromTrack = (album, artist) => {
-    // Create a unique identifier for the album
     const albumKey = `${album} - ${artist}`;
     
-    // Prevent duplicate albums
     if (!selectedAlbums.some(a => a.key === albumKey)) {
       setSelectedAlbums(prev => [...prev, { 
         name: album, 
@@ -180,16 +157,6 @@ const CustomTrackRankings = ({
         key: albumKey 
       }]);
     }
-  };
-
-  // Set quick date range
-  const setQuickRange = (days) => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - days);
-    
-    setStartDate(start.toISOString().split('T')[0]);
-    setEndDate(end.toISOString().split('T')[0]);
   };
 
   // Get unique artists from raw play data
@@ -244,7 +211,6 @@ const CustomTrackRankings = ({
   const albumMap = useMemo(() => {
     const map = new Map();
     
-    // First pass: collect all Spotify album information
     rawPlayData.forEach(entry => {
       if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name) {
         const albumName = entry.master_metadata_album_album_name;
@@ -252,12 +218,8 @@ const CustomTrackRankings = ({
         if (albumName) {
           const trackName = entry.master_metadata_track_name.toLowerCase().trim();
           const artistName = entry.master_metadata_album_artist_name.toLowerCase().trim();
-          
-          // Create a key that identifies this track
           const trackKey = `${trackName}|||${artistName}`;
           
-          // Store the album information for this track
-          // Prioritize Spotify entries (they usually have better metadata)
           if (entry.source === 'spotify' || !map.has(trackKey)) {
             map.set(trackKey, albumName);
           }
@@ -274,34 +236,27 @@ const CustomTrackRankings = ({
   const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
   
   const start = isAllTime ? new Date(0) : new Date(startDate);
-  start.setHours(0, 0, 0, 0); // Start of day
+  start.setHours(0, 0, 0, 0);
   
   const end = isAllTime ? new Date() : new Date(endDate);
-  end.setHours(23, 59, 59, 999); // End of day
-  
-  console.log(`Filtering tracks with date range: ${start.toISOString()} to ${end.toISOString()}`);
+  end.setHours(23, 59, 59, 999);
   
   const trackStats = {};
   rawPlayData.forEach(entry => {
     try {
       const timestamp = new Date(entry.ts);
       
-      // Check if the entry is within the selected date range and has sufficient play time
       if (timestamp >= start && 
           timestamp <= end && 
           entry.ms_played >= 30000 && 
           entry.master_metadata_track_name) {
           
-          // Extract feature artists
           let featureArtists = null;
           try {
             const result = normalizeString(entry.master_metadata_track_name);
             featureArtists = result.featureArtists;
-          } catch (err) {
-            console.warn('Error normalizing track name:', err);
-          }
+          } catch (err) {}
           
-          // Album filtering
           const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
           let isAlbumMatch = true;
           
@@ -312,11 +267,9 @@ const CustomTrackRankings = ({
             );
           }
           
-          // Check if this is a main artist match
           const isArtistMatch = selectedArtists.length === 0 || 
             selectedArtists.includes(entry.master_metadata_album_artist_name);
           
-          // Check if this is a feature artist match
           const isFeatureMatch = featureArtists && 
             selectedArtists.some(artist => 
               featureArtists.some(feature => 
@@ -324,30 +277,20 @@ const CustomTrackRankings = ({
               )
             );
           
-          // Handle filter logic for different toggle states
           const shouldInclude = (
-            // Album filter must match if albums are selected
             isAlbumMatch &&
             (
-              // No artists selected - include everything
               selectedArtists.length === 0 ||
-              
-              // Only features mode - only include feature matches
               (onlyFeatures && isFeatureMatch) ||
-              
-              // Main artist matches (when not in only-features mode)
               (!onlyFeatures && isArtistMatch) ||
-              
-              // Include features mode - include feature matches
               (!onlyFeatures && includeFeatures && isFeatureMatch)
             )
           );
           
           if (!shouldInclude) {
-            return; // Skip this track
+            return;
           }
           
-          // Create a unique key for the track
           let key;
           try {
             key = createMatchKey(
@@ -355,16 +298,13 @@ const CustomTrackRankings = ({
               entry.master_metadata_album_artist_name
             );
           } catch (err) {
-            console.warn('Error creating match key:', err);
             key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
           }
           
-          // Get the album name if available
           const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
           const lookupAlbumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
           
           if (!trackStats[key]) {
-            // New track, create its stats object
             trackStats[key] = {
               key,
               trackName: entry.master_metadata_track_name,
@@ -377,31 +317,25 @@ const CustomTrackRankings = ({
               isFeatured: isFeatureMatch
             };
           } else {
-            // Track variations
             if (trackStats[key].variations && 
                 !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
               trackStats[key].variations.push(entry.master_metadata_track_name);
             }
             
-            // Update the featured flag if not already set
             if (isFeatureMatch && !trackStats[key].isFeatured) {
               trackStats[key].isFeatured = true;
             }
             
-            // Update album name if this entry has a better one
             if (lookupAlbumName !== 'Unknown Album' && 
                 (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
               trackStats[key].albumName = lookupAlbumName;
             }
           }
           
-          // Update play statistics
           trackStats[key].totalPlayed += entry.ms_played;
           trackStats[key].playCount += 1;
         }
-      } catch (err) {
-        console.error('Error processing track entry:', err);
-      }
+      } catch (err) {}
     });
 
     return Object.values(trackStats)
@@ -413,22 +347,6 @@ const CustomTrackRankings = ({
   const songsByYear = useMemo(() => {
     const yearGroups = {};
     
-    filteredTracks.forEach(track => {
-      // Extract year information from the track if available
-      const year = startDate && endDate ? 
-                    (startDate === endDate ? 
-                      new Date(startDate).getFullYear().toString() : 
-                      `${new Date(startDate).getFullYear()}-${new Date(endDate).getFullYear()}`) :
-                    'all';
-      
-      if (!yearGroups[year]) {
-        yearGroups[year] = [];
-      }
-      
-      yearGroups[year].push(track);
-    });
-    
-    // If we have a single selected year or year range, use that
     if (selectedYear !== 'all') {
       return { [selectedYear]: filteredTracks };
     } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
@@ -436,21 +354,18 @@ const CustomTrackRankings = ({
       return { [rangeLabel]: filteredTracks };
     }
     
-    // Otherwise return the grouped results
-    return yearGroups;
+    return { all: filteredTracks };
   }, [filteredTracks, startDate, endDate, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
     if (toggleType === 'include') {
       setIncludeFeatures(value);
-      // If turning on "only features", turn off "include features"
       if (onlyFeatures && value) {
         setOnlyFeatures(false);
       }
-    } else { // 'only'
+    } else {
       setOnlyFeatures(value);
-      // If turning on "only features", turn off "include features"
       if (includeFeatures && value) {
         setIncludeFeatures(false);
       }
@@ -462,41 +377,33 @@ const CustomTrackRankings = ({
     if (!text) return 'Unknown';
     
     return text
-      .replace(/[/\\?%*:|"<>]/g, '') // Remove characters not allowed in file paths
-      .replace(/\s+/g, ' ')          // Normalize whitespace
+      .replace(/[/\\?%*:|"<>]/g, '')
+      .replace(/\s+/g, ' ')
       .trim();
   };
   
   // Create M3U playlist content
-  // Create M3U playlist content - simplified version as PlaylistExporter will handle most exports
   const createM3UContent = () => {
     if (filteredTracks.length === 0) {
       return '';
     }
     
-    // Create the M3U content
     let content = '#EXTM3U\n';
     
     filteredTracks.forEach((track, index) => {
-      // Calculate track duration in seconds (avoid division by zero)
       const durationSecs = Math.round(track.totalPlayed / (track.playCount || 1) / 1000);
       
-      // Basic info line
       content += `#EXTINF:${durationSecs},${track.artist} - ${track.trackName}\n`;
       
-      // File path line - create a clean path without special characters
       const artist = cleanPathComponent(track.artist);
       const album = cleanPathComponent(track.albumName || 'Unknown Album');
       const trackName = cleanPathComponent(track.trackName);
       
-      // Build the file path
       let filePath;
       
       if (pathFormat === 'default') {
-        // Default format: BasePath/Artist/Artist-Album/Track.ext
         filePath = `${musicBasePath}/${artist}/${artist}-${album}/${trackName}.${fileExtension}`;
       } else {
-        // Custom format using the template
         filePath = customPathFormat
           .replace('{basePath}', musicBasePath)
           .replace('{artist}', artist)
@@ -525,12 +432,10 @@ const CustomTrackRankings = ({
       return;
     }
     
-    // Create filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
     const sanitizedPlaylistName = playlistName.replace(/[/\\?%*:|"<>]/g, '_');
     const filename = `${sanitizedPlaylistName}-${timestamp}.m3u`;
     
-    // Download the file
     const blob = new Blob([content], { type: 'audio/x-mpegurl' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -540,16 +445,18 @@ const CustomTrackRankings = ({
     window.URL.revokeObjectURL(url);
   };
 
-  // Create an object with years for YearSelector
-  const yearsForYearSelector = useMemo(() => {
-    const yearsObj = {};
-    availableYears.forEach(year => {
-      yearsObj[year] = []; // YearSelector expects an object with years as keys
-    });
-    return yearsObj;
-  }, [availableYears]);
-  
-  // Get current date range as formatted string for display
+  // Function to get page title based on date selection
+  const getPageTitle = () => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      return `Custom Track Range (${yearRange.startYear}-${yearRange.endYear})`;
+    } else if (selectedYear !== 'all') {
+      return `Custom Track Range for ${selectedYear}`;
+    } else {
+      return 'Custom Date Range Selection';
+    }
+  };
+
+  // Get formatted date range string
   const getFormattedDateRange = () => {
     if (!startDate && !endDate) {
       return "All Time";
@@ -564,22 +471,92 @@ const CustomTrackRankings = ({
     }
   };
 
-  // Function to get page title based on date selection
-  const getPageTitle = () => {
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Custom Track Range (${yearRange.startYear}-${yearRange.endYear})`;
-    } else if (selectedYear !== 'all') {
-      return `Custom Track Range for ${selectedYear}`;
-    } else {
-      return 'Custom Date Range Selection';
+  // Render track rows based on mobile/desktop view
+  const renderTrackRow = (song, index) => {
+    if (isMobile) {
+      // Mobile view - compact layout
+      return (
+        <tr 
+          key={song.key} 
+          className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+        >
+          <td className="p-2 text-orange-700">
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <span className="font-bold text-xs mr-2 text-orange-800">{index + 1}.</span>
+                {song.isFeatured && (
+                  <span className="inline-block px-1 py-0.5 mr-1 bg-orange-200 text-orange-700 rounded text-xs">
+                    FEAT
+                  </span>
+                )}
+                <div className="font-medium">{song.trackName}</div>
+              </div>
+              <div 
+                className="text-xs text-orange-600 cursor-pointer hover:underline"
+                onClick={() => addArtistFromTrack(song.artist)}
+              >
+                {song.artist}
+              </div>
+              <div 
+                className="text-xs text-orange-500 cursor-pointer hover:underline truncate max-w-[200px]"
+                onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+              >
+                {song.albumName}
+              </div>
+            </div>
+          </td>
+          <td className="p-2 align-top text-right text-orange-700">
+            <div className="flex flex-col">
+              <span className="font-medium">{formatDuration(song.totalPlayed)}</span>
+              <span className="text-xs">{song.playCount} plays</span>
+            </div>
+          </td>
+        </tr>
+      );
     }
+    
+    // Desktop view - full table
+    return (
+      <tr 
+        key={song.key} 
+        className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+      >
+        <td className="p-2 text-orange-700">{index + 1}</td>
+        <td className="p-2 text-orange-700">
+          <div className="flex items-center">
+            {song.isFeatured && (
+              <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+                FEAT
+              </span>
+            )}
+            <div>
+              {song.trackName}
+            </div>
+          </div>
+        </td>
+        <td 
+          className="p-2 text-orange-700 cursor-pointer hover:underline" 
+          onClick={() => addArtistFromTrack(song.artist)}
+        > 
+          {song.artist} 
+        </td>
+        <td 
+          className="p-2 text-orange-700 cursor-pointer hover:underline" 
+          onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+        >
+          {song.albumName}
+        </td>
+        <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
+        <td className="p-2 text-right text-orange-700">{song.playCount}</td>
+      </tr>
+    );
   };
 
 return (
   <div className="space-y-4">
-    {/* First section: Header with export button */}
-    <div className="border rounded-lg p-4 bg-orange-50">
-      <div className="flex justify-between items-center">
+    {/* Date Range Selection */}
+    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+      <div className="flex justify-between items-center flex-wrap gap-2">
         <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
         <div className="flex items-center gap-2">
           <button
@@ -587,12 +564,11 @@ return (
             className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
           >
             <Download size={14} className="hidden sm:inline" />
-            {showPlaylistExporter ? "Hide Exporter" : "Export"}
+            {showPlaylistExporter ? "Hide" : "Export"}
           </button>
         </div>
       </div>
 
-      {/* Date Range Selector */}
       <div className="mt-2">
         <TripleRangeSelector
           onDateRangeChange={handleDateChange}
@@ -604,25 +580,25 @@ return (
       </div>
       
       {/* Top N tracks control */}
-      <div className="mt-4 flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-orange-700">
-          <label>Show top</label>
+      <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
+        <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
+          <label className="text-sm">Show top</label>
           <input
             type="number"
             min="1"
-            max="69420"
+            max="250"
             value={topN}
-            onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value))))}
-            className="border rounded w-16 px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+            onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value))))}
+            className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
           />
-          <label>tracks</label>
+          <label className="text-sm">tracks</label>
         </div>
         
-        <div className="flex items-center gap-2">
-          <span className="text-orange-700">Sort by:</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <span className="text-orange-700 text-sm">Sort:</span>
           <button
             onClick={() => setSortBy('totalPlayed')}
-            className={`px-2 py-1 rounded text-xs sm:text-sm ${
+            className={`px-2 py-1 rounded text-xs ${
               sortBy === 'totalPlayed'
                 ? 'bg-orange-600 text-white'
                 : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
@@ -632,7 +608,7 @@ return (
           </button>
           <button
             onClick={() => setSortBy('playCount')}
-            className={`px-2 py-1 rounded text-xs sm:text-sm ${
+            className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playCount'
                 ? 'bg-orange-600 text-white'
                 : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
@@ -644,30 +620,30 @@ return (
       </div>
     </div>
 
-    {/* Conditional Playlist Exporter */}
+    {/* Playlist Exporter */}
     {showPlaylistExporter && (
       <PlaylistExporter
         processedData={filteredTracks}
         songsByYear={songsByYear}
         selectedYear={selectedYear !== 'all' ? selectedYear : 'all'}
-        colorTheme="orange" // Match the color theme of CustomTrackRankings
+        colorTheme="orange"
       />
     )}
 
     {/* Artist and Album Selection */}
-    <div className="border rounded-lg p-4 bg-orange-50">
-      <h3 className="font-bold text-orange-700 mb-2">Artist and Album Selection</h3>
+    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+      <h3 className="font-bold text-orange-700 mb-2">Filters</h3>
       
       <div className="flex flex-wrap gap-2 mb-2">
         {selectedArtists.map(artist => (
           <div 
             key={artist} 
-            className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-sm"
+            className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-xs"
           >
             {artist}
             <button 
               onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-              className="ml-2 text-white hover:text-orange-200"
+              className="ml-1 text-white hover:text-orange-200"
             >
               ×
             </button>
@@ -677,12 +653,12 @@ return (
         {selectedAlbums.map(album => (
           <div 
             key={album.key} 
-            className="flex items-center bg-orange-500 text-white px-2 py-1 rounded text-sm"
+            className="flex items-center bg-orange-500 text-white px-2 py-1 rounded text-xs"
           >
-            <span className="mr-1">💿</span> {album.name} <span className="text-xs ml-1">({album.artist})</span>
+            <span className="mr-1">💿</span> {album.name} 
             <button 
               onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
-              className="ml-2 text-white hover:text-orange-200"
+              className="ml-1 text-white hover:text-orange-200"
             >
               ×
             </button>
@@ -695,7 +671,6 @@ return (
           type="text"
           value={unifiedSearch}
           onChange={(e) => {
-            // Update all search states with the same value
             setUnifiedSearch(e.target.value);
             setArtistSearch(e.target.value);
             setAlbumSearch(e.target.value);
@@ -747,7 +722,7 @@ return (
       
       {/* Feature Toggles - only show when artists are selected */}
       {selectedArtists.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-4 mt-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2">
           {/* Include features toggle */}
           <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
             <div className="relative">
@@ -758,11 +733,11 @@ return (
                 onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
                 className="sr-only"
               />
-              <div className={`block w-10 h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-              <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-4' : ''}`}></div>
+              <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+              <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
             </div>
-            <span className="ml-2 text-orange-700">
-              Include songs featuring these artists
+            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+              Include features
             </span>
           </label>
           
@@ -776,95 +751,69 @@ return (
                 onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
                 className="sr-only"
               />
-              <div className={`block w-10 h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-              <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-4' : ''}`}></div>
+              <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+              <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
             </div>
-            <span className="ml-2 text-orange-700">
-              Only show songs where these artists are featured
+            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+              Only features
             </span>
           </label>
         </div>
       )}
     </div>
 
-    {/* Date Range and Track Results */}
-    <div className="border rounded-lg p-4 bg-orange-50">
-      {/* Results section with date range info */}
-      <div className="flex justify-between items-center">
-        <div className="text-orange-700 font-medium">
+    {/* Results section with date range info */}
+    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+      <div className="flex justify-between items-center flex-wrap gap-2">
+        <div className="text-orange-700 font-medium text-sm">
           Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
         </div>
-        <div className="text-orange-700">
+        <div className="text-orange-700 text-sm">
           Found <span className="font-bold">{filteredTracks.length}</span> tracks
         </div>
       </div>
 
       {filteredTracks.length > 0 ? (
-        <div className="overflow-x-auto -mx-4 px-4 mt-2">
-          <div className="min-w-[640px]">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="p-2 text-left text-orange-700">Rank</th>
-                  <th className="p-2 text-left text-orange-700">Track</th>
-                  <th className="p-2 text-left text-orange-700">Artist</th>
-                  <th className="p-2 text-left text-orange-700">Album</th>
-                  <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                      sortBy === 'totalPlayed' ? 'font-bold' : ''
-                    }`}
-                    onClick={() => setSortBy('totalPlayed')}
-                  >
-                    Total Time {sortBy === 'totalPlayed' && '▼'}
-                  </th>
-                  <th 
-                    className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                      sortBy === 'playCount' ? 'font-bold' : ''
-                    }`}
-                    onClick={() => setSortBy('playCount')}
-                  >
-                    Plays {sortBy === 'playCount' && '▼'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTracks.map((song, index) => (
-                  <tr 
-                    key={song.key} 
-                    className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
-                  >
-                    <td className="p-2 text-orange-700">{index + 1}</td>
-                    <td className="p-2 text-orange-700">
-                      <div className="flex items-center">
-                        {song.isFeatured && (
-                          <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
-                            FEAT
-                          </span>
-                        )}
-                        <div>
-                          {song.trackName}
-                        </div>
-                      </div>
-                    </td>
-                    <td 
-                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
-                      onClick={() => addArtistFromTrack(song.artist)}
-                    > 
-                      {song.artist} 
-                    </td>
-                    <td 
-                      className="p-2 text-orange-700 cursor-pointer hover:underline" 
-                      onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+        <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b">
+                {!isMobile && (
+                  <>
+                    <th className="p-2 text-left text-orange-700">Rank</th>
+                    <th className="p-2 text-left text-orange-700">Track</th>
+                    <th className="p-2 text-left text-orange-700">Artist</th>
+                    <th className="p-2 text-left text-orange-700">Album</th>
+                    <th 
+                      className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                        sortBy === 'totalPlayed' ? 'font-bold' : ''
+                      }`}
+                      onClick={() => setSortBy('totalPlayed')}
                     >
-                      {song.albumName}
-                    </td>
-                    <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
-                    <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      Time {sortBy === 'totalPlayed' && '▼'}
+                    </th>
+                    <th 
+                      className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                        sortBy === 'playCount' ? 'font-bold' : ''
+                      }`}
+                      onClick={() => setSortBy('playCount')}
+                    >
+                      Plays {sortBy === 'playCount' && '▼'}
+                    </th>
+                  </>
+                )}
+                {isMobile && (
+                  <>
+                    <th className="p-2 text-left text-orange-700">Track Info</th>
+                    <th className="p-2 text-right text-orange-700">Stats</th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTracks.map(renderTrackRow)}
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="text-center py-4 text-orange-500">
@@ -875,46 +824,46 @@ return (
       )}
     </div>
 
-    {/* Basic Export Controls - simplified since we now have PlaylistExporter */}
+    {/* Basic Export Controls - simplified version */}
     <div>
       <button
         onClick={() => setShowExportOptions(!showExportOptions)}
         className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
       >
         <Download size={14} className="hidden sm:inline" />
-        {showExportOptions ? 'Hide Basic Options' : 'Basic Export'}
+        {showExportOptions ? 'Hide Export Options' : 'Quick Export'}
       </button>
       
       {showExportOptions && (
-        <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded">
+        <div className="mt-4 p-3 sm:p-4 bg-orange-50 border border-orange-200 rounded">
           <div>
-            <label className="block text-orange-700 mb-1">Playlist Name:</label>
+            <label className="block text-orange-700 mb-1 text-sm">Playlist Name:</label>
             <input
               type="text"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+              className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
               placeholder="Enter playlist name"
             />
           </div>
           
           <div className="mt-3">
-            <label className="block text-orange-700 mb-1">Base Music Path:</label>
+            <label className="block text-orange-700 mb-1 text-sm">Base Music Path:</label>
             <input
               type="text"
               value={musicBasePath}
               onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+              className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
               placeholder="e.g. /Music/Downloads or C:/Music"
             />
           </div>
           
           <div className="mt-3">
-            <label className="block text-orange-700 mb-1">File Extension:</label>
+            <label className="block text-orange-700 mb-1 text-sm">File Extension:</label>
             <select
               value={fileExtension}
               onChange={(e) => setFileExtension(e.target.value)}
-              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700"
+              className="px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
             >
               <option value="mp3">mp3</option>
               <option value="flac">flac</option>
@@ -930,7 +879,7 @@ return (
               disabled={filteredTracks.length === 0}
               className="px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed text-xs sm:text-sm"
             >
-              Download ({filteredTracks.length})
+              Download Playlist ({filteredTracks.length})
             </button>
           </div>
         </div>
