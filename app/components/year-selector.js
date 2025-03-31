@@ -120,7 +120,7 @@ const YearSelector = ({
           bgHover: 'hover:bg-teal-600/50',
           bgLighter: 'bg-teal-400/20',
           bgDark: 'bg-teal-800',
-          sidebarBg: 'bg-teal/30', // Dark faded background
+          sidebarBg: 'bg-teal', // Dark faded background
           glowActive: 'shadow-[0_0_15px_rgba(20,184,166,0.7)]', // Teal glow
           buttonBg: 'bg-teal-500',
           buttonHover: 'hover:bg-teal-400'
