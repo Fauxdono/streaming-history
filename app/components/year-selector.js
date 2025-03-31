@@ -5,281 +5,460 @@ import DualHandleYearSlider from './dual-handle-year-slider.js';
 const YearSelector = ({
   artistsByYear,
   onYearChange,
-  onYearRangeChange, // Keep prop even if range mode isn't visually implemented here yet
+  onYearRangeChange,
   initialYear,
-  initialYearRange, // Keep prop
+  initialYearRange,
   isRangeMode,
   onToggleRangeMode,
   colorTheme = 'teal',
-  asSidebar = true, // Assuming it's always used as a sidebar based on structure
-  position = 'right', // Now controls left/right positioning
+  asSidebar = false,
+  position = 'right',
   startMinimized = false
 }) => {
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   const [expanded, setExpanded] = useState(!startMinimized);
   const [isMobile, setIsMobile] = useState(false);
-  // const [hoveredYear, setHoveredYear] = useState(null); // Keep if needed for other effects
-  const sidebarRef = useRef(null);
 
-  // Extract and sort years from artistsByYear
+  // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
+    // Check if artistsByYear is available
     if (!artistsByYear || typeof artistsByYear !== 'object') {
+      console.warn('artistsByYear is not available or not an object', artistsByYear);
       return [];
     }
-    // Ensure keys are parsed as integers for correct numerical sorting
-    return Object.keys(artistsByYear).map(year => parseInt(year, 10)).sort((a, b) => a - b);
+    
+    return Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
   };
-
+  
   const years = getYearsArray();
-
-  // Check for mobile viewport (optional, could be removed if not used for specific logic)
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640); // Example breakpoint
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Update internal mode when isRangeMode prop changes
+  
+  // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
     setMode(isRangeMode ? 'range' : 'single');
   }, [isRangeMode]);
-
-  // --- Color Theme Mapping ---
-  // Updated with 75% opacity and theme-specific bright text colors
-  const colors = (() => {
-    const opacity = '/75'; // Use 75% opacity for translucency
+  
+  // Map color theme to actual color values
+  const getColors = () => {
     switch (colorTheme) {
       case 'pink':
         return {
-          text: 'text-pink-300', // Bright pink for inactive text
-          textActive: 'text-white', // Active text remains white
-          bgActive: 'bg-pink-600',
-          bgHover: 'hover:bg-pink-700', // Used for mode buttons if re-enabled
-          sidebarBg: `bg-pink-950${opacity}`,
-          sidebarBorder: `border-pink-700${opacity}`,
-          buttonBg: 'bg-pink-600',
-          buttonHover: 'hover:bg-pink-700',
-          scrollbarThumb: 'rgba(219, 39, 119, 0.6)', // Pinkish scrollbar thumb
-          scrollbarThumbHover: 'rgba(219, 39, 119, 0.8)'
+          text: 'text-pink-700',
+          bg: 'bg-pink-600',
+          bgHover: 'hover:bg-pink-700',
+          bgLight: 'bg-pink-100',
+          textLight: 'text-pink-700',
+          bgHoverLight: 'hover:bg-pink-200',
+          borderActive: 'border-pink-600',
+          borderInactive: 'border-pink-800',
+          sidebarBg: 'bg-pink-50/90',
+          sidebarBorder: 'border-pink-300'
         };
       case 'purple':
         return {
-          text: 'text-purple-300', // Bright purple
-          textActive: 'text-white',
-          bgActive: 'bg-purple-600',
+          text: 'text-purple-700',
+          bg: 'bg-purple-600',
           bgHover: 'hover:bg-purple-700',
-          sidebarBg: `bg-purple-950${opacity}`,
-          sidebarBorder: `border-purple-700${opacity}`,
-          buttonBg: 'bg-purple-600',
-          buttonHover: 'hover:bg-purple-700',
-          scrollbarThumb: 'rgba(147, 51, 234, 0.6)', // Purple scrollbar thumb
-          scrollbarThumbHover: 'rgba(147, 51, 234, 0.8)'
+          bgLight: 'bg-purple-100',
+          textLight: 'text-purple-700',
+          bgHoverLight: 'hover:bg-purple-200',
+          borderActive: 'border-purple-600',
+          borderInactive: 'border-purple-800',
+          sidebarBg: 'bg-purple-50/90',
+          sidebarBorder: 'border-purple-300'
         };
       case 'indigo':
         return {
-          text: 'text-indigo-300', // Bright indigo
-          textActive: 'text-white',
-          bgActive: 'bg-indigo-600',
+          text: 'text-indigo-700',
+          bg: 'bg-indigo-600',
           bgHover: 'hover:bg-indigo-700',
-          sidebarBg: `bg-indigo-950${opacity}`,
-          sidebarBorder: `border-indigo-700${opacity}`,
-          buttonBg: 'bg-indigo-600',
-          buttonHover: 'hover:bg-indigo-700',
-          scrollbarThumb: 'rgba(99, 102, 241, 0.6)', // Indigo scrollbar thumb
-          scrollbarThumbHover: 'rgba(99, 102, 241, 0.8)'
+          bgLight: 'bg-indigo-100',
+          textLight: 'text-indigo-700',
+          bgHoverLight: 'hover:bg-indigo-200',
+          borderActive: 'border-indigo-600',
+          borderInactive: 'border-indigo-800',
+          sidebarBg: 'bg-indigo-50/90',
+          sidebarBorder: 'border-indigo-300'
         };
       case 'blue':
         return {
-          text: 'text-blue-300', // Bright blue
-          textActive: 'text-white',
-          bgActive: 'bg-blue-600',
+          text: 'text-blue-700',
+          bg: 'bg-blue-600',
           bgHover: 'hover:bg-blue-700',
-          sidebarBg: `bg-blue-950${opacity}`,
-          sidebarBorder: `border-blue-700${opacity}`,
-          buttonBg: 'bg-blue-600',
-          buttonHover: 'hover:bg-blue-700',
-          scrollbarThumb: 'rgba(59, 130, 246, 0.6)', // Blue scrollbar thumb
-          scrollbarThumbHover: 'rgba(59, 130, 246, 0.8)'
+          bgLight: 'bg-blue-100',
+          textLight: 'text-blue-700',
+          bgHoverLight: 'hover:bg-blue-200',
+          borderActive: 'border-blue-600',
+          borderInactive: 'border-blue-800',
+          sidebarBg: 'bg-blue-50/90',
+          sidebarBorder: 'border-blue-300'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700',
+          bg: 'bg-green-600',
+          bgHover: 'hover:bg-green-700',
+          bgLight: 'bg-green-100',
+          textLight: 'text-green-700',
+          bgHoverLight: 'hover:bg-green-200',
+          borderActive: 'border-green-600',
+          borderInactive: 'border-green-800',
+          sidebarBg: 'bg-green-50/90',
+          sidebarBorder: 'border-green-300'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700',
+          bg: 'bg-yellow-500',
+          bgHover: 'hover:bg-yellow-600',
+          bgLight: 'bg-yellow-100',
+          textLight: 'text-yellow-700',
+          bgHoverLight: 'hover:bg-yellow-200',
+          borderActive: 'border-yellow-500',
+          borderInactive: 'border-yellow-700',
+          sidebarBg: 'bg-yellow-50/90',
+          sidebarBorder: 'border-yellow-300'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700',
+          bg: 'bg-red-600',
+          bgHover: 'hover:bg-red-700',
+          bgLight: 'bg-red-100',
+          textLight: 'text-red-700',
+          bgHoverLight: 'hover:bg-red-200',
+          borderActive: 'border-red-600',
+          borderInactive: 'border-red-800',
+          sidebarBg: 'bg-red-50/90',
+          sidebarBorder: 'border-red-300'
+        };
+      case 'orange':
+        return {
+          text: 'text-orange-700',
+          bg: 'bg-orange-600',
+          bgHover: 'hover:bg-orange-700',
+          bgLight: 'bg-orange-100',
+          textLight: 'text-orange-700',
+          bgHoverLight: 'hover:bg-orange-200',
+          borderActive: 'border-orange-600',
+          borderInactive: 'border-orange-800',
+          sidebarBg: 'bg-orange-50/90',
+          sidebarBorder: 'border-orange-300'
         };
       case 'teal':
       default:
         return {
-          text: 'text-teal-300', // Bright teal
-          textActive: 'text-white',
-          bgActive: 'bg-teal-600',
+          text: 'text-teal-700',
+          bg: 'bg-teal-600',
           bgHover: 'hover:bg-teal-700',
-          sidebarBg: `bg-teal-950${opacity}`,
-          sidebarBorder: `border-teal-700${opacity}`,
-          buttonBg: 'bg-teal-600',
-          buttonHover: 'hover:bg-teal-700',
-          scrollbarThumb: 'rgba(20, 184, 166, 0.6)', // Teal scrollbar thumb
-          scrollbarThumbHover: 'rgba(20, 184, 166, 0.8)'
+          bgLight: 'bg-teal-100',
+          textLight: 'text-teal-700',
+          bgHoverLight: 'hover:bg-teal-200',
+          borderActive: 'border-teal-600',
+          borderInactive: 'border-teal-800',
+          sidebarBg: 'bg-teal-50/90',
+          sidebarBorder: 'border-teal-300'
         };
     }
-  })();
+  };
 
+  const colors = getColors();
+  
   if (years.length === 0) {
-    return <div className={`${colors.text} italic p-4`}>No year data available</div>;
+    return <div className={colors.text + " italic"}>No year data available</div>;
   }
-
+  
   // Toggle sidebar expand/collapse
   const toggleExpanded = () => {
     setExpanded(!expanded);
   };
-
-  // Handle mode change (single/range) - Keep if range mode might be added later
+  
   const handleModeChange = (newMode) => {
+    // Update internal mode state
     setMode(newMode);
+    
+    // Notify parent component about mode change
     if (onToggleRangeMode) {
       onToggleRangeMode(newMode === 'range');
     }
-    // Reset logic (optional)
+    
+    // If switching to single mode, default to 'all'
     if (newMode === 'single' && onYearChange) {
-       onYearChange('all');
-    } else if (newMode === 'range' && onYearRangeChange && years.length > 0) {
-       const start = initialYearRange?.startYear ?? years[0];
-       const end = initialYearRange?.endYear ?? years[years.length - 1];
-       onYearRangeChange({ startYear: start, endYear: end });
+      onYearChange('all');
+    } 
+    // If switching to range mode, default to full range
+    else if (newMode === 'range' && onYearRangeChange && years.length >= 2) {
+      onYearRangeChange({
+        startYear: years[0],
+        endYear: years[years.length - 1]
+      });
     }
   };
-
-  // Handle year click (visually only supports single mode currently)
-  const handleYearClick = (year) => {
-    // Always operate in single mode based on current UI
-    if (mode !== 'single') {
-        handleModeChange('single'); // Ensure single mode
-    }
-    if (onYearChange) {
-      onYearChange(year);
-    }
-  };
-
-  // Get the appropriate label for the collapsed state
-  const getYearLabel = () => {
-    return initialYear === 'all' ? 'All' : initialYear;
-  };
-
-  // --- Dynamic Positioning Styles ---
-  const positionStyles = position === 'left' ? 'left-0 border-r' : 'right-0 border-l';
-  // Place button *outside* the sidebar edge for easier access
-  const toggleButtonPosition = position === 'left'
-    ? 'left-full -translate-x-1/2' // Positioned relative to the right edge of the sidebar
-    : 'right-full translate-x-1/2'; // Positioned relative to the left edge of the sidebar
-  // Rotate chevron based on expanded state and position
-  const chevronRotation = expanded
-    ? (position === 'left' ? 'rotate-180' : '') // Point away when expanded
-    : (position === 'left' ? '' : 'rotate-180'); // Point towards when collapsed
-
-  // --- Render Year Selector Sidebar ---
-  return (
-    <div
-      ref={sidebarRef}
-      className={`fixed ${positionStyles} top-16 h-[calc(100vh-8rem)] z-40 transition-transform duration-300 ease-in-out ${ // Use transform for expansion
-        expanded ? 'translate-x-0' : (position === 'left' ? '-translate-x-[calc(100%-2rem)]' : 'translate-x-[calc(100%-2rem)]') // Adjust based on collapsed width (w-8 -> 2rem)
-      } w-16 sm:w-20 ${colors.sidebarBg} ${colors.sidebarBorder} backdrop-blur-sm rounded-md flex flex-col`}
-      // ***** CORRECTED LINE BELOW *****
-      style={{ '--scrollbar-thumb-color': colors.scrollbarThumb, '--scrollbar-thumb-hover-color': colors.scrollbarThumbHover }} // Pass scrollbar colors as CSS variables
-    >
-      {/* Toggle button - positioned relative to the sidebar edge */}
-      <button
-        onClick={toggleExpanded}
-        className={`absolute ${toggleButtonPosition} top-1/2 -translate-y-1/2 p-1.5 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-50 transition-transform duration-200`}
-        aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+  
+  // Render as sidebar if asSidebar prop is true
+  if (asSidebar) {
+    // Position styles for the sidebar
+    const positionStyles = position === 'left' 
+      ? 'left-0 border-r' 
+      : 'right-0 border-l';
+      
+    return (
+      <div 
+        className={`fixed ${positionStyles} top-1/4 h-auto max-h-[70vh] z-50 transition-all duration-300 ${
+          expanded ? 'w-72' : 'w-12'
+        } ${colors.sidebarBg} ${colors.sidebarBorder} border shadow-lg rounded-lg overflow-hidden`}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transform transition-transform ${chevronRotation}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-          {/* Chevron pointing right by default */}
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-
-      {/* Expanded Content */}
-      <div className={`flex flex-col h-full pt-4 pb-2 transition-opacity duration-200 ${expanded ? 'opacity-100 delay-150' : 'opacity-0 pointer-events-none'}`}>
-          {/* Optional: Mode Toggle Buttons can be re-added here if needed */}
-
-          {/* Year List - Scrollable */}
-          <div className="flex-grow overflow-y-auto overscroll-contain-y touch-pan-y scrollbar-thin scrollbar-thumb-rounded px-2">
-            <div className="w-full flex flex-col items-center space-y-1">
-              {/* Years listed chronologically descending */}
-              {years.slice().reverse().map((year) => (
+        {/* Toggle button */}
+        <button 
+          onClick={toggleExpanded}
+          className={`absolute ${position === 'left' ? 'right-2' : 'left-2'} top-2 p-1 rounded-full ${colors.bg} text-white hover:${colors.bgHover}`}
+          aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          {expanded ? (
+            position === 'left' ? '←' : '→'
+          ) : (
+            position === 'left' ? '→' : '←'
+          )}
+        </button>
+        
+        {expanded && (
+          <div className="p-4 mt-8 overflow-y-auto max-h-[calc(70vh-2rem)]">
+            <div className="flex justify-between items-center mb-4">
+              <label className={colors.text + " font-medium text-sm"}>
+                {mode === 'range' 
+                  ? 'Year Range Selection' 
+                  : 'Single Year Selection'}
+              </label>
+              
+              {/* Toggle between modes */}
+              <div className="flex items-center gap-1 flex-wrap justify-end">
                 <button
-                  key={year}
-                  // Updated Styling: Theme color text, opacity changes, active bg highlight
-                  className={`font-medium text-sm rounded px-2 py-1 w-full text-center transition-all duration-150 ease-in-out ${
-                    initialYear === year // Check if it's the currently selected single year
-                      ? `${colors.bgActive} ${colors.textActive} opacity-100 scale-105` // Active style: background, white text, slight scale
-                      : `${colors.text} opacity-70 hover:opacity-100 hover:scale-105` // Inactive style: THEME text color, dim, brighten/scale on hover
+                  onClick={() => {
+                    setMode('single');
+                    if (onToggleRangeMode) {
+                      onToggleRangeMode(false);
+                    }
+                    if (onYearChange) {
+                      onYearChange('all');
+                    }
+                  }}
+                  className={`px-2 py-1 rounded text-xs ${
+                    mode === 'single' && initialYear === 'all'
+                      ? colors.bg + ' text-white' 
+                      : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
                   }`}
-                  onClick={() => handleYearClick(year)}
                 >
-                  {year}
+                  All-Time
                 </button>
-              ))}
+                
+                <button
+                  onClick={() => {
+                    setMode('single');
+                    if (onToggleRangeMode) {
+                      onToggleRangeMode(false);
+                    }
+                    // If currently on all-time, switch to most recent year
+                    if (initialYear === 'all' && years.length > 0 && onYearChange) {
+                      onYearChange(years[years.length - 1]);
+                    }
+                  }}
+                  className={`px-2 py-1 rounded text-xs ${
+                    mode === 'single' && initialYear !== 'all'
+                      ? colors.bg + ' text-white' 
+                      : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+                  }`}
+                >
+                  Single Year
+                </button>
+                
+                <button
+                  onClick={() => handleModeChange('range')}
+                  className={`px-2 py-1 rounded text-xs ${
+                    mode === 'range' 
+                      ? colors.bg + ' text-white' 
+                      : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+                  }`}
+                >
+                  Year Range
+                </button>
+              </div>
             </div>
+            
+            {/* Render the appropriate slider based on mode */}
+            {mode === 'single' ? (
+              <div>
+                <BetterYearSlider 
+                  years={years} 
+                  onYearChange={onYearChange}
+                  initialYear={initialYear}
+                  colorTheme={colorTheme}
+                />
+                <div className="flex justify-center mt-2">
+                  <button
+                    onClick={() => {
+                      if (onYearChange) {
+                        onYearChange('all');
+                      }
+                      
+                      // Force any BetterYearSlider to refresh
+                      setTimeout(() => {
+                        const yearDisplays = document.querySelectorAll('.year-display');
+                        yearDisplays.forEach(display => {
+                          display.textContent = 'All-Time';
+                        });
+                      }, 50);
+                    }}
+                    className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
+                  >
+                    Show All Years
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <DualHandleYearSlider 
+                  years={years}
+                  onYearRangeChange={onYearRangeChange}
+                  initialStartYear={initialYearRange?.startYear || years[0]}
+                  initialEndYear={initialYearRange?.endYear || years[years.length - 1]}
+                  colorTheme={colorTheme}
+                />
+              </div>
+            )}
           </div>
-
-          {/* All-Time button at bottom */}
-          <div className="flex flex-col items-center mt-3 px-2">
+        )}
+        
+        {/* Mini version when collapsed */}
+        {!expanded && (
+          <div className={`h-full pt-10 flex flex-col items-center justify-center ${colors.text}`}>
+            <div className="writing-mode-vertical text-xs font-bold my-2">
+              {mode === 'range' 
+                ? (initialYearRange ? `${initialYearRange.startYear}-${initialYearRange.endYear}` : 'Year Range')
+                : (initialYear === 'all' ? 'All Time' : initialYear)}
+            </div>
+            <div className="writing-mode-vertical text-xs">Year Selector</div>
+          </div>
+        )}
+        
+        <style jsx>{`
+          .writing-mode-vertical {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+          }
+        `}</style>
+      </div>
+    );
+  }
+  
+  // Standard inline version (original behavior)
+  return (
+    <div className="mt-2 mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <label className={colors.text + " font-medium text-sm"}>
+          {mode === 'range' 
+            ? 'Year Range Selection' 
+            : 'Single Year Selection'}
+        </label>
+        
+        {/* Toggle between modes */}
+        <div className="flex items-center gap-1 flex-wrap justify-end">
+          <button
+            onClick={() => {
+              setMode('single');
+              if (onToggleRangeMode) {
+                onToggleRangeMode(false);
+              }
+              if (onYearChange) {
+                onYearChange('all');
+              }
+            }}
+            className={`px-2 py-1 rounded text-xs ${
+              mode === 'single' && initialYear === 'all'
+                ? colors.bg + ' text-white' 
+                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+            }`}
+          >
+            All-Time
+          </button>
+          
+          <button
+            onClick={() => {
+              setMode('single');
+              if (onToggleRangeMode) {
+                onToggleRangeMode(false);
+              }
+              // If currently on all-time, switch to most recent year
+              if (initialYear === 'all' && years.length > 0 && onYearChange) {
+                onYearChange(years[years.length - 1]);
+              }
+            }}
+            className={`px-2 py-1 rounded text-xs ${
+              mode === 'single' && initialYear !== 'all'
+                ? colors.bg + ' text-white' 
+                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+            }`}
+          >
+            Single Year
+          </button>
+          
+          <button
+            onClick={() => handleModeChange('range')}
+            className={`px-2 py-1 rounded text-xs ${
+              mode === 'range' 
+                ? colors.bg + ' text-white' 
+                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+            }`}
+          >
+            Year Range
+          </button>
+        </div>
+      </div>
+      
+      {/* Render the appropriate slider based on mode */}
+      {mode === 'single' ? (
+        <div className="px-4">
+          <BetterYearSlider 
+            years={years} 
+            onYearChange={onYearChange}
+            initialYear={initialYear}
+            colorTheme={colorTheme}
+          />
+          <div className="flex justify-center mt-4">
             <button
-              onClick={() => handleYearClick('all')}
-              // Consistent styling with year buttons
-              className={`font-medium text-sm rounded px-2 py-1 w-full text-center transition-all duration-150 ease-in-out ${
-                initialYear === 'all'
-                  ? `${colors.bgActive} ${colors.textActive} opacity-100 scale-105`
-                  : `${colors.text} opacity-70 hover:opacity-100 hover:scale-105`
-              }`}
+              onClick={() => {
+                console.log("Show All Years clicked");
+                // Set to 'all' first
+                if (onYearChange) {
+                  onYearChange('all');
+                }
+                
+                // Force any BetterYearSlider to refresh
+                setTimeout(() => {
+                  const yearDisplays = document.querySelectorAll('.year-display');
+                  yearDisplays.forEach(display => {
+                    display.textContent = 'All-Time';
+                  });
+                }, 50);
+              }}
+              className={`px-3 py-1 ${colors.bg} text-white rounded ${colors.bgHover}`}
             >
-              All Time
+              Show All Years
             </button>
           </div>
-      </div>
-
-      {/* Mini version when collapsed - Shown via parent's transform */}
-       <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-200 ${!expanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-           {/* Rotate text for vertical display */}
-           <div className={`writing-mode-vertical text-xs font-semibold my-1 transform rotate-180 ${colors.text}`}>
-              {getYearLabel()}
-           </div>
         </div>
-
-
-      {/* Include CSS for vertical text and custom scrollbar */}
-      {/* Scrollbar thumb color now uses CSS variables set on parent */}
-      <style jsx>{`
-        .writing-mode-vertical {
-          writing-mode: vertical-rl;
-          text-orientation: mixed;
-        }
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 5px; /* Slightly wider */
-          height: 5px;
-        }
-        .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-          border-radius: 3px; /* More rounded */
-          background-color: var(--scrollbar-thumb-color, rgba(156, 163, 175, 0.5)); /* Use variable with fallback */
-          border: 1px solid transparent; /* Optional: space around thumb */
-          background-clip: content-box; /* Clip background to content box */
-        }
-        .scrollbar-thumb-rounded::-webkit-scrollbar-thumb:hover {
-           background-color: var(--scrollbar-thumb-hover-color, rgba(156, 163, 175, 0.7)); /* Use variable */
-        }
-        /* For Firefox */
-        .scrollbar-thin {
-          scrollbar-width: thin;
-          scrollbar-color: var(--scrollbar-thumb-color, rgba(156, 163, 175, 0.5)) transparent; /* thumb track */
-        }
-        /* Basic transition for scrollbar color change (might not work in all browsers) */
-        .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-           transition: background-color 0.2s ease-in-out;
-        }
-      `}</style>
+      ) : (
+        <div className="px-4">
+          <DualHandleYearSlider 
+            years={years}
+            onYearRangeChange={onYearRangeChange}
+            initialStartYear={initialYearRange?.startYear || years[0]}
+            initialEndYear={initialYearRange?.endYear || years[years.length - 1]}
+            colorTheme={colorTheme}
+          />
+        </div>
+      )}
     </div>
   );
 };
-
-// Update display name for React DevTools
-YearSelector.displayName = 'YearSelector';
 
 export default YearSelector;
