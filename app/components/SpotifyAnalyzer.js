@@ -63,6 +63,8 @@ const SpotifyAnalyzer = () => {
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
   const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
+const [showYearSidebar, setShowYearSidebar] = useState(true); // Set to true by default
+const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
 
   // Define service colors
@@ -138,6 +140,106 @@ const handleLoadSampleData = async () => {
     setError("Failed to load sample data: " + err.message);
   } finally {
     setIsProcessing(false);
+  }
+};
+
+// 2. Add a function to determine if sidebar should be shown based on current tab
+const shouldShowSidebar = (tabName) => {
+  const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior'];
+  return sidebarTabs.includes(tabName);
+};
+
+// 3. Add this useEffect hook to update sidebar visibility and color theme when tab changes
+useEffect(() => {
+  // Determine if sidebar should be shown for the current tab
+  const showSidebar = shouldShowSidebar(activeTab);
+  setShowYearSidebar(showSidebar);
+  
+  // Set the appropriate color theme based on the active tab
+  switch(activeTab) {
+    case 'artists':
+      setSidebarColorTheme('teal');
+      break;
+    case 'albums':
+      setSidebarColorTheme('pink');
+      break;
+    case 'tracks':
+      setSidebarColorTheme('blue');
+      break;
+    case 'patterns':
+      setSidebarColorTheme('purple');
+      break;
+    case 'behavior':
+      setSidebarColorTheme('indigo');
+      break;
+    default:
+      setSidebarColorTheme('teal');
+  }
+}, [activeTab]);
+
+// 4. Add function to handle year selection from sidebar based on active tab
+const handleSidebarYearChange = (year) => {
+  switch(activeTab) {
+    case 'artists':
+      setSelectedArtistYear(year);
+      break;
+    case 'albums':
+      setSelectedAlbumYear(year);
+      break;
+    case 'tracks':
+      setSelectedTrackYear(year);
+      break;
+    case 'patterns':
+      // If you have code for patterns year selection, add it here
+      break;
+    case 'behavior':
+      // If you have code for behavior year selection, add it here
+      break;
+    default:
+      // Default behavior
+      break;
+  }
+};
+
+// 5. Add function to handle year range selection from sidebar
+const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
+  switch(activeTab) {
+    case 'artists':
+      handleYearRangeChange({ startYear, endYear });
+      break;
+    case 'albums':
+      handleAlbumYearRangeChange({ startYear, endYear });
+      break;
+    case 'patterns':
+      // If you have code for patterns year range selection, add it here
+      break;
+    case 'behavior':
+      // If you have code for behavior year range selection, add it here
+      break;
+    default:
+      // Default behavior
+      break;
+  }
+};
+
+// 6. Add function to handle range mode toggle from sidebar
+const handleSidebarRangeModeToggle = (isRange) => {
+  switch(activeTab) {
+    case 'artists':
+      toggleYearRangeMode(isRange);
+      break;
+    case 'albums':
+      toggleAlbumYearRangeMode(isRange);
+      break;
+    case 'patterns':
+      // If you have code for patterns year range mode toggle, add it here
+      break;
+    case 'behavior':
+      // If you have code for behavior year range mode toggle, add it here
+      break;
+    default:
+      // Default behavior
+      break;
   }
 };
 
@@ -1480,6 +1582,31 @@ const TabButton = ({ id, label }) => {
             />
           </div>
         )}
+{showYearSidebar && (
+  <YearSelector
+    artistsByYear={artistsByYear}
+    onYearChange={handleSidebarYearChange}
+    onYearRangeChange={handleSidebarYearRangeChange}
+    initialYear={
+      activeTab === 'artists' ? selectedArtistYear :
+      activeTab === 'albums' ? selectedAlbumYear :
+      activeTab === 'tracks' ? selectedTrackYear : 'all'
+    }
+    initialYearRange={
+      activeTab === 'artists' ? yearRange :
+      activeTab === 'albums' ? albumYearRange : 
+      { startYear: '', endYear: '' }
+    }
+    isRangeMode={
+      activeTab === 'artists' ? yearRangeMode :
+      activeTab === 'albums' ? albumYearRangeMode : false
+    }
+    onToggleRangeMode={handleSidebarRangeModeToggle}
+    colorTheme={sidebarColorTheme}
+    asSidebar={true}
+    position="right"
+  />
+)}
        </div>
       </CardContent>
     </Card>
