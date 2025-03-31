@@ -224,12 +224,28 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
 
 // 6. Add function to handle range mode toggle from sidebar
 const handleSidebarRangeModeToggle = (isRange) => {
+  const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+  
   switch(activeTab) {
     case 'artists':
       toggleYearRangeMode(isRange);
+      // If switching to range mode, also set a default range
+      if (isRange && availableYears.length >= 2) {
+        handleYearRangeChange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
       break;
     case 'albums':
       toggleAlbumYearRangeMode(isRange);
+      // If switching to range mode, also set a default range
+      if (isRange && availableYears.length >= 2) {
+        handleAlbumYearRangeChange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
       break;
     case 'patterns':
       // If you have code for patterns year range mode toggle, add it here
