@@ -9,6 +9,23 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
   const [showExporter, setShowExporter] = useState(false);
   const [yearRangeMode, setYearRangeMode] = useState(false);
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Add check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Create an object with years for YearSelector
   const artistsByYear = useMemo(() => {
@@ -57,66 +74,149 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
     return `Top 100 ${selectedYear}`; 
   };
 
+  const renderTrackColumns = (track, index) => {
+    if (isMobile) {
+      // Simplified mobile view
+      return (
+        <>
+          <td className="p-1 text-blue-700">
+            <div className="flex flex-col">
+              <span className="font-medium">{track.trackName}</span>
+              <span className="text-xs text-blue-500">{track.artist}</span>
+            </div>
+          </td>
+          <td className="p-1 text-right text-blue-700">
+            <div className="flex flex-col text-xs">
+              <span>{formatDuration(track.totalPlayed)}</span>
+              <span>{track.playCount} plays</span>
+            </div>
+          </td>
+        </>
+      );
+    }
+    
+    // Desktop view with all columns
+    return (
+      <>
+        <td className="p-2 text-blue-700">{index + 1}</td>
+        <td className="p-2 text-blue-700">{track.trackName}</td>
+        <td className="p-2 text-blue-700">{track.artist}</td>
+        <td className="p-2 text-right text-blue-700">{formatDuration(track.totalPlayed)}</td>
+        <td className="p-2 text-right text-blue-700">{track.playCount}</td>
+      </>
+    );
+  };
+
   const TrackTable = ({ tracks }) => (
-    <table className="w-full">
+    <table className="w-full border-collapse">
       <thead>
         <tr className="border-b">
-          <th className="p-2 text-left text-blue-700">Rank</th>
-          <th className="p-2 text-left text-blue-700">Track</th>
-          <th className="p-2 text-left text-blue-700">Artist</th>
-          <th 
-            className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
-              sortBy === 'totalPlayed' ? 'font-bold' : ''
-            }`}
-            onClick={() => setSortBy('totalPlayed')}
-          >
-            Time {sortBy === 'totalPlayed' && '▼'}
+          {!isMobile && <th className="p-2 text-left text-blue-700">Rank</th>}
+          <th className="p-1 sm:p-2 text-left text-blue-700">
+            {isMobile ? "Track / Artist" : "Track"}
           </th>
-          <th 
-            className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
-              sortBy === 'playCount' ? 'font-bold' : ''
-            }`}
-            onClick={() => setSortBy('playCount')}
-          >
-            Plays {sortBy === 'playCount' && '▼'}
-          </th>
+          {!isMobile && <th className="p-2 text-left text-blue-700">Artist</th>}
+          {!isMobile ? (
+            <>
+              <th 
+                className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+                  sortBy === 'totalPlayed' ? 'font-bold' : ''
+                }`}
+                onClick={() => setSortBy('totalPlayed')}
+              >
+                Time {sortBy === 'totalPlayed' && '▼'}
+              </th>
+              <th 
+                className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+                  sortBy === 'playCount' ? 'font-bold' : ''
+                }`}
+                onClick={() => setSortBy('playCount')}
+              >
+                Plays {sortBy === 'playCount' && '▼'}
+              </th>
+            </>
+          ) : (
+            <th 
+              className={`p-1 text-right text-blue-700 cursor-pointer ${
+                sortBy === 'totalPlayed' ? 'bg-blue-100' : 'hover:bg-blue-100'
+              }`}
+              onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+            >
+              Stats {sortBy === 'totalPlayed' ? '(Time)' : '(Plays)'}
+            </th>
+          )}
         </tr>
       </thead>
       <tbody>
         {getSortedTracks(tracks).map((song, index) => (
           <tr key={song.key || `${song.trackName}-${song.artist}`} className="border-b hover:bg-blue-50">
-            <td className="p-2 text-blue-700">{index + 1}</td>
-            <td className="p-2 text-blue-700">{song.trackName}</td>
-            <td className="p-2 text-blue-700">{song.artist}</td>
-            <td className="p-2 text-right text-blue-700">{formatDuration(song.totalPlayed)}</td>
-            <td className="p-2 text-right text-blue-700">{song.playCount}</td>
+            {renderTrackColumns(song, index)}
           </tr>
         ))}
       </tbody>
     </table>
   );
 
+  const renderObsessionColumns = (obsession, index) => {
+    if (isMobile) {
+      // Simplified mobile view for obsessions
+      return (
+        <>
+          <td className="p-1 text-blue-700">
+            <div className="flex flex-col">
+              <span className="font-medium">{obsession.trackName}</span>
+              <span className="text-xs text-blue-500">{obsession.artist}</span>
+              <span className="text-xs text-blue-400">{new Date(obsession.intensePeriod.weekStart).toLocaleDateString()}</span>
+            </div>
+          </td>
+          <td className="p-1 text-right text-blue-700">
+            <div className="flex flex-col text-xs">
+              <span className="font-bold">{obsession.intensePeriod.playsInWeek} week</span>
+              <span>{obsession.playCount} total</span>
+            </div>
+          </td>
+        </>
+      );
+    }
+    
+    // Desktop view with all columns
+    return (
+      <>
+        <td className="p-2 text-blue-700">{index + 1}</td>
+        <td className="p-2 text-blue-700">{obsession.trackName}</td>
+        <td className="p-2 text-blue-700">{obsession.artist}</td>
+        <td className="p-2 text-right text-blue-700">{new Date(obsession.intensePeriod.weekStart).toLocaleDateString()}</td>
+        <td className="p-2 text-right text-blue-700">{obsession.intensePeriod.playsInWeek}</td>
+        <td className="p-2 text-right text-blue-700">{obsession.playCount}</td>
+      </>
+    );
+  };
+
   const ObsessionsTable = () => (
-    <table className="w-full">
+    <table className="w-full border-collapse">
       <thead>
         <tr className="border-b">
-          <th className="p-2 text-left text-blue-700">Rank</th>
-          <th className="p-2 text-left text-blue-700">Track</th>
-          <th className="p-2 text-left text-blue-700">Artist</th>
-          <th className="p-2 text-right text-blue-700">Peak Week</th>
-          <th className="p-2 text-right text-blue-700">Peak</th>
-          <th className="p-2 text-right text-blue-700">Total</th>
+          {!isMobile && <th className="p-2 text-left text-blue-700">Rank</th>}
+          <th className="p-1 sm:p-2 text-left text-blue-700">
+            {isMobile ? "Track / Artist" : "Track"}
+          </th>
+          {!isMobile && (
+            <>
+              <th className="p-2 text-left text-blue-700">Artist</th>
+              <th className="p-2 text-right text-blue-700">Peak Week</th>
+              <th className="p-2 text-right text-blue-700">Peak</th>
+              <th className="p-2 text-right text-blue-700">Total</th>
+            </>
+          )}
+          {isMobile && (
+            <th className="p-1 text-right text-blue-700">Stats</th>
+          )}
         </tr>
       </thead>
       <tbody>
         {briefObsessions.map((song, index) => (
           <tr key={song.key} className="border-b hover:bg-blue-50">
-            <td className="p-2 text-blue-700">{index + 1}</td>
-            <td className="p-2 text-blue-700">{song.trackName}</td>
-            <td className="p-2 text-blue-700">{song.artist}</td>
-            <td className="p-2 text-right text-blue-700">{new Date(song.intensePeriod.weekStart).toLocaleDateString()}</td>
-            <td className="p-2 text-right text-blue-700">{song.intensePeriod.playsInWeek}</td>
-            <td className="p-2 text-right text-blue-700">{song.playCount}</td>
+            {renderObsessionColumns(song, index)}
           </tr>
         ))}
       </tbody>
@@ -156,7 +256,7 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         </h3>
 
         <div className="flex items-center gap-2">
-          {activeTab === 'top250' && (
+          {!isMobile && activeTab === 'top250' && (
             <div className="flex items-center gap-1 mr-2">
               <span className="text-blue-700 text-xs sm:text-sm">Sort:</span>
               <button
@@ -215,8 +315,8 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
         />
       )}
 
-      <div className="overflow-x-auto -mx-4 px-4">
-        <div className="min-w-[640px]">
+      <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
+        <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
           {activeTab === 'top250' ? (
             <TrackTable tracks={selectedYear === 'all' ? processedData : (songsByYear[selectedYear] || [])} />
           ) : (
