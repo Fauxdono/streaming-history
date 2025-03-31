@@ -67,7 +67,7 @@ const YearSelector = ({
           bgHover: 'hover:bg-pink-600/50',
           bgLighter: 'bg-pink-400/20',
           bgDark: 'bg-pink-800',
-          sidebarBg: 'bg-black/70', // Dark faded background
+          sidebarBg: 'bg-pink/70', // Dark faded background
           glowActive: 'shadow-[0_0_15px_rgba(236,72,153,0.7)]', // Pink glow
           buttonBg: 'bg-pink-500',
           buttonHover: 'hover:bg-pink-400'
@@ -80,7 +80,7 @@ const YearSelector = ({
           bgHover: 'hover:bg-purple-600/50',
           bgLighter: 'bg-purple-400/20',
           bgDark: 'bg-purple-800',
-          sidebarBg: 'bg-black/70', // Dark faded background
+          sidebarBg: 'bg-purple/70', // Dark faded background
           glowActive: 'shadow-[0_0_15px_rgba(168,85,247,0.7)]', // Purple glow
           buttonBg: 'bg-purple-500',
           buttonHover: 'hover:bg-purple-400'
@@ -93,7 +93,7 @@ const YearSelector = ({
           bgHover: 'hover:bg-indigo-600/50',
           bgLighter: 'bg-indigo-400/20',
           bgDark: 'bg-indigo-800',
-          sidebarBg: 'bg-black/70', // Dark faded background
+          sidebarBg: 'bg-indigo/70', // Dark faded background
           glowActive: 'shadow-[0_0_15px_rgba(99,102,241,0.7)]', // Indigo glow
           buttonBg: 'bg-indigo-500',
           buttonHover: 'hover:bg-indigo-400'
@@ -106,7 +106,7 @@ const YearSelector = ({
           bgHover: 'hover:bg-blue-600/50',
           bgLighter: 'bg-blue-400/20',
           bgDark: 'bg-blue-800',
-          sidebarBg: 'bg-black/70', // Dark faded background
+          sidebarBg: 'bg-blue/70', // Dark faded background
           glowActive: 'shadow-[0_0_15px_rgba(59,130,246,0.7)]', // Blue glow
           buttonBg: 'bg-blue-500',
           buttonHover: 'hover:bg-blue-400'
@@ -120,7 +120,7 @@ const YearSelector = ({
           bgHover: 'hover:bg-teal-600/50',
           bgLighter: 'bg-teal-400/20',
           bgDark: 'bg-teal-800',
-          sidebarBg: 'bg-black/70', // Dark faded background
+          sidebarBg: 'bg-teal/70', // Dark faded background
           glowActive: 'shadow-[0_0_15px_rgba(20,184,166,0.7)]', // Teal glow
           buttonBg: 'bg-teal-500',
           buttonHover: 'hover:bg-teal-400'
