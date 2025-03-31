@@ -297,16 +297,17 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
       
       {/* Add Year Selector when in top250 tab */}
       {activeTab === 'top250' && Object.keys(artistsByYear).length > 0 && (
-        <YearSelector 
-          artistsByYear={artistsByYear}
-          onYearChange={setSelectedYear}
-          onYearRangeChange={handleYearRangeChange}
-          initialYear={selectedYear !== 'all' ? selectedYear : null}
-          initialYearRange={yearRange}
-          isRangeMode={yearRangeMode}
-          onToggleRangeMode={toggleYearRangeMode}
-          colorTheme="blue"
-        />
+<YearSelector 
+  artistsByYear={artistsByYear}
+  onYearChange={setSelectedYear}
+  onYearRangeChange={handleYearRangeChange}
+  initialYear={selectedYear !== 'all' ? selectedYear : null}
+  initialYearRange={yearRange}
+  isRangeMode={yearRangeMode}
+  onToggleRangeMode={toggleYearRangeMode}
+  colorTheme="blue"
+  startMinimized={true}
+/>
       )}
       
       {showExporter && (

@@ -1108,16 +1108,17 @@ const TabButton = ({ id, label }) => {
       </div>
     </div>
     
-    <YearSelector 
-      artistsByYear={artistsByYear}
-      onYearChange={setSelectedArtistYear}
-      onYearRangeChange={handleYearRangeChange}
-      initialYear={selectedArtistYear !== 'all' ? selectedArtistYear : null}
-      initialYearRange={yearRange}
-      isRangeMode={yearRangeMode}
-      onToggleRangeMode={toggleYearRangeMode}
-      colorTheme="teal"
-    />
+<YearSelector 
+  artistsByYear={artistsByYear}
+  onYearChange={setSelectedArtistYear}
+  onYearRangeChange={handleYearRangeChange}
+  initialYear={selectedArtistYear !== 'all' ? selectedArtistYear : null}
+  initialYearRange={yearRange}
+  isRangeMode={yearRangeMode}
+  onToggleRangeMode={toggleYearRangeMode}
+  colorTheme="teal"
+  startMinimized={true}
+/>
 
     {/* Artist Selection */}
     <div className="mb-4">
@@ -1299,16 +1300,17 @@ const TabButton = ({ id, label }) => {
     </div>
     
     {/* Year Selector for Albums */}
-    <YearSelector 
-      artistsByYear={artistsByYear}
-      onYearChange={setSelectedAlbumYear}
-      onYearRangeChange={handleAlbumYearRangeChange}
-      initialYear={selectedAlbumYear !== 'all' ? selectedAlbumYear : null}
-      initialYearRange={albumYearRange}
-      isRangeMode={albumYearRangeMode}
-      onToggleRangeMode={toggleAlbumYearRangeMode}
-      colorTheme="pink"
-    />
+<YearSelector 
+  artistsByYear={artistsByYear}
+  onYearChange={setSelectedAlbumYear}
+  onYearRangeChange={handleAlbumYearRangeChange}
+  initialYear={selectedAlbumYear !== 'all' ? selectedAlbumYear : null}
+  initialYearRange={albumYearRange}
+  isRangeMode={albumYearRangeMode}
+  onToggleRangeMode={toggleAlbumYearRangeMode}
+  colorTheme="pink"
+  startMinimized={true}
+/>
     
     {/* Artist Selection */}
 
