@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-// Note: BetterYearSlider and DualHandleYearSlider are imported but not used in THIS component.
-// Remove these imports if they are not used elsewhere in your project or passed to this component.
-// import BetterYearSlider from './better-year-slider.js';
-// import DualHandleYearSlider from './dual-handle-year-slider.js';
+import BetterYearSlider from './better-year-slider.js';
+import DualHandleYearSlider from './dual-handle-year-slider.js';
 
-// Renamed component from VerticalYearSelector to YearSelector
 const YearSelector = ({
   artistsByYear,
   onYearChange,
@@ -183,7 +180,8 @@ const YearSelector = ({
       className={`fixed ${positionStyles} top-16 h-[calc(100vh-8rem)] z-40 transition-transform duration-300 ease-in-out ${ // Use transform for expansion
         expanded ? 'translate-x-0' : (position === 'left' ? '-translate-x-[calc(100%-2rem)]' : 'translate-x-[calc(100%-2rem)]') // Adjust based on collapsed width (w-8 -> 2rem)
       } w-16 sm:w-20 ${colors.sidebarBg} ${colors.sidebarBorder} backdrop-blur-sm rounded-md flex flex-col`}
-      style={{ '--scrollbar-thumb-color': colors.scrollbarThumb, '--scrollbar-thumb-hover-color': colors.scrollbarThumbHover } as React.CSSProperties} // Pass scrollbar colors as CSS variables
+      // ***** CORRECTED LINE BELOW *****
+      style={{ '--scrollbar-thumb-color': colors.scrollbarThumb, '--scrollbar-thumb-hover-color': colors.scrollbarThumbHover }} // Pass scrollbar colors as CSS variables
     >
       {/* Toggle button - positioned relative to the sidebar edge */}
       <button
@@ -284,4 +282,4 @@ const YearSelector = ({
 // Update display name for React DevTools
 YearSelector.displayName = 'YearSelector';
 
-export default YearSelector; // Export the renamed component
+export default YearSelector;
