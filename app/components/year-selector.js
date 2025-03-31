@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BetterYearSlider from './better-year-slider.js';
 import DualHandleYearSlider from './dual-handle-year-slider.js';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const YearSelector = ({ 
   artistsByYear, 
@@ -10,9 +11,11 @@ const YearSelector = ({
   initialYearRange, 
   isRangeMode, 
   onToggleRangeMode,
-  colorTheme = 'teal' // Default to teal, but allow customization
+  colorTheme = 'teal', // Default to teal, but allow customization
+  startMinimized = true // Add new prop to control initial state
 }) => {
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
+  const [isMinimized, setIsMinimized] = useState(startMinimized);
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -31,6 +34,13 @@ const YearSelector = ({
   useEffect(() => {
     setMode(isRangeMode ? 'range' : 'single');
   }, [isRangeMode]);
+  
+  // Make sure All-Time is selected at initialization
+  useEffect(() => {
+    if (startMinimized && onYearChange) {
+      onYearChange('all');
+    }
+  }, []);
   
   const handleModeChange = (newMode) => {
     // Update internal mode state
@@ -52,6 +62,11 @@ const YearSelector = ({
         endYear: years[years.length - 1]
       });
     }
+  };
+  
+  // Toggle minimized state
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized);
   };
   
   // Map color theme to actual color values
@@ -167,88 +182,103 @@ const YearSelector = ({
   }
   
   return (
-    <div className="mt-2 mb-6">
-     <div className="flex justify-between items-center mb-4">
-        <label className={colors.text + " font-medium text-sm"}>
-          {mode === 'range' 
-            ? 'Year Range Selection' 
-            : initialYear === 'all' ? 'All-Time Selection' : 'Single Year Selection'}
-        </label>
-        
-        {/* Toggle between modes */}
-        <div className="flex items-center gap-1 flex-wrap justify-end">
-          <button
-            onClick={() => {
-              setMode('single');
-              if (onToggleRangeMode) {
-                onToggleRangeMode(false);
-              }
-              if (onYearChange) {
-                onYearChange('all');
-              }
-            }}
-            className={`px-2 py-1 rounded text-xs ${
-              initialYear === 'all' && mode === 'single'
-                ? colors.bg + ' text-white' 
-                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
-            }`}
+    <div className="mt-2 mb-6 border-b border-gray-200 pb-2">
+      {/* Header with minimize/maximize toggle */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={toggleMinimized}
+            className={`p-1 rounded-full ${colors.bgLight} ${colors.textLight} ${colors.bgHoverLight}`}
+            title={isMinimized ? "Expand year selector" : "Minimize year selector"}
           >
-            All-Time
+            {isMinimized ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
           </button>
-          
-          <button
-            onClick={() => {
-              setMode('single');
-              if (onToggleRangeMode) {
-                onToggleRangeMode(false);
-              }
-              // If currently on all-time, switch to most recent year
-              if (initialYear === 'all' && years.length > 0 && onYearChange) {
-                onYearChange(years[years.length - 1]);
-              }
-            }}
-            className={`px-2 py-1 rounded text-xs ${
-              mode === 'single' && initialYear !== 'all'
-                ? colors.bg + ' text-white' 
-                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
-            }`}
-          >
-            Single Year
-          </button>
-          
-          <button
-            onClick={() => handleModeChange('range')}
-            className={`px-2 py-1 rounded text-xs ${
-              mode === 'range' 
-                ? colors.bg + ' text-white' 
-                : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
-            }`}
-          >
-            Year Range
-          </button>
+          <label className={colors.text + " font-medium text-sm"}>
+            Year Selection
+          </label>
         </div>
+        
+        {/* Only show mode toggles when not minimized */}
+        {!isMinimized && (
+          <div className="flex items-center gap-1 flex-wrap justify-end">
+            <button
+              onClick={() => {
+                setMode('single');
+                if (onToggleRangeMode) {
+                  onToggleRangeMode(false);
+                }
+                if (onYearChange) {
+                  onYearChange('all');
+                }
+              }}
+              className={`px-2 py-1 rounded text-xs ${
+                mode === 'single' && initialYear === 'all'
+                  ? colors.bg + ' text-white' 
+                  : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+              }`}
+            >
+              All-Time
+            </button>
+            
+            <button
+              onClick={() => {
+                setMode('single');
+                if (onToggleRangeMode) {
+                  onToggleRangeMode(false);
+                }
+                // If currently on all-time, switch to most recent year
+                if (initialYear === 'all' && years.length > 0 && onYearChange) {
+                  onYearChange(years[years.length - 1]);
+                }
+              }}
+              className={`px-2 py-1 rounded text-xs ${
+                mode === 'single' && initialYear !== 'all'
+                  ? colors.bg + ' text-white' 
+                  : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+              }`}
+            >
+              Single Year
+            </button>
+            
+            <button
+              onClick={() => handleModeChange('range')}
+              className={`px-2 py-1 rounded text-xs ${
+                mode === 'range' 
+                  ? colors.bg + ' text-white' 
+                  : colors.bgLight + ' ' + colors.textLight + ' ' + colors.bgHoverLight
+              }`}
+            >
+              Year Range
+            </button>
+          </div>
+        )}
       </div>
       
-      {/* Render the appropriate slider based on mode */}
-      {mode === 'single' ? (
-        <div className="px-4">
-          <BetterYearSlider 
-            years={years} 
-            onYearChange={onYearChange}
-            initialYear={initialYear}
-            colorTheme={colorTheme}
-          />
-        </div>
-      ) : (
-        <div className="px-4">
-          <DualHandleYearSlider 
-            years={years}
-            onYearRangeChange={onYearRangeChange}
-            initialStartYear={initialYearRange?.startYear || years[0]}
-            initialEndYear={initialYearRange?.endYear || years[years.length - 1]}
-            colorTheme={colorTheme}
-          />
-        </div>
+      {/* Content area - only show when not minimized */}
+      {!isMinimized && (
+        <>
+          {/* Render the appropriate slider based on mode */}
+          {mode === 'single' ? (
+            <div className="px-4">
+              <BetterYearSlider 
+                years={years} 
+                onYearChange={onYearChange}
+                initialYear={initialYear}
+                colorTheme={colorTheme}
+              />
+            </div>
+          ) : (
+            <div className="px-4">
+              <DualHandleYearSlider 
+                years={years}
+                onYearRangeChange={onYearRangeChange}
+                initialStartYear={initialYearRange?.startYear || years[0]}
+                initialEndYear={initialYearRange?.endYear || years[years.length - 1]}
+                colorTheme={colorTheme}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
