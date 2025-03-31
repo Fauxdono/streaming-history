@@ -1559,7 +1559,7 @@ const TabButton = ({ id, label }) => {
           </div>
         )}
 {showYearSidebar && (
-  <YearSelector
+  <VerticalYearSelector
     artistsByYear={artistsByYear}
     onYearChange={handleSidebarYearChange}
     onYearRangeChange={handleSidebarYearRangeChange}
@@ -1581,6 +1581,7 @@ const TabButton = ({ id, label }) => {
     colorTheme={sidebarColorTheme}
     asSidebar={true}
     position="right"
+    startMinimized={false}
   />
 )}
        </div>
