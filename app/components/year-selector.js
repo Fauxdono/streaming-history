@@ -413,16 +413,49 @@ const YearSelector = ({
             Single Year
           </button>
           
-          <button
-            onClick={() => handleModeChange('range')}
-            className={`px-2 py-1 rounded text-xs ${
-              mode === 'range' 
-                ? colors.bgActive + ' text-white' 
-                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
-            }`}
-          >
-            Year Range
-          </button>
+           <button
+                  onClick={() => {
+                    handleModeChange('range');
+                    // Make sure we update the parent component
+                    if (onToggleRangeMode) {
+                      onToggleRangeMode(true);
+                    }
+                    // Also set a default range if we have years
+                    if (onYearRangeChange && years.length >= 2) {
+                      onYearRangeChange({
+                        startYear: years[0],
+                        endYear: years[years.length - 1]
+                      });
+                    }
+                  }}
+                  className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
+                    mode === 'range' 
+                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                      : `${colors.text} hover:bg-white/20`
+                  }`}
+                >
+                  Range
+                </button>
+                <button
+                  onClick={() => {
+                    handleModeChange('single');
+                    // Make sure we update the parent component
+                    if (onToggleRangeMode) {
+                      onToggleRangeMode(false);
+                    }
+                    // Default to 'all' for single mode
+                    if (onYearChange) {
+                      onYearChange('all');
+                    }
+                  }}
+                  className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
+                    mode === 'single' 
+                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                      : `${colors.text} hover:bg-white/20`
+                  }`}
+                >
+                  Single
+                </button>
         </div>
       </div>
       
