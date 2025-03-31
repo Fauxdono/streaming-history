@@ -19,6 +19,7 @@ const YearSelector = ({
   const [expanded, setExpanded] = useState(!startMinimized);
   const [isMobile, setIsMobile] = useState(false);
   const [hoveredYear, setHoveredYear] = useState(null);
+  const [currentPosition, setCurrentPosition] = useState(position);
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -59,58 +60,6 @@ const YearSelector = ({
   // Map color theme to actual color values with bright and glowing effects
   const colors = (() => {
     switch (colorTheme) {
-      case 'pink':
-        return {
-          text: 'text-pink-800',
-          textActive: 'text-white',
-          bgActive: 'bg-pink-300',
-          bgHover: 'hover:bg-pink-600/50',
-          bgLighter: 'bg-pink-400/20',
-          bgDark: 'bg-pink-800',
-          sidebarBg: 'bg-pink-200', // Lighter background
-          glowActive: 'shadow-[0_0_15px_rgba(236,72,153,0.7)]', // Pink glow
-          buttonBg: 'bg-pink-500',
-          buttonHover: 'hover:bg-pink-400'
-        };
-      case 'purple':
-        return {
-          text: 'text-purple-800',
-          textActive: 'text-white',
-          bgActive: 'bg-purple-500',
-          bgHover: 'hover:bg-purple-600/50',
-          bgLighter: 'bg-purple-400/20',
-          bgDark: 'bg-purple-800',
-          sidebarBg: 'bg-purple-200', // Lighter background
-          glowActive: 'shadow-[0_0_15px_rgba(168,85,247,0.7)]', // Purple glow
-          buttonBg: 'bg-purple-500',
-          buttonHover: 'hover:bg-purple-400'
-        };
-      case 'indigo':
-        return {
-          text: 'text-indigo-800',
-          textActive: 'text-white',
-          bgActive: 'bg-indigo-500',
-          bgHover: 'hover:bg-indigo-600/50',
-          bgLighter: 'bg-indigo-400/20',
-          bgDark: 'bg-indigo-800',
-          sidebarBg: 'bg-indigo-200', // Lighter background
-          glowActive: 'shadow-[0_0_15px_rgba(99,102,241,0.7)]', // Indigo glow
-          buttonBg: 'bg-indigo-500',
-          buttonHover: 'hover:bg-indigo-400'
-        };
-      case 'blue':
-        return {
-          text: 'text-blue-800',
-          textActive: 'text-white',
-          bgActive: 'bg-blue-500',
-          bgHover: 'hover:bg-blue-600/50',
-          bgLighter: 'bg-blue-400/20',
-          bgDark: 'bg-blue-800',
-          sidebarBg: 'bg-blue-200', // Lighter background
-          glowActive: 'shadow-[0_0_15px_rgba(59,130,246,0.7)]', // Blue glow
-          buttonBg: 'bg-blue-500',
-          buttonHover: 'hover:bg-blue-400'
-        };
       case 'teal':
       default:
         return {
@@ -135,6 +84,11 @@ const YearSelector = ({
   // Toggle sidebar expand/collapse
   const toggleExpanded = () => {
     setExpanded(!expanded);
+  };
+  
+  // Toggle sidebar position
+  const togglePosition = () => {
+    setCurrentPosition(currentPosition === 'left' ? 'right' : 'left');
   };
   
   const handleModeChange = (newMode) => {
@@ -170,7 +124,7 @@ const YearSelector = ({
   // Sidebar version
   if (asSidebar) {
     // Position styles for the sidebar
-    const positionStyles = position === 'left' ? 'left-0' : 'right-0';
+    const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
 
     return (
       <div 
@@ -178,22 +132,31 @@ const YearSelector = ({
           expanded ? 'w-16 sm:w-20' : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden`}
       >
-        {/* Toggle button */}
+        {/* Expand/Collapse toggle button */}
         <button 
           onClick={toggleExpanded}
-          className={`absolute ${position === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
         >
           {expanded ? (
-            position === 'left' ? '←' : '→'
+            currentPosition === 'left' ? '←' : '→'
           ) : (
-            position === 'left' ? '→' : '←'
+            currentPosition === 'left' ? '→' : '←'
           )}
         </button>
         
+        {/* Position toggle button */}
+        <button 
+          onClick={togglePosition}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          aria-label="Toggle sidebar position"
+        >
+          {currentPosition === 'left' ? '→' : '←'}
+        </button>
+        
         {expanded && (
-          <div className="h-full flex flex-col justify-between pt-10 pb-3">
-            <div className="overflow-y-auto px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-400 flex-grow flex flex-col items-center">
+          <div className="h-full flex flex-col justify-between pt-16 pb-3">
+            <div className="overflow-y-auto max-h-[calc(100%-100px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-track-teal-100 scrollbar-thumb-teal-400 flex-grow flex flex-col items-center space-y-2">
               {/* Mode toggle buttons at top */}
               <div className="flex flex-col gap-2 items-center mb-6">
                 <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
@@ -254,7 +217,7 @@ const YearSelector = ({
         
         {/* Mini version when collapsed */}
         {!expanded && (
-          <div className={`h-full pt-10 flex flex-col items-center justify-center ${colors.text}`}>
+          <div className={`h-full pt-16 flex flex-col items-center justify-center ${colors.text}`}>
             <div className="writing-mode-vertical text-xs font-bold my-2">
               {getYearLabel()}
             </div>
@@ -271,13 +234,14 @@ const YearSelector = ({
             transform: rotate(180deg);
           }
           .scrollbar-thin::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
           }
-          .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-            border-radius: 2px;
+          .scrollbar-track-teal-100::-webkit-scrollbar-track {
+            background-color: rgba(204, 251, 241, 0.5);
           }
-          .scrollbar-thumb-gray-400::-webkit-scrollbar-thumb {
-            background-color: rgba(156, 163, 175, 0.5);
+          .scrollbar-thumb-teal-400::-webkit-scrollbar-thumb {
+            background-color: rgba(45, 212, 191, 0.7);
+            border-radius: 4px;
           }
         `}</style>
       </div>
