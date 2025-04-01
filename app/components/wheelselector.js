@@ -18,8 +18,8 @@ const WheelSelector = ({
   const animationRef = useRef(null);
   
   // Number of visible items above/below the selected item
-  const visibleItems = 3;
-  const itemHeight = 40; // Height in pixels
+  const visibleItems = 1;
+  const itemHeight = 28; // Smaller height in pixels
   
   // Calculate total height of the selector based on visible items
   const totalHeight = itemHeight * (visibleItems * 2 + 1);
@@ -90,11 +90,12 @@ const WheelSelector = ({
     
     // Add items before the selected one
     for (let i = effectiveIndex - visibleItems; i < effectiveIndex; i++) {
-      const itemIndex = i < 0 ? items.length + i : i; // Handle wrapping
+      // Handle wrapping around the list properly
+      const wrappedIndex = i < 0 ? (items.length + (i % items.length)) % items.length : i;
       result.push({
-        value: items[itemIndex],
-        displayValue: displayFormat(items[itemIndex]),
-        index: itemIndex,
+        value: items[wrappedIndex],
+        displayValue: displayFormat(items[wrappedIndex]),
+        index: wrappedIndex,
         offset: i - effectiveIndex
       });
     }
@@ -110,11 +111,12 @@ const WheelSelector = ({
     
     // Add items after the selected one
     for (let i = effectiveIndex + 1; i <= effectiveIndex + visibleItems; i++) {
-      const itemIndex = i >= items.length ? i - items.length : i; // Handle wrapping
+      // Handle wrapping around the list properly
+      const wrappedIndex = i >= items.length ? i % items.length : i;
       result.push({
-        value: items[itemIndex],
-        displayValue: displayFormat(items[itemIndex]),
-        index: itemIndex,
+        value: items[wrappedIndex],
+        displayValue: displayFormat(items[wrappedIndex]),
+        index: wrappedIndex,
         offset: i - effectiveIndex
       });
     }
@@ -294,7 +296,7 @@ const WheelSelector = ({
       
       <div 
         ref={containerRef}
-        className={`relative w-16 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none touch-manipulation`}
+        className={`relative w-10 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none touch-manipulation`}
         style={{ height: `${totalHeight}px` }}
         onWheel={handleWheel}
         onMouseDown={handleDragStart}
@@ -319,10 +321,10 @@ const WheelSelector = ({
         >
           {displayItems().map((item, idx) => (
             <div
-              key={`wheel-item-${idx}`}
+              key={`wheel-item-${item.index}-${idx}`}
               className={`w-full flex items-center justify-center cursor-pointer transition-all duration-100
                 ${item.selected ? colors.activeText : colors.text}
-                ${item.selected ? 'text-base' : Math.abs(item.offset) === 1 ? 'text-sm opacity-70' : 'text-xs opacity-50'}`}
+                ${item.selected ? 'text-sm font-bold' : 'text-xs opacity-70'}`}
               style={{ 
                 height: `${itemHeight}px`,
                 transform: `translateY(${-item.offset * itemHeight}px)`,
@@ -335,17 +337,17 @@ const WheelSelector = ({
         </div>
         
         {/* Gradient fades for visual polish */}
-        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white to-transparent pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white to-transparent pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
         
-        {/* Simple arrow indicators */}
-        <div className="absolute top-2 left-0 right-0 flex justify-center pointer-events-none">
-          <svg className={`w-4 h-4 ${colors.text}`} viewBox="0 0 24 24">
+        {/* Simplified arrow indicators */}
+        <div className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none text-center">
+          <svg className={`w-3 h-3 ${colors.text}`} viewBox="0 0 24 24">
             <path fill="currentColor" d="M7 14l5-5 5 5H7z"/>
           </svg>
         </div>
-        <div className="absolute bottom-2 left-0 right-0 flex justify-center pointer-events-none">
-          <svg className={`w-4 h-4 ${colors.text}`} viewBox="0 0 24 24">
+        <div className="absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none text-center">
+          <svg className={`w-3 h-3 ${colors.text}`} viewBox="0 0 24 24">
             <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
           </svg>
         </div>
