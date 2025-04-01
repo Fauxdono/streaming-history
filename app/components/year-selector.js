@@ -24,21 +24,11 @@ const YearSelector = ({
     endYear: initialYearRange?.endYear || '' 
   });
   
-  // Month and Day Selection for single mode
+  // Month and Day Selection - new states
   const [showMonthSelection, setShowMonthSelection] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(1); // January = 1
   const [selectedDay, setSelectedDay] = useState(1);
   const [showDaySelection, setShowDaySelection] = useState(false);
-  
-  // Month and Day Selection for range mode
-  const [showRangeMonthSelection, setShowRangeMonthSelection] = useState(false);
-  const [startMonth, setStartMonth] = useState(1);
-  const [endMonth, setEndMonth] = useState(12);
-  const [showRangeDaySelection, setShowRangeDaySelection] = useState(false);
-  const [startDay, setStartDay] = useState(1);
-  const [endDay, setEndDay] = useState(31);
-  const [rangeMonthSelectionType, setRangeMonthSelectionType] = useState('start'); // 'start' or 'end'
-  const [rangeDaySelectionType, setRangeDaySelectionType] = useState('start'); // 'start' or 'end'
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -58,36 +48,17 @@ const YearSelector = ({
   
   // Generate days based on selected month and year
   const getDaysInMonth = (year, month) => {
-    // Handle "all" case gracefully
-    if (year === 'all') return 31;
-    
     // JavaScript months are 0-based, but our selectedMonth is 1-based
     return new Date(parseInt(year), month, 0).getDate();
   };
   
-  // Get days array for single mode
   const getDaysArray = () => {
     if (selectedYear === 'all') return Array.from({ length: 31 }, (_, i) => i + 1);
     const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   };
   
-  // Get days arrays for range mode
-  const getStartDaysArray = () => {
-    if (yearRange.startYear === '') return Array.from({ length: 31 }, (_, i) => i + 1);
-    const daysInMonth = getDaysInMonth(yearRange.startYear, startMonth);
-    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  };
-  
-  const getEndDaysArray = () => {
-    if (yearRange.endYear === '') return Array.from({ length: 31 }, (_, i) => i + 1);
-    const daysInMonth = getDaysInMonth(yearRange.endYear, endMonth);
-    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  };
-  
   const days = getDaysArray();
-  const startDays = getStartDaysArray();
-  const endDays = getEndDaysArray();
   
   // Check for mobile viewport
   useEffect(() => {
@@ -137,19 +108,6 @@ const YearSelector = ({
       setShowDaySelection(false);
     }
   }, [selectedYear]);
-  
-  // Reset range month and day selection when year range changes
-  useEffect(() => {
-    if (yearRange.startYear && yearRange.endYear) {
-      // Reset to defaults when changing years
-      setStartMonth(1);
-      setEndMonth(12);
-      setStartDay(1);
-      setEndDay(getDaysInMonth(yearRange.endYear, 12));
-      setShowRangeMonthSelection(false);
-      setShowRangeDaySelection(false);
-    }
-  }, [yearRange.startYear, yearRange.endYear]);
   
   // Map color theme to actual color values
   const getColors = () => {
@@ -317,15 +275,6 @@ const YearSelector = ({
     return <div className={colors.text + " italic"}>No year data available</div>;
   }
   
-  // Format month name for display
-  const getMonthName = (month) => {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return monthNames[month - 1];
-  };
-  
   // Toggle sidebar expand/collapse
   const toggleExpanded = () => {
     setExpanded(!expanded);
@@ -344,12 +293,6 @@ const YearSelector = ({
     if (onToggleRangeMode) {
       onToggleRangeMode(newMode === 'range');
     }
-    
-    // Reset all selection states
-    setShowMonthSelection(false);
-    setShowDaySelection(false);
-    setShowRangeMonthSelection(false);
-    setShowRangeDaySelection(false);
     
     // If switching to single mode, default to 'all'
     if (newMode === 'single') {
@@ -372,6 +315,15 @@ const YearSelector = ({
         onYearRangeChange(newYearRange);
       }
     }
+  };
+  
+  // Format month name for display
+  const getMonthName = (month) => {
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return monthNames[month - 1];
   };
   
   // Handle year change in single mode
@@ -417,82 +369,6 @@ const YearSelector = ({
     }
   };
   
-  // Handle start month change in range mode
-  const handleStartMonthChange = (month) => {
-    setStartMonth(month);
-    
-    // Update the range with the new start month
-    if (yearRange.startYear && onYearRangeChange) {
-      const startDateStr = `${yearRange.startYear}-${month.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-      const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-      
-      // Pass the full date range
-      onYearRangeChange({
-        startYear: yearRange.startYear,
-        endYear: yearRange.endYear,
-        startDate: startDateStr,
-        endDate: endDateStr
-      });
-    }
-  };
-  
-  // Handle end month change in range mode
-  const handleEndMonthChange = (month) => {
-    setEndMonth(month);
-    
-    // Update the range with the new end month
-    if (yearRange.endYear && onYearRangeChange) {
-      const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-      const endDateStr = `${yearRange.endYear}-${month.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-      
-      // Pass the full date range
-      onYearRangeChange({
-        startYear: yearRange.startYear,
-        endYear: yearRange.endYear,
-        startDate: startDateStr,
-        endDate: endDateStr
-      });
-    }
-  };
-  
-  // Handle start day change in range mode
-  const handleStartDayChange = (day) => {
-    setStartDay(day);
-    
-    // Update the range with the new start day
-    if (yearRange.startYear && onYearRangeChange) {
-      const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-      
-      // Pass the full date range
-      onYearRangeChange({
-        startYear: yearRange.startYear,
-        endYear: yearRange.endYear,
-        startDate: startDateStr,
-        endDate: endDateStr
-      });
-    }
-  };
-  
-  // Handle end day change in range mode
-  const handleEndDayChange = (day) => {
-    setEndDay(day);
-    
-    // Update the range with the new end day
-    if (yearRange.endYear && onYearRangeChange) {
-      const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-      const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      
-      // Pass the full date range
-      onYearRangeChange({
-        startYear: yearRange.startYear,
-        endYear: yearRange.endYear,
-        startDate: startDateStr,
-        endDate: endDateStr
-      });
-    }
-  };
-  
   // Handler for year range change in range mode
   const handleYearRangeChange = ({ startYear, endYear }) => {
     const newYearRange = { startYear, endYear };
@@ -518,14 +394,6 @@ const YearSelector = ({
       
       return selectedYear;
     } else {
-      if (showRangeDaySelection && startDay && endDay) {
-        return `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')} to ${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-      }
-      
-      if (showRangeMonthSelection && startMonth && endMonth) {
-        return `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')} to ${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
-      }
-      
       return `${yearRange.startYear}-${yearRange.endYear}`;
     }
   };
@@ -568,10 +436,10 @@ const YearSelector = ({
     );
   }
   
-  // Full expanded sidebar - now with wider width for better usability
+  // Full expanded sidebar - different rendering for single vs range mode
   return (
     <div 
-      className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-20 sm:w-24 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+      className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-16 sm:w-20 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
     >
       {/* Collapse button */}
       <button 
@@ -583,7 +451,7 @@ const YearSelector = ({
       </button>
       
       <div className="h-full flex flex-col justify-between pt-10 pb-3">
-        {/* Mode toggle buttons at top */}
+        {/* Mode toggle buttons at top - now stacked vertically */}
         <div className="flex flex-col gap-1 items-center mb-2">
           <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
           <button
@@ -608,39 +476,47 @@ const YearSelector = ({
           </button>
         </div>
         
-        {/* Scrollable content for selection */}
         <div className="overflow-y-auto max-h-[calc(100%-180px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
           {mode === 'single' ? (
-            // Single mode
+            // Single mode - list of years 
             <>
-              {/* Main Heading */}
-              <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
-              
-              {/* Year Selection */}
-              {years.slice().reverse().map((year) => (
-                <button
-                  key={year}
-                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                    year === selectedYear
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.bgHover}`
-                  } ${hoveredYear === year ? 'scale-110' : ''}`}
-                  onClick={() => {
-                    handleYearChange(year);
-                  }}
-                  onMouseEnter={() => setHoveredYear(year)}
-                  onMouseLeave={() => setHoveredYear(null)}
-                >
-                  {year}
-                </button>
-              ))}
-              
-              {/* Month Selection Section */}
-              {selectedYear !== 'all' && (
+              {/* Show years */}
+              {!showMonthSelection && !showDaySelection && (
                 <>
-                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
+                  {years.slice().reverse().map((year) => (
+                    <button
+                      key={year}
+                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                        year === selectedYear
+                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                          : `${colors.text} ${colors.bgHover}`
+                      } ${hoveredYear === year ? 'scale-110' : ''}`}
+                      onClick={() => {
+                        handleYearChange(year);
+                        // Show month selection after year selection
+                        setShowMonthSelection(true);
+                      }}
+                      onMouseEnter={() => setHoveredYear(year)}
+                      onMouseLeave={() => setHoveredYear(null)}
+                    >
+                      {year}
+                    </button>
+                  ))}
+                </>
+              )}
+              
+              {/* Month selection */}
+              {showMonthSelection && selectedYear !== 'all' && !showDaySelection && (
+                <>
+                  <div className="flex items-center mb-1">
+                    <button 
+                      onClick={() => setShowMonthSelection(false)}
+                      className="text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                  </div>
                   <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
-                  
                   {months.map((month) => (
                     <button
                       key={`month-${month}`}
@@ -649,17 +525,34 @@ const YearSelector = ({
                           ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
                           : `${colors.text} ${colors.bgHover}`
                       }`}
-                      onClick={() => handleMonthChange(month)}
+                      onClick={() => {
+                        handleMonthChange(month);
+                        // Show day selection after month selection
+                        setShowDaySelection(true);
+                      }}
                     >
                       {getMonthName(month)}
                     </button>
                   ))}
-                  
-                  {/* Day Selection Section */}
-                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
+                </>
+              )}
+              
+              {/* Day selection */}
+              {showDaySelection && selectedYear !== 'all' && (
+                <>
+                  <div className="flex items-center mb-1">
+                    <button 
+                      onClick={() => {
+                        setShowDaySelection(false);
+                        setShowMonthSelection(true);
+                      }}
+                      className="text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                  </div>
                   <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
-                  
-                  <div className="grid grid-cols-4 gap-1 w-full px-1">
+                  <div className="grid grid-cols-3 gap-1">
                     {days.map((day) => (
                       <button
                         key={`day-${day}`}
@@ -678,10 +571,10 @@ const YearSelector = ({
               )}
             </>
           ) : (
-            // Range mode
+            // Range mode - separate start and end year selectors
             <>
               {/* Start Year Section */}
-              <div className={`text-xs mb-1 font-medium ${colors.text}`}>START YEAR</div>
+              <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
               
               {years.slice().reverse().map((year) => (
                 <button
@@ -707,53 +600,11 @@ const YearSelector = ({
                 </button>
               ))}
               
-              {/* Start Month Selection */}
-              {yearRange.startYear && (
-                <>
-                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>START MONTH</div>
-                  
-                  {months.map((month) => (
-                    <button
-                      key={`start-month-${month}`}
-                      className={`font-medium text-sm rounded px-2 py-1 w-16 text-center transition-all duration-200 ${
-                        month === startMonth
-                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                          : `${colors.text} ${colors.bgHover}`
-                      }`}
-                      onClick={() => handleStartMonthChange(month)}
-                    >
-                      {getMonthName(month)}
-                    </button>
-                  ))}
-                  
-                  {/* Start Day Selection */}
-                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>START DAY</div>
-                  
-                  <div className="grid grid-cols-4 gap-1 w-full px-1">
-                    {startDays.map((day) => (
-                      <button
-                        key={`start-day-${day}`}
-                        className={`font-medium text-xs rounded p-1 w-4 h-4 flex items-center justify-center transition-all duration-200 ${
-                          day === startDay
-                            ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                            : `${colors.text} ${colors.bgHover}`
-                        }`}
-                        onClick={() => handleStartDayChange(day)}
-                      >
-                        {day}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-              
               {/* Divider */}
-              <div className={`w-16 h-1 ${colors.bgMed} my-4 rounded-full`}></div>
+              <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
               
               {/* End Year Section */}
-              <div className={`text-xs mb-1 font-medium ${colors.text}`}>END YEAR</div>
+              <div className={`text-xs mb-1 font-medium ${colors.text}`}>END</div>
               
               {years.slice().reverse().map((year) => (
                 <button
@@ -778,51 +629,9 @@ const YearSelector = ({
                   {year}
                 </button>
               ))}
-              
-              {/* End Month Selection */}
-              {yearRange.endYear && (
-                <>
-                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>END MONTH</div>
-                  
-                  {months.map((month) => (
-                    <button
-                      key={`end-month-${month}`}
-                      className={`font-medium text-sm rounded px-2 py-1 w-16 text-center transition-all duration-200 ${
-                        month === endMonth
-                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                          : `${colors.text} ${colors.bgHover}`
-                      }`}
-                      onClick={() => handleEndMonthChange(month)}
-                    >
-                      {getMonthName(month)}
-                    </button>
-                  ))}
-                  
-                  {/* End Day Selection */}
-                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>END DAY</div>
-                  
-                  <div className="grid grid-cols-4 gap-1 w-full px-1">
-                    {endDays.map((day) => (
-                      <button
-                        key={`end-day-${day}`}
-                        className={`font-medium text-xs rounded p-1 w-4 h-4 flex items-center justify-center transition-all duration-200 ${
-                          day === endDay
-                            ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                            : `${colors.text} ${colors.bgHover}`
-                        }`}
-                        onClick={() => handleEndDayChange(day)}
-                      >
-                        {day}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
             </>
           )}
-</div>
+        </div>
         
         {/* Bottom section with "All Time" button, position toggle and current selection */}
         <div className="flex flex-col items-center mt-2 gap-2">
@@ -840,52 +649,31 @@ const YearSelector = ({
             </button>
           )}
           
-          <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-xs`}>
+          <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-sm`}>
             {getYearLabel()}
           </div>
           
-          <div className="flex gap-2">
-            <button 
-              onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-7 h-7`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className="text-xs">⇄</span>
-            </button>
-            
-            {/* Apply button for both modes */}
+          <button 
+            onClick={togglePosition}
+            className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
+            aria-label="Toggle sidebar position"
+          >
+            <span className="text-xs">⇄</span>
+          </button>
+          
+          {/* Apply button for range mode */}
+          {mode === 'range' && (
             <button
               onClick={() => {
-                if (mode === 'single') {
-                  // In single mode, apply the current year, month, day selection
-                  if (selectedYear !== 'all' && onYearChange) {
-                    const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-                    onYearChange(dateStr);
-                  } else if (onYearChange) {
-                    onYearChange(selectedYear);
-                  }
-                } else {
-                  // In range mode, apply the current year, month, day range
-                  if (yearRange.startYear && yearRange.endYear && onYearRangeChange) {
-                    const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-                    const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-                    
-                    onYearRangeChange({
-                      startYear: yearRange.startYear,
-                      endYear: yearRange.endYear,
-                      startDate: startDateStr,
-                      endDate: endDateStr
-                    });
-                  } else if (onYearRangeChange) {
-                    onYearRangeChange(yearRange);
-                  }
+                if (onYearRangeChange && yearRange.startYear && yearRange.endYear) {
+                  onYearRangeChange(yearRange);
                 }
               }}
-              className={`px-2 py-1 ${colors.buttonBg} text-white rounded-md ${colors.buttonHover} text-xs font-bold`}
+              className={`px-3 py-1 ${colors.buttonBg} text-white rounded-md ${colors.buttonHover} text-xs font-bold`}
             >
               Apply
             </button>
-          </div>
+          )}
         </div>
       </div>
       
