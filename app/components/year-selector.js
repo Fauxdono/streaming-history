@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import WheelSelector from './wheelselector.js';
 
 const YearSelector = ({ 
   artistsByYear, 
@@ -16,7 +17,6 @@ const YearSelector = ({
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   const [expanded, setExpanded] = useState(!startMinimized);
   const [isMobile, setIsMobile] = useState(false);
-  const [hoveredYear, setHoveredYear] = useState(null);
   const [currentPosition, setCurrentPosition] = useState(position);
   const [selectedYear, setSelectedYear] = useState(initialYear || 'all');
   const [yearRange, setYearRange] = useState({ 
@@ -25,14 +25,12 @@ const YearSelector = ({
   });
   
   // Month and Day Selection
-  const [showMonthSelection, setShowMonthSelection] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(1); // January = 1
-  const [showDaySelection, setShowDaySelection] = useState(false);
   const [selectedDay, setSelectedDay] = useState(1);
+  const [dateSelectionStep, setDateSelectionStep] = useState('year'); // 'year', 'month', 'day'
   
-  // Extract years from artistsByYear and ensure they're in the correct format
+  // Extract years from artistsByYear
   const getYearsArray = () => {
-    // Check if artistsByYear is available
     if (!artistsByYear || typeof artistsByYear !== 'object') {
       console.warn('artistsByYear is not available or not an object', artistsByYear);
       return [];
@@ -72,13 +70,8 @@ const YearSelector = ({
       setIsMobile(window.innerWidth < 640);
     };
     
-    // Initial check
     checkMobile();
-    
-    // Add resize listener
     window.addEventListener('resize', checkMobile);
-    
-    // Cleanup
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
@@ -97,24 +90,39 @@ const YearSelector = ({
     }
   }, [initialYearRange]);
   
-  // Update selectedYear when initialYear changes
+  // Parse initialYear for date information if available
   useEffect(() => {
     if (initialYear) {
-      setSelectedYear(initialYear);
+      if (initialYear === 'all') {
+        setSelectedYear('all');
+        setDateSelectionStep('year');
+        return;
+      }
       
-      // Check if initialYear contains month/day information
-      if (initialYear !== 'all' && initialYear.includes('-')) {
-        const parts = initialYear.split('-');
+      // Check for formats like YYYY-MM-DD or YYYY-MM
+      const parts = initialYear.split('-');
+      
+      if (parts.length >= 1) {
+        // Set the year
+        setSelectedYear(parts[0]);
         
         if (parts.length >= 2) {
           // Has month information
-          setSelectedMonth(parseInt(parts[1]));
-          setShowMonthSelection(true);
-          
-          if (parts.length >= 3) {
-            // Has day information
-            setSelectedDay(parseInt(parts[2]));
-            setShowDaySelection(true);
+          const monthValue = parseInt(parts[1]);
+          if (!isNaN(monthValue) && monthValue >= 1 && monthValue <= 12) {
+            setSelectedMonth(monthValue);
+            setDateSelectionStep('month');
+            
+            if (parts.length >= 3) {
+              // Has day information
+              const dayValue = parseInt(parts[2]);
+              // Validate day value against month
+              const maxDays = getDaysInMonth(parts[0], monthValue);
+              if (!isNaN(dayValue) && dayValue >= 1 && dayValue <= maxDays) {
+                setSelectedDay(dayValue);
+                setDateSelectionStep('day');
+              }
+            }
           }
         }
       }
@@ -150,23 +158,6 @@ const YearSelector = ({
           bgLight: 'bg-pink-50',
           bgMed: 'bg-pink-200'
         };
-      case 'purple':
-        return {
-          text: 'text-purple-700',
-          textActive: 'text-white',
-          bgActive: 'bg-purple-500',
-          bgHover: 'hover:bg-purple-600/50',
-          bgLighter: 'bg-purple-100',
-          bgDark: 'bg-purple-800',
-          sidebarBg: 'bg-purple-100',
-          glowActive: 'shadow-[0_0_15px_rgba(168,85,247,0.7)]',
-          buttonBg: 'bg-purple-600',
-          buttonHover: 'hover:bg-purple-700',
-          border: 'border-purple-300',
-          textBold: 'text-purple-800',
-          bgLight: 'bg-purple-50',
-          bgMed: 'bg-purple-200'
-        };
       case 'indigo':
         return {
           text: 'text-indigo-700',
@@ -200,74 +191,6 @@ const YearSelector = ({
           textBold: 'text-blue-800',
           bgLight: 'bg-blue-50',
           bgMed: 'bg-blue-200'
-        };
-      case 'green':
-        return {
-          text: 'text-green-700',
-          textActive: 'text-white',
-          bgActive: 'bg-green-500',
-          bgHover: 'hover:bg-green-600/50',
-          bgLighter: 'bg-green-100',
-          bgDark: 'bg-green-800',
-          sidebarBg: 'bg-green-100',
-          glowActive: 'shadow-[0_0_15px_rgba(34,197,94,0.7)]',
-          buttonBg: 'bg-green-600',
-          buttonHover: 'hover:bg-green-700',
-          border: 'border-green-300',
-          textBold: 'text-green-800',
-          bgLight: 'bg-green-50',
-          bgMed: 'bg-green-200'
-        };
-      case 'yellow':
-        return {
-          text: 'text-yellow-700',
-          textActive: 'text-white',
-          bgActive: 'bg-yellow-500',
-          bgHover: 'hover:bg-yellow-600/50',
-          bgLighter: 'bg-yellow-100',
-          bgDark: 'bg-yellow-700',
-          sidebarBg: 'bg-yellow-100',
-          glowActive: 'shadow-[0_0_15px_rgba(234,179,8,0.7)]',
-          buttonBg: 'bg-yellow-500',
-          buttonHover: 'hover:bg-yellow-400',
-          border: 'border-yellow-300',
-          textBold: 'text-yellow-800',
-          bgLight: 'bg-yellow-50',
-          bgMed: 'bg-yellow-200'
-        };
-      case 'red':
-        return {
-          text: 'text-red-700',
-          textActive: 'text-white',
-          bgActive: 'bg-red-500',
-          bgHover: 'hover:bg-red-600/50',
-          bgLighter: 'bg-red-100',
-          bgDark: 'bg-red-800',
-          sidebarBg: 'bg-red-100',
-          glowActive: 'shadow-[0_0_15px_rgba(239,68,68,0.7)]',
-          buttonBg: 'bg-red-600',
-          buttonHover: 'hover:bg-red-700',
-          border: 'border-red-300',
-          textBold: 'text-red-800',
-          bgLight: 'bg-red-50',
-          bgMed: 'bg-red-200'
-        };
-      case 'orange':
-        return {
-          text: 'text-orange-700',
-          textActive: 'text-white',
-          bgActive: 'bg-orange-500',
-          bgHover: 'hover:bg-orange-600/50',
-          bgLighter: 'bg-orange-100',
-          bgDark: 'bg-orange-800',
-          sidebarBg: 'bg-orange-100',
-          glowActive: 'shadow-[0_0_15px_rgba(249,115,22,0.7)]',
-          buttonBg: 'bg-orange-600',
-          buttonHover: 'hover:bg-orange-700',
-          border: 'border-orange-300',
-          textBold: 'text-orange-800',
-          bgLight: 'bg-orange-50',
-          bgMed: 'bg-orange-200'
         };
       case 'teal':
       default:
@@ -306,26 +229,24 @@ const YearSelector = ({
     setCurrentPosition(currentPosition === 'left' ? 'right' : 'left');
   };
   
+  // Handle mode change between single/range
   const handleModeChange = (newMode) => {
-    // Update internal mode state
     setMode(newMode);
     
-    // Notify parent component about mode change
     if (onToggleRangeMode) {
       onToggleRangeMode(newMode === 'range');
     }
     
-    // If switching to single mode, default to 'all'
+    // Reset for single mode
     if (newMode === 'single') {
       setSelectedYear('all');
-      setShowMonthSelection(false);
-      setShowDaySelection(false);
+      setDateSelectionStep('year');
       
       if (onYearChange) {
         onYearChange('all');
       }
     } 
-    // If switching to range mode, default to full range
+    // Set defaults for range mode
     else if (newMode === 'range' && years.length >= 2) {
       const newYearRange = {
         startYear: years[0],
@@ -340,50 +261,80 @@ const YearSelector = ({
     }
   };
   
-  // Handle year change in single mode
+  // Handle year selection
   const handleYearChange = (year) => {
     setSelectedYear(year);
     
-    // Reset month and day selection when changing years
-    if (year !== selectedYear) {
-      setShowMonthSelection(false);
-      setShowDaySelection(false);
-      setSelectedMonth(1);
-      setSelectedDay(1);
-    }
-    
-    if (onYearChange) {
-      onYearChange(year);
+    if (year === 'all') {
+      // For "all", reset to year selection step
+      setDateSelectionStep('year');
+      
+      if (onYearChange) {
+        onYearChange('all');
+      }
+    } else {
+      // For specific year, advance to month selection
+      setDateSelectionStep('month');
+      
+      if (onYearChange) {
+        // Just pass the year for now
+        onYearChange(year);
+      }
     }
   };
   
   // Handle month selection
   const handleMonthChange = (month) => {
+    // Set the month
     setSelectedMonth(month);
     
-    // Reset day selection
-    setShowDaySelection(false);
-    setSelectedDay(1);
+    // Advance to day selection
+    setDateSelectionStep('day');
     
-    // If a year and month are selected, update the parent with the format: YYYY-MM
     if (selectedYear !== 'all' && onYearChange) {
-      const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}`;
+      // Format as YYYY-MM
+      const formattedMonth = month.toString().padStart(2, '0');
+      const dateStr = `${selectedYear}-${formattedMonth}`;
       onYearChange(dateStr);
     }
   };
   
   // Handle day selection
   const handleDayChange = (day) => {
+    // Set the day
     setSelectedDay(day);
     
-    // If a year, month, and day are selected, update the parent with the format: YYYY-MM-DD
     if (selectedYear !== 'all' && onYearChange) {
-      const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      // Format as YYYY-MM-DD
+      const formattedMonth = selectedMonth.toString().padStart(2, '0');
+      const formattedDay = day.toString().padStart(2, '0');
+      const dateStr = `${selectedYear}-${formattedMonth}-${formattedDay}`;
       onYearChange(dateStr);
     }
   };
   
-  // Handler for year range change in range mode
+  // Go back a step in date selection
+  const handleBackStep = () => {
+    if (dateSelectionStep === 'day') {
+      setDateSelectionStep('month');
+      
+      // Update parent with YYYY-MM format
+      if (selectedYear !== 'all' && onYearChange) {
+        const formattedMonth = selectedMonth.toString().padStart(2, '0');
+        onYearChange(`${selectedYear}-${formattedMonth}`);
+      }
+    } 
+    else if (dateSelectionStep === 'month') {
+      setDateSelectionStep('year');
+      
+      // Update parent with just the year
+      if (onYearChange) {
+        onYearChange(selectedYear);
+      }
+    }
+  };
+  
+  // Handle year range changes
   const handleYearRangeChange = ({ startYear, endYear }) => {
     const newYearRange = { startYear, endYear };
     setYearRange(newYearRange);
@@ -393,16 +344,16 @@ const YearSelector = ({
     }
   };
   
-  // Get the appropriate label
+  // Get the appropriate label for current selection
   const getYearLabel = () => {
     if (mode === 'single') {
       if (selectedYear === 'all') return 'All Time';
       
-      if (showDaySelection && selectedDay) {
+      if (dateSelectionStep === 'day') {
         return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
       }
       
-      if (showMonthSelection && selectedMonth) {
+      if (dateSelectionStep === 'month') {
         return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
       }
       
@@ -415,13 +366,12 @@ const YearSelector = ({
   // Position styles for the sidebar
   const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
 
-  // If not expanded, show a mini sidebar
+  // Compressed sidebar view
   if (!expanded && asSidebar) {
     return (
       <div 
         className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
-        {/* Expand button */}
         <button 
           onClick={toggleExpanded}
           className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
@@ -450,12 +400,20 @@ const YearSelector = ({
     );
   }
   
-  // Determine if this is a sidebar or inline version
+  // Determine if this is a sidebar or inline component
   const containerClass = asSidebar 
-    ? `fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-20 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+    ? `fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-auto ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
   
-  // Full expanded sidebar or inline component
+  // Function to add "all" to year wheel items
+  const getYearWheelItems = () => {
+    if (mode === 'single') {
+      return ['all', ...years];
+    }
+    return years;
+  };
+  
+  // Full expanded view with wheels
   return (
     <div className={containerClass}>
       {/* Collapse button - only for sidebar */}
@@ -469,7 +427,7 @@ const YearSelector = ({
         </button>
       )}
       
-      <div className={asSidebar ? "h-full flex flex-col justify-between pt-10 pb-3" : "flex flex-col"}>
+      <div className={asSidebar ? "h-full flex flex-col justify-between pt-10 pb-3 px-2" : "flex flex-col"}>
         {/* Mode toggle buttons */}
         <div className={`flex ${asSidebar ? 'flex-col mb-2' : ''} gap-2 justify-center items-center`}>
           {!asSidebar && (
@@ -480,322 +438,147 @@ const YearSelector = ({
             <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
           )}
           
-          <button
-            onClick={() => handleModeChange('single')}
-            className={`px-2 py-1 rounded text-xs text-center ${asSidebar ? 'w-14' : ''} transition-all duration-200 ${
-              mode === 'single' 
-                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                : `${colors.text} ${colors.bgLighter}`
-            }`}
-          >
-            Single
-          </button>
-          <button
-            onClick={() => handleModeChange('range')}
-            className={`px-2 py-1 rounded text-xs text-center ${asSidebar ? 'w-14' : ''} transition-all duration-200 ${
-              mode === 'range' 
-                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                : `${colors.text} ${colors.bgLighter}`
-            }`}
-          >
-            Range
-          </button>
+          <div className="flex gap-1">
+            <button
+              onClick={() => handleModeChange('single')}
+              className={`px-2 py-1 rounded text-xs text-center transition-all duration-200 ${
+                mode === 'single' 
+                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                  : `${colors.text} ${colors.bgLighter}`
+              }`}
+            >
+              Single
+            </button>
+            <button
+              onClick={() => handleModeChange('range')}
+              className={`px-2 py-1 rounded text-xs text-center transition-all duration-200 ${
+                mode === 'range' 
+                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                  : `${colors.text} ${colors.bgLighter}`
+              }`}
+            >
+              Range
+            </button>
+          </div>
         </div>
         
-        {/* Year Selection Area */}
-        <div className={asSidebar 
-          ? "overflow-y-auto max-h-[calc(100%-180px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2"
-          : "mt-4 flex flex-wrap gap-2 justify-center"
-        }>
+        {/* Selection area with wheel selectors */}
+        <div className="flex-grow flex flex-col items-center justify-center p-2">
           {mode === 'single' ? (
             <>
-              {/* Show years */}
-              {!showMonthSelection && !showDaySelection && (
-                <>
-                  {/* "All Time" button for inline mode */}
-                  {!asSidebar && (
-                    <button
-                      onClick={() => handleYearChange('all')}
-                      className={`font-medium text-sm rounded px-2 py-1 transition-all duration-200 ${
-                        selectedYear === 'all'
-                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                          : `${colors.text} ${colors.bgHover}`
-                      }`}
-                    >
-                      All Time
-                    </button>
-                  )}
-                  
-                  {/* Year buttons */}
-                  {(asSidebar ? years.slice().reverse() : years).map((year) => (
-                    <button
-                      key={year}
-                      className={`font-medium text-sm rounded px-2 py-1 ${asSidebar ? 'w-14 text-center' : ''} transition-all duration-200 ${
-                        year === selectedYear
-                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                          : `${colors.text} ${colors.bgHover}`
-                      } ${hoveredYear === year ? 'scale-110' : ''}`}
-                      onClick={() => {
-                        handleYearChange(year);
-                        // Only show month selection if we're not using "all time"
-                        setShowMonthSelection(true);
-                      }}
-                      onMouseEnter={() => setHoveredYear(year)}
-                      onMouseLeave={() => setHoveredYear(null)}
-                    >
-                      {year}
-                    </button>
-                  ))}
-                </>
+              {/* Single date selection with wheel selectors */}
+              {dateSelectionStep === 'year' && (
+                <div className="flex flex-col items-center">
+                  <div className={`text-sm font-medium ${colors.text} mb-2`}>Select Year</div>
+                  <WheelSelector
+                    items={getYearWheelItems()}
+                    value={selectedYear}
+                    onChange={handleYearChange}
+                    colorTheme={colorTheme}
+                    displayFormat={(val) => val === 'all' ? 'All Time' : val}
+                  />
+                </div>
               )}
               
-              {/* Month selection */}
-              {showMonthSelection && selectedYear !== 'all' && !showDaySelection && (
-                <>
-                  <div className="flex items-center mb-1">
+              {dateSelectionStep === 'month' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex justify-between w-full mb-2">
                     <button 
-                      onClick={() => setShowMonthSelection(false)}
-                      className={`text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 ${asSidebar ? 'w-14' : ''}`}
+                      onClick={handleBackStep}
+                      className={`text-xs px-2 py-1 rounded ${colors.bgLighter} ${colors.text}`}
                     >
-                      Back
+                      ← Back
                     </button>
+                    <div className={`text-sm font-medium ${colors.text}`}>{selectedYear}</div>
                   </div>
                   
-                  {asSidebar && (
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
-                  )}
-                  
-                  {!asSidebar && (
-                    <div className={`w-full text-sm font-medium ${colors.text} mb-2 text-center`}>
-                      Select Month for {selectedYear}
-                    </div>
-                  )}
-                  
-                  <div className={asSidebar ? "flex flex-col space-y-2" : "flex flex-wrap gap-2 justify-center"}>
-                    {months.map((month) => (
-                      <button
-                        key={`month-${month}`}
-                        className={`font-medium text-sm rounded px-2 py-1 ${asSidebar ? 'w-14 text-center' : ''} transition-all duration-200 ${
-                          month === selectedMonth
-                            ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                            : `${colors.text} ${colors.bgHover}`
-                        }`}
-                        onClick={() => {
-                          handleMonthChange(month);
-                          // Show day selection after month selection
-                          setShowDaySelection(true);
-                        }}
-                      >
-                        {getMonthName(month)}
-                      </button>
-                    ))}
-                  </div>
-                </>
+                  <WheelSelector
+                    items={months}
+                    value={selectedMonth}
+                    onChange={handleMonthChange}
+                    label="Month"
+                    colorTheme={colorTheme}
+                    displayFormat={getMonthName}
+                  />
+                </div>
               )}
               
-              {/* Day selection */}
-              {showDaySelection && selectedYear !== 'all' && (
-                <>
-                  <div className="flex items-center mb-1">
+              {dateSelectionStep === 'day' && (
+                <div className="flex flex-col items-center">
+                  <div className="flex justify-between w-full mb-2">
                     <button 
-                      onClick={() => {
-                        setShowDaySelection(false);
-                        setShowMonthSelection(true);
-                      }}
-                      className={`text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 ${asSidebar ? 'w-14' : ''}`}
+                      onClick={handleBackStep}
+                      className={`text-xs px-2 py-1 rounded ${colors.bgLighter} ${colors.text}`}
                     >
-                      Back
+                      ← Back
                     </button>
-                  </div>
-                  
-                  {asSidebar && (
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
-                  )}
-                  
-                  {!asSidebar && (
-                    <div className={`w-full text-sm font-medium ${colors.text} mb-2 text-center`}>
-                      Select Day for {selectedYear}-{selectedMonth.toString().padStart(2, '0')}
-                    </div>
-                  )}
-                  
-                  <div className={asSidebar ? "grid grid-cols-3 gap-1" : "grid grid-cols-7 gap-2 justify-center"}>
-                    {days.map((day) => (
-                      <button
-                        key={`day-${day}`}
-                        className={`font-medium ${asSidebar ? 'text-xs rounded p-1 w-4 h-4' : 'text-sm rounded w-8 h-8'} flex items-center justify-center transition-all duration-200 ${
-                          day === selectedDay
-                            ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                            : `${colors.text} ${colors.bgHover}`
-                        }`}
-                        onClick={() => handleDayChange(day)}
-                      >
-                        {day}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            // Range mode - separate start and end year selectors
-            <>
-              {asSidebar ? (
-                // Sidebar layout - vertical
-                <>
-                  {/* Start Year Section */}
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
-                  
-                  {years.slice().reverse().map((year) => (
-                    <button
-                      key={`start-${year}`}
-                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                        year === yearRange.startYear
-                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                          : `${colors.text} ${colors.bgHover}`
-                      } ${hoveredYear === `start-${year}` ? 'scale-110' : ''}`}
-                      onClick={() => {
-                        // Don't allow start year to be after end year
-                        if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
-                          handleYearRangeChange({ 
-                            startYear: year, 
-                            endYear: yearRange.endYear || years[years.length - 1] 
-                          });
-                        }
-                      }}
-                      onMouseEnter={() => setHoveredYear(`start-${year}`)}
-                      onMouseLeave={() => setHoveredYear(null)}
-                    >
-                      {year}
-                    </button>
-                  ))}
-                  
-                  {/* Divider */}
-                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
-                  
-                  {/* End Year Section */}
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>END</div>
-                  
-                  {years.slice().reverse().map((year) => (
-                    <button
-                      key={`end-${year}`}
-                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                        year === yearRange.endYear
-                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                          : `${colors.text} ${colors.bgHover}`
-                      } ${hoveredYear === `end-${year}` ? 'scale-110' : ''}`}
-                      onClick={() => {
-                        // Don't allow end year to be before start year
-                        if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
-                          handleYearRangeChange({ 
-                            startYear: yearRange.startYear || years[0], 
-                            endYear: year 
-                          });
-                        }
-                      }}
-                      onMouseEnter={() => setHoveredYear(`end-${year}`)}
-                      onMouseLeave={() => setHoveredYear(null)}
-                    >
-                      {year}
-                    </button>
-                  ))}
-                </>
-              ) : (
-                // Inline layout - horizontal
-                <div className="w-full">
-                  <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-                    {/* Start Year */}
-                    <div className="flex flex-col items-center">
-                      <div className={`text-sm font-medium ${colors.text} mb-2`}>Start Year</div>
-                      <div className="flex flex-wrap gap-2 justify-center max-w-xs">
-                        {years.map((year) => (
-                          <button
-                            key={`inline-start-${year}`}
-                            className={`font-medium text-sm rounded px-2 py-1 transition-all duration-200 ${
-                              year === yearRange.startYear
-                                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                                : `${colors.text} ${colors.bgHover}`
-                            }`}
-                            onClick={() => {
-                              if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
-                                handleYearRangeChange({
-                                  startYear: year,
-                                  endYear: yearRange.endYear || years[years.length - 1]
-                                });
-                              }
-                            }}
-                          >
-                            {year}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* End Year */}
-                    <div className="flex flex-col items-center">
-                      <div className={`text-sm font-medium ${colors.text} mb-2`}>End Year</div>
-                      <div className="flex flex-wrap gap-2 justify-center max-w-xs">
-                        {years.map((year) => (
-                          <button
-                            key={`inline-end-${year}`}
-                            className={`font-medium text-sm rounded px-2 py-1 transition-all duration-200 ${
-                              year === yearRange.endYear
-                                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                                : `${colors.text} ${colors.bgHover}`
-                            }`}
-                            onClick={() => {
-                              if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
-                                handleYearRangeChange({
-                                  startYear: yearRange.startYear || years[0],
-                                  endYear: year
-                                });
-                              }
-                            }}
-                          >
-                            {year}
-                          </button>
-                        ))}
-                      </div>
+                    <div className={`text-sm font-medium ${colors.text}`}>
+                      {selectedYear}-{selectedMonth.toString().padStart(2, '0')}
                     </div>
                   </div>
+                  
+                  <WheelSelector
+                    items={days}
+                    value={selectedDay}
+                    onChange={handleDayChange}
+                    label="Day"
+                    colorTheme={colorTheme}
+                  />
                 </div>
               )}
             </>
+          ) : (
+            // Range mode with wheel selectors
+            <div className="flex gap-4 items-center">
+              {/* Start Year */}
+              <div className="flex flex-col items-center">
+                <div className={`text-xs mb-1 font-medium ${colors.text}`}>Start</div>
+                <WheelSelector
+                  items={years}
+                  value={yearRange.startYear}
+                  onChange={(year) => {
+                    // Don't allow start year to be after end year
+                    if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
+                      handleYearRangeChange({ 
+                        startYear: year, 
+                        endYear: yearRange.endYear || years[years.length - 1] 
+                      });
+                    }
+                  }}
+                  colorTheme={colorTheme}
+                />
+              </div>
+              
+              <div className={`${colors.text} font-bold`}>-</div>
+              
+              {/* End Year */}
+              <div className="flex flex-col items-center">
+                <div className={`text-xs mb-1 font-medium ${colors.text}`}>End</div>
+                <WheelSelector
+                  items={years}
+                  value={yearRange.endYear}
+                  onChange={(year) => {
+                    // Don't allow end year to be before start year
+                    if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
+                      handleYearRangeChange({ 
+                        startYear: yearRange.startYear || years[0], 
+                        endYear: year 
+                      });
+                    }
+                  }}
+                  colorTheme={colorTheme}
+                />
+              </div>
+            </div>
           )}
         </div>
         
-        {/* Bottom section with controls */}
-        <div className={asSidebar 
-          ? "flex flex-col items-center mt-2 gap-2" 
-          : "mt-4 flex items-center justify-center gap-2"
-        }>
-          {/* All Time button for sidebar mode */}
-          {asSidebar && mode === 'single' && (
-            <button
-              onClick={() => handleYearChange('all')}
-              className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
-                selectedYear === 'all'
-                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                  : `${colors.text} hover:bg-white/10`
-              } hover:scale-105 mb-1`}
-            >
-              All Time
-            </button>
-          )}
-          
+        {/* Bottom controls section */}
+        <div className="mt-2 flex flex-col items-center gap-2">
+          {/* Current selection display */}
           <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-sm`}>
             {getYearLabel()}
           </div>
-          
-          {/* Position toggle button - only for sidebar */}
-          {asSidebar && (
-            <button 
-              onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className="text-xs">⇄</span>
-            </button>
-          )}
           
           {/* Apply button for range mode */}
           {mode === 'range' && (
@@ -807,26 +590,22 @@ const YearSelector = ({
               }}
               className={`px-3 py-1 ${colors.buttonBg} text-white rounded-md ${colors.buttonHover} text-xs font-bold`}
             >
-              Apply
+              Apply Range
+            </button>
+          )}
+          
+          {/* Sidebar position toggle - only for sidebar */}
+          {asSidebar && (
+            <button 
+              onClick={togglePosition}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
+              aria-label="Toggle sidebar position"
+            >
+              <span className="text-xs">⇄</span>
             </button>
           )}
         </div>
       </div>
-      
-      {asSidebar && (
-        <style jsx>{`
-          .scrollbar-thin::-webkit-scrollbar {
-            width: 6px;
-          }
-          .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-            border-radius: 4px;
-          }
-          .scrollbar-thumb-current::-webkit-scrollbar-thumb {
-            background-color: currentColor;
-            opacity: 0.3;
-          }
-        `}</style>
-      )}
     </div>
   );
 };
