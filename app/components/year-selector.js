@@ -94,16 +94,20 @@ const YearSelector = ({
   // Update selectedYear when initialYear changes
   useEffect(() => {
     if (initialYear) {
-      setSelectedYear(initialYear);
-      
       // Check if initialYear contains month/day info (format: YYYY-MM-DD)
       if (initialYear !== 'all' && initialYear.includes('-')) {
         const parts = initialYear.split('-');
+        
+        // If we have at least year-month format
         if (parts.length >= 2) {
+          // Set the year part
+          setSelectedYear(parts[0]);
+          
           const monthPart = parseInt(parts[1]);
           if (!isNaN(monthPart) && monthPart >= 1 && monthPart <= 12) {
             setSelectedMonth(monthPart);
             
+            // If we have year-month-day format
             if (parts.length >= 3) {
               const dayPart = parseInt(parts[2]);
               if (!isNaN(dayPart) && dayPart >= 1) {
@@ -114,6 +118,14 @@ const YearSelector = ({
             // Show the month/day selectors
             setShowMonthDaySelectors(true);
           }
+        }
+      } else {
+        // Just a simple year or "all"
+        setSelectedYear(initialYear);
+        
+        // If switching to "all", hide month/day selectors
+        if (initialYear === 'all') {
+          setShowMonthDaySelectors(false);
         }
       }
     }
@@ -349,7 +361,16 @@ const YearSelector = ({
   
   // Handle year change in single mode
   const handleYearChange = (year) => {
+    // Save the previous year
+    const prevYear = selectedYear;
+    
+    // Update selected year state
     setSelectedYear(year);
+    
+    // If changing to "all", hide month/day selectors
+    if (year === 'all') {
+      setShowMonthDaySelectors(false);
+    }
     
     // If not "all", make sure the month/day are valid for this year
     if (year !== 'all') {
@@ -361,7 +382,16 @@ const YearSelector = ({
     }
     
     // Update parent with the full date or just the year
-    updateParentWithDate(year, selectedMonth, selectedDay);
+    if (year === 'all') {
+      onYearChange?.('all');
+    } else if (showMonthDaySelectors) {
+      // If showing month/day selectors, include that info
+      const dateStr = `${year}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+      onYearChange?.(dateStr);
+    } else {
+      // Just use the year
+      onYearChange?.(year);
+    }
   };
   
   // Handle month change in single mode
@@ -376,8 +406,11 @@ const YearSelector = ({
         setSelectedDay(validDay);
       }
       
-      // Update parent with new date
-      updateParentWithDate(selectedYear, month, validDay);
+      // Update parent directly with the new date string
+      if (showMonthDaySelectors) {
+        const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
+        onYearChange?.(dateStr);
+      }
     }
   };
   
@@ -385,9 +418,10 @@ const YearSelector = ({
   const handleDayChange = (day) => {
     setSelectedDay(day);
     
-    // Update parent with new date
-    if (selectedYear !== 'all') {
-      updateParentWithDate(selectedYear, selectedMonth, day);
+    // Update parent directly with the new date string
+    if (selectedYear !== 'all' && showMonthDaySelectors) {
+      const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      onYearChange?.(dateStr);
     }
   };
   
@@ -542,13 +576,17 @@ const YearSelector = ({
                       type="checkbox" 
                       checked={showMonthDaySelectors} 
                       onChange={() => {
+                        // Toggle the state
                         const newValue = !showMonthDaySelectors;
                         setShowMonthDaySelectors(newValue);
-                        // Update parent with the new date format
+                        
+                        // Update parent with the appropriate date format
+                        // but don't change the selected year
                         if (selectedYear !== 'all') {
                           if (newValue) {
                             // Include month/day
-                            updateParentWithDate(selectedYear, selectedMonth, selectedDay);
+                            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+                            onYearChange?.(dateStr);
                           } else {
                             // Just year
                             onYearChange?.(selectedYear);
