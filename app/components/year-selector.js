@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import BetterYearSlider from './better-year-slider.js';
-import DualHandleYearSlider from './dual-handle-year-slider.js';
 
 const YearSelector = ({ 
   artistsByYear, 
@@ -11,17 +9,19 @@ const YearSelector = ({
   isRangeMode, 
   onToggleRangeMode,
   colorTheme = 'teal', 
-  asSidebar = false, 
   position = 'right', 
   startMinimized = false 
 }) => {
-  // Only apply startMinimized when asSidebar is true
-  const actuallyStartMinimized = asSidebar && startMinimized;
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
-  const [expanded, setExpanded] = useState(!actuallyStartMinimized);
+  const [expanded, setExpanded] = useState(!startMinimized);
   const [isMobile, setIsMobile] = useState(false);
   const [hoveredYear, setHoveredYear] = useState(null);
   const [currentPosition, setCurrentPosition] = useState(position);
+  const [selectedYear, setSelectedYear] = useState(initialYear || 'all');
+  const [yearRange, setYearRange] = useState({ 
+    startYear: initialYearRange?.startYear || '', 
+    endYear: initialYearRange?.endYear || '' 
+  });
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -38,29 +38,44 @@ const YearSelector = ({
   
   // Check for mobile viewport
   useEffect(() => {
-    if (asSidebar) {
-      const checkMobile = () => {
-        setIsMobile(window.innerWidth < 640);
-      };
-      
-      // Initial check
-      checkMobile();
-      
-      // Add resize listener
-      window.addEventListener('resize', checkMobile);
-      
-      // Cleanup
-      return () => window.removeEventListener('resize', checkMobile);
-    }
-  }, [asSidebar]);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
     setMode(isRangeMode ? 'range' : 'single');
   }, [isRangeMode]);
   
-  // Map color theme to actual color values with bright and glowing effects
-  const colors = (() => {
+  // Update yearRange when initialYearRange changes
+  useEffect(() => {
+    if (initialYearRange?.startYear && initialYearRange?.endYear) {
+      setYearRange({
+        startYear: initialYearRange.startYear,
+        endYear: initialYearRange.endYear
+      });
+    }
+  }, [initialYearRange]);
+  
+  // Update selectedYear when initialYear changes
+  useEffect(() => {
+    if (initialYear) {
+      setSelectedYear(initialYear);
+    }
+  }, [initialYear]);
+  
+  // Map color theme to actual color values
+  const getColors = () => {
     switch (colorTheme) {
       case 'pink':
         return {
@@ -72,9 +87,10 @@ const YearSelector = ({
           bgDark: 'bg-pink-800',
           sidebarBg: 'bg-pink-100',
           glowActive: 'shadow-[0_0_15px_rgba(236,72,153,0.7)]',
-          buttonBg: 'bg-pink-500',
-          buttonHover: 'hover:bg-pink-400',
-          border: 'border-pink-300'
+          buttonBg: 'bg-pink-600',
+          buttonHover: 'hover:bg-pink-700',
+          border: 'border-pink-300',
+          textBold: 'text-pink-800'
         };
       case 'purple':
         return {
@@ -86,9 +102,10 @@ const YearSelector = ({
           bgDark: 'bg-purple-800',
           sidebarBg: 'bg-purple-100',
           glowActive: 'shadow-[0_0_15px_rgba(168,85,247,0.7)]',
-          buttonBg: 'bg-purple-500',
-          buttonHover: 'hover:bg-purple-400',
-          border: 'border-purple-300'
+          buttonBg: 'bg-purple-600',
+          buttonHover: 'hover:bg-purple-700',
+          border: 'border-purple-300',
+          textBold: 'text-purple-800'
         };
       case 'indigo':
         return {
@@ -100,9 +117,10 @@ const YearSelector = ({
           bgDark: 'bg-indigo-800',
           sidebarBg: 'bg-indigo-100',
           glowActive: 'shadow-[0_0_15px_rgba(99,102,241,0.7)]',
-          buttonBg: 'bg-indigo-500',
-          buttonHover: 'hover:bg-indigo-400',
-          border: 'border-indigo-300'
+          buttonBg: 'bg-indigo-600',
+          buttonHover: 'hover:bg-indigo-700',
+          border: 'border-indigo-300',
+          textBold: 'text-indigo-800'
         };
       case 'blue':
         return {
@@ -114,9 +132,10 @@ const YearSelector = ({
           bgDark: 'bg-blue-800',
           sidebarBg: 'bg-blue-100',
           glowActive: 'shadow-[0_0_15px_rgba(59,130,246,0.7)]',
-          buttonBg: 'bg-blue-500',
-          buttonHover: 'hover:bg-blue-400',
-          border: 'border-blue-300'
+          buttonBg: 'bg-blue-600',
+          buttonHover: 'hover:bg-blue-700',
+          border: 'border-blue-300',
+          textBold: 'text-blue-800'
         };
       case 'green':
         return {
@@ -128,9 +147,10 @@ const YearSelector = ({
           bgDark: 'bg-green-800',
           sidebarBg: 'bg-green-100',
           glowActive: 'shadow-[0_0_15px_rgba(34,197,94,0.7)]',
-          buttonBg: 'bg-green-500',
-          buttonHover: 'hover:bg-green-400',
-          border: 'border-green-300'
+          buttonBg: 'bg-green-600',
+          buttonHover: 'hover:bg-green-700',
+          border: 'border-green-300',
+          textBold: 'text-green-800'
         };
       case 'yellow':
         return {
@@ -144,7 +164,8 @@ const YearSelector = ({
           glowActive: 'shadow-[0_0_15px_rgba(234,179,8,0.7)]',
           buttonBg: 'bg-yellow-500',
           buttonHover: 'hover:bg-yellow-400',
-          border: 'border-yellow-300'
+          border: 'border-yellow-300',
+          textBold: 'text-yellow-800'
         };
       case 'red':
         return {
@@ -156,9 +177,10 @@ const YearSelector = ({
           bgDark: 'bg-red-800',
           sidebarBg: 'bg-red-100',
           glowActive: 'shadow-[0_0_15px_rgba(239,68,68,0.7)]',
-          buttonBg: 'bg-red-500',
-          buttonHover: 'hover:bg-red-400',
-          border: 'border-red-300'
+          buttonBg: 'bg-red-600',
+          buttonHover: 'hover:bg-red-700',
+          border: 'border-red-300',
+          textBold: 'text-red-800'
         };
       case 'orange':
         return {
@@ -170,9 +192,10 @@ const YearSelector = ({
           bgDark: 'bg-orange-800',
           sidebarBg: 'bg-orange-100',
           glowActive: 'shadow-[0_0_15px_rgba(249,115,22,0.7)]',
-          buttonBg: 'bg-orange-500',
-          buttonHover: 'hover:bg-orange-400',
-          border: 'border-orange-300'
+          buttonBg: 'bg-orange-600',
+          buttonHover: 'hover:bg-orange-700',
+          border: 'border-orange-300',
+          textBold: 'text-orange-800'
         };
       case 'teal':
       default:
@@ -185,12 +208,15 @@ const YearSelector = ({
           bgDark: 'bg-teal-800',
           sidebarBg: 'bg-teal-100',
           glowActive: 'shadow-[0_0_15px_rgba(20,184,166,0.7)]',
-          buttonBg: 'bg-teal-500',
-          buttonHover: 'hover:bg-teal-400',
-          border: 'border-teal-300'
+          buttonBg: 'bg-teal-600',
+          buttonHover: 'hover:bg-teal-700',
+          border: 'border-teal-300',
+          textBold: 'text-teal-800'
         };
     }
-  })();
+  };
+
+  const colors = getColors();
   
   if (years.length === 0) {
     return <div className={colors.text + " italic"}>No year data available</div>;
@@ -216,140 +242,82 @@ const YearSelector = ({
     }
     
     // If switching to single mode, default to 'all'
-    if (newMode === 'single' && onYearChange) {
-      onYearChange('all');
+    if (newMode === 'single') {
+      setSelectedYear('all');
+      
+      if (onYearChange) {
+        onYearChange('all');
+      }
     } 
     // If switching to range mode, default to full range
-    else if (newMode === 'range' && onYearRangeChange && years.length >= 2) {
-      onYearRangeChange({
+    else if (newMode === 'range' && years.length >= 2) {
+      const newYearRange = {
         startYear: years[0],
         endYear: years[years.length - 1]
-      });
+      };
+      
+      setYearRange(newYearRange);
+      
+      if (onYearRangeChange) {
+        onYearRangeChange(newYearRange);
+      }
     }
   };
   
-  // Sidebar version
-  if (asSidebar) {
-    // Position styles for the sidebar
-    const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
+  // Handler for year change in single mode
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
     
-    // Get the appropriate label based on mode and current selection
-    const getYearLabel = () => {
-      if (mode === 'range' && initialYearRange && initialYearRange.startYear && initialYearRange.endYear) {
-        return `${initialYearRange.startYear}-${initialYearRange.endYear}`;
-      }
-      return initialYear === 'all' ? 'All Time' : initialYear;
-    };
+    if (onYearChange) {
+      onYearChange(year);
+    }
+  };
+  
+  // Handler for year range change in range mode
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    const newYearRange = { startYear, endYear };
+    setYearRange(newYearRange);
+    
+    if (onYearRangeChange) {
+      onYearRangeChange(newYearRange);
+    }
+  };
+  
+  // Get the appropriate label
+  const getYearLabel = () => {
+    if (mode === 'single') {
+      return selectedYear === 'all' ? 'All Time' : selectedYear;
+    } else {
+      return `${yearRange.startYear}-${yearRange.endYear}`;
+    }
+  };
 
+  // Position styles for the sidebar
+  const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
+
+  // If not expanded, show a mini sidebar
+  if (!expanded) {
     return (
       <div 
-        className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 ${
-          expanded ? 'w-16 sm:w-20' : 'w-8'
-        } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
-        {/* Expand/Collapse toggle button */}
+        {/* Expand button */}
         <button 
           onClick={toggleExpanded}
           className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
-          aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+          aria-label="Expand sidebar"
         >
-          {expanded ? (
-            currentPosition === 'left' ? '←' : '→'
-          ) : (
-            currentPosition === 'left' ? '→' : '←'
-          )}
+          {currentPosition === 'left' ? '→' : '←'}
         </button>
         
-        {expanded && (
-          <div className="h-full flex flex-col justify-between pt-16 pb-3">
-            <div className="overflow-y-auto max-h-[calc(100%-70px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
-              {/* Mode toggle buttons at top */}
-              <div className="flex flex-col gap-2 items-center mb-6">
-                <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
-                <button
-                  onClick={() => handleModeChange('range')}
-                  className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
-                    mode === 'range' 
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.bgHover}`
-                  }`}
-                >
-                  Range
-                </button>
-                <button
-                  onClick={() => handleModeChange('single')}
-                  className={`px-2 py-1 rounded text-xs w-14 text-center transition-all duration-200 ${
-                    mode === 'single' 
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.bgHover}`
-                  }`}
-                >
-                  Single
-                </button>
-              </div>
-              
-              {/* Years buttons - most recent first */}
-              {years.slice().reverse().map((year) => (
-                <button
-                  key={year}
-                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                    initialYear === year
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.bgHover}`
-                  } ${hoveredYear === year ? 'scale-110' : ''}`}
-                  onClick={() => {
-                    if (onYearChange) {
-                      onYearChange(year);
-                    }
-                  }}
-                  onMouseEnter={() => setHoveredYear(year)}
-                  onMouseLeave={() => setHoveredYear(null)}
-                >
-                  {year}
-                </button>
-              ))}
-            </div>
-            
-            {/* Position toggle and All-Time buttons */}
-            <div className="flex flex-col items-center mt-2 gap-2">
-              <button 
-                onClick={togglePosition}
-                className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
-                aria-label="Toggle sidebar position"
-              >
-                <span className="text-xs">⇄</span>
-              </button>
-              
-              {/* All-Time button */}
-              <button
-                onClick={() => {
-                  if (onYearChange) {
-                    onYearChange('all');
-                  }
-                }}
-                className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
-                  initialYear === 'all'
-                    ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                    : `${colors.text} ${colors.bgHover}`
-                } hover:scale-105 mb-2`}
-              >
-                All Time
-              </button>
-            </div>
+        <div className={`h-full pt-16 flex flex-col items-center justify-center ${colors.text}`}>
+          <div className="writing-mode-vertical text-xs font-bold my-2">
+            {getYearLabel()}
           </div>
-        )}
-        
-        {/* Mini version when collapsed */}
-        {!expanded && (
-          <div className={`h-full pt-16 flex flex-col items-center justify-center ${colors.text}`}>
-            <div className="writing-mode-vertical text-xs font-bold my-2">
-              {getYearLabel()}
-            </div>
-            <div className="writing-mode-vertical text-xs opacity-70">
-              Years
-            </div>
+          <div className="writing-mode-vertical text-xs opacity-70">
+            {mode === 'single' ? 'Year' : 'Year Range'}
           </div>
-        )}
+        </div>
         
         <style jsx>{`
           .writing-mode-vertical {
@@ -357,130 +325,189 @@ const YearSelector = ({
             text-orientation: mixed;
             transform: rotate(180deg);
           }
-          .scrollbar-thin::-webkit-scrollbar {
-            width: 6px;
-          }
-          .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-            border-radius: 4px;
-          }
-          .scrollbar-thumb-current::-webkit-scrollbar-thumb {
-            background-color: currentColor;
-            opacity: 0.3;
-          }
         `}</style>
       </div>
     );
   }
   
-  // Standard inline version (original behavior)
+  // Full expanded sidebar - different rendering for single vs range mode
   return (
-    <div className="mt-2 mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <label className={colors.text + " font-medium text-sm"}>
-          {mode === 'range' 
-            ? 'Year Range Selection' 
-            : 'Single Year Selection'}
-        </label>
-        
-        {/* Toggle between modes */}
-        <div className="flex items-center gap-1 flex-wrap justify-end">
-          <button
-            onClick={() => {
-              setMode('single');
-              if (onToggleRangeMode) {
-                onToggleRangeMode(false);
-              }
-              if (onYearChange) {
-                onYearChange('all');
-              }
-            }}
-            className={`px-2 py-1 rounded text-xs ${
-              mode === 'single' && initialYear === 'all'
-                ? colors.bgActive + ' text-white' 
-                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
-            }`}
-          >
-            All-Time
-          </button>
-          
-          <button
-            onClick={() => {
-              setMode('single');
-              if (onToggleRangeMode) {
-                onToggleRangeMode(false);
-              }
-              // If currently on all-time, switch to most recent year
-              if (initialYear === 'all' && years.length > 0 && onYearChange) {
-                onYearChange(years[years.length - 1]);
-              }
-            }}
-            className={`px-2 py-1 rounded text-xs ${
-              mode === 'single' && initialYear !== 'all'
-                ? colors.bgActive + ' text-white' 
-                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
-            }`}
-          >
-            Single Year
-          </button>
-          
-          <button
-            onClick={() => {
-              handleModeChange('range');
-            }}
-            className={`px-2 py-1 rounded text-xs ${
-              mode === 'range'
-                ? colors.bgActive + ' text-white' 
-                : colors.bgLighter + ' ' + colors.text + ' hover:bg-opacity-70'
-            }`}
-          >
-            Range
-          </button>
-        </div>
-      </div>
+    <div 
+      className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-16 sm:w-20 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+    >
+      {/* Collapse button */}
+      <button 
+        onClick={toggleExpanded}
+        className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+        aria-label="Collapse sidebar"
+      >
+        {currentPosition === 'left' ? '←' : '→'}
+      </button>
       
-      {/* Render the appropriate slider based on mode */}
-      {mode === 'single' ? (
-        <div className="px-4">
-          <BetterYearSlider 
-            years={years} 
-            onYearChange={onYearChange}
-            initialYear={initialYear}
-            colorTheme={colorTheme}
-          />
-          <div className="flex justify-center mt-4">
+      <div className="h-full flex flex-col justify-between pt-16 pb-3">
+        {/* Mode toggle buttons at top */}
+        <div className="flex flex-col gap-2 items-center mb-2 mt-1">
+          <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
+          <div className="flex gap-1 justify-center">
             <button
-              onClick={() => {
-                if (onYearChange) {
-                  onYearChange('all');
-                }
-                
-                // Force any BetterYearSlider to refresh
-                setTimeout(() => {
-                  const yearDisplays = document.querySelectorAll('.year-display');
-                  yearDisplays.forEach(display => {
-                    if (display) {
-                      display.textContent = 'All-Time';
-                    }
-                  });
-                }, 50);
-              }}
-              className={`px-3 py-1 ${colors.buttonBg} text-white rounded hover:opacity-90`}
+              onClick={() => handleModeChange('single')}
+              className={`px-2 py-1 rounded text-xs text-center transition-all duration-200 ${
+                mode === 'single' 
+                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                  : `${colors.text} ${colors.bgLighter}`
+              }`}
             >
-              Show All Years
+              Single
+            </button>
+            <button
+              onClick={() => handleModeChange('range')}
+              className={`px-2 py-1 rounded text-xs text-center transition-all duration-200 ${
+                mode === 'range' 
+                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                  : `${colors.text} ${colors.bgLighter}`
+              }`}
+            >
+              Range
             </button>
           </div>
         </div>
-      ) : (
-        <div className="px-4">
-          <DualHandleYearSlider 
-            years={years}
-            onYearRangeChange={onYearRangeChange}
-            initialStartYear={initialYearRange?.startYear || years[0]}
-            initialEndYear={initialYearRange?.endYear || years[years.length - 1]}
-            colorTheme={colorTheme}
-          />
+        
+        <div className="overflow-y-auto max-h-[calc(100%-110px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
+          {mode === 'single' ? (
+            // Single mode - list of years including "All Time"
+            <>
+              <button
+                onClick={() => handleYearChange('all')}
+                className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
+                  selectedYear === 'all'
+                    ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                    : `${colors.text} hover:bg-white/10`
+                } hover:scale-105 mb-1`}
+              >
+                All Time
+              </button>
+              
+              {years.slice().reverse().map((year) => (
+                <button
+                  key={year}
+                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                    year === selectedYear
+                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                      : `${colors.text} ${colors.hoverBg}`
+                  } ${hoveredYear === year ? 'scale-110' : ''}`}
+                  onClick={() => handleYearChange(year)}
+                  onMouseEnter={() => setHoveredYear(year)}
+                  onMouseLeave={() => setHoveredYear(null)}
+                >
+                  {year}
+                </button>
+              ))}
+            </>
+          ) : (
+            // Range mode - separate start and end year selectors
+            <>
+              {/* Start Year Section */}
+              <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
+              
+              {years.slice().reverse().map((year) => (
+                <button
+                  key={`start-${year}`}
+                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                    year === yearRange.startYear
+                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                      : `${colors.text} ${colors.hoverBg}`
+                  } ${hoveredYear === `start-${year}` ? 'scale-110' : ''}`}
+                  onClick={() => {
+                    // Don't allow start year to be after end year
+                    if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
+                      handleYearRangeChange({ 
+                        startYear: year, 
+                        endYear: yearRange.endYear || years[years.length - 1] 
+                      });
+                    }
+                  }}
+                  onMouseEnter={() => setHoveredYear(`start-${year}`)}
+                  onMouseLeave={() => setHoveredYear(null)}
+                >
+                  {year}
+                </button>
+              ))}
+              
+              {/* Divider */}
+              <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
+              
+              {/* End Year Section */}
+              <div className={`text-xs mb-1 font-medium ${colors.text}`}>END</div>
+              
+              {years.slice().reverse().map((year) => (
+                <button
+                  key={`end-${year}`}
+                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                    year === yearRange.endYear
+                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                      : `${colors.text} ${colors.hoverBg}`
+                  } ${hoveredYear === `end-${year}` ? 'scale-110' : ''}`}
+                  onClick={() => {
+                    // Don't allow end year to be before start year
+                    if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
+                      handleYearRangeChange({ 
+                        startYear: yearRange.startYear || years[0], 
+                        endYear: year 
+                      });
+                    }
+                  }}
+                  onMouseEnter={() => setHoveredYear(`end-${year}`)}
+                  onMouseLeave={() => setHoveredYear(null)}
+                >
+                  {year}
+                </button>
+              ))}
+            </>
+          )}
         </div>
-      )}
+        
+        {/* Bottom section with position toggle and current selection */}
+        <div className="flex flex-col items-center mt-2 gap-2">
+          <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-sm`}>
+            {getYearLabel()}
+          </div>
+          
+          <button 
+            onClick={togglePosition}
+            className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
+            aria-label="Toggle sidebar position"
+          >
+            <span className="text-xs">⇄</span>
+          </button>
+          
+          {/* Apply button for range mode */}
+          {mode === 'range' && (
+            <button
+              onClick={() => {
+                if (onYearRangeChange && yearRange.startYear && yearRange.endYear) {
+                  onYearRangeChange(yearRange);
+                }
+              }}
+              className={`px-3 py-1 ${colors.buttonBg} text-white rounded-md ${colors.buttonHover} text-xs font-bold`}
+            >
+              Apply
+            </button>
+          )}
+        </div>
+      </div>
+      
+      <style jsx>{`
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 6px;
+        }
+        .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+          border-radius: 4px;
+        }
+        .scrollbar-thumb-current::-webkit-scrollbar-thumb {
+          background-color: currentColor;
+          opacity: 0.3;
+        }
+      `}</style>
     </div>
   );
 };
