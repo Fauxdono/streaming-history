@@ -10,12 +10,29 @@ const WheelSelector = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
-  const [scrollOffset, setScrollOffset] = useState(0);
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const [momentum, setMomentum] = useState(0);
+  const [lastTouchTime, setLastTouchTime] = useState(0);
+  const [lastTouchY, setLastTouchY] = useState(0);
   const containerRef = useRef(null);
-  const itemHeight = 36; // Height of each item in pixels
+  const animationRef = useRef(null);
+  
+  // Number of visible items above/below the selected item
+  const visibleItems = 3;
+  const itemHeight = 40; // Height in pixels
+  
+  // Calculate total height of the selector based on visible items
+  const totalHeight = itemHeight * (visibleItems * 2 + 1);
   
   // Find the index of the currently selected value
   const selectedIndex = items.findIndex(item => item.toString() === value?.toString());
+  
+  // If no value is selected or item not found, default to first item if available
+  useEffect(() => {
+    if ((selectedIndex === -1 || value === undefined) && items.length > 0 && onChange) {
+      onChange(items[0]);
+    }
+  }, [items, value, selectedIndex, onChange]);
   
   // Get color classes based on theme
   const getColors = () => {
@@ -27,7 +44,7 @@ const WheelSelector = ({
           text: 'text-pink-700',
           activeText: 'text-pink-800 font-bold',
           shadow: 'shadow-pink-200',
-          slider: 'bg-pink-200/50'
+          indicator: 'bg-pink-200'
         };
       case 'purple':
         return {
@@ -36,7 +53,7 @@ const WheelSelector = ({
           text: 'text-purple-700',
           activeText: 'text-purple-800 font-bold',
           shadow: 'shadow-purple-200',
-          slider: 'bg-purple-200/50'
+          indicator: 'bg-purple-200'
         };
       case 'blue':
         return {
@@ -45,7 +62,7 @@ const WheelSelector = ({
           text: 'text-blue-700',
           activeText: 'text-blue-800 font-bold',
           shadow: 'shadow-blue-200',
-          slider: 'bg-blue-200/50'
+          indicator: 'bg-blue-200'
         };
       case 'teal':
       default:
@@ -55,138 +72,221 @@ const WheelSelector = ({
           text: 'text-teal-700',
           activeText: 'text-teal-800 font-bold',
           shadow: 'shadow-teal-200',
-          slider: 'bg-teal-200/50'
+          indicator: 'bg-teal-200'
         };
     }
   };
   
   const colors = getColors();
   
-  // Calculate the display items (visible in wheel)
+  // Update the display items when selection changes
   const displayItems = () => {
-    if (selectedIndex === -1 || items.length === 0) {
-      return [{value: 'Select', index: -1}, {value: 'Option', index: -1}, {value: 'Value', index: -1}];
+    if (items.length === 0) return [];
+    
+    // If no valid selection, default to first item
+    const effectiveIndex = selectedIndex !== -1 ? selectedIndex : 0;
+    
+    const result = [];
+    
+    // Add items before the selected one
+    for (let i = effectiveIndex - visibleItems; i < effectiveIndex; i++) {
+      const itemIndex = i < 0 ? items.length + i : i; // Handle wrapping
+      result.push({
+        value: items[itemIndex],
+        displayValue: displayFormat(items[itemIndex]),
+        index: itemIndex,
+        offset: i - effectiveIndex
+      });
     }
     
-    const visibleItems = [];
-    
-    // Item above the selected one
-    const prevIndex = selectedIndex > 0 ? selectedIndex - 1 : items.length - 1;
-    visibleItems.push({
-      value: displayFormat(items[prevIndex]),
-      index: prevIndex
-    });
-    
-    // Selected item
-    visibleItems.push({
-      value: displayFormat(items[selectedIndex]),
-      index: selectedIndex,
+    // Add the selected item
+    result.push({
+      value: items[effectiveIndex],
+      displayValue: displayFormat(items[effectiveIndex]),
+      index: effectiveIndex,
+      offset: 0,
       selected: true
     });
     
-    // Item below the selected one
-    const nextIndex = selectedIndex < items.length - 1 ? selectedIndex + 1 : 0;
-    visibleItems.push({
-      value: displayFormat(items[nextIndex]),
-      index: nextIndex
-    });
+    // Add items after the selected one
+    for (let i = effectiveIndex + 1; i <= effectiveIndex + visibleItems; i++) {
+      const itemIndex = i >= items.length ? i - items.length : i; // Handle wrapping
+      result.push({
+        value: items[itemIndex],
+        displayValue: displayFormat(items[itemIndex]),
+        index: itemIndex,
+        offset: i - effectiveIndex
+      });
+    }
     
-    return visibleItems;
+    return result;
   };
   
-  // Handle start of drag/scroll
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setStartY(e.clientY || (e.touches && e.touches[0].clientY) || 0);
+  // Handle the start of a drag event
+  const handleDragStart = (e) => {
+    // Prevent default behavior to avoid page scrolling
     e.preventDefault();
+    
+    // Only start dragging on left mouse button or touch
+    if (e.buttons === 1 || e.type === 'touchstart') {
+      setIsDragging(true);
+      const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+      setStartY(clientY);
+      setLastTouchY(clientY);
+      setLastTouchTime(Date.now());
+      setMomentum(0);
+      
+      // Cancel any ongoing animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    }
   };
   
-  // Handle drag motion
-  const handleMouseMove = (e) => {
+  // Handle drag movement
+  const handleDragMove = (e) => {
     if (!isDragging) return;
     
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    // Calculate current Y position
+    const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
     const deltaY = clientY - startY;
     
-    setScrollOffset(deltaY);
+    // Calculate momentum
+    const now = Date.now();
+    const timeDelta = now - lastTouchTime;
+    if (timeDelta > 0) {
+      const velocity = (clientY - lastTouchY) / timeDelta;
+      setMomentum(velocity * 100); // Scale for better UX
+    }
+    
+    // Update position references
+    setLastTouchY(clientY);
+    setLastTouchTime(now);
+    
+    // Update the visual offset
+    setCurrentOffset(deltaY);
+    
+    // Prevent default to stop page scrolling on touch
     e.preventDefault();
   };
   
-  // Handle end of drag/scroll
-  const handleMouseUp = (e) => {
+  // Handle end of dragging
+  const handleDragEnd = () => {
     if (!isDragging) return;
     
     setIsDragging(false);
     
-    // Determine direction and snap to next item
-    if (Math.abs(scrollOffset) > 10) { // threshold for registering a change
-      const direction = scrollOffset > 0 ? -1 : 1; // positive offset = scroll down
-      
-      let newIndex = selectedIndex + direction;
-      
-      // Handle wrap-around
-      if (newIndex < 0) newIndex = items.length - 1;
-      if (newIndex >= items.length) newIndex = 0;
-      
-      // Call the onChange handler with the new value
-      if (onChange && items[newIndex] !== undefined) {
-        onChange(items[newIndex]);
-      }
+    // Calculate how many items to move
+    const offsetInItems = Math.round((currentOffset + momentum) / itemHeight);
+    
+    // Prevent moving beyond boundaries
+    let newIndex = selectedIndex - offsetInItems;
+    
+    // Ensure new index is within valid range with wrapping
+    if (newIndex < 0) newIndex = items.length - (Math.abs(newIndex) % items.length);
+    if (newIndex >= items.length) newIndex = newIndex % items.length;
+    
+    // Call onChange if item changed
+    if (newIndex !== selectedIndex && onChange) {
+      onChange(items[newIndex]);
     }
     
-    // Reset scroll offset
-    setScrollOffset(0);
-    e.preventDefault();
+    // Reset visual state
+    setCurrentOffset(0);
+    setMomentum(0);
+    
+    // Apply inertia animation if there's significant momentum
+    if (Math.abs(momentum) > 5) {
+      applyInertia();
+    }
   };
   
-  // Add and remove event listeners
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleMouseMove, { passive: false });
-      window.addEventListener('touchend', handleMouseUp);
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleMouseMove);
-      window.removeEventListener('touchend', handleMouseUp);
-    }
+  // Apply inertia animation
+  const applyInertia = () => {
+    let currentMomentum = momentum;
+    let lastTimestamp = null;
     
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleMouseMove);
-      window.removeEventListener('touchend', handleMouseUp);
+    const animateInertia = (timestamp) => {
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp;
+        animationRef.current = requestAnimationFrame(animateInertia);
+        return;
+      }
+      
+      const delta = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
+      
+      // Apply friction to slow down the momentum
+      currentMomentum *= 0.95;
+      
+      // Stop the animation when momentum is very small
+      if (Math.abs(currentMomentum) < 0.5) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+        return;
+      }
+      
+      // Calculate how much to move
+      const move = (currentMomentum * delta) / 100;
+      
+      // Determine if movement requires changing the selected item
+      const totalMove = move / itemHeight;
+      if (Math.abs(totalMove) > 0.5) {
+        // Calculate new index based on direction
+        const direction = currentMomentum > 0 ? -1 : 1;
+        const newIndex = (selectedIndex + direction + items.length) % items.length;
+        
+        // Update selection and reset momentum for smoother transition
+        if (onChange) {
+          onChange(items[newIndex]);
+        }
+        currentMomentum *= 0.5; // Reduce momentum after each item change
+      }
+      
+      // Continue animation
+      animationRef.current = requestAnimationFrame(animateInertia);
     };
-  }, [isDragging, startY, scrollOffset]);
+    
+    // Start the animation
+    animationRef.current = requestAnimationFrame(animateInertia);
+  };
   
-  // Handle scroll wheel events
+  // Clean up animations on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+  
+  // Handle wheel events for desktop
   const handleWheel = (e) => {
     e.preventDefault();
     
-    const direction = e.deltaY > 0 ? 1 : -1; // positive deltaY = scroll down
+    // Determine direction
+    const direction = e.deltaY > 0 ? 1 : -1;
     
+    // Calculate new index
     let newIndex = selectedIndex + direction;
     
-    // Handle wrap-around
+    // Ensure new index is within valid range with wrapping
     if (newIndex < 0) newIndex = items.length - 1;
     if (newIndex >= items.length) newIndex = 0;
     
-    // Call the onChange handler with the new value
-    if (onChange && items[newIndex] !== undefined) {
+    // Call onChange
+    if (onChange) {
       onChange(items[newIndex]);
     }
   };
   
-  // Click handler for items
+  // Handle click on an item
   const handleItemClick = (index) => {
-    if (onChange && items[index] !== undefined) {
+    if (onChange && index !== selectedIndex) {
       onChange(items[index]);
     }
   };
-  
-  const visibleItems = displayItems();
   
   return (
     <div className="flex flex-col items-center">
@@ -194,51 +294,59 @@ const WheelSelector = ({
       
       <div 
         ref={containerRef}
-        className={`relative h-28 w-16 overflow-hidden rounded ${colors.border} border ${colors.shadow} shadow`}
+        className={`relative w-16 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none touch-manipulation`}
+        style={{ height: `${totalHeight}px` }}
         onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onTouchStart={handleMouseDown}
-        style={{ touchAction: 'none' }}
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+        onMouseMove={handleDragMove}
+        onTouchMove={handleDragMove}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+        onTouchEnd={handleDragEnd}
+        onTouchCancel={handleDragEnd}
       >
-        {/* Highlight for the selected item */}
-        <div 
-          className={`absolute left-0 right-0 h-12 top-1/2 -translate-y-1/2 ${colors.highlight} pointer-events-none`}
-        ></div>
+        {/* Center selection indicator */}
+        <div className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-${itemHeight}px pointer-events-none ${colors.highlight} border-y ${colors.border}`}></div>
         
-        {/* Items container */}
-        <div 
-          className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center transition-transform"
+        {/* Rendered items */}
+        <div
+          className="absolute left-0 right-0 top-0 bottom-0 flex flex-col items-center transition-transform"
           style={{
-            transform: `translateY(${scrollOffset}px)`,
+            transform: `translateY(${Math.floor(totalHeight / 2) + currentOffset}px)`,
             transition: isDragging ? 'none' : 'transform 0.2s ease-out'
           }}
         >
-          {visibleItems.map((item, idx) => (
+          {displayItems().map((item, idx) => (
             <div
               key={`wheel-item-${idx}`}
-              className={`h-12 w-full flex items-center justify-center cursor-pointer 
-                ${item.selected ? colors.activeText : colors.text} 
-                ${item.selected ? 'text-base' : 'text-sm opacity-70'}`}
+              className={`w-full flex items-center justify-center cursor-pointer transition-all duration-100
+                ${item.selected ? colors.activeText : colors.text}
+                ${item.selected ? 'text-base' : Math.abs(item.offset) === 1 ? 'text-sm opacity-70' : 'text-xs opacity-50'}`}
+              style={{ 
+                height: `${itemHeight}px`,
+                transform: `translateY(${-item.offset * itemHeight}px)`,
+              }}
               onClick={() => handleItemClick(item.index)}
             >
-              {item.value}
+              {item.displayValue}
             </div>
           ))}
         </div>
         
-        {/* Top and bottom gradients for scroll effect */}
-        <div className={`absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent pointer-events-none`}></div>
-        <div className={`absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none`}></div>
+        {/* Gradient fades for visual polish */}
+        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-white to-transparent pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
         
-        {/* Arrows for visual affordance */}
-        <div className="absolute top-1 left-0 right-0 flex justify-center pointer-events-none">
-          <svg className={`w-4 h-4 ${colors.text}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        {/* Simple arrow indicators */}
+        <div className="absolute top-2 left-0 right-0 flex justify-center pointer-events-none">
+          <svg className={`w-4 h-4 ${colors.text}`} viewBox="0 0 24 24">
+            <path fill="currentColor" d="M7 14l5-5 5 5H7z"/>
           </svg>
         </div>
-        <div className="absolute bottom-1 left-0 right-0 flex justify-center pointer-events-none">
-          <svg className={`w-4 h-4 ${colors.text}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        <div className="absolute bottom-2 left-0 right-0 flex justify-center pointer-events-none">
+          <svg className={`w-4 h-4 ${colors.text}`} viewBox="0 0 24 24">
+            <path fill="currentColor" d="M7 10l5 5 5-5H7z"/>
           </svg>
         </div>
       </div>
