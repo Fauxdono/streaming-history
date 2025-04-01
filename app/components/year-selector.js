@@ -10,7 +10,8 @@ const YearSelector = ({
   onToggleRangeMode,
   colorTheme = 'teal', 
   position = 'right', 
-  startMinimized = false 
+  startMinimized = false,
+  asSidebar = false 
 }) => {
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   const [expanded, setExpanded] = useState(!startMinimized);
@@ -22,6 +23,12 @@ const YearSelector = ({
     startYear: initialYearRange?.startYear || '', 
     endYear: initialYearRange?.endYear || '' 
   });
+  
+  // Month and Day Selection - new states
+  const [showMonthSelection, setShowMonthSelection] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(1); // January = 1
+  const [selectedDay, setSelectedDay] = useState(1);
+  const [showDaySelection, setShowDaySelection] = useState(false);
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -35,6 +42,23 @@ const YearSelector = ({
   };
   
   const years = getYearsArray();
+  
+  // Generate all months (1-12)
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  
+  // Generate days based on selected month and year
+  const getDaysInMonth = (year, month) => {
+    // JavaScript months are 0-based, but our selectedMonth is 1-based
+    return new Date(parseInt(year), month, 0).getDate();
+  };
+  
+  const getDaysArray = () => {
+    if (selectedYear === 'all') return Array.from({ length: 31 }, (_, i) => i + 1);
+    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  };
+  
+  const days = getDaysArray();
   
   // Check for mobile viewport
   useEffect(() => {
@@ -74,6 +98,17 @@ const YearSelector = ({
     }
   }, [initialYear]);
   
+  // Reset month and day selection when year changes
+  useEffect(() => {
+    if (selectedYear !== 'all') {
+      // Reset to defaults when changing years
+      setSelectedMonth(1);
+      setSelectedDay(1);
+      setShowMonthSelection(false);
+      setShowDaySelection(false);
+    }
+  }, [selectedYear]);
+  
   // Map color theme to actual color values
   const getColors = () => {
     switch (colorTheme) {
@@ -90,7 +125,9 @@ const YearSelector = ({
           buttonBg: 'bg-pink-600',
           buttonHover: 'hover:bg-pink-700',
           border: 'border-pink-300',
-          textBold: 'text-pink-800'
+          textBold: 'text-pink-800',
+          bgLight: 'bg-pink-50',
+          bgMed: 'bg-pink-200'
         };
       case 'purple':
         return {
@@ -105,7 +142,9 @@ const YearSelector = ({
           buttonBg: 'bg-purple-600',
           buttonHover: 'hover:bg-purple-700',
           border: 'border-purple-300',
-          textBold: 'text-purple-800'
+          textBold: 'text-purple-800',
+          bgLight: 'bg-purple-50',
+          bgMed: 'bg-purple-200'
         };
       case 'indigo':
         return {
@@ -120,7 +159,9 @@ const YearSelector = ({
           buttonBg: 'bg-indigo-600',
           buttonHover: 'hover:bg-indigo-700',
           border: 'border-indigo-300',
-          textBold: 'text-indigo-800'
+          textBold: 'text-indigo-800',
+          bgLight: 'bg-indigo-50',
+          bgMed: 'bg-indigo-200'
         };
       case 'blue':
         return {
@@ -135,7 +176,9 @@ const YearSelector = ({
           buttonBg: 'bg-blue-600',
           buttonHover: 'hover:bg-blue-700',
           border: 'border-blue-300',
-          textBold: 'text-blue-800'
+          textBold: 'text-blue-800',
+          bgLight: 'bg-blue-50',
+          bgMed: 'bg-blue-200'
         };
       case 'green':
         return {
@@ -150,7 +193,9 @@ const YearSelector = ({
           buttonBg: 'bg-green-600',
           buttonHover: 'hover:bg-green-700',
           border: 'border-green-300',
-          textBold: 'text-green-800'
+          textBold: 'text-green-800',
+          bgLight: 'bg-green-50',
+          bgMed: 'bg-green-200'
         };
       case 'yellow':
         return {
@@ -165,7 +210,9 @@ const YearSelector = ({
           buttonBg: 'bg-yellow-500',
           buttonHover: 'hover:bg-yellow-400',
           border: 'border-yellow-300',
-          textBold: 'text-yellow-800'
+          textBold: 'text-yellow-800',
+          bgLight: 'bg-yellow-50',
+          bgMed: 'bg-yellow-200'
         };
       case 'red':
         return {
@@ -180,7 +227,9 @@ const YearSelector = ({
           buttonBg: 'bg-red-600',
           buttonHover: 'hover:bg-red-700',
           border: 'border-red-300',
-          textBold: 'text-red-800'
+          textBold: 'text-red-800',
+          bgLight: 'bg-red-50',
+          bgMed: 'bg-red-200'
         };
       case 'orange':
         return {
@@ -195,7 +244,9 @@ const YearSelector = ({
           buttonBg: 'bg-orange-600',
           buttonHover: 'hover:bg-orange-700',
           border: 'border-orange-300',
-          textBold: 'text-orange-800'
+          textBold: 'text-orange-800',
+          bgLight: 'bg-orange-50',
+          bgMed: 'bg-orange-200'
         };
       case 'teal':
       default:
@@ -211,7 +262,9 @@ const YearSelector = ({
           buttonBg: 'bg-teal-600',
           buttonHover: 'hover:bg-teal-700',
           border: 'border-teal-300',
-          textBold: 'text-teal-800'
+          textBold: 'text-teal-800',
+          bgLight: 'bg-teal-50',
+          bgMed: 'bg-teal-200'
         };
     }
   };
@@ -264,12 +317,55 @@ const YearSelector = ({
     }
   };
   
-  // Handler for year change in single mode
+  // Format month name for display
+  const getMonthName = (month) => {
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return monthNames[month - 1];
+  };
+  
+  // Handle year change in single mode
   const handleYearChange = (year) => {
     setSelectedYear(year);
     
+    // Reset month and day selection
+    setShowMonthSelection(false);
+    setShowDaySelection(false);
+    setSelectedMonth(1);
+    setSelectedDay(1);
+    
     if (onYearChange) {
       onYearChange(year);
+    }
+  };
+  
+  // Handle month change in single mode
+  const handleMonthChange = (month) => {
+    setSelectedMonth(month);
+    
+    // Reset day selection
+    setShowDaySelection(false);
+    setSelectedDay(1);
+    
+    // If a year and month are selected, update the date
+    if (selectedYear !== 'all' && onYearChange) {
+      const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}`;
+      // Here, we're passing the year-month as the selected "year"
+      onYearChange(dateStr);
+    }
+  };
+  
+  // Handle day change in single mode
+  const handleDayChange = (day) => {
+    setSelectedDay(day);
+    
+    // If a year and month are selected, update the date
+    if (selectedYear !== 'all' && onYearChange) {
+      const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      // Here, we're passing the year-month-day as the selected "year"
+      onYearChange(dateStr);
     }
   };
   
@@ -286,7 +382,17 @@ const YearSelector = ({
   // Get the appropriate label
   const getYearLabel = () => {
     if (mode === 'single') {
-      return selectedYear === 'all' ? 'All Time' : selectedYear;
+      if (selectedYear === 'all') return 'All Time';
+      
+      if (showDaySelection && selectedDay) {
+        return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+      }
+      
+      if (showMonthSelection && selectedMonth) {
+        return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+      }
+      
+      return selectedYear;
     } else {
       return `${yearRange.startYear}-${yearRange.endYear}`;
     }
@@ -344,64 +450,125 @@ const YearSelector = ({
         {currentPosition === 'left' ? '←' : '→'}
       </button>
       
-      <div className="h-full flex flex-col justify-between pt-16 pb-3">
-        {/* Mode toggle buttons at top */}
-        <div className="flex flex-col gap-2 items-center mb-2 mt-1">
+      <div className="h-full flex flex-col justify-between pt-10 pb-3">
+        {/* Mode toggle buttons at top - now stacked vertically */}
+        <div className="flex flex-col gap-1 items-center mb-2">
           <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
-          <div className="flex gap-1 justify-center">
-            <button
-              onClick={() => handleModeChange('single')}
-              className={`px-2 py-1 rounded text-xs text-center transition-all duration-200 ${
-                mode === 'single' 
-                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                  : `${colors.text} ${colors.bgLighter}`
-              }`}
-            >
-              Single
-            </button>
-            <button
-              onClick={() => handleModeChange('range')}
-              className={`px-2 py-1 rounded text-xs text-center transition-all duration-200 ${
-                mode === 'range' 
-                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                  : `${colors.text} ${colors.bgLighter}`
-              }`}
-            >
-              Range
-            </button>
-          </div>
+          <button
+            onClick={() => handleModeChange('single')}
+            className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
+              mode === 'single' 
+                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                : `${colors.text} ${colors.bgLighter}`
+            }`}
+          >
+            Single
+          </button>
+          <button
+            onClick={() => handleModeChange('range')}
+            className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
+              mode === 'range' 
+                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                : `${colors.text} ${colors.bgLighter}`
+            }`}
+          >
+            Range
+          </button>
         </div>
         
-        <div className="overflow-y-auto max-h-[calc(100%-110px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
+        <div className="overflow-y-auto max-h-[calc(100%-180px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
           {mode === 'single' ? (
-            // Single mode - list of years including "All Time"
+            // Single mode - list of years 
             <>
-              <button
-                onClick={() => handleYearChange('all')}
-                className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
-                  selectedYear === 'all'
-                    ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                    : `${colors.text} hover:bg-white/10`
-                } hover:scale-105 mb-1`}
-              >
-                All Time
-              </button>
+              {/* Show years */}
+              {!showMonthSelection && !showDaySelection && (
+                <>
+                  {years.slice().reverse().map((year) => (
+                    <button
+                      key={year}
+                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                        year === selectedYear
+                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                          : `${colors.text} ${colors.bgHover}`
+                      } ${hoveredYear === year ? 'scale-110' : ''}`}
+                      onClick={() => {
+                        handleYearChange(year);
+                        // Show month selection after year selection
+                        setShowMonthSelection(true);
+                      }}
+                      onMouseEnter={() => setHoveredYear(year)}
+                      onMouseLeave={() => setHoveredYear(null)}
+                    >
+                      {year}
+                    </button>
+                  ))}
+                </>
+              )}
               
-              {years.slice().reverse().map((year) => (
-                <button
-                  key={year}
-                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                    year === selectedYear
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.hoverBg}`
-                  } ${hoveredYear === year ? 'scale-110' : ''}`}
-                  onClick={() => handleYearChange(year)}
-                  onMouseEnter={() => setHoveredYear(year)}
-                  onMouseLeave={() => setHoveredYear(null)}
-                >
-                  {year}
-                </button>
-              ))}
+              {/* Month selection */}
+              {showMonthSelection && selectedYear !== 'all' && !showDaySelection && (
+                <>
+                  <div className="flex items-center mb-1">
+                    <button 
+                      onClick={() => setShowMonthSelection(false)}
+                      className="text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                  </div>
+                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
+                  {months.map((month) => (
+                    <button
+                      key={`month-${month}`}
+                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                        month === selectedMonth
+                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                          : `${colors.text} ${colors.bgHover}`
+                      }`}
+                      onClick={() => {
+                        handleMonthChange(month);
+                        // Show day selection after month selection
+                        setShowDaySelection(true);
+                      }}
+                    >
+                      {getMonthName(month)}
+                    </button>
+                  ))}
+                </>
+              )}
+              
+              {/* Day selection */}
+              {showDaySelection && selectedYear !== 'all' && (
+                <>
+                  <div className="flex items-center mb-1">
+                    <button 
+                      onClick={() => {
+                        setShowDaySelection(false);
+                        setShowMonthSelection(true);
+                      }}
+                      className="text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    >
+                      Back
+                    </button>
+                  </div>
+                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
+                  <div className="grid grid-cols-3 gap-1">
+                    {days.map((day) => (
+                      <button
+                        key={`day-${day}`}
+                        className={`font-medium text-xs rounded p-1 w-4 h-4 flex items-center justify-center transition-all duration-200 ${
+                          day === selectedDay
+                            ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                            : `${colors.text} ${colors.bgHover}`
+                        }`}
+                        onClick={() => handleDayChange(day)}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           ) : (
             // Range mode - separate start and end year selectors
@@ -415,7 +582,7 @@ const YearSelector = ({
                   className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
                     year === yearRange.startYear
                       ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.hoverBg}`
+                      : `${colors.text} ${colors.bgHover}`
                   } ${hoveredYear === `start-${year}` ? 'scale-110' : ''}`}
                   onClick={() => {
                     // Don't allow start year to be after end year
@@ -445,7 +612,7 @@ const YearSelector = ({
                   className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
                     year === yearRange.endYear
                       ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.hoverBg}`
+                      : `${colors.text} ${colors.bgHover}`
                   } ${hoveredYear === `end-${year}` ? 'scale-110' : ''}`}
                   onClick={() => {
                     // Don't allow end year to be before start year
@@ -466,8 +633,22 @@ const YearSelector = ({
           )}
         </div>
         
-        {/* Bottom section with position toggle and current selection */}
+        {/* Bottom section with "All Time" button, position toggle and current selection */}
         <div className="flex flex-col items-center mt-2 gap-2">
+          {/* All Time button now at the bottom */}
+          {mode === 'single' && (
+            <button
+              onClick={() => handleYearChange('all')}
+              className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
+                selectedYear === 'all'
+                  ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                  : `${colors.text} hover:bg-white/10`
+              } hover:scale-105 mb-1`}
+            >
+              All Time
+            </button>
+          )}
+          
           <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-sm`}>
             {getYearLabel()}
           </div>
