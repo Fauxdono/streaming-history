@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 const YearSelector = ({ 
   artistsByYear, 
@@ -24,11 +24,11 @@ const YearSelector = ({
     endYear: initialYearRange?.endYear || '' 
   });
   
-  // Month and Day Selection - new states
+  // Month and Day Selection
   const [showMonthSelection, setShowMonthSelection] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(1); // January = 1
-  const [selectedDay, setSelectedDay] = useState(1);
   const [showDaySelection, setShowDaySelection] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(1);
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -44,7 +44,9 @@ const YearSelector = ({
   const years = getYearsArray();
   
   // Generate all months (1-12)
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const months = useMemo(() => 
+    Array.from({ length: 12 }, (_, i) => i + 1),
+  []);
   
   // Generate days based on selected month and year
   const getDaysInMonth = (year, month) => {
@@ -52,13 +54,17 @@ const YearSelector = ({
     return new Date(parseInt(year), month, 0).getDate();
   };
   
-  const getDaysArray = () => {
+  const days = useMemo(() => {
     if (selectedYear === 'all') return Array.from({ length: 31 }, (_, i) => i + 1);
-    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
-    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  };
-  
-  const days = getDaysArray();
+    
+    try {
+      const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+      return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    } catch (err) {
+      console.warn('Error calculating days in month:', err);
+      return Array.from({ length: 31 }, (_, i) => i + 1);
+    }
+  }, [selectedYear, selectedMonth]);
   
   // Check for mobile viewport
   useEffect(() => {
@@ -95,19 +101,34 @@ const YearSelector = ({
   useEffect(() => {
     if (initialYear) {
       setSelectedYear(initialYear);
+      
+      // Check if initialYear contains month/day information
+      if (initialYear !== 'all' && initialYear.includes('-')) {
+        const parts = initialYear.split('-');
+        
+        if (parts.length >= 2) {
+          // Has month information
+          setSelectedMonth(parseInt(parts[1]));
+          setShowMonthSelection(true);
+          
+          if (parts.length >= 3) {
+            // Has day information
+            setSelectedDay(parseInt(parts[2]));
+            setShowDaySelection(true);
+          }
+        }
+      }
     }
   }, [initialYear]);
   
-  // Reset month and day selection when year changes
-  useEffect(() => {
-    if (selectedYear !== 'all') {
-      // Reset to defaults when changing years
-      setSelectedMonth(1);
-      setSelectedDay(1);
-      setShowMonthSelection(false);
-      setShowDaySelection(false);
-    }
-  }, [selectedYear]);
+  // Format month name for display
+  const getMonthName = (month) => {
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return monthNames[month - 1];
+  };
   
   // Map color theme to actual color values
   const getColors = () => {
@@ -297,6 +318,8 @@ const YearSelector = ({
     // If switching to single mode, default to 'all'
     if (newMode === 'single') {
       setSelectedYear('all');
+      setShowMonthSelection(false);
+      setShowDaySelection(false);
       
       if (onYearChange) {
         onYearChange('all');
@@ -317,31 +340,24 @@ const YearSelector = ({
     }
   };
   
-  // Format month name for display
-  const getMonthName = (month) => {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return monthNames[month - 1];
-  };
-  
   // Handle year change in single mode
   const handleYearChange = (year) => {
     setSelectedYear(year);
     
-    // Reset month and day selection
-    setShowMonthSelection(false);
-    setShowDaySelection(false);
-    setSelectedMonth(1);
-    setSelectedDay(1);
+    // Reset month and day selection when changing years
+    if (year !== selectedYear) {
+      setShowMonthSelection(false);
+      setShowDaySelection(false);
+      setSelectedMonth(1);
+      setSelectedDay(1);
+    }
     
     if (onYearChange) {
       onYearChange(year);
     }
   };
   
-  // Handle month change in single mode
+  // Handle month selection
   const handleMonthChange = (month) => {
     setSelectedMonth(month);
     
@@ -349,22 +365,20 @@ const YearSelector = ({
     setShowDaySelection(false);
     setSelectedDay(1);
     
-    // If a year and month are selected, update the date
+    // If a year and month are selected, update the parent with the format: YYYY-MM
     if (selectedYear !== 'all' && onYearChange) {
       const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}`;
-      // Here, we're passing the year-month as the selected "year"
       onYearChange(dateStr);
     }
   };
   
-  // Handle day change in single mode
+  // Handle day selection
   const handleDayChange = (day) => {
     setSelectedDay(day);
     
-    // If a year and month are selected, update the date
+    // If a year, month, and day are selected, update the parent with the format: YYYY-MM-DD
     if (selectedYear !== 'all' && onYearChange) {
       const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      // Here, we're passing the year-month-day as the selected "year"
       onYearChange(dateStr);
     }
   };
@@ -402,7 +416,7 @@ const YearSelector = ({
   const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
 
   // If not expanded, show a mini sidebar
-  if (!expanded) {
+  if (!expanded && asSidebar) {
     return (
       <div 
         className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
@@ -436,27 +450,39 @@ const YearSelector = ({
     );
   }
   
-  // Full expanded sidebar - different rendering for single vs range mode
+  // Determine if this is a sidebar or inline version
+  const containerClass = asSidebar 
+    ? `fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-20 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+    : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
+  
+  // Full expanded sidebar or inline component
   return (
-    <div 
-      className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-16 sm:w-20 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
-    >
-      {/* Collapse button */}
-      <button 
-        onClick={toggleExpanded}
-        className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
-        aria-label="Collapse sidebar"
-      >
-        {currentPosition === 'left' ? '←' : '→'}
-      </button>
+    <div className={containerClass}>
+      {/* Collapse button - only for sidebar */}
+      {asSidebar && (
+        <button 
+          onClick={toggleExpanded}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          aria-label="Collapse sidebar"
+        >
+          {currentPosition === 'left' ? '←' : '→'}
+        </button>
+      )}
       
-      <div className="h-full flex flex-col justify-between pt-10 pb-3">
-        {/* Mode toggle buttons at top - now stacked vertically */}
-        <div className="flex flex-col gap-1 items-center mb-2">
-          <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
+      <div className={asSidebar ? "h-full flex flex-col justify-between pt-10 pb-3" : "flex flex-col"}>
+        {/* Mode toggle buttons */}
+        <div className={`flex ${asSidebar ? 'flex-col mb-2' : ''} gap-2 justify-center items-center`}>
+          {!asSidebar && (
+            <span className={`text-sm font-medium ${colors.text}`}>Mode:</span>
+          )}
+          
+          {asSidebar && (
+            <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
+          )}
+          
           <button
             onClick={() => handleModeChange('single')}
-            className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
+            className={`px-2 py-1 rounded text-xs text-center ${asSidebar ? 'w-14' : ''} transition-all duration-200 ${
               mode === 'single' 
                 ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
                 : `${colors.text} ${colors.bgLighter}`
@@ -466,7 +492,7 @@ const YearSelector = ({
           </button>
           <button
             onClick={() => handleModeChange('range')}
-            className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
+            className={`px-2 py-1 rounded text-xs text-center ${asSidebar ? 'w-14' : ''} transition-all duration-200 ${
               mode === 'range' 
                 ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
                 : `${colors.text} ${colors.bgLighter}`
@@ -476,24 +502,42 @@ const YearSelector = ({
           </button>
         </div>
         
-        <div className="overflow-y-auto max-h-[calc(100%-180px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
+        {/* Year Selection Area */}
+        <div className={asSidebar 
+          ? "overflow-y-auto max-h-[calc(100%-180px)] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2"
+          : "mt-4 flex flex-wrap gap-2 justify-center"
+        }>
           {mode === 'single' ? (
-            // Single mode - list of years 
             <>
               {/* Show years */}
               {!showMonthSelection && !showDaySelection && (
                 <>
-                  {years.slice().reverse().map((year) => (
+                  {/* "All Time" button for inline mode */}
+                  {!asSidebar && (
+                    <button
+                      onClick={() => handleYearChange('all')}
+                      className={`font-medium text-sm rounded px-2 py-1 transition-all duration-200 ${
+                        selectedYear === 'all'
+                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                          : `${colors.text} ${colors.bgHover}`
+                      }`}
+                    >
+                      All Time
+                    </button>
+                  )}
+                  
+                  {/* Year buttons */}
+                  {(asSidebar ? years.slice().reverse() : years).map((year) => (
                     <button
                       key={year}
-                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                      className={`font-medium text-sm rounded px-2 py-1 ${asSidebar ? 'w-14 text-center' : ''} transition-all duration-200 ${
                         year === selectedYear
                           ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
                           : `${colors.text} ${colors.bgHover}`
                       } ${hoveredYear === year ? 'scale-110' : ''}`}
                       onClick={() => {
                         handleYearChange(year);
-                        // Show month selection after year selection
+                        // Only show month selection if we're not using "all time"
                         setShowMonthSelection(true);
                       }}
                       onMouseEnter={() => setHoveredYear(year)}
@@ -511,29 +555,41 @@ const YearSelector = ({
                   <div className="flex items-center mb-1">
                     <button 
                       onClick={() => setShowMonthSelection(false)}
-                      className="text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      className={`text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 ${asSidebar ? 'w-14' : ''}`}
                     >
                       Back
                     </button>
                   </div>
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
-                  {months.map((month) => (
-                    <button
-                      key={`month-${month}`}
-                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                        month === selectedMonth
-                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                          : `${colors.text} ${colors.bgHover}`
-                      }`}
-                      onClick={() => {
-                        handleMonthChange(month);
-                        // Show day selection after month selection
-                        setShowDaySelection(true);
-                      }}
-                    >
-                      {getMonthName(month)}
-                    </button>
-                  ))}
+                  
+                  {asSidebar && (
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
+                  )}
+                  
+                  {!asSidebar && (
+                    <div className={`w-full text-sm font-medium ${colors.text} mb-2 text-center`}>
+                      Select Month for {selectedYear}
+                    </div>
+                  )}
+                  
+                  <div className={asSidebar ? "flex flex-col space-y-2" : "flex flex-wrap gap-2 justify-center"}>
+                    {months.map((month) => (
+                      <button
+                        key={`month-${month}`}
+                        className={`font-medium text-sm rounded px-2 py-1 ${asSidebar ? 'w-14 text-center' : ''} transition-all duration-200 ${
+                          month === selectedMonth
+                            ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                            : `${colors.text} ${colors.bgHover}`
+                        }`}
+                        onClick={() => {
+                          handleMonthChange(month);
+                          // Show day selection after month selection
+                          setShowDaySelection(true);
+                        }}
+                      >
+                        {getMonthName(month)}
+                      </button>
+                    ))}
+                  </div>
                 </>
               )}
               
@@ -546,17 +602,27 @@ const YearSelector = ({
                         setShowDaySelection(false);
                         setShowMonthSelection(true);
                       }}
-                      className="text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      className={`text-xs text-center px-2 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 ${asSidebar ? 'w-14' : ''}`}
                     >
                       Back
                     </button>
                   </div>
-                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
-                  <div className="grid grid-cols-3 gap-1">
+                  
+                  {asSidebar && (
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
+                  )}
+                  
+                  {!asSidebar && (
+                    <div className={`w-full text-sm font-medium ${colors.text} mb-2 text-center`}>
+                      Select Day for {selectedYear}-{selectedMonth.toString().padStart(2, '0')}
+                    </div>
+                  )}
+                  
+                  <div className={asSidebar ? "grid grid-cols-3 gap-1" : "grid grid-cols-7 gap-2 justify-center"}>
                     {days.map((day) => (
                       <button
                         key={`day-${day}`}
-                        className={`font-medium text-xs rounded p-1 w-4 h-4 flex items-center justify-center transition-all duration-200 ${
+                        className={`font-medium ${asSidebar ? 'text-xs rounded p-1 w-4 h-4' : 'text-sm rounded w-8 h-8'} flex items-center justify-center transition-all duration-200 ${
                           day === selectedDay
                             ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
                             : `${colors.text} ${colors.bgHover}`
@@ -573,70 +639,137 @@ const YearSelector = ({
           ) : (
             // Range mode - separate start and end year selectors
             <>
-              {/* Start Year Section */}
-              <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
-              
-              {years.slice().reverse().map((year) => (
-                <button
-                  key={`start-${year}`}
-                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                    year === yearRange.startYear
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.bgHover}`
-                  } ${hoveredYear === `start-${year}` ? 'scale-110' : ''}`}
-                  onClick={() => {
-                    // Don't allow start year to be after end year
-                    if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
-                      handleYearRangeChange({ 
-                        startYear: year, 
-                        endYear: yearRange.endYear || years[years.length - 1] 
-                      });
-                    }
-                  }}
-                  onMouseEnter={() => setHoveredYear(`start-${year}`)}
-                  onMouseLeave={() => setHoveredYear(null)}
-                >
-                  {year}
-                </button>
-              ))}
-              
-              {/* Divider */}
-              <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
-              
-              {/* End Year Section */}
-              <div className={`text-xs mb-1 font-medium ${colors.text}`}>END</div>
-              
-              {years.slice().reverse().map((year) => (
-                <button
-                  key={`end-${year}`}
-                  className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
-                    year === yearRange.endYear
-                      ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
-                      : `${colors.text} ${colors.bgHover}`
-                  } ${hoveredYear === `end-${year}` ? 'scale-110' : ''}`}
-                  onClick={() => {
-                    // Don't allow end year to be before start year
-                    if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
-                      handleYearRangeChange({ 
-                        startYear: yearRange.startYear || years[0], 
-                        endYear: year 
-                      });
-                    }
-                  }}
-                  onMouseEnter={() => setHoveredYear(`end-${year}`)}
-                  onMouseLeave={() => setHoveredYear(null)}
-                >
-                  {year}
-                </button>
-              ))}
+              {asSidebar ? (
+                // Sidebar layout - vertical
+                <>
+                  {/* Start Year Section */}
+                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
+                  
+                  {years.slice().reverse().map((year) => (
+                    <button
+                      key={`start-${year}`}
+                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                        year === yearRange.startYear
+                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                          : `${colors.text} ${colors.bgHover}`
+                      } ${hoveredYear === `start-${year}` ? 'scale-110' : ''}`}
+                      onClick={() => {
+                        // Don't allow start year to be after end year
+                        if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
+                          handleYearRangeChange({ 
+                            startYear: year, 
+                            endYear: yearRange.endYear || years[years.length - 1] 
+                          });
+                        }
+                      }}
+                      onMouseEnter={() => setHoveredYear(`start-${year}`)}
+                      onMouseLeave={() => setHoveredYear(null)}
+                    >
+                      {year}
+                    </button>
+                  ))}
+                  
+                  {/* Divider */}
+                  <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
+                  
+                  {/* End Year Section */}
+                  <div className={`text-xs mb-1 font-medium ${colors.text}`}>END</div>
+                  
+                  {years.slice().reverse().map((year) => (
+                    <button
+                      key={`end-${year}`}
+                      className={`font-medium text-sm rounded px-2 py-1 w-14 text-center transition-all duration-200 ${
+                        year === yearRange.endYear
+                          ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                          : `${colors.text} ${colors.bgHover}`
+                      } ${hoveredYear === `end-${year}` ? 'scale-110' : ''}`}
+                      onClick={() => {
+                        // Don't allow end year to be before start year
+                        if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
+                          handleYearRangeChange({ 
+                            startYear: yearRange.startYear || years[0], 
+                            endYear: year 
+                          });
+                        }
+                      }}
+                      onMouseEnter={() => setHoveredYear(`end-${year}`)}
+                      onMouseLeave={() => setHoveredYear(null)}
+                    >
+                      {year}
+                    </button>
+                  ))}
+                </>
+              ) : (
+                // Inline layout - horizontal
+                <div className="w-full">
+                  <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                    {/* Start Year */}
+                    <div className="flex flex-col items-center">
+                      <div className={`text-sm font-medium ${colors.text} mb-2`}>Start Year</div>
+                      <div className="flex flex-wrap gap-2 justify-center max-w-xs">
+                        {years.map((year) => (
+                          <button
+                            key={`inline-start-${year}`}
+                            className={`font-medium text-sm rounded px-2 py-1 transition-all duration-200 ${
+                              year === yearRange.startYear
+                                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                                : `${colors.text} ${colors.bgHover}`
+                            }`}
+                            onClick={() => {
+                              if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
+                                handleYearRangeChange({
+                                  startYear: year,
+                                  endYear: yearRange.endYear || years[years.length - 1]
+                                });
+                              }
+                            }}
+                          >
+                            {year}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* End Year */}
+                    <div className="flex flex-col items-center">
+                      <div className={`text-sm font-medium ${colors.text} mb-2`}>End Year</div>
+                      <div className="flex flex-wrap gap-2 justify-center max-w-xs">
+                        {years.map((year) => (
+                          <button
+                            key={`inline-end-${year}`}
+                            className={`font-medium text-sm rounded px-2 py-1 transition-all duration-200 ${
+                              year === yearRange.endYear
+                                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}` 
+                                : `${colors.text} ${colors.bgHover}`
+                            }`}
+                            onClick={() => {
+                              if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
+                                handleYearRangeChange({
+                                  startYear: yearRange.startYear || years[0],
+                                  endYear: year
+                                });
+                              }
+                            }}
+                          >
+                            {year}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
         
-        {/* Bottom section with "All Time" button, position toggle and current selection */}
-        <div className="flex flex-col items-center mt-2 gap-2">
-          {/* All Time button now at the bottom */}
-          {mode === 'single' && (
+        {/* Bottom section with controls */}
+        <div className={asSidebar 
+          ? "flex flex-col items-center mt-2 gap-2" 
+          : "mt-4 flex items-center justify-center gap-2"
+        }>
+          {/* All Time button for sidebar mode */}
+          {asSidebar && mode === 'single' && (
             <button
               onClick={() => handleYearChange('all')}
               className={`font-bold rounded-md px-2 py-2 w-16 text-center transition-all duration-200 ${
@@ -653,13 +786,16 @@ const YearSelector = ({
             {getYearLabel()}
           </div>
           
-          <button 
-            onClick={togglePosition}
-            className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
-            aria-label="Toggle sidebar position"
-          >
-            <span className="text-xs">⇄</span>
-          </button>
+          {/* Position toggle button - only for sidebar */}
+          {asSidebar && (
+            <button 
+              onClick={togglePosition}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
+              aria-label="Toggle sidebar position"
+            >
+              <span className="text-xs">⇄</span>
+            </button>
+          )}
           
           {/* Apply button for range mode */}
           {mode === 'range' && (
@@ -677,18 +813,20 @@ const YearSelector = ({
         </div>
       </div>
       
-      <style jsx>{`
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
-        .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-          border-radius: 4px;
-        }
-        .scrollbar-thumb-current::-webkit-scrollbar-thumb {
-          background-color: currentColor;
-          opacity: 0.3;
-        }
-      `}</style>
+      {asSidebar && (
+        <style jsx>{`
+          .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+          }
+          .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+          }
+          .scrollbar-thumb-current::-webkit-scrollbar-thumb {
+            background-color: currentColor;
+            opacity: 0.3;
+          }
+        `}</style>
+      )}
     </div>
   );
 };
