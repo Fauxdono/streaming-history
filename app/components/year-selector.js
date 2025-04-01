@@ -27,19 +27,17 @@ const YearSelector = ({
   // Month and Day Selection
   const [selectedMonth, setSelectedMonth] = useState(1); // January = 1
   const [selectedDay, setSelectedDay] = useState(1);
-  const [dateSelectionStep, setDateSelectionStep] = useState('year'); // 'year', 'month', 'day'
+  const [showDetailSelection, setShowDetailSelection] = useState(false);
   
   // Extract years from artistsByYear
-  const getYearsArray = () => {
+  const years = useMemo(() => {
     if (!artistsByYear || typeof artistsByYear !== 'object') {
       console.warn('artistsByYear is not available or not an object', artistsByYear);
       return [];
     }
     
     return Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
-  };
-  
-  const years = getYearsArray();
+  }, [artistsByYear]);
   
   // Generate all months (1-12)
   const months = useMemo(() => 
@@ -47,16 +45,12 @@ const YearSelector = ({
   []);
   
   // Generate days based on selected month and year
-  const getDaysInMonth = (year, month) => {
-    // JavaScript months are 0-based, but our selectedMonth is 1-based
-    return new Date(parseInt(year), month, 0).getDate();
-  };
-  
   const days = useMemo(() => {
     if (selectedYear === 'all') return Array.from({ length: 31 }, (_, i) => i + 1);
     
     try {
-      const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+      // Get the number of days in the selected month/year
+      const daysInMonth = new Date(parseInt(selectedYear), selectedMonth, 0).getDate();
       return Array.from({ length: daysInMonth }, (_, i) => i + 1);
     } catch (err) {
       console.warn('Error calculating days in month:', err);
@@ -95,7 +89,7 @@ const YearSelector = ({
     if (initialYear) {
       if (initialYear === 'all') {
         setSelectedYear('all');
-        setDateSelectionStep('year');
+        setShowDetailSelection(false);
         return;
       }
       
@@ -111,18 +105,18 @@ const YearSelector = ({
           const monthValue = parseInt(parts[1]);
           if (!isNaN(monthValue) && monthValue >= 1 && monthValue <= 12) {
             setSelectedMonth(monthValue);
-            setDateSelectionStep('month');
             
             if (parts.length >= 3) {
               // Has day information
               const dayValue = parseInt(parts[2]);
               // Validate day value against month
-              const maxDays = getDaysInMonth(parts[0], monthValue);
+              const maxDays = new Date(parseInt(parts[0]), monthValue, 0).getDate();
               if (!isNaN(dayValue) && dayValue >= 1 && dayValue <= maxDays) {
                 setSelectedDay(dayValue);
-                setDateSelectionStep('day');
               }
             }
+            
+            setShowDetailSelection(true);
           }
         }
       }
@@ -139,7 +133,7 @@ const YearSelector = ({
   };
   
   // Map color theme to actual color values
-  const getColors = () => {
+  const colors = useMemo(() => {
     switch (colorTheme) {
       case 'pink':
         return {
@@ -157,6 +151,23 @@ const YearSelector = ({
           textBold: 'text-pink-800',
           bgLight: 'bg-pink-50',
           bgMed: 'bg-pink-200'
+        };
+      case 'purple':
+        return {
+          text: 'text-purple-700',
+          textActive: 'text-white',
+          bgActive: 'bg-purple-500',
+          bgHover: 'hover:bg-purple-600/50',
+          bgLighter: 'bg-purple-100',
+          bgDark: 'bg-purple-800',
+          sidebarBg: 'bg-purple-100',
+          glowActive: 'shadow-[0_0_15px_rgba(168,85,247,0.7)]',
+          buttonBg: 'bg-purple-600',
+          buttonHover: 'hover:bg-purple-700',
+          border: 'border-purple-300',
+          textBold: 'text-purple-800',
+          bgLight: 'bg-purple-50',
+          bgMed: 'bg-purple-200'
         };
       case 'indigo':
         return {
@@ -211,9 +222,7 @@ const YearSelector = ({
           bgMed: 'bg-teal-200'
         };
     }
-  };
-
-  const colors = getColors();
+  }, [colorTheme]);
   
   if (years.length === 0) {
     return <div className={colors.text + " italic"}>No year data available</div>;
@@ -240,7 +249,7 @@ const YearSelector = ({
     // Reset for single mode
     if (newMode === 'single') {
       setSelectedYear('all');
-      setDateSelectionStep('year');
+      setShowDetailSelection(false);
       
       if (onYearChange) {
         onYearChange('all');
@@ -266,77 +275,77 @@ const YearSelector = ({
     setSelectedYear(year);
     
     if (year === 'all') {
-      // For "all", reset to year selection step
-      setDateSelectionStep('year');
+      // For "all", hide month/day selection
+      setShowDetailSelection(false);
       
       if (onYearChange) {
         onYearChange('all');
       }
     } else {
-      // For specific year, advance to month selection
-      setDateSelectionStep('month');
+      // For specific year, show detailed selection
+      setShowDetailSelection(true);
       
-      if (onYearChange) {
-        // Just pass the year for now
-        onYearChange(year);
-      }
+      // Update the month/day if needed
+      updateDateAndNotify(year, selectedMonth, selectedDay);
     }
   };
   
   // Handle month selection
   const handleMonthChange = (month) => {
-    // Set the month
     setSelectedMonth(month);
     
-    // Advance to day selection
-    setDateSelectionStep('day');
+    // Adjust day if it's larger than the days in the new month
+    const daysInMonth = new Date(parseInt(selectedYear), month, 0).getDate();
+    const newDay = Math.min(selectedDay, daysInMonth);
+    setSelectedDay(newDay);
     
-    if (selectedYear !== 'all' && onYearChange) {
-      // Format as YYYY-MM
-      const formattedMonth = month.toString().padStart(2, '0');
-      const dateStr = `${selectedYear}-${formattedMonth}`;
-      onYearChange(dateStr);
-    }
+    // Notify parent
+    updateDateAndNotify(selectedYear, month, newDay);
   };
   
   // Handle day selection
   const handleDayChange = (day) => {
-    // Set the day
     setSelectedDay(day);
-    
-    if (selectedYear !== 'all' && onYearChange) {
-      // Format as YYYY-MM-DD
-      const formattedMonth = selectedMonth.toString().padStart(2, '0');
-      const formattedDay = day.toString().padStart(2, '0');
-      const dateStr = `${selectedYear}-${formattedMonth}-${formattedDay}`;
-      onYearChange(dateStr);
-    }
+    updateDateAndNotify(selectedYear, selectedMonth, day);
   };
   
-  // Go back a step in date selection
-  const handleBackStep = () => {
-    if (dateSelectionStep === 'day') {
-      setDateSelectionStep('month');
-      
-      // Update parent with YYYY-MM format
-      if (selectedYear !== 'all' && onYearChange) {
-        const formattedMonth = selectedMonth.toString().padStart(2, '0');
-        onYearChange(`${selectedYear}-${formattedMonth}`);
-      }
-    } 
-    else if (dateSelectionStep === 'month') {
-      setDateSelectionStep('year');
-      
-      // Update parent with just the year
-      if (onYearChange) {
-        onYearChange(selectedYear);
-      }
-    }
+  // Utility function to update the full date and notify parent
+  const updateDateAndNotify = (year, month, day) => {
+    if (year === 'all' || !onYearChange) return;
+    
+    // Format as YYYY-MM-DD
+    const formattedMonth = month.toString().padStart(2, '0');
+    const formattedDay = day.toString().padStart(2, '0');
+    const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+    onYearChange(dateStr);
   };
   
   // Handle year range changes
-  const handleYearRangeChange = ({ startYear, endYear }) => {
-    const newYearRange = { startYear, endYear };
+  const handleYearRangeChange = (startOrEnd, year) => {
+    let newYearRange;
+    
+    if (startOrEnd === 'start') {
+      // Don't allow start year to be after end year
+      if (yearRange.endYear && parseInt(year) > parseInt(yearRange.endYear)) {
+        return;
+      }
+      
+      newYearRange = { 
+        startYear: year, 
+        endYear: yearRange.endYear || years[years.length - 1] 
+      };
+    } else {
+      // Don't allow end year to be before start year
+      if (yearRange.startYear && parseInt(year) < parseInt(yearRange.startYear)) {
+        return;
+      }
+      
+      newYearRange = { 
+        startYear: yearRange.startYear || years[0], 
+        endYear: year 
+      };
+    }
+    
     setYearRange(newYearRange);
     
     if (onYearRangeChange) {
@@ -349,12 +358,8 @@ const YearSelector = ({
     if (mode === 'single') {
       if (selectedYear === 'all') return 'All Time';
       
-      if (dateSelectionStep === 'day') {
+      if (showDetailSelection) {
         return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-      }
-      
-      if (dateSelectionStep === 'month') {
-        return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
       }
       
       return selectedYear;
@@ -405,15 +410,10 @@ const YearSelector = ({
     ? `fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-auto ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
   
-  // Function to add "all" to year wheel items
-  const getYearWheelItems = () => {
-    if (mode === 'single') {
-      return ['all', ...years];
-    }
-    return years;
-  };
+  // Get year wheel items (add "all" in single mode)
+  const yearWheelItems = mode === 'single' ? ['all', ...years] : years;
   
-  // Full expanded view with wheels
+  // Full expanded view with wheel selectors
   return (
     <div className={containerClass}>
       {/* Collapse button - only for sidebar */}
@@ -465,70 +465,49 @@ const YearSelector = ({
         {/* Selection area with wheel selectors */}
         <div className="flex-grow flex flex-col items-center justify-center p-2">
           {mode === 'single' ? (
-            <>
-              {/* Single date selection with wheel selectors */}
-              {dateSelectionStep === 'year' && (
-                <div className="flex flex-col items-center">
-                  <div className={`text-sm font-medium ${colors.text} mb-2`}>Select Year</div>
-                  <WheelSelector
-                    items={getYearWheelItems()}
-                    value={selectedYear}
-                    onChange={handleYearChange}
-                    colorTheme={colorTheme}
-                    displayFormat={(val) => val === 'all' ? 'All Time' : val}
-                  />
-                </div>
-              )}
+            <div className="flex flex-col items-center gap-4">
+              {/* Year selector */}
+              <div className="flex flex-col items-center">
+                <div className={`text-sm font-medium ${colors.text} mb-2`}>Select Year</div>
+                <WheelSelector
+                  items={yearWheelItems}
+                  value={selectedYear}
+                  onChange={handleYearChange}
+                  colorTheme={colorTheme}
+                  displayFormat={(val) => val === 'all' ? 'All Time' : val}
+                />
+              </div>
               
-              {dateSelectionStep === 'month' && (
-                <div className="flex flex-col items-center">
-                  <div className="flex justify-between w-full mb-2">
-                    <button 
-                      onClick={handleBackStep}
-                      className={`text-xs px-2 py-1 rounded ${colors.bgLighter} ${colors.text}`}
-                    >
-                      ← Back
-                    </button>
-                    <div className={`text-sm font-medium ${colors.text}`}>{selectedYear}</div>
+              {/* Month and day selectors (conditional) */}
+              {showDetailSelection && selectedYear !== 'all' && (
+                <div className="flex gap-4 items-center">
+                  {/* Month selector */}
+                  <div className="flex flex-col items-center">
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>Month</div>
+                    <WheelSelector
+                      items={months}
+                      value={selectedMonth}
+                      onChange={handleMonthChange}
+                      colorTheme={colorTheme}
+                      displayFormat={getMonthName}
+                    />
                   </div>
                   
-                  <WheelSelector
-                    items={months}
-                    value={selectedMonth}
-                    onChange={handleMonthChange}
-                    label="Month"
-                    colorTheme={colorTheme}
-                    displayFormat={getMonthName}
-                  />
-                </div>
-              )}
-              
-              {dateSelectionStep === 'day' && (
-                <div className="flex flex-col items-center">
-                  <div className="flex justify-between w-full mb-2">
-                    <button 
-                      onClick={handleBackStep}
-                      className={`text-xs px-2 py-1 rounded ${colors.bgLighter} ${colors.text}`}
-                    >
-                      ← Back
-                    </button>
-                    <div className={`text-sm font-medium ${colors.text}`}>
-                      {selectedYear}-{selectedMonth.toString().padStart(2, '0')}
-                    </div>
+                  {/* Day selector */}
+                  <div className="flex flex-col items-center">
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>Day</div>
+                    <WheelSelector
+                      items={days}
+                      value={selectedDay}
+                      onChange={handleDayChange}
+                      colorTheme={colorTheme}
+                    />
                   </div>
-                  
-                  <WheelSelector
-                    items={days}
-                    value={selectedDay}
-                    onChange={handleDayChange}
-                    label="Day"
-                    colorTheme={colorTheme}
-                  />
                 </div>
               )}
-            </>
+            </div>
           ) : (
-            // Range mode with wheel selectors
+            // Range mode with separate start/end year selectors
             <div className="flex gap-4 items-center">
               {/* Start Year */}
               <div className="flex flex-col items-center">
@@ -536,15 +515,7 @@ const YearSelector = ({
                 <WheelSelector
                   items={years}
                   value={yearRange.startYear}
-                  onChange={(year) => {
-                    // Don't allow start year to be after end year
-                    if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
-                      handleYearRangeChange({ 
-                        startYear: year, 
-                        endYear: yearRange.endYear || years[years.length - 1] 
-                      });
-                    }
-                  }}
+                  onChange={(year) => handleYearRangeChange('start', year)}
                   colorTheme={colorTheme}
                 />
               </div>
@@ -557,15 +528,7 @@ const YearSelector = ({
                 <WheelSelector
                   items={years}
                   value={yearRange.endYear}
-                  onChange={(year) => {
-                    // Don't allow end year to be before start year
-                    if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
-                      handleYearRangeChange({ 
-                        startYear: yearRange.startYear || years[0], 
-                        endYear: year 
-                      });
-                    }
-                  }}
+                  onChange={(year) => handleYearRangeChange('end', year)}
                   colorTheme={colorTheme}
                 />
               </div>
@@ -576,9 +539,20 @@ const YearSelector = ({
         {/* Bottom controls section */}
         <div className="mt-2 flex flex-col items-center gap-2">
           {/* Current selection display */}
-          <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-sm`}>
+          <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-sm year-display`}>
             {getYearLabel()}
           </div>
+          
+          {/* Sidebar position toggle - only for sidebar */}
+          {asSidebar && (
+            <button 
+              onClick={togglePosition}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
+              aria-label="Toggle sidebar position"
+            >
+              <span className="text-xs">⇄</span>
+            </button>
+          )}
           
           {/* Apply button for range mode */}
           {mode === 'range' && (
@@ -591,17 +565,6 @@ const YearSelector = ({
               className={`px-3 py-1 ${colors.buttonBg} text-white rounded-md ${colors.buttonHover} text-xs font-bold`}
             >
               Apply Range
-            </button>
-          )}
-          
-          {/* Sidebar position toggle - only for sidebar */}
-          {asSidebar && (
-            <button 
-              onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className="text-xs">⇄</span>
             </button>
           )}
         </div>
