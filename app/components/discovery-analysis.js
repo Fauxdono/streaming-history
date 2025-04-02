@@ -2,51 +2,71 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
+const DiscoveryAnalysis = ({ 
+  rawPlayData = [], 
+  formatDuration,
+  selectedYear = 'all',
+  yearRange = { startYear: '', endYear: '' },
+  yearRangeMode = false
+}) => {
   const [activeTab, setActiveTab] = useState('discovery');
   const [timeframe, setTimeframe] = useState('all');
   
-  // Analyze artist discovery and loyalty
-  const discoveryData = useMemo(() => {
-    // Sort all entries by timestamp
-    const sortedEntries = [...rawPlayData].filter(entry => entry.ms_played >= 30000)
-                              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
-    
-    if (sortedEntries.length === 0) {
-      return {
-        firstListenDates: {},
-        newArtistsByMonth: [],
-        totalArtistsDiscovered: 0,
-        loyaltyData: [],
-        top5Artists: [],
-        top5Percentage: 0,
-        uniqueArtistsCount: 0,
-        artistPlayCounts: {}
-      };
-    }
-    
-    // Track first time listening to each artist
-    const firstListenDates = {};
-    const artistPlayCounts = {};
-    const artistPlayTime = {};
-    
-    sortedEntries.forEach(entry => {
-      const artist = entry.master_metadata_album_artist_name;
-      if (!artist) return;
+  // Filter data by selected year or year range
+  const filteredData = useMemo(() => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      const startYear = parseInt(yearRange.startYear);
+      const endYear = parseInt(yearRange.endYear);
       
-      const date = new Date(entry.ts);
-      
-      // Track first listen date
-      if (!firstListenDates[artist]) {
-        firstListenDates[artist] = date;
+      return rawPlayData.filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          if (isNaN(date.getTime())) return false;
+          
+          const year = date.getFullYear();
+          return year >= startYear && year <= endYear;
+        } catch (err) {
+          return false;
+        }
+      });
+    } else if (selectedYear !== 'all') {
+      if (selectedYear.includes('-')) {
+        // Handle YYYY-MM or YYYY-MM-DD format
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            // For YYYY-MM-DD format
+            if (selectedYear.split('-').length === 3) {
+              return date.toISOString().split('T')[0] === selectedYear;
+            }
+            
+            // For YYYY-MM format
+            const [year, month] = selectedYear.split('-');
+            return date.getFullYear() === parseInt(year) && 
+                  (date.getMonth() + 1) === parseInt(month);
+          } catch (err) {
+            return false;
+          }
+        });
+      } else {
+        // Regular single year
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            return date.getFullYear() === parseInt(selectedYear);
+          } catch (err) {
+            return false;
+          }
+        });
       }
-      
-      // Track play counts
-      artistPlayCounts[artist] = (artistPlayCounts[artist] || 0) + 1;
-      
-      // Track play time
-      artistPlayTime[artist] = (artistPlayTime[artist] || 0) + entry.ms_played;
-    });
+    } else {
+      return rawPlayData;
+    }
+  }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
     
     // Calculate new artists discovered by month
     const artistsByMonth = {};
@@ -97,13 +117,9 @@ const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
   
   // Analyze listening depth
   const depthData = useMemo(() => {
-    // Group plays by artist and track
-    const artistTracks = {};
-    const trackPlays = {};
-    
-    // Get the earliest and latest dates for filtering
-    const filteredData = [...rawPlayData].filter(entry => entry.ms_played >= 30000);
-    if (filteredData.length === 0) return { artistDepths: [], averageDepth: 0 };
+    // Sort all entries by timestamp
+    const sortedEntries = [...filteredData].filter(entry => entry.ms_played >= 30000)
+                              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
     
     // Process all tracks
     filteredData.forEach(entry => {
@@ -157,17 +173,13 @@ const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
       averageDepth,
       replayValue
     };
-  }, [rawPlayData, discoveryData.artistPlayCounts]);
+  }, [filteredData, discoveryData.artistPlayCounts]);
   
   // Analyze music variety
   const varietyData = useMemo(() => {
-    // Calculate uniqueness ratio by timeframe
-    const plays = {};
-    const uniqueTracks = {};
-    const timeframes = {};
-    
-    rawPlayData.filter(entry => entry.ms_played >= 30000).forEach(entry => {
-      if (!entry.master_metadata_track_name) return;
+    // Sort all entries by timestamp
+    const sortedEntries = [...filteredData].filter(entry => entry.ms_played >= 30000)
+                              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
       
       const date = new Date(entry.ts);
       const dayKey = date.toISOString().split('T')[0];
@@ -263,7 +275,7 @@ const DiscoveryAnalysis = ({ rawPlayData = [], formatDuration }) => {
       avgWeeklyVariety,
       avgMonthlyVariety
     };
-  }, [rawPlayData]);
+  }, [filteredData]);
   
   // Helper function to get ISO week number
   function getWeekNumber(date) {
