@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
-import DateSelector from './dateselector.js';
 import PlaylistExporter from './playlist-exporter.js';
 
 const CustomTrackRankings = ({ 
@@ -76,57 +75,44 @@ const CustomTrackRankings = ({
     return Array.from(yearsSet).sort();
   }, [rawPlayData]);
   
- useEffect(() => {
+  // This effect updates the date range based on year or year range changes
+  useEffect(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Year range mode
       setStartDate(`${yearRange.startYear}-01-01`);
       setEndDate(`${yearRange.endYear}-12-31`);
     } else if (selectedYear !== 'all') {
-      setStartDate(`${selectedYear}-01-01`);
-      setEndDate(`${selectedYear}-12-31`);
+      if (selectedYear.includes('-')) {
+        // Handle case with YYYY-MM-DD or YYYY-MM format
+        const parts = selectedYear.split('-');
+        
+        if (parts.length === 3) {
+          // Single day selection - set both start and end to the same day
+          setStartDate(selectedYear);
+          setEndDate(selectedYear);
+        } else if (parts.length === 2) {
+          // Month selection (YYYY-MM)
+          const year = parts[0];
+          const month = parts[1];
+          
+          // Get the last day of the month
+          const lastDay = new Date(year, parseInt(month), 0).getDate();
+          
+          setStartDate(`${year}-${month}-01`);
+          setEndDate(`${year}-${month}-${lastDay}`);
+        }
+      } else {
+        // Single year format (YYYY)
+        setStartDate(`${selectedYear}-01-01`);
+        setEndDate(`${selectedYear}-12-31`);
+      }
     } else {
+      // All time
       setStartDate('');
       setEndDate('');
     }
-  }, [selectedYear, yearRangeMode, yearRange, availableYears]);
+  }, [selectedYear, yearRangeMode, yearRange]);
 
-const handleDateChange = (start, end) => {
-    setStartDate(start);
-    setEndDate(end);
-    
-    if (!start || !end || start === "" || end === "") {
-      if (onYearChange) onYearChange('all');
-      if (onToggleYearRangeMode) onToggleYearRangeMode(false);
-    } else {
-      try {
-        const startYear = new Date(start).getFullYear().toString();
-        const endYear = new Date(end).getFullYear().toString();
-        
-        if (startYear === endYear) {
-          if (onYearChange) onYearChange(startYear);
-          if (onToggleYearRangeMode) onToggleYearRangeMode(false);
-        } else {
-          if (onYearRangeChange) onYearRangeChange({ startYear, endYear });
-          if (onToggleYearRangeMode) onToggleYearRangeMode(true);
-        }
-      } catch (err) {
-        if (onYearChange) onYearChange('all');
-        if (onToggleYearRangeMode) onToggleYearRangeMode(false);
-      }
-    }
-  };
-
-const getInitialDates = () => {
-    if (selectedYear === 'all' && !yearRangeMode) {
-      return { initialStartDate: '', initialEndDate: '' };
-    }
-    
-    if (startDate && endDate) {
-      return { initialStartDate: startDate, initialEndDate: endDate };
-    }
-    
-    return { initialStartDate: '', initialEndDate: '' };
-  };
-  
   const addArtistFromTrack = (artist) => {
     if (!selectedArtists.includes(artist)) {
       setSelectedArtists(prev => [...prev, artist]);
@@ -216,113 +202,114 @@ const getInitialDates = () => {
     return map;
   }, [rawPlayData]);
 
- const filteredTracks = useMemo(() => {
-  if (!rawPlayData?.length) return [];
-  
-  const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
-  
-  const start = isAllTime ? new Date(0) : new Date(startDate);
-  start.setHours(0, 0, 0, 0);
-  
-  const end = isAllTime ? new Date() : new Date(endDate);
-  end.setHours(23, 59, 59, 999);
-  
-  const trackStats = {};
-  rawPlayData.forEach(entry => {
-    try {
-      const timestamp = new Date(entry.ts);
-      
-      if (timestamp >= start && 
-          timestamp <= end && 
-          entry.ms_played >= 30000 && 
-          entry.master_metadata_track_name) {
-          
-          let featureArtists = null;
-          try {
-            const result = normalizeString(entry.master_metadata_track_name);
-            featureArtists = result.featureArtists;
-          } catch (err) {}
-          
-          const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-          let isAlbumMatch = true;
-          
-          if (selectedAlbums.length > 0) {
-            isAlbumMatch = selectedAlbums.some(album => 
-              album.name === albumName && 
-              album.artist === entry.master_metadata_album_artist_name
-            );
-          }
-          
-          const isArtistMatch = selectedArtists.length === 0 || 
-            selectedArtists.includes(entry.master_metadata_album_artist_name);
-          
-          const isFeatureMatch = featureArtists && 
-            selectedArtists.some(artist => 
-              featureArtists.some(feature => 
-                feature.toLowerCase().includes(artist.toLowerCase())
+  // The filtered tracks based on all applied filters
+  const filteredTracks = useMemo(() => {
+    if (!rawPlayData?.length) return [];
+    
+    const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
+    
+    const start = isAllTime ? new Date(0) : new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    
+    const end = isAllTime ? new Date() : new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    
+    const trackStats = {};
+    rawPlayData.forEach(entry => {
+      try {
+        const timestamp = new Date(entry.ts);
+        
+        if (timestamp >= start && 
+            timestamp <= end && 
+            entry.ms_played >= 30000 && 
+            entry.master_metadata_track_name) {
+            
+            let featureArtists = null;
+            try {
+              const result = normalizeString(entry.master_metadata_track_name);
+              featureArtists = result.featureArtists;
+            } catch (err) {}
+            
+            const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+            let isAlbumMatch = true;
+            
+            if (selectedAlbums.length > 0) {
+              isAlbumMatch = selectedAlbums.some(album => 
+                album.name === albumName && 
+                album.artist === entry.master_metadata_album_artist_name
+              );
+            }
+            
+            const isArtistMatch = selectedArtists.length === 0 || 
+              selectedArtists.includes(entry.master_metadata_album_artist_name);
+            
+            const isFeatureMatch = featureArtists && 
+              selectedArtists.some(artist => 
+                featureArtists.some(feature => 
+                  feature.toLowerCase().includes(artist.toLowerCase())
+                )
+              );
+            
+            const shouldInclude = (
+              isAlbumMatch &&
+              (
+                selectedArtists.length === 0 ||
+                (onlyFeatures && isFeatureMatch) ||
+                (!onlyFeatures && isArtistMatch) ||
+                (!onlyFeatures && includeFeatures && isFeatureMatch)
               )
             );
-          
-          const shouldInclude = (
-            isAlbumMatch &&
-            (
-              selectedArtists.length === 0 ||
-              (onlyFeatures && isFeatureMatch) ||
-              (!onlyFeatures && isArtistMatch) ||
-              (!onlyFeatures && includeFeatures && isFeatureMatch)
-            )
-          );
-          
-          if (!shouldInclude) {
-            return;
-          }
-          
-          let key;
-          try {
-            key = createMatchKey(
-              entry.master_metadata_track_name,
-              entry.master_metadata_album_artist_name
-            );
-          } catch (err) {
-            key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
-          }
-          
-          const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
-          const lookupAlbumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
-          
-          if (!trackStats[key]) {
-            trackStats[key] = {
-              key,
-              trackName: entry.master_metadata_track_name,
-              artist: entry.master_metadata_album_artist_name,
-              albumName: lookupAlbumName,
-              totalPlayed: 0,
-              playCount: 0,
-              featureArtists,
-              variations: [entry.master_metadata_track_name],
-              isFeatured: isFeatureMatch
-            };
-          } else {
-            if (trackStats[key].variations && 
-                !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
-              trackStats[key].variations.push(entry.master_metadata_track_name);
+            
+            if (!shouldInclude) {
+              return;
             }
             
-            if (isFeatureMatch && !trackStats[key].isFeatured) {
-              trackStats[key].isFeatured = true;
+            let key;
+            try {
+              key = createMatchKey(
+                entry.master_metadata_track_name,
+                entry.master_metadata_album_artist_name
+              );
+            } catch (err) {
+              key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
             }
             
-            if (lookupAlbumName !== 'Unknown Album' && 
-                (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
-              trackStats[key].albumName = lookupAlbumName;
+            const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
+            const lookupAlbumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
+            
+            if (!trackStats[key]) {
+              trackStats[key] = {
+                key,
+                trackName: entry.master_metadata_track_name,
+                artist: entry.master_metadata_album_artist_name,
+                albumName: lookupAlbumName,
+                totalPlayed: 0,
+                playCount: 0,
+                featureArtists,
+                variations: [entry.master_metadata_track_name],
+                isFeatured: isFeatureMatch
+              };
+            } else {
+              if (trackStats[key].variations && 
+                  !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
+                trackStats[key].variations.push(entry.master_metadata_track_name);
+              }
+              
+              if (isFeatureMatch && !trackStats[key].isFeatured) {
+                trackStats[key].isFeatured = true;
+              }
+              
+              if (lookupAlbumName !== 'Unknown Album' && 
+                  (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
+                trackStats[key].albumName = lookupAlbumName;
+              }
             }
+            
+            trackStats[key].totalPlayed += entry.ms_played;
+            trackStats[key].playCount += 1;
           }
-          
-          trackStats[key].totalPlayed += entry.ms_played;
-          trackStats[key].playCount += 1;
-        }
-      } catch (err) {}
-    });
+        } catch (err) {}
+      });
 
     return Object.values(trackStats)
       .sort((a, b) => b[sortBy] - a[sortBy])
@@ -341,7 +328,7 @@ const getInitialDates = () => {
     }
     
     return { all: filteredTracks };
-  }, [filteredTracks, startDate, endDate, selectedYear, yearRangeMode, yearRange]);
+  }, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
@@ -436,6 +423,32 @@ const getInitialDates = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       return `Custom Track Range (${yearRange.startYear}-${yearRange.endYear})`;
     } else if (selectedYear !== 'all') {
+      if (selectedYear.includes('-')) {
+        const parts = selectedYear.split('-');
+        if (parts.length === 3) {
+          // Display format for a specific date (YYYY-MM-DD)
+          const date = new Date(selectedYear);
+          if (!isNaN(date.getTime())) {
+            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}`;
+          }
+        } else if (parts.length === 2) {
+          // Display format for a specific month (YYYY-MM)
+          const year = parts[0];
+          const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+          const date = new Date(year, month, 1);
+          if (!isNaN(date.getTime())) {
+            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long'
+            })}`;
+          }
+        }
+        return `Custom Track Range for ${selectedYear}`;
+      }
       return `Custom Track Range for ${selectedYear}`;
     } else {
       return 'Custom Date Range Selection';
@@ -446,15 +459,39 @@ const getInitialDates = () => {
   const getFormattedDateRange = () => {
     if (!startDate && !endDate) {
       return "All Time";
-    } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `${yearRange.startYear}-01-01 to ${yearRange.endYear}-12-31`;
-    } else if (selectedYear !== 'all') {
-      return `${selectedYear}-01-01 to ${selectedYear}-12-31`;
-    } else if (startDate && endDate) {
-      return `${startDate} to ${endDate}`;
-    } else {
-      return "Custom Date Range";
     }
+    
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        const startStr = start.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        
+        const endStr = end.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+        
+        return `${startStr} to ${endStr}`;
+      }
+    } catch (error) {
+      console.error("Error formatting date range:", error);
+    }
+    
+    // Fallback if date formatting fails
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      return `${yearRange.startYear} to ${yearRange.endYear}`;
+    } else if (selectedYear !== 'all') {
+      return selectedYear;
+    }
+    
+    return "Custom Date Range";
   };
 
   // Render track rows based on mobile/desktop view
@@ -564,7 +601,7 @@ const getInitialDates = () => {
                 min="1"
                 max="250"
                 value={topN}
-                onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value))))}
+                onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
                 className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
               />
               <label className="text-sm">tracks</label>
@@ -713,25 +750,7 @@ const getInitialDates = () => {
                 <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
                 <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
               </div>
-              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-                Include features
-              </span>
-            </label>
-            
-            {/* Only features toggle */}
-            <label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
-              <div className="relative">
-                <input 
-                  type="checkbox" 
-                  checked={onlyFeatures} 
-                  disabled={includeFeatures}
-                  onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
-                  className="sr-only"
-                />
-                <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
-              </div>
-              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
                 Only features
               </span>
             </label>
