@@ -255,19 +255,14 @@ const PodcastRankings = ({
     return Array.from(shows).sort();
   }, [rawPlayData]);
 
-  const filteredShows = useMemo(() => {
+const filteredShows = useMemo(() => {
   return allShows
-  .filter(show =>
-    show.toLowerCase().includes(showSearch.toLowerCase()) &&
-    !selectedShows.includes(show)
-  )
-  .slice(0, 10);
- 
-};
-
-export default PodcastRankings;
-      .slice(0, 10);
-  }, [allShows, showSearch, selectedShows]);
+    .filter(show =>
+      show.toLowerCase().includes(showSearch.toLowerCase()) &&
+      !selectedShows.includes(show)
+    )
+    .slice(0, 10);
+}, [allShows, showSearch, selectedShows]);
 
   const filteredEpisodes = useMemo(() => {
     if (!rawPlayData?.length) return [];
