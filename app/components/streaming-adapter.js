@@ -141,6 +141,63 @@ function normalizeString(str) {
   };
 }
 
+function filterDataByDate(data, dateFilter) {
+  // If no date filter, return all data
+  if (!dateFilter || dateFilter === 'all') {
+    return data;
+  }
+
+  // Check if we have year-month-day format (YYYY-MM-DD)
+  if (dateFilter.includes('-') && dateFilter.split('-').length === 3) {
+    const [year, month, day] = dateFilter.split('-').map(Number);
+    
+    // Filter to exactly this date
+    return data.filter(entry => {
+      try {
+        const date = new Date(entry.ts);
+        return date.getFullYear() === year &&
+               date.getMonth() + 1 === month && // JavaScript months are 0-based
+               date.getDate() === day;
+      } catch (err) {
+        return false;
+      }
+    });
+  }
+  
+  // Check if we have year-month format (YYYY-MM)
+  if (dateFilter.includes('-') && dateFilter.split('-').length === 2) {
+    const [year, month] = dateFilter.split('-').map(Number);
+    
+    // Filter to this month
+    return data.filter(entry => {
+      try {
+        const date = new Date(entry.ts);
+        return date.getFullYear() === year &&
+               date.getMonth() + 1 === month; // JavaScript months are 0-based
+      } catch (err) {
+        return false;
+      }
+    });
+  }
+  
+  // Otherwise, it's just a year
+  const year = parseInt(dateFilter);
+  if (!isNaN(year)) {
+    return data.filter(entry => {
+      try {
+        const date = new Date(entry.ts);
+        return date.getFullYear() === year;
+      } catch (err) {
+        return false;
+      }
+    });
+  }
+  
+  // If we get here, something's wrong with the date filter
+  console.warn("Invalid date filter format:", dateFilter);
+  return data;
+}
+
 function createMatchKey(trackName, artistName) {
   if (!trackName || !artistName) return '';
   
