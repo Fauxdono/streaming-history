@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PlaylistExporter from './playlist-exporter.js';
 
-const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear = {}, formatDuration, onYearChange }) => {
+const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear = {}, formatDuration, onYearChange, initialYear }) => {
   const [activeTab, setActiveTab] = useState('top250');
   const [selectedYear, setSelectedYear] = useState('all');
   const [sortBy, setSortBy] = useState('totalPlayed');
@@ -30,6 +30,14 @@ const TrackRankings = ({ processedData = [], briefObsessions = [], songsByYear =
       onYearChange(selectedYear);
     }
   }, [selectedYear, onYearChange]);
+
+// Listen for external selectedYear changes (from sidebar)
+  useEffect(() => {
+    // Only update if explicitly passed a value and it's different from current value
+    if (initialYear && initialYear !== selectedYear) {
+      setSelectedYear(initialYear);
+    }
+  }, [initialYear]);
 
   if (!processedData || processedData.length === 0) {
     return <div>No track data available</div>;
