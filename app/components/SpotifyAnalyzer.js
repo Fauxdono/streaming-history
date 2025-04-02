@@ -554,17 +554,90 @@ const displayedAlbums = useMemo(() => {
       }
     });
     
-    // Convert map back to array
-    filteredAlbums = Array.from(albumIdMap.values());
   } else if (selectedAlbumYear !== 'all') {
-    // Single year mode - use the year-specific album data
-    // Important: make deep copies to avoid modifying the original
-    filteredAlbums = albumsByYear[selectedAlbumYear] ? 
-                   JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
-                   [];
+    // Check if the selectedAlbumYear includes month/day information
+    if (selectedAlbumYear.includes('-')) {
+      // If it has a dash, it's either YYYY-MM or YYYY-MM-DD
+      // We need to filter rawPlayData directly and build a custom album list
+      
+      const filteredPlayData = filterDataByDate(rawPlayData, selectedAlbumYear);
+      
+      // Group the filtered play data by album
+      const albumMap = {};
+      
+      filteredPlayData.forEach(entry => {
+        if (!entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) return;
+        
+        const artistName = entry.master_metadata_album_artist_name;
+        const albumName = entry.master_metadata_album_album_name;
+        const key = `${albumName}-${artistName}`;
+        
+        if (!albumMap[key]) {
+          albumMap[key] = {
+            name: albumName,
+            artist: artistName,
+            totalPlayed: 0,
+            playCount: 0,
+            trackCount: new Set(),
+            trackNames: new Set(),
+            trackObjects: [],
+            firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now()
+          };
+        }
+        
+        albumMap[key].totalPlayed += entry.ms_played || 0;
+        albumMap[key].playCount += 1;
+        
+        if (entry.master_metadata_track_name) {
+          albumMap[key].trackCount.add(entry.master_metadata_track_name.toLowerCase());
+          albumMap[key].trackNames.add(entry.master_metadata_track_name);
+          
+          // Add this track to trackObjects if not already present
+          const trackExists = albumMap[key].trackObjects.some(
+            t => t.trackName === entry.master_metadata_track_name
+          );
+          
+          if (!trackExists) {
+            albumMap[key].trackObjects.push({
+              trackName: entry.master_metadata_track_name,
+              artist: entry.master_metadata_album_artist_name,
+              totalPlayed: entry.ms_played || 0,
+              playCount: 1,
+              albumName
+            });
+          } else {
+            // Update existing track
+            const track = albumMap[key].trackObjects.find(
+              t => t.trackName === entry.master_metadata_track_name
+            );
+            track.totalPlayed += entry.ms_played || 0;
+            track.playCount += 1;
+          }
+        }
+        
+        const timestamp = new Date(entry.ts);
+        if (timestamp < new Date(albumMap[key].firstListen)) {
+          albumMap[key].firstListen = timestamp.getTime();
+        }
+      });
+      
+      // Process for final output - sort track objects
+      Object.values(albumMap).forEach(album => {
+        album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+        album.trackCountValue = album.trackCount.size;
+      });
+      
+      // Convert to array and sort
+      return Object.values(albumMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
+    } else {
+      // Regular single year, use the existing data structure
+      return albumsByYear[selectedAlbumYear] ? 
+               JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
+               [];
+    }
   } else {
-    // All-time mode - use the complete album data
-    filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
+    // All-time mode
+    return JSON.parse(JSON.stringify(topAlbums));
   }
   
   // Then apply artist filtering if needed
@@ -732,23 +805,67 @@ const displayedAlbums = useMemo(() => {
           }
         }
       });
+
+ const result = Object.values(mergedArtists)
+    .sort((a, b) => b.totalPlayed - a.totalPlayed);
+  
+  console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
+  return result;
       
-      // Convert back to array and sort by total play time
-      const result = Object.values(mergedArtists)
-        .sort((a, b) => b.totalPlayed - a.totalPlayed);
+ } else if (selectedArtistYear !== 'all') {
+    // Check if the selectedArtistYear includes month/day information
+    if (selectedArtistYear.includes('-')) {
+      // If it has a dash, it's either YYYY-MM or YYYY-MM-DD
+      // We need to filter rawPlayData directly and build a custom artist list
       
-      console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
-      return result;
-    } else if (selectedArtistYear === 'all') {
-      // All-time mode: show the top artists
-      return topArtists;
+      const filteredPlayData = filterDataByDate(rawPlayData, selectedArtistYear);
+      
+      // Group the filtered play data by artist
+      const artistMap = {};
+      
+      filteredPlayData.forEach(entry => {
+        if (!entry.master_metadata_album_artist_name) return;
+        
+        const artistName = entry.master_metadata_album_artist_name;
+        
+        if (!artistMap[artistName]) {
+          artistMap[artistName] = {
+            name: artistName,
+            totalPlayed: 0,
+            playCount: 0,
+            firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now(),
+            firstSong: entry.master_metadata_track_name || 'Unknown',
+            firstSongPlayCount: 1
+          };
+        }
+        
+        artistMap[artistName].totalPlayed += entry.ms_played || 0;
+        artistMap[artistName].playCount += 1;
+        
+        const timestamp = new Date(entry.ts);
+        if (timestamp < new Date(artistMap[artistName].firstListen)) {
+          artistMap[artistName].firstListen = timestamp.getTime();
+          artistMap[artistName].firstSong = entry.master_metadata_track_name;
+          artistMap[artistName].firstSongPlayCount = 1;
+        } else if (entry.master_metadata_track_name === artistMap[artistName].firstSong) {
+          artistMap[artistName].firstSongPlayCount += 1;
+        }
+      });
+      
+      // Convert to array and sort
+      return Object.values(artistMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
     } else {
-      // Single year mode
+      // Regular single year, use the existing data structure
       const yearArtists = artistsByYear[selectedArtistYear] || [];
       console.log(`Found ${yearArtists.length} artists for year ${selectedArtistYear}`);
       return yearArtists;
     }
-  }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange]);
+  } else {
+    // All-time mode: show the top artists
+    return topArtists;
+  }
+}, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange, rawPlayData]);
+
 
 const filteredDisplayedArtists = useMemo(() => {
   // If no artists displayed, return empty array to avoid issues
