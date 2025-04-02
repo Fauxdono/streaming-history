@@ -7,25 +7,15 @@ export let selectedPatternYear = 'all';
 export let yearPatternRange = { startYear: '', endYear: '' };
 export let patternYearRangeMode = false;
 
-const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
+const ListeningPatterns = ({ 
+  rawPlayData = [], 
+  formatDuration,
+  selectedYear = 'all',
+  yearRange = { startYear: '', endYear: '' },
+  yearRangeMode = false
+}) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
-  const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays'); // 'plays' or 'average'
-  const [selectedYear, setSelectedYear] = useState('all'); // 'all' for all-time data, or specific year
-  const [yearRangeMode, setYearRangeMode] = useState(false);
-  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
-  
-  // Update exported variables whenever state changes
-  useEffect(() => {
-    selectedPatternYear = selectedYear;
-  }, [selectedYear]);
-  
-  useEffect(() => {
-    yearPatternRange = yearRange;
-  }, [yearRange]);
-  
-  useEffect(() => {
-    patternYearRangeMode = yearRangeMode;
-  }, [yearRangeMode]);
+  const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
   
   // Filter data by selected year or year range
   const filteredData = useMemo(() => {
@@ -34,17 +24,52 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
       const endYear = parseInt(yearRange.endYear);
       
       return rawPlayData.filter(entry => {
-        const date = new Date(entry.ts);
-        const year = date.getFullYear();
-        return year >= startYear && year <= endYear;
+        try {
+          const date = new Date(entry.ts);
+          if (isNaN(date.getTime())) return false;
+          
+          const year = date.getFullYear();
+          return year >= startYear && year <= endYear;
+        } catch (err) {
+          return false;
+        }
       });
-    } else if (selectedYear === 'all') {
-      return rawPlayData;
+    } else if (selectedYear !== 'all') {
+      if (selectedYear.includes('-')) {
+        // Handle YYYY-MM or YYYY-MM-DD format
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            // For YYYY-MM-DD format
+            if (selectedYear.split('-').length === 3) {
+              return date.toISOString().split('T')[0] === selectedYear;
+            }
+            
+            // For YYYY-MM format
+            const [year, month] = selectedYear.split('-');
+            return date.getFullYear() === parseInt(year) && 
+                  (date.getMonth() + 1) === parseInt(month);
+          } catch (err) {
+            return false;
+          }
+        });
+      } else {
+        // Regular single year
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            return date.getFullYear() === parseInt(selectedYear);
+          } catch (err) {
+            return false;
+          }
+        });
+      }
     } else {
-      return rawPlayData.filter(entry => {
-        const date = new Date(entry.ts);
-        return date.getFullYear() === parseInt(selectedYear);
-      });
+      return rawPlayData;
     }
   }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
 
