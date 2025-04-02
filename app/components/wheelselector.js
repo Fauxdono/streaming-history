@@ -60,6 +60,33 @@ const WheelSelector = ({
           activeText: 'text-teal-800 font-bold',
           shadow: 'shadow-teal-200'
         };
+      case 'orange':
+      default:
+        return {
+          border: 'border-orange-300',
+          highlight: 'bg-orange-100',
+          text: 'text-orange-700',
+          activeText: 'text-orange-800 font-bold',
+          shadow: 'shadow-orange-200'
+        };
+   case 'indigo':
+      default:
+        return {
+          border: 'border-indigo-300',
+          highlight: 'bg-indigo-100',
+          text: 'text-indigo-700',
+          activeText: 'text-indigo-800 font-bold',
+          shadow: 'shadow-indigo-200'
+        };
+   case 'green':
+      default:
+        return {
+          border: 'border-green-300',
+          highlight: 'bg-green-100',
+          text: 'text-green-700',
+          activeText: 'text-green-800 font-bold',
+          shadow: 'shadow-green-200'
+        };
     }
   };
   
