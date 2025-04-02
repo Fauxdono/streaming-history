@@ -36,11 +36,7 @@ const CustomTrackRankings = ({
   const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  
-  // Year-based date selection
-  const [yearRangeMode, setYearRangeMode] = useState(false);
-  const [selectedYear, setSelectedYear] = useState('all');
-  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
+ 
   
   // Check for mobile viewport
   useEffect(() => {
@@ -131,11 +127,6 @@ const getInitialDates = () => {
     }
     
     return { initialStartDate: '', initialEndDate: '' };
-  };
-
-  // Toggle between single year and year range modes
-  const toggleYearRangeMode = (value) => {
-    setYearRangeMode(value);
   };
   
   const addArtistFromTrack = (artist) => {
