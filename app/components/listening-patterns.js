@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
-import YearSelector from './year-selector.js';
 
 // Export variables for SpotifyAnalyzer.js to use for dynamic tab names
 export let selectedPatternYear = 'all';
@@ -28,20 +26,6 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
   useEffect(() => {
     patternYearRangeMode = yearRangeMode;
   }, [yearRangeMode]);
-  
-  // Get all available years from data
-  const availableYears = useMemo(() => {
-    const yearsSet = new Set();
-    
-    rawPlayData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
-        const date = new Date(entry.ts);
-        yearsSet.add(date.getFullYear());
-      }
-    });
-    
-    return Array.from(yearsSet).sort((a, b) => a - b); // Sort in ascending order
-  }, [rawPlayData]);
   
   // Filter data by selected year or year range
   const filteredData = useMemo(() => {
@@ -256,36 +240,6 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
     </button>
   );
 
-  // Handle year change from the slider
-  const handleYearChange = (year) => {
-    setSelectedYear(year);
-  };
-
-  // Handle year range change
-  const handleYearRangeChange = ({ startYear, endYear }) => {
-    setYearRange({ startYear, endYear });
-  };
-
-  // Toggle between single year and year range modes
-  const toggleYearRangeMode = (value) => {
-    // If value is provided, use it directly; otherwise toggle the current state
-    const newMode = typeof value === 'boolean' ? value : !yearRangeMode;
-    setYearRangeMode(newMode);
-    
-    // Reset selected year when switching to range mode
-    if (newMode) {
-      setSelectedYear('all');
-      
-      // If we're switching to range mode, set a default range
-      if (availableYears.length > 0) {
-        setYearRange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-    }
-  };
-
   // Function to get title based on year selection mode
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
@@ -299,27 +253,10 @@ const ListeningPatterns = ({ rawPlayData = [], formatDuration }) => {
 
   return (
     <div className="space-y-4">
-      {/* Year selector */}
-      <div className="flex flex-col mb-4">
-        <h3 className="font-bold text-purple-700">
-          {getPageTitle()}
-        </h3>
-        
-        {availableYears.length > 0 && (
-          <div className="mt-2">
-            <YearSelector
-              artistsByYear={{ ...availableYears.reduce((obj, year) => ({ ...obj, [year]: [] }), {}) }}
-              onYearChange={handleYearChange}
-              onYearRangeChange={handleYearRangeChange}
-              initialYear={selectedYear !== 'all' ? selectedYear : null}
-              initialYearRange={yearRange}
-              isRangeMode={yearRangeMode}
-              onToggleRangeMode={toggleYearRangeMode}
-              colorTheme="purple"
-            />
-          </div>
-        )}
-      </div>
+      {/* Page title */}
+      <h3 className="font-bold text-purple-700">
+        {getPageTitle()}
+      </h3>
 
       {/* Horizontally scrollable tabs */}
       <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
