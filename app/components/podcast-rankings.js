@@ -55,7 +55,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
   }, [rawPlayData]);
 
   // Create an object with years for YearSelector
-  const yearsForYearSelector = useMemo(() => {
+  const artistsByYear = useMemo(() => {
     const yearsObj = {};
     availableYears.forEach(year => {
       yearsObj[year] = []; // YearSelector expects an object with years as keys
@@ -470,13 +470,24 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setSelectedShows(prev => prev.filter(s => s !== show));
   };
 
+  const getPageTitle = () => {
+    if (yearRangeMode && yearRange && yearRange.startYear && yearRange.endYear) {
+      return `Podcast Rankings (${yearRange.startYear}-${yearRange.endYear})`;
+    } else if (selectedYear !== 'all') {
+      return `Podcast Rankings (${selectedYear})`;
+    }
+    return 'All-time Podcast Rankings';
+  };
+
   return (
     <div className="space-y-4">
+      {/* Page Title */}
+      <h3 className="font-bold text-indigo-700 mb-2">{getPageTitle()}</h3>
+      
       {/* YearSelector Component */}
-      <div className="mb-4 border rounded-lg p-4 bg-indigo-50">
-        <h3 className="font-bold text-indigo-700 mb-2">Select Time Period</h3>
+      <div className="mb-4">
         <YearSelector 
-          artistsByYear={yearsForYearSelector}
+          artistsByYear={artistsByYear}
           onYearChange={handleYearChange}
           onYearRangeChange={handleYearRangeChange}
           initialYear={selectedYear !== 'all' ? selectedYear : null}
@@ -639,19 +650,25 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
                   <th className="p-2 text-left text-indigo-700">Episode</th>
                   <th className="p-2 text-left text-indigo-700">Show</th>
                   <th 
-                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
+                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${
+                      sortBy === 'totalPlayed' ? 'font-bold' : ''
+                    }`}
                     onClick={() => setSortBy('totalPlayed')}
                   >
                     Total Time {sortBy === 'totalPlayed' && '▼'}
                   </th>
                   <th 
-                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
+                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${
+                      sortBy === 'longestSession' ? 'font-bold' : ''
+                    }`}
                     onClick={() => setSortBy('longestSession')}
                   >
                     Longest Session {sortBy === 'longestSession' && '▼'}
                   </th>
                   <th 
-                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
+                    className={`p-2 text-right text-indigo-700 cursor-pointer hover:bg-indigo-100 ${
+                      sortBy === 'segmentCount' ? 'font-bold' : ''
+                    }`}
                     onClick={() => setSortBy('segmentCount')}
                   >
                     Sessions {sortBy === 'segmentCount' && '▼'}
