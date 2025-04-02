@@ -68,6 +68,18 @@ const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear:
 const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
 const [showYearSidebar, setShowYearSidebar] = useState(true); // Set to true by default
 const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
+const [selectedPatternYear, setSelectedPatternYear] = useState('all');
+const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
+const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
+const [selectedBehaviorYear, setSelectedBehaviorYear] = useState('all');
+const [behaviorYearRange, setBehaviorYearRange] = useState({ startYear: '', endYear: '' });
+const [behaviorYearRangeMode, setBehaviorYearRangeMode] = useState(false);
+const [selectedDiscoveryYear, setSelectedDiscoveryYear] = useState('all');
+const [discoveryYearRange, setDiscoveryYearRange] = useState({ startYear: '', endYear: '' });
+const [discoveryYearRangeMode, setDiscoveryYearRangeMode] = useState(false);
+const [selectedPodcastYear, setSelectedPodcastYear] = useState('all');
+const [podcastYearRange, setPodcastYearRange] = useState({ startYear: '', endYear: '' });
+const [podcastYearRangeMode, setPodcastYearRangeMode] = useState(false);
 
 
   // Define service colors
@@ -178,7 +190,7 @@ const handleCustomTrackYearRangeModeToggle = (isRange) => {
 
 // 2. Add a function to determine if sidebar should be shown based on current tab
 const shouldShowSidebar = (tabName) => {
-  const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior', 'custom'];
+  const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior', 'custom', 'discovery', 'podcasts'];
   return sidebarTabs.includes(tabName);
 };
 
@@ -208,6 +220,12 @@ useEffect(() => {
   case 'custom':
       setSidebarColorTheme('orange');
       break;
+case 'discovery':
+      setSidebarColorTheme('green');
+      break;
+    case 'podcasts':
+      setSidebarColorTheme('indigo');
+      break;
     default:
       setSidebarColorTheme('teal');
   }
@@ -229,11 +247,17 @@ switch(activeTab) {
     case 'custom':
       handleCustomTrackYearChange(year);
       break;
-    case 'patterns':
-      // If you have code for patterns year selection, add it here
+case 'patterns':
+      setSelectedPatternYear(year);
       break;
     case 'behavior':
-      // If you have code for behavior year selection, add it here
+      setSelectedBehaviorYear(year);
+      break;
+    case 'discovery':
+      setSelectedDiscoveryYear(year);
+      break;
+    case 'podcasts':
+      setSelectedPodcastYear(year);
       break;
     default:
       // Default behavior
@@ -254,10 +278,16 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       handleCustomTrackYearRangeChange({ startYear, endYear });
       break;
     case 'patterns':
-      // If you have code for patterns year range selection, add it here
+      setPatternYearRange({ startYear, endYear });
       break;
     case 'behavior':
-      // If you have code for behavior year range selection, add it here
+      setBehaviorYearRange({ startYear, endYear });
+      break;
+    case 'discovery':
+      setDiscoveryYearRange({ startYear, endYear });
+      break;
+    case 'podcasts':
+      setPodcastYearRange({ startYear, endYear });
       break;
     default:
       // Default behavior
@@ -294,10 +324,40 @@ const handleSidebarRangeModeToggle = (isRange) => {
       handleCustomTrackYearRangeModeToggle(isRange);
       break;
     case 'patterns':
-      // If you have code for patterns year range mode toggle, add it here
+setPatternYearRangeMode(isRange);
+      if (isRange && availableYears.length >= 2) {
+        setPatternYearRange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
       break;
     case 'behavior':
-      // If you have code for behavior year range mode toggle, add it here
+      setBehaviorYearRangeMode(isRange);
+      if (isRange && availableYears.length >= 2) {
+        setBehaviorYearRange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
+      break;
+    case 'discovery':
+      setDiscoveryYearRangeMode(isRange);
+      if (isRange && availableYears.length >= 2) {
+        setDiscoveryYearRange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
+      break;
+    case 'podcasts':
+      setPodcastYearRangeMode(isRange);
+      if (isRange && availableYears.length >= 2) {
+        setPodcastYearRange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
       break;
     default:
       // Default behavior
@@ -306,21 +366,41 @@ const handleSidebarRangeModeToggle = (isRange) => {
 };
 
 const getPatternsTabLabel = () => {
-  if (patternYearRangeMode && yearPatternRange.startYear && yearPatternRange.endYear) {
-    return `${yearPatternRange.startYear}-${yearPatternRange.endYear} Patterns`;
+  if (patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear) {
+    return `${patternYearRange.startYear}-${patternYearRange.endYear} Patterns`;
   } else if (selectedPatternYear === 'all') {
     return 'All-time Patterns';
   }
   return `${selectedPatternYear} Patterns`;
 };
+
 const getBehaviorTabLabel = () => {
-  if (behaviorYearRangeMode && yearBehaviorRange.startYear && yearBehaviorRange.endYear) {
-    return `${yearBehaviorRange.startYear}-${yearBehaviorRange.endYear} Behavior`;
+  if (behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear) {
+    return `${behaviorYearRange.startYear}-${behaviorYearRange.endYear} Behavior`;
   } else if (selectedBehaviorYear === 'all') {
     return 'All-time Behavior';
   }
-  return ` ${selectedBehaviorYear} Behavior`;
+  return `${selectedBehaviorYear} Behavior`;
 };
+
+const getDiscoveryTabLabel = () => {
+  if (discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear) {
+    return `${discoveryYearRange.startYear}-${discoveryYearRange.endYear} Discovery`;
+  } else if (selectedDiscoveryYear === 'all') {
+    return 'All-time Discovery';
+  }
+  return `${selectedDiscoveryYear} Discovery`;
+};
+
+const getPodcastsTabLabel = () => {
+  if (podcastYearRangeMode && podcastYearRange.startYear && podcastYearRange.endYear) {
+    return `${podcastYearRange.startYear}-${podcastYearRange.endYear} Podcasts`;
+  } else if (selectedPodcastYear === 'all') {
+    return 'All-time Podcasts';
+  }
+  return `${selectedPodcastYear} Podcasts`;
+};
+
 
 const formatDuration = (ms) => {
     const minutes = Math.floor(ms / 60000);
@@ -1711,9 +1791,12 @@ selectedYear={customTrackYear}
   >
             <h3 className="font-bold mb-2 text-indigo-700">Podcast Analysis</h3>
             <PodcastRankings 
-              rawPlayData={rawPlayData}
-              formatDuration={formatDuration}
-            />
+  rawPlayData={rawPlayData}
+  formatDuration={formatDuration}
+  selectedYear={selectedPodcastYear}
+  yearRange={podcastYearRange}
+  yearRangeMode={podcastYearRangeMode}
+/>
           </div>
         )}
         
@@ -1721,26 +1804,37 @@ selectedYear={customTrackYear}
   <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
             <h3 className="font-bold mb-2 text-purple-700">Listening Patterns</h3>
             <ListeningPatterns 
-              rawPlayData={rawPlayData} 
-              formatDuration={formatDuration} 
-            />
+  rawPlayData={rawPlayData} 
+  formatDuration={formatDuration}
+  selectedYear={selectedPatternYear}
+  yearRange={patternYearRange}
+  yearRangeMode={patternYearRangeMode}
+/>
           </div>
         )}
 {activeTab === 'behavior' && (
   <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
             <h3 className="font-bold mb-2 text-indigo-700">Listening Behavior</h3>
-            <ListeningBehavior 
-              rawPlayData={rawPlayData} 
-              formatDuration={formatDuration} 
-            />
+           <ListeningBehavior 
+  rawPlayData={rawPlayData} 
+  formatDuration={formatDuration}
+  selectedYear={selectedBehaviorYear}
+  yearRange={behaviorYearRange}
+  yearRangeMode={behaviorYearRangeMode}
+/>
           </div>
         )}
 {activeTab === 'discovery' && (
   <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
             <h3 className="font-bold mb-2 text-green-700">Music Discovery</h3>
             <DiscoveryAnalysis 
-              rawPlayData={rawPlayData} 
-              formatDuration={formatDuration} 
+              <DiscoveryAnalysis 
+  rawPlayData={rawPlayData} 
+  formatDuration={formatDuration}
+  selectedYear={selectedDiscoveryYear}
+  yearRange={discoveryYearRange}
+  yearRangeMode={discoveryYearRangeMode}
+/>
             />
           </div>
         )}
@@ -1753,18 +1847,30 @@ selectedYear={customTrackYear}
       activeTab === 'artists' ? selectedArtistYear :
       activeTab === 'albums' ? selectedAlbumYear :
       activeTab === 'tracks' ? selectedTrackYear : 
-activeTab === 'custom' ? customTrackYear : 'all'
+      activeTab === 'custom' ? customTrackYear :
+      activeTab === 'patterns' ? selectedPatternYear :
+      activeTab === 'behavior' ? selectedBehaviorYear :
+      activeTab === 'discovery' ? selectedDiscoveryYear :
+      activeTab === 'podcasts' ? selectedPodcastYear : 'all'
     }
     initialYearRange={
       activeTab === 'artists' ? yearRange :
       activeTab === 'albums' ? albumYearRange : 
       activeTab === 'custom' ? customYearRange :
+      activeTab === 'patterns' ? patternYearRange :
+      activeTab === 'behavior' ? behaviorYearRange :
+      activeTab === 'discovery' ? discoveryYearRange :
+      activeTab === 'podcasts' ? podcastYearRange :
       { startYear: '', endYear: '' }
     }
     isRangeMode={
       activeTab === 'artists' ? yearRangeMode :
       activeTab === 'albums' ? albumYearRangeMode :
-      activeTab === 'custom' ? customYearRangeMode : false
+      activeTab === 'custom' ? customYearRangeMode :
+      activeTab === 'patterns' ? patternYearRangeMode :
+      activeTab === 'behavior' ? behaviorYearRangeMode :
+      activeTab === 'discovery' ? discoveryYearRangeMode :
+      activeTab === 'podcasts' ? podcastYearRangeMode : false
     }
     onToggleRangeMode={handleSidebarRangeModeToggle}
     colorTheme={sidebarColorTheme}
