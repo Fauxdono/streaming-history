@@ -1834,7 +1834,7 @@ selectedYear={customTrackYear}
   yearRange={discoveryYearRange}
   yearRangeMode={discoveryYearRangeMode}
 />
-            />
+        
           </div>
         )}
 {showYearSidebar && (
