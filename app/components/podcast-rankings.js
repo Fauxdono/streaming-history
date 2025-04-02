@@ -4,7 +4,6 @@ import {
   startOfYear, endOfYear,
   format, differenceInMinutes, parseISO, isValid
 } from 'date-fns';
-import YearSelector from './year-selector.js';
 
 // Helper to safely parse dates and check validity
 const safeParseISOAndValidate = (dateString) => {
@@ -29,7 +28,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
   const [yearRange, setYearRange] = useState(null);
   const [yearRangeMode, setYearRangeMode] = useState(false);
   
-  // Legacy date selection (keeping for backward compatibility)
+  // Date selection
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
@@ -42,7 +41,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
   const [duplicatesFound, setDuplicatesFound] = useState(0);
   const [duplicateTypes, setDuplicateTypes] = useState({exact: 0, overlapping: 0, zeroTime: 0});
 
-  // Derive available years for YearSelector
+  // Derive available years for data filtering
   const availableYears = useMemo(() => {
     const yearSet = new Set();
     rawPlayData.forEach(entry => {
@@ -53,15 +52,6 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     });
     return Array.from(yearSet).sort((a, b) => parseInt(a) - parseInt(b));
   }, [rawPlayData]);
-
-  // Create an object with years for YearSelector
-  const artistsByYear = useMemo(() => {
-    const yearsObj = {};
-    availableYears.forEach(year => {
-      yearsObj[year] = []; // YearSelector expects an object with years as keys
-    });
-    return yearsObj;
-  }, [availableYears]);
 
   // Initialize date range from raw data
   useEffect(() => {
@@ -87,7 +77,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     }
   }, [rawPlayData, startDate, endDate]);
 
-  // Handlers for YearSelector
+  // Handlers for year selection
   const handleYearChange = (year) => {
     setSelectedYear(year);
     setYearRangeMode(false);
@@ -122,24 +112,6 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
       const lastDay = new Date(endYearNum, 11, 31);
       setStartDate(format(firstDay, 'yyyy-MM-dd'));
       setEndDate(format(lastDay, 'yyyy-MM-dd'));
-    }
-  };
-
-  const toggleYearRangeMode = (isRange) => {
-    setYearRangeMode(isRange);
-    
-    if (isRange && !yearRange && availableYears.length >= 2) {
-      // Default to full range if switching to range mode without a range
-      const startYear = availableYears[0];
-      const endYear = availableYears[availableYears.length - 1];
-      setYearRange({ startYear, endYear });
-      handleYearRangeChange({ startYear, endYear });
-    } else if (!isRange && selectedYear === 'all') {
-      // Default to latest year if switching to single mode with 'all' selected
-      if (availableYears.length > 0) {
-        const latestYear = availableYears[availableYears.length - 1];
-        handleYearChange(latestYear);
-      }
     }
   };
 
@@ -412,7 +384,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setStartDate(format(firstDayOfYear, 'yyyy-MM-dd'));
     setEndDate(format(today, 'yyyy-MM-dd'));
     
-    // Also update YearSelector state
+    // Also update year state
     setSelectedYear(today.getFullYear().toString());
     setYearRangeMode(false);
   };
@@ -424,7 +396,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setStartDate(format(firstDayOfYear, 'yyyy-MM-dd'));
     setEndDate(format(lastDayOfYear, 'yyyy-MM-dd'));
     
-    // Also update YearSelector state
+    // Also update year state
     setSelectedYear(prevYear.toString());
     setYearRangeMode(false);
   };
@@ -452,7 +424,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
         setStartDate(format(earliest, 'yyyy-MM-dd'));
         setEndDate(format(latest, 'yyyy-MM-dd'));
         
-        // Also update YearSelector state
+        // Also update year state
         setSelectedYear('all');
         setYearRangeMode(false);
       } catch (err) {
@@ -483,20 +455,6 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     <div className="space-y-4">
       {/* Page Title */}
       <h3 className="font-bold text-indigo-700 mb-2">{getPageTitle()}</h3>
-      
-      {/* YearSelector Component */}
-      <div className="mb-4">
-        <YearSelector 
-          artistsByYear={artistsByYear}
-          onYearChange={handleYearChange}
-          onYearRangeChange={handleYearRangeChange}
-          initialYear={selectedYear !== 'all' ? selectedYear : null}
-          initialYearRange={yearRange}
-          isRangeMode={yearRangeMode}
-          onToggleRangeMode={toggleYearRangeMode}
-          colorTheme="indigo"
-        />
-      </div>
 
       {/* Legacy date picker controls */}
       <div className="flex flex-wrap gap-4 items-center">
