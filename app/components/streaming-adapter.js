@@ -141,7 +141,8 @@ function normalizeString(str) {
   };
 }
 
-export function filterDataByDate(data, dateFilter) {
+// Add this function definition in your streaming-adapter.js file
+function filterDataByDate(data, dateFilter) {
   // If no date filter, return all data
   if (!dateFilter || dateFilter === 'all') {
     return data;
@@ -2215,4 +2216,4 @@ else if (file.name.endsWith('.csv')) {
   }
 }
 };
-export { normalizeString, createMatchKey,};
+export { normalizeString, createMatchKey, filterDataByDate };
