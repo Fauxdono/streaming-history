@@ -262,7 +262,7 @@ const PodcastRankings = ({
     !selectedShows.includes(show)
   )
   .slice(0, 10);
-  );
+ 
 };
 
 export default PodcastRankings;
