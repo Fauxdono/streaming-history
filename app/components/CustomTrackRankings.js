@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
 import DateSelector from './dateselector.js';
-import YearSelector from './year-selector.js';
 import PlaylistExporter from './playlist-exporter.js';
 
 const CustomTrackRankings = ({ 
