@@ -1,18 +1,21 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const DiscoveryAnalysis = ({ 
   rawPlayData = [], 
   formatDuration,
+  // Add props for connecting with the YearSelector sidebar
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
-  yearRangeMode = false
+  yearRangeMode = false,
+  onYearChange,
+  onYearRangeChange,
+  onToggleYearRangeMode
 }) => {
   const [activeTab, setActiveTab] = useState('discovery');
   const [timeframe, setTimeframe] = useState('all');
   
-  // Filter data by selected year or year range
+  // Filter data based on year selection
   const filteredData = useMemo(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       const startYear = parseInt(yearRange.startYear);
@@ -67,6 +70,48 @@ const DiscoveryAnalysis = ({
       return rawPlayData;
     }
   }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
+  
+  // Analyze artist discovery and loyalty
+  const discoveryData = useMemo(() => {
+    // Sort all entries by timestamp
+    const sortedEntries = [...filteredData].filter(entry => entry.ms_played >= 30000)
+                              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+    
+    if (sortedEntries.length === 0) {
+      return {
+        firstListenDates: {},
+        newArtistsByMonth: [],
+        totalArtistsDiscovered: 0,
+        loyaltyData: [],
+        top5Artists: [],
+        top5Percentage: 0,
+        uniqueArtistsCount: 0,
+        artistPlayCounts: {}
+      };
+    }
+    
+    // Track first time listening to each artist
+    const firstListenDates = {};
+    const artistPlayCounts = {};
+    const artistPlayTime = {};
+    
+    sortedEntries.forEach(entry => {
+      const artist = entry.master_metadata_album_artist_name;
+      if (!artist) return;
+      
+      const date = new Date(entry.ts);
+      
+      // Track first listen date
+      if (!firstListenDates[artist]) {
+        firstListenDates[artist] = date;
+      }
+      
+      // Track play counts
+      artistPlayCounts[artist] = (artistPlayCounts[artist] || 0) + 1;
+      
+      // Track play time
+      artistPlayTime[artist] = (artistPlayTime[artist] || 0) + entry.ms_played;
+    });
     
     // Calculate new artists discovered by month
     const artistsByMonth = {};
@@ -113,16 +158,20 @@ const DiscoveryAnalysis = ({
       uniqueArtistsCount: sortedArtists.length,
       artistPlayCounts
     };
-  }, [rawPlayData]);
+  }, [filteredData]);
   
   // Analyze listening depth
   const depthData = useMemo(() => {
-    // Sort all entries by timestamp
-    const sortedEntries = [...filteredData].filter(entry => entry.ms_played >= 30000)
-                              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+    // Group plays by artist and track
+    const artistTracks = {};
+    const trackPlays = {};
+    
+    // Get the earliest and latest dates for filtering
+    const filteredEntries = [...filteredData].filter(entry => entry.ms_played >= 30000);
+    if (filteredEntries.length === 0) return { artistDepths: [], averageDepth: 0, replayValue: [] };
     
     // Process all tracks
-    filteredData.forEach(entry => {
+    filteredEntries.forEach(entry => {
       const artist = entry.master_metadata_album_artist_name;
       const track = entry.master_metadata_track_name;
       if (!artist || !track) return;
@@ -177,9 +226,13 @@ const DiscoveryAnalysis = ({
   
   // Analyze music variety
   const varietyData = useMemo(() => {
-    // Sort all entries by timestamp
-    const sortedEntries = [...filteredData].filter(entry => entry.ms_played >= 30000)
-                              .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+    // Calculate uniqueness ratio by timeframe
+    const plays = {};
+    const uniqueTracks = {};
+    const timeframes = {};
+    
+    filteredData.filter(entry => entry.ms_played >= 30000).forEach(entry => {
+      if (!entry.master_metadata_track_name) return;
       
       const date = new Date(entry.ts);
       const dayKey = date.toISOString().split('T')[0];
@@ -295,6 +348,16 @@ const DiscoveryAnalysis = ({
     date.setDate(simple.getDate() - simple.getDay() + 1);
     return date;
   }
+  
+  // Page title based on time range
+  const getPageTitle = () => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      return `Music Discovery (${yearRange.startYear}-${yearRange.endYear})`;
+    } else if (selectedYear !== 'all') {
+      return `Music Discovery (${selectedYear})`;
+    }
+    return 'All-time Music Discovery';
+  };
 
   const TabButton = ({ id, label }) => (
     <button
@@ -324,6 +387,9 @@ const DiscoveryAnalysis = ({
 
   return (
     <div className="space-y-4">
+      {/* Page Title */}
+      <h3 className="font-bold text-green-700 mb-2">{getPageTitle()}</h3>
+      
       {/* Horizontally scrollable tabs */}
       <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
         <div className="flex min-w-max">
@@ -582,7 +648,7 @@ const DiscoveryAnalysis = ({
               </div>
               <div className="p-3 bg-white rounded shadow">
                 <div className="text-sm text-green-600">Weekly Variety Score</div>
-                <div className="text-3xl font-bold text-green-700">{Math.round(varietyData.avgWeeklyVariety)}%</div>
+              <div className="text-3xl font-bold text-green-700">{Math.round(varietyData.avgWeeklyVariety)}%</div>
                 <div className="text-xs text-green-500 mt-1">Average percentage of unique tracks in a week</div>
               </div>
               <div className="p-3 bg-white rounded shadow">

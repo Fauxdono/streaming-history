@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  startOfDay, endOfDay, subDays,
-  startOfYear, endOfYear,
-  format, differenceInMinutes, parseISO, isValid
+  format, parseISO, isValid
 } from 'date-fns';
 
 // Helper to safely parse dates and check validity
@@ -21,103 +19,229 @@ const safeParseISOAndValidate = (dateString) => {
   }
 };
 
-const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }) => {
-  // State for year/date selection
-  const [selectionMode, setSelectionMode] = useState('all-time');
-  const [selectedYear, setSelectedYear] = useState('all');
-  const [yearRange, setYearRange] = useState(null);
-  const [yearRangeMode, setYearRangeMode] = useState(false);
-  
-  // Date selection
+const PodcastRankings = ({ 
+  rawPlayData = [], 
+  formatDuration, 
+  // Add props for connecting with the YearSelector sidebar
+  selectedYear = 'all',
+  yearRange = { startYear: '', endYear: '' },
+  yearRangeMode = false,
+  onYearChange,
+  onYearRangeChange,
+  onToggleYearRangeMode
+}) => {
+  // State for filters and sorting
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
+  const [selectedShows, setSelectedShows] = useState([]);
+  const [showSearch, setShowSearch] = useState('');
   const [topN, setTopN] = useState(50);
   const [sortBy, setSortBy] = useState('totalPlayed');
-  const [selectedShows, setSelectedShows] = useState(initialShows);
-  const [showSearch, setShowSearch] = useState('');
-  const [duplicateThreshold, setDuplicateThreshold] = useState(180); // Minutes threshold for duplicate detection
-  const [showDuplicateStats, setShowDuplicateStats] = useState(true);
+  const [duplicateThreshold, setDuplicateThreshold] = useState(15); // Minutes
+  const [showDuplicateStats, setShowDuplicateStats] = useState(false);
   const [duplicatesFound, setDuplicatesFound] = useState(0);
-  const [duplicateTypes, setDuplicateTypes] = useState({exact: 0, overlapping: 0, zeroTime: 0});
+  const [duplicateTypes, setDuplicateTypes] = useState({ exact: 0, overlapping: 0, zeroTime: 0 });
 
-  // Derive available years for data filtering
-  const availableYears = useMemo(() => {
-    const yearSet = new Set();
-    rawPlayData.forEach(entry => {
-      const date = safeParseISOAndValidate(entry.ts);
-      if (date) {
-        yearSet.add(format(date, 'yyyy'));
+  // Update date range based on year selection (from YearSelector)
+  useEffect(() => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Convert year range to date range
+      setStartDate(`${yearRange.startYear}-01-01`);
+      setEndDate(`${yearRange.endYear}-12-31`);
+    } else if (selectedYear !== 'all') {
+      if (selectedYear.includes('-')) {
+        // Handle YYYY-MM or YYYY-MM-DD format
+        const parts = selectedYear.split('-');
+        
+        if (parts.length === 3) {
+          // Single day selection - set both start and end to the same day
+          setStartDate(selectedYear);
+          setEndDate(selectedYear);
+        } else if (parts.length === 2) {
+          // Month selection (YYYY-MM)
+          const year = parts[0];
+          const month = parts[1];
+          
+          // Get the last day of the month
+          const lastDay = new Date(year, parseInt(month), 0).getDate();
+          
+          setStartDate(`${year}-${month}-01`);
+          setEndDate(`${year}-${month}-${lastDay}`);
+        }
+      } else {
+        // Single year format (YYYY)
+        setStartDate(`${selectedYear}-01-01`);
+        setEndDate(`${selectedYear}-12-31`);
       }
-    });
-    return Array.from(yearSet).sort((a, b) => parseInt(a) - parseInt(b));
-  }, [rawPlayData]);
+    } else {
+      // All time
+      setAllTime();
+    }
+  }, [selectedYear, yearRangeMode, yearRange, rawPlayData]);
 
   // Initialize date range from raw data
   useEffect(() => {
-    if (!startDate && !endDate && rawPlayData.length > 0) {
-      let earliest = new Date(rawPlayData[0].ts);
-      let latest = new Date(rawPlayData[0].ts);
-
-      for (const entry of rawPlayData) {
-        if (!entry.ts) continue;
-        try {
-          const date = new Date(entry.ts);
-          if (!isNaN(date.getTime())) {
-            if (date < earliest) earliest = date;
-            if (date > latest) latest = date;
-          }
-        } catch (err) {
-          // Skip invalid dates
-        }
-      }
-      
-      setStartDate(format(earliest, 'yyyy-MM-dd'));
-      setEndDate(format(latest, 'yyyy-MM-dd'));
-    }
-  }, [rawPlayData, startDate, endDate]);
-
-  // Handlers for year selection
-  const handleYearChange = (year) => {
-    setSelectedYear(year);
-    setYearRangeMode(false);
-    
-    if (year === 'all') {
-      // For "all", use the full date range from the data
+    if ((!startDate || !endDate) && rawPlayData.length > 0) {
       setAllTime();
-    } else {
-      // For a specific year, set date range to that full year
-      const yearNum = parseInt(year);
-      if (!isNaN(yearNum)) {
-        const firstDay = new Date(yearNum, 0, 1);
-        const lastDay = new Date(yearNum, 11, 31);
-        setStartDate(format(firstDay, 'yyyy-MM-dd'));
-        setEndDate(format(lastDay, 'yyyy-MM-dd'));
+    }
+  }, [rawPlayData]);
+
+  // Handle date range changes that should update the YearSelector
+  const handleDateChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    
+    if (!start || !end) {
+      // If clearing the date range, set to 'all'
+      if (onYearChange) onYearChange('all');
+      if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+      return;
+    }
+    
+    try {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return;
+      
+      const startYear = startDate.getFullYear().toString();
+      const endYear = endDate.getFullYear().toString();
+      
+      // If same year, use single year mode
+      if (startYear === endYear) {
+        // Check if it's a full year
+        const isFullYear = 
+          start === `${startYear}-01-01` && 
+          end === `${startYear}-12-31`;
+        
+        if (isFullYear) {
+          if (onYearChange) onYearChange(startYear);
+          if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+        } else {
+          // For partial year, keep as is and don't update the year selector
+        }
+      } else {
+        // Different years, use range mode
+        if (onYearRangeChange) onYearRangeChange({ startYear, endYear });
+        if (onToggleYearRangeMode) onToggleYearRangeMode(true);
       }
+    } catch (err) {
+      console.error("Error handling date change:", err);
     }
   };
 
-  const handleYearRangeChange = ({ startYear, endYear }) => {
-    if (!startYear || !endYear) return;
-    
-    setYearRange({ startYear, endYear });
-    setYearRangeMode(true);
-    
-    // Update date range to cover the full years
-    const startYearNum = parseInt(startYear);
-    const endYearNum = parseInt(endYear);
-    
-    if (!isNaN(startYearNum) && !isNaN(endYearNum)) {
-      const firstDay = new Date(startYearNum, 0, 1);
-      const lastDay = new Date(endYearNum, 11, 31);
-      setStartDate(format(firstDay, 'yyyy-MM-dd'));
-      setEndDate(format(lastDay, 'yyyy-MM-dd'));
+  // Date range functions
+  const setQuickRange = (days) => {
+    if (days > 0) {
+      const today = new Date();
+      const start = new Date(today);
+      start.setDate(today.getDate() - days);
+      
+      const startStr = format(start, 'yyyy-MM-dd');
+      const endStr = format(today, 'yyyy-MM-dd');
+      
+      setStartDate(startStr);
+      setEndDate(endStr);
+      handleDateChange(startStr, endStr);
+    } else if (days === 0) {
+      const today = new Date();
+      const dateStr = format(today, 'yyyy-MM-dd');
+      
+      setStartDate(dateStr);
+      setEndDate(dateStr);
+      handleDateChange(dateStr, dateStr);
     }
   };
 
-  const addShowFromEpisode = (show) => {
-    if (!selectedShows.includes(show)) {
-      setSelectedShows(prev => [...prev, show]);
+  const setCurrentMonth = () => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    const startStr = format(firstDayOfMonth, 'yyyy-MM-dd');
+    const endStr = format(today, 'yyyy-MM-dd');
+    
+    setStartDate(startStr);
+    setEndDate(endStr);
+    handleDateChange(startStr, endStr);
+  };
+
+  const setPreviousMonth = () => {
+    const today = new Date();
+    const firstDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const lastDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    
+    const startStr = format(firstDayOfPrevMonth, 'yyyy-MM-dd');
+    const endStr = format(lastDayOfPrevMonth, 'yyyy-MM-dd');
+    
+    setStartDate(startStr);
+    setEndDate(endStr);
+    handleDateChange(startStr, endStr);
+  };
+
+  const setCurrentYear = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const firstDayOfYear = new Date(year, 0, 1);
+    
+    const startStr = format(firstDayOfYear, 'yyyy-MM-dd');
+    const endStr = format(today, 'yyyy-MM-dd');
+    
+    setStartDate(startStr);
+    setEndDate(endStr);
+    
+    // Update the year selector
+    if (onYearChange) onYearChange(year.toString());
+    if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+  };
+
+  const setPreviousYear = () => {
+    const prevYear = new Date().getFullYear() - 1;
+    const firstDayOfYear = new Date(prevYear, 0, 1);
+    const lastDayOfYear = new Date(prevYear, 11, 31);
+    
+    const startStr = format(firstDayOfYear, 'yyyy-MM-dd');
+    const endStr = format(lastDayOfYear, 'yyyy-MM-dd');
+    
+    setStartDate(startStr);
+    setEndDate(endStr);
+    
+    // Update the year selector
+    if (onYearChange) onYearChange(prevYear.toString());
+    if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+  };
+
+  const setAllTime = () => {
+    if (rawPlayData.length > 0) {
+      try {
+        let earliest = new Date(rawPlayData[0].ts);
+        let latest = new Date(rawPlayData[0].ts);
+
+        for (const entry of rawPlayData) {
+          if (!entry.ts) continue;
+          
+          try {
+            const date = new Date(entry.ts);
+            if (!isNaN(date.getTime())) {
+              if (date < earliest) earliest = date;
+              if (date > latest) latest = date;
+            }
+          } catch (e) {
+            // Skip invalid dates
+          }
+        }
+        
+        const startStr = format(earliest, 'yyyy-MM-dd');
+        const endStr = format(latest, 'yyyy-MM-dd');
+        
+        setStartDate(startStr);
+        setEndDate(endStr);
+        
+        // Update the year selector
+        if (onYearChange) onYearChange('all');
+        if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+      } catch (err) {
+        console.error("Error setting all time range:", err);
+      }
     }
   };
 
@@ -137,14 +261,22 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
         show.toLowerCase().includes(showSearch.toLowerCase()) &&
         !selectedShows.includes(show)
       )
+    </div>
+  );
+};
+
+export default PodcastRankings;
       .slice(0, 10);
   }, [allShows, showSearch, selectedShows]);
 
   const filteredEpisodes = useMemo(() => {
     if (!rawPlayData?.length) return [];
-
-    const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
-    const end = endDate ? endOfDay(new Date(endDate)) : new Date();
+    
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
 
     // Step 1: Collect all relevant episodes
     const episodeMap = {};
@@ -158,8 +290,8 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
         const timestamp = new Date(entry.ts);
         return (
           !isNaN(timestamp.getTime()) &&
-          timestamp >= start && 
-          timestamp <= end && 
+          (!start || timestamp >= start) && 
+          (!end || timestamp <= end) && 
           entry.episode_show_name &&
           entry.episode_name &&
           (selectedShows.length === 0 || selectedShows.includes(entry.episode_show_name))
@@ -205,7 +337,7 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
       }
       
       episodeMap[key].events.push({
-        timestamp: parseISO(entry.ts),
+        timestamp: new Date(entry.ts),
         duration: entry.ms_played,
         platform: entry.platform || 'unknown'
       });
@@ -263,9 +395,8 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
         } else {
           // Check if this event overlaps with or continues the current segment
           // We consider events within the duplicate threshold to be part of the same session
-          const minutesSinceLastEnd = differenceInMinutes(
-            event.timestamp, 
-            currentSegment.end
+          const minutesSinceLastEnd = Math.round(
+            (event.timestamp - currentSegment.end) / (60 * 1000)
           );
           
           // If this is within our threshold, extend the current segment
@@ -349,87 +480,9 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows, duplicateThreshold]);
 
-  // Date range functions
-  const setQuickRange = (days) => {
-    if (days > 0) {
-      const today = new Date();
-      const start = subDays(today, days);
-      setEndDate(format(today, 'yyyy-MM-dd'));
-      setStartDate(format(start, 'yyyy-MM-dd'));
-    } else if (days === 0) {
-      const today = new Date();
-      setStartDate(format(today, 'yyyy-MM-dd'));
-      setEndDate(format(today, 'yyyy-MM-dd'));
-    }
-  };
-
-  const setCurrentMonth = () => {
-    const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    setStartDate(format(firstDayOfMonth, 'yyyy-MM-dd'));
-    setEndDate(format(today, 'yyyy-MM-dd'));
-  };
-
-  const setPreviousMonth = () => {
-    const today = new Date();
-    const firstDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const lastDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-    setStartDate(format(firstDayOfPrevMonth, 'yyyy-MM-dd'));
-    setEndDate(format(lastDayOfPrevMonth, 'yyyy-MM-dd'));
-  };
-
-  const setCurrentYear = () => {
-    const today = new Date();
-    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
-    setStartDate(format(firstDayOfYear, 'yyyy-MM-dd'));
-    setEndDate(format(today, 'yyyy-MM-dd'));
-    
-    // Also update year state
-    setSelectedYear(today.getFullYear().toString());
-    setYearRangeMode(false);
-  };
-
-  const setPreviousYear = () => {
-    const prevYear = new Date().getFullYear() - 1;
-    const firstDayOfYear = new Date(prevYear, 0, 1);
-    const lastDayOfYear = new Date(prevYear, 11, 31);
-    setStartDate(format(firstDayOfYear, 'yyyy-MM-dd'));
-    setEndDate(format(lastDayOfYear, 'yyyy-MM-dd'));
-    
-    // Also update year state
-    setSelectedYear(prevYear.toString());
-    setYearRangeMode(false);
-  };
-
-  const setAllTime = () => {
-    if (rawPlayData.length > 0) {
-      try {
-        let earliest = new Date(rawPlayData[0].ts);
-        let latest = new Date(rawPlayData[0].ts);
-
-        for (const entry of rawPlayData) {
-          if (!entry.ts) continue;
-          
-          try {
-            const date = new Date(entry.ts);
-            if (!isNaN(date.getTime())) {
-              if (date < earliest) earliest = date;
-              if (date > latest) latest = date;
-            }
-          } catch (e) {
-            // Skip invalid dates
-          }
-        }
-        
-        setStartDate(format(earliest, 'yyyy-MM-dd'));
-        setEndDate(format(latest, 'yyyy-MM-dd'));
-        
-        // Also update year state
-        setSelectedYear('all');
-        setYearRangeMode(false);
-      } catch (err) {
-        console.error("Error setting all time range:", err);
-      }
+  const addShowFromEpisode = (show) => {
+    if (!selectedShows.includes(show)) {
+      setSelectedShows(prev => [...prev, show]);
     }
   };
 
@@ -442,13 +495,41 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
     setSelectedShows(prev => prev.filter(s => s !== show));
   };
 
+  // Function to get page title based on date selection
   const getPageTitle = () => {
-    if (yearRangeMode && yearRange && yearRange.startYear && yearRange.endYear) {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       return `Podcast Rankings (${yearRange.startYear}-${yearRange.endYear})`;
     } else if (selectedYear !== 'all') {
-      return `Podcast Rankings (${selectedYear})`;
+      if (selectedYear.includes('-')) {
+        const parts = selectedYear.split('-');
+        if (parts.length === 3) {
+          // Display format for a specific date (YYYY-MM-DD)
+          const date = new Date(selectedYear);
+          if (!isNaN(date.getTime())) {
+            return `Podcast Rankings for ${date.toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}`;
+          }
+        } else if (parts.length === 2) {
+          // Display format for a specific month (YYYY-MM)
+          const year = parts[0];
+          const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+          const date = new Date(year, month, 1);
+          if (!isNaN(date.getTime())) {
+            return `Podcast Rankings for ${date.toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long'
+            })}`;
+          }
+        }
+        return `Podcast Rankings for ${selectedYear}`;
+      }
+      return `Podcast Rankings for ${selectedYear}`;
+    } else {
+      return 'All-time Podcast Rankings';
     }
-    return 'All-time Podcast Rankings';
   };
 
   return (
@@ -456,20 +537,20 @@ const PodcastRankings = ({ rawPlayData = [], formatDuration, initialShows = [] }
       {/* Page Title */}
       <h3 className="font-bold text-indigo-700 mb-2">{getPageTitle()}</h3>
 
-      {/* Legacy date picker controls */}
+      {/* Date picker controls */}
       <div className="flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2 text-indigo-700">
           <input
             type="date"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={(e) => handleDateChange(e.target.value, endDate)}
             className="border rounded px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400"
           />
           <span>to</span>
           <input
             type="date"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={(e) => handleDateChange(startDate, e.target.value)}
             className="border rounded px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400"
           />
         </div>
