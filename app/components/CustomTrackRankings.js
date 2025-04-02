@@ -36,7 +36,6 @@ const CustomTrackRankings = ({
   const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
- 
   
   // Check for mobile viewport
   useEffect(() => {
@@ -540,331 +539,332 @@ const getInitialDates = () => {
     );
   };
 
-return (
-  <div className="space-y-4">
-    {/* Date Range Selection */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-      <div className="flex justify-between items-center flex-wrap gap-2">
-        <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-            className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
-          >
-            <Download size={14} className="hidden sm:inline" />
-            {showPlaylistExporter ? "Hide" : "Export"}
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-2">
-      <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
-        <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
-          <label className="text-sm">Show top</label>
-          <input
-            type="number"
-            min="1"
-            max="250"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value))))}
-            className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-          />
-          <label className="text-sm">tracks</label>
-        </div>
-        
-        <div className="flex items-center gap-1 sm:gap-2">
-          <span className="text-orange-700 text-sm">Sort:</span>
-          <button
-            onClick={() => setSortBy('totalPlayed')}
-            className={`px-2 py-1 rounded text-xs ${
-              sortBy === 'totalPlayed'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Time
-          </button>
-          <button
-            onClick={() => setSortBy('playCount')}
-            className={`px-2 py-1 rounded text-xs ${
-              sortBy === 'playCount'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Plays
-          </button>
-        </div>
-      </div>
-    </div>
-
-    {/* Playlist Exporter */}
-    {showPlaylistExporter && (
-      <PlaylistExporter
-        processedData={filteredTracks}
-        songsByYear={songsByYear}
-        selectedYear={selectedYear !== 'all' ? selectedYear : 'all'}
-        colorTheme="orange"
-      />
-    )}
-
-    {/* Artist and Album Selection */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-      <h3 className="font-bold text-orange-700 mb-2">Filters</h3>
-      
-      <div className="flex flex-wrap gap-2 mb-2">
-        {selectedArtists.map(artist => (
-          <div 
-            key={artist} 
-            className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-xs"
-          >
-            {artist}
-            <button 
-              onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-              className="ml-1 text-white hover:text-orange-200"
+  return (
+    <div className="space-y-4">
+      {/* Date Range Selection */}
+      <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+        <div className="flex justify-between items-center flex-wrap gap-2">
+          <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
+              className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
             >
-              ×
+              <Download size={14} className="hidden sm:inline" />
+              {showPlaylistExporter ? "Hide" : "Export"}
             </button>
           </div>
-        ))}
-        
-        {selectedAlbums.map(album => (
-          <div 
-            key={album.key} 
-            className="flex items-center bg-orange-500 text-white px-2 py-1 rounded text-xs"
-          >
-            <span className="mr-1">💿</span> {album.name} 
-            <button 
-              onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
-              className="ml-1 text-white hover:text-orange-200"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="relative">
-        <input
-          type="text"
-          value={unifiedSearch}
-          onChange={(e) => {
-            setUnifiedSearch(e.target.value);
-            setArtistSearch(e.target.value);
-            setAlbumSearch(e.target.value);
-          }}
-          placeholder="Search artists or albums..."
-          className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-        />
-        
-        {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-          <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-orange-600">
-            {filteredArtists.length > 0 && (
-              <div>
-                <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ARTISTS</div>
-                {filteredArtists.map(artist => (
-                  <div
-                    key={artist}
-                    onClick={() => {
-                      addArtistFromTrack(artist);
-                      setUnifiedSearch('');
-                    }}
-                    className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
-                  >
-                    <span className="mr-1">👤</span> {artist}
-                  </div>
-                ))}
-              </div>
-            )}
+        <div className="mt-2">
+          <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
+            <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
+              <label className="text-sm">Show top</label>
+              <input
+                type="number"
+                min="1"
+                max="250"
+                value={topN}
+                onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value))))}
+                className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+              <label className="text-sm">tracks</label>
+            </div>
             
-            {filteredAlbums.length > 0 && (
-              <div>
-                <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ALBUMS</div>
-                {filteredAlbums.map(album => (
-                  <div
-                    key={album.key}
-                    onClick={() => {
-                      addAlbumFromTrack(album.name, album.artist);
-                      setUnifiedSearch('');
-                    }}
-                    className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
-                  >
-                    <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
-                  </div>
-                ))}
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-orange-700 text-sm">Sort:</span>
+              <button
+                onClick={() => setSortBy('totalPlayed')}
+                className={`px-2 py-1 rounded text-xs ${
+                  sortBy === 'totalPlayed'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+              >
+                Time
+              </button>
+              <button
+                onClick={() => setSortBy('playCount')}
+                className={`px-2 py-1 rounded text-xs ${
+                  sortBy === 'playCount'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+              >
+                Plays
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Playlist Exporter */}
+      {showPlaylistExporter && (
+        <PlaylistExporter
+          processedData={filteredTracks}
+          songsByYear={songsByYear}
+          selectedYear={selectedYear !== 'all' ? selectedYear : 'all'}
+          colorTheme="orange"
+        />
+      )}
+
+      {/* Artist and Album Selection */}
+      <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+        <h3 className="font-bold text-orange-700 mb-2">Filters</h3>
+        
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedArtists.map(artist => (
+            <div 
+              key={artist} 
+              className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-xs"
+            >
+              {artist}
+              <button 
+                onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
+                className="ml-1 text-white hover:text-orange-200"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          
+          {selectedAlbums.map(album => (
+            <div 
+              key={album.key} 
+              className="flex items-center bg-orange-500 text-white px-2 py-1 rounded text-xs"
+            >
+              <span className="mr-1">💿</span> {album.name} 
+              <button 
+                onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
+                className="ml-1 text-white hover:text-orange-200"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="relative">
+          <input
+            type="text"
+            value={unifiedSearch}
+            onChange={(e) => {
+              setUnifiedSearch(e.target.value);
+              setArtistSearch(e.target.value);
+              setAlbumSearch(e.target.value);
+            }}
+            placeholder="Search artists or albums..."
+            className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+          />
+          
+          {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
+            <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-orange-600">
+              {filteredArtists.length > 0 && (
+                <div>
+                  <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ARTISTS</div>
+                  {filteredArtists.map(artist => (
+                    <div
+                      key={artist}
+                      onClick={() => {
+                        addArtistFromTrack(artist);
+                        setUnifiedSearch('');
+                      }}
+                      className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
+                    >
+                      <span className="mr-1">👤</span> {artist}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {filteredAlbums.length > 0 && (
+                <div>
+                  <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ALBUMS</div>
+                  {filteredAlbums.map(album => (
+                    <div
+                      key={album.key}
+                      onClick={() => {
+                        addAlbumFromTrack(album.name, album.artist);
+                        setUnifiedSearch('');
+                      }}
+                      className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
+                    >
+                      <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Feature Toggles - only show when artists are selected */}
+        {selectedArtists.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2">
+            {/* Include features toggle */}
+            <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={includeFeatures} 
+                  disabled={onlyFeatures}
+                  onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
+                  className="sr-only"
+                />
+                <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
               </div>
-            )}
-           </div>
+              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+                Include features
+              </span>
+            </label>
+            
+            {/* Only features toggle */}
+            <label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={onlyFeatures} 
+                  disabled={includeFeatures}
+                  onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
+                  className="sr-only"
+                />
+                <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
+              </div>
+              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+                Only features
+              </span>
+            </label>
+          </div>
         )}
       </div>
-      
-      {/* Feature Toggles - only show when artists are selected */}
-      {selectedArtists.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2">
-          {/* Include features toggle */}
-          <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
-            <div className="relative">
-              <input 
-                type="checkbox" 
-                checked={includeFeatures} 
-                disabled={onlyFeatures}
-                onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
-                className="sr-only"
-              />
-              <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-              <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
-            </div>
-            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-              Include features
-            </span>
-          </label>
-          
-          {/* Only features toggle */}
-          <label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
-            <div className="relative">
-              <input 
-                type="checkbox" 
-                checked={onlyFeatures} 
-                disabled={includeFeatures}
-                onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
-                className="sr-only"
-              />
-              <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-              <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
-            </div>
-            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-              Only features
-            </span>
-          </label>
-        </div>
-      )}
-    </div>
 
-    {/* Results section with date range info */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-      <div className="flex justify-between items-center flex-wrap gap-2">
-        <div className="text-orange-700 font-medium text-sm">
-          Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+      {/* Results section with date range info */}
+      <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+        <div className="flex justify-between items-center flex-wrap gap-2">
+          <div className="text-orange-700 font-medium text-sm">
+            Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+          </div>
+          <div className="text-orange-700 text-sm">
+            Found <span className="font-bold">{filteredTracks.length}</span> tracks
+          </div>
         </div>
-        <div className="text-orange-700 text-sm">
-          Found <span className="font-bold">{filteredTracks.length}</span> tracks
-        </div>
+
+        {filteredTracks.length > 0 ? (
+          <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  {!isMobile && (
+                    <>
+                      <th className="p-2 text-left text-orange-700">Rank</th>
+                      <th className="p-2 text-left text-orange-700">Track</th>
+                      <th className="p-2 text-left text-orange-700">Artist</th>
+                      <th className="p-2 text-left text-orange-700">Album</th>
+                      <th 
+                        className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                          sortBy === 'totalPlayed' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('totalPlayed')}
+                      >
+                        Time {sortBy === 'totalPlayed' && '▼'}
+                      </th>
+                      <th 
+                        className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                          sortBy === 'playCount' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('playCount')}
+                      >
+                        Plays {sortBy === 'playCount' && '▼'}
+                      </th>
+                    </>
+                  )}
+                  {isMobile && (
+                    <>
+                      <th className="p-2 text-left text-orange-700">Track Info</th>
+                      <th className="p-2 text-right text-orange-700">Stats</th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTracks.map(renderTrackRow)}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-4 text-orange-500">
+            {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
+              ? 'No tracks found matching your filters' 
+              : 'Select filters to view tracks'}
+          </div>
+        )}
       </div>
 
-      {filteredTracks.length > 0 ? (
-        <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b">
-                {!isMobile && (
-                  <>
-                    <th className="p-2 text-left text-orange-700">Rank</th>
-                    <th className="p-2 text-left text-orange-700">Track</th>
-                    <th className="p-2 text-left text-orange-700">Artist</th>
-                    <th className="p-2 text-left text-orange-700">Album</th>
-                    <th 
-                      className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                        sortBy === 'totalPlayed' ? 'font-bold' : ''
-                      }`}
-                      onClick={() => setSortBy('totalPlayed')}
-                    >
-                      Time {sortBy === 'totalPlayed' && '▼'}
-                    </th>
-                    <th 
-                      className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                        sortBy === 'playCount' ? 'font-bold' : ''
-                      }`}
-                      onClick={() => setSortBy('playCount')}
-                    >
-                      Plays {sortBy === 'playCount' && '▼'}
-                    </th>
-                  </>
-                )}
-                {isMobile && (
-                  <>
-                    <th className="p-2 text-left text-orange-700">Track Info</th>
-                    <th className="p-2 text-right text-orange-700">Stats</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTracks.map(renderTrackRow)}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="text-center py-4 text-orange-500">
-          {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
-            ? 'No tracks found matching your filters' 
-            : 'Select filters to view tracks'}
-        </div>
-      )}
+      {/* Basic Export Controls - simplified version */}
+      <div>
+        <button
+          onClick={() => setShowExportOptions(!showExportOptions)}
+          className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
+        >
+          <Download size={14} className="hidden sm:inline" />
+          {showExportOptions ? 'Hide Export Options' : 'Quick Export'}
+        </button>
+        
+        {showExportOptions && (
+          <div className="mt-4 p-3 sm:p-4 bg-orange-50 border border-orange-200 rounded">
+            <div>
+              <label className="block text-orange-700 mb-1 text-sm">Playlist Name:</label>
+              <input
+                type="text"
+                value={playlistName}
+                onChange={(e) => setPlaylistName(e.target.value)}
+                className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
+                placeholder="Enter playlist name"
+              />
+            </div>
+            
+            <div className="mt-3">
+              <label className="block text-orange-700 mb-1 text-sm">Base Music Path:</label>
+              <input
+                type="text"
+                value={musicBasePath}
+                onChange={(e) => setMusicBasePath(e.target.value)}
+                className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
+                placeholder="e.g. /Music/Downloads or C:/Music"
+              />
+            </div>
+            
+            <div className="mt-3">
+              <label className="block text-orange-700 mb-1 text-sm">File Extension:</label>
+              <select
+                value={fileExtension}
+                onChange={(e) => setFileExtension(e.target.value)}
+                className="px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
+              >
+                <option value="mp3">mp3</option>
+                <option value="flac">flac</option>
+                <option value="m4a">m4a</option>
+                <option value="ogg">ogg</option>
+                <option value="wav">wav</option>
+              </select>
+            </div>
+            
+            <div className="mt-3">
+              <button
+                onClick={exportPlaylist}
+                disabled={filteredTracks.length === 0}
+                className="px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed text-xs sm:text-sm"
+              >
+                Download Playlist ({filteredTracks.length})
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-
-    {/* Basic Export Controls - simplified version */}
-    <div>
-      <button
-        onClick={() => setShowExportOptions(!showExportOptions)}
-        className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
-      >
-        <Download size={14} className="hidden sm:inline" />
-        {showExportOptions ? 'Hide Export Options' : 'Quick Export'}
-      </button>
-      
-      {showExportOptions && (
-        <div className="mt-4 p-3 sm:p-4 bg-orange-50 border border-orange-200 rounded">
-          <div>
-            <label className="block text-orange-700 mb-1 text-sm">Playlist Name:</label>
-            <input
-              type="text"
-              value={playlistName}
-              onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
-              placeholder="Enter playlist name"
-            />
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1 text-sm">Base Music Path:</label>
-            <input
-              type="text"
-              value={musicBasePath}
-              onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
-              placeholder="e.g. /Music/Downloads or C:/Music"
-            />
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1 text-sm">File Extension:</label>
-            <select
-              value={fileExtension}
-              onChange={(e) => setFileExtension(e.target.value)}
-              className="px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
-            >
-              <option value="mp3">mp3</option>
-              <option value="flac">flac</option>
-              <option value="m4a">m4a</option>
-              <option value="ogg">ogg</option>
-              <option value="wav">wav</option>
-            </select>
-          </div>
-          
-          <div className="mt-3">
-            <button
-              onClick={exportPlaylist}
-              disabled={filteredTracks.length === 0}
-              className="px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed text-xs sm:text-sm"
-            >
-              Download Playlist ({filteredTracks.length})
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
-);
+  );
 };
 
 export default CustomTrackRankings;
