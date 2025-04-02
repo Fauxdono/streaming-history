@@ -3,13 +3,19 @@ import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
 import DateSelector from './dateselector.js';
 import YearSelector from './year-selector.js';
-import TripleRangeSelector from './triplerangeselector.js';
 import PlaylistExporter from './playlist-exporter.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
   formatDuration, 
-  initialArtists = [] 
+  initialArtists = [],
+  // Add props for connecting with the YearSelector sidebar
+  selectedYear = 'all',
+  yearRange = { startYear: '', endYear: '' },
+  yearRangeMode = false,
+  onYearChange,
+  onYearRangeChange,
+  onToggleYearRangeMode
 }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -76,8 +82,7 @@ const CustomTrackRankings = ({
     return Array.from(yearsSet).sort();
   }, [rawPlayData]);
   
-  // Update date range when year selection changes
-  useEffect(() => {
+ useEffect(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       setStartDate(`${yearRange.startYear}-01-01`);
       setEndDate(`${yearRange.endYear}-12-31`);
@@ -90,15 +95,33 @@ const CustomTrackRankings = ({
     }
   }, [selectedYear, yearRangeMode, yearRange, availableYears]);
 
-  // Set default to "All Time" on component mount
-  useEffect(() => {
-    setSelectedYear('all');
-    setYearRangeMode(false);
-    setStartDate('');
-    setEndDate('');
-  }, []);
+const handleDateChange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    
+    if (!start || !end || start === "" || end === "") {
+      if (onYearChange) onYearChange('all');
+      if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+    } else {
+      try {
+        const startYear = new Date(start).getFullYear().toString();
+        const endYear = new Date(end).getFullYear().toString();
+        
+        if (startYear === endYear) {
+          if (onYearChange) onYearChange(startYear);
+          if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+        } else {
+          if (onYearRangeChange) onYearRangeChange({ startYear, endYear });
+          if (onToggleYearRangeMode) onToggleYearRangeMode(true);
+        }
+      } catch (err) {
+        if (onYearChange) onYearChange('all');
+        if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+      }
+    }
+  };
 
-  const getInitialDates = () => {
+const getInitialDates = () => {
     if (selectedYear === 'all' && !yearRangeMode) {
       return { initialStartDate: '', initialEndDate: '' };
     }
@@ -108,32 +131,6 @@ const CustomTrackRankings = ({
     }
     
     return { initialStartDate: '', initialEndDate: '' };
-  };
-
-  const handleDateChange = (start, end) => {
-    setStartDate(start);
-    setEndDate(end);
-    
-    if (!start || !end || start === "" || end === "") {
-      setSelectedYear('all');
-      setYearRangeMode(false);
-    } else {
-      try {
-        const startYear = new Date(start).getFullYear().toString();
-        const endYear = new Date(end).getFullYear().toString();
-        
-        if (startYear === endYear) {
-          setSelectedYear(startYear);
-          setYearRangeMode(false);
-        } else {
-          setYearRange({ startYear, endYear });
-          setYearRangeMode(true);
-        }
-      } catch (err) {
-        setSelectedYear('all');
-        setYearRangeMode(false);
-      }
-    }
   };
 
   // Toggle between single year and year range modes
@@ -570,16 +567,6 @@ return (
       </div>
 
       <div className="mt-2">
-        <TripleRangeSelector
-          onDateRangeChange={handleDateChange}
-          initialStartDate={getInitialDates().initialStartDate}
-          initialEndDate={getInitialDates().initialEndDate}
-          colorTheme="orange"
-          availableYears={availableYears}
-        />
-      </div>
-      
-      {/* Top N tracks control */}
       <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
         <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
           <label className="text-sm">Show top</label>
