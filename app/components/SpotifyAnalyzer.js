@@ -179,7 +179,8 @@ useEffect(() => {
 
 // 4. Add function to handle year selection from sidebar based on active tab
 const handleSidebarYearChange = (year) => {
-  switch(activeTab) {
+console.log(`Sidebar year changed to: ${year} for tab: ${activeTab}`);  
+switch(activeTab) {
     case 'artists':
       setSelectedArtistYear(year);
       break;
@@ -1498,14 +1499,15 @@ const TabButton = ({ id, label }) => {
       {activeTab === 'tracks' && (
   <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
             <h3 className="font-bold mb-2 text-blue-700">Track Rankings</h3>
-            <TrackRankings 
-              processedData={processedData} 
-              briefObsessions={briefObsessions} 
-              formatDuration={formatDuration} 
-              songsByYear={songsByYear}
-              songsByMonth={songsByMonth}
-              onYearChange={setSelectedTrackYear}
-            />
+          <TrackRankings 
+  processedData={processedData} 
+  briefObsessions={briefObsessions} 
+  formatDuration={formatDuration} 
+  songsByYear={songsByYear}
+  songsByMonth={songsByMonth}
+  initialYear={selectedTrackYear}
+  onYearChange={setSelectedTrackYear}
+/>
           </div>
         )}
 
