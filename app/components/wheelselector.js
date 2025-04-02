@@ -217,7 +217,7 @@ const WheelSelector = ({
       
       <div 
         ref={containerRef}
-        className={`relative w-10 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
+        className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
         style={{ height: `${totalHeight}px` }}
         onWheel={handleWheel}
       >
