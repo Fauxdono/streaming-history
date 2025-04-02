@@ -141,7 +141,7 @@ function normalizeString(str) {
   };
 }
 
-function filterDataByDate(data, dateFilter) {
+export function filterDataByDate(data, dateFilter) {
   // If no date filter, return all data
   if (!dateFilter || dateFilter === 'all') {
     return data;
@@ -2215,4 +2215,4 @@ else if (file.name.endsWith('.csv')) {
   }
 }
 };
-export { normalizeString, createMatchKey, filterDatabyDate,};
+export { normalizeString, createMatchKey,};
