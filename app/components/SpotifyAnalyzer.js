@@ -63,6 +63,9 @@ const SpotifyAnalyzer = () => {
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
   const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
+const [customTrackYear, setCustomTrackYear] = useState('all');
+const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
+const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
 const [showYearSidebar, setShowYearSidebar] = useState(true); // Set to true by default
 const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
@@ -143,6 +146,36 @@ const handleLoadSampleData = async () => {
   }
 };
 
+const handleCustomTrackYearChange = (year) => {
+  console.log(`Custom track year changed to: ${year}`);
+  setCustomTrackYear(year);
+  setCustomYearRangeMode(false);
+};
+
+// Add a handler for custom track year range change
+const handleCustomTrackYearRangeChange = ({ startYear, endYear }) => {
+  console.log(`Custom track year range changed to: ${startYear}-${endYear}`);
+  setCustomYearRange({ startYear, endYear });
+  setCustomYearRangeMode(true);
+};
+
+// Add a handler for toggling custom track year range mode
+const handleCustomTrackYearRangeModeToggle = (isRange) => {
+  console.log(`Custom track year range mode toggled to: ${isRange}`);
+  setCustomYearRangeMode(isRange);
+  
+  // If switching to range mode, also set a default range if needed
+  if (isRange && (!customYearRange.startYear || !customYearRange.endYear)) {
+    const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+    if (availableYears.length >= 2) {
+      setCustomYearRange({
+        startYear: availableYears[0],
+        endYear: availableYears[availableYears.length - 1]
+      });
+    }
+  }
+};
+
 // 2. Add a function to determine if sidebar should be shown based on current tab
 const shouldShowSidebar = (tabName) => {
   const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior'];
@@ -172,6 +205,9 @@ useEffect(() => {
     case 'behavior':
       setSidebarColorTheme('indigo');
       break;
+  case 'custom':
+      setSidebarColorTheme('orange');
+      break;
     default:
       setSidebarColorTheme('teal');
   }
@@ -189,6 +225,9 @@ switch(activeTab) {
       break;
     case 'tracks':
       setSelectedTrackYear(year);
+      break;
+    case 'custom':
+      handleCustomTrackYearChange(year);
       break;
     case 'patterns':
       // If you have code for patterns year selection, add it here
@@ -210,6 +249,9 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       break;
     case 'albums':
       handleAlbumYearRangeChange({ startYear, endYear });
+  break;
+    case 'custom':
+      handleCustomTrackYearRangeChange({ startYear, endYear });
       break;
     case 'patterns':
       // If you have code for patterns year range selection, add it here
@@ -247,6 +289,9 @@ const handleSidebarRangeModeToggle = (isRange) => {
           endYear: availableYears[availableYears.length - 1]
         });
       }
+      break;
+    case 'custom':
+      handleCustomTrackYearRangeModeToggle(isRange);
       break;
     case 'patterns':
       // If you have code for patterns year range mode toggle, add it here
@@ -1521,6 +1566,12 @@ const TabButton = ({ id, label }) => {
       rawPlayData={rawPlayData}
       formatDuration={formatDuration}
       initialArtists={selectedArtists}
+selectedYear={customTrackYear}
+      yearRange={customYearRange}
+      yearRangeMode={customYearRangeMode}
+      onYearChange={handleCustomTrackYearChange}
+      onYearRangeChange={handleCustomTrackYearRangeChange}
+      onToggleYearRangeMode={handleCustomTrackYearRangeModeToggle}
     />
   </div>
 )}
@@ -1584,16 +1635,19 @@ const TabButton = ({ id, label }) => {
     initialYear={
       activeTab === 'artists' ? selectedArtistYear :
       activeTab === 'albums' ? selectedAlbumYear :
-      activeTab === 'tracks' ? selectedTrackYear : 'all'
+      activeTab === 'tracks' ? selectedTrackYear : 
+activeTab === 'custom' ? customTrackYear : 'all'
     }
     initialYearRange={
       activeTab === 'artists' ? yearRange :
       activeTab === 'albums' ? albumYearRange : 
+      activeTab === 'custom' ? customYearRange :
       { startYear: '', endYear: '' }
     }
     isRangeMode={
       activeTab === 'artists' ? yearRangeMode :
-      activeTab === 'albums' ? albumYearRangeMode : false
+      activeTab === 'albums' ? albumYearRangeMode :
+      activeTab === 'custom' ? customYearRangeMode : false
     }
     onToggleRangeMode={handleSidebarRangeModeToggle}
     colorTheme={sidebarColorTheme}
