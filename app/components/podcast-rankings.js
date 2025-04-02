@@ -256,12 +256,12 @@ const PodcastRankings = ({
   }, [rawPlayData]);
 
   const filteredShows = useMemo(() => {
-    return allShows
-      .filter(show =>
-        show.toLowerCase().includes(showSearch.toLowerCase()) &&
-        !selectedShows.includes(show)
-      )
-    </div>
+  return allShows
+  .filter(show =>
+    show.toLowerCase().includes(showSearch.toLowerCase()) &&
+    !selectedShows.includes(show)
+  )
+  .slice(0, 10);
   );
 };
 
