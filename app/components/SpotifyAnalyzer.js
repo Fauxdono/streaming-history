@@ -178,7 +178,7 @@ const handleCustomTrackYearRangeModeToggle = (isRange) => {
 
 // 2. Add a function to determine if sidebar should be shown based on current tab
 const shouldShowSidebar = (tabName) => {
-  const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior'];
+  const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior', 'custom'];
   return sidebarTabs.includes(tabName);
 };
 
