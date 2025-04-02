@@ -1826,8 +1826,7 @@ selectedYear={customTrackYear}
         )}
 {activeTab === 'discovery' && (
   <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
-            <h3 className="font-bold mb-2 text-green-700">Music Discovery</h3>
-            <DiscoveryAnalysis 
+            <h3 className="font-bold mb-2 text-green-700">Music Discovery</h3> 
               <DiscoveryAnalysis 
   rawPlayData={rawPlayData} 
   formatDuration={formatDuration}
