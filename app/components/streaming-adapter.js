@@ -2215,4 +2215,4 @@ else if (file.name.endsWith('.csv')) {
   }
 }
 };
-export { normalizeString, createMatchKey};
+export { normalizeString, createMatchKey, filterDatabyDate};
