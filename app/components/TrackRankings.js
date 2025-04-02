@@ -10,12 +10,12 @@ const TrackRankings = ({
   onYearChange, 
   initialYear 
 }) => {
-  const [activeTab, setActiveTab] = useState('top250');
   const [selectedYear, setSelectedYear] = useState('all');
-  const [sortBy, setSortBy] = useState('totalPlayed');
+  const [sortBy, setSortBy] = useState('playsInWeek');
   const [showExporter, setShowExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [topN, setTopN] = useState(50); // Add topN state
+  const [topN, setTopN] = useState(100);
+  const [intensityThreshold, setIntensityThreshold] = useState(5); // Minimum plays per week to qualify
   
   // Check for mobile viewport
   useEffect(() => {
@@ -48,99 +48,160 @@ const TrackRankings = ({
     }
   }, [initialYear]);
 
-  if (!processedData || processedData.length === 0) {
-    return <div className="p-4 text-center text-blue-700">No track data available</div>;
+  if (!briefObsessions || briefObsessions.length === 0) {
+    return <div className="p-4 text-center text-blue-700">No obsession data available</div>;
   }
 
-  // Filter and sort tracks based on the selected year and sort method
-  const filteredTracks = useMemo(() => {
-    const tracks = selectedYear === 'all' ? 
-      processedData : 
-      (songsByYear[selectedYear] || []);
-    
-    return [...tracks]
-      .sort((a, b) => b[sortBy] - a[sortBy])
-      .slice(0, activeTab === 'top250' ? 250 : topN);
-  }, [processedData, songsByYear, selectedYear, sortBy, topN, activeTab]);
-  
-  // Get obsession tracks - filtered by year if needed
+  // Filter obsessions based on selected date/period and intensity threshold
   const filteredObsessions = useMemo(() => {
     if (selectedYear === 'all') {
-      return briefObsessions.slice(0, topN);
+      // All-time view - just filter by intensity
+      return briefObsessions
+        .filter(obs => obs.intensePeriod?.playsInWeek >= intensityThreshold)
+        .sort((a, b) => {
+          if (sortBy === 'playsInWeek') {
+            return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+          } else if (sortBy === 'playCount') {
+            return b.playCount - a.playCount;
+          } else if (sortBy === 'weekStart') {
+            return new Date(b.intensePeriod.weekStart) - new Date(a.intensePeriod.weekStart);
+          }
+          return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+        })
+        .slice(0, topN);
     }
     
-    // For year-specific obsessions, filter based on the week start date
+    // If date includes day or month (YYYY-MM-DD or YYYY-MM format)
+    if (selectedYear.includes('-')) {
+      const parts = selectedYear.split('-');
+      
+      if (parts.length === 3) {
+        // Single day selection (YYYY-MM-DD)
+        const selectedDate = new Date(selectedYear);
+        
+        // Find obsessions that include this specific day
+        return briefObsessions
+          .filter(obs => {
+            if (!obs.intensePeriod?.weekStart) return false;
+            
+            // Check if selected date falls within the week of this obsession
+            const weekStart = new Date(obs.intensePeriod.weekStart);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 7);
+            
+            return selectedDate >= weekStart && selectedDate <= weekEnd && 
+                   obs.intensePeriod.playsInWeek >= intensityThreshold;
+          })
+          .sort((a, b) => {
+            if (sortBy === 'playsInWeek') {
+              return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+            } else if (sortBy === 'playCount') {
+              return b.playCount - a.playCount;
+            } else if (sortBy === 'weekStart') {
+              return new Date(b.intensePeriod.weekStart) - new Date(a.intensePeriod.weekStart);
+            }
+            return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+          })
+          .slice(0, topN);
+      } else if (parts.length === 2) {
+        // Month selection (YYYY-MM)
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+        
+        // Find obsessions within this month
+        return briefObsessions
+          .filter(obs => {
+            if (!obs.intensePeriod?.weekStart) return false;
+            
+            const weekStart = new Date(obs.intensePeriod.weekStart);
+            const weekYear = weekStart.getFullYear();
+            const weekMonth = weekStart.getMonth();
+            
+            // Week might span multiple months, so check both week start and end
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            const endMonth = weekEnd.getMonth();
+            const endYear = weekEnd.getFullYear();
+            
+            // Match if week overlaps with selected month
+            return ((weekYear === year && weekMonth === month) || 
+                   (endYear === year && endMonth === month)) && 
+                   obs.intensePeriod.playsInWeek >= intensityThreshold;
+          })
+          .sort((a, b) => {
+            if (sortBy === 'playsInWeek') {
+              return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+            } else if (sortBy === 'playCount') {
+              return b.playCount - a.playCount;
+            } else if (sortBy === 'weekStart') {
+              return new Date(b.intensePeriod.weekStart) - new Date(a.intensePeriod.weekStart);
+            }
+            return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+          })
+          .slice(0, topN);
+      }
+    }
+    
+    // Regular year filter (YYYY format)
     return briefObsessions
-      .filter(obsession => {
-        if (!obsession.intensePeriod?.weekStart) return false;
-        const weekStartDate = new Date(obsession.intensePeriod.weekStart);
-        return weekStartDate.getFullYear().toString() === selectedYear;
+      .filter(obs => {
+        if (!obs.intensePeriod?.weekStart) return false;
+        
+        const weekStart = new Date(obs.intensePeriod.weekStart);
+        return weekStart.getFullYear().toString() === selectedYear && 
+               obs.intensePeriod.playsInWeek >= intensityThreshold;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'playsInWeek') {
+          return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+        } else if (sortBy === 'playCount') {
+          return b.playCount - a.playCount;
+        } else if (sortBy === 'weekStart') {
+          return new Date(b.intensePeriod.weekStart) - new Date(a.intensePeriod.weekStart);
+        }
+        return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
       })
       .slice(0, topN);
-  }, [briefObsessions, selectedYear, topN]);
+  }, [briefObsessions, selectedYear, sortBy, topN, intensityThreshold]);
   
-  // Function to get the appropriate label for the tracks tab
-  const getTracksTabLabel = () => { 
-    if (selectedYear === 'all') { 
-      return 'All-time Top Tracks'; 
-    } 
-    return `Top Tracks ${selectedYear}`; 
+  // Function to format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
-
-  // Function to get the appropriate label for obsessions tab
-  const getObsessionsTabLabel = () => {
+  
+  // Function to get descriptive title based on current selection
+  const getTitle = () => {
     if (selectedYear === 'all') {
-      return 'Brief Obsessions';
+      return 'All-time Brief Obsessions';
+    } else if (selectedYear.includes('-')) {
+      const parts = selectedYear.split('-');
+      
+      if (parts.length === 3) {
+        // Single day
+        const date = new Date(selectedYear);
+        return `Brief Obsessions for ${date.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}`;
+      } else if (parts.length === 2) {
+        // Month
+        const year = parts[0];
+        const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+        const date = new Date(year, month, 1);
+        return `Brief Obsessions for ${date.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long'
+        })}`;
+      }
+      return `Brief Obsessions for ${selectedYear}`;
     }
-    return `Brief Obsessions ${selectedYear}`;
-  };
-
-  const renderTrackRow = (song, index) => {
-    if (isMobile) {
-      // Mobile view - compact layout
-      return (
-        <tr 
-          key={song.key || `${song.trackName}-${song.artist}`} 
-          className="border-b hover:bg-blue-50"
-        >
-          <td className="p-2 text-blue-700">
-            <div className="flex flex-col">
-              <div className="flex items-center">
-                <span className="font-bold text-xs mr-2 text-blue-800">{index + 1}.</span>
-                <div className="font-medium">{song.trackName}</div>
-              </div>
-              <div className="text-xs text-blue-600">{song.artist}</div>
-              {song.albumName && (
-                <div className="text-xs text-blue-500 truncate max-w-[200px]">
-                  {song.albumName}
-                </div>
-              )}
-            </div>
-          </td>
-          <td className="p-2 align-top text-right text-blue-700">
-            <div className="flex flex-col">
-              <span className="font-medium">{formatDuration(song.totalPlayed)}</span>
-              <span className="text-xs">{song.playCount} plays</span>
-            </div>
-          </td>
-        </tr>
-      );
-    }
-    
-    // Desktop view with all columns
-    return (
-      <tr 
-        key={song.key || `${song.trackName}-${song.artist}`} 
-        className="border-b hover:bg-blue-50"
-      >
-        <td className="p-2 text-blue-700">{index + 1}</td>
-        <td className="p-2 text-blue-700">{song.trackName}</td>
-        <td className="p-2 text-blue-700">{song.artist}</td>
-        {song.albumName && <td className="p-2 text-blue-700">{song.albumName}</td>}
-        <td className="p-2 text-right text-blue-700">{formatDuration(song.totalPlayed)}</td>
-        <td className="p-2 text-right text-blue-700">{song.playCount}</td>
-      </tr>
-    );
+    return `Brief Obsessions for ${selectedYear}`;
   };
 
   const renderObsessionRow = (obsession, index) => {
@@ -159,7 +220,7 @@ const TrackRankings = ({
               </div>
               <div className="text-xs text-blue-600">{obsession.artist}</div>
               <div className="text-xs text-blue-500">
-                Week of {new Date(obsession.intensePeriod.weekStart).toLocaleDateString()}
+                Week of {formatDate(obsession.intensePeriod.weekStart)}
               </div>
             </div>
           </td>
@@ -167,6 +228,9 @@ const TrackRankings = ({
             <div className="flex flex-col">
               <span className="font-medium">{obsession.intensePeriod.playsInWeek} in week</span>
               <span className="text-xs">{obsession.playCount} total plays</span>
+              {obsession.albumName && (
+                <span className="text-xs italic truncate max-w-[120px]">{obsession.albumName}</span>
+              )}
             </div>
           </td>
         </tr>
@@ -182,21 +246,36 @@ const TrackRankings = ({
         <td className="p-2 text-blue-700">{index + 1}</td>
         <td className="p-2 text-blue-700">{obsession.trackName}</td>
         <td className="p-2 text-blue-700">{obsession.artist}</td>
+        {obsession.albumName && <td className="p-2 text-blue-700">{obsession.albumName}</td>}
         <td className="p-2 text-right text-blue-700">
-          {new Date(obsession.intensePeriod.weekStart).toLocaleDateString()}
+          {formatDate(obsession.intensePeriod.weekStart)}
         </td>
-        <td className="p-2 text-right text-blue-700">{obsession.intensePeriod.playsInWeek}</td>
-        <td className="p-2 text-right text-blue-700">{obsession.playCount}</td>
+        <td 
+          className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+            sortBy === 'playsInWeek' ? 'font-bold' : ''
+          }`}
+          onClick={() => setSortBy('playsInWeek')}
+        >
+          {obsession.intensePeriod.playsInWeek} {sortBy === 'playsInWeek' && '▼'}
+        </td>
+        <td 
+          className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+            sortBy === 'playCount' ? 'font-bold' : ''
+          }`}
+          onClick={() => setSortBy('playCount')}
+        >
+          {obsession.playCount} {sortBy === 'playCount' && '▼'}
+        </td>
       </tr>
     );
   };
 
   return (
     <div className="space-y-4">
-      {/* Tab Selection */}
+      {/* Controls Section */}
       <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
         <div className="flex justify-between items-center flex-wrap gap-2">
-          <h3 className="font-bold text-blue-700">Track Rankings</h3>
+          <h3 className="font-bold text-blue-700">{getTitle()}</h3>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowExporter(!showExporter)}
@@ -206,29 +285,6 @@ const TrackRankings = ({
               {showExporter ? "Hide" : "Export"}
             </button>
           </div>
-        </div>
-
-        <div className="flex border-b mt-4">
-          <button
-            onClick={() => setActiveTab('top250')}
-            className={`px-3 py-2 text-sm font-medium ${
-              activeTab === 'top250' 
-                ? 'text-blue-600 border-b-2 border-blue-600 -mb-px' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {getTracksTabLabel()}
-          </button>
-          <button
-            onClick={() => setActiveTab('obsessions')}
-            className={`px-3 py-2 text-sm font-medium ${
-              activeTab === 'obsessions' 
-                ? 'text-blue-600 border-b-2 border-blue-600 -mb-px' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {getObsessionsTabLabel()}
-          </button>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
@@ -245,17 +301,29 @@ const TrackRankings = ({
             <label className="text-sm">tracks</label>
           </div>
           
+          <div className="flex items-center gap-1 sm:gap-2 text-blue-700">
+            <label className="text-sm">Min plays/week</label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={intensityThreshold}
+              onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
+              className="border rounded w-14 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
+            />
+          </div>
+          
           <div className="flex items-center gap-1 sm:gap-2">
             <span className="text-blue-700 text-sm">Sort:</span>
             <button
-              onClick={() => setSortBy('totalPlayed')}
+              onClick={() => setSortBy('playsInWeek')}
               className={`px-2 py-1 rounded text-xs ${
-                sortBy === 'totalPlayed'
+                sortBy === 'playsInWeek'
                   ? 'bg-blue-600 text-white'
                   : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
               }`}
             >
-              Time
+              Weekly Plays
             </button>
             <button
               onClick={() => setSortBy('playCount')}
@@ -265,7 +333,17 @@ const TrackRankings = ({
                   : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
               }`}
             >
-              Plays
+              Total Plays
+            </button>
+            <button
+              onClick={() => setSortBy('weekStart')}
+              className={`px-2 py-1 rounded text-xs ${
+                sortBy === 'weekStart'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+              }`}
+            >
+              Recent First
             </button>
           </div>
         </div>
@@ -274,7 +352,7 @@ const TrackRankings = ({
       {/* Playlist Exporter */}
       {showExporter && (
         <PlaylistExporter
-          processedData={activeTab === 'top250' ? filteredTracks : filteredObsessions}
+          processedData={filteredObsessions}
           songsByYear={songsByYear}
           selectedYear={selectedYear}
           briefObsessions={briefObsessions}
@@ -282,24 +360,20 @@ const TrackRankings = ({
         />
       )}
 
-      {/* Track Results */}
+      {/* Results Section */}
       <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div className="text-blue-700 font-medium text-sm">
-            {activeTab === 'top250' ? 
-              (selectedYear === 'all' ? 'All-time Top Tracks' : `Top Tracks for ${selectedYear}`) :
-              (selectedYear === 'all' ? 'All-time Brief Obsessions' : `Brief Obsessions for ${selectedYear}`)
-            }
+            {selectedYear === 'all' 
+              ? 'All-time brief obsessions' 
+              : `Brief obsessions for ${selectedYear}`}
           </div>
           <div className="text-blue-700 text-sm">
-            Found <span className="font-bold">
-              {activeTab === 'top250' ? filteredTracks.length : filteredObsessions.length}
-            </span> tracks
+            Found <span className="font-bold">{filteredObsessions.length}</span> obsessions
           </div>
         </div>
 
-        {(activeTab === 'top250' && filteredTracks.length > 0) || 
-         (activeTab === 'obsessions' && filteredObsessions.length > 0) ? (
+        {filteredObsessions.length > 0 ? (
           <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
             <table className="w-full border-collapse">
               <thead>
@@ -309,33 +383,33 @@ const TrackRankings = ({
                       <th className="p-2 text-left text-blue-700">Rank</th>
                       <th className="p-2 text-left text-blue-700">Track</th>
                       <th className="p-2 text-left text-blue-700">Artist</th>
-                      {activeTab === 'top250' && <th className="p-2 text-left text-blue-700">Album</th>}
-                      {activeTab === 'obsessions' && <th className="p-2 text-right text-blue-700">Peak Week</th>}
-                      {activeTab === 'top250' ? (
-                        <>
-                          <th 
-                            className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
-                              sortBy === 'totalPlayed' ? 'font-bold' : ''
-                            }`}
-                            onClick={() => setSortBy('totalPlayed')}
-                          >
-                            Time {sortBy === 'totalPlayed' && '▼'}
-                          </th>
-                          <th 
-                            className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
-                              sortBy === 'playCount' ? 'font-bold' : ''
-                            }`}
-                            onClick={() => setSortBy('playCount')}
-                          >
-                            Plays {sortBy === 'playCount' && '▼'}
-                          </th>
-                        </>
-                      ) : (
-                        <>
-                          <th className="p-2 text-right text-blue-700">Plays in Week</th>
-                          <th className="p-2 text-right text-blue-700">Total Plays</th>
-                        </>
+                      {filteredObsessions.some(obs => obs.albumName) && (
+                        <th className="p-2 text-left text-blue-700">Album</th>
                       )}
+                      <th 
+                        className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+                          sortBy === 'weekStart' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('weekStart')}
+                      >
+                        Week {sortBy === 'weekStart' && '▼'}
+                      </th>
+                      <th 
+                        className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+                          sortBy === 'playsInWeek' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('playsInWeek')}
+                      >
+                        Plays in Week {sortBy === 'playsInWeek' && '▼'}
+                      </th>
+                      <th 
+                        className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+                          sortBy === 'playCount' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('playCount')}
+                      >
+                        Total Plays {sortBy === 'playCount' && '▼'}
+                      </th>
                     </>
                   )}
                   {isMobile && (
@@ -347,18 +421,15 @@ const TrackRankings = ({
                 </tr>
               </thead>
               <tbody>
-                {activeTab === 'top250' ? 
-                  filteredTracks.map(renderTrackRow) : 
-                  filteredObsessions.map(renderObsessionRow)
-                }
+                {filteredObsessions.map(renderObsessionRow)}
               </tbody>
             </table>
           </div>
         ) : (
           <div className="text-center py-4 text-blue-500">
-            {activeTab === 'top250' ? 
-              (selectedYear !== 'all' ? 'No tracks found for this year' : 'No tracks available') :
-              (selectedYear !== 'all' ? 'No brief obsessions found for this year' : 'No brief obsessions available')
+            {selectedYear !== 'all' 
+              ? `No brief obsessions found for ${selectedYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
+              : `No brief obsessions available${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
             }
           </div>
         )}
