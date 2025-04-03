@@ -470,14 +470,36 @@ const YearSelector = ({
   };
 
 // Position styles for the sidebar
-  const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
+const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
 
-  // If not expanded, show a mini sidebar
-  if (!expanded && asSidebar) {
-    return (
-      <div 
-        className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] min-h-[400px] z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
-      >
+// Check if we're in landscape mode (width > height)
+const [isLandscape, setIsLandscape] = useState(false);
+
+useEffect(() => {
+  const checkOrientation = () => {
+    setIsLandscape(window.innerWidth > window.innerHeight);
+  };
+  
+  // Initial check
+  checkOrientation();
+  
+  // Listen for resize and orientation change events
+  window.addEventListener('resize', checkOrientation);
+  window.addEventListener('orientationchange', checkOrientation);
+  
+  // Cleanup
+  return () => {
+    window.removeEventListener('resize', checkOrientation);
+    window.removeEventListener('orientationchange', checkOrientation);
+  };
+}, []);
+
+// If not expanded, show a mini sidebar
+if (!expanded && asSidebar) {
+  return (
+    <div 
+      className={`fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+    >
         {/* Expand button */}
         <button 
           onClick={toggleExpanded}
@@ -509,7 +531,7 @@ const YearSelector = ({
   
 // Determine container class based on whether it's a sidebar or not
 const containerClass = asSidebar 
-  ? `fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] min-h-[400px] z-50 transition-all duration-300 w-16 sm:w-28 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+  ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-16 sm:w-28 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
   : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
   // Full expanded sidebar - different rendering for single vs range mode
@@ -526,7 +548,7 @@ const containerClass = asSidebar
         </button>
       )}
       
-<div className="h-full min-h-[400px] flex flex-col justify-between pt-10 pb-3">
+<div className={`h-full flex flex-col justify-between ${isLandscape ? 'pt-4 pb-2' : 'pt-10 pb-3'}`}>
         {/* Mode toggle buttons at top - stacked vertically */}
         <div className="flex flex-col gap-1 items-center mb-2">
           <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
@@ -552,7 +574,7 @@ const containerClass = asSidebar
           </button>
         </div>
         
-      <div className="overflow-y-auto max-h-[calc(100%-180px)] min-h-[180px] px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2">
+<div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
           {mode === 'single' ? (
             // Single mode - year picker and optional month/day
             <>
