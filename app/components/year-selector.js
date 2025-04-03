@@ -869,7 +869,30 @@ const YearSelector = ({
                     <WheelSelector
                       items={months}
                       value={startMonth}
-                      onChange={handleStartMonthChange}
+                      onChange={(month) => {
+                        console.log("Changing start month to:", month);
+                        setStartMonth(month);
+                        
+                        // Make sure day is valid for this month
+                        if (yearRange.startYear) {
+                          const daysInMonth = getDaysInMonth(yearRange.startYear, month);
+                          const validDay = Math.min(startDay, daysInMonth);
+                          if (validDay !== startDay) {
+                            setStartDay(validDay);
+                          }
+                          
+                          // Update parent with the new range
+                          if (showRangeMonthDaySelectors && onYearRangeChange) {
+                            const startDateStr = `${yearRange.startYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
+                            const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                            
+                            onYearRangeChange({
+                              startYear: startDateStr,
+                              endYear: endDateStr
+                            });
+                          }
+                        }
+                      }}
                       colorTheme={colorTheme}
                       displayFormat={getMonthName}
                     />
@@ -879,9 +902,23 @@ const YearSelector = ({
                   <div className="flex flex-col items-center">
                     <div className={`text-xs mb-1 font-medium ${colors.text}`}>START DAY</div>
                     <WheelSelector
-                      items={startDays}
+                      items={getDaysArray(yearRange.startYear, startMonth)}
                       value={startDay}
-                      onChange={handleStartDayChange}
+                      onChange={(day) => {
+                        console.log("Changing start day to:", day);
+                        setStartDay(day);
+                        
+                        // Update parent with the new range
+                        if (showRangeMonthDaySelectors && onYearRangeChange) {
+                          const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                          const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                          
+                          onYearRangeChange({
+                            startYear: startDateStr,
+                            endYear: endDateStr
+                          });
+                        }
+                      }}
                       colorTheme={colorTheme}
                     />
                   </div>
@@ -919,7 +956,30 @@ const YearSelector = ({
                     <WheelSelector
                       items={months}
                       value={endMonth}
-                      onChange={handleEndMonthChange}
+                      onChange={(month) => {
+                        console.log("Changing end month to:", month);
+                        setEndMonth(month);
+                        
+                        // Make sure day is valid for this month
+                        if (yearRange.endYear) {
+                          const daysInMonth = getDaysInMonth(yearRange.endYear, month);
+                          const validDay = Math.min(endDay, daysInMonth);
+                          if (validDay !== endDay) {
+                            setEndDay(validDay);
+                          }
+                          
+                          // Update parent with the new range
+                          if (showRangeMonthDaySelectors && onYearRangeChange) {
+                            const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                            const endDateStr = `${yearRange.endYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
+                            
+                            onYearRangeChange({
+                              startYear: startDateStr,
+                              endYear: endDateStr
+                            });
+                          }
+                        }
+                      }}
                       colorTheme={colorTheme}
                       displayFormat={getMonthName}
                     />
@@ -929,9 +989,23 @@ const YearSelector = ({
                   <div className="flex flex-col items-center">
                     <div className={`text-xs mb-1 font-medium ${colors.text}`}>END DAY</div>
                     <WheelSelector
-                      items={endDays}
+                      items={getDaysArray(yearRange.endYear, endMonth)}
                       value={endDay}
-                      onChange={handleEndDayChange}
+                      onChange={(day) => {
+                        console.log("Changing end day to:", day);
+                        setEndDay(day);
+                        
+                        // Update parent with the new range
+                        if (showRangeMonthDaySelectors && onYearRangeChange) {
+                          const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                          const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                          
+                          onYearRangeChange({
+                            startYear: startDateStr,
+                            endYear: endDateStr
+                          });
+                        }
+                      }}
                       colorTheme={colorTheme}
                     />
                   </div>
