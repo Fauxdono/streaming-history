@@ -25,10 +25,17 @@ const YearSelector = ({
     endYear: initialYearRange?.endYear || '' 
   });
   
-  // Month and Day Selection - new states
+  // Month and Day Selection - for single year mode
   const [showMonthDaySelectors, setShowMonthDaySelectors] = useState(false); // Checkbox state
   const [selectedMonth, setSelectedMonth] = useState(1); // January = 1
   const [selectedDay, setSelectedDay] = useState(1);
+  
+  // Month and Day Selection - for range mode (NEW)
+  const [showRangeMonthDaySelectors, setShowRangeMonthDaySelectors] = useState(false);
+  const [startMonth, setStartMonth] = useState(1);
+  const [startDay, setStartDay] = useState(1);
+  const [endMonth, setEndMonth] = useState(12);
+  const [endDay, setEndDay] = useState(31);
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -52,13 +59,16 @@ const YearSelector = ({
     return new Date(parseInt(year), month, 0).getDate();
   };
   
-  const getDaysArray = () => {
-    if (selectedYear === 'all') return Array.from({ length: 31 }, (_, i) => i + 1);
-    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+  const getDaysArray = (year, month) => {
+    if (year === 'all' || !year) return Array.from({ length: 31 }, (_, i) => i + 1);
+    const daysInMonth = getDaysInMonth(year, month);
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   };
   
-  const days = getDaysArray();
+  // Days arrays for the different selectors
+  const days = getDaysArray(selectedYear, selectedMonth);
+  const startDays = getDaysArray(yearRange.startYear, startMonth);
+  const endDays = getDaysArray(yearRange.endYear, endMonth);
   
   // Check for mobile viewport
   useEffect(() => {
@@ -84,10 +94,57 @@ const YearSelector = ({
   // Update yearRange when initialYearRange changes
   useEffect(() => {
     if (initialYearRange?.startYear && initialYearRange?.endYear) {
-      setYearRange({
-        startYear: initialYearRange.startYear,
-        endYear: initialYearRange.endYear
-      });
+      // Check if initialYearRange has month/day information
+      const startParts = initialYearRange.startYear.split('-');
+      const endParts = initialYearRange.endYear.split('-');
+      
+      // Extract and set month/day if provided
+      if (startParts.length >= 2 && endParts.length >= 2) {
+        // Start date has month
+        const startMonthPart = parseInt(startParts[1]);
+        if (!isNaN(startMonthPart) && startMonthPart >= 1 && startMonthPart <= 12) {
+          setStartMonth(startMonthPart);
+          
+          // If it also has day
+          if (startParts.length >= 3) {
+            const startDayPart = parseInt(startParts[2]);
+            if (!isNaN(startDayPart) && startDayPart >= 1) {
+              setStartDay(startDayPart);
+            }
+          }
+        }
+        
+        // End date has month
+        const endMonthPart = parseInt(endParts[1]);
+        if (!isNaN(endMonthPart) && endMonthPart >= 1 && endMonthPart <= 12) {
+          setEndMonth(endMonthPart);
+          
+          // If it also has day
+          if (endParts.length >= 3) {
+            const endDayPart = parseInt(endParts[2]);
+            if (!isNaN(endDayPart) && endDayPart >= 1) {
+              setEndDay(endDayPart);
+            }
+          }
+        }
+        
+        // Show month/day selectors if both dates have month information
+        if (startParts.length >= 2 && endParts.length >= 2) {
+          setShowRangeMonthDaySelectors(true);
+        }
+        
+        // Set the year part only
+        setYearRange({
+          startYear: startParts[0],
+          endYear: endParts[0]
+        });
+      } else {
+        // Simple year range
+        setYearRange({
+          startYear: initialYearRange.startYear,
+          endYear: initialYearRange.endYear
+        });
+      }
     }
   }, [initialYearRange]);
   
@@ -141,6 +198,23 @@ const YearSelector = ({
       }
     }
   }, [selectedYear, selectedMonth]);
+  
+  // Adjust range days if month changes
+  useEffect(() => {
+    if (yearRange.startYear) {
+      const startDaysInMonth = getDaysInMonth(yearRange.startYear, startMonth);
+      if (startDay > startDaysInMonth) {
+        setStartDay(startDaysInMonth);
+      }
+    }
+    
+    if (yearRange.endYear) {
+      const endDaysInMonth = getDaysInMonth(yearRange.endYear, endMonth);
+      if (endDay > endDaysInMonth) {
+        setEndDay(endDaysInMonth);
+      }
+    }
+  }, [yearRange.startYear, yearRange.endYear, startMonth, endMonth]);
   
   // Map color theme to actual color values
   const getColors = () => {
@@ -382,16 +456,7 @@ const YearSelector = ({
     }
     
     // Update parent with the full date or just the year
-    if (year === 'all') {
-      onYearChange?.('all');
-    } else if (showMonthDaySelectors) {
-      // If showing month/day selectors, include that info
-      const dateStr = `${year}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-      onYearChange?.(dateStr);
-    } else {
-      // Just use the year
-      onYearChange?.(year);
-    }
+    updateParentWithDate(year, selectedMonth, selectedDay);
   };
   
   // Handle month change in single mode
@@ -406,11 +471,8 @@ const YearSelector = ({
         setSelectedDay(validDay);
       }
       
-      // Update parent directly with the new date string
-      if (showMonthDaySelectors) {
-        const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
-        onYearChange?.(dateStr);
-      }
+      // Update parent with the new date
+      updateParentWithDate(selectedYear, month, validDay);
     }
   };
   
@@ -418,11 +480,60 @@ const YearSelector = ({
   const handleDayChange = (day) => {
     setSelectedDay(day);
     
-    // Update parent directly with the new date string
-    if (selectedYear !== 'all' && showMonthDaySelectors) {
-      const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      onYearChange?.(dateStr);
+    // Update parent with the new date
+    if (selectedYear !== 'all') {
+      updateParentWithDate(selectedYear, selectedMonth, day);
     }
+  };
+  
+  // Handle start month change in range mode
+  const handleStartMonthChange = (month) => {
+    setStartMonth(month);
+    
+    // Make sure day is valid for this month
+    if (yearRange.startYear) {
+      const daysInMonth = getDaysInMonth(yearRange.startYear, month);
+      const validDay = Math.min(startDay, daysInMonth);
+      if (validDay !== startDay) {
+        setStartDay(validDay);
+      }
+      
+      // Update parent with the new range
+      updateParentWithDateRange();
+    }
+  };
+  
+  // Handle start day change in range mode
+  const handleStartDayChange = (day) => {
+    setStartDay(day);
+    
+    // Update parent with the new range
+    updateParentWithDateRange();
+  };
+  
+  // Handle end month change in range mode
+  const handleEndMonthChange = (month) => {
+    setEndMonth(month);
+    
+    // Make sure day is valid for this month
+    if (yearRange.endYear) {
+      const daysInMonth = getDaysInMonth(yearRange.endYear, month);
+      const validDay = Math.min(endDay, daysInMonth);
+      if (validDay !== endDay) {
+        setEndDay(validDay);
+      }
+      
+      // Update parent with the new range
+      updateParentWithDateRange();
+    }
+  };
+  
+  // Handle end day change in range mode
+  const handleEndDayChange = (day) => {
+    setEndDay(day);
+    
+    // Update parent with the new range
+    updateParentWithDateRange();
   };
   
   // Helper function to update parent with date information
@@ -444,13 +555,58 @@ const YearSelector = ({
     }
   };
   
+  // Helper function to update parent with date range information
+  const updateParentWithDateRange = () => {
+    if (!onYearRangeChange || !yearRange.startYear || !yearRange.endYear) return;
+    
+    // Only include month/day if the checkbox is checked
+    if (showRangeMonthDaySelectors) {
+      const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+      const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+      
+      onYearRangeChange({
+        startYear: startDateStr,
+        endYear: endDateStr
+      });
+    } else {
+      // Just use the years
+      onYearRangeChange(yearRange);
+    }
+  };
+  
   // Handler for year range change in range mode
   const handleYearRangeChange = ({ startYear, endYear }) => {
     const newYearRange = { startYear, endYear };
     setYearRange(newYearRange);
     
+    // Reset days if they're not valid for the new years
+    if (startYear) {
+      const startDaysInMonth = getDaysInMonth(startYear, startMonth);
+      if (startDay > startDaysInMonth) {
+        setStartDay(startDaysInMonth);
+      }
+    }
+    
+    if (endYear) {
+      const endDaysInMonth = getDaysInMonth(endYear, endMonth);
+      if (endDay > endDaysInMonth) {
+        setEndDay(endDaysInMonth);
+      }
+    }
+    
+    // Update parent with the new range
     if (onYearRangeChange) {
-      onYearRangeChange(newYearRange);
+      if (showRangeMonthDaySelectors) {
+        const startDateStr = `${startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+        const endDateStr = `${endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+        
+        onYearRangeChange({
+          startYear: startDateStr,
+          endYear: endDateStr
+        });
+      } else {
+        onYearRangeChange(newYearRange);
+      }
     }
   };
   
@@ -465,41 +621,47 @@ const YearSelector = ({
       
       return selectedYear;
     } else {
+      if (showRangeMonthDaySelectors) {
+        const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+        const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+        return `${startStr} to ${endStr}`;
+      }
+      
       return `${yearRange.startYear}-${yearRange.endYear}`;
     }
   };
 
-// Position styles for the sidebar
-const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
+  // Position styles for the sidebar
+  const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
 
-// Check if we're in landscape mode (width > height)
-const [isLandscape, setIsLandscape] = useState(false);
+  // Check if we're in landscape mode (width > height)
+  const [isLandscape, setIsLandscape] = useState(false);
 
-useEffect(() => {
-  const checkOrientation = () => {
-    setIsLandscape(window.innerWidth > window.innerHeight);
-  };
-  
-  // Initial check
-  checkOrientation();
-  
-  // Listen for resize and orientation change events
-  window.addEventListener('resize', checkOrientation);
-  window.addEventListener('orientationchange', checkOrientation);
-  
-  // Cleanup
-  return () => {
-    window.removeEventListener('resize', checkOrientation);
-    window.removeEventListener('orientationchange', checkOrientation);
-  };
-}, []);
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    
+    // Initial check
+    checkOrientation();
+    
+    // Listen for resize and orientation change events
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
 
-// If not expanded, show a mini sidebar
-if (!expanded && asSidebar) {
-  return (
-    <div 
-      className={`fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
-    >
+  // If not expanded, show a mini sidebar
+  if (!expanded && asSidebar) {
+    return (
+      <div 
+        className={`fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+      >
         {/* Expand button */}
         <button 
           onClick={toggleExpanded}
@@ -529,10 +691,10 @@ if (!expanded && asSidebar) {
     );
   }
   
-// Determine container class based on whether it's a sidebar or not
-const containerClass = asSidebar 
-  ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-16 sm:w-28 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
-  : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
+  // Determine container class based on whether it's a sidebar or not
+  const containerClass = asSidebar 
+    ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-16 sm:w-32 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+    : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
   // Full expanded sidebar - different rendering for single vs range mode
   return (
@@ -548,7 +710,7 @@ const containerClass = asSidebar
         </button>
       )}
       
-<div className={`h-full flex flex-col justify-between ${isLandscape ? 'pt-4 pb-2' : 'pt-10 pb-3'}`}>
+      <div className={`h-full flex flex-col justify-between ${isLandscape ? 'pt-4 pb-2' : 'pt-10 pb-3'}`}>
         {/* Mode toggle buttons at top - stacked vertically */}
         <div className="flex flex-col gap-1 items-center mb-2">
           <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
@@ -574,7 +736,7 @@ const containerClass = asSidebar
           </button>
         </div>
         
-<div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
+        <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
           {mode === 'single' ? (
             // Single mode - year picker and optional month/day
             <>
@@ -592,7 +754,7 @@ const containerClass = asSidebar
               
               {/* Checkbox to show/hide month & day selectors */}
               {selectedYear !== 'all' && (
-           <label className="flex flex-col items-center cursor-pointer mt-2">
+                <label className="flex flex-col items-center cursor-pointer mt-2">
                   <div className="relative">
                     <input 
                       type="checkbox" 
@@ -653,46 +815,128 @@ const containerClass = asSidebar
               )}
             </>
           ) : (
-            // Range mode - separate start and end year selectors
+            // Range mode - with year/month/day selectors for both start and end
             <>
               {/* Start Year Section */}
-              <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
+              <div className="flex flex-col items-center">
+                <div className={`text-xs mb-1 font-medium ${colors.text}`}>START YEAR</div>
+                <WheelSelector
+                  items={years}
+                  value={yearRange.startYear}
+                  onChange={(year) => {
+                    // Don't allow start year to be after end year
+                    if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
+                      handleYearRangeChange({ 
+                        startYear: year, 
+                        endYear: yearRange.endYear || years[years.length - 1] 
+                      });
+                    }
+                  }}
+                  colorTheme={colorTheme}
+                />
+              </div>
               
-              <WheelSelector
-                items={years}
-                value={yearRange.startYear}
-                onChange={(year) => {
-                  // Don't allow start year to be after end year
-                  if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
-                    handleYearRangeChange({ 
-                      startYear: year, 
-                      endYear: yearRange.endYear || years[years.length - 1] 
-                    });
-                  }
-                }}
-                colorTheme={colorTheme}
-              />
+              {/* Checkbox to show/hide month & day selectors for range */}
+              {yearRange.startYear && yearRange.endYear && (
+                <label className="flex flex-col items-center cursor-pointer mt-2 mb-2">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      checked={showRangeMonthDaySelectors} 
+                      onChange={() => {
+                        // Toggle the state
+                        const newValue = !showRangeMonthDaySelectors;
+                        setShowRangeMonthDaySelectors(newValue);
+                        
+                        // Update parent with the appropriate date format
+                        updateParentWithDateRange();
+                      }}
+                      className="sr-only"
+                    />
+                    <div className={`block w-10 h-6 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
+                  </div>
+                  <span className={`mt-1 text-xs ${colors.text}`}>Show M/D</span>
+                </label>
+              )}
+              
+              {/* Start Month and Day - only if month/day selectors are enabled */}
+              {yearRange.startYear && showRangeMonthDaySelectors && (
+                <div className="space-y-2">
+                  {/* Start Month */}
+                  <div className="flex flex-col items-center">
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>START MONTH</div>
+                    <WheelSelector
+                      items={months}
+                      value={startMonth}
+                      onChange={handleStartMonthChange}
+                      colorTheme={colorTheme}
+                      displayFormat={getMonthName}
+                    />
+                  </div>
+                  
+                  {/* Start Day */}
+                  <div className="flex flex-col items-center">
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>START DAY</div>
+                    <WheelSelector
+                      items={startDays}
+                      value={startDay}
+                      onChange={handleStartDayChange}
+                      colorTheme={colorTheme}
+                    />
+                  </div>
+                </div>
+              )}
               
               {/* Divider */}
               <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
               
               {/* End Year Section */}
-              <div className={`text-xs mb-1 font-medium ${colors.text}`}>END</div>
+              <div className="flex flex-col items-center">
+                <div className={`text-xs mb-1 font-medium ${colors.text}`}>END YEAR</div>
+                <WheelSelector
+                  items={years}
+                  value={yearRange.endYear}
+                  onChange={(year) => {
+                    // Don't allow end year to be before start year
+                    if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
+                      handleYearRangeChange({ 
+                        startYear: yearRange.startYear || years[0], 
+                        endYear: year 
+                      });
+                    }
+                  }}
+                  colorTheme={colorTheme}
+                />
+              </div>
               
-              <WheelSelector
-                items={years}
-                value={yearRange.endYear}
-                onChange={(year) => {
-                  // Don't allow end year to be before start year
-                  if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
-                    handleYearRangeChange({ 
-                      startYear: yearRange.startYear || years[0], 
-                      endYear: year 
-                    });
-                  }
-                }}
-                colorTheme={colorTheme}
-              />
+              {/* End Month and Day - only if month/day selectors are enabled */}
+              {yearRange.endYear && showRangeMonthDaySelectors && (
+                <div className="space-y-2">
+                  {/* End Month */}
+                  <div className="flex flex-col items-center">
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>END MONTH</div>
+                    <WheelSelector
+                      items={months}
+                      value={endMonth}
+                      onChange={handleEndMonthChange}
+                      colorTheme={colorTheme}
+                      displayFormat={getMonthName}
+                    />
+                  </div>
+                  
+                  {/* End Day */}
+                  <div className="flex flex-col items-center">
+                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>END DAY</div>
+                    <WheelSelector
+                      items={endDays}
+                      value={endDay}
+                      onChange={handleEndDayChange}
+                      colorTheme={colorTheme}
+                    />
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -700,7 +944,7 @@ const containerClass = asSidebar
         {/* Bottom section with current selection display and position toggle */}
         <div className="flex flex-col items-center mt-2 gap-2">
           {/* Current selection display */}
-          <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-sm year-display`}>
+          <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-xs year-display truncate max-w-[110px]`}>
             {getYearLabel()}
           </div>
           
@@ -733,8 +977,8 @@ const containerClass = asSidebar
           {mode === 'range' && (
             <button
               onClick={() => {
-                if (onYearRangeChange && yearRange.startYear && yearRange.endYear) {
-                  onYearRangeChange(yearRange);
+                if (yearRange.startYear && yearRange.endYear) {
+                  updateParentWithDateRange();
                 }
               }}
               className={`px-3 py-1 ${colors.buttonBg} text-white rounded-md ${colors.buttonHover} text-xs font-bold`}
