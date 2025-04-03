@@ -26,16 +26,19 @@ const YearSelector = ({
   });
   
   // Month and Day Selection - for single year mode
-  const [showMonthDaySelectors, setShowMonthDaySelectors] = useState(false); // Checkbox state
-  const [selectedMonth, setSelectedMonth] = useState(1); // January = 1
+  const [showMonthDaySelectors, setShowMonthDaySelectors] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(1);
   const [selectedDay, setSelectedDay] = useState(1);
   
-  // Month and Day Selection - for range mode (NEW)
+  // Month and Day Selection - for range mode
   const [showRangeMonthDaySelectors, setShowRangeMonthDaySelectors] = useState(false);
   const [startMonth, setStartMonth] = useState(1);
   const [startDay, setStartDay] = useState(1);
   const [endMonth, setEndMonth] = useState(12);
   const [endDay, setEndDay] = useState(31);
+  
+  // For forcing UI updates - increment when we need a UI refresh
+  const [refreshCounter, setRefreshCounter] = useState(0);
   
   // Extract years from artistsByYear and ensure they're in the correct format
   const getYearsArray = () => {
@@ -55,20 +58,23 @@ const YearSelector = ({
   
   // Generate days based on selected month and year
   const getDaysInMonth = (year, month) => {
-    // JavaScript months are 0-based, but our selectedMonth is 1-based
+    if (!year || year === 'all') return 31;
+    // JavaScript months are 0-based, but our month parameter is 1-based
     return new Date(parseInt(year), month, 0).getDate();
   };
   
-  const getDaysArray = (year, month) => {
-    if (year === 'all' || !year) return Array.from({ length: 31 }, (_, i) => i + 1);
-    const daysInMonth = getDaysInMonth(year, month);
-    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  };
+  // Create the days arrays as memoized values
+  const days = useMemo(() => {
+    return Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => i + 1);
+  }, [selectedYear, selectedMonth, refreshCounter]);
   
-  // Days arrays for the different selectors
-  const days = getDaysArray(selectedYear, selectedMonth);
-  const startDays = getDaysArray(yearRange.startYear, startMonth);
-  const endDays = getDaysArray(yearRange.endYear, endMonth);
+  const startDays = useMemo(() => {
+    return Array.from({ length: getDaysInMonth(yearRange.startYear, startMonth) }, (_, i) => i + 1);
+  }, [yearRange.startYear, startMonth, refreshCounter]);
+  
+  const endDays = useMemo(() => {
+    return Array.from({ length: getDaysInMonth(yearRange.endYear, endMonth) }, (_, i) => i + 1);
+  }, [yearRange.endYear, endMonth, refreshCounter]);
   
   // Check for mobile viewport
   useEffect(() => {
@@ -199,7 +205,7 @@ const YearSelector = ({
     }
   }, [selectedYear, selectedMonth]);
   
-  // Adjust range days if month changes
+  // Adjust range days if month/year changes
   useEffect(() => {
     if (yearRange.startYear) {
       const startDaysInMonth = getDaysInMonth(yearRange.startYear, startMonth);
@@ -214,6 +220,9 @@ const YearSelector = ({
         setEndDay(endDaysInMonth);
       }
     }
+    
+    // Force a UI refresh to ensure the wheel selectors update
+    setRefreshCounter(prev => prev + 1);
   }, [yearRange.startYear, yearRange.endYear, startMonth, endMonth]);
   
   // Map color theme to actual color values
@@ -457,6 +466,9 @@ const YearSelector = ({
     
     // Update parent with the full date or just the year
     updateParentWithDate(year, selectedMonth, selectedDay);
+    
+    // Force UI refresh
+    setRefreshCounter(prev => prev + 1);
   };
   
   // Handle month change in single mode
@@ -473,6 +485,9 @@ const YearSelector = ({
       
       // Update parent with the new date
       updateParentWithDate(selectedYear, month, validDay);
+      
+      // Force UI refresh
+      setRefreshCounter(prev => prev + 1);
     }
   };
   
@@ -488,6 +503,7 @@ const YearSelector = ({
   
   // Handle start month change in range mode
   const handleStartMonthChange = (month) => {
+    console.log("handleStartMonthChange:", month);
     setStartMonth(month);
     
     // Make sure day is valid for this month
@@ -499,20 +515,25 @@ const YearSelector = ({
       }
       
       // Update parent with the new range
-      updateParentWithDateRange();
+      updateParentWithDateRange(yearRange.startYear, month, validDay, yearRange.endYear, endMonth, endDay);
+      
+      // Force UI refresh
+      setRefreshCounter(prev => prev + 1);
     }
   };
   
   // Handle start day change in range mode
   const handleStartDayChange = (day) => {
+    console.log("handleStartDayChange:", day);
     setStartDay(day);
     
     // Update parent with the new range
-    updateParentWithDateRange();
+    updateParentWithDateRange(yearRange.startYear, startMonth, day, yearRange.endYear, endMonth, endDay);
   };
   
   // Handle end month change in range mode
   const handleEndMonthChange = (month) => {
+    console.log("handleEndMonthChange:", month);
     setEndMonth(month);
     
     // Make sure day is valid for this month
@@ -524,16 +545,20 @@ const YearSelector = ({
       }
       
       // Update parent with the new range
-      updateParentWithDateRange();
+      updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, month, validDay);
+      
+      // Force UI refresh
+      setRefreshCounter(prev => prev + 1);
     }
   };
   
   // Handle end day change in range mode
   const handleEndDayChange = (day) => {
+    console.log("handleEndDayChange:", day);
     setEndDay(day);
     
     // Update parent with the new range
-    updateParentWithDateRange();
+    updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, endMonth, day);
   };
   
   // Helper function to update parent with date information
@@ -556,13 +581,23 @@ const YearSelector = ({
   };
   
   // Helper function to update parent with date range information
-  const updateParentWithDateRange = () => {
-    if (!onYearRangeChange || !yearRange.startYear || !yearRange.endYear) return;
+  const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
+    if (!onYearRangeChange) return;
+    
+    // Use provided values or fall back to state
+    const sYear = startYear || yearRange.startYear;
+    const sMonth = startM || startMonth;
+    const sDay = startD || startDay;
+    const eYear = endYear || yearRange.endYear;
+    const eMonth = endM || endMonth;
+    const eDay = endD || endDay;
+    
+    if (!sYear || !eYear) return;
     
     // Only include month/day if the checkbox is checked
     if (showRangeMonthDaySelectors) {
-      const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-      const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+      const startDateStr = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
+      const endDateStr = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
       
       onYearRangeChange({
         startYear: startDateStr,
@@ -570,7 +605,10 @@ const YearSelector = ({
       });
     } else {
       // Just use the years
-      onYearRangeChange(yearRange);
+      onYearRangeChange({
+        startYear: sYear,
+        endYear: eYear
+      });
     }
   };
   
@@ -595,19 +633,10 @@ const YearSelector = ({
     }
     
     // Update parent with the new range
-    if (onYearRangeChange) {
-      if (showRangeMonthDaySelectors) {
-        const startDateStr = `${startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-        const endDateStr = `${endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-        
-        onYearRangeChange({
-          startYear: startDateStr,
-          endYear: endDateStr
-        });
-      } else {
-        onYearRangeChange(newYearRange);
-      }
-    }
+    updateParentWithDateRange(startYear, startMonth, startDay, endYear, endMonth, endDay);
+    
+    // Force UI refresh
+    setRefreshCounter(prev => prev + 1);
   };
   
   // Get the appropriate label
@@ -850,6 +879,9 @@ const YearSelector = ({
                         
                         // Update parent with the appropriate date format
                         updateParentWithDateRange();
+                        
+                        // Force UI refresh
+                        setRefreshCounter(prev => prev + 1);
                       }}
                       className="sr-only"
                     />
@@ -867,32 +899,10 @@ const YearSelector = ({
                   <div className="flex flex-col items-center">
                     <div className={`text-xs mb-1 font-medium ${colors.text}`}>START MONTH</div>
                     <WheelSelector
+                      key={`start-month-${refreshCounter}`}
                       items={months}
                       value={startMonth}
-                      onChange={(month) => {
-                        console.log("Changing start month to:", month);
-                        setStartMonth(month);
-                        
-                        // Make sure day is valid for this month
-                        if (yearRange.startYear) {
-                          const daysInMonth = getDaysInMonth(yearRange.startYear, month);
-                          const validDay = Math.min(startDay, daysInMonth);
-                          if (validDay !== startDay) {
-                            setStartDay(validDay);
-                          }
-                          
-                          // Update parent with the new range
-                          if (showRangeMonthDaySelectors && onYearRangeChange) {
-                            const startDateStr = `${yearRange.startYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
-                            const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-                            
-                            onYearRangeChange({
-                              startYear: startDateStr,
-                              endYear: endDateStr
-                            });
-                          }
-                        }
-                      }}
+                      onChange={handleStartMonthChange}
                       colorTheme={colorTheme}
                       displayFormat={getMonthName}
                     />
@@ -902,23 +912,10 @@ const YearSelector = ({
                   <div className="flex flex-col items-center">
                     <div className={`text-xs mb-1 font-medium ${colors.text}`}>START DAY</div>
                     <WheelSelector
-                      items={getDaysArray(yearRange.startYear, startMonth)}
+                      key={`start-day-${refreshCounter}`}
+                      items={startDays}
                       value={startDay}
-                      onChange={(day) => {
-                        console.log("Changing start day to:", day);
-                        setStartDay(day);
-                        
-                        // Update parent with the new range
-                        if (showRangeMonthDaySelectors && onYearRangeChange) {
-                          const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                          const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-                          
-                          onYearRangeChange({
-                            startYear: startDateStr,
-                            endYear: endDateStr
-                          });
-                        }
-                      }}
+                      onChange={handleStartDayChange}
                       colorTheme={colorTheme}
                     />
                   </div>
@@ -954,32 +951,10 @@ const YearSelector = ({
                   <div className="flex flex-col items-center">
                     <div className={`text-xs mb-1 font-medium ${colors.text}`}>END MONTH</div>
                     <WheelSelector
+                      key={`end-month-${refreshCounter}`}
                       items={months}
                       value={endMonth}
-                      onChange={(month) => {
-                        console.log("Changing end month to:", month);
-                        setEndMonth(month);
-                        
-                        // Make sure day is valid for this month
-                        if (yearRange.endYear) {
-                          const daysInMonth = getDaysInMonth(yearRange.endYear, month);
-                          const validDay = Math.min(endDay, daysInMonth);
-                          if (validDay !== endDay) {
-                            setEndDay(validDay);
-                          }
-                          
-                          // Update parent with the new range
-                          if (showRangeMonthDaySelectors && onYearRangeChange) {
-                            const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-                            const endDateStr = `${yearRange.endYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
-                            
-                            onYearRangeChange({
-                              startYear: startDateStr,
-                              endYear: endDateStr
-                            });
-                          }
-                        }
-                      }}
+                      onChange={handleEndMonthChange}
                       colorTheme={colorTheme}
                       displayFormat={getMonthName}
                     />
@@ -989,23 +964,10 @@ const YearSelector = ({
                   <div className="flex flex-col items-center">
                     <div className={`text-xs mb-1 font-medium ${colors.text}`}>END DAY</div>
                     <WheelSelector
-                      items={getDaysArray(yearRange.endYear, endMonth)}
+                      key={`end-day-${refreshCounter}`}
+                      items={endDays}
                       value={endDay}
-                      onChange={(day) => {
-                        console.log("Changing end day to:", day);
-                        setEndDay(day);
-                        
-                        // Update parent with the new range
-                        if (showRangeMonthDaySelectors && onYearRangeChange) {
-                          const startDateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-                          const endDateStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                          
-                          onYearRangeChange({
-                            startYear: startDateStr,
-                            endYear: endDateStr
-                          });
-                        }
-                      }}
+                      onChange={handleEndDayChange}
                       colorTheme={colorTheme}
                     />
                   </div>
