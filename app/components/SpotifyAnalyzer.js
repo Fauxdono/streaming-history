@@ -1090,12 +1090,12 @@ const filteredDisplayedArtists = useMemo(() => {
     console.log("Set year range to:", { startYear, endYear });
   };
 
-  const getTracksTabLabel = () => { 
-    if (selectedTrackYear === 'all') { 
-      return 'All-time Top 250'; 
-    } 
-    return `Top 100 ${selectedTrackYear}`; 
-  };
+const getTracksTabLabel = () => { 
+  if (selectedTrackYear === 'all') { 
+    return 'All-time Brief Obsessions'; 
+  } 
+  return `Brief Obsessions ${selectedTrackYear}`; 
+};
 
   const getArtistsTabLabel = () => {
     if (selectedArtistYear === 'all') {
@@ -1738,21 +1738,20 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
         
-      {activeTab === 'tracks' && (
+{activeTab === 'tracks' && (
   <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
-            <h3 className="font-bold mb-2 text-blue-700">Track Rankings</h3>
-          <TrackRankings 
-  processedData={processedData} 
-  briefObsessions={briefObsessions} 
-  formatDuration={formatDuration} 
-  songsByYear={songsByYear}
-  songsByMonth={songsByMonth}
-  initialYear={selectedTrackYear}
-  onYearChange={setSelectedTrackYear}
-/>
-          </div>
-        )}
-
+    <h3 className="font-bold mb-2 text-blue-700">Brief Obsessions</h3>
+    <TrackRankings 
+      processedData={processedData} 
+      briefObsessions={briefObsessions} 
+      formatDuration={formatDuration} 
+      songsByYear={songsByYear}
+      songsByMonth={songsByMonth}
+      initialYear={selectedTrackYear}
+      onYearChange={setSelectedTrackYear}
+    />
+  </div>
+)}
 {activeTab === 'custom' && (
   <div 
     id="custom-track-rankings"
