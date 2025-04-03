@@ -469,14 +469,14 @@ const YearSelector = ({
     }
   };
 
-  // Position styles for the sidebar
+// Position styles for the sidebar
   const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
     return (
       <div 
-        className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        className={`fixed ${positionStyles} top-20 h-[calc(100vh-6rem)] min-h-[400px] z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
         {/* Expand button */}
         <button 
