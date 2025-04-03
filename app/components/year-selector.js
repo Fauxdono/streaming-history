@@ -592,7 +592,7 @@ const containerClass = asSidebar
               
               {/* Checkbox to show/hide month & day selectors */}
               {selectedYear !== 'all' && (
-                <label className="flex items-center cursor-pointer mt-2">
+           <label className="flex flex-col items-center cursor-pointer mt-2">
                   <div className="relative">
                     <input 
                       type="checkbox" 
@@ -620,7 +620,7 @@ const containerClass = asSidebar
                     <div className={`block w-10 h-6 rounded-full ${showMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
                     <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
                   </div>
-                  <span className={`ml-2 text-xs ${colors.text}`}>Show Month & Day</span>
+                  <span className={`mt-1 text-xs ${colors.text}`}>Show M/D</span>
                 </label>
               )}
               
