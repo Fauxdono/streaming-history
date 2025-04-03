@@ -203,6 +203,9 @@ const YearSelector = ({
         setSelectedDay(daysInMonth);
       }
     }
+    
+    // Force a UI refresh to ensure the wheel selectors update
+    setRefreshCounter(prev => prev + 1);
   }, [selectedYear, selectedMonth]);
   
   // Adjust range days if month/year changes
@@ -503,7 +506,6 @@ const YearSelector = ({
   
   // Handle start month change in range mode
   const handleStartMonthChange = (month) => {
-    console.log("handleStartMonthChange:", month);
     setStartMonth(month);
     
     // Make sure day is valid for this month
@@ -524,7 +526,6 @@ const YearSelector = ({
   
   // Handle start day change in range mode
   const handleStartDayChange = (day) => {
-    console.log("handleStartDayChange:", day);
     setStartDay(day);
     
     // Update parent with the new range
@@ -533,7 +534,6 @@ const YearSelector = ({
   
   // Handle end month change in range mode
   const handleEndMonthChange = (month) => {
-    console.log("handleEndMonthChange:", month);
     setEndMonth(month);
     
     // Make sure day is valid for this month
@@ -554,7 +554,6 @@ const YearSelector = ({
   
   // Handle end day change in range mode
   const handleEndDayChange = (day) => {
-    console.log("handleEndDayChange:", day);
     setEndDay(day);
     
     // Update parent with the new range
@@ -725,7 +724,6 @@ const YearSelector = ({
     ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-16 sm:w-32 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  // Full expanded sidebar - different rendering for single vs range mode
   return (
     <div className={containerClass}>
       {/* Collapse button for sidebar */}
@@ -1040,5 +1038,4 @@ const YearSelector = ({
     </div>
   );
 };
-
 export default YearSelector;
