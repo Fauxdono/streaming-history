@@ -321,32 +321,36 @@ const CustomTrackRankings = ({
 
 // FIND the existing songsByYear useMemo and MODIFY it to handle year ranges properly:
 
-// This is the modified version of the existing songsByYear useMemo
 const songsByYear = useMemo(() => {
   const yearGroups = {};
   
-  if (selectedYear !== 'all') {
-    // Single year case - put tracks under the selected year key
-    return { [selectedYear]: filteredTracks };
-  } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
     // Year range case
     const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
     
     // Store under the range key (e.g., "2022-2022")
-    yearGroups[rangeKey] = filteredTracks;
+    yearGroups[rangeKey] = filteredEpisodes;
     
     // ALSO store under single year key if start and end are the same
-    // This is the key fix that ensures tracks are available under both keys
     if (yearRange.startYear === yearRange.endYear) {
-      yearGroups[yearRange.startYear] = filteredTracks;
+      // Important: Store under BOTH the year itself AND the date format if it's a specific date
+      yearGroups[yearRange.startYear] = filteredEpisodes;
+      
+      // If this is a specific date format (YYYY-MM-DD), ensure we store it that way too
+      if (yearRange.startYear.includes('-') && yearRange.startYear.split('-').length === 3) {
+        yearGroups[yearRange.startYear] = filteredEpisodes;
+      }
     }
     
     return yearGroups;
+  } else if (selectedYear !== 'all') {
+    // Single year case - put tracks under the selected year key
+    return { [selectedYear]: filteredEpisodes };
   }
   
   // Default "all time" case
-  return { all: filteredTracks };
-}, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
+  return { all: filteredEpisodes };
+}, [filteredEpisodes, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
