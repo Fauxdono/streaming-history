@@ -276,36 +276,6 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
   }
 };
 
-// 5. Add function to handle year range selection from sidebar
-const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
-  switch(activeTab) {
-    case 'artists':
-      handleYearRangeChange({ startYear, endYear });
-      break;
-    case 'albums':
-      handleAlbumYearRangeChange({ startYear, endYear });
-  break;
-    case 'custom':
-      handleCustomTrackYearRangeChange({ startYear, endYear });
-      break;
-    case 'patterns':
-      setPatternYearRange({ startYear, endYear });
-      break;
-    case 'behavior':
-      setBehaviorYearRange({ startYear, endYear });
-      break;
-    case 'discovery':
-      setDiscoveryYearRange({ startYear, endYear });
-      break;
-    case 'podcasts':
-      setPodcastYearRange({ startYear, endYear });
-      break;
-    default:
-      // Default behavior
-      break;
-  }
-};
-
 // 6. Add function to handle range mode toggle from sidebar
 const handleSidebarRangeModeToggle = (isRange) => {
   const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
