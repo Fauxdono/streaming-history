@@ -316,18 +316,27 @@ const CustomTrackRankings = ({
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
+// FIXED CODE FOR CustomTrackRankings.js
+// Modify the existing songsByYear useMemo instead of creating a new one
+
+// FIND the existing songsByYear useMemo and MODIFY it to handle year ranges properly:
+
+// This is the modified version of the existing songsByYear useMemo
 const songsByYear = useMemo(() => {
   const yearGroups = {};
   
   if (selectedYear !== 'all') {
+    // Single year case - put tracks under the selected year key
     return { [selectedYear]: filteredTracks };
   } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    const rangeLabel = `${yearRange.startYear}-${yearRange.endYear}`;
+    // Year range case
+    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
     
-    // Add tracks under the range label
-    yearGroups[rangeLabel] = filteredTracks;
+    // Store under the range key (e.g., "2022-2022")
+    yearGroups[rangeKey] = filteredTracks;
     
-    // ALSO add tracks under the single year key if start and end are the same
+    // ALSO store under single year key if start and end are the same
+    // This is the key fix that ensures tracks are available under both keys
     if (yearRange.startYear === yearRange.endYear) {
       yearGroups[yearRange.startYear] = filteredTracks;
     }
@@ -335,8 +344,9 @@ const songsByYear = useMemo(() => {
     return yearGroups;
   }
   
+  // Default "all time" case
   return { all: filteredTracks };
-}, [filteredTracks, startDate, endDate, selectedYear, yearRangeMode, yearRange]);
+}, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {

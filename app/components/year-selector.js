@@ -638,14 +638,45 @@ const YearSelector = ({
     setRefreshCounter(prev => prev + 1);
   };
   
+
 const getYearLabel = () => {
   if (mode === 'single') {
-    return selectedYear === 'all' ? 'All Time' : selectedYear;
-  } else if (yearRange.startYear === yearRange.endYear) {
-    // For same year ranges, show it like a single year for clarity
-    return yearRange.startYear;
+    if (selectedYear === 'all') return 'All Time';
+    
+    if (showMonthDaySelectors) {
+      return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+    }
+    
+    return selectedYear;
   } else {
-    // True range
+    // Special case: When start and end years are the same, make it more obvious
+    // that it's actually the same as a single year selection
+    if (yearRange.startYear === yearRange.endYear) {
+      if (showRangeMonthDaySelectors) {
+        // If month/day selectors are active and both start/end are identical, 
+        // show it like a single date rather than a range
+        if (startMonth === endMonth && startDay === endDay) {
+          return `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+        }
+        
+        // Otherwise show as a range
+        const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+        const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+        return `${startStr} to ${endStr}`;
+      } else {
+        // If just the year is selected (no month/day), show just the year
+        // This helps users understand it's the same as selecting that specific year
+        return yearRange.startYear;
+      }
+    }
+    
+    // For true ranges (different years), display the standard range format
+    if (showRangeMonthDaySelectors) {
+      const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+      const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+      return `${startStr} to ${endStr}`;
+    }
+    
     return `${yearRange.startYear}-${yearRange.endYear}`;
   }
 };
