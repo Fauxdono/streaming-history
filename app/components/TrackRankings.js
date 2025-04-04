@@ -46,86 +46,106 @@ const TrackRankings = ({
     return <div>No brief obsessions data available</div>;
   }
 
-  // Filter obsessions based on selected year
-  const filteredObsessions = useMemo(() => {
-    const selectedYear = initialYear;
+
+const filteredObsessions = useMemo(() => {
+  const selectedYear = initialYear;
+  
+  // First filter by year
+  let yearFiltered = [];
+  
+  if (selectedYear === 'all') {
+    // All-time view
+    yearFiltered = briefObsessions;
+  } else if (selectedYear.includes('-')) {
+    // If date includes day or month (YYYY-MM-DD or YYYY-MM format)
+    const parts = selectedYear.split('-');
     
-    // First filter by year
-    let yearFiltered = [];
-    
-    if (selectedYear === 'all') {
-      // All-time view
-      yearFiltered = briefObsessions;
-    } else if (selectedYear.includes('-')) {
-      // If date includes day or month (YYYY-MM-DD or YYYY-MM format)
-      const parts = selectedYear.split('-');
+    if (parts.length === 3) {
+      // Single day selection (YYYY-MM-DD)
+      const selectedDate = new Date(selectedYear);
       
-      if (parts.length === 3) {
-        // Single day selection (YYYY-MM-DD)
-        const selectedDate = new Date(selectedYear);
+      // Find obsessions that include this specific day
+      yearFiltered = briefObsessions.filter(obs => {
+        if (!obs.intensePeriod?.weekStart) return false;
         
-        // Find obsessions that include this specific day
-        yearFiltered = briefObsessions.filter(obs => {
-          if (!obs.intensePeriod?.weekStart) return false;
-          
-          // Check if selected date falls within the week of this obsession
-          const weekStart = new Date(obs.intensePeriod.weekStart);
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekEnd.getDate() + 7);
-          
-          return selectedDate >= weekStart && selectedDate <= weekEnd;
-        });
-      } else if (parts.length === 2) {
-        // Month selection (YYYY-MM)
-        const year = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+        // Check if selected date falls within the week of this obsession
+        const weekStart = new Date(obs.intensePeriod.weekStart);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
         
-        // Find obsessions within this month
-        yearFiltered = briefObsessions.filter(obs => {
-          if (!obs.intensePeriod?.weekStart) return false;
-          
-          const weekStart = new Date(obs.intensePeriod.weekStart);
-          const weekYear = weekStart.getFullYear();
-          const weekMonth = weekStart.getMonth();
-          
-          // Week might span multiple months, so check both week start and end
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekEnd.getDate() + 6);
-          const endMonth = weekEnd.getMonth();
-          const endYear = weekEnd.getFullYear();
-          
-          // Match if week overlaps with selected month
-          return (weekYear === year && weekMonth === month) || 
-                 (endYear === year && endMonth === month);
-        });
-      } else {
-        yearFiltered = [];
-      }
-    } else {
-      // Regular year filter (YYYY format)
+        return selectedDate >= weekStart && selectedDate <= weekEnd;
+      });
+    } else if (parts.length === 2) {
+      // Month selection (YYYY-MM)
+      const year = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+      
+      // Find obsessions within this month
       yearFiltered = briefObsessions.filter(obs => {
         if (!obs.intensePeriod?.weekStart) return false;
         
         const weekStart = new Date(obs.intensePeriod.weekStart);
-        return weekStart.getFullYear().toString() === selectedYear;
+        const weekYear = weekStart.getFullYear();
+        const weekMonth = weekStart.getMonth();
+        
+        // Week might span multiple months, so check both week start and end
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        const endMonth = weekEnd.getMonth();
+        const endYear = weekEnd.getFullYear();
+        
+        // Match if week overlaps with selected month
+        return (weekYear === year && weekMonth === month) || 
+               (endYear === year && endMonth === month);
       });
+    } else {
+      yearFiltered = [];
     }
-    
-    // Then apply intensity threshold and sort
-    return yearFiltered
-      .filter(obs => obs.intensePeriod.playsInWeek >= intensityThreshold)
-      .sort((a, b) => {
-        if (sortBy === 'playsInWeek') {
-          return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
-        } else if (sortBy === 'playCount') {
-          return b.playCount - a.playCount;
-        } else if (sortBy === 'weekStart') {
-          return new Date(b.intensePeriod.weekStart) - new Date(a.intensePeriod.weekStart);
+  } else {
+    // Regular single year filter
+    yearFiltered = briefObsessions.filter(obs => {
+      if (!obs.intensePeriod?.weekStart) return false;
+      
+      // Check for both the year directly, and if it might be part of a year range
+      // where start and end are the same
+      const weekStart = new Date(obs.intensePeriod.weekStart);
+      const yearStr = weekStart.getFullYear().toString();
+      
+      // Direct match for the selected year
+      if (yearStr === selectedYear) {
+        return true;
+      }
+      
+      // If we have songsByYear with a range key that represents a single year
+      // (e.g., "2022-2022"), also include those
+      if (typeof songsByYear === 'object') {
+        const rangeKey = `${selectedYear}-${selectedYear}`;
+        if (rangeKey in songsByYear) {
+          return yearStr === selectedYear;
         }
+      }
+      
+      return false;
+    });
+  }
+  
+  // Then apply intensity threshold and sort
+  return yearFiltered
+    .filter(obs => obs.intensePeriod.playsInWeek >= intensityThreshold)
+    .sort((a, b) => {
+      if (sortBy === 'playsInWeek') {
         return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
-      })
-      .slice(0, topN);
-  }, [briefObsessions, initialYear, sortBy, intensityThreshold, topN]);
+      } else if (sortBy === 'playCount') {
+        return b.playCount - a.playCount;
+      } else if (sortBy === 'weekStart') {
+        return new Date(b.intensePeriod.weekStart) - new Date(a.intensePeriod.weekStart);
+      }
+      return b.intensePeriod.playsInWeek - a.intensePeriod.playsInWeek;
+    })
+    .slice(0, topN);
+}, [briefObsessions, initialYear, sortBy, intensityThreshold, topN, songsByYear]);
+
+// DO NOT add another songsByYear declaration
   
   // Function to format date for display
   const formatDate = (dateString) => {
@@ -144,43 +164,6 @@ const TrackRankings = ({
     } 
     return `Top Brief Obsessions for ${initialYear}`; 
   };
-
-const songsByYear = useMemo(() => {
-  const yearGroups = {};
-  
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Store under range format (e.g., "2022-2022")
-    const rangeLabel = `${yearRange.startYear}-${yearRange.endYear}`;
-    yearGroups[rangeLabel] = filteredTracks;
-    
-    // ALSO store under single year key if start and end are the same
-    if (yearRange.startYear === yearRange.endYear) {
-      yearGroups[yearRange.startYear] = filteredTracks;
-    }
-    
-    return yearGroups;
-  }
-  
-  // Normal single year case
-  return { [selectedYear]: filteredTracks };
-});
-
-const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
-  // Check for single year first
-  if (dataByYear[selectedYear]) {
-    return dataByYear[selectedYear];
-  }
-  
-  // If this is a range with same start/end years, try the range key
-  if (isRangeMode && yearRange.startYear === yearRange.endYear && 
-      yearRange.startYear === selectedYear) {
-    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
-    return dataByYear[rangeKey] || [];
-  }
-  
-  // Handle other cases...
-  return [];
-};
 
   const renderObsessionColumns = (obsession, index) => {
     if (isMobile) {
