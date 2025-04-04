@@ -638,26 +638,17 @@ const YearSelector = ({
     setRefreshCounter(prev => prev + 1);
   };
   
-  // Get the appropriate label
-  const getYearLabel = () => {
-    if (mode === 'single') {
-      if (selectedYear === 'all') return 'All Time';
-      
-      if (showMonthDaySelectors) {
-        return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-      }
-      
-      return selectedYear;
-    } else {
-      if (showRangeMonthDaySelectors) {
-        const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-        const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-        return `${startStr} to ${endStr}`;
-      }
-      
-      return `${yearRange.startYear}-${yearRange.endYear}`;
-    }
-  };
+const getYearLabel = () => {
+  if (mode === 'single') {
+    return selectedYear === 'all' ? 'All Time' : selectedYear;
+  } else if (yearRange.startYear === yearRange.endYear) {
+    // For same year ranges, show it like a single year for clarity
+    return yearRange.startYear;
+  } else {
+    // True range
+    return `${yearRange.startYear}-${yearRange.endYear}`;
+  }
+};
 
   // Position styles for the sidebar
   const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';

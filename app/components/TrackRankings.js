@@ -145,6 +145,43 @@ const TrackRankings = ({
     return `Top Brief Obsessions for ${initialYear}`; 
   };
 
+const songsByYear = useMemo(() => {
+  const yearGroups = {};
+  
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    // Store under range format (e.g., "2022-2022")
+    const rangeLabel = `${yearRange.startYear}-${yearRange.endYear}`;
+    yearGroups[rangeLabel] = filteredTracks;
+    
+    // ALSO store under single year key if start and end are the same
+    if (yearRange.startYear === yearRange.endYear) {
+      yearGroups[yearRange.startYear] = filteredTracks;
+    }
+    
+    return yearGroups;
+  }
+  
+  // Normal single year case
+  return { [selectedYear]: filteredTracks };
+});
+
+const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
+  // Check for single year first
+  if (dataByYear[selectedYear]) {
+    return dataByYear[selectedYear];
+  }
+  
+  // If this is a range with same start/end years, try the range key
+  if (isRangeMode && yearRange.startYear === yearRange.endYear && 
+      yearRange.startYear === selectedYear) {
+    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
+    return dataByYear[rangeKey] || [];
+  }
+  
+  // Handle other cases...
+  return [];
+};
+
   const renderObsessionColumns = (obsession, index) => {
     if (isMobile) {
       // Mobile view for obsessions

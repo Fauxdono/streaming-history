@@ -316,19 +316,27 @@ const CustomTrackRankings = ({
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
-  // Group tracks by year for PlaylistExporter
-  const songsByYear = useMemo(() => {
-    const yearGroups = {};
+const songsByYear = useMemo(() => {
+  const yearGroups = {};
+  
+  if (selectedYear !== 'all') {
+    return { [selectedYear]: filteredTracks };
+  } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    const rangeLabel = `${yearRange.startYear}-${yearRange.endYear}`;
     
-    if (selectedYear !== 'all') {
-      return { [selectedYear]: filteredTracks };
-    } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      const rangeLabel = `${yearRange.startYear}-${yearRange.endYear}`;
-      return { [rangeLabel]: filteredTracks };
+    // Add tracks under the range label
+    yearGroups[rangeLabel] = filteredTracks;
+    
+    // ALSO add tracks under the single year key if start and end are the same
+    if (yearRange.startYear === yearRange.endYear) {
+      yearGroups[yearRange.startYear] = filteredTracks;
     }
     
-    return { all: filteredTracks };
-  }, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
+    return yearGroups;
+  }
+  
+  return { all: filteredTracks };
+}, [filteredTracks, startDate, endDate, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
@@ -354,6 +362,23 @@ const CustomTrackRankings = ({
       .replace(/\s+/g, ' ')
       .trim();
   };
+
+const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
+  // Check for single year first
+  if (dataByYear[selectedYear]) {
+    return dataByYear[selectedYear];
+  }
+  
+  // If this is a range with same start/end years, try the range key
+  if (isRangeMode && yearRange.startYear === yearRange.endYear && 
+      yearRange.startYear === selectedYear) {
+    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
+    return dataByYear[rangeKey] || [];
+  }
+  
+  // Handle other cases...
+  return [];
+};
   
   // Create M3U playlist content
   const createM3UContent = () => {
