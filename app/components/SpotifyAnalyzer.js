@@ -231,33 +231,44 @@ case 'discovery':
   }
 }, [activeTab]);
 
-// 4. Add function to handle year selection from sidebar based on active tab
-const handleSidebarYearChange = (year) => {
-console.log(`Sidebar year changed to: ${year} for tab: ${activeTab}`);  
-switch(activeTab) {
+const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
+  switch(activeTab) {
     case 'artists':
-      setSelectedArtistYear(year);
+      handleYearRangeChange({ startYear, endYear });
+      // If start and end years are the same, also update selectedYear for consistency
+      if (startYear === endYear) {
+        setSelectedArtistYear(startYear);
+      }
       break;
     case 'albums':
-      setSelectedAlbumYear(year);
-      break;
-    case 'tracks':
-      setSelectedTrackYear(year);
+      handleAlbumYearRangeChange({ startYear, endYear });
+      if (startYear === endYear) {
+        setSelectedAlbumYear(startYear);
+      }
       break;
     case 'custom':
-      handleCustomTrackYearChange(year);
+      handleCustomTrackYearRangeChange({ startYear, endYear });
+      if (startYear === endYear) {
+        setCustomTrackYear(startYear);
+      }
       break;
-case 'patterns':
-      setSelectedPatternYear(year);
+    case 'tracks':
+      if (startYear === endYear) {
+        setSelectedTrackYear(startYear);
+      }
+      // Then continue with original range handling
+      break;
+    case 'patterns':
+      // Handle patterns tab specific logic
+      if (startYear === endYear) {
+        // Update the corresponding selectedYear state
+      }
       break;
     case 'behavior':
-      setSelectedBehaviorYear(year);
-      break;
-    case 'discovery':
-      setSelectedDiscoveryYear(year);
-      break;
-    case 'podcasts':
-      setSelectedPodcastYear(year);
+      // Handle behavior tab specific logic
+      if (startYear === endYear) {
+        // Update the corresponding selectedYear state
+      }
       break;
     default:
       // Default behavior
