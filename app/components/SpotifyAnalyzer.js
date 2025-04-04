@@ -261,14 +261,30 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
     case 'patterns':
       // Handle patterns tab specific logic
       if (startYear === endYear) {
-        // Update the corresponding selectedYear state
+        setSelectedPatternYear(startYear);
       }
+      setPatternYearRange({ startYear, endYear });
       break;
     case 'behavior':
       // Handle behavior tab specific logic
       if (startYear === endYear) {
-        // Update the corresponding selectedYear state
+        setSelectedBehaviorYear(startYear);
       }
+      setBehaviorYearRange({ startYear, endYear });
+      break;
+    case 'discovery':
+      // Handle discovery tab specific logic
+      if (startYear === endYear) {
+        setSelectedDiscoveryYear(startYear);
+      }
+      setDiscoveryYearRange({ startYear, endYear });
+      break;
+    case 'podcasts':
+      // Handle podcasts tab specific logic
+      if (startYear === endYear) {
+        setSelectedPodcastYear(startYear);
+      }
+      setPodcastYearRange({ startYear, endYear });
       break;
     default:
       // Default behavior

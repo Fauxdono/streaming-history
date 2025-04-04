@@ -578,9 +578,7 @@ const YearSelector = ({
       onYearChange(year);
     }
   };
-  
-  // Helper function to update parent with date range information
-  const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
+    const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
     if (!onYearRangeChange) return;
     
     // Use provided values or fall back to state
@@ -598,11 +596,24 @@ const YearSelector = ({
       const startDateStr = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
       const endDateStr = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
       
+      // Special case: If start and end dates are identical, also call the single mode callback
+      // This ensures both modes have the data
+      if (startDateStr === endDateStr && onYearChange) {
+        // Also update the single-date view with this exact date
+        onYearChange(startDateStr);
+      }
+      
       onYearRangeChange({
         startYear: startDateStr,
         endYear: endDateStr
       });
     } else {
+      // Special case: If start and end years are identical, also call the single mode callback
+      if (sYear === eYear && onYearChange) {
+        // Also update the single-year view with this exact year
+        onYearChange(sYear);
+      }
+      
       // Just use the years
       onYearRangeChange({
         startYear: sYear,
