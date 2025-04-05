@@ -417,6 +417,9 @@ useEffect(() => {
   };
   
   const handleModeChange = (newMode) => {
+  // If the current mode is already the requested mode, do nothing
+  if (mode === newMode) return;
+  
   // Update internal mode state
   setMode(newMode);
   
@@ -425,7 +428,7 @@ useEffect(() => {
     onToggleRangeMode(newMode === 'range');
   }
   
-  // If switching to single mode, default to 'all' or preserve current year if formatted date
+  // If switching to single mode
   if (newMode === 'single') {
     // If we have a formatted date in range mode, try to preserve it in single mode
     if (mode === 'range' && 
@@ -433,49 +436,77 @@ useEffect(() => {
         yearRange.startYear === yearRange.endYear && 
         startMonth === endMonth &&
         startDay === endDay) {
-      // We have a specific date selected
+      // We have a specific date selected - preserve it
       const dateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
       setSelectedYear(yearRange.startYear);
+      setSelectedMonth(startMonth);
+      setSelectedDay(startDay);
       setShowMonthDaySelectors(true);
       
+      // Ensure the parent knows about this specific date
       if (onYearChange) {
         onYearChange(dateStr);
       }
-    } else {
-      // Default to all
+    } 
+    // If we have a year-only range with identical years
+    else if (mode === 'range' && 
+            !showRangeMonthDaySelectors && 
+            yearRange.startYear === yearRange.endYear) {
+      // Convert single year from range to single mode
+      setSelectedYear(yearRange.startYear);
+      setShowMonthDaySelectors(false);
+      
+      if (onYearChange) {
+        onYearChange(yearRange.startYear);
+      }
+    }
+    else {
+      // Default to all-time view
       setSelectedYear('all');
+      setShowMonthDaySelectors(false);
       
       if (onYearChange) {
         onYearChange('all');
       }
     }
   } 
-  // If switching to range mode, default to full range
+  // If switching to range mode
   else if (newMode === 'range' && years.length >= 2) {
-    // If we have a specific date in single mode, try to preserve it in range mode
+    // If we have a specific date in single mode, preserve it in range mode
     if (mode === 'single' && showMonthDaySelectors && selectedYear !== 'all') {
-      const newYearRange = {
+      // Convert single date to same start/end range
+      const formattedDate = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+      
+      setYearRange({
         startYear: selectedYear,
         endYear: selectedYear
-      };
-      
-      setYearRange(newYearRange);
+      });
       setStartMonth(selectedMonth);
       setEndMonth(selectedMonth);
       setStartDay(selectedDay);
       setEndDay(selectedDay);
       setShowRangeMonthDaySelectors(true);
       
-      if (onYearRangeChange) {
-        const startDateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-        const endDateStr = startDateStr;
-        
-        onYearRangeChange({
-          startYear: startDateStr,
-          endYear: endDateStr
-        });
+      // For identical date ranges, actually use the single date callback
+      if (onYearChange) {
+        onYearChange(formattedDate);
       }
-    } else {
+    } 
+    // If we have a year-only selection in single mode
+    else if (mode === 'single' && !showMonthDaySelectors && selectedYear !== 'all') {
+      // Convert single year to same start/end range
+      setYearRange({
+        startYear: selectedYear,
+        endYear: selectedYear
+      });
+      setShowRangeMonthDaySelectors(false);
+      
+      // For identical year ranges, use the single year callback
+      if (onYearChange) {
+        onYearChange(selectedYear);
+      }
+    }
+    else {
       // Default to full range
       const newYearRange = {
         startYear: years[0],
@@ -483,6 +514,7 @@ useEffect(() => {
       };
       
       setYearRange(newYearRange);
+      setShowRangeMonthDaySelectors(false);
       
       if (onYearRangeChange) {
         onYearRangeChange(newYearRange);
@@ -634,9 +666,6 @@ useEffect(() => {
     }
   };
 
-// Modified section of updateParentWithDateRange in year-selector.js
-// This ensures both the parent components and year selector state stay in sync
-
 const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
   if (!onYearRangeChange) return;
   
@@ -655,50 +684,52 @@ const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, end
     const startDateStr = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
     const endDateStr = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
     
-    // For identical dates, switch to single mode for consistency
-    if (startDateStr === endDateStr) {
-      if (onYearChange) {
-        onYearChange(startDateStr);
-      }
+    // Special case: If start and end dates are identical, just use single date mode
+    if (startDateStr === endDateStr && onYearChange) {
+      // Update the single-date view with this exact date
+      onYearChange(startDateStr);
       
-      // Optional: switch to single mode
+      // Switch to single mode for UI consistency
       setMode('single');
       setSelectedYear(sYear);
       setSelectedMonth(sMonth);
       setSelectedDay(sDay);
       setShowMonthDaySelectors(true);
       
+      // Notify parent component about mode change
       if (onToggleRangeMode) {
         onToggleRangeMode(false);
       }
       
-      return; // Exit early to prevent calling onYearRangeChange
+      return; // Don't call onYearRangeChange to avoid conflicts
     }
     
-    // Otherwise treat as true range
+    // Only for true date ranges, call the range callback
     onYearRangeChange({
       startYear: startDateStr,
       endYear: endDateStr
     });
   } else {
-    // For year-only selections, similar logic
-    if (sYear === eYear) {
-      if (onYearChange) {
-        onYearChange(sYear);
-      }
+    // Year-only logic (no month/day)
+    // If years are identical, switch to single year mode
+    if (sYear === eYear && onYearChange) {
+      // Update the single-year view
+      onYearChange(sYear);
       
-      // Optional: switch to single mode
+      // Switch to single mode for UI consistency
       setMode('single');
       setSelectedYear(sYear);
+      setShowMonthDaySelectors(false);
       
+      // Notify parent component about mode change
       if (onToggleRangeMode) {
         onToggleRangeMode(false);
       }
       
-      return; // Exit early
+      return; // Don't call onYearRangeChange to avoid conflicts
     }
     
-    // Otherwise treat as true range
+    // Only for true year ranges, call the range callback
     onYearRangeChange({
       startYear: sYear,
       endYear: eYear
