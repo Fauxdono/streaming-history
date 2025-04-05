@@ -655,47 +655,50 @@ const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, end
     const startDateStr = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
     const endDateStr = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
     
-    // Special case: If start and end dates are identical, also call the single mode callback
-    // This ensures both modes have the data
-    if (startDateStr === endDateStr && onYearChange) {
-      // Also update the single-date view with this exact date
-      onYearChange(startDateStr);
-      
-      // If we're in range mode but with identical dates, switch to single mode
-      if (mode === 'range') {
-        setMode('single');
-        setSelectedYear(startDateStr);
-        
-        // Notify parent component about mode change
-        if (onToggleRangeMode) {
-          onToggleRangeMode(false);
-        }
+    // For identical dates, switch to single mode for consistency
+    if (startDateStr === endDateStr) {
+      if (onYearChange) {
+        onYearChange(startDateStr);
       }
+      
+      // Optional: switch to single mode
+      setMode('single');
+      setSelectedYear(sYear);
+      setSelectedMonth(sMonth);
+      setSelectedDay(sDay);
+      setShowMonthDaySelectors(true);
+      
+      if (onToggleRangeMode) {
+        onToggleRangeMode(false);
+      }
+      
+      return; // Exit early to prevent calling onYearRangeChange
     }
     
+    // Otherwise treat as true range
     onYearRangeChange({
       startYear: startDateStr,
       endYear: endDateStr
     });
   } else {
-    // Special case: If start and end years are identical, also call the single mode callback
-    if (sYear === eYear && onYearChange) {
-      // Also update the single-year view with this exact year
-      onYearChange(sYear);
-      
-      // If we're in range mode but with identical years, switch to single mode
-      if (mode === 'range') {
-        setMode('single');
-        setSelectedYear(sYear);
-        
-        // Notify parent component about mode change
-        if (onToggleRangeMode) {
-          onToggleRangeMode(false);
-        }
+    // For year-only selections, similar logic
+    if (sYear === eYear) {
+      if (onYearChange) {
+        onYearChange(sYear);
       }
+      
+      // Optional: switch to single mode
+      setMode('single');
+      setSelectedYear(sYear);
+      
+      if (onToggleRangeMode) {
+        onToggleRangeMode(false);
+      }
+      
+      return; // Exit early
     }
     
-    // Just use the years
+    // Otherwise treat as true range
     onYearRangeChange({
       startYear: sYear,
       endYear: eYear
