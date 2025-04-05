@@ -666,8 +666,6 @@ useEffect(() => {
     }
   };
 
-
-
 const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
   if (!onYearRangeChange) return;
   
@@ -686,14 +684,52 @@ const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, end
     const startDateStr = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
     const endDateStr = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
     
-    // Always call onYearRangeChange when in range mode, even if start and end are identical
+    // Special case: If start and end dates are identical, just use single date mode
+    if (startDateStr === endDateStr && onYearChange) {
+      // Update the single-date view with this exact date
+      onYearChange(startDateStr);
+      
+      // Switch to single mode for UI consistency
+      setMode('single');
+      setSelectedYear(sYear);
+      setSelectedMonth(sMonth);
+      setSelectedDay(sDay);
+      setShowMonthDaySelectors(true);
+      
+      // Notify parent component about mode change
+      if (onToggleRangeMode) {
+        onToggleRangeMode(false);
+      }
+      
+      return; // Don't call onYearRangeChange to avoid conflicts
+    }
+    
+    // Only for true date ranges, call the range callback
     onYearRangeChange({
       startYear: startDateStr,
       endYear: endDateStr
     });
   } else {
     // Year-only logic (no month/day)
-    // Always use the range callback in range mode, even if years are identical
+    // If years are identical, switch to single year mode
+    if (sYear === eYear && onYearChange) {
+      // Update the single-year view
+      onYearChange(sYear);
+      
+      // Switch to single mode for UI consistency
+      setMode('single');
+      setSelectedYear(sYear);
+      setShowMonthDaySelectors(false);
+      
+      // Notify parent component about mode change
+      if (onToggleRangeMode) {
+        onToggleRangeMode(false);
+      }
+      
+      return; // Don't call onYearRangeChange to avoid conflicts
+    }
+    
+    // Only for true year ranges, call the range callback
     onYearRangeChange({
       startYear: sYear,
       endYear: eYear
