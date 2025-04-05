@@ -703,6 +703,33 @@ const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, end
   });
 };
   
+  // Handler for year range change in range mode
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    const newYearRange = { startYear, endYear };
+    setYearRange(newYearRange);
+    
+    // Reset days if they're not valid for the new years
+    if (startYear) {
+      const startDaysInMonth = getDaysInMonth(startYear, startMonth);
+      if (startDay > startDaysInMonth) {
+        setStartDay(startDaysInMonth);
+      }
+    }
+    
+    if (endYear) {
+      const endDaysInMonth = getDaysInMonth(endYear, endMonth);
+      if (endDay > endDaysInMonth) {
+        setEndDay(endDaysInMonth);
+      }
+    }
+    
+    // Update parent with the new range
+    updateParentWithDateRange(startYear, startMonth, startDay, endYear, endMonth, endDay);
+    
+    // Force UI refresh
+    setRefreshCounter(prev => prev + 1);
+  };
+  
 
 const getYearLabel = () => {
   if (mode === 'single') {
