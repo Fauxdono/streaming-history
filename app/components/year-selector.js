@@ -154,45 +154,57 @@ const YearSelector = ({
     }
   }, [initialYearRange]);
   
-  // Update selectedYear when initialYear changes
-  useEffect(() => {
-    if (initialYear) {
-      // Check if initialYear contains month/day info (format: YYYY-MM-DD)
-      if (initialYear !== 'all' && initialYear.includes('-')) {
-        const parts = initialYear.split('-');
+// Inside YearSelector.js, find this useEffect:
+useEffect(() => {
+  if (initialYear) {
+    // Check if initialYear contains month/day info (format: YYYY-MM-DD)
+    if (initialYear !== 'all' && initialYear.includes('-')) {
+      const parts = initialYear.split('-');
+      
+      // If we have at least year-month format
+      if (parts.length >= 2) {
+        // Set the year part
+        setSelectedYear(parts[0]);
         
-        // If we have at least year-month format
-        if (parts.length >= 2) {
-          // Set the year part
-          setSelectedYear(parts[0]);
+        const monthPart = parseInt(parts[1]);
+        if (!isNaN(monthPart) && monthPart >= 1 && monthPart <= 12) {
+          setSelectedMonth(monthPart);
           
-          const monthPart = parseInt(parts[1]);
-          if (!isNaN(monthPart) && monthPart >= 1 && monthPart <= 12) {
-            setSelectedMonth(monthPart);
-            
-            // If we have year-month-day format
-            if (parts.length >= 3) {
-              const dayPart = parseInt(parts[2]);
-              if (!isNaN(dayPart) && dayPart >= 1) {
-                setSelectedDay(dayPart);
-              }
+          // If we have year-month-day format
+          if (parts.length >= 3) {
+            const dayPart = parseInt(parts[2]);
+            if (!isNaN(dayPart) && dayPart >= 1) {
+              setSelectedDay(dayPart);
             }
-            
-            // Show the month/day selectors
-            setShowMonthDaySelectors(true);
           }
-        }
-      } else {
-        // Just a simple year or "all"
-        setSelectedYear(initialYear);
-        
-        // If switching to "all", hide month/day selectors
-        if (initialYear === 'all') {
-          setShowMonthDaySelectors(false);
+          
+          // Show the month/day selectors
+          setShowMonthDaySelectors(true);
         }
       }
+    } else {
+      // Just a simple year or "all"
+      setSelectedYear(initialYear);
+      
+      // If switching to "all", hide month/day selectors
+      if (initialYear === 'all') {
+        setShowMonthDaySelectors(false);
+      }
     }
-  }, [initialYear]);
+    
+    // Ensure the mode is consistent with the format of initialYear
+    // If initialYear has a date format, we're in single mode with date selector shown
+    if (initialYear !== 'all' && initialYear.includes('-')) {
+      setMode('single');
+      if (onToggleRangeMode) {
+        onToggleRangeMode(false);
+      }
+    }
+  }
+  
+  // Force UI refresh for wheel selector
+  setRefreshCounter(prev => prev + 1);
+}, [initialYear, onToggleRangeMode])
   
   // Reset month and day selection when year changes
   useEffect(() => {
@@ -405,24 +417,66 @@ const YearSelector = ({
   };
   
   const handleModeChange = (newMode) => {
-    // Update internal mode state
-    setMode(newMode);
-    
-    // Notify parent component about mode change
-    if (onToggleRangeMode) {
-      onToggleRangeMode(newMode === 'range');
-    }
-    
-    // If switching to single mode, default to 'all'
-    if (newMode === 'single') {
+  // Update internal mode state
+  setMode(newMode);
+  
+  // Notify parent component about mode change
+  if (onToggleRangeMode) {
+    onToggleRangeMode(newMode === 'range');
+  }
+  
+  // If switching to single mode, default to 'all' or preserve current year if formatted date
+  if (newMode === 'single') {
+    // If we have a formatted date in range mode, try to preserve it in single mode
+    if (mode === 'range' && 
+        showRangeMonthDaySelectors && 
+        yearRange.startYear === yearRange.endYear && 
+        startMonth === endMonth &&
+        startDay === endDay) {
+      // We have a specific date selected
+      const dateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+      setSelectedYear(yearRange.startYear);
+      setShowMonthDaySelectors(true);
+      
+      if (onYearChange) {
+        onYearChange(dateStr);
+      }
+    } else {
+      // Default to all
       setSelectedYear('all');
       
       if (onYearChange) {
         onYearChange('all');
       }
-    } 
-    // If switching to range mode, default to full range
-    else if (newMode === 'range' && years.length >= 2) {
+    }
+  } 
+  // If switching to range mode, default to full range
+  else if (newMode === 'range' && years.length >= 2) {
+    // If we have a specific date in single mode, try to preserve it in range mode
+    if (mode === 'single' && showMonthDaySelectors && selectedYear !== 'all') {
+      const newYearRange = {
+        startYear: selectedYear,
+        endYear: selectedYear
+      };
+      
+      setYearRange(newYearRange);
+      setStartMonth(selectedMonth);
+      setEndMonth(selectedMonth);
+      setStartDay(selectedDay);
+      setEndDay(selectedDay);
+      setShowRangeMonthDaySelectors(true);
+      
+      if (onYearRangeChange) {
+        const startDateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+        const endDateStr = startDateStr;
+        
+        onYearRangeChange({
+          startYear: startDateStr,
+          endYear: endDateStr
+        });
+      }
+    } else {
+      // Default to full range
       const newYearRange = {
         startYear: years[0],
         endYear: years[years.length - 1]
@@ -434,7 +488,8 @@ const YearSelector = ({
         onYearRangeChange(newYearRange);
       }
     }
-  };
+  }
+};
   
   // Format month name for display
   const getMonthName = (month) => {
@@ -579,6 +634,9 @@ const YearSelector = ({
     }
   };
 
+// Modified section of updateParentWithDateRange in year-selector.js
+// This ensures both the parent components and year selector state stay in sync
+
 const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
   if (!onYearRangeChange) return;
   
@@ -602,6 +660,17 @@ const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, end
     if (startDateStr === endDateStr && onYearChange) {
       // Also update the single-date view with this exact date
       onYearChange(startDateStr);
+      
+      // If we're in range mode but with identical dates, switch to single mode
+      if (mode === 'range') {
+        setMode('single');
+        setSelectedYear(startDateStr);
+        
+        // Notify parent component about mode change
+        if (onToggleRangeMode) {
+          onToggleRangeMode(false);
+        }
+      }
     }
     
     onYearRangeChange({
@@ -613,6 +682,17 @@ const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, end
     if (sYear === eYear && onYearChange) {
       // Also update the single-year view with this exact year
       onYearChange(sYear);
+      
+      // If we're in range mode but with identical years, switch to single mode
+      if (mode === 'range') {
+        setMode('single');
+        setSelectedYear(sYear);
+        
+        // Notify parent component about mode change
+        if (onToggleRangeMode) {
+          onToggleRangeMode(false);
+        }
+      }
     }
     
     // Just use the years
