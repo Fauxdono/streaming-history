@@ -321,6 +321,7 @@ const CustomTrackRankings = ({
 
 // FIND the existing songsByYear useMemo and MODIFY it to handle year ranges properly:
 
+// Corrected songsByYear implementation for CustomTrackRankings.js
 const songsByYear = useMemo(() => {
   const yearGroups = {};
   
@@ -329,28 +330,28 @@ const songsByYear = useMemo(() => {
     const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
     
     // Store under the range key (e.g., "2022-2022")
-    yearGroups[rangeKey] = filteredEpisodes;
+    yearGroups[rangeKey] = filteredTracks;
     
     // ALSO store under single year key if start and end are the same
     if (yearRange.startYear === yearRange.endYear) {
       // Important: Store under BOTH the year itself AND the date format if it's a specific date
-      yearGroups[yearRange.startYear] = filteredEpisodes;
+      yearGroups[yearRange.startYear] = filteredTracks;
       
       // If this is a specific date format (YYYY-MM-DD), ensure we store it that way too
       if (yearRange.startYear.includes('-') && yearRange.startYear.split('-').length === 3) {
-        yearGroups[yearRange.startYear] = filteredEpisodes;
+        yearGroups[yearRange.startYear] = filteredTracks;
       }
     }
     
     return yearGroups;
   } else if (selectedYear !== 'all') {
     // Single year case - put tracks under the selected year key
-    return { [selectedYear]: filteredEpisodes };
+    return { [selectedYear]: filteredTracks };
   }
   
   // Default "all time" case
-  return { all: filteredEpisodes };
-}, [filteredEpisodes, selectedYear, yearRangeMode, yearRange]);
+  return { all: filteredTracks };
+}, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
