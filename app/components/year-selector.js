@@ -666,7 +666,10 @@ useEffect(() => {
     }
   };
 
+// Replace the existing updateParentWithDateRange function with this version:
+
 const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
+  // Only proceed if we have the callback function
   if (!onYearRangeChange) return;
   
   // Use provided values or fall back to state
@@ -679,90 +682,26 @@ const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, end
   
   if (!sYear || !eYear) return;
   
-  // Only include month/day if the checkbox is checked
-  if (showRangeMonthDaySelectors) {
-    const startDateStr = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
-    const endDateStr = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
-    
-    // Special case: If start and end dates are identical, just use single date mode
-    if (startDateStr === endDateStr && onYearChange) {
-      // Update the single-date view with this exact date
-      onYearChange(startDateStr);
-      
-      // Switch to single mode for UI consistency
-      setMode('single');
-      setSelectedYear(sYear);
-      setSelectedMonth(sMonth);
-      setSelectedDay(sDay);
-      setShowMonthDaySelectors(true);
-      
-      // Notify parent component about mode change
-      if (onToggleRangeMode) {
-        onToggleRangeMode(false);
-      }
-      
-      return; // Don't call onYearRangeChange to avoid conflicts
-    }
-    
-    // Only for true date ranges, call the range callback
-    onYearRangeChange({
-      startYear: startDateStr,
-      endYear: endDateStr
-    });
-  } else {
-    // Year-only logic (no month/day)
-    // If years are identical, switch to single year mode
-    if (sYear === eYear && onYearChange) {
-      // Update the single-year view
-      onYearChange(sYear);
-      
-      // Switch to single mode for UI consistency
-      setMode('single');
-      setSelectedYear(sYear);
-      setShowMonthDaySelectors(false);
-      
-      // Notify parent component about mode change
-      if (onToggleRangeMode) {
-        onToggleRangeMode(false);
-      }
-      
-      return; // Don't call onYearRangeChange to avoid conflicts
-    }
-    
-    // Only for true year ranges, call the range callback
-    onYearRangeChange({
-      startYear: sYear,
-      endYear: eYear
-    });
-  }
-};
+  // Format dates based on whether month/day selectors are shown
+  let startValue, endValue;
   
-  // Handler for year range change in range mode
-  const handleYearRangeChange = ({ startYear, endYear }) => {
-    const newYearRange = { startYear, endYear };
-    setYearRange(newYearRange);
-    
-    // Reset days if they're not valid for the new years
-    if (startYear) {
-      const startDaysInMonth = getDaysInMonth(startYear, startMonth);
-      if (startDay > startDaysInMonth) {
-        setStartDay(startDaysInMonth);
-      }
-    }
-    
-    if (endYear) {
-      const endDaysInMonth = getDaysInMonth(endYear, endMonth);
-      if (endDay > endDaysInMonth) {
-        setEndDay(endDaysInMonth);
-      }
-    }
-    
-    // Update parent with the new range
-    updateParentWithDateRange(startYear, startMonth, startDay, endYear, endMonth, endDay);
-    
-    // Force UI refresh
-    setRefreshCounter(prev => prev + 1);
-  };
+  if (showRangeMonthDaySelectors) {
+    // Format with month and day
+    startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
+    endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
+  } else {
+    // Year-only format
+    startValue = sYear;
+    endValue = eYear;
+  }
+  
+  // IMPORTANT: Always call onYearRangeChange when in range mode
+  // Let the parent component decide what to do with the values
+  onYearRangeChange({
+    startYear: startValue,
+    endYear: endValue
+  });
+};
   
 
 const getYearLabel = () => {
