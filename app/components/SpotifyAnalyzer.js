@@ -63,7 +63,7 @@ const SpotifyAnalyzer = () => {
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
   const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
-const [customTrackYear, setCustomTrackYear] = useState('all');
+const [customTrackYear, setCustomTrackYear] = useState('all');x
 const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
 const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
 const [showYearSidebar, setShowYearSidebar] = useState(true); // Set to true by default
@@ -231,63 +231,93 @@ case 'discovery':
   }
 }, [activeTab]);
 
+// Improved handler for year range changes in SpotifyAnalyzer.js
+// This ensures proper synchronization between year selector and components
+
 const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
+  // If start and end years are identical, it's better to treat it as a single year selection
+  const isSameYear = startYear === endYear;
+  
   switch(activeTab) {
     case 'artists':
       handleYearRangeChange({ startYear, endYear });
       // If start and end years are the same, also update selectedYear for consistency
-      if (startYear === endYear) {
+      if (isSameYear) {
         setSelectedArtistYear(startYear);
+        // If it's the same year, we actually want to switch back to single mode
+        setYearRangeMode(false);
+      } else {
+        setYearRangeMode(true);
       }
       break;
+      
     case 'albums':
       handleAlbumYearRangeChange({ startYear, endYear });
-      if (startYear === endYear) {
+      if (isSameYear) {
         setSelectedAlbumYear(startYear);
+        setAlbumYearRangeMode(false);
+      } else {
+        setAlbumYearRangeMode(true);
       }
       break;
+      
     case 'custom':
       handleCustomTrackYearRangeChange({ startYear, endYear });
-      if (startYear === endYear) {
+      if (isSameYear) {
         setCustomTrackYear(startYear);
+        setCustomYearRangeMode(false);
+      } else {
+        setCustomYearRangeMode(true);
       }
       break;
+      
     case 'tracks':
-      if (startYear === endYear) {
+      if (isSameYear) {
         setSelectedTrackYear(startYear);
       }
-      // Then continue with original range handling
       break;
+      
     case 'patterns':
-      // Handle patterns tab specific logic
-      if (startYear === endYear) {
-        setSelectedPatternYear(startYear);
-      }
       setPatternYearRange({ startYear, endYear });
+      if (isSameYear) {
+        setSelectedPatternYear(startYear);
+        setPatternYearRangeMode(false);
+      } else {
+        setPatternYearRangeMode(true);
+      }
       break;
+      
     case 'behavior':
-      // Handle behavior tab specific logic
-      if (startYear === endYear) {
-        setSelectedBehaviorYear(startYear);
-      }
       setBehaviorYearRange({ startYear, endYear });
+      if (isSameYear) {
+        setSelectedBehaviorYear(startYear);
+        setBehaviorYearRangeMode(false);
+      } else {
+        setBehaviorYearRangeMode(true);
+      }
       break;
+      
     case 'discovery':
-      // Handle discovery tab specific logic
-      if (startYear === endYear) {
-        setSelectedDiscoveryYear(startYear);
-      }
       setDiscoveryYearRange({ startYear, endYear });
-      break;
-    case 'podcasts':
-      // Handle podcasts tab specific logic
-      if (startYear === endYear) {
-        setSelectedPodcastYear(startYear);
+      if (isSameYear) {
+        setSelectedDiscoveryYear(startYear);
+        setDiscoveryYearRangeMode(false);
+      } else {
+        setDiscoveryYearRangeMode(true);
       }
-      setPodcastYearRange({ startYear, endYear });
       break;
+      
+    case 'podcasts':
+      setPodcastYearRange({ startYear, endYear });
+      if (isSameYear) {
+        setSelectedPodcastYear(startYear);
+        setPodcastYearRangeMode(false);
+      } else {
+        setPodcastYearRangeMode(true);
+      }
+      break;
+      
     default:
-      // Default behavior
       break;
   }
 };
