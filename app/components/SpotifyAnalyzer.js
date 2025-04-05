@@ -63,7 +63,7 @@ const SpotifyAnalyzer = () => {
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
   const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
-const [customTrackYear, setCustomTrackYear] = useState('all');x
+const [customTrackYear, setCustomTrackYear] = useState('all');
 const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
 const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
 const [showYearSidebar, setShowYearSidebar] = useState(true); // Set to true by default
