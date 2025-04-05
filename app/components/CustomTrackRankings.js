@@ -17,7 +17,7 @@ const CustomTrackRankings = ({
 }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [topN, setTopN] = useState(50);
+  const [topN, setTopN] = useState(100);
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [selectedAlbums, setSelectedAlbums] = useState([]);
@@ -639,9 +639,9 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
               <input
                 type="number"
                 min="1"
-                max="250"
+                max="69420"
                 value={topN}
-                onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
+                onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
                 className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
               />
               <label className="text-sm">tracks</label>
