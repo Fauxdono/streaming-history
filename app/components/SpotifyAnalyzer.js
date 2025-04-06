@@ -602,63 +602,13 @@ const getAlbumsTabLabel = () => {
   return `${selectedAlbumYear} Albums`;
 };
 
-// Modify the beginning of your displayedAlbums useMemo to handle date formats
-
 const displayedAlbums = useMemo(() => {
   // First determine which albums to show based on year filter
   let filteredAlbums;
   
   if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Year range mode - collect albums from multiple years
-    filteredAlbums = [];
-    
-    // Handle date formats correctly (YYYY-MM-DD)
-    let startYear, endYear;
-    if (albumYearRange.startYear.includes('-')) {
-      startYear = parseInt(albumYearRange.startYear.split('-')[0]);
-    } else {
-      startYear = parseInt(albumYearRange.startYear);
-    }
-    
-    if (albumYearRange.endYear.includes('-')) {
-      endYear = parseInt(albumYearRange.endYear.split('-')[0]);
-    } else {
-      endYear = parseInt(albumYearRange.endYear);
-    }
-    
-    // Special case: handle exact date selections (YYYY-MM-DD)
-    if (albumYearRange.startYear.includes('-') && albumYearRange.endYear.includes('-') &&
-        albumYearRange.startYear === albumYearRange.endYear) {
-      
-      // Extract just the year part for data lookup in albumsByYear
-      const yearPart = albumYearRange.startYear.split('-')[0];
-      
-      // Try to find data for this year first
-      if (albumsByYear[yearPart]) {
-        // If we have data for this year, we need to filter it further by the specific date
-        const exactDate = new Date(albumYearRange.startYear);
-        
-        // Get all albums from this year, then filter by date if possible
-        const yearAlbums = albumsByYear[yearPart];
-        
-        // If the albums have date information, filter by it
-        filteredAlbums = yearAlbums.filter(album => {
-          // If the album has a date field (like 'releaseDate') you can use it
-          // Otherwise, default to showing all albums from this year
-          return true; // For now, show all albums from this year
-        });
-      }
-    } else {
-      // Collect albums from each year in the range
-      for (let year = startYear; year <= endYear; year++) {
-        const yearStr = year.toString();
-        if (albumsByYear[yearStr]) {
-          filteredAlbums = [...filteredAlbums, ...albumsByYear[yearStr]];
-        }
-      }
-    }
-    
-    // Rest of album handling for duplicates etc...
+    // Year range mode code...
+    // ...
   } else if (selectedAlbumYear !== 'all') {
     // Regular single year or date format
     
@@ -675,43 +625,24 @@ const displayedAlbums = useMemo(() => {
         const dateObj = new Date(selectedAlbumYear);
         
         // For now, just return all albums from this year
-        // If your albums have timestamp data, you could filter by month/day here
-        return yearAlbums;
+        filteredAlbums = yearAlbums;
+      } else {
+        filteredAlbums = []; // No albums found for this year
       }
-      
-      return []; // No albums found for this year
     } else {
       // Regular year-only format
-      return albumsByYear[selectedAlbumYear] ? 
-               JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
-               [];
+      filteredAlbums = albumsByYear[selectedAlbumYear] ? 
+        JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
+        [];
     }
   } else {
     // All-time mode
-    return JSON.parse(JSON.stringify(topAlbums));
+    filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
   }
   
   // Then apply artist filtering if needed
   if (selectedArtists.length > 0) {
     filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
-  }
-  
-  // Rest of your existing code...
-  // Make sure all albums have trackObjects even in all-time mode
-  return filteredAlbums.map(album => {
-    if (!album) return null;
-    
-    // If we already have track objects, just use them
-    if (album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
-      // Ensure they're sorted
-      album.trackObjects.sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
-      return album;
-    }
-    
-    // For albums without track objects, try to find matching tracks
-    // Rest of your existing code...
-  }).filter(Boolean); // Remove any null results
-}, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
   }
   
   // Make sure all albums have trackObjects even in all-time mode
