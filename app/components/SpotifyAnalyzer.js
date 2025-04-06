@@ -61,9 +61,7 @@ const SpotifyAnalyzer = () => {
   const [showServiceInfo, setShowServiceInfo] = useState({});
   const [selectedAlbumYear, setSelectedAlbumYear] = useState('all');
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
-  const [albumYearRange, setAlbumYearRange] = useState({ startYear: years && years.length > 0 ? years[0] : '', 
-  endYear: years && years.length > 0 ? years[years.length - 1] : '' 
-});
+  const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
 const [customTrackYear, setCustomTrackYear] = useState('all');
 const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
@@ -82,6 +80,21 @@ const [discoveryYearRangeMode, setDiscoveryYearRangeMode] = useState(false);
 const [selectedPodcastYear, setSelectedPodcastYear] = useState('all');
 const [podcastYearRange, setPodcastYearRange] = useState({ startYear: '', endYear: '' });
 const [podcastYearRangeMode, setPodcastYearRangeMode] = useState(false);
+
+
+useEffect(() => {
+  if (artistsByYear && Object.keys(artistsByYear).length > 0) {
+    const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    // Only initialize if not already set
+    if (!albumYearRange.startYear || !albumYearRange.endYear) {
+      setAlbumYearRange({
+        startYear: availableYears[0] || '',
+        endYear: availableYears[availableYears.length - 1] || ''
+      });
+    }
+  }
+}, [artistsByYear]); 
 
 
   // Define service colors
