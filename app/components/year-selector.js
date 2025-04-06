@@ -415,7 +415,6 @@ useEffect(() => {
   const togglePosition = () => {
     setCurrentPosition(currentPosition === 'left' ? 'right' : 'left');
   };
-  
 
 const handleModeChange = (newMode) => {
   // If the current mode is already the requested mode, do nothing
@@ -428,31 +427,6 @@ const handleModeChange = (newMode) => {
   if (onToggleRangeMode) {
     onToggleRangeMode(newMode === 'range');
   }
-  
-  // If switching to range mode, ensure the sidebar is wide enough
-  if (asSidebar && newMode === 'range') {
-    // Add a small delay to allow the DOM to update with the new mode before resizing
-    setTimeout(() => {
-      const sidebarElement = document.querySelector('.year-selector-sidebar');
-      if (sidebarElement) {
-        sidebarElement.style.transition = 'width 0.3s ease-in-out';
-        sidebarElement.style.width = isLandscape ? '56px' : '80px';
-      }
-    }, 50);
-  }
-  
-  // If switching to single mode, adjust width back
-  if (asSidebar && newMode === 'single') {
-    setTimeout(() => {
-      const sidebarElement = document.querySelector('.year-selector-sidebar');
-      if (sidebarElement) {
-        sidebarElement.style.transition = 'width 0.3s ease-in-out';
-        sidebarElement.style.width = isLandscape ? '16px' : '32px';
-      }
-    }, 50);
-  }
-  
-  // Rest of the function remains the same...
   
   // If switching to single mode
   if (newMode === 'single') {
