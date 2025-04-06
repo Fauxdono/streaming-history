@@ -231,20 +231,23 @@ case 'discovery':
   }
 }, [activeTab]);
 
-// Improved handler for year range changes in SpotifyAnalyzer.js
-// This ensures proper synchronization between year selector and components
 
 const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
   // If start and end years are identical, it's better to treat it as a single year selection
   const isSameYear = startYear === endYear;
   
+  // Now we need to make sure we correctly handle already-formatted dates
+  const startIsDated = startYear && startYear.includes('-');
+  const endIsDated = endYear && endYear.includes('-');
+  
   switch(activeTab) {
     case 'artists':
+      // Pass the dates directly to the handler - it will manage any needed formatting
       handleYearRangeChange({ startYear, endYear });
+      
       // If start and end years are the same, also update selectedYear for consistency
       if (isSameYear) {
         setSelectedArtistYear(startYear);
-        // If it's the same year, we actually want to switch back to single mode
         setYearRangeMode(false);
       } else {
         setYearRangeMode(true);
@@ -252,7 +255,9 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       break;
       
     case 'albums':
+      // Pass the dates directly to the handler
       handleAlbumYearRangeChange({ startYear, endYear });
+      
       if (isSameYear) {
         setSelectedAlbumYear(startYear);
         setAlbumYearRangeMode(false);
@@ -262,7 +267,9 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       break;
       
     case 'custom':
+      // Pass the dates directly to the handler
       handleCustomTrackYearRangeChange({ startYear, endYear });
+      
       if (isSameYear) {
         setCustomTrackYear(startYear);
         setCustomYearRangeMode(false);
@@ -278,7 +285,9 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       break;
       
     case 'patterns':
+      // Pass the dates directly without additional formatting
       setPatternYearRange({ startYear, endYear });
+      
       if (isSameYear) {
         setSelectedPatternYear(startYear);
         setPatternYearRangeMode(false);
@@ -288,7 +297,9 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       break;
       
     case 'behavior':
+      // Pass the dates directly without additional formatting
       setBehaviorYearRange({ startYear, endYear });
+      
       if (isSameYear) {
         setSelectedBehaviorYear(startYear);
         setBehaviorYearRangeMode(false);
@@ -298,7 +309,9 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       break;
       
     case 'discovery':
+      // Pass the dates directly without additional formatting
       setDiscoveryYearRange({ startYear, endYear });
+      
       if (isSameYear) {
         setSelectedDiscoveryYear(startYear);
         setDiscoveryYearRangeMode(false);
@@ -308,7 +321,9 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       break;
       
     case 'podcasts':
+      // Pass the dates directly without additional formatting
       setPodcastYearRange({ startYear, endYear });
+      
       if (isSameYear) {
         setSelectedPodcastYear(startYear);
         setPodcastYearRangeMode(false);
@@ -587,6 +602,8 @@ const getAlbumsTabLabel = () => {
   return `${selectedAlbumYear} Albums`;
 };
 
+// Modify the beginning of your displayedAlbums useMemo to handle date formats
+
 const displayedAlbums = useMemo(() => {
   // First determine which albums to show based on year filter
   let filteredAlbums;
@@ -612,67 +629,63 @@ const displayedAlbums = useMemo(() => {
     // Special case: handle exact date selections (YYYY-MM-DD)
     if (albumYearRange.startYear.includes('-') && albumYearRange.endYear.includes('-') &&
         albumYearRange.startYear === albumYearRange.endYear) {
-      // Try to find data for this specific date
-      if (albumsByYear[albumYearRange.startYear]) {
-        filteredAlbums = [...albumsByYear[albumYearRange.startYear]];
+      
+      // Extract just the year part for data lookup in albumsByYear
+      const yearPart = albumYearRange.startYear.split('-')[0];
+      
+      // Try to find data for this year first
+      if (albumsByYear[yearPart]) {
+        // If we have data for this year, we need to filter it further by the specific date
+        const exactDate = new Date(albumYearRange.startYear);
+        
+        // Get all albums from this year, then filter by date if possible
+        const yearAlbums = albumsByYear[yearPart];
+        
+        // If the albums have date information, filter by it
+        filteredAlbums = yearAlbums.filter(album => {
+          // If the album has a date field (like 'releaseDate') you can use it
+          // Otherwise, default to showing all albums from this year
+          return true; // For now, show all albums from this year
+        });
       }
     } else {
       // Collect albums from each year in the range
       for (let year = startYear; year <= endYear; year++) {
-        // Also check for years in date format
-        const potentialKeys = [
-          year.toString(),
-          // Check for partial date matches like "2022-01" or "2022-01-01"
-          ...Object.keys(albumsByYear).filter(k => 
-            k.startsWith(year.toString() + '-') || k === year.toString()
-          )
-        ];
-        
-        for (const key of potentialKeys) {
-          if (albumsByYear[key]) {
-            filteredAlbums = [...filteredAlbums, ...albumsByYear[key]];
-          }
+        const yearStr = year.toString();
+        if (albumsByYear[yearStr]) {
+          filteredAlbums = [...filteredAlbums, ...albumsByYear[yearStr]];
         }
       }
     }
     
     // Rest of album handling for duplicates etc...
   } else if (selectedAlbumYear !== 'all') {
-    // Regular single year, use the existing data structure
+    // Regular single year or date format
     
-    // Also check for years in date format
-    const matchingKeys = Object.keys(albumsByYear).filter(key => {
-      // Exact match
-      if (key === selectedAlbumYear) return true;
+    // Check if selectedAlbumYear includes date information (YYYY-MM-DD or YYYY-MM)
+    if (selectedAlbumYear.includes('-')) {
+      // Extract just the year part for data lookup
+      const yearPart = selectedAlbumYear.split('-')[0];
       
-      // Year prefix match for date formats
-      if (key.startsWith(selectedAlbumYear + '-')) return true;
+      // First, try to get albums for this year
+      const yearAlbums = albumsByYear[yearPart];
       
-      return false;
-    });
-    
-    if (matchingKeys.length > 0) {
-      // Combine data from all matching keys
-      filteredAlbums = [];
-      matchingKeys.forEach(key => {
-        filteredAlbums = [...filteredAlbums, ...albumsByYear[key]];
-      });
+      if (yearAlbums) {
+        // If date has month/day (YYYY-MM-DD), filter further if possible
+        const dateObj = new Date(selectedAlbumYear);
+        
+        // For now, just return all albums from this year
+        // If your albums have timestamp data, you could filter by month/day here
+        return yearAlbums;
+      }
       
-      // Remove duplicates
-      const albumIdMap = new Map();
-      filteredAlbums.forEach(album => {
-        const id = `${album.name}-${album.artist}`;
-        if (!albumIdMap.has(id)) {
-          albumIdMap.set(id, JSON.parse(JSON.stringify(album)));
-        }
-      });
-      
-      return Array.from(albumIdMap.values());
+      return []; // No albums found for this year
+    } else {
+      // Regular year-only format
+      return albumsByYear[selectedAlbumYear] ? 
+               JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
+               [];
     }
-    
-    return albumsByYear[selectedAlbumYear] ? 
-             JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
-             [];
   } else {
     // All-time mode
     return JSON.parse(JSON.stringify(topAlbums));
@@ -681,6 +694,24 @@ const displayedAlbums = useMemo(() => {
   // Then apply artist filtering if needed
   if (selectedArtists.length > 0) {
     filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
+  }
+  
+  // Rest of your existing code...
+  // Make sure all albums have trackObjects even in all-time mode
+  return filteredAlbums.map(album => {
+    if (!album) return null;
+    
+    // If we already have track objects, just use them
+    if (album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
+      // Ensure they're sorted
+      album.trackObjects.sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+      return album;
+    }
+    
+    // For albums without track objects, try to find matching tracks
+    // Rest of your existing code...
+  }).filter(Boolean); // Remove any null results
+}, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
   }
   
   // Make sure all albums have trackObjects even in all-time mode
