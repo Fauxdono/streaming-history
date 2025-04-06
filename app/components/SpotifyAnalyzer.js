@@ -61,7 +61,9 @@ const SpotifyAnalyzer = () => {
   const [showServiceInfo, setShowServiceInfo] = useState({});
   const [selectedAlbumYear, setSelectedAlbumYear] = useState('all');
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
-  const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
+  const [albumYearRange, setAlbumYearRange] = useState({ startYear: years && years.length > 0 ? years[0] : '', 
+  endYear: years && years.length > 0 ? years[years.length - 1] : '' 
+});
   const [albumsByYear, setAlbumsByYear] = useState({});
 const [customTrackYear, setCustomTrackYear] = useState('all');
 const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
@@ -378,14 +380,20 @@ const handleSidebarRangeModeToggle = (isRange) => {
         });
       }
       break;
-    case 'albums':
+case 'albums':
+      console.log("Setting album year range mode to:", isRange);
+      console.log("Current albumYearRange:", albumYearRange);
+      
       toggleAlbumYearRangeMode(isRange);
       // If switching to range mode, also set a default range
       if (isRange && availableYears.length >= 2) {
-        handleAlbumYearRangeChange({
+        const newRange = {
           startYear: availableYears[0],
           endYear: availableYears[availableYears.length - 1]
-        });
+        };
+        console.log("Setting new album year range:", newRange);
+        
+        handleAlbumYearRangeChange(newRange);
       }
       break;
     case 'custom':
@@ -553,17 +561,36 @@ const filteredArtists = useMemo(() => {
     }
   };
 
+// Update the handleAlbumYearRangeChange function to add safety checks
+
 const handleAlbumYearRangeChange = ({ startYear, endYear }) => {
+  console.log("handleAlbumYearRangeChange called with:", { startYear, endYear });
+  
   // Validate the years
   if (!startYear || !endYear) {
+    console.warn("Invalid year range provided:", { startYear, endYear });
     return;
   }
   
   // Ensure we're in year range mode
   setAlbumYearRangeMode(true);
   
+  // Create a new object to ensure state update
+  const newRange = { 
+    startYear: String(startYear), // Ensure string type
+    endYear: String(endYear)      // Ensure string type
+  };
+  
+  console.log("Setting albumYearRange to:", newRange);
+  
   // Update the year range state
-  setAlbumYearRange({ startYear, endYear });
+  setAlbumYearRange(newRange);
+  
+  // Important: React state updates are asynchronous, so albumYearRange won't be updated immediately
+  // If you need to use the new values right away, use newRange instead of albumYearRange
+  
+  // Log what will be set
+  console.log("Album year range will be set to:", newRange);
 };
 
 const toggleAlbumYearRangeMode = (value) => {
@@ -604,44 +631,100 @@ const getAlbumsTabLabel = () => {
 
 const displayedAlbums = useMemo(() => {
   // First determine which albums to show based on year filter
-  let filteredAlbums;
+  let filteredAlbums = [];
   
-  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Year range mode code...
-    // ...
-  } else if (selectedAlbumYear !== 'all') {
-    // Regular single year or date format
-    
-    // Check if selectedAlbumYear includes date information (YYYY-MM-DD or YYYY-MM)
-    if (selectedAlbumYear.includes('-')) {
-      // Extract just the year part for data lookup
-      const yearPart = selectedAlbumYear.split('-')[0];
+  try {
+    if (albumYearRangeMode && albumYearRange) {
+      console.log("Album year range mode active with range:", albumYearRange);
       
-      // First, try to get albums for this year
-      const yearAlbums = albumsByYear[yearPart];
-      
-      if (yearAlbums) {
-        // If date has month/day (YYYY-MM-DD), filter further if possible
-        const dateObj = new Date(selectedAlbumYear);
-        
-        // For now, just return all albums from this year
-        filteredAlbums = yearAlbums;
+      // Safely check if we have start and end years
+      if (!albumYearRange.startYear || !albumYearRange.endYear) {
+        console.warn("Missing start or end year in albumYearRange:", albumYearRange);
+        // Default to all-time mode in this case
+        filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
       } else {
-        filteredAlbums = []; // No albums found for this year
+        // Year range mode - collect albums from multiple years
+        filteredAlbums = [];
+        
+        // Handle date formats safely
+        let startYear, endYear;
+        
+        if (typeof albumYearRange.startYear === 'string' && albumYearRange.startYear.includes('-')) {
+          startYear = parseInt(albumYearRange.startYear.split('-')[0]);
+        } else {
+          startYear = parseInt(albumYearRange.startYear);
+        }
+        
+        if (typeof albumYearRange.endYear === 'string' && albumYearRange.endYear.includes('-')) {
+          endYear = parseInt(albumYearRange.endYear.split('-')[0]);
+        } else {
+          endYear = parseInt(albumYearRange.endYear);
+        }
+        
+        if (isNaN(startYear) || isNaN(endYear)) {
+          console.error("Invalid year range after parsing:", { startYear, endYear });
+          filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
+        } else {
+          // Special case: handle exact date selections (YYYY-MM-DD)
+          const isStartDateFormat = typeof albumYearRange.startYear === 'string' && 
+                                   albumYearRange.startYear.includes('-') && 
+                                   albumYearRange.startYear.split('-').length === 3;
+                                   
+          const isEndDateFormat = typeof albumYearRange.endYear === 'string' && 
+                                 albumYearRange.endYear.includes('-') && 
+                                 albumYearRange.endYear.split('-').length === 3;
+          
+          if (isStartDateFormat && isEndDateFormat && 
+              albumYearRange.startYear === albumYearRange.endYear) {
+            // Extract just the year part for data lookup in albumsByYear
+            const yearPart = albumYearRange.startYear.split('-')[0];
+            
+            // Try to find data for this year first
+            if (albumsByYear[yearPart]) {
+              // Get all albums from this year
+              filteredAlbums = [...albumsByYear[yearPart]];
+            }
+          } else {
+            // Collect albums from each year in the range
+            for (let year = startYear; year <= endYear; year++) {
+              const yearStr = year.toString();
+              if (albumsByYear[yearStr]) {
+                filteredAlbums = [...filteredAlbums, ...albumsByYear[yearStr]];
+              }
+            }
+          }
+        }
+      }
+    } else if (selectedAlbumYear !== 'all') {
+      // Regular single year or date format
+      if (typeof selectedAlbumYear === 'string' && selectedAlbumYear.includes('-')) {
+        // Extract just the year part for data lookup
+        const yearPart = selectedAlbumYear.split('-')[0];
+        
+        // First, try to get albums for this year
+        if (albumsByYear[yearPart]) {
+          filteredAlbums = [...albumsByYear[yearPart]];
+        } else {
+          filteredAlbums = []; // No albums found for this year
+        }
+      } else {
+        // Regular year-only format
+        filteredAlbums = albumsByYear[selectedAlbumYear] ? 
+                       [...albumsByYear[selectedAlbumYear]] : 
+                       [];
       }
     } else {
-      // Regular year-only format
-      filteredAlbums = albumsByYear[selectedAlbumYear] ? 
-        JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
-        [];
+      // All-time mode
+      filteredAlbums = [...topAlbums];
     }
-  } else {
-    // All-time mode
-    filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
+  } catch (err) {
+    console.error("Error in displayedAlbums calculation:", err);
+    // In case of error, fall back to top albums
+    filteredAlbums = topAlbums ? [...topAlbums] : [];
   }
   
   // Then apply artist filtering if needed
-  if (selectedArtists.length > 0) {
+  if (selectedArtists && selectedArtists.length > 0) {
     filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
   }
   
