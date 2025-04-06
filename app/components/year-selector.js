@@ -416,7 +416,8 @@ useEffect(() => {
     setCurrentPosition(currentPosition === 'left' ? 'right' : 'left');
   };
   
-  const handleModeChange = (newMode) => {
+
+const handleModeChange = (newMode) => {
   // If the current mode is already the requested mode, do nothing
   if (mode === newMode) return;
   
@@ -427,6 +428,31 @@ useEffect(() => {
   if (onToggleRangeMode) {
     onToggleRangeMode(newMode === 'range');
   }
+  
+  // If switching to range mode, ensure the sidebar is wide enough
+  if (asSidebar && newMode === 'range') {
+    // Add a small delay to allow the DOM to update with the new mode before resizing
+    setTimeout(() => {
+      const sidebarElement = document.querySelector('.year-selector-sidebar');
+      if (sidebarElement) {
+        sidebarElement.style.transition = 'width 0.3s ease-in-out';
+        sidebarElement.style.width = isLandscape ? '56px' : '80px';
+      }
+    }, 50);
+  }
+  
+  // If switching to single mode, adjust width back
+  if (asSidebar && newMode === 'single') {
+    setTimeout(() => {
+      const sidebarElement = document.querySelector('.year-selector-sidebar');
+      if (sidebarElement) {
+        sidebarElement.style.transition = 'width 0.3s ease-in-out';
+        sidebarElement.style.width = isLandscape ? '16px' : '32px';
+      }
+    }, 50);
+  }
+  
+  // Rest of the function remains the same...
   
   // If switching to single mode
   if (newMode === 'single') {
@@ -833,13 +859,14 @@ const getYearLabel = () => {
     );
   }
   
-  // Determine container class based on whether it's a sidebar or not
-  const containerClass = asSidebar 
-    ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-16 sm:w-32 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
-    : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
+const containerClass = asSidebar 
+  ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 ${
+      mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
+    } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+  : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  return (
-    <div className={containerClass}>
+return (
+  <div className={`year-selector-sidebar ${containerClass}`} style={{ transition: 'width 0.3s ease-in-out' }}>
       {/* Collapse button for sidebar */}
       {asSidebar && (
         <button 
@@ -877,216 +904,212 @@ const getYearLabel = () => {
           </button>
         </div>
         
-        <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} px-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
-          {mode === 'single' ? (
-            // Single mode - year picker and optional month/day
-            <>
-              {/* Year selection */}
-              <div className="flex flex-col items-center">
-                <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
-                <WheelSelector
-                  items={['all', ...years]}
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                  colorTheme={colorTheme}
-                  displayFormat={val => val === 'all' ? 'All Time' : val}
-                />
-              </div>
+   <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
+  mode === 'range' ? 'px-2' : 'px-1'
+} scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
+{mode === 'single' ? (
+  // Single mode - year picker and optional month/day
+  <>
+    {/* Year selection */}
+    <div className="flex flex-col items-center">
+      <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
+      <WheelSelector
+        items={['all', ...years]}
+        value={selectedYear}
+        onChange={handleYearChange}
+        colorTheme={colorTheme}
+        displayFormat={val => val === 'all' ? 'All Time' : val}
+      />
+    </div>
+    
+    {/* Checkbox to show/hide month & day selectors */}
+    {selectedYear !== 'all' && (
+      <label className="flex flex-col items-center cursor-pointer mt-2">
+        <div className="relative">
+          <input 
+            type="checkbox" 
+            checked={showMonthDaySelectors} 
+            onChange={() => {
+              // Toggle the state
+              const newValue = !showMonthDaySelectors;
+              setShowMonthDaySelectors(newValue);
               
-              {/* Checkbox to show/hide month & day selectors */}
-              {selectedYear !== 'all' && (
-                <label className="flex flex-col items-center cursor-pointer mt-2">
-                  <div className="relative">
-                    <input 
-                      type="checkbox" 
-                      checked={showMonthDaySelectors} 
-                      onChange={() => {
-                        // Toggle the state
-                        const newValue = !showMonthDaySelectors;
-                        setShowMonthDaySelectors(newValue);
-                        
-                        // Update parent with the appropriate date format
-                        // but don't change the selected year
-                        if (selectedYear !== 'all') {
-                          if (newValue) {
-                            // Include month/day
-                            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-                            onYearChange?.(dateStr);
-                          } else {
-                            // Just year
-                            onYearChange?.(selectedYear);
-                          }
-                        }
-                      }}
-                      className="sr-only"
-                    />
-                    <div className={`block w-10 h-6 rounded-full ${showMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
-                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
-                  </div>
-                  <span className={`mt-1 text-xs ${colors.text}`}>Show M/D</span>
-                </label>
-              )}
+              // Update parent with the appropriate date format
+              // but don't change the selected year
+              if (selectedYear !== 'all') {
+                if (newValue) {
+                  // Include month/day
+                  const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+                  onYearChange?.(dateStr);
+                } else {
+                  // Just year
+                  onYearChange?.(selectedYear);
+                }
+              }
+            }}
+            className="sr-only"
+          />
+          <div className={`block w-10 h-6 rounded-full ${showMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+          <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
+        </div>
+        <span className={`mt-1 text-xs ${colors.text}`}>Show M/D</span>
+      </label>
+    )}
+    
+    {/* Month and Day selectors - only shown if checkbox is checked */}
+    {selectedYear !== 'all' && showMonthDaySelectors && (
+      <div className="space-y-4 pt-2">
+        {/* Month selector */}
+        <div className="flex flex-col items-center">
+          <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
+          <WheelSelector
+            items={months}
+            value={selectedMonth}
+            onChange={handleMonthChange}
+            colorTheme={colorTheme}
+            displayFormat={getMonthName}
+          />
+        </div>
+        
+        {/* Day selector */}
+        <div className="flex flex-col items-center">
+          <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
+          <WheelSelector
+            items={days}
+            value={selectedDay}
+            onChange={handleDayChange}
+            colorTheme={colorTheme}
+          />
+        </div>
+      </div>
+    )}
+  </>
+) : (
+  // Range mode - with year/month/day selectors for both start and end side by side
+  <>
+    {/* Start/End Year Section - horizontally aligned */}
+    <div className="flex flex-row justify-between gap-2 w-full">
+      <div className="flex flex-col items-center">
+        <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
+        <WheelSelector
+          items={years}
+          value={yearRange.startYear}
+          onChange={(year) => {
+            // Don't allow start year to be after end year
+            if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
+              handleYearRangeChange({ 
+                startYear: year, 
+                endYear: yearRange.endYear || years[years.length - 1] 
+              });
+            }
+          }}
+          colorTheme={colorTheme}
+        />
+      </div>
+      
+      <div className="flex flex-col items-center">
+        <div className={`text-xs mb-1 font-medium ${colors.text}`}>END</div>
+        <WheelSelector
+          items={years}
+          value={yearRange.endYear}
+          onChange={(year) => {
+            // Don't allow end year to be before start year
+            if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
+              handleYearRangeChange({ 
+                startYear: yearRange.startYear || years[0], 
+                endYear: year 
+              });
+            }
+          }}
+          colorTheme={colorTheme}
+        />
+      </div>
+    </div>
+    
+    {/* Checkbox to show/hide month & day selectors for range */}
+    {yearRange.startYear && yearRange.endYear && (
+      <label className="flex flex-col items-center cursor-pointer mt-2 mb-2">
+        <div className="relative">
+          <input 
+            type="checkbox" 
+            checked={showRangeMonthDaySelectors} 
+            onChange={() => {
+              // Toggle the state
+              const newValue = !showRangeMonthDaySelectors;
+              setShowRangeMonthDaySelectors(newValue);
               
-              {/* Month and Day selectors - only shown if checkbox is checked */}
-              {selectedYear !== 'all' && showMonthDaySelectors && (
-                <div className="space-y-4 pt-2">
-                  {/* Month selector */}
-                  <div className="flex flex-col items-center">
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
-                    <WheelSelector
-                      items={months}
-                      value={selectedMonth}
-                      onChange={handleMonthChange}
-                      colorTheme={colorTheme}
-                      displayFormat={getMonthName}
-                    />
-                  </div>
-                  
-                  {/* Day selector */}
-                  <div className="flex flex-col items-center">
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
-                    <WheelSelector
-                      items={days}
-                      value={selectedDay}
-                      onChange={handleDayChange}
-                      colorTheme={colorTheme}
-                    />
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            // Range mode - with year/month/day selectors for both start and end
-            <>
-              {/* Start Year Section */}
-              <div className="flex flex-col items-center">
-                <div className={`text-xs mb-1 font-medium ${colors.text}`}>START YEAR</div>
-                <WheelSelector
-                  items={years}
-                  value={yearRange.startYear}
-                  onChange={(year) => {
-                    // Don't allow start year to be after end year
-                    if (!yearRange.endYear || parseInt(year) <= parseInt(yearRange.endYear)) {
-                      handleYearRangeChange({ 
-                        startYear: year, 
-                        endYear: yearRange.endYear || years[years.length - 1] 
-                      });
-                    }
-                  }}
-                  colorTheme={colorTheme}
-                />
-              </div>
+              // Update parent with the appropriate date format
+              updateParentWithDateRange();
               
-              {/* Checkbox to show/hide month & day selectors for range */}
-              {yearRange.startYear && yearRange.endYear && (
-                <label className="flex flex-col items-center cursor-pointer mt-2 mb-2">
-                  <div className="relative">
-                    <input 
-                      type="checkbox" 
-                      checked={showRangeMonthDaySelectors} 
-                      onChange={() => {
-                        // Toggle the state
-                        const newValue = !showRangeMonthDaySelectors;
-                        setShowRangeMonthDaySelectors(newValue);
-                        
-                        // Update parent with the appropriate date format
-                        updateParentWithDateRange();
-                        
-                        // Force UI refresh
-                        setRefreshCounter(prev => prev + 1);
-                      }}
-                      className="sr-only"
-                    />
-                    <div className={`block w-10 h-6 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
-                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
-                  </div>
-                  <span className={`mt-1 text-xs ${colors.text}`}>Show M/D</span>
-                </label>
-              )}
-              
-              {/* Start Month and Day - only if month/day selectors are enabled */}
-              {yearRange.startYear && showRangeMonthDaySelectors && (
-                <div className="space-y-2">
-                  {/* Start Month */}
-                  <div className="flex flex-col items-center">
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>START MONTH</div>
-                    <WheelSelector
-                      key={`start-month-${refreshCounter}`}
-                      items={months}
-                      value={startMonth}
-                      onChange={handleStartMonthChange}
-                      colorTheme={colorTheme}
-                      displayFormat={getMonthName}
-                    />
-                  </div>
-                  
-                  {/* Start Day */}
-                  <div className="flex flex-col items-center">
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>START DAY</div>
-                    <WheelSelector
-                      key={`start-day-${refreshCounter}`}
-                      items={startDays}
-                      value={startDay}
-                      onChange={handleStartDayChange}
-                      colorTheme={colorTheme}
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {/* Divider */}
-              <div className={`w-10 h-px ${colors.bgMed} my-2`}></div>
-              
-              {/* End Year Section */}
-              <div className="flex flex-col items-center">
-                <div className={`text-xs mb-1 font-medium ${colors.text}`}>END YEAR</div>
-                <WheelSelector
-                  items={years}
-                  value={yearRange.endYear}
-                  onChange={(year) => {
-                    // Don't allow end year to be before start year
-                    if (!yearRange.startYear || parseInt(year) >= parseInt(yearRange.startYear)) {
-                      handleYearRangeChange({ 
-                        startYear: yearRange.startYear || years[0], 
-                        endYear: year 
-                      });
-                    }
-                  }}
-                  colorTheme={colorTheme}
-                />
-              </div>
-              
-              {/* End Month and Day - only if month/day selectors are enabled */}
-              {yearRange.endYear && showRangeMonthDaySelectors && (
-                <div className="space-y-2">
-                  {/* End Month */}
-                  <div className="flex flex-col items-center">
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>END MONTH</div>
-                    <WheelSelector
-                      key={`end-month-${refreshCounter}`}
-                      items={months}
-                      value={endMonth}
-                      onChange={handleEndMonthChange}
-                      colorTheme={colorTheme}
-                      displayFormat={getMonthName}
-                    />
-                  </div>
-                  
-                  {/* End Day */}
-                  <div className="flex flex-col items-center">
-                    <div className={`text-xs mb-1 font-medium ${colors.text}`}>END DAY</div>
-                    <WheelSelector
-                      key={`end-day-${refreshCounter}`}
-                      items={endDays}
-                      value={endDay}
-                      onChange={handleEndDayChange}
-                      colorTheme={colorTheme}
-                    />
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+              // Force UI refresh
+              setRefreshCounter(prev => prev + 1);
+            }}
+            className="sr-only"
+          />
+          <div className={`block w-10 h-6 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+          <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
+        </div>
+        <span className={`mt-1 text-xs ${colors.text}`}>Show M/D</span>
+      </label>
+    )}
+    
+    {/* Start/End Month selectors - horizontally aligned */}
+    {yearRange.startYear && showRangeMonthDaySelectors && (
+      <>
+        <div className="flex flex-row justify-between gap-2 w-full mt-2">
+          <div className="flex flex-col items-center">
+            <div className={`text-xs mb-1 font-medium ${colors.text}`}>START M</div>
+            <WheelSelector
+              key={`start-month-${refreshCounter}`}
+              items={months}
+              value={startMonth}
+              onChange={handleStartMonthChange}
+              colorTheme={colorTheme}
+              displayFormat={getMonthName}
+            />
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <div className={`text-xs mb-1 font-medium ${colors.text}`}>END M</div>
+            <WheelSelector
+              key={`end-month-${refreshCounter}`}
+              items={months}
+              value={endMonth}
+              onChange={handleEndMonthChange}
+              colorTheme={colorTheme}
+              displayFormat={getMonthName}
+            />
+          </div>
+        </div>
+        
+        {/* Start/End Day selectors - horizontally aligned */}
+        <div className="flex flex-row justify-between gap-2 w-full mt-2">
+          <div className="flex flex-col items-center">
+            <div className={`text-xs mb-1 font-medium ${colors.text}`}>START D</div>
+            <WheelSelector
+              key={`start-day-${refreshCounter}`}
+              items={startDays}
+              value={startDay}
+              onChange={handleStartDayChange}
+              colorTheme={colorTheme}
+            />
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <div className={`text-xs mb-1 font-medium ${colors.text}`}>END D</div>
+            <WheelSelector
+              key={`end-day-${refreshCounter}`}
+              items={endDays}
+              value={endDay}
+              onChange={handleEndDayChange}
+              colorTheme={colorTheme}
+            />
+          </div>
+        </div>
+      </>
+    )}
+  </>
+)}
         </div>
         
         {/* Bottom section with current selection display and position toggle */}
