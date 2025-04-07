@@ -26,7 +26,8 @@ const YearSelector = ({
   });
   
   // Month and Day Selection - for single year mode
-  const [showMonthDaySelectors, setShowMonthDaySelectors] = useState(false);
+  const [showMonthSelector, setShowMonthSelector] = useState(false);
+const [showDaySelector, setShowDaySelector] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [selectedDay, setSelectedDay] = useState(1);
   
@@ -154,46 +155,46 @@ const YearSelector = ({
     }
   }, [initialYearRange]);
   
-// Inside YearSelector.js, find this useEffect:
 useEffect(() => {
   if (initialYear) {
-    // Check if initialYear contains month/day info (format: YYYY-MM-DD)
+    // Check if initialYear contains month/day info
     if (initialYear !== 'all' && initialYear.includes('-')) {
       const parts = initialYear.split('-');
       
+      // Set the year part
+      setSelectedYear(parts[0]);
+      
       // If we have at least year-month format
       if (parts.length >= 2) {
-        // Set the year part
-        setSelectedYear(parts[0]);
-        
         const monthPart = parseInt(parts[1]);
         if (!isNaN(monthPart) && monthPart >= 1 && monthPart <= 12) {
           setSelectedMonth(monthPart);
+          setShowMonthSelector(true); // Show month selector
           
           // If we have year-month-day format
           if (parts.length >= 3) {
             const dayPart = parseInt(parts[2]);
             if (!isNaN(dayPart) && dayPart >= 1) {
               setSelectedDay(dayPart);
+              setShowDaySelector(true); // Show day selector
             }
+          } else {
+            setShowDaySelector(false); // Hide day selector for year-month format
           }
-          
-          // Show the month/day selectors
-          setShowMonthDaySelectors(true);
         }
       }
     } else {
       // Just a simple year or "all"
       setSelectedYear(initialYear);
       
-      // If switching to "all", hide month/day selectors
+      // If switching to "all", hide selectors
       if (initialYear === 'all') {
-        setShowMonthDaySelectors(false);
+        setShowMonthSelector(false);
+        setShowDaySelector(false);
       }
     }
     
-    // Ensure the mode is consistent with the format of initialYear
-    // If initialYear has a date format, we're in single mode with date selector shown
+    // Ensure the mode is consistent
     if (initialYear !== 'all' && initialYear.includes('-')) {
       setMode('single');
       if (onToggleRangeMode) {
@@ -202,9 +203,8 @@ useEffect(() => {
     }
   }
   
-  // Force UI refresh for wheel selector
   setRefreshCounter(prev => prev + 1);
-}, [initialYear, onToggleRangeMode])
+}, [initialYear, onToggleRangeMode]);
   
   // Reset month and day selection when year changes
   useEffect(() => {
@@ -647,25 +647,28 @@ const handleModeChange = (newMode) => {
     updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, endMonth, day);
   };
   
-  // Helper function to update parent with date information
-  const updateParentWithDate = (year, month, day) => {
-    if (!onYearChange) return;
-    
-    if (year === 'all') {
-      onYearChange('all');
-      return;
-    }
-    
-    // Only include month/day if the checkbox is checked
-    if (showMonthDaySelectors) {
-      const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      onYearChange(dateStr);
-    } else {
-      // Just use the year
-      onYearChange(year);
-    }
-  };
-
+const updateParentWithDate = (year, month, day) => {
+  if (!onYearChange) return;
+  
+  if (year === 'all') {
+    onYearChange('all');
+    return;
+  }
+  
+  // Format according to what selectors are shown
+  if (showMonthSelector && showDaySelector) {
+    // Year-Month-Day format
+    const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    onYearChange(dateStr);
+  } else if (showMonthSelector) {
+    // Year-Month format
+    const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
+    onYearChange(dateStr);
+  } else {
+    // Just year
+    onYearChange(year);
+  }
+};
 // Replace the existing updateParentWithDateRange function with this version:
 
 const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
@@ -735,34 +738,33 @@ const getYearLabel = () => {
   if (mode === 'single') {
     if (selectedYear === 'all') return 'All Time';
     
-    if (showMonthDaySelectors) {
+    // Three possible formats for single mode
+    if (showMonthSelector && showDaySelector) {
+      // Full date format
       return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+    } else if (showMonthSelector) {
+      // Year-Month format
+      return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+    } else {
+      // Year only
+      return selectedYear;
     }
-    
-    return selectedYear;
   } else {
-    // Special case: When start and end years are the same, make it more obvious
-    // that it's actually the same as a single year selection
+    // Keep your existing range mode logic here
     if (yearRange.startYear === yearRange.endYear) {
       if (showRangeMonthDaySelectors) {
-        // If month/day selectors are active and both start/end are identical, 
-        // show it like a single date rather than a range
         if (startMonth === endMonth && startDay === endDay) {
           return `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
         }
         
-        // Otherwise show as a range
         const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
         const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
         return `${startStr} to ${endStr}`;
       } else {
-        // If just the year is selected (no month/day), show just the year
-        // This helps users understand it's the same as selecting that specific year
         return yearRange.startYear;
       }
     }
     
-    // For true ranges (different years), display the standard range format
     if (showRangeMonthDaySelectors) {
       const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
       const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
@@ -895,91 +897,94 @@ return (
         displayFormat={val => val === 'all' ? 'All Time' : val}
       />
     </div>
-    
-    {/* Checkbox to show/hide month & day selectors */}
-{/* Replace the existing month/day selector toggle with this */}
-{selectedYear !== 'all' && (
-  <div className="flex items-center justify-between w-full mb-2">
-    <div className={`text-xs font-medium ${colors.text}`}>Month/Day</div>
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input 
-        type="checkbox" 
-        checked={showMonthDaySelectors} 
-        onChange={() => {
-          // Stop any ongoing animations
-          if (animationRef.current) {
-            window.cancelAnimationFrame(animationRef.current);
-            animationRef.current = null;
-          }
-          
-          // Toggle the state
-          const newValue = !showMonthDaySelectors;
-          
-          // Precompute the days to avoid lag when the selectors appear
-          if (newValue) {
-            // Force recalculation of the days array before showing selectors
-            setRefreshCounter(prev => prev + 1);
-            
-            // Use requestAnimationFrame to split up the work
-            window.requestAnimationFrame(() => {
-              setShowMonthDaySelectors(newValue);
-              
-              // Update parent in the next frame
-              window.requestAnimationFrame(() => {
-                // Include month/day
-                if (selectedYear !== 'all') {
-                  const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-                  onYearChange?.(dateStr);
-                }
-              });
-            });
-          } else {
-            // Just hide the selectors immediately
-            setShowMonthDaySelectors(false);
-            
-            // Update parent with year only
-            if (selectedYear !== 'all') {
-              onYearChange?.(selectedYear);
-            }
-          }
-        }}
-        className="sr-only"
-      />
-      <div className={`w-9 h-5 rounded-full ${showMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
-      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
-    </label>
-  </div>
-)}
 
-{/* Month and Day selectors - only shown if checkbox is checked */}
-{selectedYear !== 'all' && showMonthDaySelectors && (
-  <div className="space-y-4 pt-1">
-    {/* Month selector */}
-    <div className="flex flex-col items-center">
-      <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
-      <WheelSelector
-        items={months}
-        value={selectedMonth}
-        onChange={handleMonthChange}
-        colorTheme={colorTheme}
-        displayFormat={getMonthName}
-      />
+{selectedYear !== 'all' && (
+  <>
+    {/* Month Selector Toggle */}
+    <div className="flex items-center justify-between w-full mb-2">
+      <div className={`text-xs font-medium ${colors.text}`}>Month</div>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input 
+          type="checkbox" 
+          checked={showMonthSelector} 
+          onChange={() => {
+            const newMonthValue = !showMonthSelector;
+            setShowMonthSelector(newMonthValue);
+            
+            // If turning off month, also turn off day
+            if (!newMonthValue) {
+              setShowDaySelector(false);
+            }
+            
+            // Update parent format based on what's visible
+            updateParentWithDate(selectedYear, selectedMonth, selectedDay);
+            
+            // Refresh UI
+            setRefreshCounter(prev => prev + 1);
+          }}
+          className="sr-only"
+        />
+        <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+        <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
+      </label>
     </div>
     
-    {/* Day selector */}
-    <div className="flex flex-col items-center">
-      <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
-      <WheelSelector
-        key={`day-selector-${selectedYear}-${selectedMonth}-${refreshCounter}`}
-        items={days}
-        value={selectedDay}
-        onChange={handleDayChange}
-        colorTheme={colorTheme}
-      />
-    </div>
-  </div>
-)}
+    {/* Month Selector */}
+    {selectedYear !== 'all' && showMonthSelector && (
+      <div className="flex flex-col items-center w-full">
+        <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
+        <WheelSelector
+          key={`month-selector-${selectedYear}-${refreshCounter}`}
+          items={months}
+          value={selectedMonth}
+          onChange={handleMonthChange}
+          colorTheme={colorTheme}
+          displayFormat={getMonthName}
+        />
+      </div>
+    )}
+    
+    {/* Day Selector Toggle - only shown if month is selected */}
+    {selectedYear !== 'all' && showMonthSelector && (
+      <div className="flex items-center justify-between w-full my-2">
+        <div className={`text-xs font-medium ${colors.text}`}>Day</div>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input 
+            type="checkbox" 
+            checked={showDaySelector} 
+            onChange={() => {
+              const newDayValue = !showDaySelector;
+              setShowDaySelector(newDayValue);
+              
+              // Update parent with appropriate date format
+              updateParentWithDate(selectedYear, selectedMonth, selectedDay);
+              
+              // Refresh UI
+              setRefreshCounter(prev => prev + 1);
+            }}
+            className="sr-only"
+          />
+          <div className={`w-9 h-5 rounded-full ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+          <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-4' : ''}`}></div>
+        </label>
+      </div>
+    )}
+    
+    {/* Day Selector */}
+    {selectedYear !== 'all' && showMonthSelector && showDaySelector && (
+      <div className="flex flex-col items-center w-full">
+        <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
+        <WheelSelector
+          key={`day-selector-${selectedYear}-${selectedMonth}-${refreshCounter}`}
+          items={days}
+          value={selectedDay}
+          onChange={handleDayChange}
+          colorTheme={colorTheme}
+        />
+      </div>
+    )}
   </>
+)}
 ) : (
   // Range mode - with year/month/day selectors for both start and end side by side
   <>
