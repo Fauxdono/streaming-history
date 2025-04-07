@@ -818,18 +818,115 @@ const displayedAlbums = useMemo(() => {
       .join(',');
   };
 
-  // Update the displayedArtists useMemo function in SpotifyAnalyzer.js
-  // This is the critical part that filters the artists based on the selected year or year range
-  const displayedArtists = useMemo(() => {
-    console.log("Re-calculating displayed artists:", {
-      mode: yearRangeMode ? "range" : "single",
-      selectedYear: selectedArtistYear,
-      range: yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : "none"
-    });
+const displayedArtists = useMemo(() => {
+  console.log("Re-calculating displayed artists:", {
+    mode: yearRangeMode ? "range" : "single",
+    selectedYear: selectedArtistYear,
+    range: yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : "none"
+  });
 
-    // Important: Check yearRangeMode first, then check selectedArtistYear
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      // Year range mode: collect and merge artists from the range
+  // Important: Check yearRangeMode first, then check selectedArtistYear
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    // Check if dates include month/day information
+    const startHasMonthDay = yearRange.startYear.includes('-');
+    const endHasMonthDay = yearRange.endYear.includes('-');
+    
+    if (startHasMonthDay || endHasMonthDay) {
+      // Parse dates into Date objects
+      let startDate, endDate;
+      
+      try {
+        // Parse start date with proper time bounds
+        if (startHasMonthDay) {
+          if (yearRange.startYear.split('-').length === 3) {
+            // YYYY-MM-DD format
+            startDate = new Date(yearRange.startYear);
+            startDate.setHours(0, 0, 0, 0); // Start of day
+          } else {
+            // YYYY-MM format
+            const [year, month] = yearRange.startYear.split('-').map(Number);
+            startDate = new Date(year, month - 1, 1); // First day of month
+          }
+        } else {
+          // Just year
+          startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
+        }
+        
+        // Parse end date with proper time bounds
+        if (endHasMonthDay) {
+          if (yearRange.endYear.split('-').length === 3) {
+            // YYYY-MM-DD format
+            endDate = new Date(yearRange.endYear);
+            endDate.setHours(23, 59, 59, 999); // End of day
+          } else {
+            // YYYY-MM format
+            const [year, month] = yearRange.endYear.split('-').map(Number);
+            // Last day of month
+            endDate = new Date(year, month, 0, 23, 59, 59, 999);
+          }
+        } else {
+          // Just year
+          endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+        }
+        
+        console.log(`Filtering raw data between ${startDate.toISOString()} and ${endDate.toISOString()}`);
+        
+        // Filter raw play data by date range
+        const filteredPlayData = rawPlayData.filter(entry => {
+          try {
+            if (!entry.ts) return false;
+            
+            let entryDate = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
+            if (isNaN(entryDate.getTime())) return false;
+            
+            return entryDate >= startDate && entryDate <= endDate;
+          } catch (err) {
+            return false;
+          }
+        });
+        
+        console.log(`Filtered ${filteredPlayData.length} play entries for date range`);
+        
+        // Group data by artist and build custom artist list
+        const artistMap = {};
+        
+        filteredPlayData.forEach(entry => {
+          if (!entry.master_metadata_album_artist_name) return;
+          
+          const artistName = entry.master_metadata_album_artist_name;
+          
+          if (!artistMap[artistName]) {
+            artistMap[artistName] = {
+              name: artistName,
+              totalPlayed: 0,
+              playCount: 0,
+              firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now(),
+              firstSong: entry.master_metadata_track_name || 'Unknown',
+              firstSongPlayCount: 1
+            };
+          }
+          
+          artistMap[artistName].totalPlayed += entry.ms_played || 0;
+          artistMap[artistName].playCount += 1;
+          
+          const timestamp = new Date(entry.ts);
+          if (timestamp < new Date(artistMap[artistName].firstListen)) {
+            artistMap[artistName].firstListen = timestamp.getTime();
+            artistMap[artistName].firstSong = entry.master_metadata_track_name;
+            artistMap[artistName].firstSongPlayCount = 1;
+          } else if (entry.master_metadata_track_name === artistMap[artistName].firstSong) {
+            artistMap[artistName].firstSongPlayCount += 1;
+          }
+        });
+        
+        // Convert to array and sort
+        return Object.values(artistMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      } catch (err) {
+        console.error("Error processing date range:", err);
+        return []; 
+      }
+    } else {
+      // Year-only range without month/day specificity
       const startYear = parseInt(yearRange.startYear);
       const endYear = parseInt(yearRange.endYear);
       
