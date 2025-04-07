@@ -533,6 +533,9 @@ const getAlbumsTabLabel = () => {
   }
   return `${selectedAlbumYear} Albums`;
 };
+// Modified portion of the displayedAlbums useMemo in SpotifyAnalyzer.js
+// This fixes the month/day selection issue
+
 const displayedAlbums = useMemo(() => {
   console.log("Calculating displayedAlbums with filter:", {
     selectedAlbumYear,
@@ -840,16 +843,16 @@ const displayedAlbums = useMemo(() => {
       });
       
       // Convert to array and sort
-      return Object.values(albumMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      filteredAlbums = Object.values(albumMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
     } else {
       // Regular single year, use the existing data structure
-      return albumsByYear[selectedAlbumYear] ? 
+      filteredAlbums = albumsByYear[selectedAlbumYear] ? 
                JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
                [];
     }
   } else {
     // All-time mode
-    return JSON.parse(JSON.stringify(topAlbums));
+    filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
   }
   
   // Then apply artist filtering if needed
