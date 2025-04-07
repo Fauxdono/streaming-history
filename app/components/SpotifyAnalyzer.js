@@ -533,10 +533,6 @@ const getAlbumsTabLabel = () => {
   }
   return `${selectedAlbumYear} Albums`;
 };
-
-
-
-
 const displayedAlbums = useMemo(() => {
   console.log("Calculating displayedAlbums with filter:", {
     selectedAlbumYear,
@@ -547,93 +543,229 @@ const displayedAlbums = useMemo(() => {
   let filteredAlbums;
   
   if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Year range mode - collect albums from multiple years
-    filteredAlbums = [];
-    const startYear = parseInt(albumYearRange.startYear);
-    const endYear = parseInt(albumYearRange.endYear);
+    // Check if dates include month/day information
+    const startHasMonthDay = albumYearRange.startYear.includes('-');
+    const endHasMonthDay = albumYearRange.endYear.includes('-');
     
-    // Collect albums from each year in the range
-    for (let year = startYear; year <= endYear; year++) {
-      if (albumsByYear[year]) {
-        filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
-      }
-    }
-    
-    // Remove duplicates (same album might appear in multiple years)
-    // When removing duplicates, combine the play counts
-    const albumIdMap = new Map();
-    
-    filteredAlbums.forEach(album => {
-      const id = `${album.name}-${album.artist}`;
+    if (startHasMonthDay || endHasMonthDay) {
+      // Use direct filtering on raw play data for precise date ranges
+      // Parse dates into Date objects
+      let startDate, endDate;
       
-      if (!albumIdMap.has(id)) {
-        // First time seeing this album - use a deep copy to avoid modifying the original
-        albumIdMap.set(id, JSON.parse(JSON.stringify(album)));
-      } else {
-        // Combine with existing album data
-        const existingAlbum = albumIdMap.get(id);
-        
-        // Sum the play counts and total played time
-        existingAlbum.totalPlayed = (existingAlbum.totalPlayed || 0) + (album.totalPlayed || 0);
-        existingAlbum.playCount = (existingAlbum.playCount || 0) + (album.playCount || 0);
-        
-        // Take the earlier first listen date
-        if (album.firstListen && existingAlbum.firstListen && 
-            album.firstListen < existingAlbum.firstListen) {
-          existingAlbum.firstListen = album.firstListen;
+      try {
+        // Parse start date with proper time bounds
+        if (startHasMonthDay) {
+          if (albumYearRange.startYear.split('-').length === 3) {
+            // YYYY-MM-DD format
+            startDate = new Date(albumYearRange.startYear);
+            startDate.setHours(0, 0, 0, 0); // Start of day
+          } else {
+            // YYYY-MM format
+            const [year, month] = albumYearRange.startYear.split('-').map(Number);
+            startDate = new Date(year, month - 1, 1); // First day of month
+          }
+        } else {
+          // Just year
+          startDate = new Date(parseInt(albumYearRange.startYear), 0, 1); // January 1st
         }
         
-        // Merge track objects if available
-        if (album.trackObjects && existingAlbum.trackObjects) {
-          // Create a map of existing tracks by name/key
-          const trackMap = new Map();
-          existingAlbum.trackObjects.forEach(track => {
-            if (track && track.trackName) {
+        // Parse end date with proper time bounds
+        if (endHasMonthDay) {
+          if (albumYearRange.endYear.split('-').length === 3) {
+            // YYYY-MM-DD format
+            endDate = new Date(albumYearRange.endYear);
+            endDate.setHours(23, 59, 59, 999); // End of day
+          } else {
+            // YYYY-MM format
+            const [year, month] = albumYearRange.endYear.split('-').map(Number);
+            // Last day of month
+            endDate = new Date(year, month, 0, 23, 59, 59, 999);
+          }
+        } else {
+          // Just year
+          endDate = new Date(parseInt(albumYearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+        }
+        
+        console.log(`Filtering raw data between ${startDate.toISOString()} and ${endDate.toISOString()}`);
+        
+        // Filter raw play data by date range
+        const filteredPlayData = rawPlayData.filter(entry => {
+          try {
+            if (!entry.ts) return false;
+            
+            let entryDate = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
+            if (isNaN(entryDate.getTime())) return false;
+            
+            return entryDate >= startDate && entryDate <= endDate;
+          } catch (err) {
+            return false;
+          }
+        });
+        
+        console.log(`Filtered ${filteredPlayData.length} play entries for album date range`);
+        
+        // Group the filtered play data by album
+        const albumMap = {};
+        
+        filteredPlayData.forEach(entry => {
+          if (!entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) return;
+          
+          const artistName = entry.master_metadata_album_artist_name;
+          const albumName = entry.master_metadata_album_album_name;
+          const key = `${albumName}-${artistName}`;
+          
+          if (!albumMap[key]) {
+            albumMap[key] = {
+              name: albumName,
+              artist: artistName,
+              totalPlayed: 0,
+              playCount: 0,
+              trackCount: new Set(),
+              trackNames: new Set(),
+              trackObjects: [],
+              firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now()
+            };
+          }
+          
+          albumMap[key].totalPlayed += entry.ms_played || 0;
+          albumMap[key].playCount += 1;
+          
+          if (entry.master_metadata_track_name) {
+            albumMap[key].trackCount.add(entry.master_metadata_track_name.toLowerCase());
+            albumMap[key].trackNames.add(entry.master_metadata_track_name);
+            
+            // Add this track to trackObjects if not already present
+            const trackExists = albumMap[key].trackObjects.some(
+              t => t.trackName === entry.master_metadata_track_name
+            );
+            
+            if (!trackExists) {
+              albumMap[key].trackObjects.push({
+                trackName: entry.master_metadata_track_name,
+                artist: entry.master_metadata_album_artist_name,
+                totalPlayed: entry.ms_played || 0,
+                playCount: 1,
+                albumName
+              });
+            } else {
+              // Update existing track
+              const track = albumMap[key].trackObjects.find(
+                t => t.trackName === entry.master_metadata_track_name
+              );
+              track.totalPlayed += entry.ms_played || 0;
+              track.playCount += 1;
+            }
+          }
+          
+          const timestamp = new Date(entry.ts);
+          if (timestamp < new Date(albumMap[key].firstListen)) {
+            albumMap[key].firstListen = timestamp.getTime();
+          }
+        });
+        
+        // Process for final output - sort track objects
+        Object.values(albumMap).forEach(album => {
+          album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+          album.trackCountValue = album.trackCount.size;
+        });
+        
+        // Convert to array and sort
+        filteredAlbums = Object.values(albumMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      } catch (err) {
+        console.error("Error processing album date range:", err);
+        filteredAlbums = [];
+      }
+    } else {
+      // Year range mode without month/day - collect albums from multiple years
+      filteredAlbums = [];
+      const startYear = parseInt(albumYearRange.startYear);
+      const endYear = parseInt(albumYearRange.endYear);
+      
+      // Collect albums from each year in the range
+      for (let year = startYear; year <= endYear; year++) {
+        if (albumsByYear[year]) {
+          filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
+        }
+      }
+      
+      // Remove duplicates (same album might appear in multiple years)
+      // When removing duplicates, combine the play counts
+      const albumIdMap = new Map();
+      
+      filteredAlbums.forEach(album => {
+        const id = `${album.name}-${album.artist}`;
+        
+        if (!albumIdMap.has(id)) {
+          // First time seeing this album - use a deep copy to avoid modifying the original
+          albumIdMap.set(id, JSON.parse(JSON.stringify(album)));
+        } else {
+          // Combine with existing album data
+          const existingAlbum = albumIdMap.get(id);
+          
+          // Sum the play counts and total played time
+          existingAlbum.totalPlayed = (existingAlbum.totalPlayed || 0) + (album.totalPlayed || 0);
+          existingAlbum.playCount = (existingAlbum.playCount || 0) + (album.playCount || 0);
+          
+          // Take the earlier first listen date
+          if (album.firstListen && existingAlbum.firstListen && 
+              album.firstListen < existingAlbum.firstListen) {
+            existingAlbum.firstListen = album.firstListen;
+          }
+          
+          // Merge track objects if available
+          if (album.trackObjects && existingAlbum.trackObjects) {
+            // Create a map of existing tracks by name/key
+            const trackMap = new Map();
+            existingAlbum.trackObjects.forEach(track => {
+              if (track && track.trackName) {
+                // Use normalized track name as key when available
+                const key = track.normalizedTrack || track.trackName.toLowerCase();
+                trackMap.set(key, track);
+              }
+            });
+            
+            // Add or update tracks from this year
+            album.trackObjects && album.trackObjects.forEach(track => {
+              if (!track || !track.trackName) return;
+              
               // Use normalized track name as key when available
               const key = track.normalizedTrack || track.trackName.toLowerCase();
-              trackMap.set(key, track);
-            }
-          });
-          
-          // Add or update tracks from this year
-          album.trackObjects && album.trackObjects.forEach(track => {
-            if (!track || !track.trackName) return;
-            
-            // Use normalized track name as key when available
-            const key = track.normalizedTrack || track.trackName.toLowerCase();
-            
-            if (trackMap.has(key)) {
-              // Update existing track stats
-              const existingTrack = trackMap.get(key);
-              existingTrack.totalPlayed = (existingTrack.totalPlayed || 0) + (track.totalPlayed || 0);
-              existingTrack.playCount = (existingTrack.playCount || 0) + (track.playCount || 0);
               
-              // Combine variations if needed
-              if (track.variations && Array.isArray(track.variations)) {
-                if (!existingTrack.variations) {
-                  existingTrack.variations = [...track.variations];
-                } else {
-                  // Add any new variations
-                  track.variations.forEach(variation => {
-                    if (!existingTrack.variations.includes(variation)) {
-                      existingTrack.variations.push(variation);
-                    }
-                  });
+              if (trackMap.has(key)) {
+                // Update existing track stats
+                const existingTrack = trackMap.get(key);
+                existingTrack.totalPlayed = (existingTrack.totalPlayed || 0) + (track.totalPlayed || 0);
+                existingTrack.playCount = (existingTrack.playCount || 0) + (track.playCount || 0);
+                
+                // Combine variations if needed
+                if (track.variations && Array.isArray(track.variations)) {
+                  if (!existingTrack.variations) {
+                    existingTrack.variations = [...track.variations];
+                  } else {
+                    // Add any new variations
+                    track.variations.forEach(variation => {
+                      if (!existingTrack.variations.includes(variation)) {
+                        existingTrack.variations.push(variation);
+                      }
+                    });
+                  }
                 }
+              } else {
+                // Add new track
+                trackMap.set(key, JSON.parse(JSON.stringify(track)));
               }
-            } else {
-              // Add new track
-              trackMap.set(key, JSON.parse(JSON.stringify(track)));
-            }
-          });
-          
-          // Replace track objects with the merged and sorted list
-          existingAlbum.trackObjects = Array.from(trackMap.values())
-            .sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+            });
+            
+            // Replace track objects with the merged and sorted list
+            existingAlbum.trackObjects = Array.from(trackMap.values())
+              .sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+          }
         }
-      }
-    });
-    
+      });
+      
+      // Convert map back to array
+      filteredAlbums = Array.from(albumIdMap.values());
+    }
   } else if (selectedAlbumYear !== 'all') {
     // Check if the selectedAlbumYear includes month/day information
     if (selectedAlbumYear.includes('-')) {
@@ -791,7 +923,7 @@ const displayedAlbums = useMemo(() => {
     
     return album;
   }).filter(Boolean); // Remove any null results
-}, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData]);
+}, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData, rawPlayData]);
   // Toggle a service in the selection
   const toggleServiceSelection = (serviceType) => {
     setSelectedServices(prev => {
@@ -920,7 +1052,9 @@ const displayedArtists = useMemo(() => {
         });
         
         // Convert to array and sort
-        return Object.values(artistMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
+        const result = Object.values(artistMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
+        console.log(`Returning ${result.length} artists for date range`);
+        return result;
       } catch (err) {
         console.error("Error processing date range:", err);
         return []; 
@@ -930,7 +1064,7 @@ const displayedArtists = useMemo(() => {
       const startYear = parseInt(yearRange.startYear);
       const endYear = parseInt(yearRange.endYear);
       
-      console.log(`Filtering artists for range ${startYear}-${endYear}`, 
+      console.log(`Filtering artists for year range ${startYear}-${endYear}`, 
         "Available years:", Object.keys(artistsByYear));
       
       // Check if artistsByYear has any entries
@@ -983,13 +1117,13 @@ const displayedArtists = useMemo(() => {
         }
       });
 
- const result = Object.values(mergedArtists)
-    .sort((a, b) => b.totalPlayed - a.totalPlayed);
-  
-  console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
-  return result;
+      const result = Object.values(mergedArtists)
+        .sort((a, b) => b.totalPlayed - a.totalPlayed);
       
- } else if (selectedArtistYear !== 'all') {
+      console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
+      return result;
+    }
+  } else if (selectedArtistYear !== 'all') {
     // Check if the selectedArtistYear includes month/day information
     if (selectedArtistYear.includes('-')) {
       // If it has a dash, it's either YYYY-MM or YYYY-MM-DD
