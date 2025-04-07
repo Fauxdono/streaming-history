@@ -897,66 +897,88 @@ return (
     </div>
     
     {/* Checkbox to show/hide month & day selectors */}
-    {selectedYear !== 'all' && (
-      <label className="flex flex-col items-center cursor-pointer mt-2">
-        <div className="relative">
-          <input 
-            type="checkbox" 
-            checked={showMonthDaySelectors} 
-            onChange={() => {
-              // Toggle the state
-              const newValue = !showMonthDaySelectors;
+{/* Replace the existing month/day selector toggle with this */}
+{selectedYear !== 'all' && (
+  <div className="flex items-center justify-between w-full mb-2">
+    <div className={`text-xs font-medium ${colors.text}`}>Month/Day</div>
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input 
+        type="checkbox" 
+        checked={showMonthDaySelectors} 
+        onChange={() => {
+          // Stop any ongoing animations
+          if (animationRef.current) {
+            window.cancelAnimationFrame(animationRef.current);
+            animationRef.current = null;
+          }
+          
+          // Toggle the state
+          const newValue = !showMonthDaySelectors;
+          
+          // Precompute the days to avoid lag when the selectors appear
+          if (newValue) {
+            // Force recalculation of the days array before showing selectors
+            setRefreshCounter(prev => prev + 1);
+            
+            // Use requestAnimationFrame to split up the work
+            window.requestAnimationFrame(() => {
               setShowMonthDaySelectors(newValue);
               
-              // Update parent with the appropriate date format
-              // but don't change the selected year
-              if (selectedYear !== 'all') {
-                if (newValue) {
-                  // Include month/day
+              // Update parent in the next frame
+              window.requestAnimationFrame(() => {
+                // Include month/day
+                if (selectedYear !== 'all') {
                   const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
                   onYearChange?.(dateStr);
-                } else {
-                  // Just year
-                  onYearChange?.(selectedYear);
                 }
-              }
-            }}
-            className="sr-only"
-          />
-          <div className={`block w-10 h-6 rounded-full ${showMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
-          <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
-        </div>
-        <span className={`mt-1 text-xs ${colors.text}`}>Show M/D</span>
-      </label>
-    )}
+              });
+            });
+          } else {
+            // Just hide the selectors immediately
+            setShowMonthDaySelectors(false);
+            
+            // Update parent with year only
+            if (selectedYear !== 'all') {
+              onYearChange?.(selectedYear);
+            }
+          }
+        }}
+        className="sr-only"
+      />
+      <div className={`w-9 h-5 rounded-full ${showMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
+    </label>
+  </div>
+)}
+
+{/* Month and Day selectors - only shown if checkbox is checked */}
+{selectedYear !== 'all' && showMonthDaySelectors && (
+  <div className="space-y-4 pt-1">
+    {/* Month selector */}
+    <div className="flex flex-col items-center">
+      <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
+      <WheelSelector
+        items={months}
+        value={selectedMonth}
+        onChange={handleMonthChange}
+        colorTheme={colorTheme}
+        displayFormat={getMonthName}
+      />
+    </div>
     
-    {/* Month and Day selectors - only shown if checkbox is checked */}
-    {selectedYear !== 'all' && showMonthDaySelectors && (
-      <div className="space-y-4 pt-2">
-        {/* Month selector */}
-        <div className="flex flex-col items-center">
-          <div className={`text-xs mb-1 font-medium ${colors.text}`}>MONTH</div>
-          <WheelSelector
-            items={months}
-            value={selectedMonth}
-            onChange={handleMonthChange}
-            colorTheme={colorTheme}
-            displayFormat={getMonthName}
-          />
-        </div>
-        
-        {/* Day selector */}
-        <div className="flex flex-col items-center">
-          <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
-          <WheelSelector
-            items={days}
-            value={selectedDay}
-            onChange={handleDayChange}
-            colorTheme={colorTheme}
-          />
-        </div>
-      </div>
-    )}
+    {/* Day selector */}
+    <div className="flex flex-col items-center">
+      <div className={`text-xs mb-1 font-medium ${colors.text}`}>DAY</div>
+      <WheelSelector
+        key={`day-selector-${selectedYear}-${selectedMonth}-${refreshCounter}`}
+        items={days}
+        value={selectedDay}
+        onChange={handleDayChange}
+        colorTheme={colorTheme}
+      />
+    </div>
+  </div>
+)}
   </>
 ) : (
   // Range mode - with year/month/day selectors for both start and end side by side
