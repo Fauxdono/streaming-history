@@ -900,34 +900,42 @@ return (
 
               {selectedYear !== 'all' && (
                 <>
-                  {/* Month Selector Toggle */}
-                  <div className="flex items-center justify-between w-full mb-2">
-                    <div className={`text-xs font-medium ${colors.text}`}>Month</div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={showMonthSelector} 
-                        onChange={() => {
-                          const newMonthValue = !showMonthSelector;
-                          setShowMonthSelector(newMonthValue);
-                          
-                          // If turning off month, also turn off day
-                          if (!newMonthValue) {
-                            setShowDaySelector(false);
-                          }
-                          
-                          // Update parent format based on what's visible
-                          updateParentWithDate(selectedYear, selectedMonth, selectedDay);
-                          
-                          // Refresh UI
-                          setRefreshCounter(prev => prev + 1);
-                        }}
-                        className="sr-only"
-                      />
-                      <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
-                      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
-                    </label>
-                  </div>
+                 {/* Month Selector Toggle */}
+<div className="flex items-center justify-between w-full mb-2">
+  <div className={`text-xs font-medium ${colors.text}`}>Month</div>
+  <label className="relative inline-flex items-center cursor-pointer">
+    <input 
+      type="checkbox" 
+      checked={showMonthSelector} 
+      onChange={() => {
+        const newMonthValue = !showMonthSelector;
+        setShowMonthSelector(newMonthValue);
+        
+        // If turning off month, also turn off day
+        if (!newMonthValue) {
+          setShowDaySelector(false);
+          
+          // When turning off month selector, update parent with just the year
+          if (onYearChange && selectedYear !== 'all') {
+            onYearChange(selectedYear);
+          }
+        } else {
+          // When turning on month selector, update parent with year-month format
+          if (onYearChange && selectedYear !== 'all') {
+            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+            onYearChange(dateStr);
+          }
+        }
+        
+        // Refresh UI
+        setRefreshCounter(prev => prev + 1);
+      }}
+      className="sr-only"
+    />
+    <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+    <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
+  </label>
+</div>
                   
                   {/* Month Selector */}
                   {showMonthSelector && (
@@ -944,31 +952,39 @@ return (
                     </div>
                   )}
                   
-                  {/* Day Selector Toggle - only shown if month is selected */}
-                  {showMonthSelector && (
-                    <div className="flex items-center justify-between w-full my-2">
-                      <div className={`text-xs font-medium ${colors.text}`}>Day</div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={showDaySelector} 
-                          onChange={() => {
-                            const newDayValue = !showDaySelector;
-                            setShowDaySelector(newDayValue);
-                            
-                            // Update parent with appropriate date format
-                            updateParentWithDate(selectedYear, selectedMonth, selectedDay);
-                            
-                            // Refresh UI
-                            setRefreshCounter(prev => prev + 1);
-                          }}
-                          className="sr-only"
-                        />
-                        <div className={`w-9 h-5 rounded-full ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}></div>
-                        <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-4' : ''}`}></div>
-                      </label>
-                    </div>
-                  )}
+                 {/* Day Selector Toggle - only shown if month is selected */}
+{showMonthSelector && (
+  <div className="flex items-center justify-between w-full my-2">
+    <div className={`text-xs font-medium ${colors.text}`}>Day</div>
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input 
+        type="checkbox" 
+        checked={showDaySelector} 
+        onChange={() => {
+          const newDayValue = !showDaySelector;
+          setShowDaySelector(newDayValue);
+          
+          // Update parent with appropriate date format based on the new state
+          if (newDayValue) {
+            // If turning ON day selector, use full YYYY-MM-DD format
+            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+            if (onYearChange) onYearChange(dateStr);
+          } else {
+            // If turning OFF day selector, use YYYY-MM format
+            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+            if (onYearChange) onYearChange(dateStr);
+          }
+          
+          // Refresh UI
+          setRefreshCounter(prev => prev + 1);
+        }}
+        className="sr-only"
+      />
+      <div className={`w-9 h-5 rounded-full ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-4' : ''}`}></div>
+    </label>
+  </div>
+)}
                   
                   {/* Day Selector */}
                   {showMonthSelector && showDaySelector && (
@@ -1028,32 +1044,51 @@ return (
                 </div>
               </div>
               
-              {/* Month/Day toggles for range mode */}
-              {yearRange.startYear && yearRange.endYear && (
-                <div className="flex items-center justify-between w-full mb-2">
-                  <div className={`text-xs font-medium ${colors.text}`}>Month/Day</div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={showRangeMonthDaySelectors} 
-                      onChange={() => {
-                        // Toggle the state
-                        const newValue = !showRangeMonthDaySelectors;
-                        setShowRangeMonthDaySelectors(newValue);
-                        
-                        // Update parent with the appropriate date format
-                        updateParentWithDateRange();
-                        
-                        // Force UI refresh
-                        setRefreshCounter(prev => prev + 1);
-                      }}
-                      className="sr-only"
-                    />
-                    <div className={`w-9 h-5 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
-                    <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
-                  </label>
-                </div>
-              )}
+            {/* Month/Day toggles for range mode */}
+{yearRange.startYear && yearRange.endYear && (
+  <div className="flex items-center justify-between w-full mb-2">
+    <div className={`text-xs font-medium ${colors.text}`}>Month/Day</div>
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input 
+        type="checkbox" 
+        checked={showRangeMonthDaySelectors} 
+        onChange={() => {
+          // Toggle the state
+          const newValue = !showRangeMonthDaySelectors;
+          setShowRangeMonthDaySelectors(newValue);
+          
+          // Update parent with the appropriate date format based on the new state
+          if (newValue) {
+            // If turning ON month/day selectors, include month and day in range
+            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+            
+            if (onYearRangeChange) {
+              onYearRangeChange({
+                startYear: startStr,
+                endYear: endStr
+              });
+            }
+          } else {
+            // If turning OFF month/day selectors, use year-only format
+            if (onYearRangeChange) {
+              onYearRangeChange({
+                startYear: yearRange.startYear,
+                endYear: yearRange.endYear
+              });
+            }
+          }
+          
+          // Force UI refresh
+          setRefreshCounter(prev => prev + 1);
+        }}
+        className="sr-only"
+      />
+      <div className={`w-9 h-5 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
+    </label>
+  </div>
+)}
               
               {/* Month/Day selectors for range mode */}
               {yearRange.startYear && showRangeMonthDaySelectors && (
