@@ -248,6 +248,9 @@ const CustomTrackRankings = ({
         .filter(entry => entry.master_metadata_album_artist_name)
         .map(entry => entry.master_metadata_album_artist_name)
     );
+};
+
+export default CustomTrackRankings;
     return Array.from(artists).sort();
   }, [rawPlayData]);
 
@@ -722,7 +725,7 @@ const CustomTrackRankings = ({
     <div className="space-y-4">
       {/* Date Range Selection */}
       <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-        <div className="flex justify-between items-center flex-wrap gap-2">
+        <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
           <div className="flex items-center gap-2">
             <button
@@ -735,44 +738,63 @@ const CustomTrackRankings = ({
           </div>
         </div>
 
-        <div className="mt-2">
-          <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
-            <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
-              <label className="text-sm">Show top</label>
-              <input
-                type="number"
-                min="1"
-                max="69420"
-                value={topN}
-                onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
-                className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              />
-              <label className="text-sm">tracks</label>
-            </div>
-            
-            <div className="flex items-center gap-1 sm:gap-2">
-              <span className="text-orange-700 text-sm">Sort:</span>
-              <button
-                onClick={() => setSortBy('totalPlayed')}
-                className={`px-2 py-1 rounded text-xs ${
-                  sortBy === 'totalPlayed'
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                }`}
-              >
-                Time
-              </button>
-              <button
-                onClick={() => setSortBy('playCount')}
-                className={`px-2 py-1 rounded text-xs ${
-                  sortBy === 'playCount'
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                }`}
-              >
-                Plays
-              </button>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+          <div>
+            <label className="block text-sm font-medium text-orange-700 mb-1">Start Date:</label>
+            <input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-orange-700 mb-1">End Date:</label>
+            <input 
+              type="date" 
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
+            <label className="text-sm">Show top</label>
+            <input
+              type="number"
+              min="1"
+              max="69420"
+              value={topN}
+              onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
+              className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+            />
+            <label className="text-sm">tracks</label>
+          </div>
+          
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-orange-700 text-sm">Sort:</span>
+            <button
+              onClick={() => setSortBy('totalPlayed')}
+              className={`px-2 py-1 rounded text-xs ${
+                sortBy === 'totalPlayed'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+              }`}
+            >
+              Time
+            </button>
+            <button
+              onClick={() => setSortBy('playCount')}
+              className={`px-2 py-1 rounded text-xs ${
+                sortBy === 'playCount'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+              }`}
+            >
+              Plays
+            </button>
           </div>
         </div>
       </div>
