@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { normalizeString, createMatchKey } from './streaming-adapter.js';
+import { normalizeString, createMatchKey, filterDataByDate } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 
@@ -79,8 +79,40 @@ const CustomTrackRankings = ({
   useEffect(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       // Year range mode
-      setStartDate(`${yearRange.startYear}-01-01`);
-      setEndDate(`${yearRange.endYear}-12-31`);
+      // Handle if the year range includes month/day information
+      if (yearRange.startYear.includes('-') || yearRange.endYear.includes('-')) {
+        // For date format, use the precise date ranges
+        const startHasMonthDay = yearRange.startYear.includes('-');
+        const endHasMonthDay = yearRange.endYear.includes('-');
+        
+        let startDateString = yearRange.startYear;
+        let endDateString = yearRange.endYear;
+        
+        // If start is just year, add month/day
+        if (!startHasMonthDay) {
+          startDateString = `${yearRange.startYear}-01-01`;
+        } else if (yearRange.startYear.split('-').length === 2) {
+          // If YYYY-MM format, add day
+          startDateString = `${yearRange.startYear}-01`;
+        }
+        
+        // If end is just year, add month/day
+        if (!endHasMonthDay) {
+          endDateString = `${yearRange.endYear}-12-31`;
+        } else if (yearRange.endYear.split('-').length === 2) {
+          // If YYYY-MM format, add last day of month
+          const [year, month] = yearRange.endYear.split('-');
+          const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+          endDateString = `${yearRange.endYear}-${lastDay}`;
+        }
+        
+        setStartDate(startDateString);
+        setEndDate(endDateString);
+      } else {
+        // Simple year range
+        setStartDate(`${yearRange.startYear}-01-01`);
+        setEndDate(`${yearRange.endYear}-12-31`);
+      }
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         // Handle case with YYYY-MM-DD or YYYY-MM format
@@ -112,6 +144,84 @@ const CustomTrackRankings = ({
       setEndDate('');
     }
   }, [selectedYear, yearRangeMode, yearRange]);
+
+  // When custom date inputs change, update the corresponding year selector if applicable
+  useEffect(() => {
+    // Only attempt to update the year selector if we have both dates and change handlers
+    if (startDate && endDate && onYearChange && onYearRangeChange && onToggleYearRangeMode) {
+      try {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
+        
+        // Check if dates are the same (single day selection)
+        if (startDate === endDate) {
+          onToggleYearRangeMode(false);
+          onYearChange(startDate);
+          return;
+        }
+        
+        // Check if the dates span a full year (Jan 1 to Dec 31)
+        const startMonth = start.getMonth();
+        const startDay = start.getDate();
+        const endMonth = end.getMonth();
+        const endDay = end.getDate();
+        const startYear = start.getFullYear();
+        const endYear = end.getFullYear();
+        
+        if (startMonth === 0 && startDay === 1 && endMonth === 11 && endDay === 31 && 
+            startYear === endYear) {
+          // Full year selection - use single year mode
+          onToggleYearRangeMode(false);
+          onYearChange(startYear.toString());
+          return;
+        }
+        
+        // Check if dates span a full month
+        if (startDay === 1 && 
+            new Date(startYear, startMonth + 1, 0).getDate() === endDay && 
+            startMonth === endMonth && 
+            startYear === endYear) {
+          // Full month selection - use YYYY-MM format
+          const monthStr = (startMonth + 1).toString().padStart(2, '0');
+          onToggleYearRangeMode(false);
+          onYearChange(`${startYear}-${monthStr}`);
+          return;
+        }
+        
+        // Otherwise, use range mode with appropriate granularity
+        onToggleYearRangeMode(true);
+        
+        // Determine if we should use full date range or just years
+        if (startMonth === 0 && startDay === 1 && endMonth === 11 && endDay === 31) {
+          // Full years range
+          onYearRangeChange({
+            startYear: startYear.toString(),
+            endYear: endYear.toString()
+          });
+        } else {
+          // Specific date range
+          const formatDate = (d) => {
+            if (d.getDate() === 1 && d.getMonth() === 0) {
+              return d.getFullYear().toString();
+            } else if (d.getDate() === 1) {
+              return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+            } else {
+              return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+            }
+          };
+          
+          onYearRangeChange({
+            startYear: formatDate(start),
+            endYear: formatDate(end)
+          });
+        }
+      } catch (err) {
+        console.error("Error updating year selector from custom dates:", err);
+      }
+    }
+  }, [startDate, endDate, onYearChange, onYearRangeChange, onToggleYearRangeMode]);
 
   const addArtistFromTrack = (artist) => {
     if (!selectedArtists.includes(artist)) {
@@ -316,42 +426,37 @@ const CustomTrackRankings = ({
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
-// FIXED CODE FOR CustomTrackRankings.js
-// Modify the existing songsByYear useMemo instead of creating a new one
-
-// FIND the existing songsByYear useMemo and MODIFY it to handle year ranges properly:
-
-// Corrected songsByYear implementation for CustomTrackRankings.js
-const songsByYear = useMemo(() => {
-  const yearGroups = {};
-  
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Year range case
-    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
+  // Corrected songsByYear implementation for CustomTrackRankings.js
+  const songsByYear = useMemo(() => {
+    const yearGroups = {};
     
-    // Store under the range key (e.g., "2022-2022")
-    yearGroups[rangeKey] = filteredTracks;
-    
-    // ALSO store under single year key if start and end are the same
-    if (yearRange.startYear === yearRange.endYear) {
-      // Important: Store under BOTH the year itself AND the date format if it's a specific date
-      yearGroups[yearRange.startYear] = filteredTracks;
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Year range case
+      const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
       
-      // If this is a specific date format (YYYY-MM-DD), ensure we store it that way too
-      if (yearRange.startYear.includes('-') && yearRange.startYear.split('-').length === 3) {
+      // Store under the range key (e.g., "2022-2022")
+      yearGroups[rangeKey] = filteredTracks;
+      
+      // ALSO store under single year key if start and end are the same
+      if (yearRange.startYear === yearRange.endYear) {
+        // Important: Store under BOTH the year itself AND the date format if it's a specific date
         yearGroups[yearRange.startYear] = filteredTracks;
+        
+        // If this is a specific date format (YYYY-MM-DD), ensure we store it that way too
+        if (yearRange.startYear.includes('-') && yearRange.startYear.split('-').length === 3) {
+          yearGroups[yearRange.startYear] = filteredTracks;
+        }
       }
+      
+      return yearGroups;
+    } else if (selectedYear !== 'all') {
+      // Single year case - put tracks under the selected year key
+      return { [selectedYear]: filteredTracks };
     }
     
-    return yearGroups;
-  } else if (selectedYear !== 'all') {
-    // Single year case - put tracks under the selected year key
-    return { [selectedYear]: filteredTracks };
-  }
-  
-  // Default "all time" case
-  return { all: filteredTracks };
-}, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
+    // Default "all time" case
+    return { all: filteredTracks };
+  }, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
@@ -378,22 +483,22 @@ const songsByYear = useMemo(() => {
       .trim();
   };
 
-const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
-  // Check for single year first
-  if (dataByYear[selectedYear]) {
-    return dataByYear[selectedYear];
-  }
-  
-  // If this is a range with same start/end years, try the range key
-  if (isRangeMode && yearRange.startYear === yearRange.endYear && 
-      yearRange.startYear === selectedYear) {
-    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
-    return dataByYear[rangeKey] || [];
-  }
-  
-  // Handle other cases...
-  return [];
-};
+  const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
+    // Check for single year first
+    if (dataByYear[selectedYear]) {
+      return dataByYear[selectedYear];
+    }
+    
+    // If this is a range with same start/end years, try the range key
+    if (isRangeMode && yearRange.startYear === yearRange.endYear && 
+        yearRange.startYear === selectedYear) {
+      const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
+      return dataByYear[rangeKey] || [];
+    }
+    
+    // Handle other cases...
+    return [];
+  };
   
   // Create M3U playlist content
   const createM3UContent = () => {
@@ -461,7 +566,11 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
   // Function to get page title based on date selection
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Custom Track Range (${yearRange.startYear}-${yearRange.endYear})`;
+      if (yearRange.startYear === yearRange.endYear) {
+        // If start and end year are the same
+        return `Custom Track Analysis for ${yearRange.startYear}`;
+      }
+      return `Custom Track Analysis (${yearRange.startYear}-${yearRange.endYear})`;
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         const parts = selectedYear.split('-');
@@ -469,7 +578,7 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
           // Display format for a specific date (YYYY-MM-DD)
           const date = new Date(selectedYear);
           if (!isNaN(date.getTime())) {
-            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
+            return `Custom Track Analysis for ${date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
@@ -481,17 +590,17 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
           const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
           const date = new Date(year, month, 1);
           if (!isNaN(date.getTime())) {
-            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
+            return `Custom Track Analysis for ${date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long'
             })}`;
           }
         }
-        return `Custom Track Range for ${selectedYear}`;
+        return `Custom Track Analysis for ${selectedYear}`;
       }
-      return `Custom Track Range for ${selectedYear}`;
+      return `Custom Track Analysis for ${selectedYear}`;
     } else {
-      return 'Custom Date Range Selection';
+      return 'Custom Date Range Analysis';
     }
   };
 
@@ -539,10 +648,7 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
     if (isMobile) {
       // Mobile view - compact layout
       return (
-        <tr 
-          key={song.key} 
-          className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
-        >
+        <>
           <td className="p-2 text-orange-700">
             <div className="flex flex-col">
               <div className="flex items-center">
@@ -574,16 +680,13 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
               <span className="text-xs">{song.playCount} plays</span>
             </div>
           </td>
-        </tr>
+        </>
       );
     }
     
     // Desktop view - full table
     return (
-      <tr 
-        key={song.key} 
-        className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
-      >
+      <>
         <td className="p-2 text-orange-700">{index + 1}</td>
         <td className="p-2 text-orange-700">
           <div className="flex items-center">
@@ -611,7 +714,7 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
         </td>
         <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
         <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-      </tr>
+      </>
     );
   };
 
@@ -679,7 +782,9 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
         <PlaylistExporter
           processedData={filteredTracks}
           songsByYear={songsByYear}
-          selectedYear={selectedYear !== 'all' ? selectedYear : 'all'}
+          selectedYear={selectedYear}
+          yearRange={yearRange}
+          yearRangeMode={yearRangeMode}
           colorTheme="orange"
         />
       )}
@@ -790,7 +895,25 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
                 <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
                 <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
               </div>
-            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+                Include features
+              </span>
+            </label>
+            
+            {/* Only features toggle */}
+            <label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={onlyFeatures} 
+                  disabled={includeFeatures}
+                  onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
+                  className="sr-only"
+                />
+                <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
+              </div>
+              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
                 Only features
               </span>
             </label>
