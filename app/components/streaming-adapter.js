@@ -52,14 +52,14 @@ export const STREAMING_SERVICES = {
   }
 };
 
+// Improved normalizeString function with better feature extraction
 function normalizeString(str) {
-  if (!str) return '';
+  if (!str) return { normalized: '', featureArtists: [] };
   
   // Extract feature artist information for reference
   let featureArtists = [];
-  let match;
   
-  // Look for feat. patterns
+  // Look for feat. patterns in various formats
   const patterns = [
     // Parentheses/brackets formats
     /\(feat\.\s*(.*?)\)/gi,
@@ -67,7 +67,9 @@ function normalizeString(str) {
     /\(ft\.\s*(.*?)\)/gi,
     /\[ft\.\s*(.*?)\]/gi,
     /\(with\s*(.*?)\)/gi,
-    /\[with\s*(.*?)\]/gi,
+    /\[with\s*(.*?)\)/gi,
+    /\(and\s*(.*?)\)/gi,
+    /\[and\s*(.*?)\]/gi,
     
     // Without parentheses/brackets
     /\sfeat\.\s+(.*?)(?=\s*[-,]|$)/gi,
@@ -80,40 +82,36 @@ function normalizeString(str) {
     /\s-\s+ft\.\s+(.*?)(?=\s*[-,]|$)/gi
   ];
   
+  // Clone the original string before making modifications
+  let normalized = str;
+  
   // Extract artists from all patterns
   for (const pattern of patterns) {
+    let match;
+    // We need to reset the regex each time with lastIndex = 0
+    const regExp = new RegExp(pattern.source, pattern.flags);
+    
     // Global flag requires iterating through all matches
-    while ((match = pattern.exec(str)) !== null) {
+    while ((match = regExp.exec(str)) !== null) {
       if (match && match[1]) {
         // Clean up the extracted artist name
         let artist = match[1].trim();
         // Remove any trailing punctuation
         artist = artist.replace(/[.,;:!?]+$/, '');
         featureArtists.push(artist);
+        
+        // Also remove the match from the normalized string
+        const matchStart = normalized.indexOf(match[0]);
+        if (matchStart >= 0) {
+          normalized = normalized.substring(0, matchStart) + 
+                       normalized.substring(matchStart + match[0].length);
+        }
       }
     }
   }
   
-  // Remove things like "(feat. X)" or "[feat. X]"
-  let normalized = str.toLowerCase()
-    // Remove parentheses/bracket formats
-    .replace(/\(feat\..*?\)/gi, '')
-    .replace(/\[feat\..*?\]/gi, '')
-    .replace(/\(ft\..*?\)/gi, '')
-    .replace(/\[ft\..*?\]/gi, '')
-    .replace(/\(with.*?\)/gi, '')
-    .replace(/\[with.*?\]/gi, '')
-    
-    // Remove standalone formats
-    .replace(/\sfeat\..*?(?=\s*[-,]|$)/gi, '')
-    .replace(/\sft\..*?(?=\s*[-,]|$)/gi, '')
-    .replace(/\sfeaturing.*?(?=\s*[-,]|$)/gi, '')
-    
-    // Remove hyphenated formats
-    .replace(/\s-\s+feat\..*?(?=\s*[-,]|$)/gi, '')
-    .replace(/\s-\s+ft\..*?(?=\s*[-,]|$)/gi, '')
-    
-    // Remove other common clutter
+  // Remove additional clutter
+  normalized = normalized
     .replace(/\(bonus track\)/gi, '')
     .replace(/\[bonus track\]/gi, '')
     .replace(/\(.*?version\)/gi, '')
@@ -121,7 +119,8 @@ function normalizeString(str) {
     .replace(/\(.*?edit\)/gi, '')
     .replace(/\[.*?edit\)/gi, '')
     .replace(/\(.*?remix\)/gi, '')
-    .replace(/\[.*?remix\)/gi, '');
+    .replace(/\[.*?remix\)/gi, '')
+    .toLowerCase();
   
   // Clean up the normalized name by removing extra whitespace and dashes
   normalized = normalized
@@ -134,7 +133,6 @@ function normalizeString(str) {
   // Remove all non-alphanumeric characters except spaces
   normalized = normalized.replace(/[^\w\s]/g, '').trim();
   
-  // Store featureArtists in the entry if needed
   return {
     normalized,
     featureArtists: featureArtists.length > 0 ? featureArtists : null
@@ -202,16 +200,31 @@ function filterDataByDate(data, dateFilter) {
 function createMatchKey(trackName, artistName) {
   if (!trackName || !artistName) return '';
   
-  const { normalized: normTrack } = normalizeString(trackName);
-  const { normalized: normArtist } = normalizeString(artistName);
+  // Process track name
+  const trackResult = normalizeString(trackName);
+  const cleanTrack = trackResult.normalized;
   
-  // Remove all non-alphanumeric characters and convert to lowercase
-  const cleanTrack = normTrack.toLowerCase().replace(/[^\w\s]/g, '').trim();
-  const cleanArtist = normArtist.toLowerCase().replace(/[^\w\s]/g, '').trim();
+  // Process artist name to extract primary artist from "Artist & Artist2" or "Artist feat. Artist2" formats
+  let primaryArtist = artistName;
+  
+  // Look for ampersand separators first
+  const ampSplit = artistName.split(/\s*[&,]\s*/);
+  if (ampSplit.length > 1) {
+    primaryArtist = ampSplit[0].trim();
+  } else {
+    // Look for featuring formats
+    const featSplit = artistName.split(/\s+(?:feat|ft|featuring|with)[. ]/i);
+    if (featSplit.length > 1) {
+      primaryArtist = featSplit[0].trim();
+    }
+  }
+  
+  // Normalize the primary artist
+  const artistResult = normalizeString(primaryArtist);
+  const cleanArtist = artistResult.normalized;
   
   return `${cleanTrack}-${cleanArtist}`;
 }
-
 
 
 function parseListeningTime(timeValue) {
@@ -831,8 +844,6 @@ async function processTidalCSV(content) {
   });
 }
 
-// This patch should be applied to the calculatePlayStats function in streaming-adapter.js
-
 function calculatePlayStats(entries) {
   const allSongs = [];
   const artistStats = {};
@@ -843,25 +854,17 @@ function calculatePlayStats(entries) {
   let processedSongs = 0;
   let shortPlays = 0;
 
-  // Simple track map for combining same tracks
-  const trackMap = {};
+  // Use a Map instead of an object for better deduplication
+  const trackMap = new Map();
   
-  // Track album information by track/artist combination - ENHANCED
+  // Keep all your existing album lookups
   const albumLookup = {};
-  
-  // Track feature artists by track/artist combination
   const featureArtistLookup = {};
-  
-  // Add ISRC tracking
   const isrcMap = {};
-  
-  // Create a track-to-album mapping from Spotify entries first
   const trackToAlbumMap = new Map();
-  
-  // NEW: Create an album-to-track mapping to improve album track association
   const albumToTracksMap = new Map();
 
-  // First pass - collect all Spotify album information with IMPROVED normalization
+  // First pass - keep your existing album information collection
   entries.forEach(entry => {
     if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name) {
       // Extract album name if available
@@ -892,7 +895,7 @@ function calculatePlayStats(entries) {
     }
   });
 
-  // Helper function for consistent album name normalization
+  // Helper function for consistent album name normalization - keep your existing function
   function normalizeAlbumName(albumName) {
     if (!albumName) return '';
     return albumName.toLowerCase()
@@ -909,26 +912,26 @@ function calculatePlayStats(entries) {
       .trim();
   }
 
-function normalizeTrackName(trackName) {
-  if (!trackName) return '';
-  return trackName.toLowerCase()
-    // Standardize interludes, skits, outros, intros
-    .replace(/\s*-\s*(interlude|skit|outro|intro)\s*$/i, ' ($1)')
-    .replace(/\s*\(\s*(interlude|skit|outro|intro)\s*\)\s*$/i, ' ($1)')
-    // Remove feat./ft. parts
-    .replace(/\s*(\(|\[)?\s*feat\..*(\)|\])?\s*$/i, '')
-    .replace(/\s*(\(|\[)?\s*ft\..*(\)|\])?\s*$/i, '')
-    // Normalize whitespace
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+  // Keep your existing track name normalization function
+  function normalizeTrackName(trackName) {
+    if (!trackName) return '';
+    return trackName.toLowerCase()
+      // Standardize interludes, skits, outros, intros
+      .replace(/\s*-\s*(interlude|skit|outro|intro)\s*$/i, ' ($1)')
+      .replace(/\s*\(\s*(interlude|skit|outro|intro)\s*\)\s*$/i, ' ($1)')
+      // Remove feat./ft. parts
+      .replace(/\s*(\(|\[)?\s*feat\..*(\)|\])?\s*$/i, '')
+      .replace(/\s*(\(|\[)?\s*ft\..*(\)|\])?\s*$/i, '')
+      // Normalize whitespace
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
+  // Preserve your logging
   console.log(`Created track-to-album mapping with ${trackToAlbumMap.size} entries`);
   console.log(`Created album-to-tracks mapping with ${albumToTracksMap.size} albums`);
 
-
-
-  // First pass to collect album info and ISRCs
+  // Keep first pass to collect album info and ISRCs
   entries.forEach(entry => {
     if (entry.master_metadata_track_name) {
       // Normalize the track name and artist for consistent lookups
@@ -964,7 +967,7 @@ function normalizeTrackName(trackName) {
     }
   });
   
-  // Second pass to process entries with consolidated information
+  // Second pass to process entries - this is where the enhancements are
   entries.forEach(entry => {
     const playTime = entry.ms_played;
     
@@ -987,10 +990,50 @@ function normalizeTrackName(trackName) {
     const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
     
     // Get normalized versions for lookups
-    const { normalized: normTrack } = normalizeString(trackName);
-    const { normalized: normArtist } = normalizeString(artistName);
+    const { normalized: normTrack, featureArtists: trackFeatures } = normalizeString(trackName);
+    const { normalized: normArtist, featureArtists: artistFeatures } = normalizeString(artistName);
     
-    // Determine the lookup key
+    // Extract feature information - combine from both track and artist
+    let featureArtists = [];
+    if (trackFeatures) featureArtists = [...featureArtists, ...trackFeatures];
+    
+    // Check for & format in artist name
+    const ampersandRegex = /\s*&\s*/;
+    if (ampersandRegex.test(artistName)) {
+      const artistParts = artistName.split(ampersandRegex);
+      // Add all parts after the first as features
+      if (artistParts.length > 1) {
+        artistParts.slice(1).forEach(part => {
+          if (!featureArtists.includes(part.trim())) {
+            featureArtists.push(part.trim());
+          }
+        });
+      }
+    }
+    
+    // Add any artist features
+    if (artistFeatures) {
+      artistFeatures.forEach(artist => {
+        if (!featureArtists.includes(artist)) {
+          featureArtists.push(artist);
+        }
+      });
+    }
+    
+    // Get primary artist (before & or feat.)
+    let primaryArtist = artistName;
+    const ampSplit = artistName.split(/\s*[&,]\s*/);
+    if (ampSplit.length > 1) {
+      primaryArtist = ampSplit[0].trim();
+    } else {
+      // Also try feat. format
+      const featSplit = artistName.split(/\s+(?:feat|ft|featuring|with)[. ]/i);
+      if (featSplit.length > 1) {
+        primaryArtist = featSplit[0].trim();
+      }
+    }
+    
+    // Determine the lookup key - use your existing logic
     let lookupKey = `${normTrack}|||${normArtist}`;
     
     // Check if we have an ISRC for this entry, and use that for matching if available
@@ -1008,8 +1051,7 @@ function normalizeTrackName(trackName) {
     // Use ISRC-derived key if available, otherwise use our standard key
     const finalLookupKey = matchKeyFromIsrc || lookupKey;
     
-    // ALBUM NAME DETERMINATION - ENHANCED VERSION
-    // Determine the album name using several sources in order of priority
+    // ALBUM NAME DETERMINATION - ENHANCED VERSION - keep your existing logic
     let albumName = 'Unknown Album';
     
     // 1. First try to use album name from this entry if it's a Spotify entry
@@ -1029,12 +1071,18 @@ function normalizeTrackName(trackName) {
       }
     }
     
-    // Get feature artists for this track
-    const featureArtists = featureArtistLookup[finalLookupKey] || null;
+    // Get feature artists from lookup as well - add to our collection
+    const lookupFeatures = featureArtistLookup[finalLookupKey] || null;
+    if (lookupFeatures) {
+      lookupFeatures.forEach(artist => {
+        if (!featureArtists.includes(artist)) {
+          featureArtists.push(artist);
+        }
+      });
+    }
     
-    // Create keys for lookups
-    const standardKey = `${trackName}-${artistName}`;
-    const matchKey = createMatchKey(trackName, artistName);
+    // Create a better match key for deduplication that handles different versions of the same track
+    const enhancedMatchKey = createMatchKey(trackName, primaryArtist);
     
     // Parse timestamp safely
     let timestamp;
@@ -1046,6 +1094,9 @@ function normalizeTrackName(trackName) {
       timestamp = new Date();
     }
 
+    // Create standard key for play history - keep your existing approach
+    const standardKey = `${trackName}-${artistName}`;
+    
     // Track play history
     if (!songPlayHistory[standardKey]) {
       songPlayHistory[standardKey] = [];
@@ -1061,7 +1112,7 @@ function normalizeTrackName(trackName) {
       songPlayHistory[standardKey].push(new Date().getTime());
     }
 
-    // Artist stats
+    // Artist stats - keep your existing logic
     if (!artistStats[artistName]) {
       artistStats[artistName] = {
         name: artistName,
@@ -1088,7 +1139,7 @@ function normalizeTrackName(trackName) {
       }
     }
 
-    // ENHANCED Album stats with improved track association
+    // ENHANCED Album stats with improved track association - keep your existing logic
     if (albumName && artistName) {
       // Use consistent normalization for the album key
       const normalizedAlbumName = normalizeAlbumName(albumName);
@@ -1100,28 +1151,28 @@ function normalizeTrackName(trackName) {
       const expectedTrackCount = albumToTracksMap.has(fullAlbumKey) ? 
                                albumToTracksMap.get(fullAlbumKey).size : 0;
       
-  if (!albumStats[albumKey]) {
-  albumStats[albumKey] = {
-    name: albumName,
-    artist: artistName,
-    totalPlayed: 0,
-    playCount: 0,
-    trackCount: new Set(),
-    trackNames: new Set(), // Store actual track names
-    trackObjects: [], // NEW: Store track objects for sorting
-    expectedTrackCount: expectedTrackCount,
-    firstListen: timestamp.getTime(),
-    isComplete: false, // Track if we have all expected tracks
-    years: new Set() // NEW: Track which years this album was played in
-  };
-}
+      if (!albumStats[albumKey]) {
+        albumStats[albumKey] = {
+          name: albumName,
+          artist: artistName,
+          totalPlayed: 0,
+          playCount: 0,
+          trackCount: new Set(),
+          trackNames: new Set(), // Store actual track names
+          trackObjects: [], // NEW: Store track objects for sorting
+          expectedTrackCount: expectedTrackCount,
+          firstListen: timestamp.getTime(),
+          isComplete: false, // Track if we have all expected tracks
+          years: new Set() // NEW: Track which years this album was played in
+        };
+      }
 
-// Get the year from the timestamp and add it to the years set
-if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
-  const year = timestamp.getFullYear();
-  albumStats[albumKey].years.add(year);
-}
-      
+      // Get the year from the timestamp and add it to the years set
+      if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
+        const year = timestamp.getFullYear();
+        albumStats[albumKey].years.add(year);
+      }
+          
       albumStats[albumKey].totalPlayed += playTime;
       albumStats[albumKey].playCount++;
       albumStats[albumKey].trackCount.add(normTrack);
@@ -1163,77 +1214,128 @@ if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
       );
     }
 
-
-    if (trackMap[matchKey]) {
+    // Here's the enhanced track handling part
+    if (trackMap.has(enhancedMatchKey)) {
       // Update existing track
-      trackMap[matchKey].totalPlayed += playTime;
-      trackMap[matchKey].playCount++;
+      const track = trackMap.get(enhancedMatchKey);
+      track.totalPlayed += playTime;
+      track.playCount++;
       
-      // Always take the known album name if we've found a better one
-      if (albumName !== 'Unknown Album' && trackMap[matchKey].albumName === 'Unknown Album') {
-        trackMap[matchKey].albumName = albumName;
+      // Use better album info if available
+      if (albumName !== 'Unknown Album' && 
+          (track.albumName === 'Unknown Album' || entry.source === 'spotify')) {
+        track.albumName = albumName;
       }
       
       // Add to variations if this is a different name
-      if (!trackMap[matchKey].variations.includes(trackName)) {
-        trackMap[matchKey].variations.push(trackName);
+      if (!track.variations.some(v => 
+          v.trackName === trackName && v.artistName === artistName)) {
+        track.variations.push({ 
+          trackName, 
+          artistName, 
+          source: entry.source || 'unknown',
+          isrc: entry.master_metadata_external_ids?.isrc || entry.isrc
+        });
       }
       
-      // Store feature artists if we found them
-      if (featureArtists && !trackMap[matchKey].featureArtists) {
-        trackMap[matchKey].featureArtists = featureArtists;
-      }
-
-
+      // Combine feature artists
+      featureArtists.forEach(artist => {
+        if (!track.featureArtists.some(a => a.toLowerCase() === artist.toLowerCase())) {
+          track.featureArtists.push(artist);
+        }
+      });
       
       // Store ISRC if available and not already stored
-      if ((entry.master_metadata_external_ids?.isrc || entry.isrc) && !trackMap[matchKey].isrc) {
-        trackMap[matchKey].isrc = entry.master_metadata_external_ids?.isrc || entry.isrc;
+      if ((entry.master_metadata_external_ids?.isrc || entry.isrc) && !track.isrc) {
+        track.isrc = entry.master_metadata_external_ids?.isrc || entry.isrc;
       }
     } else {
-      // Add new track
-      trackMap[matchKey] = {
+      // Create a new track entry
+      trackMap.set(enhancedMatchKey, {
         key: standardKey,
         trackName,
-        artist: artistName,
+        artist: primaryArtist,
+        fullArtist: artistName,
         albumName,
         totalPlayed: playTime,
         playCount: 1,
-        variations: [trackName],
-        featureArtists,
+        variations: [{ 
+          trackName, 
+          artistName, 
+          source: entry.source || 'unknown',
+          isrc: entry.master_metadata_external_ids?.isrc || entry.isrc
+        }],
+        featureArtists: featureArtists.length > 0 ? featureArtists : [],
         isrc: entry.master_metadata_external_ids?.isrc || entry.isrc
-      };
+      });
+    }
+  });
+  
+  // Process track map to select best display names
+  const processedTracks = [];
+  
+  trackMap.forEach((track) => {
+    // Choose best version for display
+    if (track.variations && track.variations.length > 1) {
+      // Sort by preference:
+      // 1. Spotify source is preferred
+      // 2. Tracks with "feat." in the name
+      // 3. Artists with "&" in the name
+      const sortedVariations = [...track.variations].sort((a, b) => {
+        // Prefer Spotify source
+        if (a.source === 'spotify' && b.source !== 'spotify') return -1;
+        if (b.source === 'spotify' && a.source !== 'spotify') return 1;
+        
+        // Prefer entries with feat/ft in the track name
+        const aHasFeat = a.trackName.match(/feat\.|ft\.|with/i);
+        const bHasFeat = b.trackName.match(/feat\.|ft\.|with/i);
+        if (aHasFeat && !bHasFeat) return -1;
+        if (bHasFeat && !aHasFeat) return 1;
+        
+        // Prefer entries with & in the artist name
+        const aHasAmp = a.artistName.includes('&');
+        const bHasAmp = b.artistName.includes('&');
+        if (aHasAmp && !bHasAmp) return -1;
+        if (bHasAmp && !aHasAmp) return 1;
+        
+        return 0;
+      });
+      
+      // Use the best variation
+      const bestVariation = sortedVariations[0];
+      track.displayName = bestVariation.trackName;
+      track.displayArtist = bestVariation.artistName;
+    } else {
+      track.displayName = track.trackName;
+      track.displayArtist = track.fullArtist || track.artist;
+    }
+    
+    processedTracks.push(track);
+  });
+
+  // Final processing for albums - keep your existing code
+  Object.values(albumStats).forEach(album => {
+    // Sort tracks by total played time
+    album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+    
+    // Ensure trackCount is converted to a number for easier use
+    if (album.trackCount instanceof Set) {
+      album.trackCountValue = album.trackCount.size;
+    } else {
+      album.trackCountValue = typeof album.trackCount === 'number' ? 
+                            album.trackCount : album.trackCount.size;
+    }
+    
+    // Convert years Set to Array for the final output
+    if (album.years instanceof Set) {
+      album.yearsArray = Array.from(album.years).sort();
+    } else {
+      album.yearsArray = [];
     }
   });
 
-// NEW: Final processing to ensure albumStats has sorted track lists
-Object.values(albumStats).forEach(album => {
-  // Sort tracks by total played time
-  album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
-  
-  // Ensure trackCount is converted to a number for easier use
-  if (album.trackCount instanceof Set) {
-    album.trackCountValue = album.trackCount.size;
-  } else {
-    album.trackCountValue = typeof album.trackCount === 'number' ? 
-                          album.trackCount : album.trackCount.size;
-  }
-  
-  // Convert years Set to Array for the final output - this needs to be INSIDE the forEach
-  if (album.years instanceof Set) {
-    album.yearsArray = Array.from(album.years).sort();
-  } else {
-    album.yearsArray = [];
-  }
-});
-
-  // Convert track map to array
-  for (const key in trackMap) {
-    allSongs.push(trackMap[key]);
-  }
-
   return {
-    songs: allSongs,
+    songs: processedTracks,
     artists: artistStats,
     albums: albumStats,
     playHistory: songPlayHistory,
