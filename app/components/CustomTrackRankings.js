@@ -79,40 +79,8 @@ const CustomTrackRankings = ({
   useEffect(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       // Year range mode
-      // Handle if the year range includes month/day information
-      if (yearRange.startYear.includes('-') || yearRange.endYear.includes('-')) {
-        // For date format, use the precise date ranges
-        const startHasMonthDay = yearRange.startYear.includes('-');
-        const endHasMonthDay = yearRange.endYear.includes('-');
-        
-        let startDateString = yearRange.startYear;
-        let endDateString = yearRange.endYear;
-        
-        // If start is just year, add month/day
-        if (!startHasMonthDay) {
-          startDateString = `${yearRange.startYear}-01-01`;
-        } else if (yearRange.startYear.split('-').length === 2) {
-          // If YYYY-MM format, add day
-          startDateString = `${yearRange.startYear}-01`;
-        }
-        
-        // If end is just year, add month/day
-        if (!endHasMonthDay) {
-          endDateString = `${yearRange.endYear}-12-31`;
-        } else if (yearRange.endYear.split('-').length === 2) {
-          // If YYYY-MM format, add last day of month
-          const [year, month] = yearRange.endYear.split('-');
-          const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-          endDateString = `${yearRange.endYear}-${lastDay}`;
-        }
-        
-        setStartDate(startDateString);
-        setEndDate(endDateString);
-      } else {
-        // Simple year range
-        setStartDate(`${yearRange.startYear}-01-01`);
-        setEndDate(`${yearRange.endYear}-12-31`);
-      }
+      setStartDate(`${yearRange.startYear}-01-01`);
+      setEndDate(`${yearRange.endYear}-12-31`);
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         // Handle case with YYYY-MM-DD or YYYY-MM format
@@ -202,19 +170,9 @@ const CustomTrackRankings = ({
           });
         } else {
           // Specific date range
-          const formatDate = (d) => {
-            if (d.getDate() === 1 && d.getMonth() === 0) {
-              return d.getFullYear().toString();
-            } else if (d.getDate() === 1) {
-              return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-            } else {
-              return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-            }
-          };
-          
           onYearRangeChange({
-            startYear: formatDate(start),
-            endYear: formatDate(end)
+            startYear: startYear.toString(),
+            endYear: endYear.toString()
           });
         }
       } catch (err) {
@@ -248,9 +206,6 @@ const CustomTrackRankings = ({
         .filter(entry => entry.master_metadata_album_artist_name)
         .map(entry => entry.master_metadata_album_artist_name)
     );
-};
-
-export default CustomTrackRankings;
     return Array.from(artists).sort();
   }, [rawPlayData]);
 
@@ -429,7 +384,7 @@ export default CustomTrackRankings;
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
-  // Corrected songsByYear implementation for CustomTrackRankings.js
+  // Fixed songsByYear implementation for CustomTrackRankings.js
   const songsByYear = useMemo(() => {
     const yearGroups = {};
     
@@ -569,11 +524,7 @@ export default CustomTrackRankings;
   // Function to get page title based on date selection
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      if (yearRange.startYear === yearRange.endYear) {
-        // If start and end year are the same
-        return `Custom Track Analysis for ${yearRange.startYear}`;
-      }
-      return `Custom Track Analysis (${yearRange.startYear}-${yearRange.endYear})`;
+      return `Custom Track Range (${yearRange.startYear}-${yearRange.endYear})`;
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         const parts = selectedYear.split('-');
@@ -581,7 +532,7 @@ export default CustomTrackRankings;
           // Display format for a specific date (YYYY-MM-DD)
           const date = new Date(selectedYear);
           if (!isNaN(date.getTime())) {
-            return `Custom Track Analysis for ${date.toLocaleDateString(undefined, {
+            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
@@ -593,17 +544,17 @@ export default CustomTrackRankings;
           const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
           const date = new Date(year, month, 1);
           if (!isNaN(date.getTime())) {
-            return `Custom Track Analysis for ${date.toLocaleDateString(undefined, {
+            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long'
             })}`;
           }
         }
-        return `Custom Track Analysis for ${selectedYear}`;
+        return `Custom Track Range for ${selectedYear}`;
       }
-      return `Custom Track Analysis for ${selectedYear}`;
+      return `Custom Track Range for ${selectedYear}`;
     } else {
-      return 'Custom Date Range Analysis';
+      return 'Custom Date Range Selection';
     }
   };
 
@@ -651,7 +602,10 @@ export default CustomTrackRankings;
     if (isMobile) {
       // Mobile view - compact layout
       return (
-        <>
+        <tr 
+          key={song.key} 
+          className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+        >
           <td className="p-2 text-orange-700">
             <div className="flex flex-col">
               <div className="flex items-center">
@@ -683,13 +637,16 @@ export default CustomTrackRankings;
               <span className="text-xs">{song.playCount} plays</span>
             </div>
           </td>
-        </>
+        </tr>
       );
     }
     
     // Desktop view - full table
     return (
-      <>
+      <tr 
+        key={song.key} 
+        className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+      >
         <td className="p-2 text-orange-700">{index + 1}</td>
         <td className="p-2 text-orange-700">
           <div className="flex items-center">
@@ -717,7 +674,7 @@ export default CustomTrackRankings;
         </td>
         <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
         <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-      </>
+      </tr>
     );
   };
 
@@ -725,7 +682,7 @@ export default CustomTrackRankings;
     <div className="space-y-4">
       {/* Date Range Selection */}
       <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex justify-between items-center flex-wrap gap-2">
           <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
           <div className="flex items-center gap-2">
             <button
@@ -738,63 +695,65 @@ export default CustomTrackRankings;
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-          <div>
-            <label className="block text-sm font-medium text-orange-700 mb-1">Start Date:</label>
-            <input 
-              type="date" 
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-orange-700 mb-1">End Date:</label>
-            <input 
-              type="date" 
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3 items-center">
-          <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
-            <label className="text-sm">Show top</label>
-            <input
-              type="number"
-              min="1"
-              max="69420"
-              value={topN}
-              onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
-              className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-            />
-            <label className="text-sm">tracks</label>
+        <div className="mt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-orange-700 mb-1">Start Date:</label>
+              <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-orange-700 mb-1">End Date:</label>
+              <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+            </div>
           </div>
           
-          <div className="flex items-center gap-1 sm:gap-2">
-            <span className="text-orange-700 text-sm">Sort:</span>
-            <button
-              onClick={() => setSortBy('totalPlayed')}
-              className={`px-2 py-1 rounded text-xs ${
-                sortBy === 'totalPlayed'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-              }`}
-            >
-              Time
-            </button>
-            <button
-              onClick={() => setSortBy('playCount')}
-              className={`px-2 py-1 rounded text-xs ${
-                sortBy === 'playCount'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-              }`}
-            >
-              Plays
-            </button>
+          <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
+            <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
+              <label className="text-sm">Show top</label>
+              <input
+                type="number"
+                min="1"
+                max="69420"
+                value={topN}
+                onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
+                className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+              />
+              <label className="text-sm">tracks</label>
+            </div>
+            
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-orange-700 text-sm">Sort:</span>
+              <button
+                onClick={() => setSortBy('totalPlayed')}
+                className={`px-2 py-1 rounded text-xs ${
+                  sortBy === 'totalPlayed'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+              >
+                Time
+              </button>
+              <button
+                onClick={() => setSortBy('playCount
+                className={`px-2 py-1 rounded text-xs ${
+                  sortBy === 'playCount'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+              >
+                Plays
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -804,9 +763,7 @@ export default CustomTrackRankings;
         <PlaylistExporter
           processedData={filteredTracks}
           songsByYear={songsByYear}
-          selectedYear={selectedYear}
-          yearRange={yearRange}
-          yearRangeMode={yearRangeMode}
+          selectedYear={selectedYear !== 'all' ? selectedYear : 'all'}
           colorTheme="orange"
         />
       )}
@@ -905,40 +862,40 @@ export default CustomTrackRankings;
         {selectedArtists.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2">
             {/* Include features toggle */}
-            <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
-              <div className="relative">
-                <input 
-                  type="checkbox" 
-                  checked={includeFeatures} 
-                  disabled={onlyFeatures}
-                  onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
-                  className="sr-only"
-                />
-                <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
-              </div>
-              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-                Include features
-              </span>
-            </label>
-            
-            {/* Only features toggle */}
-            <label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
-              <div className="relative">
-                <input 
-                  type="checkbox" 
-                  checked={onlyFeatures} 
-                  disabled={includeFeatures}
-                  onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
-                  className="sr-only"
-                />
-                <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-                <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
-              </div>
-              <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-                Only features
-              </span>
-            </label>
+           <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
+  <div className="relative">
+    <input 
+      type="checkbox" 
+      checked={includeFeatures} 
+      disabled={onlyFeatures}
+      onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
+      className="sr-only"
+    />
+    <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+    <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
+  </div>
+  <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+    Include features
+  </span>
+</label>
+
+{/* Only features toggle */}
+<label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
+  <div className="relative">
+    <input 
+      type="checkbox" 
+      checked={onlyFeatures} 
+      disabled={includeFeatures}
+      onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
+      className="sr-only"
+    />
+    <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+    <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
+  </div>
+  <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+    Only features
+  </span>
+</label>
           </div>
         )}
       </div>
