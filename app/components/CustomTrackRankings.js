@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
-import { Download, Plus } from 'lucide-react';
+import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 
 const CustomTrackRankings = ({ 
@@ -35,6 +35,11 @@ const CustomTrackRankings = ({
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
+  // New state for omitted content feature
+  const [omittedSongs, setOmittedSongs] = useState([]);
+  const [omittedArtists, setOmittedArtists] = useState([]);
+  const [showOmittedTab, setShowOmittedTab] = useState(false);
+  
   // Check for mobile viewport
   useEffect(() => {
     const checkMobile = () => {
@@ -50,6 +55,42 @@ const CustomTrackRankings = ({
     // Cleanup
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Load omitted content from localStorage
+  useEffect(() => {
+    try {
+      const savedOmittedSongs = localStorage.getItem('omittedSongs');
+      const savedOmittedArtists = localStorage.getItem('omittedArtists');
+      
+      if (savedOmittedSongs) {
+        setOmittedSongs(JSON.parse(savedOmittedSongs));
+      }
+      
+      if (savedOmittedArtists) {
+        setOmittedArtists(JSON.parse(savedOmittedArtists));
+      }
+    } catch (err) {
+      console.error("Error loading omitted content from localStorage:", err);
+    }
+  }, []);
+
+  // Save omitted songs to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('omittedSongs', JSON.stringify(omittedSongs));
+    } catch (err) {
+      console.error("Error saving omitted songs to localStorage:", err);
+    }
+  }, [omittedSongs]);
+
+  // Save omitted artists to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('omittedArtists', JSON.stringify(omittedArtists));
+    } catch (err) {
+      console.error("Error saving omitted artists to localStorage:", err);
+    }
+  }, [omittedArtists]);
 
   // Extract available years from raw play data
   const availableYears = useMemo(() => {
@@ -75,97 +116,114 @@ const CustomTrackRankings = ({
     return Array.from(yearsSet).sort();
   }, [rawPlayData]);
   
-// Fixed useEffect in CustomTrackRankings.js to properly handle month/day in ranges
-useEffect(() => {
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Year range mode
-    
-    // Check if dates include month/day information
-    const startHasMonthDay = yearRange.startYear.includes('-');
-    const endHasMonthDay = yearRange.endYear.includes('-');
-    
-    if (startHasMonthDay || endHasMonthDay) {
-      // Handle month/day information in range
-      try {
-        let startDateStr, endDateStr;
-        
-        // Process start date
-        if (startHasMonthDay) {
-          const startParts = yearRange.startYear.split('-');
-          if (startParts.length === 3) {
-            // YYYY-MM-DD format - use as is
-            startDateStr = yearRange.startYear;
-          } else if (startParts.length === 2) {
-            // YYYY-MM format - use first day of month
-            startDateStr = `${startParts[0]}-${startParts[1]}-01`;
+  // Fixed useEffect in CustomTrackRankings.js to properly handle month/day in ranges
+  useEffect(() => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Year range mode
+      
+      // Check if dates include month/day information
+      const startHasMonthDay = yearRange.startYear.includes('-');
+      const endHasMonthDay = yearRange.endYear.includes('-');
+      
+      if (startHasMonthDay || endHasMonthDay) {
+        // Handle month/day information in range
+        try {
+          let startDateStr, endDateStr;
+          
+          // Process start date
+          if (startHasMonthDay) {
+            const startParts = yearRange.startYear.split('-');
+            if (startParts.length === 3) {
+              // YYYY-MM-DD format - use as is
+              startDateStr = yearRange.startYear;
+            } else if (startParts.length === 2) {
+              // YYYY-MM format - use first day of month
+              startDateStr = `${startParts[0]}-${startParts[1]}-01`;
+            }
+          } else {
+            // Just year - use first day of year
+            startDateStr = `${yearRange.startYear}-01-01`;
           }
-        } else {
-          // Just year - use first day of year
-          startDateStr = `${yearRange.startYear}-01-01`;
-        }
-        
-        // Process end date  
-        if (endHasMonthDay) {
-          const endParts = yearRange.endYear.split('-');
-          if (endParts.length === 3) {
-            // YYYY-MM-DD format - use as is 
-            endDateStr = yearRange.endYear;
-          } else if (endParts.length === 2) {
-            // YYYY-MM format - use last day of month
-            const year = parseInt(endParts[0]);
-            const month = parseInt(endParts[1]);
-            const lastDay = new Date(year, month, 0).getDate();
-            endDateStr = `${endParts[0]}-${endParts[1]}-${lastDay}`;
+          
+          // Process end date  
+          if (endHasMonthDay) {
+            const endParts = yearRange.endYear.split('-');
+            if (endParts.length === 3) {
+              // YYYY-MM-DD format - use as is 
+              endDateStr = yearRange.endYear;
+            } else if (endParts.length === 2) {
+              // YYYY-MM format - use last day of month
+              const year = parseInt(endParts[0]);
+              const month = parseInt(endParts[1]);
+              const lastDay = new Date(year, month, 0).getDate();
+              endDateStr = `${endParts[0]}-${endParts[1]}-${lastDay}`;
+            }
+          } else {
+            // Just year - use last day of year
+            endDateStr = `${yearRange.endYear}-12-31`;
           }
-        } else {
-          // Just year - use last day of year
-          endDateStr = `${yearRange.endYear}-12-31`;
+          
+          setStartDate(startDateStr);
+          setEndDate(endDateStr);
+        } catch (err) {
+          console.error("Error processing date range", err);
+          // Fallback to full year range
+          setStartDate(`${yearRange.startYear}-01-01`);
+          setEndDate(`${yearRange.endYear}-12-31`);
         }
-        
-        setStartDate(startDateStr);
-        setEndDate(endDateStr);
-      } catch (err) {
-        console.error("Error processing date range", err);
-        // Fallback to full year range
+      } else {
+        // Standard full year range
         setStartDate(`${yearRange.startYear}-01-01`);
         setEndDate(`${yearRange.endYear}-12-31`);
       }
-    } else {
-      // Standard full year range
-      setStartDate(`${yearRange.startYear}-01-01`);
-      setEndDate(`${yearRange.endYear}-12-31`);
-    }
-  } else if (selectedYear !== 'all') {
-    if (selectedYear.includes('-')) {
-      // Handle case with YYYY-MM-DD or YYYY-MM format
-      const parts = selectedYear.split('-');
-      
-      if (parts.length === 3) {
-        // Single day selection - set both start and end to the same day
-        setStartDate(selectedYear);
-        setEndDate(selectedYear);
-      } else if (parts.length === 2) {
-        // Month selection (YYYY-MM)
-        const year = parts[0];
-        const month = parts[1];
+    } else if (selectedYear !== 'all') {
+      if (selectedYear.includes('-')) {
+        // Handle case with YYYY-MM-DD or YYYY-MM format
+        const parts = selectedYear.split('-');
         
-        // Get the last day of the month
-        const lastDay = new Date(year, parseInt(month), 0).getDate();
-        
-        setStartDate(`${year}-${month}-01`);
-        setEndDate(`${year}-${month}-${lastDay}`);
+        if (parts.length === 3) {
+          // Single day selection - set both start and end to the same day
+          setStartDate(selectedYear);
+          setEndDate(selectedYear);
+        } else if (parts.length === 2) {
+          // Month selection (YYYY-MM)
+          const year = parts[0];
+          const month = parts[1];
+          
+          // Get the last day of the month
+          const lastDay = new Date(year, parseInt(month), 0).getDate();
+          
+          setStartDate(`${year}-${month}-01`);
+          setEndDate(`${year}-${month}-${lastDay}`);
+        }
+      } else {
+        // Single year format (YYYY)
+        setStartDate(`${selectedYear}-01-01`);
+        setEndDate(`${selectedYear}-12-31`);
       }
     } else {
-      // Single year format (YYYY)
-      setStartDate(`${selectedYear}-01-01`);
-      setEndDate(`${selectedYear}-12-31`);
+      // All time
+      setStartDate('');
+      setEndDate('');
     }
-  } else {
-    // All time
-    setStartDate('');
-    setEndDate('');
-  }
-}, [selectedYear, yearRangeMode, yearRange]);
+  }, [selectedYear, yearRangeMode, yearRange]);
+
+  // Functions to handle omitting and un-omitting songs and artists
+  const omitSong = (song) => {
+    setOmittedSongs(prev => [...prev, song]);
+  };
+
+  const unomitSong = (songKey) => {
+    setOmittedSongs(prev => prev.filter(song => song.key !== songKey));
+  };
+
+  const omitArtist = (artist) => {
+    setOmittedArtists(prev => [...prev, artist]);
+  };
+
+  const unomitArtist = (artist) => {
+    setOmittedArtists(prev => prev.filter(a => a !== artist));
+  };
 
   const addArtistFromTrack = (artist) => {
     if (!selectedArtists.includes(artist)) {
@@ -365,10 +423,37 @@ useEffect(() => {
         } catch (err) {}
       });
 
+    // Filter out omitted songs and artists
     return Object.values(trackStats)
+      .filter(track => {
+        // Skip if the song is omitted
+        if (omittedSongs.some(s => s.key === track.key)) {
+          return false;
+        }
+        
+        // Skip if the artist is omitted
+        if (omittedArtists.includes(track.artist)) {
+          return false;
+        }
+        
+        return true;
+      })
       .sort((a, b) => b[sortBy] - a[sortBy])
       .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
+  }, [
+    rawPlayData, 
+    startDate, 
+    endDate, 
+    topN, 
+    sortBy, 
+    selectedArtists, 
+    selectedAlbums, 
+    includeFeatures, 
+    onlyFeatures, 
+    albumMap, 
+    omittedSongs, 
+    omittedArtists
+  ]);
 
 
 const songsByYear = useMemo(() => {
@@ -602,12 +687,35 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
                   </span>
                 )}
                 <div className="font-medium">{song.trackName}</div>
+                
+                {/* Add omit buttons */}
+                <div className="ml-auto flex gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      omitSong(song);
+                    }}
+                    className="text-orange-600 hover:text-orange-800"
+                    title="Omit this song"
+                  >
+                    <XCircle size={16} />
+                  </button>
+                </div>
               </div>
               <div 
-                className="text-xs text-orange-600 cursor-pointer hover:underline"
-                onClick={() => addArtistFromTrack(song.artist)}
+                className="text-xs text-orange-600 cursor-pointer hover:underline flex items-center"
               >
-                {song.artist}
+                <span onClick={() => addArtistFromTrack(song.artist)}>{song.artist}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    omitArtist(song.artist);
+                  }}
+                  className="ml-1 text-orange-600 hover:text-orange-800"
+                  title="Omit this artist"
+                >
+                  <XCircle size={14} />
+                </button>
               </div>
               <div 
                 className="text-xs text-orange-500 cursor-pointer hover:underline truncate max-w-[200px]"
@@ -647,10 +755,26 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
           </div>
         </td>
         <td 
-          className="p-2 text-orange-700 cursor-pointer hover:underline" 
-          onClick={() => addArtistFromTrack(song.artist)}
+          className="p-2 text-orange-700" 
         > 
-          {song.artist} 
+          <div className="flex items-center">
+            <span 
+              className="cursor-pointer hover:underline"
+              onClick={() => addArtistFromTrack(song.artist)}
+            >
+              {song.artist}
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                omitArtist(song.artist);
+              }}
+              className="ml-2 text-orange-600 hover:text-orange-800"
+              title="Omit this artist"
+            >
+              <XCircle size={16} />
+            </button>
+          </div>
         </td>
         <td 
           className="p-2 text-orange-700 cursor-pointer hover:underline" 
@@ -660,6 +784,15 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
         </td>
         <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
         <td className="p-2 text-right text-orange-700">{song.playCount}</td>
+        <td className="p-2 text-right text-orange-700">
+          <button
+            onClick={() => omitSong(song)}
+            className="p-1 text-orange-600 hover:text-orange-800 rounded"
+            title="Omit this song"
+          >
+            <XCircle size={16} />
+          </button>
+        </td>
       </tr>
     );
   };
@@ -840,74 +973,170 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
                 <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
               </div>
             <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-                Only features
+                Include features 
               </span>
             </label>
           </div>
         )}
       </div>
 
-      {/* Results section with date range info */}
-      <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-        <div className="flex justify-between items-center flex-wrap gap-2">
-          <div className="text-orange-700 font-medium text-sm">
-            Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
-          </div>
-          <div className="text-orange-700 text-sm">
-            Found <span className="font-bold">{filteredTracks.length}</span> tracks
-          </div>
-        </div>
+      {/* Tabs for switching between main content and omitted content */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setShowOmittedTab(false)}
+          className={`px-4 py-2 rounded-t text-sm ${
+            !showOmittedTab
+              ? 'bg-orange-600 text-white'
+              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+          }`}
+        >
+          Track Results
+        </button>
+        <button
+          onClick={() => setShowOmittedTab(true)}
+          className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
+            showOmittedTab
+              ? 'bg-orange-600 text-white'
+              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+          }`}
+        >
+          <Eye size={14} />
+          Omitted Content ({omittedSongs.length + omittedArtists.length})
+        </button>
+      </div>
 
-        {filteredTracks.length > 0 ? (
-          <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  {!isMobile && (
-                    <>
-                      <th className="p-2 text-left text-orange-700">Rank</th>
+      {/* Show either omitted content tab or normal results */}
+      {showOmittedTab ? (
+        <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+          <h3 className="font-bold text-orange-700 mb-4">Omitted Content</h3>
+          
+          {omittedArtists.length > 0 && (
+            <div className="mb-4">
+              <h4 className="font-semibold text-orange-600 mb-2">Omitted Artists</h4>
+              <div className="flex flex-wrap gap-2">
+                {omittedArtists.map(artist => (
+                  <div 
+                    key={artist} 
+                    className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-xs"
+                  >
+                    {artist}
+                    <button 
+                      onClick={() => unomitArtist(artist)}
+                      className="ml-2 text-white hover:text-orange-200"
+                    >
+                      Un-omit
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {omittedSongs.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-orange-600 mb-2">Omitted Songs</h4>
+              <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
                       <th className="p-2 text-left text-orange-700">Track</th>
                       <th className="p-2 text-left text-orange-700">Artist</th>
                       <th className="p-2 text-left text-orange-700">Album</th>
-                      <th 
-                        className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                          sortBy === 'totalPlayed' ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSortBy('totalPlayed')}
-                      >
-                        Time {sortBy === 'totalPlayed' && '▼'}
-                      </th>
-                      <th 
-                        className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
-                          sortBy === 'playCount' ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSortBy('playCount')}
-                      >
-                        Plays {sortBy === 'playCount' && '▼'}
-                      </th>
-                    </>
-                  )}
-                  {isMobile && (
-                    <>
-                      <th className="p-2 text-left text-orange-700">Track Info</th>
-                      <th className="p-2 text-right text-orange-700">Stats</th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTracks.map(renderTrackRow)}
-              </tbody>
-            </table>
+                      <th className="p-2 text-right text-orange-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {omittedSongs.map(song => (
+                      <tr key={song.key} className="border-b hover:bg-orange-50">
+                        <td className="p-2 text-orange-700">{song.trackName}</td>
+                        <td className="p-2 text-orange-700">{song.artist}</td>
+                        <td className="p-2 text-orange-700">{song.albumName}</td>
+                        <td className="p-2 text-right">
+                          <button
+                            onClick={() => unomitSong(song.key)}
+                            className="px-2 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700"
+                          >
+                            Un-omit
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          
+          {omittedSongs.length === 0 && omittedArtists.length === 0 && (
+            <div className="text-center py-4 text-orange-500">
+              No songs or artists have been omitted yet
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Results section with date range info */
+        <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <div className="text-orange-700 font-medium text-sm">
+              Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+            </div>
+            <div className="text-orange-700 text-sm">
+              Found <span className="font-bold">{filteredTracks.length}</span> tracks
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-4 text-orange-500">
-            {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
-              ? 'No tracks found matching your filters' 
-              : 'Select filters to view tracks'}
-          </div>
-        )}
-      </div>
+
+          {filteredTracks.length > 0 ? (
+            <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    {!isMobile && (
+                      <>
+                        <th className="p-2 text-left text-orange-700">Rank</th>
+                        <th className="p-2 text-left text-orange-700">Track</th>
+                        <th className="p-2 text-left text-orange-700">Artist</th>
+                        <th className="p-2 text-left text-orange-700">Album</th>
+                        <th 
+                          className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                            sortBy === 'totalPlayed' ? 'font-bold' : ''
+                          }`}
+                          onClick={() => setSortBy('totalPlayed')}
+                        >
+                          Time {sortBy === 'totalPlayed' && '▼'}
+                        </th>
+                        <th 
+                          className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                            sortBy === 'playCount' ? 'font-bold' : ''
+                          }`}
+                          onClick={() => setSortBy('playCount')}
+                        >
+                          Plays {sortBy === 'playCount' && '▼'}
+                        </th>
+                        <th className="p-2 text-right text-orange-700">Actions</th>
+                      </>
+                    )}
+                    {isMobile && (
+                      <>
+                        <th className="p-2 text-left text-orange-700">Track Info</th>
+                        <th className="p-2 text-right text-orange-700">Stats</th>
+                      </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTracks.map(renderTrackRow)}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-4 text-orange-500">
+              {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
+                ? 'No tracks found matching your filters' 
+                : 'Select filters to view tracks'}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Basic Export Controls - simplified version */}
       <div>
