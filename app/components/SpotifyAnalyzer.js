@@ -1971,7 +1971,6 @@ const TabButton = ({ id, label }) => {
     )}
   </div>
 )}
-        
 {activeTab === 'tracks' && (
   <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
     <h3 className="font-bold mb-2 text-blue-700">Brief Obsessions</h3>
@@ -1983,6 +1982,11 @@ const TabButton = ({ id, label }) => {
       songsByMonth={songsByMonth}
       initialYear={selectedTrackYear}
       onYearChange={setSelectedTrackYear}
+      // Add year range props for date range support
+      yearRange={customYearRange}
+      yearRangeMode={customYearRangeMode}
+      onYearRangeChange={handleCustomTrackYearRangeChange}
+      onToggleYearRangeMode={handleCustomTrackYearRangeModeToggle}
     />
   </div>
 )}
