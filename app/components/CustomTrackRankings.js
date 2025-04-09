@@ -75,43 +75,43 @@ const CustomTrackRankings = ({
     return Array.from(yearsSet).sort();
   }, [rawPlayData]);
   
-  // This effect updates the date range based on year or year range changes
-  useEffect(() => {
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      // Year range mode
-      setStartDate(`${yearRange.startYear}-01-01`);
-      setEndDate(`${yearRange.endYear}-12-31`);
-    } else if (selectedYear !== 'all') {
-      if (selectedYear.includes('-')) {
-        // Handle case with YYYY-MM-DD or YYYY-MM format
-        const parts = selectedYear.split('-');
+// Replace this useEffect in CustomTrackRankings.js
+useEffect(() => {
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    // Year range mode
+    setStartDate(`${yearRange.startYear}-01-01`);
+    setEndDate(`${yearRange.endYear}-12-31`);
+  } else if (selectedYear !== 'all') {
+    if (selectedYear.includes('-')) {
+      // Handle case with YYYY-MM-DD or YYYY-MM format
+      const parts = selectedYear.split('-');
+      
+      if (parts.length === 3) {
+        // Single day selection - set both start and end to the same day
+        setStartDate(selectedYear);
+        setEndDate(selectedYear);
+      } else if (parts.length === 2) {
+        // Month selection (YYYY-MM)
+        const year = parts[0];
+        const month = parts[1];
         
-        if (parts.length === 3) {
-          // Single day selection - set both start and end to the same day
-          setStartDate(selectedYear);
-          setEndDate(selectedYear);
-        } else if (parts.length === 2) {
-          // Month selection (YYYY-MM)
-          const year = parts[0];
-          const month = parts[1];
-          
-          // Get the last day of the month
-          const lastDay = new Date(year, parseInt(month), 0).getDate();
-          
-          setStartDate(`${year}-${month}-01`);
-          setEndDate(`${year}-${month}-${lastDay}`);
-        }
-      } else {
-        // Single year format (YYYY)
-        setStartDate(`${selectedYear}-01-01`);
-        setEndDate(`${selectedYear}-12-31`);
+        // Get the last day of the month
+        const lastDay = new Date(year, parseInt(month), 0).getDate();
+        
+        setStartDate(`${year}-${month}-01`);
+        setEndDate(`${year}-${month}-${lastDay}`);
       }
     } else {
-      // All time
-      setStartDate('');
-      setEndDate('');
+      // Single year format (YYYY)
+      setStartDate(`${selectedYear}-01-01`);
+      setEndDate(`${selectedYear}-12-31`);
     }
-  }, [selectedYear, yearRangeMode, yearRange]);
+  } else {
+    // All time
+    setStartDate('');
+    setEndDate('');
+  }
+}, [selectedYear, yearRangeMode, yearRange]);
 
   const addArtistFromTrack = (artist) => {
     if (!selectedArtists.includes(artist)) {
@@ -316,12 +316,7 @@ const CustomTrackRankings = ({
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
-// FIXED CODE FOR CustomTrackRankings.js
-// Modify the existing songsByYear useMemo instead of creating a new one
 
-// FIND the existing songsByYear useMemo and MODIFY it to handle year ranges properly:
-
-// Corrected songsByYear implementation for CustomTrackRankings.js
 const songsByYear = useMemo(() => {
   const yearGroups = {};
   
