@@ -327,101 +327,164 @@ const CustomTrackRankings = ({
     end.setHours(23, 59, 59, 999);
     
     const trackStats = {};
-    rawPlayData.forEach(entry => {
-      try {
-        const timestamp = new Date(entry.ts);
+   // In the filteredTracks useMemo in CustomTrackRankings.js,
+// modify the section where features are detected:
+
+rawPlayData.forEach(entry => {
+  try {
+    const timestamp = new Date(entry.ts);
+    
+    if (timestamp >= start && 
+        timestamp <= end && 
+        entry.ms_played >= 30000 && 
+        entry.master_metadata_track_name) {
         
-        if (timestamp >= start && 
-            timestamp <= end && 
-            entry.ms_played >= 30000 && 
-            entry.master_metadata_track_name) {
-            
-            let featureArtists = null;
-            try {
-              const result = normalizeString(entry.master_metadata_track_name);
-              featureArtists = result.featureArtists;
-            } catch (err) {}
-            
-            const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-            let isAlbumMatch = true;
-            
-            if (selectedAlbums.length > 0) {
-              isAlbumMatch = selectedAlbums.some(album => 
-                album.name === albumName && 
-                album.artist === entry.master_metadata_album_artist_name
-              );
-            }
-            
-            const isArtistMatch = selectedArtists.length === 0 || 
-              selectedArtists.includes(entry.master_metadata_album_artist_name);
-            
-            const isFeatureMatch = featureArtists && 
-              selectedArtists.some(artist => 
-                featureArtists.some(feature => 
-                  feature.toLowerCase().includes(artist.toLowerCase())
-                )
-              );
-            
-            const shouldInclude = (
-              isAlbumMatch &&
-              (
-                selectedArtists.length === 0 ||
-                (onlyFeatures && isFeatureMatch) ||
-                (!onlyFeatures && isArtistMatch) ||
-                (!onlyFeatures && includeFeatures && isFeatureMatch)
-              )
-            );
-            
-            if (!shouldInclude) {
-              return;
-            }
-            
-            let key;
-            try {
-              key = createMatchKey(
-                entry.master_metadata_track_name,
-                entry.master_metadata_album_artist_name
-              );
-            } catch (err) {
-              key = `${entry.master_metadata_track_name}-${entry.master_metadata_album_artist_name}`;
-            }
-            
-            const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
-            const lookupAlbumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
-            
-            if (!trackStats[key]) {
-              trackStats[key] = {
-                key,
-                trackName: entry.master_metadata_track_name,
-                artist: entry.master_metadata_album_artist_name,
-                albumName: lookupAlbumName,
-                totalPlayed: 0,
-                playCount: 0,
-                featureArtists,
-                variations: [entry.master_metadata_track_name],
-                isFeatured: isFeatureMatch
-              };
-            } else {
-              if (trackStats[key].variations && 
-                  !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
-                trackStats[key].variations.push(entry.master_metadata_track_name);
-              }
-              
-              if (isFeatureMatch && !trackStats[key].isFeatured) {
-                trackStats[key].isFeatured = true;
-              }
-              
-              if (lookupAlbumName !== 'Unknown Album' && 
-                  (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
-                trackStats[key].albumName = lookupAlbumName;
+        // Check for features in both track name and artist name
+        let featureArtists = null;
+        try {
+          // Check track name for features (existing code)
+          const trackResult = normalizeString(entry.master_metadata_track_name);
+          featureArtists = trackResult.featureArtists || [];
+          
+          // NEW: Also check artist name for features
+          if (entry.master_metadata_album_artist_name) {
+            const artistResult = normalizeString(entry.master_metadata_album_artist_name);
+            // Combine features from both track and artist name
+            if (artistResult.featureArtists) {
+              if (!featureArtists) {
+                featureArtists = artistResult.featureArtists;
+              } else {
+                featureArtists = [...featureArtists, ...artistResult.featureArtists];
               }
             }
-            
-            trackStats[key].totalPlayed += entry.ms_played;
-            trackStats[key].playCount += 1;
           }
-        } catch (err) {}
-      });
+          
+          // If no features were found, set to null
+          if (featureArtists && featureArtists.length === 0) {
+            featureArtists = null;
+          }
+        } catch (err) {
+          console.warn("Error processing features:", err);
+        }
+        
+        // Special case handling for artists with "feat" in name
+        const artistName = entry.master_metadata_album_artist_name || '';
+        const artistParts = artistName.split(/\s+(?:feat|ft|featuring|with)[. ]/i);
+        
+        // If artist name contains a feature separator
+        const hasFeatureInArtistName = artistParts.length > 1;
+        
+        // Rest of the code remains the same...
+        const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+        let isAlbumMatch = true;
+        
+        if (selectedAlbums.length > 0) {
+          isAlbumMatch = selectedAlbums.some(album => 
+            album.name === albumName && 
+            album.artist === entry.master_metadata_album_artist_name
+          );
+        }
+        
+        // MODIFIED: Consider the primary artist to be the first part before "feat."
+        let primaryArtist = entry.master_metadata_album_artist_name;
+        let featuredArtist = null;
+        
+        if (hasFeatureInArtistName && artistParts.length > 1) {
+          primaryArtist = artistParts[0].trim();
+          featuredArtist = artistParts.slice(1).join(' ').trim();
+          // Add the featured artist to our featureArtists array
+          if (featuredArtist) {
+            if (!featureArtists) {
+              featureArtists = [featuredArtist];
+            } else if (!featureArtists.includes(featuredArtist)) {
+              featureArtists.push(featuredArtist);
+            }
+          }
+        }
+        
+        // Check if the selected artists match either primary or featured artist
+        const isArtistMatch = 
+          selectedArtists.length === 0 || 
+          selectedArtists.includes(entry.master_metadata_album_artist_name) ||
+          (hasFeatureInArtistName && selectedArtists.includes(primaryArtist));
+        
+        // UPDATED check for feature match to handle both patterns
+        const isFeatureMatch = 
+          (featureArtists && selectedArtists.some(artist => 
+            featureArtists.some(feature => 
+              feature.toLowerCase().includes(artist.toLowerCase())
+            )
+          )) || 
+          // Also check if any selected artist appears as a featured artist in the artist name
+          (featuredArtist && selectedArtists.some(artist => 
+            featuredArtist.toLowerCase().includes(artist.toLowerCase())
+          ));
+        
+        const shouldInclude = (
+          isAlbumMatch &&
+          (
+            selectedArtists.length === 0 ||
+            (onlyFeatures && isFeatureMatch) ||
+            (!onlyFeatures && isArtistMatch) ||
+            (!onlyFeatures && includeFeatures && isFeatureMatch)
+          )
+        );
+        
+        if (!shouldInclude) {
+          return;
+        }
+        
+        // Same as the existing code
+        let key;
+        try {
+          key = createMatchKey(
+            entry.master_metadata_track_name,
+            primaryArtist // Use primary artist instead of full artist string
+          );
+        } catch (err) {
+          key = `${entry.master_metadata_track_name}-${primaryArtist}`;
+        }
+        
+        const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${primaryArtist.toLowerCase().trim()}`;
+        const lookupAlbumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
+        
+        if (!trackStats[key]) {
+          trackStats[key] = {
+            key,
+            trackName: entry.master_metadata_track_name,
+            artist: primaryArtist, // Store primary artist
+            fullArtist: entry.master_metadata_album_artist_name, // Keep full artist string for reference
+            albumName: lookupAlbumName,
+            totalPlayed: 0,
+            playCount: 0,
+            featureArtists,
+            variations: [entry.master_metadata_track_name],
+            isFeatured: isFeatureMatch,
+            featuredArtist // Store the featured artist separately
+          };
+        } else {
+          if (trackStats[key].variations && 
+              !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
+            trackStats[key].variations.push(entry.master_metadata_track_name);
+          }
+          
+          if (isFeatureMatch && !trackStats[key].isFeatured) {
+            trackStats[key].isFeatured = true;
+          }
+          
+          if (lookupAlbumName !== 'Unknown Album' && 
+              (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
+            trackStats[key].albumName = lookupAlbumName;
+          }
+        }
+        
+        trackStats[key].totalPlayed += entry.ms_played;
+        trackStats[key].playCount += 1;
+    }
+  } catch (err) {
+    console.warn("Error processing entry:", err);
+  }
+});
 
     // Filter out omitted songs and artists
     return Object.values(trackStats)
