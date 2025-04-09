@@ -241,9 +241,9 @@ const filteredObsessions = useMemo(() => {
   // Function to get the appropriate title based on year
   const getTitle = () => { 
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Top Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`;
+      return `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`;
     } else if (initialYear === 'all') { 
-      return 'Top 100 Brief Obsessions (All Time)'; 
+      return 'All-time Brief Obsessions (All Time)'; 
     } 
     return `Top Brief Obsessions for ${initialYear}`; 
   };
