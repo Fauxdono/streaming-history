@@ -1996,7 +1996,7 @@ const TabButton = ({ id, label }) => {
     id="custom-track-rankings"
     className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300"
   >
-    <h3 className="font-bold mb-2 text-orange-700">Custom Date Range Analysis</h3>
+
     <CustomTrackRankings 
       rawPlayData={rawPlayData}
       formatDuration={formatDuration}
