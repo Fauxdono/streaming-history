@@ -75,12 +75,66 @@ const CustomTrackRankings = ({
     return Array.from(yearsSet).sort();
   }, [rawPlayData]);
   
-// Replace this useEffect in CustomTrackRankings.js
+// Fixed useEffect in CustomTrackRankings.js to properly handle month/day in ranges
 useEffect(() => {
   if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
     // Year range mode
-    setStartDate(`${yearRange.startYear}-01-01`);
-    setEndDate(`${yearRange.endYear}-12-31`);
+    
+    // Check if dates include month/day information
+    const startHasMonthDay = yearRange.startYear.includes('-');
+    const endHasMonthDay = yearRange.endYear.includes('-');
+    
+    if (startHasMonthDay || endHasMonthDay) {
+      // Handle month/day information in range
+      try {
+        let startDateStr, endDateStr;
+        
+        // Process start date
+        if (startHasMonthDay) {
+          const startParts = yearRange.startYear.split('-');
+          if (startParts.length === 3) {
+            // YYYY-MM-DD format - use as is
+            startDateStr = yearRange.startYear;
+          } else if (startParts.length === 2) {
+            // YYYY-MM format - use first day of month
+            startDateStr = `${startParts[0]}-${startParts[1]}-01`;
+          }
+        } else {
+          // Just year - use first day of year
+          startDateStr = `${yearRange.startYear}-01-01`;
+        }
+        
+        // Process end date  
+        if (endHasMonthDay) {
+          const endParts = yearRange.endYear.split('-');
+          if (endParts.length === 3) {
+            // YYYY-MM-DD format - use as is 
+            endDateStr = yearRange.endYear;
+          } else if (endParts.length === 2) {
+            // YYYY-MM format - use last day of month
+            const year = parseInt(endParts[0]);
+            const month = parseInt(endParts[1]);
+            const lastDay = new Date(year, month, 0).getDate();
+            endDateStr = `${endParts[0]}-${endParts[1]}-${lastDay}`;
+          }
+        } else {
+          // Just year - use last day of year
+          endDateStr = `${yearRange.endYear}-12-31`;
+        }
+        
+        setStartDate(startDateStr);
+        setEndDate(endDateStr);
+      } catch (err) {
+        console.error("Error processing date range", err);
+        // Fallback to full year range
+        setStartDate(`${yearRange.startYear}-01-01`);
+        setEndDate(`${yearRange.endYear}-12-31`);
+      }
+    } else {
+      // Standard full year range
+      setStartDate(`${yearRange.startYear}-01-01`);
+      setEndDate(`${yearRange.endYear}-12-31`);
+    }
   } else if (selectedYear !== 'all') {
     if (selectedYear.includes('-')) {
       // Handle case with YYYY-MM-DD or YYYY-MM format
