@@ -1844,5 +1844,4 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
   return result;
 }
 
-};
 export { normalizeString, createMatchKey, filterDataByDate };
