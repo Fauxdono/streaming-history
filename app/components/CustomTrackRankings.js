@@ -314,209 +314,374 @@ const CustomTrackRankings = ({
     return map;
   }, [rawPlayData]);
 
-  // The filtered tracks based on all applied filters
-  const filteredTracks = useMemo(() => {
-    if (!rawPlayData?.length) return [];
-    
-    const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
-    
-    const start = isAllTime ? new Date(0) : new Date(startDate);
-    start.setHours(0, 0, 0, 0);
-    
-    const end = isAllTime ? new Date() : new Date(endDate);
-    end.setHours(23, 59, 59, 999);
-    
-    const trackStats = {};
-   // In the filteredTracks useMemo in CustomTrackRankings.js,
-// modify the section where features are detected:
 
-rawPlayData.forEach(entry => {
-  try {
-    const timestamp = new Date(entry.ts);
+
+  // Add this helper function before the filteredTracks useMemo
+const normalizeTrackForMatching = (trackName, artistName) => {
+  if (!trackName || !artistName) return '';
+  
+  // Remove all feat./ft. info from track name
+  let cleanTrack = trackName
+    .toLowerCase()
+    .replace(/\(feat\..*?\)/gi, '')
+    .replace(/\[feat\..*?\]/gi, '')
+    .replace(/\(ft\..*?\)/gi, '')
+    .replace(/\[ft\..*?\]/gi, '')
+    .replace(/\(with.*?\)/gi, '')
+    .replace(/\[with.*?\]/gi, '')
+    .replace(/\sfeat\..*?(?=\s*[-,]|$)/gi, '')
+    .replace(/\sft\..*?(?=\s*[-,]|$)/gi, '')
+    .replace(/\sfeaturing.*?(?=\s*[-,]|$)/gi, '')
+    .trim();
     
-    if (timestamp >= start && 
-        timestamp <= end && 
-        entry.ms_played >= 30000 && 
-        entry.master_metadata_track_name) {
-        
-        // Check for features in both track name and artist name
-        let featureArtists = null;
-        try {
-          // Check track name for features (existing code)
-          const trackResult = normalizeString(entry.master_metadata_track_name);
-          featureArtists = trackResult.featureArtists || [];
+  // Split artist by common collaboration separators
+  const artistParts = artistName.split(/\s*(?:&|and|,|feat\.|ft\.)\s*/i);
+  
+  // Use only the first artist (primary artist)
+  const primaryArtist = artistParts[0].toLowerCase().trim();
+  
+  return `${cleanTrack}|||${primaryArtist}`;
+};
+
+// The filtered tracks based on all applied filters
+const filteredTracks = useMemo(() => {
+  if (!rawPlayData?.length) return [];
+  
+  const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
+  
+  const start = isAllTime ? new Date(0) : new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  
+  const end = isAllTime ? new Date() : new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+  
+  // First pass: collect all track versions
+  const trackVersions = {};
+  
+  rawPlayData.forEach(entry => {
+    try {
+      const timestamp = new Date(entry.ts);
+      
+      if (timestamp >= start && 
+          timestamp <= end && 
+          entry.ms_played >= 30000 && 
+          entry.master_metadata_track_name &&
+          entry.master_metadata_album_artist_name) {
           
-          // NEW: Also check artist name for features
-          if (entry.master_metadata_album_artist_name) {
-            const artistResult = normalizeString(entry.master_metadata_album_artist_name);
-            // Combine features from both track and artist name
-            if (artistResult.featureArtists) {
-              if (!featureArtists) {
-                featureArtists = artistResult.featureArtists;
-              } else {
-                featureArtists = [...featureArtists, ...artistResult.featureArtists];
+          // Create a normalized key for deduplication
+          const normalizedKey = normalizeTrackForMatching(
+            entry.master_metadata_track_name,
+            entry.master_metadata_album_artist_name
+          );
+          
+          if (!trackVersions[normalizedKey]) {
+            trackVersions[normalizedKey] = [];
+          }
+          
+          // Add this version if not already included
+          const versionExists = trackVersions[normalizedKey].some(v => 
+            v.trackName === entry.master_metadata_track_name && 
+            v.artistName === entry.master_metadata_album_artist_name
+          );
+          
+          if (!versionExists) {
+            trackVersions[normalizedKey].push({
+              trackName: entry.master_metadata_track_name,
+              artistName: entry.master_metadata_album_artist_name,
+              albumName: entry.master_metadata_album_album_name || 'Unknown Album',
+              source: entry.source || 'unknown'
+            });
+          }
+      }
+    } catch (err) {}
+  });
+  
+  const trackStats = {};
+  
+  rawPlayData.forEach(entry => {
+    try {
+      const timestamp = new Date(entry.ts);
+      
+      if (timestamp >= start && 
+          timestamp <= end && 
+          entry.ms_played >= 30000 && 
+          entry.master_metadata_track_name) {
+          
+          // Extract feature artists from track and artist name
+          let featureArtists = [];
+          try {
+            // Check track name for features
+            if (entry.master_metadata_track_name) {
+              const trackResult = normalizeString(entry.master_metadata_track_name);
+              if (trackResult.featureArtists && trackResult.featureArtists.length > 0) {
+                featureArtists = [...featureArtists, ...trackResult.featureArtists];
+              }
+            }
+            
+            // Check if artist name contains collaborators
+            if (entry.master_metadata_album_artist_name) {
+              // Look for "Artist & Artist" format
+              const ampersandRegex = /\s*&\s*/;
+              if (ampersandRegex.test(entry.master_metadata_album_artist_name)) {
+                const artistParts = entry.master_metadata_album_artist_name.split(ampersandRegex);
+                // Add all parts after the first one as features
+                if (artistParts.length > 1) {
+                  featureArtists = [...featureArtists, ...artistParts.slice(1)];
+                }
+              }
+              
+              // Also check using normalizeString for "feat." format
+              const artistResult = normalizeString(entry.master_metadata_album_artist_name);
+              if (artistResult.featureArtists && artistResult.featureArtists.length > 0) {
+                // Add any new feature artists
+                artistResult.featureArtists.forEach(artist => {
+                  if (!featureArtists.some(a => a.toLowerCase() === artist.toLowerCase())) {
+                    featureArtists.push(artist);
+                  }
+                });
+              }
+            }
+          } catch (err) {}
+          
+          // Special case handling for artists with "feat" in name
+          const artistName = entry.master_metadata_album_artist_name || '';
+          const artistParts = artistName.split(/\s+(?:feat|ft|featuring|with)[. ]/i);
+          
+          // If artist name contains a feature separator
+          const hasFeatureInArtistName = artistParts.length > 1;
+          
+          // Get album name and use best available version
+          const normalizedKey = normalizeTrackForMatching(
+            entry.master_metadata_track_name,
+            entry.master_metadata_album_artist_name
+          );
+          
+          // Find best metadata from available versions
+          let bestMetadata = entry;
+          
+          if (trackVersions[normalizedKey] && trackVersions[normalizedKey].length > 0) {
+            // 1. Prefer non-"Unknown Album" entries
+            const nonUnknownVersions = trackVersions[normalizedKey].filter(v => 
+              v.albumName && v.albumName !== 'Unknown Album'
+            );
+            
+            // 2. Prefer Spotify data when available
+            const spotifyVersions = trackVersions[normalizedKey].filter(v => v.source === 'spotify');
+            
+            if (spotifyVersions.length > 0) {
+              bestMetadata = {
+                ...entry,
+                master_metadata_album_album_name: spotifyVersions[0].albumName
+              };
+            } else if (nonUnknownVersions.length > 0) {
+              bestMetadata = {
+                ...entry,
+                master_metadata_album_album_name: nonUnknownVersions[0].albumName
+              };
+            }
+          }
+          
+          // MODIFIED: Consider the primary artist to be the first part before "feat."
+          let primaryArtist = entry.master_metadata_album_artist_name;
+          let featuredArtist = null;
+          
+          if (hasFeatureInArtistName && artistParts.length > 1) {
+            primaryArtist = artistParts[0].trim();
+            featuredArtist = artistParts.slice(1).join(' ').trim();
+            // Add the featured artist to our featureArtists array
+            if (featuredArtist) {
+              if (featureArtists.length === 0) {
+                featureArtists = [featuredArtist];
+              } else if (!featureArtists.includes(featuredArtist)) {
+                featureArtists.push(featuredArtist);
               }
             }
           }
           
-          // If no features were found, set to null
-          if (featureArtists && featureArtists.length === 0) {
-            featureArtists = null;
+          // Also check for & format
+          const ampParts = primaryArtist.split(/\s*&\s*/);
+          if (ampParts.length > 1) {
+            // Primary artist is the first part
+            primaryArtist = ampParts[0].trim();
+            // Add the rest as features
+            ampParts.slice(1).forEach(part => {
+              const trimmed = part.trim();
+              if (trimmed && !featureArtists.includes(trimmed)) {
+                featureArtists.push(trimmed);
+              }
+            });
           }
-        } catch (err) {
-          console.warn("Error processing features:", err);
-        }
-        
-        // Special case handling for artists with "feat" in name
-        const artistName = entry.master_metadata_album_artist_name || '';
-        const artistParts = artistName.split(/\s+(?:feat|ft|featuring|with)[. ]/i);
-        
-        // If artist name contains a feature separator
-        const hasFeatureInArtistName = artistParts.length > 1;
-        
-        // Rest of the code remains the same...
-        const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-        let isAlbumMatch = true;
-        
-        if (selectedAlbums.length > 0) {
-          isAlbumMatch = selectedAlbums.some(album => 
-            album.name === albumName && 
-            album.artist === entry.master_metadata_album_artist_name
+          
+          // Now handle filtering
+          const albumName = bestMetadata.master_metadata_album_album_name || 'Unknown Album';
+          let isAlbumMatch = true;
+          
+          if (selectedAlbums.length > 0) {
+            isAlbumMatch = selectedAlbums.some(album => 
+              album.name === albumName && 
+              album.artist === entry.master_metadata_album_artist_name
+            );
+          }
+          
+          // Check if any selected artist is in the ampersand list or primary artist
+          const isArtistMatch = 
+            selectedArtists.length === 0 || 
+            selectedArtists.includes(entry.master_metadata_album_artist_name) ||
+            (hasFeatureInArtistName && selectedArtists.includes(primaryArtist));
+          
+          // UPDATED check for feature match to handle both patterns
+          const isFeatureMatch = 
+            (featureArtists.length > 0 && selectedArtists.some(artist => 
+              featureArtists.some(feature => 
+                feature.toLowerCase().includes(artist.toLowerCase())
+              )
+            )) || 
+            // Also check if any selected artist appears as a featured artist in the artist name
+            (featuredArtist && selectedArtists.some(artist => 
+              featuredArtist.toLowerCase().includes(artist.toLowerCase())
+            ));
+          
+          const shouldInclude = (
+            isAlbumMatch &&
+            (
+              selectedArtists.length === 0 ||
+              (onlyFeatures && isFeatureMatch) ||
+              (!onlyFeatures && isArtistMatch) ||
+              (!onlyFeatures && includeFeatures && isFeatureMatch)
+            )
           );
-        }
-        
-        // MODIFIED: Consider the primary artist to be the first part before "feat."
-        let primaryArtist = entry.master_metadata_album_artist_name;
-        let featuredArtist = null;
-        
-        if (hasFeatureInArtistName && artistParts.length > 1) {
-          primaryArtist = artistParts[0].trim();
-          featuredArtist = artistParts.slice(1).join(' ').trim();
-          // Add the featured artist to our featureArtists array
-          if (featuredArtist) {
-            if (!featureArtists) {
-              featureArtists = [featuredArtist];
-            } else if (!featureArtists.includes(featuredArtist)) {
-              featureArtists.push(featuredArtist);
+          
+          if (!shouldInclude) {
+            return;
+          }
+          
+          // Create a key for tracking
+          let key;
+          try {
+            key = createMatchKey(
+              entry.master_metadata_track_name,
+              primaryArtist // Use primary artist instead of full artist string
+            );
+          } catch (err) {
+            key = `${entry.master_metadata_track_name}-${primaryArtist}`;
+          }
+          
+          const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${primaryArtist.toLowerCase().trim()}`;
+          const lookupAlbumName = bestMetadata.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
+          
+          if (!trackStats[key]) {
+            trackStats[key] = {
+              key,
+              trackName: entry.master_metadata_track_name,
+              artist: primaryArtist, // Store primary artist
+              fullArtist: entry.master_metadata_album_artist_name, // Keep full artist string for reference
+              albumName: lookupAlbumName,
+              totalPlayed: 0,
+              playCount: 0,
+              featureArtists: featureArtists.length > 0 ? featureArtists : null,
+              variations: [entry.master_metadata_track_name],
+              artistVariations: [entry.master_metadata_album_artist_name],
+              isFeatured: isFeatureMatch,
+              featuredArtist, // Store the featured artist separately
+              normalizedKey, // Store for debugging/reference
+              displayName: entry.master_metadata_track_name, // Will update after all processing
+              displayArtist: entry.master_metadata_album_artist_name // Will update after all processing
+            };
+          } else {
+            // Update existing track stats
+            const stats = trackStats[key];
+            
+            // Add track name variation if new
+            if (!stats.variations.includes(entry.master_metadata_track_name)) {
+              stats.variations.push(entry.master_metadata_track_name);
+            }
+            
+            // Add artist variation if new
+            if (!stats.artistVariations || !stats.artistVariations.includes(entry.master_metadata_album_artist_name)) {
+              if (!stats.artistVariations) {
+                stats.artistVariations = [entry.master_metadata_album_artist_name];
+              } else {
+                stats.artistVariations.push(entry.master_metadata_album_artist_name);
+              }
+            }
+            
+            // Update feature status if needed
+            if (isFeatureMatch && !stats.isFeatured) {
+              stats.isFeatured = true;
+            }
+            
+            // Update album name if this one is better
+            if (lookupAlbumName !== 'Unknown Album' && 
+                (stats.albumName === 'Unknown Album' || entry.source === 'spotify')) {
+              stats.albumName = lookupAlbumName;
             }
           }
-        }
-        
-        // Check if the selected artists match either primary or featured artist
-        const isArtistMatch = 
-          selectedArtists.length === 0 || 
-          selectedArtists.includes(entry.master_metadata_album_artist_name) ||
-          (hasFeatureInArtistName && selectedArtists.includes(primaryArtist));
-        
-        // UPDATED check for feature match to handle both patterns
-        const isFeatureMatch = 
-          (featureArtists && selectedArtists.some(artist => 
-            featureArtists.some(feature => 
-              feature.toLowerCase().includes(artist.toLowerCase())
-            )
-          )) || 
-          // Also check if any selected artist appears as a featured artist in the artist name
-          (featuredArtist && selectedArtists.some(artist => 
-            featuredArtist.toLowerCase().includes(artist.toLowerCase())
-          ));
-        
-        const shouldInclude = (
-          isAlbumMatch &&
-          (
-            selectedArtists.length === 0 ||
-            (onlyFeatures && isFeatureMatch) ||
-            (!onlyFeatures && isArtistMatch) ||
-            (!onlyFeatures && includeFeatures && isFeatureMatch)
-          )
-        );
-        
-        if (!shouldInclude) {
-          return;
-        }
-        
-        // Same as the existing code
-        let key;
-        try {
-          key = createMatchKey(
-            entry.master_metadata_track_name,
-            primaryArtist // Use primary artist instead of full artist string
-          );
-        } catch (err) {
-          key = `${entry.master_metadata_track_name}-${primaryArtist}`;
-        }
-        
-        const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${primaryArtist.toLowerCase().trim()}`;
-        const lookupAlbumName = entry.master_metadata_album_album_name || albumMap.get(trackLookupKey) || 'Unknown Album';
-        
-        if (!trackStats[key]) {
-          trackStats[key] = {
-            key,
-            trackName: entry.master_metadata_track_name,
-            artist: primaryArtist, // Store primary artist
-            fullArtist: entry.master_metadata_album_artist_name, // Keep full artist string for reference
-            albumName: lookupAlbumName,
-            totalPlayed: 0,
-            playCount: 0,
-            featureArtists,
-            variations: [entry.master_metadata_track_name],
-            isFeatured: isFeatureMatch,
-            featuredArtist // Store the featured artist separately
-          };
-        } else {
-          if (trackStats[key].variations && 
-              !trackStats[key].variations.includes(entry.master_metadata_track_name)) {
-            trackStats[key].variations.push(entry.master_metadata_track_name);
-          }
           
-          if (isFeatureMatch && !trackStats[key].isFeatured) {
-            trackStats[key].isFeatured = true;
-          }
-          
-          if (lookupAlbumName !== 'Unknown Album' && 
-              (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
-            trackStats[key].albumName = lookupAlbumName;
-          }
-        }
-        
-        trackStats[key].totalPlayed += entry.ms_played;
-        trackStats[key].playCount += 1;
+          // Update play stats
+          trackStats[key].totalPlayed += entry.ms_played;
+          trackStats[key].playCount += 1;
+      }
+    } catch (err) {
+      console.warn("Error processing entry:", err);
     }
-  } catch (err) {
-    console.warn("Error processing entry:", err);
-  }
-});
+  });
+  
+  // Select the best display name for each track
+  Object.values(trackStats).forEach(track => {
+    // Choose best track name: prefer one with "feat." in it if available
+    if (track.variations && track.variations.length > 1) {
+      const featVersion = track.variations.find(v => 
+        v.includes('feat.') || v.includes('ft.') || v.includes('with'));
+      if (featVersion) {
+        track.displayName = featVersion;
+      } else {
+        track.displayName = track.variations[0];
+      }
+    } else {
+      track.displayName = track.trackName;
+    }
+    
+    // Choose best artist name
+    if (track.artistVariations && track.artistVariations.length > 1) {
+      // Prefer format with "&" for display
+      const ampersandVersion = track.artistVariations.find(a => a.includes('&'));
+      track.displayArtist = ampersandVersion || track.artistVariations[0];
+    } else {
+      track.displayArtist = track.artist;
+    }
+  });
 
-    // Filter out omitted songs and artists
-    return Object.values(trackStats)
-      .filter(track => {
-        // Skip if the song is omitted
-        if (omittedSongs.some(s => s.key === track.key)) {
-          return false;
-        }
-        
-        // Skip if the artist is omitted
-        if (omittedArtists.includes(track.artist)) {
-          return false;
-        }
-        
-        return true;
-      })
-      .sort((a, b) => b[sortBy] - a[sortBy])
-      .slice(0, topN);
-  }, [
-    rawPlayData, 
-    startDate, 
-    endDate, 
-    topN, 
-    sortBy, 
-    selectedArtists, 
-    selectedAlbums, 
-    includeFeatures, 
-    onlyFeatures, 
-    albumMap, 
-    omittedSongs, 
-    omittedArtists
-  ]);
+  // Filter out omitted songs and artists - keep this from the original code
+  return Object.values(trackStats)
+    .filter(track => {
+      // Skip if the song is omitted
+      if (omittedSongs.some(s => s.key === track.key)) {
+        return false;
+      }
+      
+      // Skip if the artist is omitted
+      if (omittedArtists.includes(track.artist)) {
+        return false;
+      }
+      
+      return true;
+    })
+    .sort((a, b) => b[sortBy] - a[sortBy])
+    .slice(0, topN);
+}, [
+  rawPlayData, 
+  startDate, 
+  endDate, 
+  topN, 
+  sortBy, 
+  selectedArtists, 
+  selectedAlbums, 
+  includeFeatures, 
+  onlyFeatures, 
+  albumMap, 
+  omittedSongs, 
+  omittedArtists
+]);
 
 
 const songsByYear = useMemo(() => {
@@ -731,135 +896,136 @@ const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange)
     return "Custom Date Range";
   };
 
-  // Render track rows based on mobile/desktop view
-  const renderTrackRow = (song, index) => {
-    if (isMobile) {
-      // Mobile view - compact layout
-      return (
-        <tr 
-          key={song.key} 
-          className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
-        >
-          <td className="p-2 text-orange-700">
-            <div className="flex flex-col">
-              <div className="flex items-center">
-                <span className="font-bold text-xs mr-2 text-orange-800">{index + 1}.</span>
-                {song.isFeatured && (
-                  <span className="inline-block px-1 py-0.5 mr-1 bg-orange-200 text-orange-700 rounded text-xs">
-                    FEAT
-                  </span>
-                )}
-                <div className="font-medium">{song.trackName}</div>
-                
-                {/* Add omit buttons */}
-                <div className="ml-auto flex gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      omitSong(song);
-                    }}
-                    className="text-orange-600 hover:text-orange-800"
-                    title="Omit this song"
-                  >
-                    <XCircle size={16} />
-                  </button>
-                </div>
-              </div>
-              <div 
-                className="text-xs text-orange-600 cursor-pointer hover:underline flex items-center"
-              >
-                <span onClick={() => addArtistFromTrack(song.artist)}>{song.artist}</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    omitArtist(song.artist);
-                  }}
-                  className="ml-1 text-orange-600 hover:text-orange-800"
-                  title="Omit this artist"
-                >
-                  <XCircle size={14} />
-                </button>
-              </div>
-              <div 
-                className="text-xs text-orange-500 cursor-pointer hover:underline truncate max-w-[200px]"
-                onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-              >
-                {song.albumName}
-              </div>
-            </div>
-          </td>
-          <td className="p-2 align-top text-right text-orange-700">
-            <div className="flex flex-col">
-              <span className="font-medium">{formatDuration(song.totalPlayed)}</span>
-              <span className="text-xs">{song.playCount} plays</span>
-            </div>
-          </td>
-        </tr>
-      );
-    }
-    
-    // Desktop view - full table
+ // Updated renderTrackRow function with omit buttons preserved
+const renderTrackRow = (song, index) => {
+  if (isMobile) {
+    // Mobile view - compact layout
     return (
       <tr 
         key={song.key} 
         className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
       >
-        <td className="p-2 text-orange-700">{index + 1}</td>
         <td className="p-2 text-orange-700">
-          <div className="flex items-center">
-            {song.isFeatured && (
-              <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
-                FEAT
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <span className="font-bold text-xs mr-2 text-orange-800">{index + 1}.</span>
+              {song.isFeatured && (
+                <span className="inline-block px-1 py-0.5 mr-1 bg-orange-200 text-orange-700 rounded text-xs">
+                  FEAT
+                </span>
+              )}
+              <div className="font-medium">{song.displayName || song.trackName}</div>
+              
+              {/* Add omit buttons */}
+              <div className="ml-auto flex gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    omitSong(song);
+                  }}
+                  className="text-orange-600 hover:text-orange-800"
+                  title="Omit this song"
+                >
+                  <XCircle size={16} />
+                </button>
+              </div>
+            </div>
+            <div 
+              className="text-xs text-orange-600 cursor-pointer hover:underline flex items-center"
+            >
+              <span onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}>
+                {song.displayArtist || song.artist}
               </span>
-            )}
-            <div>
-              {song.trackName}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  omitArtist(song.artist);
+                }}
+                className="ml-1 text-orange-600 hover:text-orange-800"
+                title="Omit this artist"
+              >
+                <XCircle size={14} />
+              </button>
+            </div>
+            <div 
+              className="text-xs text-orange-500 cursor-pointer hover:underline truncate max-w-[200px]"
+              onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+            >
+              {song.albumName}
             </div>
           </div>
         </td>
-        <td 
-          className="p-2 text-orange-700" 
-        > 
-          <div className="flex items-center">
-            <span 
-              className="cursor-pointer hover:underline"
-              onClick={() => addArtistFromTrack(song.artist)}
-            >
-              {song.artist}
-            </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                omitArtist(song.artist);
-              }}
-              className="ml-2 text-orange-600 hover:text-orange-800"
-              title="Omit this artist"
-            >
-              <XCircle size={16} />
-            </button>
+        <td className="p-2 align-top text-right text-orange-700">
+          <div className="flex flex-col">
+            <span className="font-medium">{formatDuration(song.totalPlayed)}</span>
+            <span className="text-xs">{song.playCount} plays</span>
           </div>
-        </td>
-        <td 
-          className="p-2 text-orange-700 cursor-pointer hover:underline" 
-          onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-        >
-          {song.albumName}
-        </td>
-        <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
-        <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-        <td className="p-2 text-right text-orange-700">
-          <button
-            onClick={() => omitSong(song)}
-            className="p-1 text-orange-600 hover:text-orange-800 rounded"
-            title="Omit this song"
-          >
-            <XCircle size={16} />
-          </button>
         </td>
       </tr>
     );
-  };
-
+  }
+  
+  // Desktop view - full table
+  return (
+    <tr 
+      key={song.key} 
+      className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+    >
+      <td className="p-2 text-orange-700">{index + 1}</td>
+      <td className="p-2 text-orange-700">
+        <div className="flex items-center">
+          {song.isFeatured && (
+            <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+              FEAT
+            </span>
+          )}
+          <div>
+            {song.displayName || song.trackName}
+          </div>
+        </div>
+      </td>
+      <td 
+        className="p-2 text-orange-700" 
+      > 
+        <div className="flex items-center">
+          <span 
+            className="cursor-pointer hover:underline"
+            onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
+          >
+            {song.displayArtist || song.artist}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              omitArtist(song.artist);
+            }}
+            className="ml-2 text-orange-600 hover:text-orange-800"
+            title="Omit this artist"
+          >
+            <XCircle size={16} />
+          </button>
+        </div>
+      </td>
+      <td 
+        className="p-2 text-orange-700 cursor-pointer hover:underline" 
+        onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+      >
+        {song.albumName}
+      </td>
+      <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
+      <td className="p-2 text-right text-orange-700">{song.playCount}</td>
+      <td className="p-2 text-right text-orange-700">
+        <button
+          onClick={() => omitSong(song)}
+          className="p-1 text-orange-600 hover:text-orange-800 rounded"
+          title="Omit this song"
+        >
+          <XCircle size={16} />
+        </button>
+      </td>
+    </tr>
+  );
+};
   return (
     <div className="space-y-4">
       {/* Date Range Selection */}
