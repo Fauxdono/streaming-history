@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { normalizeString, createMatchKey, filterDataByDate } from './streaming-adapter.js';
+import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 
@@ -112,74 +112,6 @@ const CustomTrackRankings = ({
       setEndDate('');
     }
   }, [selectedYear, yearRangeMode, yearRange]);
-
-  // When custom date inputs change, update the corresponding year selector if applicable
-  useEffect(() => {
-    // Only attempt to update the year selector if we have both dates and change handlers
-    if (startDate && endDate && onYearChange && onYearRangeChange && onToggleYearRangeMode) {
-      try {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
-        
-        // Check if dates are the same (single day selection)
-        if (startDate === endDate) {
-          onToggleYearRangeMode(false);
-          onYearChange(startDate);
-          return;
-        }
-        
-        // Check if the dates span a full year (Jan 1 to Dec 31)
-        const startMonth = start.getMonth();
-        const startDay = start.getDate();
-        const endMonth = end.getMonth();
-        const endDay = end.getDate();
-        const startYear = start.getFullYear();
-        const endYear = end.getFullYear();
-        
-        if (startMonth === 0 && startDay === 1 && endMonth === 11 && endDay === 31 && 
-            startYear === endYear) {
-          // Full year selection - use single year mode
-          onToggleYearRangeMode(false);
-          onYearChange(startYear.toString());
-          return;
-        }
-        
-        // Check if dates span a full month
-        if (startDay === 1 && 
-            new Date(startYear, startMonth + 1, 0).getDate() === endDay && 
-            startMonth === endMonth && 
-            startYear === endYear) {
-          // Full month selection - use YYYY-MM format
-          const monthStr = (startMonth + 1).toString().padStart(2, '0');
-          onToggleYearRangeMode(false);
-          onYearChange(`${startYear}-${monthStr}`);
-          return;
-        }
-        
-        // Otherwise, use range mode with appropriate granularity
-        onToggleYearRangeMode(true);
-        
-        // Determine if we should use full date range or just years
-        if (startMonth === 0 && startDay === 1 && endMonth === 11 && endDay === 31) {
-          // Full years range
-          onYearRangeChange({
-            startYear: startYear.toString(),
-            endYear: endYear.toString()
-          });
-        } else {
-          // Specific date range
-          onYearRangeChange({
-            startYear: startYear.toString(),
-            endYear: endYear.toString()
-          });
-        }
-      } catch (err) {
-        console.error("Error updating year selector from custom dates:", err);
-      }
-    }
-  }, [startDate, endDate, onYearChange, onYearRangeChange, onToggleYearRangeMode]);
 
   const addArtistFromTrack = (artist) => {
     if (!selectedArtists.includes(artist)) {
@@ -384,37 +316,42 @@ const CustomTrackRankings = ({
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedArtists, selectedAlbums, includeFeatures, onlyFeatures, albumMap]);
 
-  // Fixed songsByYear implementation for CustomTrackRankings.js
-  const songsByYear = useMemo(() => {
-    const yearGroups = {};
+// FIXED CODE FOR CustomTrackRankings.js
+// Modify the existing songsByYear useMemo instead of creating a new one
+
+// FIND the existing songsByYear useMemo and MODIFY it to handle year ranges properly:
+
+// Corrected songsByYear implementation for CustomTrackRankings.js
+const songsByYear = useMemo(() => {
+  const yearGroups = {};
+  
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    // Year range case
+    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
     
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      // Year range case
-      const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
+    // Store under the range key (e.g., "2022-2022")
+    yearGroups[rangeKey] = filteredTracks;
+    
+    // ALSO store under single year key if start and end are the same
+    if (yearRange.startYear === yearRange.endYear) {
+      // Important: Store under BOTH the year itself AND the date format if it's a specific date
+      yearGroups[yearRange.startYear] = filteredTracks;
       
-      // Store under the range key (e.g., "2022-2022")
-      yearGroups[rangeKey] = filteredTracks;
-      
-      // ALSO store under single year key if start and end are the same
-      if (yearRange.startYear === yearRange.endYear) {
-        // Important: Store under BOTH the year itself AND the date format if it's a specific date
+      // If this is a specific date format (YYYY-MM-DD), ensure we store it that way too
+      if (yearRange.startYear.includes('-') && yearRange.startYear.split('-').length === 3) {
         yearGroups[yearRange.startYear] = filteredTracks;
-        
-        // If this is a specific date format (YYYY-MM-DD), ensure we store it that way too
-        if (yearRange.startYear.includes('-') && yearRange.startYear.split('-').length === 3) {
-          yearGroups[yearRange.startYear] = filteredTracks;
-        }
       }
-      
-      return yearGroups;
-    } else if (selectedYear !== 'all') {
-      // Single year case - put tracks under the selected year key
-      return { [selectedYear]: filteredTracks };
     }
     
-    // Default "all time" case
-    return { all: filteredTracks };
-  }, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
+    return yearGroups;
+  } else if (selectedYear !== 'all') {
+    // Single year case - put tracks under the selected year key
+    return { [selectedYear]: filteredTracks };
+  }
+  
+  // Default "all time" case
+  return { all: filteredTracks };
+}, [filteredTracks, selectedYear, yearRangeMode, yearRange]);
 
   // Handle changes to feature toggles
   const handleFeatureToggleChange = (toggleType, value) => {
@@ -441,22 +378,22 @@ const CustomTrackRankings = ({
       .trim();
   };
 
-  const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
-    // Check for single year first
-    if (dataByYear[selectedYear]) {
-      return dataByYear[selectedYear];
-    }
-    
-    // If this is a range with same start/end years, try the range key
-    if (isRangeMode && yearRange.startYear === yearRange.endYear && 
-        yearRange.startYear === selectedYear) {
-      const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
-      return dataByYear[rangeKey] || [];
-    }
-    
-    // Handle other cases...
-    return [];
-  };
+const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
+  // Check for single year first
+  if (dataByYear[selectedYear]) {
+    return dataByYear[selectedYear];
+  }
+  
+  // If this is a range with same start/end years, try the range key
+  if (isRangeMode && yearRange.startYear === yearRange.endYear && 
+      yearRange.startYear === selectedYear) {
+    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
+    return dataByYear[rangeKey] || [];
+  }
+  
+  // Handle other cases...
+  return [];
+};
   
   // Create M3U playlist content
   const createM3UContent = () => {
@@ -696,27 +633,6 @@ const CustomTrackRankings = ({
         </div>
 
         <div className="mt-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-orange-700 mb-1">Start Date:</label>
-              <input 
-                type="date" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-orange-700 mb-1">End Date:</label>
-              <input 
-                type="date" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              />
-            </div>
-          </div>
-          
           <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
             <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
               <label className="text-sm">Show top</label>
@@ -744,7 +660,7 @@ const CustomTrackRankings = ({
                 Time
               </button>
               <button
-                onClick={() => setSortBy('playCount
+                onClick={() => setSortBy('playCount')}
                 className={`px-2 py-1 rounded text-xs ${
                   sortBy === 'playCount'
                     ? 'bg-orange-600 text-white'
@@ -862,40 +778,22 @@ const CustomTrackRankings = ({
         {selectedArtists.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2">
             {/* Include features toggle */}
-           <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
-  <div className="relative">
-    <input 
-      type="checkbox" 
-      checked={includeFeatures} 
-      disabled={onlyFeatures}
-      onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
-      className="sr-only"
-    />
-    <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-    <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
-  </div>
-  <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-    Include features
-  </span>
-</label>
-
-{/* Only features toggle */}
-<label className={`flex items-center cursor-pointer ${includeFeatures ? 'opacity-50' : ''}`}>
-  <div className="relative">
-    <input 
-      type="checkbox" 
-      checked={onlyFeatures} 
-      disabled={includeFeatures}
-      onChange={() => handleFeatureToggleChange('only', !onlyFeatures)}
-      className="sr-only"
-    />
-    <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${onlyFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
-    <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${onlyFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
-  </div>
-  <span className="ml-2 text-orange-700 text-xs sm:text-sm">
-    Only features
-  </span>
-</label>
+            <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  checked={includeFeatures} 
+                  disabled={onlyFeatures}
+                  onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
+                  className="sr-only"
+                />
+                <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+                <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
+              </div>
+            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+                Only features
+              </span>
+            </label>
           </div>
         )}
       </div>
