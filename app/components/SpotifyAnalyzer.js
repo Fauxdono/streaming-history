@@ -1484,34 +1484,34 @@ const TabButton = ({ id, label }) => {
             
             <h3 className="font-bold text-orange-700 mb-3">Select Streaming Services:</h3>
                      
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-6">
               {Object.entries(STREAMING_SERVICES).map(([type, service]) => (
                 <div key={type} className="border rounded-lg overflow-hidden">
                   <button
                     onClick={() => toggleServiceSelection(type)}
-                    className={`w-full px-4 py-2 flex justify-between items-center transition-colors ${
+                    className={`w-full aspect-square sm:aspect-auto sm:px-4 sm:py-2 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors ${
                       selectedServices.includes(type)
                        ? serviceColors[type]?.selected || 'bg-gray-600 text-white'
                         : serviceColors[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    <span>{service.name}</span>
-                    {selectedServices.includes(type) && <Check size={18} />}
+                    <span className="text-center sm:text-left">{service.name}</span>
+                    {selectedServices.includes(type) && <Check size={18} className="mt-2 sm:mt-0" />}
                   </button>
                   
-                  <div className="px-4 py-2 border-t bg-white">
+                  <div className="px-2 sm:px-4 py-2 border-t bg-white">
                     <button 
                       onClick={() => toggleServiceInfo(type)}
-                      className="flex items-center text-sm text-orange-600 hover:text-orange-800"
+                      className="flex items-center justify-center w-full text-xs sm:text-sm text-orange-600 hover:text-orange-800"
                     >
                       {showServiceInfo[type] ? 
-                        <><ChevronUp size={16} className="mr-1" /> Hide Details</> : 
-                        <><ChevronDown size={16} className="mr-1" /> Show Details</>
+                        <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
+                        <><ChevronDown size={14} className="mr-1" /> Show Details</>
                       }
                     </button>
                     
                     {showServiceInfo[type] && (
-                      <div className="mt-2 text-sm text-orange-700">
+                      <div className="mt-2 text-xs sm:text-sm text-orange-700">
                         <p className="mb-2">{service.instructions}</p>
                         <a
                           href={service.downloadUrl}
