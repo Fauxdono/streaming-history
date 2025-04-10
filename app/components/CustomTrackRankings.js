@@ -48,20 +48,26 @@ const CustomTrackRankings = ({
   const [omittedArtists, setOmittedArtists] = useState([]);
   const [showOmittedTab, setShowOmittedTab] = useState(false);
   
-  // Check for mobile viewport
+  // Update the check to consider orientation instead of just width
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+    const checkOrientation = () => {
+      // Check if we're in portrait mode (height > width)
+      const isPortrait = window.innerHeight > window.innerWidth;
+      setIsMobile(isPortrait);
     };
     
     // Initial check
-    checkMobile();
+    checkOrientation();
     
-    // Add resize listener
-    window.addEventListener('resize', checkMobile);
+    // Add both resize and orientation change listeners
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
     
     // Cleanup
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
   }, []);
 
   // Load omitted content from localStorage
@@ -540,224 +546,86 @@ const CustomTrackRankings = ({
     return artistName;
   };
 
-const filteredTracks = useMemo(() => {
-  console.time('filteredTracks');
-  
-  // Use preprocessed data we already computed
-  const { trackVersions, validEntries } = preprocessRawData;
-  
-  if (validEntries.length === 0) {
-    console.timeEnd('filteredTracks');
-    return [];
-  }
-  
-  const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
-  
-  const start = isAllTime ? new Date(0) : new Date(startDate);
-  start.setHours(0, 0, 0, 0);
-  
-  const end = isAllTime ? new Date() : new Date(endDate);
-  end.setHours(23, 59, 59, 999);
-  
-  // Create a Set of normalized keys for omitted songs for faster lookups
-  const omittedSongKeys = new Set(omittedSongs.map(song => song.key));
-  const omittedArtistSet = new Set(omittedArtists);
-  
-  // First filter by date range to reduce the dataset
-  const dateFilteredEntries = isAllTime 
-    ? validEntries 
-    : validEntries.filter(entry => {
-        try {
-          const timestamp = new Date(entry.ts);
-          return timestamp >= start && timestamp <= end;
-        } catch (err) {
-          return false;
-        }
-      });
-  
-  // Early exit if no data passed the date filter
-  if (dateFilteredEntries.length === 0) {
-    console.timeEnd('filteredTracks');
-    return [];
-  }
-  
-  // Fast path - if there are no other filters, just group and count
-  const noArtistFilters = selectedArtists.length === 0;
-  const noAlbumFilters = selectedAlbums.length === 0;
-  const noFeatureFilters = !includeFeatures && !onlyFeatures;
-  
-  // Fast path for date-only filtering
-  if (noArtistFilters && noAlbumFilters && noFeatureFilters) {
-    // Group by track instead of processing features
+  // The filtered tracks based on all applied filters - optimized
+  const filteredTracks = useMemo(() => {
+    console.time('filteredTracks');
+    
+    const { trackVersions, validEntries } = preprocessRawData;
+    
+    if (validEntries.length === 0) {
+      console.timeEnd('filteredTracks');
+      return [];
+    }
+    
+    const isAllTime = (!startDate || startDate === "") && (!endDate || endDate === "");
+    
+    const start = isAllTime ? new Date(0) : new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    
+    const end = isAllTime ? new Date() : new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    
+    // First filter by date range to reduce the dataset
+    const dateFilteredEntries = isAllTime 
+      ? validEntries 
+      : validEntries.filter(entry => {
+          try {
+            const timestamp = new Date(entry.ts);
+            return timestamp >= start && timestamp <= end;
+          } catch (err) {
+            return false;
+          }
+        });
+    
+    if (dateFilteredEntries.length === 0) {
+      console.timeEnd('filteredTracks');
+      return [];
+    }
+    
     const trackStats = {};
     
+    // Process the filtered entries
     for (let i = 0; i < dateFilteredEntries.length; i++) {
       const entry = dateFilteredEntries[i];
       
-      // Skip invalid entries
-      if (!entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
-        continue;
-      }
-      
-      // Get primary artist quickly without regex
-      let primaryArtist = entry.master_metadata_album_artist_name;
-      const ampIndex = primaryArtist.indexOf('&');
-      if (ampIndex > 0) {
-        primaryArtist = primaryArtist.substring(0, ampIndex).trim();
-      } else if (primaryArtist.includes('feat.')) {
-        primaryArtist = primaryArtist.split('feat.')[0].trim();
-      } else if (primaryArtist.includes('ft.')) {
-        primaryArtist = primaryArtist.split('ft.')[0].trim();
-      }
-      
-      // Check for omitted content
-      if (omittedArtistSet.has(primaryArtist)) {
-        continue;
-      }
-      
-      // Create a simple key without expensive regex
-      const key = `${entry.master_metadata_track_name}-${primaryArtist}`;
-      
-      // Skip if already omitted
-      if (omittedSongKeys.has(key)) {
-        continue;
-      }
-      
-      // Get album name
-      const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-      
-      // Add or update track
-      if (!trackStats[key]) {
-        trackStats[key] = {
-          key,
-          trackName: entry.master_metadata_track_name,
-          artist: primaryArtist,
-          fullArtist: entry.master_metadata_album_artist_name,
-          albumName,
-          totalPlayed: 0,
-          playCount: 0,
-          variations: [entry.master_metadata_track_name],
-          artistVariations: [entry.master_metadata_album_artist_name],
-          displayName: entry.master_metadata_track_name,
-          displayArtist: entry.master_metadata_album_artist_name
-        };
-      } else {
-        // Add variations if different
-        if (!trackStats[key].variations.includes(entry.master_metadata_track_name)) {
-          trackStats[key].variations.push(entry.master_metadata_track_name);
-        }
-        
-        if (!trackStats[key].artistVariations.includes(entry.master_metadata_album_artist_name)) {
-          trackStats[key].artistVariations.push(entry.master_metadata_album_artist_name);
-        }
-        
-        // Update album name for Spotify sources
-        if (albumName !== 'Unknown Album' && 
-            (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
-          trackStats[key].albumName = albumName;
-        }
-      }
-      
-      // Update play stats
-      trackStats[key].totalPlayed += entry.ms_played;
-      trackStats[key].playCount += 1;
-    }
-    
-    // Convert to array, sort and trim
-    const result = Object.values(trackStats)
-      .sort((a, b) => b[sortBy] - a[sortBy])
-      .slice(0, topN);
-    
-    console.timeEnd('filteredTracks');
-    return result;
-  }
-  
-  // Regular path with more complex filtering
-  const trackStats = {};
-  
-  // Pre-compute album lookup for faster access
-  const albumKeyLookup = {};
-  if (selectedAlbums.length > 0) {
-    selectedAlbums.forEach(album => {
-      albumKeyLookup[`${album.name}-${album.artist}`] = true;
-    });
-  }
-  
-  // Process the filtered entries
-  for (let i = 0; i < dateFilteredEntries.length; i++) {
-    const entry = dateFilteredEntries[i];
-    
-    try {
-      // Skip entries without required fields
-      if (!entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
-        continue;
-      }
-      
-      // Get primary artist - only do regex work if needed
-      let primaryArtist = entry.master_metadata_album_artist_name;
-      let featuredArtist = null;
-      let isFeatureMatch = false;
-      
-      // Efficient way to get primary artist
-      const ampIndex = primaryArtist.indexOf('&');
-      if (ampIndex > 0) {
-        primaryArtist = primaryArtist.substring(0, ampIndex).trim();
-      } else {
-        const featIndex = primaryArtist.indexOf('feat.');
-        if (featIndex > 0) {
-          primaryArtist = primaryArtist.substring(0, featIndex).trim();
-          featuredArtist = primaryArtist.substring(featIndex + 5).trim();
-        } else {
-          const ftIndex = primaryArtist.indexOf('ft.');
-          if (ftIndex > 0) {
-            primaryArtist = primaryArtist.substring(0, ftIndex).trim();
-            featuredArtist = primaryArtist.substring(ftIndex + 3).trim();
-          }
-        }
-      }
-      
-      // Check for omitted content early
-      if (omittedArtistSet.has(primaryArtist)) {
-        continue;
-      }
-      
-      // Create a key without expensive regex
-      const key = `${entry.master_metadata_track_name}-${primaryArtist}`;
-      
-      // Skip if already omitted
-      if (omittedSongKeys.has(key)) {
-        continue;
-      }
-      
-      // Album filtering
-      const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-      let isAlbumMatch = true;
-      
-      if (selectedAlbums.length > 0) {
-        isAlbumMatch = albumKeyLookup[`${albumName}-${entry.master_metadata_album_artist_name}`] === true;
-      }
-      
-      if (!isAlbumMatch) {
-        continue;
-      }
-      
-      // Artist filtering
-      const isArtistMatch = 
-        selectedArtists.length === 0 || 
-        selectedArtists.includes(entry.master_metadata_album_artist_name) ||
-        selectedArtists.includes(primaryArtist);
-      
-      // Only extract feature artists if we actually need them
-      let featureArtists = [];
-      
-      if ((includeFeatures || onlyFeatures) && selectedArtists.length > 0) {
-        // Only then do the expensive extraction
-        featureArtists = extractFeatureArtists(
+      try {
+        // Extract feature artists - do this once per entry
+        const featureArtists = extractFeatureArtists(
           entry.master_metadata_track_name,
           entry.master_metadata_album_artist_name
         );
         
-        isFeatureMatch = 
+        // Get primary artist - do this once per entry
+        const primaryArtist = getPrimaryArtist(entry.master_metadata_album_artist_name);
+        
+        // Get featured artist separately
+        let featuredArtist = null;
+        if (entry.master_metadata_album_artist_name !== primaryArtist) {
+          const parts = entry.master_metadata_album_artist_name.split(/\s+(?:feat|ft|featuring|with)[. ]/i);
+          if (parts.length > 1) {
+            featuredArtist = parts.slice(1).join(' ').trim();
+          }
+        }
+        
+        // Check for album match
+        const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+        let isAlbumMatch = true;
+        
+        if (selectedAlbums.length > 0) {
+          isAlbumMatch = selectedAlbums.some(album => 
+            album.name === albumName && 
+            album.artist === entry.master_metadata_album_artist_name
+          );
+        }
+        
+        // Check if any selected artist matches
+        const isArtistMatch = 
+          selectedArtists.length === 0 || 
+          selectedArtists.includes(entry.master_metadata_album_artist_name) ||
+          selectedArtists.includes(primaryArtist);
+        
+        // Check if featured artist matches
+        const isFeatureMatch = 
           (featureArtists.length > 0 && selectedArtists.some(artist => 
             featureArtists.some(feature => 
               feature.toLowerCase().includes(artist.toLowerCase())
@@ -766,116 +634,157 @@ const filteredTracks = useMemo(() => {
           (featuredArtist && selectedArtists.some(artist => 
             featuredArtist.toLowerCase().includes(artist.toLowerCase())
           ));
-      }
-      
-      // Apply all filters
-      const shouldInclude = (
-        selectedArtists.length === 0 ||
-        (onlyFeatures && isFeatureMatch) ||
-        (!onlyFeatures && isArtistMatch) ||
-        (!onlyFeatures && includeFeatures && isFeatureMatch)
-      );
-      
-      if (!shouldInclude) {
-        continue;
-      }
-      
-      // Update or create track entry
-      if (!trackStats[key]) {
-        trackStats[key] = {
-          key,
-          trackName: entry.master_metadata_track_name,
-          artist: primaryArtist,
-          fullArtist: entry.master_metadata_album_artist_name,
-          albumName: albumName,
-          totalPlayed: 0,
-          playCount: 0,
-          featureArtists: featureArtists.length > 0 ? featureArtists : null,
-          variations: [entry.master_metadata_track_name],
-          artistVariations: [entry.master_metadata_album_artist_name],
-          isFeatured: isFeatureMatch,
-          featuredArtist,
-          displayName: entry.master_metadata_track_name,
-          displayArtist: entry.master_metadata_album_artist_name
-        };
-      } else {
-        // Add track name variation if new
-        if (!trackStats[key].variations.includes(entry.master_metadata_track_name)) {
-          trackStats[key].variations.push(entry.master_metadata_track_name);
+        
+        // Apply all filters
+        const shouldInclude = (
+          isAlbumMatch &&
+          (
+            selectedArtists.length === 0 ||
+            (onlyFeatures && isFeatureMatch) ||
+            (!onlyFeatures && isArtistMatch) ||
+            (!onlyFeatures && includeFeatures && isFeatureMatch)
+          )
+        );
+        
+        if (!shouldInclude) {
+          continue;
         }
         
-        // Add artist variation if new
-        if (!trackStats[key].artistVariations.includes(entry.master_metadata_album_artist_name)) {
-          trackStats[key].artistVariations.push(entry.master_metadata_album_artist_name);
+        // Create a key for tracking
+        let key;
+        try {
+          key = createMatchKey(
+            entry.master_metadata_track_name,
+            primaryArtist
+          );
+        } catch (err) {
+          key = `${entry.master_metadata_track_name}-${primaryArtist}`;
         }
         
-        // Update feature status if needed
-        if (isFeatureMatch && !trackStats[key].isFeatured) {
-          trackStats[key].isFeatured = true;
+        // Get normalized key for lookups
+        const normalizedKey = normalizeTrackForMatching(
+          entry.master_metadata_track_name,
+          entry.master_metadata_album_artist_name
+        );
+        
+        // Find best version of album name
+        const trackLookupKey = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${primaryArtist.toLowerCase().trim()}`;
+        let lookupAlbumName = entry.master_metadata_album_album_name;
+        
+        if (!lookupAlbumName || lookupAlbumName === 'Unknown Album') {
+          lookupAlbumName = albumMap.get(trackLookupKey) || 'Unknown Album';
         }
         
-        // Update album name if this one is better
-        if (albumName !== 'Unknown Album' && 
-            (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
-          trackStats[key].albumName = albumName;
+        // Update or create track entry
+        if (!trackStats[key]) {
+          trackStats[key] = {
+            key,
+            trackName: entry.master_metadata_track_name,
+            artist: primaryArtist,
+            fullArtist: entry.master_metadata_album_artist_name,
+            albumName: lookupAlbumName,
+            totalPlayed: 0,
+            playCount: 0,
+            featureArtists: featureArtists.length > 0 ? featureArtists : null,
+            variations: [entry.master_metadata_track_name],
+            artistVariations: [entry.master_metadata_album_artist_name],
+            isFeatured: isFeatureMatch,
+            featuredArtist,
+            normalizedKey,
+            displayName: entry.master_metadata_track_name,
+            displayArtist: entry.master_metadata_album_artist_name
+          };
+        } else {
+          // Add track name variation if new
+          if (!trackStats[key].variations.includes(entry.master_metadata_track_name)) {
+            trackStats[key].variations.push(entry.master_metadata_track_name);
+          }
+          
+          // Add artist variation if new
+          if (!trackStats[key].artistVariations.includes(entry.master_metadata_album_artist_name)) {
+            trackStats[key].artistVariations.push(entry.master_metadata_album_artist_name);
+          }
+          
+          // Update feature status if needed
+          if (isFeatureMatch && !trackStats[key].isFeatured) {
+            trackStats[key].isFeatured = true;
+          }
+          
+          // Update album name if this one is better
+          if (lookupAlbumName !== 'Unknown Album' && 
+              (trackStats[key].albumName === 'Unknown Album' || entry.source === 'spotify')) {
+            trackStats[key].albumName = lookupAlbumName;
+          }
         }
+        
+        // Update play stats
+        trackStats[key].totalPlayed += entry.ms_played;
+        trackStats[key].playCount += 1;
+      } catch (err) {
+        console.warn("Error processing entry:", err);
       }
-      
-      // Update play stats
-      trackStats[key].totalPlayed += entry.ms_played;
-      trackStats[key].playCount += 1;
-    } catch (err) {
-      console.warn("Error processing entry:", err);
     }
-  }
-  
-  // Process displays after filtering (just once)
-  const tracks = Object.values(trackStats);
-  
-  // Choose best names
-  for (let i = 0; i < tracks.length; i++) {
-    const track = tracks[i];
     
-    // Choose best track name: prefer one with "feat." in it if available
-    if (track.variations && track.variations.length > 1) {
-      const featVersion = track.variations.find(v => 
-        v.includes('feat.') || v.includes('ft.') || v.includes('with'));
-      if (featVersion) {
-        track.displayName = featVersion;
+    // Process tracks for display
+    const tracks = Object.values(trackStats);
+    
+    // Select best display names
+    for (let i = 0; i < tracks.length; i++) {
+      const track = tracks[i];
+      
+      // Choose best track name: prefer one with "feat." in it if available
+      if (track.variations && track.variations.length > 1) {
+        const featVersion = track.variations.find(v => 
+          v.includes('feat.') || v.includes('ft.') || v.includes('with'));
+        if (featVersion) {
+          track.displayName = featVersion;
+        }
+      }
+      
+      // Choose best artist name
+      if (track.artistVariations && track.artistVariations.length > 1) {
+        // Prefer format with "&" for display
+        const ampersandVersion = track.artistVariations.find(a => a.includes('&'));
+        if (ampersandVersion) {
+          track.displayArtist = ampersandVersion;
+        }
       }
     }
     
-    // Choose best artist name
-    if (track.artistVariations && track.artistVariations.length > 1) {
-      // Prefer format with "&" for display
-      const ampersandVersion = track.artistVariations.find(a => a.includes('&'));
-      if (ampersandVersion) {
-        track.displayArtist = ampersandVersion;
+    // Filter out omitted content
+    const filtered = tracks.filter(track => {
+      // Skip if the song is omitted
+      if (omittedSongs.some(s => s.key === track.key)) {
+        return false;
       }
-    }
-  }
-  
-  // Sort and slice
-  const result = tracks
-    .sort((a, b) => b[sortBy] - a[sortBy])
-    .slice(0, topN);
-  
-  console.timeEnd('filteredTracks');
-  return result;
-}, [
-  preprocessRawData,
-  startDate, 
-  endDate, 
-  topN, 
-  sortBy, 
-  selectedArtists, 
-  selectedAlbums, 
-  includeFeatures, 
-  onlyFeatures, 
-  albumMap, 
-  omittedSongs, 
-  omittedArtists
-]);
+      
+      // Skip if the artist is omitted
+      if (omittedArtists.includes(track.artist)) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Sort and slice
+    const result = filtered.sort((a, b) => b[sortBy] - a[sortBy]).slice(0, topN);
+    
+    console.timeEnd('filteredTracks');
+    return result;
+  }, [
+    preprocessRawData,
+    startDate, 
+    endDate, 
+    topN, 
+    sortBy, 
+    selectedArtists, 
+    selectedAlbums, 
+    includeFeatures, 
+    onlyFeatures, 
+    albumMap, 
+    omittedSongs, 
+    omittedArtists
+  ]);
 
   // Organizing tracks by year - memoized more efficiently
   const songsByYear = useMemo(() => {
