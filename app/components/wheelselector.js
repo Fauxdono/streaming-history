@@ -96,19 +96,26 @@ const WheelSelector = ({
     }
   }, [items, value, selectedIndex, onChange]);
   
-// Handle the start of a drag event
+  // Handle the start of a drag event
   const handleDragStart = (e) => {
-    // Always prevent default for touch events to prevent scrolling
     if (e.type === 'touchstart') {
-      e.preventDefault();
-      e.stopPropagation(); // Stop event from bubbling up
-    }
-    
-    if (e.buttons === 1 || e.type === 'touchstart') {
-      setIsDragging(true);
-      const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+      const clientY = e.touches[0].clientY;
       setStartY(clientY);
       setLastTouchY(clientY);
+      setLastTouchTime(Date.now());
+      setIsDragging(true);
+      setMomentum(0);
+      
+      // Cancel any ongoing animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+    } else if (e.buttons === 1) { // Mouse down
+      e.preventDefault();
+      setIsDragging(true);
+      setStartY(e.clientY);
+      setLastTouchY(e.clientY);
       setLastTouchTime(Date.now());
       setMomentum(0);
       
@@ -122,16 +129,16 @@ const WheelSelector = ({
   
   // Handle drag movement
   const handleDragMove = (e) => {
-    // Always prevent default for touch events
-    if (e.type === 'touchmove') {
-      e.preventDefault();
-      e.stopPropagation(); // Stop event from bubbling up
-    }
-    
     if (!isDragging) return;
     
     // Calculate current Y position
-    const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    let clientY;
+    if (e.type === 'touchmove') {
+      clientY = e.touches[0].clientY;
+    } else {
+      clientY = e.clientY;
+    }
+    
     const deltaY = clientY - startY;
     
     // Calculate momentum
@@ -217,6 +224,26 @@ const WheelSelector = ({
       { value: items[nextIndex], index: nextIndex, position: 'next' }
     ];
   };
+
+  // This is the key fix: prevent touchmove events from scrolling the page
+  useEffect(() => {
+    const wheelContainer = containerRef.current;
+    if (!wheelContainer) return;
+    
+    // Function to prevent default on touch move, but only when inside our component
+    const preventScrollOnTouch = (e) => {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    };
+    
+    // Add the event listener with passive: false to allow preventDefault
+    wheelContainer.addEventListener('touchmove', preventScrollOnTouch, { passive: false });
+    
+    return () => {
+      wheelContainer.removeEventListener('touchmove', preventScrollOnTouch);
+    };
+  }, [isDragging]);
   
   return (
     <div className="flex flex-col items-center">
