@@ -96,9 +96,13 @@ const WheelSelector = ({
     }
   }, [items, value, selectedIndex, onChange]);
   
-  // Handle the start of a drag event
+// Handle the start of a drag event
   const handleDragStart = (e) => {
-    e.preventDefault();
+    // Always prevent default for touch events to prevent scrolling
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+      e.stopPropagation(); // Stop event from bubbling up
+    }
     
     if (e.buttons === 1 || e.type === 'touchstart') {
       setIsDragging(true);
@@ -118,6 +122,12 @@ const WheelSelector = ({
   
   // Handle drag movement
   const handleDragMove = (e) => {
+    // Always prevent default for touch events
+    if (e.type === 'touchmove') {
+      e.preventDefault();
+      e.stopPropagation(); // Stop event from bubbling up
+    }
+    
     if (!isDragging) return;
     
     // Calculate current Y position
@@ -138,9 +148,6 @@ const WheelSelector = ({
     
     // Update the visual offset
     setCurrentOffset(deltaY);
-    
-    // Prevent default to stop page scrolling on touch
-    e.preventDefault();
   };
   
   // Handle end of dragging
