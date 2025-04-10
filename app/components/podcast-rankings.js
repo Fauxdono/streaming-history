@@ -42,99 +42,156 @@ const PodcastRankings = ({
   const [duplicatesFound, setDuplicatesFound] = useState(0);
   const [duplicateTypes, setDuplicateTypes] = useState({ exact: 0, overlapping: 0, zeroTime: 0 });
 
-  // Update the date range handling in PodcastRankings.js
-useEffect(() => {
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Check if dates include month/day information
-    const startHasMonthDay = yearRange.startYear.includes('-');
-    const endHasMonthDay = yearRange.endYear.includes('-');
-    
-    if (startHasMonthDay || endHasMonthDay) {
-      // Process dates with month/day information
-      try {
-        // Process start date
-        let startDateStr;
-        if (startHasMonthDay) {
-          if (yearRange.startYear.split('-').length === 3) {
-            // YYYY-MM-DD format - use as is
-            startDateStr = yearRange.startYear;
-          } else if (yearRange.startYear.split('-').length === 2) {
-            // YYYY-MM format - use first day of month
-            const [year, month] = yearRange.startYear.split('-');
-            startDateStr = `${year}-${month}-01`;
+  // Update date range based on year selection (from YearSelector)
+  useEffect(() => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Check if dates include month/day information
+      const startHasMonthDay = yearRange.startYear.includes('-');
+      const endHasMonthDay = yearRange.endYear.includes('-');
+      
+      if (startHasMonthDay || endHasMonthDay) {
+        // Process dates with month/day information
+        try {
+          // Process start date
+          let startDateStr;
+          if (startHasMonthDay) {
+            if (yearRange.startYear.split('-').length === 3) {
+              // YYYY-MM-DD format - use as is
+              startDateStr = yearRange.startYear;
+            } else if (yearRange.startYear.split('-').length === 2) {
+              // YYYY-MM format - use first day of month
+              const [year, month] = yearRange.startYear.split('-');
+              startDateStr = `${year}-${month}-01`;
+            }
+          } else {
+            // Just year - use January 1st
+            startDateStr = `${yearRange.startYear}-01-01`;
           }
-        } else {
-          // Just year - use January 1st
-          startDateStr = `${yearRange.startYear}-01-01`;
-        }
-        
-        // Process end date
-        let endDateStr;
-        if (endHasMonthDay) {
-          if (yearRange.endYear.split('-').length === 3) {
-            // YYYY-MM-DD format - use as is
-            endDateStr = yearRange.endYear;
-          } else if (yearRange.endYear.split('-').length === 2) {
-            // YYYY-MM format - use last day of month
-            const [year, month] = yearRange.endYear.split('-');
-            const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
-            endDateStr = `${year}-${month}-${lastDay}`;
+          
+          // Process end date
+          let endDateStr;
+          if (endHasMonthDay) {
+            if (yearRange.endYear.split('-').length === 3) {
+              // YYYY-MM-DD format - use as is
+              endDateStr = yearRange.endYear;
+            } else if (yearRange.endYear.split('-').length === 2) {
+              // YYYY-MM format - use last day of month
+              const [year, month] = yearRange.endYear.split('-');
+              const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+              endDateStr = `${year}-${month}-${lastDay}`;
+            }
+          } else {
+            // Just year - use December 31st
+            endDateStr = `${yearRange.endYear}-12-31`;
           }
-        } else {
-          // Just year - use December 31st
-          endDateStr = `${yearRange.endYear}-12-31`;
+          
+          setStartDate(startDateStr);
+          setEndDate(endDateStr);
+        } catch (err) {
+          console.error("Error processing date range", err);
+          // Fallback to standard year range
+          setStartDate(`${yearRange.startYear}-01-01`);
+          setEndDate(`${yearRange.endYear}-12-31`);
         }
-        
-        setStartDate(startDateStr);
-        setEndDate(endDateStr);
-      } catch (err) {
-        console.error("Error processing date range", err);
-        // Fallback to standard year range
+      } else {
+        // Standard year range (no month/day specificity)
         setStartDate(`${yearRange.startYear}-01-01`);
         setEndDate(`${yearRange.endYear}-12-31`);
       }
-    } else {
-      // Standard year range (no month/day specificity)
-      setStartDate(`${yearRange.startYear}-01-01`);
-      setEndDate(`${yearRange.endYear}-12-31`);
-    }
-  } else if (selectedYear !== 'all') {
-    if (selectedYear.includes('-')) {
-      // Handle YYYY-MM or YYYY-MM-DD format
-      const parts = selectedYear.split('-');
-      
-      if (parts.length === 3) {
-        // Single day selection - set both start and end to the same day
-        setStartDate(selectedYear);
-        setEndDate(selectedYear);
-      } else if (parts.length === 2) {
-        // Month selection (YYYY-MM)
-        const year = parts[0];
-        const month = parts[1];
+    } else if (selectedYear !== 'all') {
+      if (selectedYear.includes('-')) {
+        // Handle YYYY-MM or YYYY-MM-DD format
+        const parts = selectedYear.split('-');
         
-        // Get the last day of the month
-        const lastDay = new Date(year, parseInt(month), 0).getDate();
-        
-        setStartDate(`${year}-${month}-01`);
-        setEndDate(`${year}-${month}-${lastDay}`);
+        if (parts.length === 3) {
+          // Single day selection - set both start and end to the same day
+          setStartDate(selectedYear);
+          setEndDate(selectedYear);
+        } else if (parts.length === 2) {
+          // Month selection (YYYY-MM)
+          const year = parts[0];
+          const month = parts[1];
+          
+          // Get the last day of the month
+          const lastDay = new Date(year, parseInt(month), 0).getDate();
+          
+          setStartDate(`${year}-${month}-01`);
+          setEndDate(`${year}-${month}-${lastDay}`);
+        }
+      } else {
+        // Single year format (YYYY)
+        setStartDate(`${selectedYear}-01-01`);
+        setEndDate(`${selectedYear}-12-31`);
       }
     } else {
-      // Single year format (YYYY)
-      setStartDate(`${selectedYear}-01-01`);
-      setEndDate(`${selectedYear}-12-31`);
+      // All time - use the existing setAllTime function
+      if (rawPlayData.length > 0) {
+        try {
+          let earliest = new Date(rawPlayData[0].ts);
+          let latest = new Date(rawPlayData[0].ts);
+
+          for (const entry of rawPlayData) {
+            if (!entry.ts) continue;
+            
+            try {
+              const date = new Date(entry.ts);
+              if (!isNaN(date.getTime())) {
+                if (date < earliest) earliest = date;
+                if (date > latest) latest = date;
+              }
+            } catch (e) {
+              // Skip invalid dates
+            }
+          }
+          
+          const startStr = format(earliest, 'yyyy-MM-dd');
+          const endStr = format(latest, 'yyyy-MM-dd');
+          
+          setStartDate(startStr);
+          setEndDate(endStr);
+          
+          // Update the year selector
+          if (onYearChange) onYearChange('all');
+          if (onToggleYearRangeMode) onToggleYearRangeMode(false);
+        } catch (err) {
+          console.error("Error setting all time range:", err);
+        }
+      }
     }
-  } else {
-    // All time
-    setAllTime();
-  }
-}, [selectedYear, yearRangeMode, yearRange, rawPlayData]);
+  }, [selectedYear, yearRangeMode, yearRange, rawPlayData, onYearChange, onToggleYearRangeMode]);
 
   // Initialize date range from raw data
   useEffect(() => {
     if ((!startDate || !endDate) && rawPlayData.length > 0) {
-      setAllTime();
+      // Initialize with all time data
+      try {
+        let earliest = new Date(rawPlayData[0].ts);
+        let latest = new Date(rawPlayData[0].ts);
+
+        for (const entry of rawPlayData) {
+          if (!entry.ts) continue;
+          
+          try {
+            const date = new Date(entry.ts);
+            if (!isNaN(date.getTime())) {
+              if (date < earliest) earliest = date;
+              if (date > latest) latest = date;
+            }
+          } catch (e) {
+            // Skip invalid dates
+          }
+        }
+        
+        const startStr = format(earliest, 'yyyy-MM-dd');
+        const endStr = format(latest, 'yyyy-MM-dd');
+        
+        setStartDate(startStr);
+        setEndDate(endStr);
+      } catch (err) {
+        console.error("Error setting initial date range:", err);
+      }
     }
-  }, [rawPlayData]);
+  }, [rawPlayData, startDate, endDate]);
 
   // Handle date range changes that should update the YearSelector
   const handleDateChange = (start, end) => {
@@ -305,14 +362,14 @@ useEffect(() => {
     return Array.from(shows).sort();
   }, [rawPlayData]);
 
-const filteredShows = useMemo(() => {
-  return allShows
-    .filter(show =>
-      show.toLowerCase().includes(showSearch.toLowerCase()) &&
-      !selectedShows.includes(show)
-    )
-    .slice(0, 10);
-}, [allShows, showSearch, selectedShows]);
+  const filteredShows = useMemo(() => {
+    return allShows
+      .filter(show =>
+        show.toLowerCase().includes(showSearch.toLowerCase()) &&
+        !selectedShows.includes(show)
+      )
+      .slice(0, 10);
+  }, [allShows, showSearch, selectedShows]);
 
   const filteredEpisodes = useMemo(() => {
     if (!rawPlayData?.length) return [];
@@ -539,43 +596,6 @@ const filteredShows = useMemo(() => {
   const removeShow = (show) => {
     setSelectedShows(prev => prev.filter(s => s !== show));
   };
-
-const songsByYear = useMemo(() => {
-  const yearGroups = {};
-  
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Store under range format (e.g., "2022-2022")
-    const rangeLabel = `${yearRange.startYear}-${yearRange.endYear}`;
-    yearGroups[rangeLabel] = filteredTracks;
-    
-    // ALSO store under single year key if start and end are the same
-    if (yearRange.startYear === yearRange.endYear) {
-      yearGroups[yearRange.startYear] = filteredTracks;
-    }
-    
-    return yearGroups;
-  }
-  
-  // Normal single year case
-  return { [selectedYear]: filteredTracks };
-}, [filteredTracks, selectedYear, yearRangeMode, yearRange]); 
-
-const getDataForYearOrRange = (dataByYear, selectedYear, isRangeMode, yearRange) => {
-  // Check for single year first
-  if (dataByYear[selectedYear]) {
-    return dataByYear[selectedYear];
-  }
-  
-  // If this is a range with same start/end years, try the range key
-  if (isRangeMode && yearRange.startYear === yearRange.endYear && 
-      yearRange.startYear === selectedYear) {
-    const rangeKey = `${yearRange.startYear}-${yearRange.endYear}`;
-    return dataByYear[rangeKey] || [];
-  }
-  
-  // Handle other cases...
-  return [];
-};
 
   // Function to get page title based on date selection
   const getPageTitle = () => {
