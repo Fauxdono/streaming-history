@@ -42,42 +42,92 @@ const PodcastRankings = ({
   const [duplicatesFound, setDuplicatesFound] = useState(0);
   const [duplicateTypes, setDuplicateTypes] = useState({ exact: 0, overlapping: 0, zeroTime: 0 });
 
-  // Update date range based on year selection (from YearSelector)
-  useEffect(() => {
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      // Convert year range to date range
-      setStartDate(`${yearRange.startYear}-01-01`);
-      setEndDate(`${yearRange.endYear}-12-31`);
-    } else if (selectedYear !== 'all') {
-      if (selectedYear.includes('-')) {
-        // Handle YYYY-MM or YYYY-MM-DD format
-        const parts = selectedYear.split('-');
-        
-        if (parts.length === 3) {
-          // Single day selection - set both start and end to the same day
-          setStartDate(selectedYear);
-          setEndDate(selectedYear);
-        } else if (parts.length === 2) {
-          // Month selection (YYYY-MM)
-          const year = parts[0];
-          const month = parts[1];
-          
-          // Get the last day of the month
-          const lastDay = new Date(year, parseInt(month), 0).getDate();
-          
-          setStartDate(`${year}-${month}-01`);
-          setEndDate(`${year}-${month}-${lastDay}`);
+  // Update the date range handling in PodcastRankings.js
+useEffect(() => {
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    // Check if dates include month/day information
+    const startHasMonthDay = yearRange.startYear.includes('-');
+    const endHasMonthDay = yearRange.endYear.includes('-');
+    
+    if (startHasMonthDay || endHasMonthDay) {
+      // Process dates with month/day information
+      try {
+        // Process start date
+        let startDateStr;
+        if (startHasMonthDay) {
+          if (yearRange.startYear.split('-').length === 3) {
+            // YYYY-MM-DD format - use as is
+            startDateStr = yearRange.startYear;
+          } else if (yearRange.startYear.split('-').length === 2) {
+            // YYYY-MM format - use first day of month
+            const [year, month] = yearRange.startYear.split('-');
+            startDateStr = `${year}-${month}-01`;
+          }
+        } else {
+          // Just year - use January 1st
+          startDateStr = `${yearRange.startYear}-01-01`;
         }
-      } else {
-        // Single year format (YYYY)
-        setStartDate(`${selectedYear}-01-01`);
-        setEndDate(`${selectedYear}-12-31`);
+        
+        // Process end date
+        let endDateStr;
+        if (endHasMonthDay) {
+          if (yearRange.endYear.split('-').length === 3) {
+            // YYYY-MM-DD format - use as is
+            endDateStr = yearRange.endYear;
+          } else if (yearRange.endYear.split('-').length === 2) {
+            // YYYY-MM format - use last day of month
+            const [year, month] = yearRange.endYear.split('-');
+            const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+            endDateStr = `${year}-${month}-${lastDay}`;
+          }
+        } else {
+          // Just year - use December 31st
+          endDateStr = `${yearRange.endYear}-12-31`;
+        }
+        
+        setStartDate(startDateStr);
+        setEndDate(endDateStr);
+      } catch (err) {
+        console.error("Error processing date range", err);
+        // Fallback to standard year range
+        setStartDate(`${yearRange.startYear}-01-01`);
+        setEndDate(`${yearRange.endYear}-12-31`);
       }
     } else {
-      // All time
-      setAllTime();
+      // Standard year range (no month/day specificity)
+      setStartDate(`${yearRange.startYear}-01-01`);
+      setEndDate(`${yearRange.endYear}-12-31`);
     }
-  }, [selectedYear, yearRangeMode, yearRange, rawPlayData]);
+  } else if (selectedYear !== 'all') {
+    if (selectedYear.includes('-')) {
+      // Handle YYYY-MM or YYYY-MM-DD format
+      const parts = selectedYear.split('-');
+      
+      if (parts.length === 3) {
+        // Single day selection - set both start and end to the same day
+        setStartDate(selectedYear);
+        setEndDate(selectedYear);
+      } else if (parts.length === 2) {
+        // Month selection (YYYY-MM)
+        const year = parts[0];
+        const month = parts[1];
+        
+        // Get the last day of the month
+        const lastDay = new Date(year, parseInt(month), 0).getDate();
+        
+        setStartDate(`${year}-${month}-01`);
+        setEndDate(`${year}-${month}-${lastDay}`);
+      }
+    } else {
+      // Single year format (YYYY)
+      setStartDate(`${selectedYear}-01-01`);
+      setEndDate(`${selectedYear}-12-31`);
+    }
+  } else {
+    // All time
+    setAllTime();
+  }
+}, [selectedYear, yearRangeMode, yearRange, rawPlayData]);
 
   // Initialize date range from raw data
   useEffect(() => {
