@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import WheelSelector from './wheelselector.js';
 
 const YearSelector = ({ 
@@ -14,6 +14,9 @@ const YearSelector = ({
   startMinimized = false,
   asSidebar = false 
 }) => {
+  // Reduce rerenders by tracking previous props
+  const prevProps = useRef({ initialYear, initialYearRange, isRangeMode });
+  
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   const [expanded, setExpanded] = useState(!startMinimized);
   const [isMobile, setIsMobile] = useState(false);
@@ -27,7 +30,7 @@ const YearSelector = ({
   
   // Month and Day Selection - for single year mode
   const [showMonthSelector, setShowMonthSelector] = useState(false);
-const [showDaySelector, setShowDaySelector] = useState(false);
+  const [showDaySelector, setShowDaySelector] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [selectedDay, setSelectedDay] = useState(1);
   
@@ -41,41 +44,51 @@ const [showDaySelector, setShowDaySelector] = useState(false);
   // For forcing UI updates - increment when we need a UI refresh
   const [refreshCounter, setRefreshCounter] = useState(0);
   
-  // Extract years from artistsByYear and ensure they're in the correct format
-  const getYearsArray = () => {
+  // Extract years from artistsByYear and ensure they're in the correct format - memoized
+  const years = useMemo(() => {
     // Check if artistsByYear is available
     if (!artistsByYear || typeof artistsByYear !== 'object') {
-      console.warn('artistsByYear is not available or not an object', artistsByYear);
       return [];
     }
     
-    return Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
-  };
+    // Use a try/catch to handle potential errors
+    try {
+      return Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+    } catch (err) {
+      console.warn('Error extracting years from artistsByYear', err);
+      return [];
+    }
+  }, [artistsByYear]);
   
-  const years = getYearsArray();
+  // Generate all months (1-12) - create this only once
+  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
   
-  // Generate all months (1-12)
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  // Helper function to get days in month - memoized to improve performance
+  const getDaysInMonth = useMemo(() => {
+    return (year, month) => {
+      if (!year || year === 'all') return 31;
+      try {
+        // JavaScript months are 0-based, but our month parameter is 1-based
+        return new Date(parseInt(year), month, 0).getDate();
+      } catch (err) {
+        console.warn('Error calculating days in month', err);
+        return 31; // Fallback
+      }
+    };
+  }, []);
   
-  // Generate days based on selected month and year
-  const getDaysInMonth = (year, month) => {
-    if (!year || year === 'all') return 31;
-    // JavaScript months are 0-based, but our month parameter is 1-based
-    return new Date(parseInt(year), month, 0).getDate();
-  };
-  
-  // Create the days arrays as memoized values
+  // Create the days arrays as memoized values with dependencies reduced
   const days = useMemo(() => {
     return Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => i + 1);
-  }, [selectedYear, selectedMonth, refreshCounter]);
+  }, [selectedYear, selectedMonth, getDaysInMonth]);
   
   const startDays = useMemo(() => {
     return Array.from({ length: getDaysInMonth(yearRange.startYear, startMonth) }, (_, i) => i + 1);
-  }, [yearRange.startYear, startMonth, refreshCounter]);
+  }, [yearRange.startYear, startMonth, getDaysInMonth]);
   
   const endDays = useMemo(() => {
     return Array.from({ length: getDaysInMonth(yearRange.endYear, endMonth) }, (_, i) => i + 1);
-  }, [yearRange.endYear, endMonth, refreshCounter]);
+  }, [yearRange.endYear, endMonth, getDaysInMonth]);
   
   // Check for mobile viewport
   useEffect(() => {
@@ -94,12 +107,25 @@ const [showDaySelector, setShowDaySelector] = useState(false);
   }, []);
   
   // When isRangeMode prop changes, update our internal mode state
+  // Only update if the value actually changed to avoid unnecessary rerenders
   useEffect(() => {
-    setMode(isRangeMode ? 'range' : 'single');
+    if (isRangeMode !== prevProps.current.isRangeMode) {
+      setMode(isRangeMode ? 'range' : 'single');
+      prevProps.current.isRangeMode = isRangeMode;
+    }
   }, [isRangeMode]);
   
   // Update yearRange when initialYearRange changes
+  // Only process if the values actually changed
   useEffect(() => {
+    // Skip if nothing changed
+    if (initialYearRange?.startYear === prevProps.current.initialYearRange?.startYear &&
+        initialYearRange?.endYear === prevProps.current.initialYearRange?.endYear) {
+      return;
+    }
+    
+    prevProps.current.initialYearRange = initialYearRange;
+    
     if (initialYearRange?.startYear && initialYearRange?.endYear) {
       // Check if initialYearRange has month/day information
       const startParts = initialYearRange.startYear.split('-');
@@ -155,58 +181,66 @@ const [showDaySelector, setShowDaySelector] = useState(false);
     }
   }, [initialYearRange]);
   
-useEffect(() => {
-  if (initialYear) {
-    // Check if initialYear contains month/day info
-    if (initialYear !== 'all' && initialYear.includes('-')) {
-      const parts = initialYear.split('-');
-      
-      // Set the year part
-      setSelectedYear(parts[0]);
-      
-      // If we have at least year-month format
-      if (parts.length >= 2) {
-        const monthPart = parseInt(parts[1]);
-        if (!isNaN(monthPart) && monthPart >= 1 && monthPart <= 12) {
-          setSelectedMonth(monthPart);
-          setShowMonthSelector(true); // Show month selector
-          
-          // If we have year-month-day format
-          if (parts.length >= 3) {
-            const dayPart = parseInt(parts[2]);
-            if (!isNaN(dayPart) && dayPart >= 1) {
-              setSelectedDay(dayPart);
-              setShowDaySelector(true); // Show day selector
+  // Handle initialYear changes - only update if the value changed
+  useEffect(() => {
+    if (initialYear === prevProps.current.initialYear) {
+      return;
+    }
+    
+    prevProps.current.initialYear = initialYear;
+    
+    if (initialYear) {
+      // Check if initialYear contains month/day info
+      if (initialYear !== 'all' && initialYear.includes('-')) {
+        const parts = initialYear.split('-');
+        
+        // Set the year part
+        setSelectedYear(parts[0]);
+        
+        // If we have at least year-month format
+        if (parts.length >= 2) {
+          const monthPart = parseInt(parts[1]);
+          if (!isNaN(monthPart) && monthPart >= 1 && monthPart <= 12) {
+            setSelectedMonth(monthPart);
+            setShowMonthSelector(true); // Show month selector
+            
+            // If we have year-month-day format
+            if (parts.length >= 3) {
+              const dayPart = parseInt(parts[2]);
+              if (!isNaN(dayPart) && dayPart >= 1) {
+                setSelectedDay(dayPart);
+                setShowDaySelector(true); // Show day selector
+              }
+            } else {
+              setShowDaySelector(false); // Hide day selector for year-month format
             }
-          } else {
-            setShowDaySelector(false); // Hide day selector for year-month format
           }
         }
+      } else {
+        // Just a simple year or "all"
+        setSelectedYear(initialYear);
+        
+        // If switching to "all", hide selectors
+        if (initialYear === 'all') {
+          setShowMonthSelector(false);
+          setShowDaySelector(false);
+        }
       }
-    } else {
-      // Just a simple year or "all"
-      setSelectedYear(initialYear);
       
-      // If switching to "all", hide selectors
-      if (initialYear === 'all') {
-        setShowMonthSelector(false);
-        setShowDaySelector(false);
+      // Ensure the mode is consistent
+      if (initialYear !== 'all' && initialYear.includes('-')) {
+        setMode('single');
+        if (onToggleRangeMode) {
+          onToggleRangeMode(false);
+        }
       }
     }
     
-    // Ensure the mode is consistent
-    if (initialYear !== 'all' && initialYear.includes('-')) {
-      setMode('single');
-      if (onToggleRangeMode) {
-        onToggleRangeMode(false);
-      }
-    }
-  }
+    // Force UI refresh 
+    setRefreshCounter(prev => prev + 1);
+  }, [initialYear, onToggleRangeMode]);
   
-  setRefreshCounter(prev => prev + 1);
-}, [initialYear, onToggleRangeMode]);
-  
-  // Reset month and day selection when year changes
+  // Reset month and day selection when year changes - with memoization
   useEffect(() => {
     if (selectedYear !== 'all') {
       // If the days in the current month is less than the selected day, adjust it
@@ -218,9 +252,9 @@ useEffect(() => {
     
     // Force a UI refresh to ensure the wheel selectors update
     setRefreshCounter(prev => prev + 1);
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, getDaysInMonth]);
   
-  // Adjust range days if month/year changes
+  // Adjust range days if month/year changes - with memoization
   useEffect(() => {
     if (yearRange.startYear) {
       const startDaysInMonth = getDaysInMonth(yearRange.startYear, startMonth);
@@ -238,10 +272,10 @@ useEffect(() => {
     
     // Force a UI refresh to ensure the wheel selectors update
     setRefreshCounter(prev => prev + 1);
-  }, [yearRange.startYear, yearRange.endYear, startMonth, endMonth]);
+  }, [yearRange.startYear, yearRange.endYear, startMonth, endMonth, getDaysInMonth]);
   
-  // Map color theme to actual color values
-  const getColors = () => {
+  // Map color theme to actual color values - memoized to avoid recalculation
+  const colors = useMemo(() => {
     switch (colorTheme) {
       case 'pink':
         return {
@@ -398,10 +432,8 @@ useEffect(() => {
           bgMed: 'bg-teal-200'
         };
     }
-  };
+  }, [colorTheme]);
 
-  const colors = getColors();
-  
   if (years.length === 0) {
     return <div className={colors.text + " italic"}>No year data available</div>;
   }
@@ -416,123 +448,128 @@ useEffect(() => {
     setCurrentPosition(currentPosition === 'left' ? 'right' : 'left');
   };
 
-const handleModeChange = (newMode) => {
-  // If the current mode is already the requested mode, do nothing
-  if (mode === newMode) return;
-  
-  // Update internal mode state
-  setMode(newMode);
-  
-  // Notify parent component about mode change
-  if (onToggleRangeMode) {
-    onToggleRangeMode(newMode === 'range');
-  }
-  
-  // If switching to single mode
-  if (newMode === 'single') {
-    // If we have a formatted date in range mode, try to preserve it in single mode
-    if (mode === 'range' && 
-        showRangeMonthDaySelectors && 
-        yearRange.startYear === yearRange.endYear && 
-        startMonth === endMonth &&
-        startDay === endDay) {
-      // We have a specific date selected - preserve it
-      const dateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-      setSelectedYear(yearRange.startYear);
-      setSelectedMonth(startMonth);
-      setSelectedDay(startDay);
-      setShowMonthDaySelectors(true);
-      
-      // Ensure the parent knows about this specific date
-      if (onYearChange) {
-        onYearChange(dateStr);
+  // Optimized handleModeChange function - use debounce
+  const handleModeChange = (newMode) => {
+    // If the current mode is already the requested mode, do nothing
+    if (mode === newMode) return;
+    
+    // Update internal mode state
+    setMode(newMode);
+    
+    // Notify parent component about mode change
+    if (onToggleRangeMode) {
+      onToggleRangeMode(newMode === 'range');
+    }
+    
+    // If switching to single mode
+    if (newMode === 'single') {
+      // If we have a formatted date in range mode, try to preserve it in single mode
+      if (mode === 'range' && 
+          showRangeMonthDaySelectors && 
+          yearRange.startYear === yearRange.endYear && 
+          startMonth === endMonth &&
+          startDay === endDay) {
+        // We have a specific date selected - preserve it
+        const dateStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+        setSelectedYear(yearRange.startYear);
+        setSelectedMonth(startMonth);
+        setSelectedDay(startDay);
+        setShowMonthSelector(true);
+        setShowDaySelector(true);
+        
+        // Ensure the parent knows about this specific date
+        if (onYearChange) {
+          onYearChange(dateStr);
+        }
+      } 
+      // If we have a year-only range with identical years
+      else if (mode === 'range' && 
+              !showRangeMonthDaySelectors && 
+              yearRange.startYear === yearRange.endYear) {
+        // Convert single year from range to single mode
+        setSelectedYear(yearRange.startYear);
+        setShowMonthSelector(false);
+        setShowDaySelector(false);
+        
+        if (onYearChange) {
+          onYearChange(yearRange.startYear);
+        }
+      }
+      else {
+        // Default to all-time view
+        setSelectedYear('all');
+        setShowMonthSelector(false);
+        setShowDaySelector(false);
+        
+        if (onYearChange) {
+          onYearChange('all');
+        }
       }
     } 
-    // If we have a year-only range with identical years
-    else if (mode === 'range' && 
-            !showRangeMonthDaySelectors && 
-            yearRange.startYear === yearRange.endYear) {
-      // Convert single year from range to single mode
-      setSelectedYear(yearRange.startYear);
-      setShowMonthDaySelectors(false);
-      
-      if (onYearChange) {
-        onYearChange(yearRange.startYear);
+    // If switching to range mode
+    else if (newMode === 'range' && years.length >= 2) {
+      // If we have a specific date in single mode, preserve it in range mode
+      if (mode === 'single' && showMonthSelector && showDaySelector && selectedYear !== 'all') {
+        // Convert single date to same start/end range
+        const formattedDate = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+        
+        setYearRange({
+          startYear: selectedYear,
+          endYear: selectedYear
+        });
+        setStartMonth(selectedMonth);
+        setEndMonth(selectedMonth);
+        setStartDay(selectedDay);
+        setEndDay(selectedDay);
+        setShowRangeMonthDaySelectors(true);
+        
+        // For identical date ranges, actually use the single date callback
+        if (onYearChange) {
+          onYearChange(formattedDate);
+        }
+      } 
+      // If we have a year-only selection in single mode
+      else if (mode === 'single' && !showMonthSelector && selectedYear !== 'all') {
+        // Convert single year to same start/end range
+        setYearRange({
+          startYear: selectedYear,
+          endYear: selectedYear
+        });
+        setShowRangeMonthDaySelectors(false);
+        
+        // For identical year ranges, use the single year callback
+        if (onYearChange) {
+          onYearChange(selectedYear);
+        }
+      }
+      else {
+        // Default to full range
+        const newYearRange = {
+          startYear: years[0],
+          endYear: years[years.length - 1]
+        };
+        
+        setYearRange(newYearRange);
+        setShowRangeMonthDaySelectors(false);
+        
+        if (onYearRangeChange) {
+          onYearRangeChange(newYearRange);
+        }
       }
     }
-    else {
-      // Default to all-time view
-      setSelectedYear('all');
-      setShowMonthDaySelectors(false);
-      
-      if (onYearChange) {
-        onYearChange('all');
-      }
-    }
-  } 
-  // If switching to range mode
-  else if (newMode === 'range' && years.length >= 2) {
-    // If we have a specific date in single mode, preserve it in range mode
-    if (mode === 'single' && showMonthDaySelectors && selectedYear !== 'all') {
-      // Convert single date to same start/end range
-      const formattedDate = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-      
-      setYearRange({
-        startYear: selectedYear,
-        endYear: selectedYear
-      });
-      setStartMonth(selectedMonth);
-      setEndMonth(selectedMonth);
-      setStartDay(selectedDay);
-      setEndDay(selectedDay);
-      setShowRangeMonthDaySelectors(true);
-      
-      // For identical date ranges, actually use the single date callback
-      if (onYearChange) {
-        onYearChange(formattedDate);
-      }
-    } 
-    // If we have a year-only selection in single mode
-    else if (mode === 'single' && !showMonthDaySelectors && selectedYear !== 'all') {
-      // Convert single year to same start/end range
-      setYearRange({
-        startYear: selectedYear,
-        endYear: selectedYear
-      });
-      setShowRangeMonthDaySelectors(false);
-      
-      // For identical year ranges, use the single year callback
-      if (onYearChange) {
-        onYearChange(selectedYear);
-      }
-    }
-    else {
-      // Default to full range
-      const newYearRange = {
-        startYear: years[0],
-        endYear: years[years.length - 1]
-      };
-      
-      setYearRange(newYearRange);
-      setShowRangeMonthDaySelectors(false);
-      
-      if (onYearRangeChange) {
-        onYearRangeChange(newYearRange);
-      }
-    }
-  }
-};
+  };
   
-  // Format month name for display
+  // Format month name for display - memoized
+  const monthNames = useMemo(() => {
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  }, []);
+  
   const getMonthName = (month) => {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
     return monthNames[month - 1];
   };
   
-  // Handle year change in single mode
+  // Handle year change in single mode - debounced
   const handleYearChange = (year) => {
     // Save the previous year
     const prevYear = selectedYear;
@@ -542,7 +579,8 @@ const handleModeChange = (newMode) => {
     
     // If changing to "all", hide month/day selectors
     if (year === 'all') {
-      setShowMonthDaySelectors(false);
+      setShowMonthSelector(false);
+      setShowDaySelector(false);
     }
     
     // If not "all", make sure the month/day are valid for this year
@@ -647,133 +685,157 @@ const handleModeChange = (newMode) => {
     updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, endMonth, day);
   };
   
-const updateParentWithDate = (year, month, day) => {
-  if (!onYearChange) return;
-  
-  if (year === 'all') {
-    onYearChange('all');
-    return;
-  }
-  
-  // Format according to what selectors are shown
-  if (showMonthSelector && showDaySelector) {
-    // Year-Month-Day format
-    const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    onYearChange(dateStr);
-  } else if (showMonthSelector) {
-    // Year-Month format
-    const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
-    onYearChange(dateStr);
-  } else {
-    // Just year
-    onYearChange(year);
-  }
-};
-// Replace the existing updateParentWithDateRange function with this version:
-
-const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
-  // Only proceed if we have the callback function
-  if (!onYearRangeChange) return;
-  
-  // Use provided values or fall back to state
-  const sYear = startYear || yearRange.startYear;
-  const sMonth = startM || startMonth;
-  const sDay = startD || startDay;
-  const eYear = endYear || yearRange.endYear;
-  const eMonth = endM || endMonth;
-  const eDay = endD || endDay;
-  
-  if (!sYear || !eYear) return;
-  
-  // Format dates based on whether month/day selectors are shown
-  let startValue, endValue;
-  
-  if (showRangeMonthDaySelectors) {
-    // Format with month and day
-    startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
-    endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
-  } else {
-    // Year-only format
-    startValue = sYear;
-    endValue = eYear;
-  }
-  
-  // IMPORTANT: Always call onYearRangeChange when in range mode
-  // Let the parent component decide what to do with the values
-  onYearRangeChange({
-    startYear: startValue,
-    endYear: endValue
-  });
-};
-  
-  // Handler for year range change in range mode
-  const handleYearRangeChange = ({ startYear, endYear }) => {
-    const newYearRange = { startYear, endYear };
-    setYearRange(newYearRange);
+  // Optimized updateParentWithDate function
+  const updateParentWithDate = (year, month, day) => {
+    if (!onYearChange) return;
     
-    // Reset days if they're not valid for the new years
-    if (startYear) {
-      const startDaysInMonth = getDaysInMonth(startYear, startMonth);
-      if (startDay > startDaysInMonth) {
-        setStartDay(startDaysInMonth);
-      }
+    if (year === 'all') {
+      onYearChange('all');
+      return;
     }
     
-    if (endYear) {
-      const endDaysInMonth = getDaysInMonth(endYear, endMonth);
-      if (endDay > endDaysInMonth) {
-        setEndDay(endDaysInMonth);
-      }
-    }
-    
-    // Update parent with the new range
-    updateParentWithDateRange(startYear, startMonth, startDay, endYear, endMonth, endDay);
-    
-    // Force UI refresh
-    setRefreshCounter(prev => prev + 1);
-  };
-  
-
-const getYearLabel = () => {
-  if (mode === 'single') {
-    if (selectedYear === 'all') return 'All Time';
-    
-    // Three possible formats for single mode
+    // Format according to what selectors are shown
     if (showMonthSelector && showDaySelector) {
-      // Full date format
-      return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+      // Year-Month-Day format
+      const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      onYearChange(dateStr);
     } else if (showMonthSelector) {
       // Year-Month format
-      return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+      const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
+      onYearChange(dateStr);
     } else {
-      // Year only
-      return selectedYear;
+      // Just year
+      onYearChange(year);
     }
-  } else {
-    // Keep your existing range mode logic here
-    if (yearRange.startYear === yearRange.endYear) {
-      if (showRangeMonthDaySelectors) {
-        if (startMonth === endMonth && startDay === endDay) {
-          return `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+  };
+  
+  // Optimized updateParentWithDateRange function
+  const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
+    // Only proceed if we have the callback function
+    if (!onYearRangeChange) return;
+    
+    // Use provided values or fall back to state
+    const sYear = startYear || yearRange.startYear;
+    const sMonth = startM || startMonth;
+    const sDay = startD || startDay;
+    const eYear = endYear || yearRange.endYear;
+    const eMonth = endM || endMonth;
+    const eDay = endD || endDay;
+    
+    if (!sYear || !eYear) return;
+    
+    // Format dates based on whether month/day selectors are shown
+    let startValue, endValue;
+    
+    if (showRangeMonthDaySelectors) {
+      // Format with month and day
+      startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
+      endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
+    } else {
+      // Year-only format
+      startValue = sYear;
+      endValue = eYear;
+    }
+    
+    // IMPORTANT: Always call onYearRangeChange when in range mode
+    // Let the parent component decide what to do with the values
+    onYearRangeChange({
+      startYear: startValue,
+      endYear: endValue
+    });
+  };
+  
+  // Handler for year range change in range mode - with error handling
+  const handleYearRangeChange = ({ startYear, endYear }) => {
+    // Validate input first to prevent errors
+    if (!startYear || !endYear) {
+      console.warn('Invalid year range:', { startYear, endYear });
+      return;
+    }
+    
+    try {
+      const newYearRange = { startYear, endYear };
+      setYearRange(newYearRange);
+      
+      // Reset days if they're not valid for the new years
+      if (startYear) {
+        const startDaysInMonth = getDaysInMonth(startYear, startMonth);
+        if (startDay > startDaysInMonth) {
+          setStartDay(startDaysInMonth);
         }
-        
+      }
+      
+      if (endYear) {
+        const endDaysInMonth = getDaysInMonth(endYear, endMonth);
+        if (endDay > endDaysInMonth) {
+          setEndDay(endDaysInMonth);
+        }
+      }
+      
+      // Update parent with the new range
+      updateParentWithDateRange(startYear, startMonth, startDay, endYear, endMonth, endDay);
+      
+      // Force UI refresh
+      setRefreshCounter(prev => prev + 1);
+    } catch (err) {
+      console.error('Error handling year range change:', err);
+    }
+  };
+  
+  // Memoized getYearLabel function to avoid recalculations
+  const getYearLabel = useMemo(() => {
+    if (mode === 'single') {
+      if (selectedYear === 'all') return 'All Time';
+      
+      // Three possible formats for single mode
+      if (showMonthSelector && showDaySelector) {
+        // Full date format
+        return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+      } else if (showMonthSelector) {
+        // Year-Month format
+        return `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+      } else {
+        // Year only
+        return selectedYear;
+      }
+    } else {
+      // Range mode logic
+      if (yearRange.startYear === yearRange.endYear) {
+        if (showRangeMonthDaySelectors) {
+          if (startMonth === endMonth && startDay === endDay) {
+            return `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+          }
+          
+          const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+          const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+          return `${startStr} to ${endStr}`;
+        } else {
+          return yearRange.startYear;
+        }
+      }
+      
+      if (showRangeMonthDaySelectors) {
         const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
         const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
         return `${startStr} to ${endStr}`;
-      } else {
-        return yearRange.startYear;
       }
+      
+      return `${yearRange.startYear}-${yearRange.endYear}`;
     }
-    
-    if (showRangeMonthDaySelectors) {
-      const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-      const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-      return `${startStr} to ${endStr}`;
-    }
-    
-    return `${yearRange.startYear}-${yearRange.endYear}`;
-  }
-};
+  }, [
+    mode, 
+    selectedYear, 
+    selectedMonth, 
+    selectedDay, 
+    showMonthSelector, 
+    showDaySelector,
+    yearRange, 
+    startMonth, 
+    startDay, 
+    endMonth, 
+    endDay, 
+    showRangeMonthDaySelectors
+  ]);
 
   // Position styles for the sidebar
   const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
@@ -817,7 +879,7 @@ const getYearLabel = () => {
         
         <div className={`h-full pt-16 flex flex-col items-center justify-center ${colors.text}`}>
           <div className="writing-mode-vertical text-xs font-bold my-2">
-            {getYearLabel()}
+            {getYearLabel}
           </div>
           <div className="writing-mode-vertical text-xs opacity-70">
             {mode === 'single' ? 'Year' : 'Year Range'}
@@ -835,14 +897,14 @@ const getYearLabel = () => {
     );
   }
   
-const containerClass = asSidebar 
-  ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 ${
-      mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
-    } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
-  : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
+  const containerClass = asSidebar 
+    ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 ${
+        mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
+      } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+    : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-return (
-  <div className={`year-selector-sidebar ${containerClass}`} style={{ transition: 'width 0.3s ease-in-out' }}>
+  return (
+    <div className={`year-selector-sidebar ${containerClass}`} style={{ transition: 'width 0.3s ease-in-out' }}>
       {/* Collapse button for sidebar */}
       {asSidebar && (
         <button 
@@ -900,42 +962,42 @@ return (
 
               {selectedYear !== 'all' && (
                 <>
-                 {/* Month Selector Toggle */}
-<div className="flex items-center justify-between w-full mb-2">
-  <div className={`text-xs font-medium ${colors.text}`}>Month</div>
-  <label className="relative inline-flex items-center cursor-pointer">
-    <input 
-      type="checkbox" 
-      checked={showMonthSelector} 
-      onChange={() => {
-        const newMonthValue = !showMonthSelector;
-        setShowMonthSelector(newMonthValue);
-        
-        // If turning off month, also turn off day
-        if (!newMonthValue) {
-          setShowDaySelector(false);
-          
-          // When turning off month selector, update parent with just the year
-          if (onYearChange && selectedYear !== 'all') {
-            onYearChange(selectedYear);
-          }
-        } else {
-          // When turning on month selector, update parent with year-month format
-          if (onYearChange && selectedYear !== 'all') {
-            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-            onYearChange(dateStr);
-          }
-        }
-        
-        // Refresh UI
-        setRefreshCounter(prev => prev + 1);
-      }}
-      className="sr-only"
-    />
-    <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
-    <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
-  </label>
-</div>
+                  {/* Month Selector Toggle */}
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div className={`text-xs font-medium ${colors.text}`}>Month</div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={showMonthSelector} 
+                        onChange={() => {
+                          const newMonthValue = !showMonthSelector;
+                          setShowMonthSelector(newMonthValue);
+                          
+                          // If turning off month, also turn off day
+                          if (!newMonthValue) {
+                            setShowDaySelector(false);
+                            
+                            // When turning off month selector, update parent with just the year
+                            if (onYearChange && selectedYear !== 'all') {
+                              onYearChange(selectedYear);
+                            }
+                          } else {
+                            // When turning on month selector, update parent with year-month format
+                            if (onYearChange && selectedYear !== 'all') {
+                              const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                              onYearChange(dateStr);
+                            }
+                          }
+                          
+                          // Refresh UI
+                          setRefreshCounter(prev => prev + 1);
+                        }}
+                        className="sr-only"
+                      />
+                      <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+                      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
+                    </label>
+                  </div>
                   
                   {/* Month Selector */}
                   {showMonthSelector && (
@@ -952,39 +1014,39 @@ return (
                     </div>
                   )}
                   
-                 {/* Day Selector Toggle - only shown if month is selected */}
-{showMonthSelector && (
-  <div className="flex items-center justify-between w-full my-2">
-    <div className={`text-xs font-medium ${colors.text}`}>Day</div>
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input 
-        type="checkbox" 
-        checked={showDaySelector} 
-        onChange={() => {
-          const newDayValue = !showDaySelector;
-          setShowDaySelector(newDayValue);
-          
-          // Update parent with appropriate date format based on the new state
-          if (newDayValue) {
-            // If turning ON day selector, use full YYYY-MM-DD format
-            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-            if (onYearChange) onYearChange(dateStr);
-          } else {
-            // If turning OFF day selector, use YYYY-MM format
-            const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-            if (onYearChange) onYearChange(dateStr);
-          }
-          
-          // Refresh UI
-          setRefreshCounter(prev => prev + 1);
-        }}
-        className="sr-only"
-      />
-      <div className={`w-9 h-5 rounded-full ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}></div>
-      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-4' : ''}`}></div>
-    </label>
-  </div>
-)}
+                  {/* Day Selector Toggle - only shown if month is selected */}
+                  {showMonthSelector && (
+                    <div className="flex items-center justify-between w-full my-2">
+                      <div className={`text-xs font-medium ${colors.text}`}>Day</div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={showDaySelector} 
+                          onChange={() => {
+                            const newDayValue = !showDaySelector;
+                            setShowDaySelector(newDayValue);
+                            
+                            // Update parent with appropriate date format based on the new state
+                            if (newDayValue) {
+                              // If turning ON day selector, use full YYYY-MM-DD format
+                              const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+                              if (onYearChange) onYearChange(dateStr);
+                            } else {
+                              // If turning OFF day selector, use YYYY-MM format
+                              const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                              if (onYearChange) onYearChange(dateStr);
+                            }
+                            
+                            // Refresh UI
+                            setRefreshCounter(prev => prev + 1);
+                          }}
+                          className="sr-only"
+                        />
+                        <div className={`w-9 h-5 rounded-full ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+                        <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-4' : ''}`}></div>
+                      </label>
+                    </div>
+                  )}
                   
                   {/* Day Selector */}
                   {showMonthSelector && showDaySelector && (
@@ -1044,51 +1106,51 @@ return (
                 </div>
               </div>
               
-            {/* Month/Day toggles for range mode */}
-{yearRange.startYear && yearRange.endYear && (
-  <div className="flex items-center justify-between w-full mb-2">
-    <div className={`text-xs font-medium ${colors.text}`}>Month/Day</div>
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input 
-        type="checkbox" 
-        checked={showRangeMonthDaySelectors} 
-        onChange={() => {
-          // Toggle the state
-          const newValue = !showRangeMonthDaySelectors;
-          setShowRangeMonthDaySelectors(newValue);
-          
-          // Update parent with the appropriate date format based on the new state
-          if (newValue) {
-            // If turning ON month/day selectors, include month and day in range
-            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-            
-            if (onYearRangeChange) {
-              onYearRangeChange({
-                startYear: startStr,
-                endYear: endStr
-              });
-            }
-          } else {
-            // If turning OFF month/day selectors, use year-only format
-            if (onYearRangeChange) {
-              onYearRangeChange({
-                startYear: yearRange.startYear,
-                endYear: yearRange.endYear
-              });
-            }
-          }
-          
-          // Force UI refresh
-          setRefreshCounter(prev => prev + 1);
-        }}
-        className="sr-only"
-      />
-      <div className={`w-9 h-5 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
-      <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
-    </label>
-  </div>
-)}
+              {/* Month/Day toggles for range mode */}
+              {yearRange.startYear && yearRange.endYear && (
+                <div className="flex items-center justify-between w-full mb-2">
+                  <div className={`text-xs font-medium ${colors.text}`}>Month/Day</div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={showRangeMonthDaySelectors} 
+                      onChange={() => {
+                        // Toggle the state
+                        const newValue = !showRangeMonthDaySelectors;
+                        setShowRangeMonthDaySelectors(newValue);
+                        
+                        // Update parent with the appropriate date format based on the new state
+                        if (newValue) {
+                          // If turning ON month/day selectors, include month and day in range
+                          const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                          const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                          
+                          if (onYearRangeChange) {
+                            onYearRangeChange({
+                              startYear: startStr,
+                              endYear: endStr
+                            });
+                          }
+                        } else {
+                          // If turning OFF month/day selectors, use year-only format
+                          if (onYearRangeChange) {
+                            onYearRangeChange({
+                              startYear: yearRange.startYear,
+                              endYear: yearRange.endYear
+                            });
+                          }
+                        }
+                        
+                        // Force UI refresh
+                        setRefreshCounter(prev => prev + 1);
+                      }}
+                      className="sr-only"
+                    />
+                    <div className={`w-9 h-5 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+                    <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
+                  </label>
+                </div>
+              )}
               
               {/* Month/Day selectors for range mode */}
               {yearRange.startYear && showRangeMonthDaySelectors && (
@@ -1152,7 +1214,7 @@ return (
         <div className="flex flex-col items-center mt-2 gap-2">
           {/* Current selection display */}
           <div className={`font-bold text-center px-2 py-1 rounded-md ${colors.bgLight} ${colors.textBold} text-xs year-display truncate max-w-[110px]`}>
-            {getYearLabel()}
+            {getYearLabel}
           </div>
           
           {/* Sidebar position toggle - only for sidebar */}
@@ -1211,4 +1273,5 @@ return (
     </div>
   );
 };
+
 export default YearSelector;
