@@ -17,9 +17,97 @@ const ListeningPatterns = ({
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
   
-  // Filter data by selected year or year range
-  const filteredData = useMemo(() => {
-    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+  // Update exported variables when props change
+  useEffect(() => {
+    selectedPatternYear = selectedYear;
+    yearPatternRange = yearRange;
+    patternYearRangeMode = yearRangeMode;
+  }, [selectedYear, yearRange, yearRangeMode]);
+  
+  // Update the filteredData useMemo in ListeningPatterns.js
+const filteredData = useMemo(() => {
+  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+    // Year range mode
+    
+    // Check if dates include month/day information
+    const startHasMonthDay = yearRange.startYear.includes('-');
+    const endHasMonthDay = yearRange.endYear.includes('-');
+    
+    if (startHasMonthDay || endHasMonthDay) {
+      // Parse dates into Date objects for comparison
+      let startDate, endDate;
+      
+      try {
+        // Process start date
+        if (startHasMonthDay) {
+          if (yearRange.startYear.split('-').length === 3) {
+            // YYYY-MM-DD format
+            startDate = new Date(yearRange.startYear);
+            startDate.setHours(0, 0, 0, 0); // Start of day
+          } else if (yearRange.startYear.split('-').length === 2) {
+            // YYYY-MM format
+            const [year, month] = yearRange.startYear.split('-').map(Number);
+            startDate = new Date(year, month - 1, 1); // First day of month
+          } else {
+            startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
+          }
+        } else {
+          // Just year
+          startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
+        }
+        
+        // Process end date
+        if (endHasMonthDay) {
+          if (yearRange.endYear.split('-').length === 3) {
+            // YYYY-MM-DD format
+            endDate = new Date(yearRange.endYear);
+            endDate.setHours(23, 59, 59, 999); // End of day
+          } else if (yearRange.endYear.split('-').length === 2) {
+            // YYYY-MM format
+            const [year, month] = yearRange.endYear.split('-').map(Number);
+            // Get last day of month
+            const lastDay = new Date(year, month, 0).getDate();
+            endDate = new Date(year, month - 1, lastDay, 23, 59, 59, 999);
+          } else {
+            endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+          }
+        } else {
+          // Just year
+          endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+        }
+        
+        // Filter data for this date range
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            return date >= startDate && date <= endDate;
+          } catch (err) {
+            return false;
+          }
+        });
+        
+      } catch (err) {
+        console.error("Error processing date range", err);
+        // Fallback to standard year range
+        const startYear = parseInt(yearRange.startYear);
+        const endYear = parseInt(yearRange.endYear);
+        
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            const year = date.getFullYear();
+            return year >= startYear && year <= endYear;
+          } catch (err) {
+            return false;
+          }
+        });
+      }
+    } else {
+      // Standard year range (no month/day specificity)
       const startYear = parseInt(yearRange.startYear);
       const endYear = parseInt(yearRange.endYear);
       
@@ -34,45 +122,45 @@ const ListeningPatterns = ({
           return false;
         }
       });
-    } else if (selectedYear !== 'all') {
-      if (selectedYear.includes('-')) {
-        // Handle YYYY-MM or YYYY-MM-DD format
-        return rawPlayData.filter(entry => {
-          try {
-            const date = new Date(entry.ts);
-            if (isNaN(date.getTime())) return false;
-            
-            // For YYYY-MM-DD format
-            if (selectedYear.split('-').length === 3) {
-              return date.toISOString().split('T')[0] === selectedYear;
-            }
-            
-            // For YYYY-MM format
-            const [year, month] = selectedYear.split('-');
-            return date.getFullYear() === parseInt(year) && 
-                  (date.getMonth() + 1) === parseInt(month);
-          } catch (err) {
-            return false;
-          }
-        });
-      } else {
-        // Regular single year
-        return rawPlayData.filter(entry => {
-          try {
-            const date = new Date(entry.ts);
-            if (isNaN(date.getTime())) return false;
-            
-            return date.getFullYear() === parseInt(selectedYear);
-          } catch (err) {
-            return false;
-          }
-        });
-      }
-    } else {
-      return rawPlayData;
     }
-  }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
-
+  } else if (selectedYear !== 'all') {
+    if (selectedYear.includes('-')) {
+      // Handle YYYY-MM or YYYY-MM-DD format
+      return rawPlayData.filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          if (isNaN(date.getTime())) return false;
+          
+          // For YYYY-MM-DD format
+          if (selectedYear.split('-').length === 3) {
+            return date.toISOString().split('T')[0] === selectedYear;
+          }
+          
+          // For YYYY-MM format
+          const [year, month] = selectedYear.split('-');
+          return date.getFullYear() === parseInt(year) && 
+                (date.getMonth() + 1) === parseInt(month);
+        } catch (err) {
+          return false;
+        }
+      });
+    } else {
+      // Regular single year
+      return rawPlayData.filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          if (isNaN(date.getTime())) return false;
+          
+          return date.getFullYear() === parseInt(selectedYear);
+        } catch (err) {
+          return false;
+        }
+      });
+    }
+  } else {
+    return rawPlayData;
+  }
+}, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
   // Time of day analysis
   const timeOfDayData = useMemo(() => {
     const hours = Array(24).fill(0).map((_, i) => ({
