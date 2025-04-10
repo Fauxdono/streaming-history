@@ -802,7 +802,7 @@ const YearSelector = ({
   if (!expanded && asSidebar) {
     return (
       <div 
-        className={`fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        className={`fixed ${positionStyles} top-2 h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
         {/* Expand button */}
         <button 
@@ -813,7 +813,7 @@ const YearSelector = ({
           {currentPosition === 'left' ? '→' : '←'}
         </button>
         
-        <div className={`h-full pt-16 flex flex-col items-center justify-center ${colors.text}`}>
+        <div className={`h-full pt-16 pb-16 flex flex-col items-center justify-center ${colors.text}`}>
           <div className="writing-mode-vertical text-xs font-bold my-2">
             {getYearLabel()}
           </div>
@@ -821,6 +821,15 @@ const YearSelector = ({
             {mode === 'single' ? 'Year' : 'Year Range'}
           </div>
         </div>
+        
+        {/* Position toggle button - at bottom */}
+        <button 
+          onClick={togglePosition}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          aria-label="Toggle sidebar position"
+        >
+          <span className="text-xs">⇄</span>
+        </button>
         
         <style jsx>{`
           .writing-mode-vertical {
@@ -834,7 +843,7 @@ const YearSelector = ({
   }
   
   const containerClass = asSidebar 
-    ? `fixed ${positionStyles} ${isLandscape ? 'top-2' : 'top-20'} h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 ${
+    ? `fixed ${positionStyles} top-2 h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 ${
         mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
       } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
@@ -852,7 +861,7 @@ const YearSelector = ({
         </button>
       )}
       
-      <div className={`h-full flex flex-col justify-between ${isLandscape ? 'pt-4 pb-2' : 'pt-10 pb-3'}`}>
+      <div className="h-full flex flex-col justify-between pt-4 pb-8">
         {/* Mode toggle buttons at top - stacked vertically */}
         <div className="flex flex-col gap-1 items-center mb-2">
           <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
@@ -1146,16 +1155,16 @@ const YearSelector = ({
           )}
         </div>
         
-        {/* Bottom section with only sidebar position toggle */}
-        <div className="flex flex-col items-center mt-2 gap-2">
+        {/* Bottom section with only sidebar position toggle - always visible */}
+        <div className="flex flex-col items-center mb-4 mt-2">
           {/* Sidebar position toggle - only for sidebar */}
           {asSidebar && (
             <button 
               onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8`}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
               aria-label="Toggle sidebar position"
             >
-              <span className="text-xs">⇄</span>
+              <span className="text-sm">⇄</span>
             </button>
           )}
         </div>
