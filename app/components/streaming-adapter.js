@@ -516,8 +516,28 @@ async function processSoundcloudCSV(content) {
         const transformedData = results.data
           .filter(row => row['play_time'] && row['track_title'])
           .map(row => {
-            // Safely parse the play time with fallback
-            const playTime = parseDateSafely(row.play_time);
+            // Improve SoundCloud date parsing
+            let playTime;
+            try {
+              // Handle the explicit SoundCloud date format: "2024-05-02 04:21:11 UTC"
+              if (typeof row.play_time === 'string' && row.play_time.includes(' UTC')) {
+                // Convert to ISO format by replacing space with T and keeping UTC marker
+                const isoDate = row.play_time.replace(' UTC', 'Z').replace(' ', 'T');
+                playTime = new Date(isoDate);
+                
+                // Verify we got a valid date
+                if (isNaN(playTime.getTime())) {
+                  console.warn(`Failed to parse SoundCloud date: ${row.play_time}`);
+                  playTime = new Date(); // Fallback
+                }
+              } else {
+                // Use the general parser as fallback
+                playTime = parseDateSafely(row.play_time);
+              }
+            } catch (err) {
+              console.warn(`Error parsing SoundCloud date: ${row.play_time}`, err);
+              playTime = new Date(); // Fallback
+            }
             
             // Extract artist and track name
             let artist = "Unknown Artist";
