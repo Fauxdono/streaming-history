@@ -1,4 +1,4 @@
-import Papa from 'papaparse';
+ import Papa from 'papaparse';
 import _ from 'lodash';
 import * as XLSX from 'xlsx';
 
@@ -51,7 +51,6 @@ export const STREAMING_SERVICES = {
   }
 };
 
-// Shared utility functions
 function normalizeString(str) {
   if (!str) return { normalized: '', featureArtists: [] };
   
@@ -75,10 +74,16 @@ function normalizeString(str) {
     }
   }
   
+  // Add specific handling for remix formats with hyphens (e.g., "- PNAU Remix")
+  const hyphenRemixPattern = /\s-\s.*?remix/i;
+  if (normalized.match(hyphenRemixPattern)) {
+    normalized = normalized.replace(hyphenRemixPattern, '');
+  }
+  
   // Clean up normalized string
   normalized = normalized
     .replace(/\(.*?version\)/g, '').replace(/\[.*?version\]/g, '')
-    .replace(/\(.*?edit\)/g, '').replace(/\[.*?edit\)/g, '')
+    .replace(/\(.*?edit\)/g, '').replace(/\[.*?edit\]/g, '')
     .replace(/\(.*?remix\)/g, '').replace(/\[.*?remix\)/g, '')
     .replace(/\s+/g, ' ').replace(/\s-\s/g, ' ')
     .replace(/^\s*-\s*/, '').replace(/\s*-\s*$/, '')
