@@ -1974,7 +1974,15 @@ const TabButton = ({ id, label }) => {
 )}
 {activeTab === 'tracks' && (
   <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
-    <h3 className="font-bold mb-2 text-blue-700">Brief Obsessions</h3>
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-blue-700">
+        {selectedTrackYear === 'all' ? 'Brief Obsessions (All Time)' : 
+          customYearRangeMode && customYearRange.startYear && customYearRange.endYear ? 
+          `Brief Obsessions (${customYearRange.startYear}-${customYearRange.endYear})` : 
+          `Brief Obsessions (${selectedTrackYear})`}
+      </h3>
+    </div>
+    
     <TrackRankings 
       processedData={processedData} 
       briefObsessions={briefObsessions} 
@@ -1983,7 +1991,6 @@ const TabButton = ({ id, label }) => {
       songsByMonth={songsByMonth}
       initialYear={selectedTrackYear}
       onYearChange={setSelectedTrackYear}
-      // Add year range props for date range support
       yearRange={customYearRange}
       yearRangeMode={customYearRangeMode}
       onYearRangeChange={handleCustomTrackYearRangeChange}
@@ -1996,12 +2003,20 @@ const TabButton = ({ id, label }) => {
     id="custom-track-rankings"
     className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300"
   >
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-orange-700">
+        {customTrackYear === 'all' ? 'Custom Date Range (All Time)' : 
+          customYearRangeMode && customYearRange.startYear && customYearRange.endYear ? 
+          `Custom Date Range (${customYearRange.startYear}-${customYearRange.endYear})` : 
+          `Custom Date Range (${customTrackYear})`}
+      </h3>
+    </div>
 
     <CustomTrackRankings 
       rawPlayData={rawPlayData}
       formatDuration={formatDuration}
       initialArtists={selectedArtists}
-selectedYear={customTrackYear}
+      selectedYear={customTrackYear}
       yearRange={customYearRange}
       yearRangeMode={customYearRangeMode}
       onYearChange={handleCustomTrackYearChange}
@@ -2013,7 +2028,10 @@ selectedYear={customTrackYear}
 
 {activeTab === 'playlists' && (
   <div className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
-    <h3 className="font-bold mb-2 text-red-700">Custom Playlists</h3>
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-red-700">Custom Playlists</h3>
+    </div>
+    
     <CustomPlaylistCreator
       processedData={processedData}
       formatDuration={formatDuration}
@@ -2021,60 +2039,97 @@ selectedYear={customTrackYear}
     />
   </div>
 )}
-        
-    {activeTab === 'podcasts' && (
+
+// Podcasts Tab
+{activeTab === 'podcasts' && (
   <div 
     id="podcast-rankings"
     className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300"
   >
-            <h3 className="font-bold mb-2 text-indigo-700">Podcast Analysis</h3>
-            <PodcastRankings 
-  rawPlayData={rawPlayData}
-  formatDuration={formatDuration}
-  selectedYear={selectedPodcastYear}
-  yearRange={podcastYearRange}
-  yearRangeMode={podcastYearRangeMode}
-/>
-          </div>
-        )}
-        
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-indigo-700">
+        {selectedPodcastYear === 'all' ? 'Podcast Analysis (All Time)' : 
+          podcastYearRangeMode && podcastYearRange.startYear && podcastYearRange.endYear ? 
+          `Podcast Analysis (${podcastYearRange.startYear}-${podcastYearRange.endYear})` : 
+          `Podcast Analysis (${selectedPodcastYear})`}
+      </h3>
+    </div>
+    
+    <PodcastRankings 
+      rawPlayData={rawPlayData}
+      formatDuration={formatDuration}
+      selectedYear={selectedPodcastYear}
+      yearRange={podcastYearRange}
+      yearRangeMode={podcastYearRangeMode}
+    />
+  </div>
+)}
+
+// Patterns Tab
 {activeTab === 'patterns' && (
   <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
-            <h3 className="font-bold mb-2 text-purple-700">Listening Patterns</h3>
-            <ListeningPatterns 
-  rawPlayData={rawPlayData} 
-  formatDuration={formatDuration}
-  selectedYear={selectedPatternYear}
-  yearRange={patternYearRange}
-  yearRangeMode={patternYearRangeMode}
-/>
-          </div>
-        )}
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-purple-700">
+        {selectedPatternYear === 'all' ? 'Listening Patterns (All Time)' : 
+          patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear ? 
+          `Listening Patterns (${patternYearRange.startYear}-${patternYearRange.endYear})` : 
+          `Listening Patterns (${selectedPatternYear})`}
+      </h3>
+    </div>
+    
+    <ListeningPatterns 
+      rawPlayData={rawPlayData} 
+      formatDuration={formatDuration}
+      selectedYear={selectedPatternYear}
+      yearRange={patternYearRange}
+      yearRangeMode={patternYearRangeMode}
+    />
+  </div>
+)}
+
+// Behavior Tab
 {activeTab === 'behavior' && (
   <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
-            <h3 className="font-bold mb-2 text-indigo-700">Listening Behavior</h3>
-           <ListeningBehavior 
-  rawPlayData={rawPlayData} 
-  formatDuration={formatDuration}
-  selectedYear={selectedBehaviorYear}
-  yearRange={behaviorYearRange}
-  yearRangeMode={behaviorYearRangeMode}
-/>
-          </div>
-        )}
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-indigo-700">
+        {selectedBehaviorYear === 'all' ? 'Listening Behavior (All Time)' : 
+          behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear ? 
+          `Listening Behavior (${behaviorYearRange.startYear}-${behaviorYearRange.endYear})` : 
+          `Listening Behavior (${selectedBehaviorYear})`}
+      </h3>
+    </div>
+    
+    <ListeningBehavior 
+      rawPlayData={rawPlayData} 
+      formatDuration={formatDuration}
+      selectedYear={selectedBehaviorYear}
+      yearRange={behaviorYearRange}
+      yearRangeMode={behaviorYearRangeMode}
+    />
+  </div>
+)}
+
+// Discovery Tab
 {activeTab === 'discovery' && (
   <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
-            <h3 className="font-bold mb-2 text-green-700">Music Discovery</h3> 
-              <DiscoveryAnalysis 
-  rawPlayData={rawPlayData} 
-  formatDuration={formatDuration}
-  selectedYear={selectedDiscoveryYear}
-  yearRange={discoveryYearRange}
-  yearRangeMode={discoveryYearRangeMode}
-/>
-        
-          </div>
-        )}
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-green-700">
+        {selectedDiscoveryYear === 'all' ? 'Music Discovery (All Time)' : 
+          discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear ? 
+          `Music Discovery (${discoveryYearRange.startYear}-${discoveryYearRange.endYear})` : 
+          `Music Discovery (${selectedDiscoveryYear})`}
+      </h3>
+    </div>
+    
+    <DiscoveryAnalysis 
+      rawPlayData={rawPlayData} 
+      formatDuration={formatDuration}
+      selectedYear={selectedDiscoveryYear}
+      yearRange={discoveryYearRange}
+      yearRangeMode={discoveryYearRangeMode}
+    />
+  </div>
+)}
 {showYearSidebar && (
   <YearSelector
     artistsByYear={artistsByYear}
