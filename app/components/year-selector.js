@@ -531,6 +531,25 @@ const YearSelector = ({
     ];
     return monthNames[month - 1];
   };
+
+// Add a quick button to directly select "All Time" without having to scroll through the wheel
+
+// In YearSelector.js, add this just above the wheel selector:
+const QuickAllTimeButton = ({ selectedYear, onClick }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-2 py-1 mb-2 text-xs rounded-md transition-colors ${
+        selectedYear === 'all' 
+          ? 'bg-current text-white font-bold' 
+          : 'bg-current/20 hover:bg-current/30 text-current'
+      }`}
+      title="Show all-time data"
+    >
+      All Time
+    </button>
+  );
+};
   
   // Handle year change in single mode
   const handleYearChange = (year) => {
@@ -892,20 +911,26 @@ const YearSelector = ({
         <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
           mode === 'range' ? 'px-2' : 'px-1'
         } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
-          {mode === 'single' ? (
-            // Single mode - year picker and optional month/day
-            <>
-              {/* Year selection */}
-              <div className="flex flex-col items-center">
-                <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
-                <WheelSelector
-                  items={['all', ...years]}
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                  colorTheme={colorTheme}
-                  displayFormat={val => val === 'all' ? 'All Time' : val}
-                />
-              </div>
+    {mode === 'single' && (
+  <>
+    {/* Year selection */}
+    <div className="flex flex-col items-center">
+      <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
+      
+      {/* Add quick "All Time" button */}
+      <QuickAllTimeButton 
+        selectedYear={selectedYear}
+        onClick={() => handleYearChange('all')}
+      />
+      
+      <WheelSelector
+        items={['all', ...years]}
+        value={selectedYear}
+        onChange={handleYearChange}
+        colorTheme={colorTheme}
+        displayFormat={val => val === 'all' ? 'All Time' : val}
+      />
+    </div>
 
               {selectedYear !== 'all' && (
                 <>
