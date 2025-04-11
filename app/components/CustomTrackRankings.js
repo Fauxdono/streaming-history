@@ -132,6 +132,12 @@ const CustomTrackRankings = ({
     return Array.from(yearsSet).sort();
   }, [rawPlayData]);
   
+  // Add useEffect to log when selectedYear changes
+  useEffect(() => {
+    console.log("CustomTrackRankings: selectedYear changed to", selectedYear);
+    console.log("CustomTrackRankings: yearRangeMode is", yearRangeMode);
+  }, [selectedYear, yearRangeMode]);
+
   // Fixed useEffect in CustomTrackRankings.js to properly handle month/day in ranges
   useEffect(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
@@ -962,7 +968,7 @@ const CustomTrackRankings = ({
 
   // Get formatted date range string
   const getFormattedDateRange = () => {
-    if (!startDate && !endDate) {
+    if ((!startDate && !endDate) || selectedYear === 'all') {
       return "All Time";
     }
     
