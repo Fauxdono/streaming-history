@@ -2040,7 +2040,6 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
 
-// Podcasts Tab
 {activeTab === 'podcasts' && (
   <div 
     id="podcast-rankings"
@@ -2065,7 +2064,6 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
 
-// Patterns Tab
 {activeTab === 'patterns' && (
   <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
     <div className="flex justify-between items-center mb-2">
@@ -2087,7 +2085,6 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
 
-// Behavior Tab
 {activeTab === 'behavior' && (
   <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
     <div className="flex justify-between items-center mb-2">
@@ -2109,7 +2106,6 @@ const TabButton = ({ id, label }) => {
   </div>
 )}
 
-// Discovery Tab
 {activeTab === 'discovery' && (
   <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
     <div className="flex justify-between items-center mb-2">
