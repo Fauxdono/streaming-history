@@ -1137,26 +1137,30 @@ return (
       <div className="flex justify-between items-center mb-4">
    
         
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-            className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
-          >
-            <Download size={14} className="hidden sm:inline" />
-            {showPlaylistExporter ? "Hide" : "Export"}
-          </button>
-          
-          <div className="flex items-center gap-1 sm:gap-2">
-            <label className="text-orange-700">Show Top</label>
-            <input
-              type="number"
-              min="1"
-              max="69420"
-              value={topN}
-              onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
-              className="w-16 border rounded px-2 py-1 text-orange-700"
-            />
-          </div>
+  <div className="flex justify-between items-center mb-4">
+  <div className="flex items-center">
+    
+    <button
+      onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
+      className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm ml-4"
+    >
+      <Download size={14} className="hidden sm:inline" />
+      {showPlaylistExporter ? "Hide" : "Export"}
+    </button>
+  </div>
+  
+  <div className="flex items-center gap-1 sm:gap-2">
+    <label className="text-orange-700">Show Top</label>
+    <input
+      type="number"
+      min="1"
+      max="69420"
+      value={topN}
+      onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
+      className="w-16 border rounded px-2 py-1 text-orange-700"
+    />
+  </div>
+</div>
         </div>
       </div>
       
