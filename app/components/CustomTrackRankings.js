@@ -954,9 +954,9 @@ const CustomTrackRankings = ({
         }
         return `Custom Track Range for ${selectedYear}`;
       }
-      return `Custom Track Range for ${selectedYear}`;
+      return `Custom Track Range (${selectedYear})`;
     } else {
-      return 'Custom Date Range Selection';
+      return 'Custom Date Range (All Time)';
     }
   };
 
@@ -1131,39 +1131,36 @@ const CustomTrackRankings = ({
   };
 return (
   <div className="space-y-4">
+    {/* Header with title and controls */}
+    <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
+      
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
+          className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
+        >
+          <Download size={14} className="hidden sm:inline" />
+          Export
+        </button>
+        
+        <div className="flex items-center gap-2">
+          <label className="text-orange-700">Show Top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
+            className="w-16 border rounded px-2 py-1 text-orange-700"
+          />
+        </div>
+      </div>
+    </div>
+
     {/* Date Range Selection */}
     <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-      {/* First line: title + export button + show top tracks */}
-      <div className="flex justify-between items-center mb-4">
-   
-        
-  <div className="flex justify-between items-center mb-4">
-  <div className="flex items-center">
-    <button
-      onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-      className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm ml-4"
-    >
-      <Download size={14} className="hidden sm:inline" />
-      {showPlaylistExporter ? "Hide" : "Export"}
-    </button>
-  </div>
-  
-  <div className="flex items-center gap-1 sm:gap-2">
-    <label className="text-orange-700">Show Top</label>
-    <input
-      type="number"
-      min="1"
-      max="69420"
-      value={topN}
-      onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
-      className="w-16 border rounded px-2 py-1 text-orange-700"
-    />
-  </div>
-</div>
-        
-      </div>
-      
-      {/* Second line: just the search input without "Filters" heading */}
+      {/* Search input */}
       <div className="relative">
         <input
           type="text"
@@ -1467,68 +1464,6 @@ return (
         )}
       </div>
     )}
-
-    {/* Basic Export Controls - simplified version */}
-    <div>
-      <button
-        onClick={() => setShowExportOptions(!showExportOptions)}
-        className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
-      >
-        <Download size={14} className="hidden sm:inline" />
-        {showExportOptions ? 'Hide Export Options' : 'Quick Export'}
-      </button>
-      
-      {showExportOptions && (
-        <div className="mt-4 p-3 sm:p-4 bg-orange-50 border border-orange-200 rounded">
-          <div>
-            <label className="block text-orange-700 mb-1 text-sm">Playlist Name:</label>
-            <input
-              type="text"
-              value={playlistName}
-              onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
-              placeholder="Enter playlist name"
-            />
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1 text-sm">Base Music Path:</label>
-            <input
-              type="text"
-              value={musicBasePath}
-              onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
-              placeholder="e.g. /Music/Downloads or C:/Music"
-            />
-          </div>
-          
-          <div className="mt-3">
-            <label className="block text-orange-700 mb-1 text-sm">File Extension:</label>
-            <select
-              value={fileExtension}
-              onChange={(e) => setFileExtension(e.target.value)}
-              className="px-2 py-1 sm:px-3 sm:py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-500 text-orange-700 text-sm"
-            >
-              <option value="mp3">mp3</option>
-              <option value="flac">flac</option>
-              <option value="m4a">m4a</option>
-              <option value="ogg">ogg</option>
-              <option value="wav">wav</option>
-            </select>
-          </div>
-          
-          <div className="mt-3">
-            <button
-              onClick={exportPlaylist}
-              disabled={filteredTracks.length === 0}
-              className="px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed text-xs sm:text-sm"
-            >
-              Download Playlist ({filteredTracks.length})
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
   </div>
 ); 
 };
