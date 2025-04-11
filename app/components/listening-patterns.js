@@ -368,7 +368,6 @@ const filteredData = useMemo(() => {
   <div className="space-y-4">
     {/* Page Title */}
     <div className="flex justify-between items-center mb-4">
-      <h3 className="font-bold text-purple-700">{getPageTitle()}</h3>
     </div>
 
     {/* Horizontally scrollable tabs */}

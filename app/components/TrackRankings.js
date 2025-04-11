@@ -299,7 +299,6 @@ return (
     <div className="border rounded-lg p-3 sm:p-4 bg-blue-50 mb-4">
       {/* First line: Title + export button + controls */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-blue-700">{getTitle()}</h3>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowExporter(!showExporter)}

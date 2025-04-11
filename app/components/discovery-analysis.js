@@ -469,8 +469,7 @@ const filteredData = useMemo(() => {
 
   return (
     <div className="space-y-4">
-      {/* Page Title */}
-      <h3 className="font-bold text-green-700 mb-2">{getPageTitle()}</h3>
+    
       
       {/* Horizontally scrollable tabs */}
       <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
