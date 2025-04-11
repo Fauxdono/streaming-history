@@ -57,9 +57,8 @@ const filteredData = useMemo(() => {
           } else if (yearRange.endYear.split('-').length === 2) {
             // YYYY-MM format
             const [year, month] = yearRange.endYear.split('-').map(Number);
-            // Get last day of month
-            const lastDay = new Date(year, month, 0).getDate();
-            endDate = new Date(year, month - 1, lastDay, 23, 59, 59, 999);
+            // Last day of month
+            endDate = new Date(year, month, 0, 23, 59, 59, 999);
           } else {
             endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
           }
@@ -467,253 +466,253 @@ const filteredData = useMemo(() => {
     }
   };
 
- return (
-  <div className="space-y-4">
-    {/* Page Title */}
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="font-bold text-indigo-700">{getPageTitle()}</h3>
-    </div>
+  return (
+    <div className="space-y-4">
+      {/* Main title is only shown here - removed from SpotifyAnalyzer */}
+      <h3 className="font-bold text-indigo-700">
+        {getPageTitle()}
+      </h3>
+      
+      {/* Horizontally scrollable tabs */}
+      <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
+        <div className="flex min-w-max">
+          <TabButton id="behavior" label="Listening Behavior" />
+          <TabButton id="sessions" label="Listening Sessions" />
+          <TabButton id="artistsTime" label="Artists by Time" />
+        </div>
+      </div>
+
+      {activeTab === 'behavior' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={behaviorData.shuffleData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                    >
+                      {behaviorData.shuffleData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => value} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
     
-    {/* Horizontally scrollable tabs */}
-    <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
-      <div className="flex min-w-max">
-        <TabButton id="behavior" label="Listening Behavior" />
-        <TabButton id="sessions" label="Listening Sessions" />
-        <TabButton id="artistsTime" label="Artists by Time" />
-      </div>
-    </div>
-
-    {activeTab === 'behavior' && (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={behaviorData.shuffleData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                  >
-                    {behaviorData.shuffleData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => value} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="text-sm text-indigo-600 text-center mt-2">
+                You listen in shuffle mode {behaviorData.shufflePercentage}% of the time
+              </div>
             </div>
-  
-            <div className="text-sm text-indigo-600 text-center mt-2">
-              You listen in shuffle mode {behaviorData.shufflePercentage}% of the time
+            
+            <div>
+              <h3 className="text-lg font-bold text-indigo-700 mb-2">Track Completion</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={behaviorData.skipData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                    >
+                      {behaviorData.skipData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => value} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="text-sm text-indigo-600 text-center mt-2">
+                You completed {behaviorData.completedPercentage}% of tracks, skipped {behaviorData.skippedPercentage}%
+              </div>
             </div>
           </div>
           
           <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">Track Completion</h3>
-            <div className="h-64">
+            <h3 className="text-lg font-bold text-indigo-700 mb-2">How You Start Tracks</h3>
+            <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={behaviorData.skipData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                  >
-                    {behaviorData.skipData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => value} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="text-sm text-indigo-600 text-center mt-2">
-              You completed {behaviorData.completedPercentage}% of tracks, skipped {behaviorData.skippedPercentage}%
-            </div>
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-bold text-indigo-700 mb-2">How You Start Tracks</h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={behaviorData.startReasons}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']} />
-                <Legend />
-                <Bar name="Count" dataKey="count" fill="#8884d8" />
-                <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-bold text-indigo-700 mb-2">How Tracks End</h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={behaviorData.endReasons}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={100} />
-                <Tooltip formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']} />
-                <Legend />
-                <Bar name="Count" dataKey="count" fill="#8884d8" />
-                <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-bold text-indigo-700 mb-2">Platforms Used</h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={behaviorData.platformData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={150} />
-                <Tooltip formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']} />
-                <Legend />
-                <Bar name="Count" dataKey="count" fill="#8884d8" />
-                <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {activeTab === 'sessions' && (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-indigo-50 rounded">
-            <h3 className="font-bold text-indigo-700">Total Sessions</h3>
-            <p className="text-3xl text-indigo-600">{sessionData.totalSessions}</p>
-          </div>
-          
-          <div className="p-4 bg-indigo-50 rounded">
-            <h3 className="font-bold text-indigo-700">Avg. Session Length</h3>
-            <p className="text-3xl text-indigo-600">{sessionData.averageSessionDuration} min</p>
-          </div>
-          
-          <div className="p-4 bg-indigo-50 rounded">
-            <h3 className="font-bold text-indigo-700">Avg. Tracks per Session</h3>
-            <p className="text-3xl text-indigo-600">{sessionData.averageTracksPerSession}</p>
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Duration Distribution</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={sessionData.durationGroups}
-                  dataKey="count"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  labelLine={false}
-                  label={renderCustomizedLabel}
+                <BarChart
+                  data={behaviorData.startReasons}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  layout="vertical"
                 >
-                  {sessionData.durationGroups.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => value} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Statistics</h3>
-            <ul className="space-y-2">
-              {sessionData.longestSession && (
-                <li className="p-2 bg-indigo-50 rounded">
-                  <span className="font-bold text-indigo-700">Longest Session:</span>
-                  <span className="ml-2 text-indigo-600">{sessionData.longestSession.durationMinutes} minutes</span>
-                  <div className="text-sm text-indigo-500">
-                    on {sessionData.longestSession.fullDate.toLocaleDateString(undefined, {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </div>
-                </li>
-              )}
-              
-              {sessionData.mostTracksSession && (
-                <li className="p-2 bg-indigo-50 rounded">
-                  <span className="font-bold text-indigo-700">Most Tracks in a Session:</span>
-                  <span className="ml-2 text-indigo-600">{sessionData.mostTracksSession.tracksCount} tracks</span>
-                  <div className="text-sm text-indigo-500">
-                    on {sessionData.mostTracksSession.fullDate.toLocaleDateString(undefined, {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </div>
-                </li>
-              )}
-              
-              <li className="p-2 bg-indigo-50 rounded">
-                <span className="font-bold text-indigo-700">Total Listening Time:</span>
-                <span className="ml-2 text-indigo-600">
-                  {formatDuration(sessionData.sessionLengths.reduce((sum, session) => sum + (session.durationMinutes * 60000), 0))}
-                </span>
-              </li>
-            </ul>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" width={100} />
+                  <Tooltip formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']} />
+                  <Legend />
+                  <Bar name="Count" dataKey="count" fill="#8884d8" />
+                  <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
           
           <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">Notable Days & Months</h3>
-            <div className="space-y-3">
-              {sessionData.mostActiveDay && (
-                <div className="p-3 bg-indigo-50 rounded">
-                  <h4 className="font-medium text-indigo-700">Most Active Day:</h4>
-                  <div className="text-indigo-600 font-bold">{sessionData.mostActiveDay.displayDate}</div>
-                  <div className="text-sm text-indigo-500">
-                    {sessionData.mostActiveDay.totalPlays} tracks played
+            <h3 className="text-lg font-bold text-indigo-700 mb-2">How Tracks End</h3>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={behaviorData.endReasons}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  layout="vertical"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" width={100} />
+                  <Tooltip formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']} />
+                  <Legend />
+                  <Bar name="Count" dataKey="count" fill="#8884d8" />
+                  <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-bold text-indigo-700 mb-2">Platforms Used</h3>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={behaviorData.platformData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  layout="vertical"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" width={150} />
+                  <Tooltip formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']} />
+                  <Legend />
+                  <Bar name="Count" dataKey="count" fill="#8884d8" />
+                  <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'sessions' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-indigo-50 rounded">
+              <h3 className="font-bold text-indigo-700">Total Sessions</h3>
+              <p className="text-3xl text-indigo-600">{sessionData.totalSessions}</p>
+            </div>
+            
+            <div className="p-4 bg-indigo-50 rounded">
+              <h3 className="font-bold text-indigo-700">Avg. Session Length</h3>
+              <p className="text-3xl text-indigo-600">{sessionData.averageSessionDuration} min</p>
+            </div>
+            
+            <div className="p-4 bg-indigo-50 rounded">
+              <h3 className="font-bold text-indigo-700">Avg. Tracks per Session</h3>
+              <p className="text-3xl text-indigo-600">{sessionData.averageTracksPerSession}</p>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Duration Distribution</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={sessionData.durationGroups}
+                    dataKey="count"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                  >
+                    {sessionData.durationGroups.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => value} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Statistics</h3>
+              <ul className="space-y-2">
+                {sessionData.longestSession && (
+                  <li className="p-2 bg-indigo-50 rounded">
+                    <span className="font-bold text-indigo-700">Longest Session:</span>
+                    <span className="ml-2 text-indigo-600">{sessionData.longestSession.durationMinutes} minutes</span>
+                    <div className="text-sm text-indigo-500">
+                      on {sessionData.longestSession.fullDate.toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </li>
+                )}
+                
+                {sessionData.mostTracksSession && (
+                  <li className="p-2 bg-indigo-50 rounded">
+                    <span className="font-bold text-indigo-700">Most Tracks in a Session:</span>
+                    <span className="ml-2 text-indigo-600">{sessionData.mostTracksSession.tracksCount} tracks</span>
+                    <div className="text-sm text-indigo-500">
+                      on {sessionData.mostTracksSession.fullDate.toLocaleDateString(undefined, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </li>
+                )}
+                
+                <li className="p-2 bg-indigo-50 rounded">
+                  <span className="font-bold text-indigo-700">Total Listening Time:</span>
+                  <span className="ml-2 text-indigo-600">
+                    {formatDuration(sessionData.sessionLengths.reduce((sum, session) => sum + (session.durationMinutes * 60000), 0))}
+                  </span>
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-bold text-indigo-700 mb-2">Notable Days & Months</h3>
+              <div className="space-y-3">
+                {sessionData.mostActiveDay && (
+                  <div className="p-3 bg-indigo-50 rounded">
+                    <h4 className="font-medium text-indigo-700">Most Active Day:</h4>
+                    <div className="text-indigo-600 font-bold">{sessionData.mostActiveDay.displayDate}</div>
+                    <div className="text-sm text-indigo-500">
+                      {sessionData.mostActiveDay.totalPlays} tracks played
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {sessionData.longestListeningDay && (
-                <div className="p-3 bg-indigo-50 rounded">
+                )}
+                
+                {sessionData.longestListeningDay && (
+                  <div className="p-3 bg-indigo-50 rounded">
                   <h4 className="font-medium text-indigo-700">Longest Listening Day:</h4>
                   <div className="text-indigo-600 font-bold">{sessionData.longestListeningDay.displayDate}</div>
                   <div className="text-sm text-indigo-500">
