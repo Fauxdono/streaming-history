@@ -1135,9 +1135,7 @@ return (
     <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
       {/* First line: title + export button + show top tracks */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-orange-700">
-          {getPageTitle()}
-        </h3>
+   
         
         <div className="flex items-center gap-4">
           <button
