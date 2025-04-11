@@ -637,25 +637,7 @@ const PodcastRankings = ({
   return (
     <div className="space-y-4">
       {/* Page Title */}
-      <h3 className="font-bold text-indigo-700 mb-2">{getPageTitle()}</h3>
 
-      {/* Date picker controls */}
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 text-indigo-700">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => handleDateChange(e.target.value, endDate)}
-            className="border rounded px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400"
-          />
-          <span>to</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => handleDateChange(startDate, e.target.value)}
-            className="border rounded px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400"
-          />
-        </div>
 
         <div className="flex flex-wrap gap-2">
           <div className="flex flex-wrap gap-2">
