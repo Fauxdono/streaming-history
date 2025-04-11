@@ -1133,7 +1133,6 @@ return (
   <div className="space-y-4">
     {/* Header with title and controls */}
     <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
       
       <div className="flex items-center gap-2">
         <button
