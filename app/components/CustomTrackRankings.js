@@ -1161,8 +1161,7 @@ return (
     />
   </div>
 </div>
-        </div>
-      </div>
+    
       
       {/* Second line: just the search input without "Filters" heading */}
       <div className="relative">
