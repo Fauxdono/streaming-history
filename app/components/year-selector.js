@@ -156,6 +156,8 @@ const YearSelector = ({
   }, [initialYearRange]);
   
   useEffect(() => {
+    console.log("YearSelector: initialYear changed to:", initialYear);
+    
     if (initialYear) {
       // Check if initialYear contains month/day info
       if (initialYear !== 'all' && initialYear.includes('-')) {
@@ -187,10 +189,17 @@ const YearSelector = ({
         // Just a simple year or "all"
         setSelectedYear(initialYear);
         
-        // If switching to "all", hide selectors
+        // If switching to "all", hide selectors and reset states
         if (initialYear === 'all') {
+          console.log("YearSelector: Initializing with 'all', hiding selectors");
           setShowMonthSelector(false);
           setShowDaySelector(false);
+          setShowMonthDaySelectors(false);
+          
+          // Also notify parent that we're initializing with "all"
+          if (onYearChange) {
+            onYearChange('all');
+          }
         }
       }
       
@@ -204,7 +213,7 @@ const YearSelector = ({
     }
     
     setRefreshCounter(prev => prev + 1);
-  }, [initialYear, onToggleRangeMode]);
+  }, [initialYear, onToggleRangeMode, onYearChange]);
   
   // Reset month and day selection when year changes
   useEffect(() => {
@@ -441,7 +450,8 @@ const YearSelector = ({
         setSelectedYear(yearRange.startYear);
         setSelectedMonth(startMonth);
         setSelectedDay(startDay);
-        setShowMonthDaySelectors(true);
+        setShowMonthSelector(true);
+        setShowDaySelector(true);
         
         // Ensure the parent knows about this specific date
         if (onYearChange) {
@@ -454,7 +464,8 @@ const YearSelector = ({
               yearRange.startYear === yearRange.endYear) {
         // Convert single year from range to single mode
         setSelectedYear(yearRange.startYear);
-        setShowMonthDaySelectors(false);
+        setShowMonthSelector(false);
+        setShowDaySelector(false);
         
         if (onYearChange) {
           onYearChange(yearRange.startYear);
@@ -463,7 +474,8 @@ const YearSelector = ({
       else {
         // Default to all-time view
         setSelectedYear('all');
-        setShowMonthDaySelectors(false);
+        setShowMonthSelector(false);
+        setShowDaySelector(false);
         
         if (onYearChange) {
           onYearChange('all');
@@ -473,7 +485,7 @@ const YearSelector = ({
     // If switching to range mode
     else if (newMode === 'range' && years.length >= 2) {
       // If we have a specific date in single mode, preserve it in range mode
-      if (mode === 'single' && showMonthDaySelectors && selectedYear !== 'all') {
+      if (mode === 'single' && showMonthSelector && showDaySelector && selectedYear !== 'all') {
         // Convert single date to same start/end range
         const formattedDate = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
         
@@ -493,7 +505,7 @@ const YearSelector = ({
         }
       } 
       // If we have a year-only selection in single mode
-      else if (mode === 'single' && !showMonthDaySelectors && selectedYear !== 'all') {
+      else if (mode === 'single' && !showMonthSelector && selectedYear !== 'all') {
         // Convert single year to same start/end range
         setYearRange({
           startYear: selectedYear,
@@ -542,7 +554,12 @@ const YearSelector = ({
     
     // If changing to "all", hide month/day selectors
     if (year === 'all') {
-      setShowMonthDaySelectors(false);
+      console.log("Year selector: Changing to ALL TIME");
+      setShowMonthSelector(false);
+      setShowDaySelector(false);
+      
+      // Make sure we reset date related states
+      setShowRangeMonthDaySelectors(false);
     }
     
     // If not "all", make sure the month/day are valid for this year
@@ -554,7 +571,7 @@ const YearSelector = ({
       }
     }
     
-    // Update parent with the full date or just the year
+    // Always update parent with the selected year
     updateParentWithDate(year, selectedMonth, selectedDay);
     
     // Force UI refresh
@@ -651,6 +668,7 @@ const YearSelector = ({
     if (!onYearChange) return;
     
     if (year === 'all') {
+      console.log("Year selector: Updating parent with ALL TIME selection");
       onYearChange('all');
       return;
     }
@@ -813,11 +831,12 @@ const YearSelector = ({
           {currentPosition === 'left' ? '→' : '←'}
         </button>
         
-        <div className={`h-full pt-16 pb-16 flex flex-col items-center justify-center ${colors.text}`}>
-          <div className="writing-mode-vertical text-xs font-bold my-2">
+        <div className={`h-full pt-16 pb-16 flex flex-col items-center justify-center ${colors.text}`}
+             style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)' }}>
+          <div className="font-bold my-2 text-xs">
             {getYearLabel()}
           </div>
-          <div className="writing-mode-vertical text-xs opacity-70">
+          <div className="opacity-70 text-xs">
             {mode === 'single' ? 'Year' : 'Year Range'}
           </div>
         </div>
@@ -830,14 +849,6 @@ const YearSelector = ({
         >
           <span className="text-xs">⇄</span>
         </button>
-        
-        <style jsx>{`
-          .writing-mode-vertical {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            transform: rotate(180deg);
-          }
-        `}</style>
       </div>
     );
   }
@@ -889,7 +900,11 @@ const YearSelector = ({
         
         <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
           mode === 'range' ? 'px-2' : 'px-1'
-        } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
+        } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: `currentColor transparent`
+        }}>
           {mode === 'single' ? (
             // Single mode - year picker and optional month/day
             <>
@@ -939,7 +954,7 @@ const YearSelector = ({
                         }}
                         className="sr-only"
                       />
-                      <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+                      <div className={`block w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
                       <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
                     </label>
                   </div>
@@ -987,7 +1002,7 @@ const YearSelector = ({
                           }}
                           className="sr-only"
                         />
-                        <div className={`w-9 h-5 rounded-full ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+                        <div className={`block w-9 h-5 rounded-full ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}></div>
                         <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-4' : ''}`}></div>
                       </label>
                     </div>
@@ -1091,7 +1106,7 @@ const YearSelector = ({
                       }}
                       className="sr-only"
                     />
-                    <div className={`w-9 h-5 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+                    <div className={`block w-9 h-5 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
                     <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-4' : ''}`}></div>
                   </label>
                 </div>
@@ -1169,19 +1184,6 @@ const YearSelector = ({
           )}
         </div>
       </div>
-      
-      <style jsx>{`
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
-        .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-          border-radius: 4px;
-        }
-        .scrollbar-thumb-current::-webkit-scrollbar-thumb {
-          background-color: currentColor;
-          opacity: 0.3;
-        }
-      `}</style>
     </div>
   );
 };
