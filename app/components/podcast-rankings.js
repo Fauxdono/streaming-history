@@ -636,44 +636,6 @@ const PodcastRankings = ({
 
   return (
     <div className="space-y-4">
-      {/* Page Title */}
-
-
-        <div className="flex flex-wrap gap-2">
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setQuickRange(0)} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200">
-              Today
-            </button>
-            <button onClick={() => setQuickRange(7)} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200">
-              Last 7 days
-            </button>
-            <button onClick={() => setQuickRange(30)} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200">
-              Last 30 days
-            </button>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <button onClick={setCurrentMonth} className="px-3 py-1 bg-indigo-200 text-indigo-700 rounded hover:bg-indigo-300">
-              This month
-            </button>
-            <button onClick={setPreviousMonth} className="px-3 py-1 bg-indigo-200 text-indigo-700 rounded hover:bg-indigo-300">
-              Last month
-            </button>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <button onClick={setCurrentYear} className="px-3 py-1 bg-indigo-300 text-indigo-700 rounded hover:bg-indigo-400">
-              This year
-            </button>
-            <button onClick={setPreviousYear} className="px-3 py-1 bg-indigo-300 text-indigo-700 rounded hover:bg-indigo-400">
-              Last year
-            </button>
-            <button onClick={setAllTime} className="px-3 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600">
-              All time
-            </button>
-          </div>
-        </div>
-
         <div className="flex items-center gap-2 text-indigo-700">
           <label>Top</label>
           <input
@@ -686,7 +648,7 @@ const PodcastRankings = ({
           />
           <label>episodes</label>
         </div>
-      </div>
+
 
       {/* Duplicate Detection Settings */}
       <div className="flex flex-wrap items-center gap-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
