@@ -1139,6 +1139,7 @@ return (
         
   <div className="flex justify-between items-center mb-4">
   <div className="flex items-center">
+    <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
     
     <button
       onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
@@ -1161,7 +1162,8 @@ return (
     />
   </div>
 </div>
-    
+        
+      </div>
       
       {/* Second line: just the search input without "Filters" heading */}
       <div className="relative">
