@@ -365,277 +365,277 @@ const filteredData = useMemo(() => {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Page title */}
-      <h3 className="font-bold text-purple-700">
-        {getPageTitle()}
-      </h3>
+  <div className="space-y-4">
+    {/* Page Title */}
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="font-bold text-purple-700">{getPageTitle()}</h3>
+    </div>
 
-      {/* Horizontally scrollable tabs */}
-      <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
-        <div className="flex min-w-max">
-          <TabButton id="timeOfDay" label="Time of Day" />
-          <TabButton id="dayOfWeek" label="Day of Week" />
-          <TabButton id="seasonal" label="Seasonal" />
-          <TabButton id="streaming" label="Streaming Services" />
+    {/* Horizontally scrollable tabs */}
+    <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
+      <div className="flex min-w-max">
+        <TabButton id="timeOfDay" label="Time of Day" />
+        <TabButton id="dayOfWeek" label="Day of Week" />
+        <TabButton id="seasonal" label="Seasonal" />
+        <TabButton id="streaming" label="Streaming Services" />
+      </div>
+    </div>
+
+    {activeTab === 'timeOfDay' && (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-bold text-purple-700 mb-2">Listening by Time of Day</h3>
+          <p className="text-purple-600 mb-4">When do you listen to music the most?</p>
+          
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={timeOfDayData.hourly}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="displayHour" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    return name === 'totalMs' ? formatDuration(value) : value;
+                  }}
+                  labelFormatter={(value) => `Hour: ${value}`}
+                />
+                <Legend />
+                <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-purple-700 mb-2">Time Periods</h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={timeOfDayData.periods}
+                    dataKey="count"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                  >
+                    {timeOfDayData.periods.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => value}
+                    labelFormatter={(name) => {
+                      const period = timeOfDayData.periods.find(p => p.name === name);
+                      return period ? period.fullName : name;
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          <div className="flex flex-col justify-center">
+            <h3 className="text-lg font-bold text-purple-700 mb-2">Time Period Stats</h3>
+            <ul className="space-y-2">
+              {timeOfDayData.periods.map((period, index) => (
+                <li key={index} className="p-2 bg-purple-50 rounded">
+                  <span className="font-bold" style={{ color: period.color }}>{period.fullName}:</span>
+                  <div className="ml-2 text-purple-400">
+                    <div>{period.count} plays</div>
+                    <div>{formatDuration(period.totalMs)} listening time</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
+    )}
 
-      {activeTab === 'timeOfDay' && (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-bold text-purple-700 mb-2">Listening by Time of Day</h3>
-            <p className="text-purple-600 mb-4">When do you listen to music the most?</p>
-            
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={timeOfDayData.hourly}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="displayHour" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value, name) => {
-                      return name === 'totalMs' ? formatDuration(value) : value;
-                    }}
-                    labelFormatter={(value) => `Hour: ${value}`}
-                  />
-                  <Legend />
-                  <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+    {activeTab === 'dayOfWeek' && (
+      <div className="space-y-6">
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-lg font-bold text-purple-700">Listening by Day of Week</h3>
+              <p className="text-purple-600">Which days do you stream music the most?</p>
+            </div>
+            <div className="flex bg-purple-100 rounded-full p-1">
+              <button
+                onClick={() => setDayOfWeekViewMode('plays')}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  dayOfWeekViewMode === 'plays' 
+                    ? 'bg-purple-600 text-white' 
+                    : 'text-purple-700 hover:bg-purple-200'
+                }`}
+              >
+                Total Plays
+              </button>
+              <button
+                onClick={() => setDayOfWeekViewMode('average')}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  dayOfWeekViewMode === 'average' 
+                    ? 'bg-purple-600 text-white' 
+                    : 'text-purple-700 hover:bg-purple-200'
+                }`}
+              >
+                Average per Day
+              </button>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-lg font-bold text-purple-700 mb-2">Time Periods</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={timeOfDayData.periods}
-                      dataKey="count"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      labelLine={false}
-                      label={renderCustomizedLabel}
-                    >
-                      {timeOfDayData.periods.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => value}
-                      labelFormatter={(name) => {
-                        const period = timeOfDayData.periods.find(p => p.name === name);
-                        return period ? period.fullName : name;
-                      }}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            
-            <div className="flex flex-col justify-center">
-              <h3 className="text-lg font-bold text-purple-700 mb-2">Time Period Stats</h3>
-              <ul className="space-y-2">
-                {timeOfDayData.periods.map((period, index) => (
-                  <li key={index} className="p-2 bg-purple-50 rounded">
-                    <span className="font-bold" style={{ color: period.color }}>{period.fullName}:</span>
-                    <div className="ml-2 text-purple-400">
-                      <div>{period.count} plays</div>
-                      <div>{formatDuration(period.totalMs)} listening time</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={dayOfWeekData}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    if (name === 'totalMs') return formatDuration(value);
+                    if (name === 'count') return `${value} plays`;
+                    if (name === 'avgPerDay') return `${value.toFixed(1)} plays per day`;
+                    return value;
+                  }}
+                  labelFormatter={(label) => {
+                    const day = dayOfWeekData.find(d => d.name === label);
+                    return day ? day.fullName : label;
+                  }}
+                />
+                <Legend />
+                {dayOfWeekViewMode === 'plays' ? (
+                  <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
+                ) : (
+                  <Bar name="Average per Day" dataKey="avgPerDay" fill="#82ca9d" />
+                )}
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-      )}
-
-      {activeTab === 'dayOfWeek' && (
-        <div className="space-y-6">
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-purple-700">Listening by Day of Week</h3>
-                <p className="text-purple-600">Which days do you stream music the most?</p>
-              </div>
-              <div className="flex bg-purple-100 rounded-full p-1">
-                <button
-                  onClick={() => setDayOfWeekViewMode('plays')}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    dayOfWeekViewMode === 'plays' 
-                      ? 'bg-purple-600 text-white' 
-                      : 'text-purple-700 hover:bg-purple-200'
-                  }`}
-                >
-                  Total Plays
-                </button>
-                <button
-                  onClick={() => setDayOfWeekViewMode('average')}
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    dayOfWeekViewMode === 'average' 
-                      ? 'bg-purple-600 text-white' 
-                      : 'text-purple-700 hover:bg-purple-200'
-                  }`}
-                >
-                  Average per Day
-                </button>
-              </div>
-            </div>
-            
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={dayOfWeekData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value, name) => {
-                      if (name === 'totalMs') return formatDuration(value);
-                      if (name === 'count') return `${value} plays`;
-                      if (name === 'avgPerDay') return `${value.toFixed(1)} plays per day`;
-                      return value;
-                    }}
-                    labelFormatter={(label) => {
-                      const day = dayOfWeekData.find(d => d.name === label);
-                      return day ? day.fullName : label;
-                    }}
-                  />
-                  <Legend />
-                  {dayOfWeekViewMode === 'plays' ? (
-                    <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
-                  ) : (
-                    <Bar name="Average per Day" dataKey="avgPerDay" fill="#82ca9d" />
-                  )}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-bold text-purple-700 mb-2">Day of Week Stats</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {dayOfWeekData.map((day, index) => (
-                <div key={index} className="p-3 bg-purple-50 rounded border border-purple-100 relative">
-                  {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
-                  (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
-                    <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
-                  ) : null}
-                  <h4 className="font-bold text-purple-700">{day.fullName}</h4>
-                  <div className="text-sm text-purple-600">
-                    <div>Total Plays: {day.count}</div>
-                    <div>Listening Time: {formatDuration(day.totalMs)}</div>
-                    <div>Avg. Plays Per Day: {day.avgPerDay.toFixed(1)}</div>
-                  </div>
+        
+        <div>
+          <h3 className="text-lg font-bold text-purple-700 mb-2">Day of Week Stats</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {dayOfWeekData.map((day, index) => (
+              <div key={index} className="p-3 bg-purple-50 rounded border border-purple-100 relative">
+                {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
+                (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
+                  <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
+                ) : null}
+                <h4 className="font-bold text-purple-700">{day.fullName}</h4>
+                <div className="text-sm text-purple-600">
+                  <div>Total Plays: {day.count}</div>
+                  <div>Listening Time: {formatDuration(day.totalMs)}</div>
+                  <div>Avg. Plays Per Day: {day.avgPerDay.toFixed(1)}</div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
+    )}
 
-      {activeTab === 'seasonal' && (
-        <div className="space-y-6">
+    {activeTab === 'seasonal' && (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-bold text-purple-700 mb-2">Listening by Month</h3>
+          <p className="text-purple-600 mb-4">How does your listening change throughout the year?</p>
+          
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={monthlyData.months}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    return name === 'totalMs' ? formatDuration(value) : value;
+                  }}
+                  labelFormatter={(label) => {
+                    const month = monthlyData.months.find(m => m.name === label);
+                    return month ? month.fullName : label;
+                  }}
+                />
+                <Legend />
+                <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className="text-lg font-bold text-purple-700 mb-2">Listening by Month</h3>
-            <p className="text-purple-600 mb-4">How does your listening change throughout the year?</p>
-            
-            <div className="h-64 w-full">
+            <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Listening</h3>
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={monthlyData.months}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+                <PieChart>
+                  <Pie
+                    data={monthlyData.seasons}
+                    dataKey="count"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                  >
+                    {monthlyData.seasons.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
                   <Tooltip 
-                    formatter={(value, name) => {
-                      return name === 'totalMs' ? formatDuration(value) : value;
-                    }}
-                    labelFormatter={(label) => {
-                      const month = monthlyData.months.find(m => m.name === label);
-                      return month ? month.fullName : label;
+                    formatter={(value) => value}
+                    labelFormatter={(name) => {
+                      const season = monthlyData.seasons.find(s => s.name === name);
+                      return season ? season.fullName : name;
                     }}
                   />
                   <Legend />
-                  <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
-                </BarChart>
+                </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Listening</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={monthlyData.seasons}
-                      dataKey="count"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      labelLine={false}
-                      label={renderCustomizedLabel}
-                    >
-                      {monthlyData.seasons.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => value}
-                      labelFormatter={(name) => {
-                        const season = monthlyData.seasons.find(s => s.name === name);
-                        return season ? season.fullName : name;
-                      }}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            
-            <div className="flex flex-col justify-center">
-              <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Stats</h3>
-              <ul className="space-y-2">
-                {monthlyData.seasons.map((season, index) => (
-                  <li key={index} className="p-2 bg-purple-50 rounded">
-                    <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
-                    <div className="ml-2 text-purple-400">
-                      <div>{season.count} plays</div>
-                      <div>{formatDuration(season.totalMs)} listening time</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="flex flex-col justify-center">
+            <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Stats</h3>
+            <ul className="space-y-2">
+              {monthlyData.seasons.map((season, index) => (
+                <li key={index} className="p-2 bg-purple-50 rounded">
+                  <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
+                  <div className="ml-2 text-purple-400">
+                    <div>{season.count} plays</div>
+                    <div>{formatDuration(season.totalMs)} listening time</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
-      {activeTab === 'streaming' && (
-        <StreamingByYear 
-          rawPlayData={filteredData} 
-          formatDuration={formatDuration} 
-        />
-      )}
-    </div>
-  );
+    {activeTab === 'streaming' && (
+      <StreamingByYear 
+        rawPlayData={filteredData} 
+        formatDuration={formatDuration} 
+      />
+    )}
+  </div>
+);
 };
 
 export default ListeningPatterns;
