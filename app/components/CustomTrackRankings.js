@@ -1130,63 +1130,175 @@ const CustomTrackRankings = ({
     );
   };
   
-  return (
-    <div className="space-y-4">
-      {/* Date Range Selection */}
-      <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-        <div className="flex justify-between items-center flex-wrap gap-2">
-          <h3 className="font-bold text-orange-700">{getPageTitle()}</h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-              className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
+return (
+  <div className="space-y-4">
+    {/* Date Range Selection */}
+    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+      {/* First line: title + export button + show top tracks */}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-bold text-orange-700">
+          {getPageTitle()}
+        </h3>
+        
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
+            className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs sm:text-sm"
+          >
+            <Download size={14} className="hidden sm:inline" />
+            {showPlaylistExporter ? "Hide" : "Export"}
+          </button>
+          
+          <div className="flex items-center gap-1 sm:gap-2">
+            <label className="text-orange-700">Show Top</label>
+            <input
+              type="number"
+              min="1"
+              max="69420"
+              value={topN}
+              onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
+              className="w-16 border rounded px-2 py-1 text-orange-700"
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Second line: just the search input without "Filters" heading */}
+      <div className="relative">
+        <input
+          type="text"
+          value={unifiedSearch}
+          onChange={(e) => {
+            setUnifiedSearch(e.target.value);
+            setArtistSearch(e.target.value);
+            setAlbumSearch(e.target.value);
+          }}
+          placeholder="Search artists or albums..."
+          className="w-full border rounded px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
+        />
+        
+        {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
+          <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-orange-600">
+            {filteredArtists.length > 0 && (
+              <div>
+                <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ARTISTS</div>
+                {filteredArtists.map(artist => (
+                  <div
+                    key={artist}
+                    onClick={() => {
+                      addArtistFromTrack(artist);
+                      setUnifiedSearch('');
+                    }}
+                    className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
+                  >
+                    <span className="mr-1">👤</span> {artist}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {filteredAlbums.length > 0 && (
+              <div>
+                <div className="px-2 py-1 bg-orange-100 text-orange-800 font-semibold text-xs">ALBUMS</div>
+                {filteredAlbums.map(album => (
+                  <div
+                    key={album.key}
+                    onClick={() => {
+                      addAlbumFromTrack(album.name, album.artist);
+                      setUnifiedSearch('');
+                    }}
+                    className="px-2 py-1 hover:bg-orange-50 cursor-pointer"
+                  >
+                    <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Selected filters display */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        {selectedArtists.map(artist => (
+          <div 
+            key={artist} 
+            className="flex items-center bg-orange-600 text-white px-2 py-1 rounded text-xs"
+          >
+            {artist}
+            <button 
+              onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
+              className="ml-1 text-white hover:text-orange-200"
             >
-              <Download size={14} className="hidden sm:inline" />
-              {showPlaylistExporter ? "Hide" : "Export"}
+              ×
             </button>
           </div>
-        </div>
-
-        <div className="mt-2">
-          <div className="mt-4 flex flex-wrap gap-2 sm:gap-4 items-center">
-            <div className="flex items-center gap-1 sm:gap-2 text-orange-700">
-              <label className="text-sm">Show top</label>
-              <input
-                type="number"
-                min="1"
-                max="69420"
-                value={topN}
-                onChange={(e) => setTopN(Math.min(69420, Math.max(1, parseInt(e.target.value) || 1)))}
-                className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-orange-700 focus:border-orange-400 focus:ring-orange-400"
-              />
-              <label className="text-sm">tracks</label>
-            </div>
-            
-            <div className="flex items-center gap-1 sm:gap-2">
-              <span className="text-orange-700 text-sm">Sort:</span>
-              <button
-                onClick={() => setSortBy('totalPlayed')}
-                className={`px-2 py-1 rounded text-xs ${
-                  sortBy === 'totalPlayed'
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                }`}
-              >
-                Time
-              </button>
-              <button
-                onClick={() => setSortBy('playCount')}
-                className={`px-2 py-1 rounded text-xs ${
-                  sortBy === 'playCount'
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                }`}
-              >
-                Plays
-              </button>
-            </div>
+        ))}
+        
+        {selectedAlbums.map(album => (
+          <div 
+            key={album.key} 
+            className="flex items-center bg-orange-500 text-white px-2 py-1 rounded text-xs"
+          >
+            <span className="mr-1">💿</span> {album.name} 
+            <button 
+              onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
+              className="ml-1 text-white hover:text-orange-200"
+            >
+              ×
+            </button>
           </div>
+        ))}
+      </div>
+      
+      {/* Feature Toggles + Sort Controls in one row */}
+      <div className="flex flex-wrap justify-between items-center mt-3">
+        {/* Feature Toggles */}
+        {selectedArtists.length > 0 && (
+          <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
+            <div className="relative">
+              <input 
+                type="checkbox" 
+                checked={includeFeatures} 
+                disabled={onlyFeatures}
+                onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
+                className="sr-only"
+              />
+              <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? 'bg-orange-500' : 'bg-gray-300'}`}></div>
+              <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
+            </div>
+            <span className="ml-2 text-orange-700 text-xs sm:text-sm">
+              Include features 
+            </span>
+          </label>
+        )}
+        
+        {/* Sort Controls */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          <span className="text-orange-700 text-sm">Sort:</span>
+          <button
+            onClick={() => setSortBy('totalPlayed')}
+            className={`px-2 py-1 rounded text-xs ${
+              sortBy === 'totalPlayed'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Time
+          </button>
+          <button
+            onClick={() => setSortBy('playCount')}
+            className={`px-2 py-1 rounded text-xs ${
+              sortBy === 'playCount'
+                ? 'bg-orange-600 text-white'
+                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+            }`}
+          >
+            Plays
+          </button>
         </div>
+      </div>
+    </div>
       </div>
 
       {/* Playlist Exporter */}
