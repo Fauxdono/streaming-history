@@ -156,8 +156,6 @@ const YearSelector = ({
   }, [initialYearRange]);
   
   useEffect(() => {
-    console.log("YearSelector: initialYear changed to:", initialYear);
-    
     if (initialYear) {
       // Check if initialYear contains month/day info
       if (initialYear !== 'all' && initialYear.includes('-')) {
@@ -189,17 +187,10 @@ const YearSelector = ({
         // Just a simple year or "all"
         setSelectedYear(initialYear);
         
-        // If switching to "all", hide selectors and reset states
+        // If switching to "all", hide selectors
         if (initialYear === 'all') {
-          console.log("YearSelector: Initializing with 'all', hiding selectors");
           setShowMonthSelector(false);
           setShowDaySelector(false);
-          setShowMonthDaySelectors(false);
-          
-          // Also notify parent that we're initializing with "all"
-          if (onYearChange) {
-            onYearChange('all');
-          }
         }
       }
       
@@ -213,7 +204,7 @@ const YearSelector = ({
     }
     
     setRefreshCounter(prev => prev + 1);
-  }, [initialYear, onToggleRangeMode, onYearChange]);
+  }, [initialYear, onToggleRangeMode]);
   
   // Reset month and day selection when year changes
   useEffect(() => {
@@ -286,7 +277,108 @@ const YearSelector = ({
           bgLight: 'bg-purple-50',
           bgMed: 'bg-purple-200'
         };
-      // ... other color themes ...
+      case 'indigo':
+        return {
+          text: 'text-indigo-700',
+          textActive: 'text-white',
+          bgActive: 'bg-indigo-500',
+          bgHover: 'hover:bg-indigo-600/50',
+          bgLighter: 'bg-indigo-100',
+          bgDark: 'bg-indigo-800',
+          sidebarBg: 'bg-indigo-100',
+          glowActive: 'shadow-[0_0_15px_rgba(99,102,241,0.7)]',
+          buttonBg: 'bg-indigo-600',
+          buttonHover: 'hover:bg-indigo-700',
+          border: 'border-indigo-300',
+          textBold: 'text-indigo-800',
+          bgLight: 'bg-indigo-50',
+          bgMed: 'bg-indigo-200'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700',
+          textActive: 'text-white',
+          bgActive: 'bg-blue-500',
+          bgHover: 'hover:bg-blue-600/50',
+          bgLighter: 'bg-blue-100',
+          bgDark: 'bg-blue-800',
+          sidebarBg: 'bg-blue-100',
+          glowActive: 'shadow-[0_0_15px_rgba(59,130,246,0.7)]',
+          buttonBg: 'bg-blue-600',
+          buttonHover: 'hover:bg-blue-700',
+          border: 'border-blue-300',
+          textBold: 'text-blue-800',
+          bgLight: 'bg-blue-50',
+          bgMed: 'bg-blue-200'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700',
+          textActive: 'text-white',
+          bgActive: 'bg-green-500',
+          bgHover: 'hover:bg-green-600/50',
+          bgLighter: 'bg-green-100',
+          bgDark: 'bg-green-800',
+          sidebarBg: 'bg-green-100',
+          glowActive: 'shadow-[0_0_15px_rgba(34,197,94,0.7)]',
+          buttonBg: 'bg-green-600',
+          buttonHover: 'hover:bg-green-700',
+          border: 'border-green-300',
+          textBold: 'text-green-800',
+          bgLight: 'bg-green-50',
+          bgMed: 'bg-green-200'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700',
+          textActive: 'text-white',
+          bgActive: 'bg-yellow-500',
+          bgHover: 'hover:bg-yellow-600/50',
+          bgLighter: 'bg-yellow-100',
+          bgDark: 'bg-yellow-700',
+          sidebarBg: 'bg-yellow-100',
+          glowActive: 'shadow-[0_0_15px_rgba(234,179,8,0.7)]',
+          buttonBg: 'bg-yellow-500',
+          buttonHover: 'hover:bg-yellow-400',
+          border: 'border-yellow-300',
+          textBold: 'text-yellow-800',
+          bgLight: 'bg-yellow-50',
+          bgMed: 'bg-yellow-200'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700',
+          textActive: 'text-white',
+          bgActive: 'bg-red-500',
+          bgHover: 'hover:bg-red-600/50',
+          bgLighter: 'bg-red-100',
+          bgDark: 'bg-red-800',
+          sidebarBg: 'bg-red-100',
+          glowActive: 'shadow-[0_0_15px_rgba(239,68,68,0.7)]',
+          buttonBg: 'bg-red-600',
+          buttonHover: 'hover:bg-red-700',
+          border: 'border-red-300',
+          textBold: 'text-red-800',
+          bgLight: 'bg-red-50',
+          bgMed: 'bg-red-200'
+        };
+      case 'orange':
+        return {
+          text: 'text-orange-700',
+          textActive: 'text-white',
+          bgActive: 'bg-orange-500',
+          bgHover: 'hover:bg-orange-600/50',
+          bgLighter: 'bg-orange-100',
+          bgDark: 'bg-orange-800',
+          sidebarBg: 'bg-orange-100',
+          glowActive: 'shadow-[0_0_15px_rgba(249,115,22,0.7)]',
+          buttonBg: 'bg-orange-600',
+          buttonHover: 'hover:bg-orange-700',
+          border: 'border-orange-300',
+          textBold: 'text-orange-800',
+          bgLight: 'bg-orange-50',
+          bgMed: 'bg-orange-200'
+        };
       case 'teal':
       default:
         return {
@@ -450,11 +542,6 @@ const YearSelector = ({
     
     // If changing to "all", hide month/day selectors
     if (year === 'all') {
-      console.log("Year selector: Changing to ALL TIME");
-      setShowMonthSelector(false);
-      setShowDaySelector(false);
-      
-      // Make sure we reset date related states
       setShowMonthDaySelectors(false);
     }
     
@@ -467,7 +554,7 @@ const YearSelector = ({
       }
     }
     
-    // Always update parent with the selected year
+    // Update parent with the full date or just the year
     updateParentWithDate(year, selectedMonth, selectedDay);
     
     // Force UI refresh
@@ -564,7 +651,6 @@ const YearSelector = ({
     if (!onYearChange) return;
     
     if (year === 'all') {
-      console.log("Year selector: Updating parent with ALL TIME selection");
       onYearChange('all');
       return;
     }
