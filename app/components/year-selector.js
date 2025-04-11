@@ -911,17 +911,25 @@ const QuickAllTimeButton = ({ selectedYear, onClick }) => {
         <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
           mode === 'range' ? 'px-2' : 'px-1'
         } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
-    {mode === 'single' && (
+{mode === 'single' ? (
+  // Single mode - year picker and optional month/day
   <>
     {/* Year selection */}
     <div className="flex flex-col items-center">
       <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
       
-      {/* Add quick "All Time" button */}
-      <QuickAllTimeButton 
-        selectedYear={selectedYear}
+      {/* Add a quick "All Time" button */}
+      <button
         onClick={() => handleYearChange('all')}
-      />
+        className={`px-2 py-1 mb-2 text-xs rounded-md transition-colors ${
+          selectedYear === 'all' 
+            ? `${colors.bgActive} ${colors.textActive} font-bold` 
+            : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
+        }`}
+        title="Show all-time data"
+      >
+        All Time
+      </button>
       
       <WheelSelector
         items={['all', ...years]}
@@ -931,6 +939,9 @@ const QuickAllTimeButton = ({ selectedYear, onClick }) => {
         displayFormat={val => val === 'all' ? 'All Time' : val}
       />
     </div>
+
+    {selectedYear !== 'all' && (
+      // Rest of the code stays the same
 
               {selectedYear !== 'all' && (
                 <>
