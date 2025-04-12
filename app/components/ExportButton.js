@@ -9,7 +9,8 @@ const ExportButton = ({
   processedData, 
   briefObsessions,
   songsByYear,
-  formatDuration 
+  formatDuration,
+  rawPlayData  // Added rawPlayData parameter
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState(null);
@@ -17,29 +18,28 @@ const ExportButton = ({
   const createWorkbook = async () => {
     const workbook = new ExcelJS.Workbook();
     
-// Summary Sheet
-const summarySheet = workbook.addWorksheet('Summary');
-summarySheet.addRow(['Spotify Listening History Summary']);
-summarySheet.addRow([]);
-summarySheet.addRow(['Metric', 'Value']);
-summarySheet.addRows([
-  ['Total Files Processed', stats.totalFiles],
-  ['Total Entries', stats.totalEntries],
-  ['Total Songs', stats.processedSongs],
-  ['Total Listening Time', formatDuration(stats.totalListeningTime)],
-  ['Very Short Plays (<30s)', stats.shortPlays],
-  ['Entries with No Track Name', stats.nullTrackNames],
-]);
+    // Summary Sheet
+    const summarySheet = workbook.addWorksheet('Summary');
+    summarySheet.addRow(['Streaming History Analysis Summary']);
+    summarySheet.addRow([]);
+    summarySheet.addRow(['Metric', 'Value']);
+    summarySheet.addRows([
+      ['Total Files Processed', stats.totalFiles],
+      ['Total Entries', stats.totalEntries],
+      ['Total Songs', stats.processedSongs],
+      ['Total Listening Time', formatDuration(stats.totalListeningTime)],
+      ['Very Short Plays (<30s)', stats.shortPlays],
+      ['Entries with No Track Name', stats.nullTrackNames],
+    ]);
 
-// Add service listening time breakdown if available
-if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0) {
-  summarySheet.addRow([]);
-  summarySheet.addRow(['Listening Time by Service']);
-  Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
-    summarySheet.addRow([service, formatDuration(time)]);
-  });
-}
-
+    // Add service listening time breakdown if available
+    if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0) {
+      summarySheet.addRow([]);
+      summarySheet.addRow(['Listening Time by Service']);
+      Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
+        summarySheet.addRow([service, formatDuration(time)]);
+      });
+    }
 
     // Top Artists Sheet
     const artistsSheet = workbook.addWorksheet('Top Artists');
@@ -130,12 +130,104 @@ if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length
       ]);
     });
 
+    // NEW SHEET: All Streaming History in chronological order
+    if (rawPlayData && rawPlayData.length > 0) {
+      const historySheet = workbook.addWorksheet('Complete Streaming History');
+      historySheet.addRow(['Complete Streaming History (Chronological Order)']);
+      historySheet.addRow([]);
+      historySheet.addRow([
+        'Date & Time', 
+        'Track', 
+        'Artist', 
+        'Album',
+        'Duration (ms)',
+        'Duration', 
+        'Service',
+        'Platform',
+        'Reason End',
+        'Reason Start',
+        'Shuffle',
+        'ISRC',
+        'Track ID',
+        'Episode Name',
+        'Episode Show'
+      ]);
+
+      // Sort data chronologically
+      const sortedData = [...rawPlayData].sort((a, b) => {
+        try {
+          const dateA = a._dateObj || new Date(a.ts);
+          const dateB = b._dateObj || new Date(b.ts);
+          return dateA - dateB;
+        } catch (e) {
+          return 0;
+        }
+      });
+
+      // Add each play to the sheet
+      sortedData.forEach(play => {
+        try {
+          const date = play._dateObj || new Date(play.ts);
+          const dateStr = date.toISOString();
+
+          // Get ISRC code if available
+          let isrc = '';
+          if (play.master_metadata_external_ids && play.master_metadata_external_ids.isrc) {
+            isrc = play.master_metadata_external_ids.isrc;
+          } else if (play.isrc) {
+            isrc = play.isrc;
+          }
+
+          historySheet.addRow([
+            dateStr,
+            play.master_metadata_track_name || '',
+            play.master_metadata_album_artist_name || '',
+            play.master_metadata_album_album_name || '',
+            play.ms_played || 0,
+            formatDuration(play.ms_played || 0),
+            play.source || '',
+            play.platform || '',
+            play.reason_end || '',
+            play.reason_start || '',
+            play.shuffle !== undefined ? (play.shuffle ? 'Yes' : 'No') : '',
+            isrc,
+            play.spotify_track_uri || play.track_id || '',
+            play.episode_name || '',
+            play.episode_show_name || ''
+          ]);
+        } catch (e) {
+          console.error('Error processing row:', e);
+        }
+      });
+
+      // Optimize column widths for history sheet
+      historySheet.columns = [
+        { header: 'Date & Time', key: 'date', width: 22 },
+        { header: 'Track', key: 'track', width: 30 },
+        { header: 'Artist', key: 'artist', width: 25 },
+        { header: 'Album', key: 'album', width: 25 },
+        { header: 'Duration (ms)', key: 'ms', width: 15 },
+        { header: 'Duration', key: 'duration', width: 15 },
+        { header: 'Service', key: 'source', width: 15 },
+        { header: 'Platform', key: 'platform', width: 18 },
+        { header: 'Reason End', key: 'reason_end', width: 15 },
+        { header: 'Reason Start', key: 'reason_start', width: 15 },
+        { header: 'Shuffle', key: 'shuffle', width: 10 },
+        { header: 'ISRC', key: 'isrc', width: 15 },
+        { header: 'Track ID', key: 'track_id', width: 15 },
+        { header: 'Episode Name', key: 'episode_name', width: 25 },
+        { header: 'Episode Show', key: 'episode_show', width: 25 }
+      ];
+    }
+
     // Format all sheets
     workbook.worksheets.forEach(sheet => {
-      // Set column widths
-      sheet.columns.forEach((column) => {
-        column.width = 20;
-      });
+      // Set default column widths if not already set
+      if (!sheet.columns || sheet.columns.length === 0) {
+        sheet.columns.forEach((column) => {
+          column.width = 20;
+        });
+      }
 
       // Style headers
       sheet.getRow(1).font = { bold: true, size: 14 };
@@ -169,7 +261,7 @@ if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length
       
       // Generate filename with timestamp
       const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `spotify-history-analysis-${timestamp}.xlsx`;
+      const filename = `streaming-history-analysis-${timestamp}.xlsx`;
 
       // Export to blob and download
       const buffer = await workbook.xlsx.writeBuffer();
@@ -193,10 +285,10 @@ if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length
       <button
         onClick={exportToExcel}
         disabled={isExporting}
-        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors"
       >
         <Download size={16} />
-        {isExporting ? 'Exporting...' : 'Export to Excel'}
+        {isExporting ? 'Exporting...' : 'Export Complete History'}
       </button>
       
       {error && (
