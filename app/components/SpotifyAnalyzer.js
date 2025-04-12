@@ -1505,7 +1505,6 @@ const TabButton = ({ id, label }) => {
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
       {/* Standard Service Tiles */}
       {Object.entries(STREAMING_SERVICES)
-        .filter(([type]) => type !== 'cake') // Filter out cake to display separately
         .map(([type, service]) => (
         <div key={type} className="border rounded-lg overflow-hidden">
           <button
@@ -1548,48 +1547,6 @@ const TabButton = ({ id, label }) => {
           </div>
         </div>
       ))}
-
-      {/* Cake Upload Tile - Special Styling */}
-      <div className="border rounded-lg overflow-hidden bg-gradient-to-br from-pink-100 to-pink-200">
-        <button
-          onClick={() => toggleServiceSelection('cake')}
-          className={`w-full px-4 py-3 flex flex-col justify-center items-center transition-colors ${
-            selectedServices.includes('cake')
-              ? 'bg-pink-500 text-white'
-              : 'bg-pink-300 text-black hover:bg-pink-400'
-          }`}
-        >
-          <Cake size={32} className="mb-2" />
-          <span className="text-center font-medium">Cake Upload</span>
-          <span className="text-xs mt-1 opacity-80">Restore from Excel</span>
-          {selectedServices.includes('cake') && <Check size={18} className="mt-2" />}
-        </button>
-        
-        <div className="px-4 py-3 border-t border-pink-200 bg-white">
-          <button 
-            onClick={() => toggleServiceInfo('cake')}
-            className="flex items-center justify-center w-full text-sm text-pink-600 hover:text-pink-800"
-          >
-            {showServiceInfo['cake'] ? 
-              <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
-              <><ChevronDown size={14} className="mr-1" /> Show Details</>
-            }
-          </button>
-          
-          {showServiceInfo['cake'] && (
-            <div className="mt-2 text-sm">
-              <p className="mb-2 text-pink-700">
-                Upload a previously exported Excel file (.xlsx) to restore your streaming history.
-              </p>
-              <div className="flex items-center justify-center mt-3 bg-pink-100 p-2 rounded-lg">
-                <Upload size={16} className="mr-2 text-pink-600" />
-                <span className="text-pink-700">Import Excel (.xlsx)</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
         
     {selectedServices.length > 0 ? (
       <div>
