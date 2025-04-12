@@ -1547,6 +1547,7 @@ const TabButton = ({ id, label }) => {
           </div>
         </div>
       ))}
+</div>
         
     {selectedServices.length > 0 ? (
       <div>
