@@ -434,7 +434,7 @@ const ExportButton = ({
     try {
       const workbook = await createWorkbook();
       
-    
+      // Generate filename with timestamp - changed to "cake dreamin" as requested
       const timestamp = new Date().toISOString().split('T')[0];
       const filename = `cake-dreamin-${timestamp}.xlsx`;
 
@@ -465,7 +465,7 @@ const ExportButton = ({
         className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors"
       >
         <Download size={16} />
-        {isExporting ? 'Exporting...' : 'Export Cake Streaming'}
+        {isExporting ? 'Exporting...' : 'Export Cake Dreamin'}
       </button>
       
       {isExporting && (
