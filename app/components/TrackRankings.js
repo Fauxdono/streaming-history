@@ -295,58 +295,46 @@ const filteredObsessions = useMemo(() => {
   
 return (
   <div className="w-full">
-    {/* Controls Section */}
 
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-blue-700">
-          {yearRangeMode && yearRange.startYear && yearRange.endYear
-            ? `Brief Obsessions for ${yearRange.startYear}-${yearRange.endYear}`
-            : initialYear === 'all' 
-              ? 'All-time Brief Obsessions' 
-              : `Brief Obsessions for ${initialYear}`}
-        </h3>
-        
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowExporter(!showExporter)}
-            className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs sm:text-sm"
-          >
-            <Download size={14} className="hidden sm:inline" />
-            {showExporter ? "Hide" : "Export"}
-          </button>
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="font-bold text-blue-700">
+        {yearRangeMode && yearRange.startYear && yearRange.endYear
+          ? `Brief Obsessions for ${yearRange.startYear}-${yearRange.endYear}`
+          : initialYear === 'all' 
+            ? 'Brief Obsessions (All Time)' 
+            : `Brief Obsessions for ${initialYear}`}
+      </h3>
+      
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setShowExporter(!showExporter)}
+          className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+        >
+          <Download size={14} className="hidden sm:inline" />
+          {showExporter ? "Hide" : "Export"}
+        </button>
 
-          <div className="flex items-center gap-1 sm:gap-2 text-blue-700 ml-2">
-            <label className="text-sm">Show top</label>
-            <input
-              type="number"
-              min="1"
-              max="250"
-              value={topN}
-              onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
-              className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
-            />
-            <label className="text-sm">tracks</label>
-          </div>
-        </div>
-      </div>
-
-      {/* Second line: Controls in a clean row */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-blue-50 mb-4">
-      <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
-        <div className="flex items-center gap-1 sm:gap-2 text-blue-700">
-          <label className="text-sm">Min plays/week</label>
+        <div className="flex items-center gap-1 sm:gap-2 text-blue-700 ml-2">
+          <label className="text-sm">Show top</label>
           <input
             type="number"
             min="1"
-            max="20"
-            value={intensityThreshold}
-            onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
-            className="border rounded w-14 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
+            max="250"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
+            className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
           />
+          <label className="text-sm">tracks</label>
         </div>
-        
-        <div className="flex items-center gap-1 sm:gap-2">
-          <span className="text-blue-700 text-sm">Sort:</span>
+      </div>
+    </div>
+
+    {/* Controls Section */}
+    <div className="border rounded-lg p-3 sm:p-4 bg-blue-50 mb-4">
+      {/* Second line: Controls in a clean row */}
+      <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
+        <div className="flex items-center gap-1 sm:gap-2 text-blue-700">
+          <label className="text-sm">Min plays/week</label>
           <input
             type="number"
             min="1"
