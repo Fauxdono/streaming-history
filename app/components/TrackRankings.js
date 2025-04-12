@@ -301,10 +301,10 @@ return (
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-bold text-blue-700">
           {yearRangeMode && yearRange.startYear && yearRange.endYear
-            ? `Brief obsessions for ${yearRange.startYear}-${yearRange.endYear}`
+            ? `Brief Obsessions for ${yearRange.startYear}-${yearRange.endYear}`
             : initialYear === 'all' 
-              ? 'All-time brief obsessions' 
-              : `Brief obsessions for ${initialYear}`}
+              ? 'All-time brief Obsessions' 
+              : `Brief Obsessions for ${initialYear}`}
         </h3>
         
         <div className="flex items-center gap-2">
