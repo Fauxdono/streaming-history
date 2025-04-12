@@ -1140,27 +1140,27 @@ return (
     {/* Header with title and controls */}
     <div className="flex justify-between items-center mb-2">
       
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
-        >
-          <Download size={14} className="hidden sm:inline" />
-          Export
-        </button>
-        
-        <div className="flex items-center gap-2">
-          <label className="text-orange-700">Show Top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className="w-16 border rounded px-2 py-1 text-orange-700"
-          />
-        </div>
-      </div>
+      <div className="flex justify-between items-center mb-2">
+  <button
+    onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
+    className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
+  >
+    <Download size={14} className="hidden sm:inline" />
+    Export
+  </button>
+  
+  <div className="flex items-center gap-2">
+    <label className="text-orange-700">Show Top</label>
+    <input
+      type="number"
+      min="1"
+      max="999"
+      value={topN}
+      onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
+      className="w-16 border rounded px-2 py-1 text-orange-700"
+    />
+  </div>
+</div>
     </div>
 
     {/* Date Range Selection */}
