@@ -157,12 +157,21 @@ const handleLoadSampleData = async () => {
     setIsProcessing(false);
   }
 };
-
 const handleCustomTrackYearChange = (year) => {
   console.log(`Custom track year changed to: ${year}`);
-  setCustomTrackYear(year);
+  
+  // Ensure 'all' is handled consistently
+  const isAllTime = year === 'all';
+  if (isAllTime) {
+    console.log("Setting CustomTrackRankings to ALL TIME mode");
+  }
+  
+  // Use the right string value
+  const yearValue = isAllTime ? 'all' : year;
+  setCustomTrackYear(yearValue);
   setCustomYearRangeMode(false);
 };
+
 
 // Add a handler for custom track year range change
 const handleCustomTrackYearRangeChange = ({ startYear, endYear }) => {
@@ -1670,6 +1679,7 @@ const TabButton = ({ id, label }) => {
       briefObsessions={briefObsessions}
       formatDuration={formatDuration}
       songsByYear={songsByYear}
+  rawPlayData={rawPlayData}
     />
     <SupportOptions className="h-full" />
   </div>
