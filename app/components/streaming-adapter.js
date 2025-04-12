@@ -9,7 +9,8 @@ export const STREAMING_TYPES = {
   YOUTUBE_MUSIC: 'youtube_music',
   TIDAL: 'tidal',
   DEEZER: 'deezer',
-  SOUNDCLOUD: 'soundcloud' 
+  SOUNDCLOUD: 'soundcloud',
+  CAKE: 'cake'
 };
 
 export const STREAMING_SERVICES = {
@@ -48,7 +49,14 @@ export const STREAMING_SERVICES = {
     downloadUrl: 'support@tidal.com',
     instructions: 'Send an email to Tidal to request data and wait for 2-4 weeks for it to come',
     acceptedFormats: '.csv'
+  },
+ [STREAMING_TYPES.CAKE]: {
+    name: 'Cake',
+    downloadUrl: '#',
+    instructions: 'In the statitics page you can download an excel.',
+    acceptedFormats: '.xlsx'
   }
+};
 };
 
 function normalizeString(str) {
@@ -654,6 +662,161 @@ async function processTidalCSV(content) {
       }
     });
   });
+}
+
+async function processCakeExcelFile(file) {
+  try {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(new Uint8Array(buffer), { 
+      type: 'array',
+      cellDates: true,
+      cellNF: true
+    });
+    
+    let allPlayData = [];
+    
+    // Look for the "Complete Streaming History" sheet
+    if (workbook.SheetNames.includes('Complete Streaming History')) {
+      const historySheet = workbook.Sheets['Complete Streaming History'];
+      const data = XLSX.utils.sheet_to_json(historySheet, { raw: false });
+      
+      console.log(`Processing ${data.length} entries from Cake Excel file`);
+      
+      // Convert data to standard format
+      allPlayData = data
+        .filter(row => row['Track'] && row['Artist'] && row['Date & Time'])
+        .map(row => {
+          try {
+            // Parse date - handle both ISO and formatted dates
+            let timestamp;
+            if (row['Date & Time'] instanceof Date) {
+              timestamp = row['Date & Time'];
+            } else {
+              timestamp = new Date(row['Date & Time']);
+              if (isNaN(timestamp.getTime())) {
+                // Try to parse alternative date formats
+                const parts = row['Date & Time'].split(/[/ -:]/);
+                if (parts.length >= 3) {
+                  timestamp = new Date(parts[0], parts[1] - 1, parts[2]);
+                } else {
+                  timestamp = new Date();
+                }
+              }
+            }
+            
+            // Parse duration
+            let ms_played = 0;
+            if (row['Duration (ms)'] && !isNaN(row['Duration (ms)'])) {
+              ms_played = parseInt(row['Duration (ms)']);
+            }
+            
+            // Create standard entry
+            return {
+              master_metadata_track_name: row['Track'] || '',
+              master_metadata_album_artist_name: row['Artist'] || '',
+              master_metadata_album_album_name: row['Album'] || '',
+              ts: timestamp,
+              ms_played: ms_played,
+              reason_start: row['Reason Start'] || 'trackdone',
+              reason_end: row['Reason End'] || 'trackdone',
+              shuffle: row['Shuffle'] === 'Yes' || row['Shuffle'] === 'TRUE' || row['Shuffle'] === true,
+              platform: row['Platform'] || 'unknown',
+              source: row['Service'] || 'cake',
+              isrc: row['ISRC'] || '',
+              episode_name: row['Episode Name'] || '',
+              episode_show_name: row['Episode Show'] || '',
+              spotify_track_uri: row['Track ID'] || ''
+            };
+          } catch (err) {
+            console.error('Error processing row:', err);
+            return null;
+          }
+        })
+        .filter(entry => entry !== null);
+    }
+    
+    // If no streaming history, check for individual song data from other sheets
+    if (allPlayData.length === 0 && workbook.SheetNames.includes('Top 2000 All-Time')) {
+      const topSongsSheet = workbook.Sheets['Top 2000 All-Time'];
+      const data = XLSX.utils.sheet_to_json(topSongsSheet, { raw: false });
+      
+      console.log(`Processing ${data.length} songs from Top 2000 sheet`);
+      
+      // Convert song data to play entries (approximation)
+      data.forEach(song => {
+        if (!song['Track'] || !song['Artist']) return;
+        
+        const playCount = song['Play Count'] ? parseInt(song['Play Count']) : 1;
+        const totalTime = song['Total Time (ms)'] ? parseInt(song['Total Time (ms)']) : 
+                        (song['Total Time'] ? parseTimeString(song['Total Time']) : 210000);
+        
+        // Average time per play
+        const avgTime = Math.round(totalTime / playCount);
+        
+        // Create one entry per play (limited to reasonable number)
+        const maxPlaysToCreate = Math.min(playCount, 100);
+        
+        // Create a baseline date (1 year ago)
+        const baseDate = new Date();
+        baseDate.setFullYear(baseDate.getFullYear() - 1);
+        
+        for (let i = 0; i < maxPlaysToCreate; i++) {
+          // Generate random timestamp within the last year
+          const randomOffset = Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000);
+          const timestamp = new Date(baseDate.getTime() + randomOffset);
+          
+          allPlayData.push({
+            master_metadata_track_name: song['Track'],
+            master_metadata_album_artist_name: song['Artist'],
+            master_metadata_album_album_name: song['Album'] || 'Unknown Album',
+            ts: timestamp,
+            ms_played: avgTime,
+            reason_start: 'trackdone',
+            reason_end: 'trackdone',
+            shuffle: Math.random() > 0.5,
+            platform: 'unknown',
+            source: 'cake'
+          });
+        }
+      });
+    }
+    
+    return allPlayData;
+  } catch (error) {
+    console.error('Error processing Cake Excel file:', error);
+    return [];
+  }
+}
+
+// Helper function to parse time strings like "2h 30m" to milliseconds
+function parseTimeString(timeStr) {
+  if (!timeStr || typeof timeStr !== 'string') return 210000;
+  
+  try {
+    let ms = 0;
+    
+    // Match hours
+    const hoursMatch = timeStr.match(/(\d+)h/);
+    if (hoursMatch) {
+      ms += parseInt(hoursMatch[1]) * 60 * 60 * 1000;
+    }
+    
+    // Match minutes
+    const minutesMatch = timeStr.match(/(\d+)m/);
+    if (minutesMatch) {
+      ms += parseInt(minutesMatch[1]) * 60 * 1000;
+    }
+    
+    // Match seconds
+    const secondsMatch = timeStr.match(/(\d+)s/);
+    if (secondsMatch) {
+      ms += parseInt(secondsMatch[1]) * 1000;
+    }
+    
+    return ms || 210000; // Default to 3.5 minutes if parsing fails
+  } catch (e) {
+    return 210000;
+  }
 }
 
 function isTidalCSV(content) {
@@ -1684,6 +1847,17 @@ export const streamingProcessor = {
                 const content = await file.text();
                 return await processAppleMusicCSV(content);
               }
+            else if (file.name.endsWith('.xlsx')) {
+              // Try to process as cake file first
+              const cakeData = await processCakeExcelFile(file);
+              if (cakeData && cakeData.length > 0) {
+                console.log(`Processed ${cakeData.length} entries from Cake Excel file`);
+                return cakeData;
+              }
+              
+              // Fallback to Deezer processing if no cake data found
+              return await processDeezerXLSX(file);
+            }
               
               // Deezer XLSX files
               else if (file.name.endsWith('.xlsx')) {

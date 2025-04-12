@@ -107,7 +107,12 @@ const [podcastYearRangeMode, setPodcastYearRangeMode] = useState(false);
   tidal: {
     unselected: 'bg-white text-black',
     selected: 'bg-black text-white'
+  },
+cake: {
+    unselected: 'bg-pink-300 text-black',
+    selected: 'bg-pink-500 text-white'
   }
+
   };
 // Update the demo button in SpotifyAnalyzer.js
 
@@ -1448,189 +1453,233 @@ const TabButton = ({ id, label }) => {
 {activeTab === 'upload' && (
   <div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
-    <div className="p-2 sm:p-4 border rounded bg-blue-50">
-              <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
-              <ol className="list-decimal list-inside space-y-1 text-blue-700">
-                <li>Select your streaming service below</li>
-                <li>Download your streaming history</li>
-                <li>Upload your file(s)</li>
+      <div className="p-2 sm:p-4 border rounded bg-blue-50">
+        <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
+        <ol className="list-decimal list-inside space-y-1 text-blue-700">
+          <li>Select your streaming service below</li>
+          <li>Download your streaming history</li>
+          <li>Upload your file(s)</li>
 
-<div className="mt-4">
-<button
-  onClick={handleLoadSampleData}
-  disabled={isProcessing}
-  className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
->
-  <Download size={14} className="hidden sm:inline" />
-  DEMO
-</button>
-  <p className="text-sm text-gray-600 mt-1">
-    Want to test the app without uploading your own data? Click DEMO to load sample streaming history.
-  </p>
-</div>
-                <li>Click "Calculate Statistics"</li>
-              </ol>
-            </div>
-            
-            <div className="p-4 border rounded bg-green-50">
-              <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
-              <div className="space-y-2 text-green-700">
-          
-                <div className="space-y-1">
-                  <h4 className="font-medium text-green-800">Desktop:</h4>
-                  <p>1. Open the site in Chrome/Edge</p>
-                  <p>2. Click the "+" or install icon in the address bar</p>
-  
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-medium text-green-800">Mobile:</h4>
-                  <p>1. Open in Safari (iOS) or Chrome (Android)</p>
-                  <p>2. Tap "Add to Home Screen"</p>
-             
-                </div>
-                <p className="text-sm text-green-600">
-                  Enjoy offline access
-                </p>
-              </div>
-            </div>
+          <div className="mt-4">
+            <button
+              onClick={handleLoadSampleData}
+              disabled={isProcessing}
+              className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
+            >
+              <Download size={14} className="hidden sm:inline" />
+              DEMO
+            </button>
+            <p className="text-sm text-gray-600 mt-1">
+              Want to test the app without uploading your own data? Click DEMO to load sample streaming history.
+            </p>
           </div>
-            
-            <h3 className="font-bold text-orange-700 mb-3">Select Streaming Services:</h3>
-                     
-<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-6">
-              {Object.entries(STREAMING_SERVICES).map(([type, service]) => (
-                <div key={type} className="border rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => toggleServiceSelection(type)}
-                    className={`w-full aspect-square sm:aspect-auto sm:px-4 sm:py-2 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors ${
-                      selectedServices.includes(type)
-                       ? serviceColors[type]?.selected || 'bg-gray-600 text-white'
-                        : serviceColors[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <span className="text-center sm:text-left">{service.name}</span>
-                    {selectedServices.includes(type) && <Check size={18} className="mt-2 sm:mt-0" />}
-                  </button>
-                  
-                  <div className="px-2 sm:px-4 py-2 border-t bg-white">
-                    <button 
-                      onClick={() => toggleServiceInfo(type)}
-                      className="flex items-center justify-center w-full text-xs sm:text-sm text-orange-600 hover:text-orange-800"
-                    >
-                      {showServiceInfo[type] ? 
-                        <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
-                        <><ChevronDown size={14} className="mr-1" /> Show Details</>
-                      }
-                    </button>
-                    
-                    {showServiceInfo[type] && (
-                      <div className="mt-2 text-xs sm:text-sm text-orange-700">
-                        <p className="mb-2">{service.instructions}</p>
-                        <a
-                          href={service.downloadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-orange-600 hover:text-orange-800 underline"
-                        >
-                          Download your data here
-                        </a>
-                        <p className="mt-1">Accepted formats: {service.acceptedFormats}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-              
-            {selectedServices.length > 0 ? (
-              <div>
-                <p className="mb-2 text-orange-700 font-bold">
-                  Upload your files from selected services:
-                </p>
-                <input
-                  type="file"
-                  multiple
-                  accept={getAcceptedFormats()}
-                  onChange={handleFileUpload}
-                  className="block w-full text-sm text-slate-600 
-                    file:mr-4 file:py-2 file:px-4 file:rounded-full 
-                    file:border-2 file:border-yellow-400 file:text-sm 
-                    file:font-semibold file:bg-yellow-300 
-                    file:text-yellow-800 hover:file:bg-yellow-400"
-                />
-              </div>
-            ) : (
-              <p className="text-orange-700 font-semibold">
-                Please select at least one streaming service
-              </p>
-            )}
-              
-            {isProcessing && (
-              <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                <div className="flex flex-col items-center">
-                  <img 
-                    src="/loading.png" 
-                    alt="Cake is cakeculating..." 
-                    className="w-48 h-48 object-contain animate-rock bg-transparent"
-                    style={{ 
-                      backgroundColor: 'transparent',
-                      mixBlendMode: 'multiply'
-                    }}
-                  />
-                  <p 
-                    className="text-xl text-blue-600 mt-2 animate-rainbow" 
-                    style={{ 
-                      fontFamily: 'var(--font-comic-neue)',
-                      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
-                    }}
-                  >
-                    Cakeculating...
-                  </p>
-                </div>
-              </div>
-            )}
-              
-  {uploadedFiles.length > 0 && (
-  <div className="mt-4">
-    <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
-    <ul className="list-disc list-inside text-orange-600 space-y-1">
-      {uploadedFiles.map((fileName, index) => (
-        <li key={index} className="flex items-center">
-          <span className="mr-2">{fileName}</span>
-          <button 
-            onClick={() => handleDeleteFile(index)}
-            className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
-            title="Remove file"
+          <li>Click "Calculate Statistics"</li>
+        </ol>
+      </div>
+      
+      <div className="p-4 border rounded bg-green-50">
+        <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
+        <div className="space-y-2 text-green-700">
+    
+          <div className="space-y-1">
+            <h4 className="font-medium text-green-800">Desktop:</h4>
+            <p>1. Open the site in Chrome/Edge</p>
+            <p>2. Click the "+" or install icon in the address bar</p>
+
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-medium text-green-800">Mobile:</h4>
+            <p>1. Open in Safari (iOS) or Chrome (Android)</p>
+            <p>2. Tap "Add to Home Screen"</p>
+       
+          </div>
+          <p className="text-sm text-green-600">
+            Enjoy offline access
+          </p>
+        </div>
+      </div>
+    </div>
+      
+    <h3 className="font-bold text-orange-700 mb-3 mt-4">Select Streaming Services:</h3>
+               
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+      {/* Standard Service Tiles */}
+      {Object.entries(STREAMING_SERVICES)
+        .filter(([type]) => type !== 'cake') // Filter out cake to display separately
+        .map(([type, service]) => (
+        <div key={type} className="border rounded-lg overflow-hidden">
+          <button
+            onClick={() => toggleServiceSelection(type)}
+            className={`w-full aspect-square sm:aspect-auto sm:px-4 sm:py-2 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors ${
+              selectedServices.includes(type)
+                ? serviceColors[type]?.selected || 'bg-gray-600 text-white'
+                : serviceColors[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
-            <Trash2 size={14} />
+            <span className="text-center sm:text-left">{service.name}</span>
+            {selectedServices.includes(type) && <Check size={18} className="mt-2 sm:mt-0" />}
           </button>
-        </li>
+          
+          <div className="px-2 sm:px-4 py-2 border-t bg-white">
+            <button 
+              onClick={() => toggleServiceInfo(type)}
+              className="flex items-center justify-center w-full text-xs sm:text-sm text-orange-600 hover:text-orange-800"
+            >
+              {showServiceInfo[type] ? 
+                <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
+                <><ChevronDown size={14} className="mr-1" /> Show Details</>
+              }
+            </button>
+            
+            {showServiceInfo[type] && (
+              <div className="mt-2 text-xs sm:text-sm text-orange-700">
+                <p className="mb-2">{service.instructions}</p>
+                <a
+                  href={service.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-orange-600 hover:text-orange-800 underline"
+                >
+                  Download your data here
+                </a>
+                <p className="mt-1">Accepted formats: {service.acceptedFormats}</p>
+              </div>
+            )}
+          </div>
+        </div>
       ))}
-    </ul>
-    
-    {uploadedFileList && uploadedFileList.length === 1 && 
-     uploadedFileList[0].name.endsWith('.xlsx') && (
-      <ExcelPreview file={uploadedFileList[0]} />
+
+      {/* Cake Upload Tile - Special Styling */}
+      <div className="border rounded-lg overflow-hidden bg-gradient-to-br from-pink-100 to-pink-200">
+        <button
+          onClick={() => toggleServiceSelection('cake')}
+          className={`w-full px-4 py-3 flex flex-col justify-center items-center transition-colors ${
+            selectedServices.includes('cake')
+              ? 'bg-pink-500 text-white'
+              : 'bg-pink-300 text-black hover:bg-pink-400'
+          }`}
+        >
+          <Cake size={32} className="mb-2" />
+          <span className="text-center font-medium">Cake Upload</span>
+          <span className="text-xs mt-1 opacity-80">Restore from Excel</span>
+          {selectedServices.includes('cake') && <Check size={18} className="mt-2" />}
+        </button>
+        
+        <div className="px-4 py-3 border-t border-pink-200 bg-white">
+          <button 
+            onClick={() => toggleServiceInfo('cake')}
+            className="flex items-center justify-center w-full text-sm text-pink-600 hover:text-pink-800"
+          >
+            {showServiceInfo['cake'] ? 
+              <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
+              <><ChevronDown size={14} className="mr-1" /> Show Details</>
+            }
+          </button>
+          
+          {showServiceInfo['cake'] && (
+            <div className="mt-2 text-sm">
+              <p className="mb-2 text-pink-700">
+                Upload a previously exported Excel file (.xlsx) to restore your streaming history.
+              </p>
+              <div className="flex items-center justify-center mt-3 bg-pink-100 p-2 rounded-lg">
+                <Upload size={16} className="mr-2 text-pink-600" />
+                <span className="text-pink-700">Import Excel (.xlsx)</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+        
+    {selectedServices.length > 0 ? (
+      <div>
+        <p className="mb-2 text-orange-700 font-bold">
+          Upload your files from selected services:
+        </p>
+        <input
+          type="file"
+          multiple
+          accept={getAcceptedFormats()}
+          onChange={handleFileUpload}
+          className="block w-full text-sm text-slate-600 
+            file:mr-4 file:py-2 file:px-4 file:rounded-full 
+            file:border-2 file:border-yellow-400 file:text-sm 
+            file:font-semibold file:bg-yellow-300 
+            file:text-yellow-800 hover:file:bg-yellow-400"
+        />
+      </div>
+    ) : (
+      <p className="text-orange-700 font-semibold">
+        Please select at least one streaming service
+      </p>
     )}
-    
-    <button
-      onClick={handleProcessFiles}
-      disabled={isProcessing}
-      className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
-        hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
-    >
-      {isProcessing ? "Processing..." : "Calculate Statistics"}
-    </button>
+        
+    {isProcessing && (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <div className="flex flex-col items-center">
+          <img 
+            src="/loading.png" 
+            alt="Cake is cakeculating..." 
+            className="w-48 h-48 object-contain animate-rock bg-transparent"
+            style={{ 
+              backgroundColor: 'transparent',
+              mixBlendMode: 'multiply'
+            }}
+          />
+          <p 
+            className="text-xl text-blue-600 mt-2 animate-rainbow" 
+            style={{ 
+              fontFamily: 'var(--font-comic-neue)',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            Cakeculating...
+          </p>
+        </div>
+      </div>
+    )}
+        
+    {uploadedFiles.length > 0 && (
+      <div className="mt-4">
+        <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
+        <ul className="list-disc list-inside text-orange-600 space-y-1">
+          {uploadedFiles.map((fileName, index) => (
+            <li key={index} className="flex items-center">
+              <span className="mr-2">{fileName}</span>
+              <button 
+                onClick={() => handleDeleteFile(index)}
+                className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                title="Remove file"
+              >
+                <Trash2 size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+        
+        {uploadedFileList && uploadedFileList.length === 1 && 
+         uploadedFileList[0].name.endsWith('.xlsx') && (
+          <ExcelPreview file={uploadedFileList[0]} />
+        )}
+        
+        <button
+          onClick={handleProcessFiles}
+          disabled={isProcessing}
+          className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
+            hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+        >
+          {isProcessing ? "Processing..." : "Calculate Statistics"}
+        </button>
+      </div>
+    )}
+        
+    {error && (
+      <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
+        {error}
+      </div>
+    )}
   </div>
 )}
-              
-            {error && (
-              <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
-                {error}
-              </div>
-            )}
-          </div>
-        )}
         
 {activeTab === 'stats' && stats && (
   <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
