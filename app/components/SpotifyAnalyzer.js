@@ -1426,7 +1426,7 @@ const TabButton = ({ id, label }) => {
   };
 
   return (
-<Card className="w-full max-w-full sm:max-w-4xl h-full">
+<Card className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
   <CardHeader className="px-2 sm:px-6">
     <CardTitle className="text-yellow-400">Streaming History Analyzer</CardTitle>
   </CardHeader>
@@ -1801,7 +1801,7 @@ const TabButton = ({ id, label }) => {
         </button>
       </div>
     ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {displayedArtists
           .filter(artist => {
             // If we have selected artists, only show them
@@ -1976,7 +1976,7 @@ const TabButton = ({ id, label }) => {
         </button>
       </div>
     ) : (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
           <AlbumCard 
             key={`${album.name}-${album.artist}`}
