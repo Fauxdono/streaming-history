@@ -2035,14 +2035,6 @@ const TabButton = ({ id, label }) => {
 )}
 {activeTab === 'custom' && (
   <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-orange-700">
-        {customTrackYear === 'all' ? 'Custom Date Range (All Time)' : 
-          customYearRangeMode && customYearRange.startYear && customYearRange.endYear ? 
-          `Custom Date Range (${customYearRange.startYear}-${customYearRange.endYear})` : 
-          `Custom Date Range (${customTrackYear})`}
-      </h3>
-    </div>
 
     <CustomTrackRankings 
       rawPlayData={rawPlayData}
