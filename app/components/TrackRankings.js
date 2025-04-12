@@ -302,7 +302,7 @@ return (
           ? `Brief Obsessions for ${yearRange.startYear}-${yearRange.endYear}`
           : initialYear === 'all' 
             ? 'Brief Obsessions (All Time)' 
-            : `Brief Obsessions for ${initialYear}`}
+            : `Brief Obsessions (${initialYear})`}
       </h3>
       
       <div className="flex items-center gap-2">
