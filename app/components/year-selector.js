@@ -919,8 +919,6 @@ const QuickAllTimeButton = ({ selectedYear, onClick }) => {
     {/* Year selection */}
     <div className="flex flex-col items-center">
       <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
-      
-// Find the All Time button section in year-selector.js and replace it with this:
 
 {/* Add a quick "All Time" button with direct callback */}
 <button
