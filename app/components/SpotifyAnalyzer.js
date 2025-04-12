@@ -265,7 +265,7 @@ switch(activeTab) {
       setSelectedTrackYear(year);
       break;
     case 'custom':
-      handleCustomTrackYear(year);
+      handleCustomTrackYearChange(year);
       break;
 case 'patterns':
       setSelectedPatternYear(year);
@@ -295,7 +295,7 @@ const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
       handleAlbumYearRangeChange({ startYear, endYear });
   break;
     case 'custom':
-      handleCustomTrackYearRange({ startYear, endYear });
+      handleCustomTrackYearRangeChange({ startYear, endYear });
       break;
     case 'patterns':
       setPatternYearRange({ startYear, endYear });
@@ -393,10 +393,10 @@ setPatternYearRangeMode(isRange);
 const getCustomTabLabel = () => {
   if (customYearRangeMode && customYearRange.startYear && customYearRange.endYear) {
     return `${customYearRange.startYear}-${customYearRange.endYear} Custom`;
-  } else if (selectedCustomYear === 'all') {
+  } else if (customTrackYear === 'all') {
     return 'All-time Custom';
   }
-  return `${selectedCustomYear} Custom`;
+  return `${customTrackYear} Custom`;
 };
 
 const getPatternsTabLabel = () => {
