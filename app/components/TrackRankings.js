@@ -296,14 +296,13 @@ const filteredObsessions = useMemo(() => {
 return (
   <div className="w-full">
     {/* Controls Section */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-blue-50 mb-4">
-      {/* First line: Title + export button + controls - REPLACE THIS SECTION */}
+
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-bold text-blue-700">
           {yearRangeMode && yearRange.startYear && yearRange.endYear
             ? `Brief Obsessions for ${yearRange.startYear}-${yearRange.endYear}`
             : initialYear === 'all' 
-              ? 'All-time brief Obsessions' 
+              ? 'All-time Brief Obsessions' 
               : `Brief Obsessions for ${initialYear}`}
         </h3>
         
@@ -332,6 +331,7 @@ return (
       </div>
 
       {/* Second line: Controls in a clean row */}
+    <div className="border rounded-lg p-3 sm:p-4 bg-blue-50 mb-4">
       <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
         <div className="flex items-center gap-1 sm:gap-2 text-blue-700">
           <label className="text-sm">Min plays/week</label>
