@@ -2009,14 +2009,7 @@ const TabButton = ({ id, label }) => {
 )}
 {activeTab === 'tracks' && (
   <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-blue-700">
-        {selectedTrackYear === 'all' ? 'Brief Obsessions (All Time)' : 
-          customYearRangeMode && customYearRange.startYear && customYearRange.endYear ? 
-          `Brief Obsessions (${customYearRange.startYear}-${customYearRange.endYear})` : 
-          `Brief Obsessions (${selectedTrackYear})`}
-      </h3>
-    </div>
+   
     
     <TrackRankings 
       processedData={processedData} 
