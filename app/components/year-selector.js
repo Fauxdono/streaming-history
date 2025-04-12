@@ -920,18 +920,38 @@ const QuickAllTimeButton = ({ selectedYear, onClick }) => {
     <div className="flex flex-col items-center">
       <div className={`text-xs mb-1 font-medium ${colors.text}`}>YEAR</div>
       
-      {/* Add a quick "All Time" button */}
-      <button
-        onClick={() => handleYearChange('all')}
-        className={`px-2 py-1 mb-2 text-xs rounded-md transition-colors ${
-          selectedYear === 'all' 
-            ? `${colors.bgActive} ${colors.textActive} font-bold` 
-            : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
-        }`}
-        title="Show all-time data"
-      >
-        All Time
-      </button>
+// Find the All Time button section in year-selector.js and replace it with this:
+
+{/* Add a quick "All Time" button with direct callback */}
+<button
+  onClick={(e) => {
+    console.log("All Time button clicked");
+    
+    // First update local state
+    setSelectedYear('all');
+    setShowMonthSelector(false);
+    setShowDaySelector(false);
+    
+    // Then directly call parent callback - this is key!
+    if (onYearChange) {
+      console.log("Directly calling parent onYearChange with 'all'");
+      onYearChange('all');
+    } else {
+      console.error("onYearChange callback not available!");
+    }
+    
+    // Force UI refresh
+    setRefreshCounter(prev => prev + 1);
+  }}
+  className={`px-2 py-1 mb-2 text-xs rounded-md transition-colors ${
+    selectedYear === 'all' 
+      ? `${colors.bgActive} ${colors.textActive} font-bold` 
+      : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
+  }`}
+  title="Show all-time data"
+>
+  All Time
+</button>
       
       <WheelSelector
         items={['all', ...years]}
