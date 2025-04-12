@@ -34,7 +34,6 @@ const ExportButton = ({
   }, []);
 
   // Function to extract all songs from raw play data
-  // This is used during initial statistics processing and remains synchronous
   const extractAllSongs = () => {
     if (!rawPlayData || rawPlayData.length === 0) {
       return processedData; // Fall back to regular processed data
@@ -75,7 +74,6 @@ const ExportButton = ({
       .sort((a, b) => b.totalPlayed - a.totalPlayed);
   };
 
-  // This async function is only used during export, not during initial processing
   const createWorkbookForExport = async () => {
     const workbook = new ExcelJS.Workbook();
     setExportProgress(5);
@@ -168,19 +166,11 @@ const ExportButton = ({
 
     setExportProgress(30);
 
-    // Process track data - get all songs for export with processing adjusted for mobile
-    let allSongs;
-    if (isMobile) {
-      // On mobile, use a limited set directly from processedData
-      allSongs = processedData.slice(0, 500);
-      setExportProgress(40);
-    } else {
-      // On desktop, process the full dataset
-      allSongs = extractAllSongs();
-      setExportProgress(40);
-    }
+    // Process track data - FIXED: Always extract all songs, but limit what we add to the Excel file on mobile
+    const allSongs = extractAllSongs();
+    setExportProgress(40);
 
-    // All-Time Top 2000 Sheet - with mobile-friendly limits
+    // All-Time Top Tracks Sheet - with mobile-friendly limits
     const topLimit = isMobile ? 500 : 2000;
     const topTracksSheet = workbook.addWorksheet(`Top ${topLimit} All-Time`);
     topTracksSheet.addRow([`All-Time Top ${topLimit} Tracks`]);
@@ -404,7 +394,7 @@ const ExportButton = ({
     try {
       const workbook = await createWorkbookForExport();
       
-      // Generate filename with timestamp - changed to "cake dreamin" as requested
+      // Generate filename with timestamp
       const timestamp = new Date().toISOString().split('T')[0];
       const filename = `cake-dreamin-${timestamp}.xlsx`;
 
