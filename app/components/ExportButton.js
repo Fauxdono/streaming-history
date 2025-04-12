@@ -15,8 +15,52 @@ const ExportButton = ({
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Function to extract all songs from raw play data
+  const extractAllSongs = () => {
+    if (!rawPlayData || rawPlayData.length === 0) {
+      return processedData; // Fall back to regular processed data
+    }
+    
+    // Track unique songs
+    const songMap = new Map();
+    
+    // Process raw play data to extract all songs
+    rawPlayData.forEach(entry => {
+      if (entry.ms_played < 30000 || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
+        return; // Skip invalid entries
+      }
+      
+      const trackName = entry.master_metadata_track_name;
+      const artistName = entry.master_metadata_album_artist_name;
+      const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+      const key = `${trackName}|||${artistName}`;
+      
+      if (!songMap.has(key)) {
+        songMap.set(key, {
+          trackName,
+          artist: artistName,
+          albumName,
+          totalPlayed: entry.ms_played,
+          playCount: 1
+        });
+      } else {
+        // Update existing song
+        const song = songMap.get(key);
+        song.totalPlayed += entry.ms_played;
+        song.playCount += 1;
+      }
+    });
+    
+    // Convert map to array and sort by total time played
+    return Array.from(songMap.values())
+      .sort((a, b) => b.totalPlayed - a.totalPlayed);
+  };
+
   const createWorkbook = async () => {
     const workbook = new ExcelJS.Workbook();
+    
+    // Get all songs for export
+    const allSongs = extractAllSongs();
     
     // Summary Sheet
     const summarySheet = workbook.addWorksheet('Summary');
@@ -73,13 +117,13 @@ const ExportButton = ({
       ]);
     });
 
-    // All-Time Top 250 Sheet
-    const tracks250Sheet = workbook.addWorksheet('Top 250 All-Time');
-    tracks250Sheet.addRow(['All-Time Top 250 Tracks']);
-    tracks250Sheet.addRow([]);
-    tracks250Sheet.addRow(['Rank', 'Track', 'Artist', 'Album', 'Total Time', 'Play Count', 'Average Time per Play']);
-    processedData.forEach((track, index) => {
-      tracks250Sheet.addRow([
+    // All-Time Top 2000 Sheet
+    const tracks2000Sheet = workbook.addWorksheet('Top 2000 All-Time');
+    tracks2000Sheet.addRow(['All-Time Top 2000 Tracks']);
+    tracks2000Sheet.addRow([]);
+    tracks2000Sheet.addRow(['Rank', 'Track', 'Artist', 'Album', 'Total Time', 'Play Count', 'Average Time per Play']);
+    allSongs.slice(0, 2000).forEach((track, index) => {
+      tracks2000Sheet.addRow([
         index + 1,
         track.trackName,
         track.artist,
