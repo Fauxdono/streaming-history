@@ -57,7 +57,6 @@ export const STREAMING_SERVICES = {
     acceptedFormats: '.xlsx'
   }
 };
-};
 
 function normalizeString(str) {
   if (!str) return { normalized: '', featureArtists: [] };
