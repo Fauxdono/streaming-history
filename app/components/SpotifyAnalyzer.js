@@ -233,7 +233,13 @@ case 'discovery':
 
 // 4. Add function to handle year selection from sidebar based on active tab
 const handleSidebarYearChange = (year) => {
-console.log(`Sidebar year changed to: ${year} for tab: ${activeTab}`);  
+  const isAllTime = year === 'all';
+  if (isAllTime) {
+    console.log(`Setting ALL TIME MODE for tab: ${activeTab}`);
+  }
+  
+  // Always use 'all' string (not object reference) for consistency
+  const yearValue = isAllTime ? 'all' : year;
 switch(activeTab) {
     case 'artists':
       setSelectedArtistYear(year);
@@ -419,8 +425,6 @@ const formatDuration = (ms) => {
   };
 
 useEffect(() => {
-    // When in single year mode and the selected year is 'all',
-    // update the year display text
     if (!yearRangeMode && selectedArtistYear === 'all') {
       // Force the BetterYearSlider to show "All-Time" instead of a specific year
       const updateAllTimeText = () => {
