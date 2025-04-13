@@ -170,65 +170,65 @@ body {
 
 /* Dark mode class-based styles */
 /* Tab Background Colors - Using CSS Variables */
-.dark .bg-orange-50 { background-color: var(--orange-bg-light); }
-.dark .bg-orange-100 { background-color: var(--orange-bg-light); }
-.dark .bg-orange-200 { background-color: var(--orange-bg-dark); }
+.dark .bg-orange-50 { background-color: var(--orange-bg-light) !important; }
+.dark .bg-orange-100 { background-color: var(--orange-bg-light) !important; }
+.dark .bg-orange-200 { background-color: var(--orange-bg-dark) !important; }
 
-.dark .bg-purple-50 { background-color: var(--purple-bg-light); }
-.dark .bg-purple-100 { background-color: var(--purple-bg-light); }
-.dark .bg-purple-200 { background-color: var(--purple-bg-dark); }
+.dark .bg-purple-50 { background-color: var(--purple-bg-light) !important; }
+.dark .bg-purple-100 { background-color: var(--purple-bg-light) !important; }
+.dark .bg-purple-200 { background-color: var(--purple-bg-dark) !important; }
 
-.dark .bg-teal-50 { background-color: var(--teal-bg-light); }
-.dark .bg-teal-100 { background-color: var(--teal-bg-light); }
-.dark .bg-teal-200 { background-color: var(--teal-bg-dark); }
+.dark .bg-teal-50 { background-color: var(--teal-bg-light) !important; }
+.dark .bg-teal-100 { background-color: var(--teal-bg-light) !important; }
+.dark .bg-teal-200 { background-color: var(--teal-bg-dark) !important; }
 
-.dark .bg-blue-50 { background-color: var(--blue-bg-light); }
-.dark .bg-blue-100 { background-color: var(--blue-bg-light); }
-.dark .bg-blue-200 { background-color: var(--blue-bg-dark); }
+.dark .bg-blue-50 { background-color: var(--blue-bg-light) !important; }
+.dark .bg-blue-100 { background-color: var(--blue-bg-light) !important; }
+.dark .bg-blue-200 { background-color: var(--blue-bg-dark) !important; }
 
-.dark .bg-green-50 { background-color: var(--green-bg-light); }
-.dark .bg-green-100 { background-color: var(--green-bg-light); }
-.dark .bg-green-200 { background-color: var(--green-bg-dark); }
+.dark .bg-green-50 { background-color: var(--green-bg-light) !important; }
+.dark .bg-green-100 { background-color: var(--green-bg-light) !important; }
+.dark .bg-green-200 { background-color: var(--green-bg-dark) !important; }
 
-.dark .bg-indigo-50 { background-color: var(--indigo-bg-light); }
-.dark .bg-indigo-100 { background-color: var(--indigo-bg-light); }
-.dark .bg-indigo-200 { background-color: var(--indigo-bg-dark); }
+.dark .bg-indigo-50 { background-color: var(--indigo-bg-light) !important; }
+.dark .bg-indigo-100 { background-color: var(--indigo-bg-light) !important; }
+.dark .bg-indigo-200 { background-color: var(--indigo-bg-dark) !important; }
 
-.dark .bg-pink-50 { background-color: var(--pink-bg-light); }
-.dark .bg-pink-100 { background-color: var(--pink-bg-light); }
-.dark .bg-pink-200 { background-color: var(--pink-bg-dark); }
+.dark .bg-pink-50 { background-color: var(--pink-bg-light) !important; }
+.dark .bg-pink-100 { background-color: var(--pink-bg-light) !important; }
+.dark .bg-pink-200 { background-color: var(--pink-bg-dark) !important; }
 
-.dark .bg-red-50 { background-color: var(--red-bg-light); }
-.dark .bg-red-100 { background-color: var(--red-bg-light); }
-.dark .bg-red-200 { background-color: var(--red-bg-dark); }
+.dark .bg-red-50 { background-color: var(--red-bg-light) !important; }
+.dark .bg-red-100 { background-color: var(--red-bg-light) !important; }
+.dark .bg-red-200 { background-color: var(--red-bg-dark) !important; }
 
-.dark .bg-yellow-50 { background-color: var(--yellow-bg-light); }
-.dark .bg-yellow-100 { background-color: var(--yellow-bg-light); }
-.dark .bg-yellow-200 { background-color: var(--yellow-bg-dark); }
+.dark .bg-yellow-50 { background-color: var(--yellow-bg-light) !important; }
+.dark .bg-yellow-100 { background-color: var(--yellow-bg-light) !important; }
+.dark .bg-yellow-200 { background-color: var(--yellow-bg-dark) !important; }
 
-.dark .bg-cyan-50 { background-color: var(--cyan-bg-light); }
-.dark .bg-cyan-100 { background-color: var(--cyan-bg-light); }
-.dark .bg-cyan-200 { background-color: var(--cyan-bg-dark); }
+.dark .bg-cyan-50 { background-color: var(--cyan-bg-light) !important; }
+.dark .bg-cyan-100 { background-color: var(--cyan-bg-light) !important; }
+.dark .bg-cyan-200 { background-color: var(--cyan-bg-dark) !important; }
 
 /* Tab Text Colors */
-.dark .text-orange-600, .dark .text-orange-700, .dark .text-orange-800 { color: var(--orange-text); }
-.dark .text-purple-600, .dark .text-purple-700, .dark .text-purple-800 { color: var(--purple-text); }
-.dark .text-teal-600, .dark .text-teal-700, .dark .text-teal-800 { color: var(--teal-text); }
-.dark .text-blue-600, .dark .text-blue-700, .dark .text-blue-800 { color: var(--blue-text); }
-.dark .text-green-600, .dark .text-green-700, .dark .text-green-800 { color: var(--green-text); }
-.dark .text-indigo-600, .dark .text-indigo-700, .dark .text-indigo-800 { color: var(--indigo-text); }
-.dark .text-pink-600, .dark .text-pink-700, .dark .text-pink-800 { color: var(--pink-text); }
-.dark .text-red-600, .dark .text-red-700, .dark .text-red-800 { color: var(--red-text); }
-.dark .text-yellow-600, .dark .text-yellow-700, .dark .text-yellow-800 { color: var(--yellow-text); }
-.dark .text-cyan-600, .dark .text-cyan-700, .dark .text-cyan-800 { color: var(--cyan-text); }
+.dark .text-orange-600, .dark .text-orange-700, .dark .text-orange-800 { color: var(--orange-text) !important; }
+.dark .text-purple-600, .dark .text-purple-700, .dark .text-purple-800 { color: var(--purple-text) !important; }
+.dark .text-teal-600, .dark .text-teal-700, .dark .text-teal-800 { color: var(--teal-text) !important; }
+.dark .text-blue-600, .dark .text-blue-700, .dark .text-blue-800 { color: var(--blue-text) !important; }
+.dark .text-green-600, .dark .text-green-700, .dark .text-green-800 { color: var(--green-text) !important; }
+.dark .text-indigo-600, .dark .text-indigo-700, .dark .text-indigo-800 { color: var(--indigo-text) !important; }
+.dark .text-pink-600, .dark .text-pink-700, .dark .text-pink-800 { color: var(--pink-text) !important; }
+.dark .text-red-600, .dark .text-red-700, .dark .text-red-800 { color: var(--red-text) !important; }
+.dark .text-yellow-600, .dark .text-yellow-700, .dark .text-yellow-800 { color: var(--yellow-text) !important; }
+.dark .text-cyan-600, .dark .text-cyan-700, .dark .text-cyan-800 { color: var(--cyan-text) !important; }
 
 /* Card adjustments */
 .dark .bg-white {
-  background-color: var(--card-background);
+  background-color: var(--card-background) !important;
 }
 
 .dark .border {
-  border-color: var(--border);
+  border-color: var(--border) !important;
 }
 
 /* Input styles */
@@ -260,9 +260,9 @@ body {
   filter: brightness(1.75);
 }
 
-/* Loading animation background in dark mode */
+/* Fix loading animation to not change in dark mode */
 .dark .animate-rock {
-  filter: invert(0.8);
+  filter: none; /* Remove the inversion filter */
 }
 
 /* Existing animations */
