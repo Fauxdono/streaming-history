@@ -255,12 +255,13 @@ const WheelSelector = ({
         style={{ height: `${totalHeight}px` }}
         onWheel={handleWheel}
       >
-        {/* Replace the horizontal line with a box around the selection */}
+        {/* Selection box with lower z-index to stay behind text */}
         <div 
-          className={`absolute left-1 right-1 top-1/2 -translate-y-1/2 z-10 h-${itemHeight}px ${colors.highlight} border-2 ${colors.border} rounded-md pointer-events-none`}
+          className={`absolute left-1 right-1 top-1/2 -translate-y-1/2 h-${itemHeight}px ${colors.highlight} border-2 ${colors.border} rounded-md pointer-events-none`}
           style={{ 
             height: `${itemHeight}px`,
-            boxShadow: `0 0 2px rgba(0,0,0,0.1) inset` 
+            boxShadow: `0 0 2px rgba(0,0,0,0.1) inset`,
+            zIndex: 5 
           }}
         ></div>
         
@@ -281,7 +282,7 @@ const WheelSelector = ({
               className={`absolute left-0 right-0 flex items-center justify-center cursor-pointer transition-transform ${
                 item.position === 'current' ? colors.activeText : colors.text
               } ${
-                item.position === 'current' ? 'text-sm font-bold' : 'text-xs opacity-70'
+                item.position === 'current' ? 'text-sm font-bold z-10' : 'text-xs opacity-70'
               }`}
               style={{
                 height: `${itemHeight}px`,
