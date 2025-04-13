@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import { Mail, Check, Clock, Sparkles, BugIcon } from 'lucide-react';
 
 const UpdatesSection = () => {
-
-  // Suggestions/Problems - placeholder for future feature
-  const [communitySuggestions, setCommunitySuggestions] = useState([
- ];
   // Past Updates - a log of changes and improvements
   const pastUpdates = [
     
@@ -13,7 +9,11 @@ const UpdatesSection = () => {
 
   // Planned Updates - future improvements and features
   const plannedUpdates = [
-  
+   
+  ];
+
+  // Suggestions/Problems - placeholder for future feature
+  const [communitySuggestions, setCommunitySuggestions] = useState([
     
   ]);
 
@@ -49,6 +49,16 @@ const UpdatesSection = () => {
     <div className="space-y-4">
       {/* Tabs */}
       <div className="flex border-b mb-4">
+   <button
+          onClick={() => setActiveTab('community-suggestions')}
+          className={`px-4 py-2 font-medium ${
+            activeTab === 'community-suggestions' 
+              ? 'text-violet-600 border-b-2 border-violet-600' 
+              : 'text-gray-500 hover:text-violet-700'
+          }`}
+        >
+          Suggestions/Problems
+        </button>
         <button
           onClick={() => setActiveTab('past-updates')}
           className={`px-4 py-2 font-medium ${
@@ -69,16 +79,7 @@ const UpdatesSection = () => {
         >
           Planned Updates
         </button>
-        <button
-          onClick={() => setActiveTab('community-suggestions')}
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'community-suggestions' 
-              ? 'text-violet-600 border-b-2 border-violet-600' 
-              : 'text-gray-500 hover:text-violet-700'
-          }`}
-        >
-          Community Suggestions
-        </button>
+     
       </div>
 
       {activeTab === 'past-updates' && (
