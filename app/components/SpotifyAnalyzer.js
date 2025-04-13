@@ -2078,7 +2078,7 @@ const TabButton = ({ id, label }) => {
 
 {activeTab === 'patterns' && (
   <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
-    <div className="flex justify-between items-center mb-2">
+    <div className="flex justify-between items-center mb-4">
       <h3 className="font-bold text-purple-700">
         {selectedPatternYear === 'all' ? 'Listening Patterns (All Time)' : 
           patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear ? 
