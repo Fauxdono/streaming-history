@@ -255,9 +255,9 @@ const WheelSelector = ({
         style={{ height: `${totalHeight}px` }}
         onWheel={handleWheel}
       >
-        {/* Center selection indicator */}
+        {/* Center selection indicator - CHANGED FROM LINE TO BOX */}
         <div 
-          className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-${itemHeight}px ${colors.highlight} border-y ${colors.border} pointer-events-none`}
+          className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-${itemHeight}px ${colors.highlight} border ${colors.border} rounded-md pointer-events-none`}
         ></div>
         
         <div 
