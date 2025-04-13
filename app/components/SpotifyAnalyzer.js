@@ -2064,12 +2064,6 @@ const TabButton = ({ id, label }) => {
     className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300"
   >
     <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-indigo-700">
-        {selectedPodcastYear === 'all' ? 'Podcast Analysis (All Time)' : 
-          podcastYearRangeMode && podcastYearRange.startYear && podcastYearRange.endYear ? 
-          `Podcast Analysis (${podcastYearRange.startYear}-${podcastYearRange.endYear})` : 
-          `Podcast Analysis (${selectedPodcastYear})`}
-      </h3>
     </div>
     
     <PodcastRankings 

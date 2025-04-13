@@ -626,18 +626,18 @@ const PodcastRankings = ({
             })}`;
           }
         }
-        return `Podcast Rankings for ${selectedYear}`;
+        return `Podcast Rankings  (${selectedYear})`;
       }
-      return `Podcast Rankings for ${selectedYear}`;
+      return `Podcast Rankings  (${selectedYear})`;
     } else {
-      return 'All-time Podcast Rankings';
+      return 'Podcast Rankings (All Time)';
     }
   };
 
   return (
     <div className="space-y-4">
   <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-orange-700">
+      <h3 className="font-bold text-indigo-700">
         {getPageTitle()}
       </h3>
       
