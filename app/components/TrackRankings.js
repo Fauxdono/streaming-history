@@ -343,7 +343,7 @@ return (
           className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
         >
           <Download size={14} className="hidden sm:inline" />
-          {showExporter ? "Hide" : "Export"}
+          {showExporter ? "Hide" : "Export M3u"}
         </button>
         
         <div className="flex items-center gap-1 sm:gap-2">

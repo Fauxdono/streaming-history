@@ -1274,7 +1274,7 @@ return (
           className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
         >
           <Download size={14} className="hidden sm:inline" />
-          Export M3U
+          Export M3u
         </button>
         
         {/* Sort Controls */}
