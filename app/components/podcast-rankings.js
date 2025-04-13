@@ -640,8 +640,6 @@ const PodcastRankings = ({
       <h3 className="font-bold text-indigo-700">
         {getPageTitle()}
       </h3>
-      
-
        <div className="flex items-center gap-1 sm:gap-2 text-indigo-700 ml-2">
     <label className="text-sm">Show top</label>
           <input
@@ -652,13 +650,11 @@ const PodcastRankings = ({
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
             className="border rounded w-16 px-2 py-1 text-indigo-700 focus:border-indigo-400 focus:ring-indigo-400"
           />
-          <label>episodes</label>
         </div>
        </div>
      
 
       {/* Duplicate Detection Settings */}
-      <div className="flex flex-wrap items-center gap-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
         <div className="flex items-center gap-2">
           <label className="text-indigo-700 font-medium">Session gap threshold: </label>
           <input
@@ -687,7 +683,7 @@ const PodcastRankings = ({
             <div>• <span className="font-medium">{duplicateTypes.zeroTime}</span> zero-duration entries</div>
           </div>
         )}
-      </div>
+    
 
       {/* Show Selection */}
       <div className="relative">
