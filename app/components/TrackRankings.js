@@ -305,6 +305,8 @@ return (
             : `Brief Obsessions (${initialYear})`}
       </h3>
       
+    
+
         <div className="flex items-center gap-1 sm:gap-2 text-blue-700 ml-2">
           <label className="text-sm">Show top</label>
           <input
@@ -316,7 +318,6 @@ return (
             className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
           />
           <label className="text-sm">tracks</label>
-        </div>
       </div>
     </div>
 
@@ -336,7 +337,7 @@ return (
           />
         </div>
 
-      <div className="flex items-center gap-2">
+  <div className="flex items-center gap-2">
         <button
           onClick={() => setShowExporter(!showExporter)}
           className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
@@ -377,6 +378,7 @@ return (
           >
             Recent First
           </button>
+   </div>
         </div>
       </div>
     </div>
