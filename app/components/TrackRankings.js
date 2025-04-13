@@ -317,12 +317,11 @@ return (
             onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
             className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
           />
-          <label className="text-sm">tracks</label>
       </div>
     </div>
 
     {/* Controls Section */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-blue-50 mb-4">
+ 
       {/* Second line: Controls in a clean row */}
       <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
         <div className="flex items-center gap-1 sm:gap-2 text-blue-700">
@@ -378,7 +377,6 @@ return (
           >
             Recent First
           </button>
-   </div>
         </div>
       </div>
     </div>
