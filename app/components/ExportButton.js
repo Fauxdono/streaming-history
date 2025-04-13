@@ -18,7 +18,7 @@ const ExportButton = ({
   const [exportProgress, setExportProgress] = useState(0);
   const [currentOperation, setCurrentOperation] = useState('');
 
-  // Check if we're on a mobile device - keep this for UI adjustments only
+  // Check if we're on a mobile device
   useEffect(() => {
     const checkMobile = () => {
       const isMobileDevice = window.innerWidth < 768 || 
@@ -88,16 +88,17 @@ const ExportButton = ({
         if (operation) {
           setCurrentOperation(operation);
         }
-        setTimeout(resolve, 5);
+        // Use a longer timeout on mobile
+        setTimeout(resolve, isMobile ? 20 : 5);
       });
     });
   };
 
-  // Add data in batches - still needed for performance
+  // Add data in batches
   const addDataInBatches = async (sheet, data, offset, callback, progressStart, progressEnd, operationName) => {
     const totalItems = data.length;
-    // Use larger batch size on desktop, smaller on mobile
-    const batchSize = isMobile ? 100 : 500;
+    // Use smaller batch size on mobile
+    const batchSize = isMobile ? 50 : 500;
     const totalBatches = Math.ceil(totalItems / batchSize);
     
     for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
@@ -114,8 +115,8 @@ const ExportButton = ({
       
       await updateProgress(Math.floor(progressValue), operationName);
       
-      // Short yield to prevent UI freeze
-      await new Promise(resolve => setTimeout(resolve, 5));
+      // Longer yield on mobile
+      await new Promise(resolve => setTimeout(resolve, isMobile ? 30 : 5));
     }
     
     await updateProgress(progressEnd, `${operationName} - Complete`);
@@ -150,16 +151,19 @@ const ExportButton = ({
         });
       }
 
-      // Top Artists Sheet - NO mobile limits
+      // Top Artists Sheet
       await updateProgress(10, "Processing top artists...");
       const artistsSheet = workbook.addWorksheet('Top Artists');
       artistsSheet.addRow(['Top Artists']);
       artistsSheet.addRow([]);
       artistsSheet.addRow(['Rank', 'Artist', 'Total Time', 'Play Count', 'Average Time per Play']);
       
+      // On mobile, limit to reduce memory pressure
+      const artistLimit = isMobile ? 500 : topArtists.length;
+      
       await addDataInBatches(
         artistsSheet,
-        topArtists,
+        topArtists.slice(0, artistLimit),
         1,
         (artist, rank) => {
           artistsSheet.addRow([
@@ -173,16 +177,19 @@ const ExportButton = ({
         10, 20, "Adding artists"
       );
       
-      // Top Albums Sheet - NO mobile limits
+      // Top Albums Sheet
       await updateProgress(20, "Processing top albums...");
       const albumsSheet = workbook.addWorksheet('Top Albums');
       albumsSheet.addRow(['Top Albums']);
       albumsSheet.addRow([]);
       albumsSheet.addRow(['Rank', 'Album', 'Artist', 'Total Time', 'Play Count', 'Track Count', 'Average Time per Play']);
       
+      // On mobile, limit to reduce memory pressure
+      const albumLimit = isMobile ? 500 : topAlbums.length;
+      
       await addDataInBatches(
         albumsSheet,
-        topAlbums,
+        topAlbums.slice(0, albumLimit),
         1,
         (album, rank) => {
           albumsSheet.addRow([
@@ -198,14 +205,16 @@ const ExportButton = ({
         20, 30, "Adding albums"
       );
 
-      // All-Time Top 2000 Tracks - NO mobile limits
+      // All-Time Top Tracks Sheet
       await updateProgress(30, "Processing top tracks...");
+      // On mobile, limit to reduce memory pressure
+      const trackLimit = isMobile ? 1000 : 2000;
       const tracksToProcess = allSongsRef.current ? 
-                             allSongsRef.current.slice(0, 2000) : 
-                             processedData.slice(0, 2000);
+                             allSongsRef.current.slice(0, trackLimit) : 
+                             processedData.slice(0, trackLimit);
       
-      const topTracksSheet = workbook.addWorksheet('Top 2000 All-Time');
-      topTracksSheet.addRow(['All-Time Top 2000 Tracks']);
+      const topTracksSheet = workbook.addWorksheet(`Top ${trackLimit} All-Time`);
+      topTracksSheet.addRow([`All-Time Top ${trackLimit} Tracks`]);
       topTracksSheet.addRow([]);
       topTracksSheet.addRow(['Rank', 'Track', 'Artist', 'Album', 'Total Time', 'Play Count', 'Average Time per Play']);
       
@@ -227,11 +236,16 @@ const ExportButton = ({
         30, 45, "Adding top tracks"
       );
       
-      // Yearly Top tracks - NO mobile limits
+      // Yearly Top tracks
       if (songsByYear && Object.keys(songsByYear).length > 0) {
         await updateProgress(45, "Processing yearly top tracks...");
         
         let years = Object.keys(songsByYear).sort((a, b) => b - a);
+        
+        // On mobile, limit to most recent years
+        if (isMobile && years.length > 5) {
+          years = years.slice(0, 5);
+        }
         
         for (let i = 0; i < years.length; i++) {
           const year = years[i];
@@ -249,7 +263,7 @@ const ExportButton = ({
           
           await addDataInBatches(
             yearSheet,
-            tracks.slice(0, 100), // Keep top 100 per year
+            tracks.slice(0, 100),
             1,
             (track, rank) => {
               yearSheet.addRow([
@@ -269,8 +283,9 @@ const ExportButton = ({
         }
       }
       
-      // Brief Obsessions Sheet - NO mobile limits
+      // Brief Obsessions Sheet
       await updateProgress(60, "Processing brief obsessions...");
+      const obsessionLimit = isMobile ? 100 : briefObsessions.length;
       const obsessionsSheet = workbook.addWorksheet('Brief Obsessions');
       obsessionsSheet.addRow(['Brief Obsessions (Songs with intense listening periods)']);
       obsessionsSheet.addRow([]);
@@ -278,7 +293,7 @@ const ExportButton = ({
       
       await addDataInBatches(
         obsessionsSheet,
-        briefObsessions,
+        briefObsessions.slice(0, obsessionLimit),
         1,
         (track, rank) => {
           try {
@@ -298,9 +313,12 @@ const ExportButton = ({
         60, 70, "Adding brief obsessions"
       );
 
-      // Complete Streaming History - NO mobile limits
+      // Complete Streaming History
       if (rawPlayData && rawPlayData.length > 0) {
         await updateProgress(70, "Processing streaming history...");
+        
+        // On mobile, significantly limit to avoid memory issues
+        const historyLimit = isMobile ? Math.min(1000, rawPlayData.length) : rawPlayData.length;
         
         const historySheet = workbook.addWorksheet('Complete Streaming History');
         historySheet.addRow(['Complete Streaming History (Chronological Order)']);
@@ -323,16 +341,23 @@ const ExportButton = ({
           'Episode Show'
         ]);
   
-        // Sort data chronologically
-        const sortedData = [...rawPlayData].sort((a, b) => {
-          try {
-            const dateA = a._dateObj || new Date(a.ts);
-            const dateB = b._dateObj || new Date(b.ts);
-            return dateA - dateB;
-          } catch (e) {
-            return 0;
-          }
-        });
+        // Sort data chronologically - On mobile, avoid full sort to save memory
+        let sortedData;
+        if (isMobile) {
+          // On mobile, just take a sample without sorting to save memory
+          sortedData = rawPlayData.slice(0, historyLimit);
+        } else {
+          // On desktop, we can afford to sort
+          sortedData = [...rawPlayData].slice(0, historyLimit).sort((a, b) => {
+            try {
+              const dateA = a._dateObj || new Date(a.ts);
+              const dateB = b._dateObj || new Date(b.ts);
+              return dateA - dateB;
+            } catch (e) {
+              return 0;
+            }
+          });
+        }
         
         await addDataInBatches(
           historySheet,
@@ -375,32 +400,36 @@ const ExportButton = ({
           70, 90, "Adding streaming history"
         );
   
-        // Optimize column widths for history sheet
-        historySheet.columns = [
-          { header: 'Date & Time', key: 'date', width: 22 },
-          { header: 'Track', key: 'track', width: 30 },
-          { header: 'Artist', key: 'artist', width: 25 },
-          { header: 'Album', key: 'album', width: 25 },
-          { header: 'Duration (ms)', key: 'ms', width: 15 },
-          { header: 'Duration', key: 'duration', width: 15 },
-          { header: 'Service', key: 'source', width: 15 },
-          { header: 'Platform', key: 'platform', width: 18 },
-          { header: 'Reason End', key: 'reason_end', width: 15 },
-          { header: 'Reason Start', key: 'reason_start', width: 15 },
-          { header: 'Shuffle', key: 'shuffle', width: 10 },
-          { header: 'ISRC', key: 'isrc', width: 15 },
-          { header: 'Track ID', key: 'track_id', width: 15 },
-          { header: 'Episode Name', key: 'episode_name', width: 25 },
-          { header: 'Episode Show', key: 'episode_show', width: 25 }
-        ];
+        // Only set column widths on desktop
+        if (!isMobile) {
+          historySheet.columns = [
+            { header: 'Date & Time', key: 'date', width: 22 },
+            { header: 'Track', key: 'track', width: 30 },
+            { header: 'Artist', key: 'artist', width: 25 },
+            { header: 'Album', key: 'album', width: 25 },
+            { header: 'Duration (ms)', key: 'ms', width: 15 },
+            { header: 'Duration', key: 'duration', width: 15 },
+            { header: 'Service', key: 'source', width: 15 },
+            { header: 'Platform', key: 'platform', width: 18 },
+            { header: 'Reason End', key: 'reason_end', width: 15 },
+            { header: 'Reason Start', key: 'reason_start', width: 15 },
+            { header: 'Shuffle', key: 'shuffle', width: 10 },
+            { header: 'ISRC', key: 'isrc', width: 15 },
+            { header: 'Track ID', key: 'track_id', width: 15 },
+            { header: 'Episode Name', key: 'episode_name', width: 25 },
+            { header: 'Episode Show', key: 'episode_show', width: 25 }
+          ];
+        }
       }
       
-      await updateProgress(95, "Finalizing workbook...");
+      await updateProgress(90, "Finalizing workbook...");
 
-      // Minimal formatting to save memory
-      for (const sheet of workbook.worksheets) {
-        if (sheet.getRow(1)) sheet.getRow(1).font = { bold: true, size: 14 };
-        if (sheet.getRow(3)) sheet.getRow(3).font = { bold: true };
+      // Minimal formatting - skip on mobile
+      if (!isMobile) {
+        for (const sheet of workbook.worksheets) {
+          if (sheet.getRow(1)) sheet.getRow(1).font = { bold: true, size: 14 };
+          if (sheet.getRow(3)) sheet.getRow(3).font = { bold: true };
+        }
       }
 
       await updateProgress(100, "Export complete!");
@@ -427,10 +456,15 @@ const ExportButton = ({
       const timestamp = new Date().toISOString().split('T')[0];
       const filename = `cake-dreamin-${timestamp}.xlsx`;
 
-      // SIMPLIFIED DOWNLOAD PROCESS - back to basics
+      // Create buffer asynchronously
+      setCurrentOperation("Generating file...");
       const buffer = await workbook.xlsx.writeBuffer();
       
-      // Create the blob
+      // Simpler download process with longer yields
+      setCurrentOperation("Creating download link...");
+      await new Promise(resolve => setTimeout(resolve, isMobile ? 300 : 50));
+      
+      // Create the blob and download
       const blob = new Blob([buffer], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
@@ -438,27 +472,38 @@ const ExportButton = ({
       // Create download URL
       const url = window.URL.createObjectURL(blob);
       
-      // Create and click download link - SIMPLIFIED
+      // Allow browser a moment to breathe
+      await new Promise(resolve => setTimeout(resolve, isMobile ? 200 : 10));
+      setCurrentOperation("Initiating download...");
+      
+      // Create and trigger download
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
       
-      setCurrentOperation("Starting download...");
-      link.click();
-      
-      // Clean up after a longer delay
+      // Use setTimeout to ensure UI remains responsive
       setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        setCurrentOperation("Download complete");
-        setExportProgress(0);
-        setIsExporting(false);
-      }, 2000); // MUCH longer delay to ensure download starts properly
+        try {
+          link.click();
+          
+          // Clean up with a simple approach
+          setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            setCurrentOperation("Download complete!");
+            setExportProgress(0);
+            setIsExporting(false);
+          }, 1000);
+        } catch (err) {
+          setError("Download failed: " + err.message);
+          setIsExporting(false);
+        }
+      }, isMobile ? 200 : 50);
       
     } catch (err) {
       console.error('Export error:', err);
-      setError('Failed to export data. Please try again. Error: ' + (err.message || 'Unknown error'));
+      setError('Failed to export data: ' + (err.message || 'Unknown error'));
       setIsExporting(false);
     }
   };
@@ -499,7 +544,7 @@ const ExportButton = ({
       
       {isMobile && !isExporting && (
         <p className="text-xs text-purple-600">
-          Note: Export on mobile will include all data, but may take longer to complete.
+          On mobile, export will contain slightly reduced data to ensure smooth processing.
         </p>
       )}
       
