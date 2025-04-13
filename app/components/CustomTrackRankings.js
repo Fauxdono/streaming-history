@@ -1144,14 +1144,6 @@ return (
       </h3>
       
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
-        >
-          <Download size={14} className="hidden sm:inline" />
-          Export
-        </button>
-        
         <label className="text-orange-700 ml-2">Show Top</label>
         <input
           type="number"
@@ -1276,6 +1268,14 @@ return (
             </span>
           </label>
         )}
+
+  <button
+          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
+          className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
+        >
+          <Download size={14} className="hidden sm:inline" />
+          Export
+        </button>
         
         {/* Sort Controls */}
         <div className="flex items-center gap-1 sm:gap-2">
