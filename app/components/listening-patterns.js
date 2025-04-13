@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
+import { useTheme } from './themeprovider.js'; // Import the theme hook
 
 // Export variables for SpotifyAnalyzer.js to use for dynamic tab names
 export let selectedPatternYear = 'all';
@@ -17,6 +18,10 @@ const ListeningPatterns = ({
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
   
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  
   // Update exported variables when props change
   useEffect(() => {
     selectedPatternYear = selectedYear;
@@ -24,73 +29,126 @@ const ListeningPatterns = ({
     patternYearRangeMode = yearRangeMode;
   }, [selectedYear, yearRange, yearRangeMode]);
   
-  // Update the filteredData useMemo in ListeningPatterns.js
-const filteredData = useMemo(() => {
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Year range mode
-    
-    // Check if dates include month/day information
-    const startHasMonthDay = yearRange.startYear.includes('-');
-    const endHasMonthDay = yearRange.endYear.includes('-');
-    
-    if (startHasMonthDay || endHasMonthDay) {
-      // Parse dates into Date objects for comparison
-      let startDate, endDate;
+  // Chart colors that adjust with theme
+  const chartColors = useMemo(() => {
+    return {
+      // Time periods
+      timePeriods: [
+        { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0, 
+          color: isDarkMode ? '#9a7ced' : '#8884d8' },
+        { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0, 
+          color: isDarkMode ? '#82e3cf' : '#82ca9d' },
+        { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0, 
+          color: isDarkMode ? '#ffdc94' : '#ffc658' },
+        { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0, 
+          color: isDarkMode ? '#7bceff' : '#4B9CD3' }
+      ],
       
-      try {
-        // Process start date
-        if (startHasMonthDay) {
-          if (yearRange.startYear.split('-').length === 3) {
-            // YYYY-MM-DD format
-            startDate = new Date(yearRange.startYear);
-            startDate.setHours(0, 0, 0, 0); // Start of day
-          } else if (yearRange.startYear.split('-').length === 2) {
-            // YYYY-MM format
-            const [year, month] = yearRange.startYear.split('-').map(Number);
-            startDate = new Date(year, month - 1, 1); // First day of month
+      // Days of week
+      dayColors: [
+        isDarkMode ? '#ff9f73' : '#FF8042', // Sun
+        isDarkMode ? '#5ce6be' : '#00C49F', // Mon
+        isDarkMode ? '#ffe77e' : '#FFBB28', // Tue
+        isDarkMode ? '#ff9f73' : '#FF8042', // Wed
+        isDarkMode ? '#5cc0ff' : '#0088FE', // Thu
+        isDarkMode ? '#b19cff' : '#8884d8', // Fri
+        isDarkMode ? '#82e3cf' : '#82ca9d'  // Sat
+      ],
+      
+      // Months/seasons
+      seasonColors: {
+        spring: isDarkMode ? '#82e3cf' : '#82ca9d',
+        summer: isDarkMode ? '#ffdc94' : '#ffc658',
+        fall: isDarkMode ? '#ff9f73' : '#FF8042',
+        winter: isDarkMode ? '#7bceff' : '#4B9CD3'
+      }
+    };
+  }, [isDarkMode]);
+
+  // Update the filteredData useMemo in ListeningPatterns.js
+  const filteredData = useMemo(() => {
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Year range mode
+      
+      // Check if dates include month/day information
+      const startHasMonthDay = yearRange.startYear.includes('-');
+      const endHasMonthDay = yearRange.endYear.includes('-');
+      
+      if (startHasMonthDay || endHasMonthDay) {
+        // Parse dates into Date objects for comparison
+        let startDate, endDate;
+        
+        try {
+          // Process start date
+          if (startHasMonthDay) {
+            if (yearRange.startYear.split('-').length === 3) {
+              // YYYY-MM-DD format
+              startDate = new Date(yearRange.startYear);
+              startDate.setHours(0, 0, 0, 0); // Start of day
+            } else if (yearRange.startYear.split('-').length === 2) {
+              // YYYY-MM format
+              const [year, month] = yearRange.startYear.split('-').map(Number);
+              startDate = new Date(year, month - 1, 1); // First day of month
+            } else {
+              startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
+            }
           } else {
+            // Just year
             startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
           }
-        } else {
-          // Just year
-          startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
-        }
-        
-        // Process end date
-        if (endHasMonthDay) {
-          if (yearRange.endYear.split('-').length === 3) {
-            // YYYY-MM-DD format
-            endDate = new Date(yearRange.endYear);
-            endDate.setHours(23, 59, 59, 999); // End of day
-          } else if (yearRange.endYear.split('-').length === 2) {
-            // YYYY-MM format
-            const [year, month] = yearRange.endYear.split('-').map(Number);
-            // Get last day of month
-            const lastDay = new Date(year, month, 0).getDate();
-            endDate = new Date(year, month - 1, lastDay, 23, 59, 59, 999);
+          
+          // Process end date
+          if (endHasMonthDay) {
+            if (yearRange.endYear.split('-').length === 3) {
+              // YYYY-MM-DD format
+              endDate = new Date(yearRange.endYear);
+              endDate.setHours(23, 59, 59, 999); // End of day
+            } else if (yearRange.endYear.split('-').length === 2) {
+              // YYYY-MM format
+              const [year, month] = yearRange.endYear.split('-').map(Number);
+              // Get last day of month
+              const lastDay = new Date(year, month, 0).getDate();
+              endDate = new Date(year, month - 1, lastDay, 23, 59, 59, 999);
+            } else {
+              endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+            }
           } else {
+            // Just year
             endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
           }
-        } else {
-          // Just year
-          endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+          
+          // Filter data for this date range
+          return rawPlayData.filter(entry => {
+            try {
+              const date = new Date(entry.ts);
+              if (isNaN(date.getTime())) return false;
+              
+              return date >= startDate && date <= endDate;
+            } catch (err) {
+              return false;
+            }
+          });
+          
+        } catch (err) {
+          console.error("Error processing date range", err);
+          // Fallback to standard year range
+          const startYear = parseInt(yearRange.startYear);
+          const endYear = parseInt(yearRange.endYear);
+          
+          return rawPlayData.filter(entry => {
+            try {
+              const date = new Date(entry.ts);
+              if (isNaN(date.getTime())) return false;
+              
+              const year = date.getFullYear();
+              return year >= startYear && year <= endYear;
+            } catch (err) {
+              return false;
+            }
+          });
         }
-        
-        // Filter data for this date range
-        return rawPlayData.filter(entry => {
-          try {
-            const date = new Date(entry.ts);
-            if (isNaN(date.getTime())) return false;
-            
-            return date >= startDate && date <= endDate;
-          } catch (err) {
-            return false;
-          }
-        });
-        
-      } catch (err) {
-        console.error("Error processing date range", err);
-        // Fallback to standard year range
+      } else {
+        // Standard year range (no month/day specificity)
         const startYear = parseInt(yearRange.startYear);
         const endYear = parseInt(yearRange.endYear);
         
@@ -106,61 +164,45 @@ const filteredData = useMemo(() => {
           }
         });
       }
-    } else {
-      // Standard year range (no month/day specificity)
-      const startYear = parseInt(yearRange.startYear);
-      const endYear = parseInt(yearRange.endYear);
-      
-      return rawPlayData.filter(entry => {
-        try {
-          const date = new Date(entry.ts);
-          if (isNaN(date.getTime())) return false;
-          
-          const year = date.getFullYear();
-          return year >= startYear && year <= endYear;
-        } catch (err) {
-          return false;
-        }
-      });
-    }
-  } else if (selectedYear !== 'all') {
-    if (selectedYear.includes('-')) {
-      // Handle YYYY-MM or YYYY-MM-DD format
-      return rawPlayData.filter(entry => {
-        try {
-          const date = new Date(entry.ts);
-          if (isNaN(date.getTime())) return false;
-          
-          // For YYYY-MM-DD format
-          if (selectedYear.split('-').length === 3) {
-            return date.toISOString().split('T')[0] === selectedYear;
+    } else if (selectedYear !== 'all') {
+      if (selectedYear.includes('-')) {
+        // Handle YYYY-MM or YYYY-MM-DD format
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            // For YYYY-MM-DD format
+            if (selectedYear.split('-').length === 3) {
+              return date.toISOString().split('T')[0] === selectedYear;
+            }
+            
+            // For YYYY-MM format
+            const [year, month] = selectedYear.split('-');
+            return date.getFullYear() === parseInt(year) && 
+                  (date.getMonth() + 1) === parseInt(month);
+          } catch (err) {
+            return false;
           }
-          
-          // For YYYY-MM format
-          const [year, month] = selectedYear.split('-');
-          return date.getFullYear() === parseInt(year) && 
-                (date.getMonth() + 1) === parseInt(month);
-        } catch (err) {
-          return false;
-        }
-      });
+        });
+      } else {
+        // Regular single year
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            
+            return date.getFullYear() === parseInt(selectedYear);
+          } catch (err) {
+            return false;
+          }
+        });
+      }
     } else {
-      // Regular single year
-      return rawPlayData.filter(entry => {
-        try {
-          const date = new Date(entry.ts);
-          if (isNaN(date.getTime())) return false;
-          
-          return date.getFullYear() === parseInt(selectedYear);
-        } catch (err) {
-          return false;
-        }
-      });
+      return rawPlayData;
     }
-  } else {
-    return rawPlayData;
-  }
-}, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
+  }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
+  
   // Time of day analysis
   const timeOfDayData = useMemo(() => {
     const hours = Array(24).fill(0).map((_, i) => ({
@@ -184,12 +226,8 @@ const filteredData = useMemo(() => {
     });
     
     // Group into time periods for better visualization
-    const timePeriods = [
-      { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0, color: '#4B9CD3' }
-    ];
+    // Use the chartColors timePeriods as the template
+    const timePeriods = JSON.parse(JSON.stringify(chartColors.timePeriods));
     
     hourlyData.forEach((hour) => {
       if (hour.hour >= 5 && hour.hour <= 11) {
@@ -208,17 +246,17 @@ const filteredData = useMemo(() => {
     });
     
     return { hourly: hourlyData, periods: timePeriods };
-  }, [filteredData]);
+  }, [filteredData, chartColors.timePeriods]);
 
   const dayOfWeekData = useMemo(() => {
     const days = [
-      { name: 'Sun', fullName: 'Sunday', dayNum: 0, count: 0, totalMs: 0, color: '#FF8042' },
-      { name: 'Mon', fullName: 'Monday', dayNum: 1, count: 0, totalMs: 0, color: '#00C49F' },
-      { name: 'Tue', fullName: 'Tuesday', dayNum: 2, count: 0, totalMs: 0, color: '#FFBB28' },
-      { name: 'Wed', fullName: 'Wednesday', dayNum: 3, count: 0, totalMs: 0, color: '#FF8042' },
-      { name: 'Thu', fullName: 'Thursday', dayNum: 4, count: 0, totalMs: 0, color: '#0088FE' },
-      { name: 'Fri', fullName: 'Friday', dayNum: 5, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'Sat', fullName: 'Saturday', dayNum: 6, count: 0, totalMs: 0, color: '#82ca9d' }
+      { name: 'Sun', fullName: 'Sunday', dayNum: 0, count: 0, totalMs: 0, color: chartColors.dayColors[0] },
+      { name: 'Mon', fullName: 'Monday', dayNum: 1, count: 0, totalMs: 0, color: chartColors.dayColors[1] },
+      { name: 'Tue', fullName: 'Tuesday', dayNum: 2, count: 0, totalMs: 0, color: chartColors.dayColors[2] },
+      { name: 'Wed', fullName: 'Wednesday', dayNum: 3, count: 0, totalMs: 0, color: chartColors.dayColors[3] },
+      { name: 'Thu', fullName: 'Thursday', dayNum: 4, count: 0, totalMs: 0, color: chartColors.dayColors[4] },
+      { name: 'Fri', fullName: 'Friday', dayNum: 5, count: 0, totalMs: 0, color: chartColors.dayColors[5] },
+      { name: 'Sat', fullName: 'Saturday', dayNum: 6, count: 0, totalMs: 0, color: chartColors.dayColors[6] }
     ];
     
     filteredData.forEach(entry => {
@@ -264,31 +302,31 @@ const filteredData = useMemo(() => {
     });
     
     return days;
-  }, [filteredData]);
+  }, [filteredData, chartColors.dayColors]);
   
   // Monthly/seasonal analysis
   const monthlyData = useMemo(() => {
     const months = [
-      { name: 'Jan', fullName: 'January', monthNum: 0, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'Feb', fullName: 'February', monthNum: 1, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'Mar', fullName: 'March', monthNum: 2, count: 0, totalMs: 0, color: '#8884d8' },
-      { name: 'Apr', fullName: 'April', monthNum: 3, count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'May', fullName: 'May', monthNum: 4, count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'Jun', fullName: 'June', monthNum: 5, count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'Jul', fullName: 'July', monthNum: 6, count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'Aug', fullName: 'August', monthNum: 7, count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'Sep', fullName: 'September', monthNum: 8, count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'Oct', fullName: 'October', monthNum: 9, count: 0, totalMs: 0, color: '#4B9CD3' },
-      { name: 'Nov', fullName: 'November', monthNum: 10, count: 0, totalMs: 0, color: '#4B9CD3' },
-      { name: 'Dec', fullName: 'December', monthNum: 11, count: 0, totalMs: 0, color: '#4B9CD3' }
+      { name: 'Jan', fullName: 'January', monthNum: 0, count: 0, totalMs: 0, color: chartColors.seasonColors.winter },
+      { name: 'Feb', fullName: 'February', monthNum: 1, count: 0, totalMs: 0, color: chartColors.seasonColors.winter },
+      { name: 'Mar', fullName: 'March', monthNum: 2, count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
+      { name: 'Apr', fullName: 'April', monthNum: 3, count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
+      { name: 'May', fullName: 'May', monthNum: 4, count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
+      { name: 'Jun', fullName: 'June', monthNum: 5, count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
+      { name: 'Jul', fullName: 'July', monthNum: 6, count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
+      { name: 'Aug', fullName: 'August', monthNum: 7, count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
+      { name: 'Sep', fullName: 'September', monthNum: 8, count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
+      { name: 'Oct', fullName: 'October', monthNum: 9, count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
+      { name: 'Nov', fullName: 'November', monthNum: 10, count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
+      { name: 'Dec', fullName: 'December', monthNum: 11, count: 0, totalMs: 0, color: chartColors.seasonColors.winter }
     ];
     
     // Group months into seasons
     const seasons = [
-      { name: 'Spring', fullName: 'Spring (Mar-May)', count: 0, totalMs: 0, color: '#82ca9d' },
-      { name: 'Summer', fullName: 'Summer (Jun-Aug)', count: 0, totalMs: 0, color: '#ffc658' },
-      { name: 'Fall', fullName: 'Fall (Sep-Nov)', count: 0, totalMs: 0, color: '#FF8042' },
-      { name: 'Winter', fullName: 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: '#4B9CD3' }
+      { name: 'Spring', fullName: 'Spring (Mar-May)', count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
+      { name: 'Summer', fullName: 'Summer (Jun-Aug)', count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
+      { name: 'Fall', fullName: 'Fall (Sep-Nov)', count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
+      { name: 'Winter', fullName: 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: chartColors.seasonColors.winter }
     ];
     
     filteredData.forEach(entry => {
@@ -317,7 +355,7 @@ const filteredData = useMemo(() => {
     });
     
     return { months, seasons };
-  }, [filteredData]);
+  }, [filteredData, chartColors.seasonColors]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -325,11 +363,14 @@ const filteredData = useMemo(() => {
     const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
     const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
     
+    // Adjust text color based on theme
+    const textFill = isDarkMode ? "#ffffff" : "#ffffff";
+    
     return (
       <text 
         x={x} 
         y={y} 
-        fill="white" 
+        fill={textFill}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="12px"
@@ -366,10 +407,6 @@ const filteredData = useMemo(() => {
 
   return (
    <div className="w-full">
-    {/* Page Title */}
-    <div className="flex justify-between items-center mb-4">
-    </div>
-
     {/* Horizontally scrollable tabs */}
     <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
       <div className="flex min-w-max">
@@ -402,7 +439,7 @@ const filteredData = useMemo(() => {
                   labelFormatter={(value) => `Hour: ${value}`}
                 />
                 <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
+                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#9a7ced" : "#8884d8"} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -514,9 +551,9 @@ const filteredData = useMemo(() => {
                 />
                 <Legend />
                 {dayOfWeekViewMode === 'plays' ? (
-                  <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
+                  <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#9a7ced" : "#8884d8"} />
                 ) : (
-                  <Bar name="Average per Day" dataKey="avgPerDay" fill="#82ca9d" />
+                  <Bar name="Average per Day" dataKey="avgPerDay" fill={isDarkMode ? "#82e3cf" : "#82ca9d"} />
                 )}
               </BarChart>
             </ResponsiveContainer>
@@ -570,7 +607,7 @@ const filteredData = useMemo(() => {
                   }}
                 />
                 <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill="#8884d8" />
+                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#9a7ced" : "#8884d8"} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -631,6 +668,7 @@ const filteredData = useMemo(() => {
       <StreamingByYear 
         rawPlayData={filteredData} 
         formatDuration={formatDuration} 
+        isDarkMode={isDarkMode}
       />
     )}
   </div>

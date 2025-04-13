@@ -289,9 +289,95 @@ body {
   border-color: #444;
 }
 
+/* ENHANCED DARK MODE CHART STYLES */
 /* Make sure SVG charts are visible in dark mode */
 .dark .recharts-surface {
-  filter: brightness(1.75);
+  filter: brightness(1.75) contrast(1.1);
+}
+
+/* Fix for pie chart text and labels */
+.dark .recharts-text {
+  fill: #f3f4f6 !important; /* Light text for dark backgrounds */
+}
+
+/* Fix for legends in dark mode */
+.dark .recharts-legend-item-text {
+  color: #f3f4f6 !important;
+}
+
+/* Make tooltip background darker in dark mode */
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
+  color: #f3f4f6 !important;
+}
+
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item {
+  color: #e5e7eb !important;
+}
+
+/* Ensure axes and gridlines are visible */
+.dark .recharts-cartesian-axis-line,
+.dark .recharts-cartesian-axis-tick-line {
+  stroke: #4b5563 !important;
+}
+
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: #374151 !important;
+}
+
+/* Better colors for chart elements in dark mode */
+.dark .recharts-pie-sector {
+  filter: brightness(1.3);
+}
+
+.dark .recharts-bar-rectangle {
+  filter: brightness(1.3);
+}
+
+/* Fix for legend text */
+.dark .recharts-legend-item-text {
+  color: #e5e7eb !important;
+}
+
+/* Make chart areas more distinct */
+.dark .recharts-area {
+  filter: brightness(1.3);
+}
+
+/* Fix specific elements like the time-of-day, day-of-week, and seasonal section charts */
+.dark #timeOfDay .recharts-bar-rectangle,
+.dark #dayOfWeek .recharts-bar-rectangle,
+.dark #seasonal .recharts-bar-rectangle {
+  fill-opacity: 0.9;
+}
+
+/* Fix for line charts */
+.dark .recharts-line {
+  stroke-width: 2.5px;
+}
+
+.dark .recharts-line-curve {
+  filter: brightness(1.5);
+}
+
+/* Fix for active dots in charts */
+.dark .recharts-active-dot {
+  filter: brightness(1.7);
+}
+
+/* Fix for pie chart labels */
+.dark .recharts-pie-label-text {
+  fill: #e5e7eb !important;
+}
+
+/* Handle color-specific elements that might need additional tweaking */
+.dark .recharts-customized-legend {
+  color: #e5e7eb !important;
 }
 
 /* Fix loading animation to not change in dark mode */
@@ -319,8 +405,6 @@ body {
   color: #ff0000;
   animation: rainbow 2s linear infinite;
 }
-
-/* Add these styles to the end of globals.css */
 
 /* Scrollbar styles - for all modes */
 ::-webkit-scrollbar {
@@ -363,4 +447,22 @@ body {
 
 .dark * {
   scrollbar-color: #4a5568 transparent;
+}
+
+/* Loading animation */
+.loading-cake-image {
+  mix-blend-mode: multiply;
+  filter: brightness(1);
+}
+
+/* In dark mode, invert the blend mode strategy */
+.dark .loading-cake-image {
+  mix-blend-mode: screen; /* 'screen' works better on dark backgrounds */
+  filter: brightness(1.5); /* Brighten the image to improve visibility */
+}
+
+/* Loading text color in dark mode */
+.dark .cakeculating-text {
+  color: #60a5fa !important; /* Lighter blue for dark mode */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
