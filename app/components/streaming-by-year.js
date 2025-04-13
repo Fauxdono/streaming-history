@@ -1,267 +1,263 @@
-import React, { useState, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useMemo } from 'react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useTheme } from './themeprovider.js'; // Add theme import if not passed as prop
 
-const StreamingByYear = ({ rawPlayData = [], formatDuration }) => {
-  const [selectedYear, setSelectedYear] = useState('all');
+const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode }) => {
+  // Use the theme if not explicitly passed as prop
+  const { theme } = useTheme();
+  const isDarkMode = propIsDarkMode !== undefined ? propIsDarkMode : theme === 'dark';
   
-  // Analyze streaming service usage by year
+  // Service colors with dark mode variants
+  const serviceColors = useMemo(() => ({
+    'spotify': isDarkMode ? '#1ED760' : '#1DB954',
+    'apple_music': isDarkMode ? '#FF6B6B' : '#FC3C44',
+    'youtube_music': isDarkMode ? '#FF4B4B' : '#FF0000',
+    'deezer': isDarkMode ? '#D9B3FF' : '#00C7F2',
+    'soundcloud': isDarkMode ? '#FF8C54' : '#FF5500',
+    'tidal': isDarkMode ? '#CCCCCC' : '#000000',
+    'cake': isDarkMode ? '#FFB5DA' : '#FF69B4',
+    'unknown': isDarkMode ? '#888888' : '#AAAAAA'
+  }), [isDarkMode]);
+
+  // Process raw data to get usage by service
   const serviceData = useMemo(() => {
-    // Group plays by year and service
-    const servicesByYear = {};
-    let allServices = new Set();
+    if (!rawPlayData || rawPlayData.length === 0) {
+      return { total: [], byYear: {} };
+    }
     
+    // Track total plays and time by service
+    const serviceStats = {};
+    const yearlyServiceStats = {};
+    
+    // Process each entry
     rawPlayData.forEach(entry => {
-      if (entry.ms_played >= 30000) { // Only count meaningful plays
-        const date = new Date(entry.ts);
-        const year = date.getFullYear();
-        const service = entry.source || 'unknown';
-        
-        // Add to set of all services
-        allServices.add(service);
-        
-        // Initialize year if not exists
-        if (!servicesByYear[year]) {
-          servicesByYear[year] = {};
+      if (entry.ms_played < 30000) return; // Skip very short plays
+      
+      try {
+        // Get service from source or infer from platform
+        let service = entry.source || 'unknown';
+        if (service === 'unknown' && entry.platform) {
+          if (entry.platform.toLowerCase().includes('spotify')) service = 'spotify';
+          else if (entry.platform.toLowerCase().includes('apple')) service = 'apple_music';
+          else if (entry.platform.toLowerCase().includes('youtube')) service = 'youtube_music';
         }
         
-        // Initialize service counter for this year
-        if (!servicesByYear[year][service]) {
-          servicesByYear[year][service] = {
+        // Initialize service stats if needed
+        if (!serviceStats[service]) {
+          serviceStats[service] = {
+            service,
             count: 0,
-            totalMs: 0
+            totalMs: 0,
+            color: serviceColors[service] || serviceColors.unknown
           };
         }
         
-        // Increment counters
-        servicesByYear[year][service].count += 1;
-        servicesByYear[year][service].totalMs += entry.ms_played;
+        // Update service stats
+        serviceStats[service].count += 1;
+        serviceStats[service].totalMs += entry.ms_played;
+        
+        // Update yearly stats
+        const date = new Date(entry.ts);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear().toString();
+          
+          // Initialize year if needed
+          if (!yearlyServiceStats[year]) {
+            yearlyServiceStats[year] = {};
+          }
+          
+          // Initialize service for this year
+          if (!yearlyServiceStats[year][service]) {
+            yearlyServiceStats[year][service] = {
+              service,
+              count: 0,
+              totalMs: 0,
+              year,
+              color: serviceColors[service] || serviceColors.unknown
+            };
+          }
+          
+          // Update yearly service stats
+          yearlyServiceStats[year][service].count += 1;
+          yearlyServiceStats[year][service].totalMs += entry.ms_played;
+        }
+      } catch (err) {
+        // Skip entries with errors
       }
     });
     
-    // Get array of all services for consistent ordering and colors
-    const servicesArray = Array.from(allServices).sort();
+    // Convert to arrays for charts
+    const totalServiceData = Object.values(serviceStats)
+      .filter(s => s.count > 0)
+      .sort((a, b) => b.totalMs - a.totalMs);
     
-    // Standard colors for services
-    const serviceColors = {
-      spotify: '#1DB954',
-      apple_music: '#FC3C44',
-      youtube_music: '#FF0000',
-      tidal: '#000000',
-      deezer: '#9B4DEE',  // Changed to purple
-      unknown: '#666666'
-    };
-    
-    // Assign colors to each service
-    const serviceColorMap = {};
-    servicesArray.forEach((service, index) => {
-      serviceColorMap[service] = serviceColors[service] || 
-        `hsl(${(index * 137) % 360}, 70%, 50%)`; // Generate colors if not in standard map
+    // Calculate total listening time for percentages
+    const totalListeningTime = totalServiceData.reduce((sum, service) => sum + service.totalMs, 0);
+    totalServiceData.forEach(service => {
+      service.percentage = Math.round((service.totalMs / totalListeningTime) * 100);
     });
     
-    // Calculate total plays for each year
-    const yearTotals = {};
-    Object.entries(servicesByYear).forEach(([year, services]) => {
-      yearTotals[year] = {
-        totalPlays: Object.values(services).reduce((sum, data) => sum + data.count, 0),
-        totalTime: Object.values(services).reduce((sum, data) => sum + data.totalMs, 0)
-      };
+    // Process yearly data
+    const yearlyData = {};
+    Object.keys(yearlyServiceStats).forEach(year => {
+      yearlyData[year] = Object.values(yearlyServiceStats[year])
+        .filter(s => s.count > 0)
+        .sort((a, b) => b.totalMs - a.totalMs);
+      
+      // Calculate yearly percentages
+      const yearTotal = yearlyData[year].reduce((sum, service) => sum + service.totalMs, 0);
+      yearlyData[year].forEach(service => {
+        service.percentage = Math.round((service.totalMs / yearTotal) * 100);
+      });
     });
     
-    // Format for bar chart - all years
-    const barChartData = Object.entries(servicesByYear)
-      .map(([year, services]) => {
-        const result = { year };
-        
-        // Add all services (even those with zero plays in this year)
-        servicesArray.forEach(service => {
-          result[service] = services[service]?.count || 0;
-          result[`${service}_time`] = services[service]?.totalMs || 0;
-        });
-        
-        return result;
-      })
-      .sort((a, b) => a.year - b.year);
+    return { total: totalServiceData, byYear: yearlyData };
+  }, [rawPlayData, serviceColors]);
+
+  // Custom pie chart label renderer
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
     
-    return {
-      servicesByYear,
-      servicesArray,
-      serviceColorMap,
-      yearTotals,
-      barChartData,
-      years: Object.keys(servicesByYear).sort()
-    };
-  }, [rawPlayData]);
-  
-  // Get detailed data for selected year
-  const selectedYearData = useMemo(() => {
-    if (selectedYear === 'all' || !serviceData.servicesByYear[selectedYear]) {
-      return {
-        services: serviceData.servicesArray.map(service => {
-          let totalCount = 0;
-          let totalTime = 0;
-          
-          Object.values(serviceData.servicesByYear).forEach(yearData => {
-            if (yearData[service]) {
-              totalCount += yearData[service].count;
-              totalTime += yearData[service].totalMs;
-            }
-          });
-          
-          return {
-            name: service,
-            count: totalCount,
-            totalMs: totalTime,
-            color: serviceData.serviceColorMap[service]
-          };
-        }),
-        totalPlays: serviceData.servicesArray.reduce((sum, service) => {
-          let serviceTotal = 0;
-          Object.values(serviceData.servicesByYear).forEach(yearData => {
-            if (yearData[service]) {
-              serviceTotal += yearData[service].count;
-            }
-          });
-          return sum + serviceTotal;
-        }, 0),
-        totalTime: serviceData.servicesArray.reduce((sum, service) => {
-          let serviceTotal = 0;
-          Object.values(serviceData.servicesByYear).forEach(yearData => {
-            if (yearData[service]) {
-              serviceTotal += yearData[service].totalMs;
-            }
-          });
-          return sum + serviceTotal;
-        }, 0)
-      };
-    }
+    if (percent < 0.05) return null; // Don't show labels for very small slices
     
-    // Data for specific year
-    return {
-      services: serviceData.servicesArray.map(service => ({
-        name: service,
-        count: serviceData.servicesByYear[selectedYear][service]?.count || 0,
-        totalMs: serviceData.servicesByYear[selectedYear][service]?.totalMs || 0,
-        color: serviceData.serviceColorMap[service]
-      })).sort((a, b) => b.count - a.count),
-      totalPlays: serviceData.yearTotals[selectedYear].totalPlays,
-      totalTime: serviceData.yearTotals[selectedYear].totalTime
-    };
-  }, [serviceData, selectedYear]);
-  
-  // Format a service name for display
-  const formatServiceName = (service) => {
-    // Convert snake_case to Title Case 
-    return service
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="#ffffff" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        fontSize="12px"
+        fontWeight="bold"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
   };
-  
+
+  // Get available years
+  const availableYears = useMemo(() => {
+    return Object.keys(serviceData.byYear).sort((a, b) => b - a);
+  }, [serviceData.byYear]);
+
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-bold text-purple-700 mb-2">Streaming Services Usage by Year</h3>
-        <p className="text-purple-600 mb-4">Track your usage of different streaming platforms over time</p>
+        <h3 className="text-lg font-bold text-purple-700 mb-2">Streaming Services</h3>
+        <p className="text-purple-600 mb-4">How do you distribute your listening across services?</p>
         
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={serviceData.barChartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="year" />
-              <YAxis />
-              <Tooltip 
-                formatter={(value, name) => {
-                  // If it's a time value (name ends with _time), format as duration
-                  if (name.endsWith('_time')) {
-                    return [formatDuration(value), `${formatServiceName(name.replace('_time', ''))} Time`];
-                  }
-                  return [value, `${formatServiceName(name)} Plays`];
-                }}
-              />
-              <Legend formatter={(value) => {
-                // Only show the service names in the legend (not the _time variants)
-                return value.endsWith('_time') ? null : formatServiceName(value);
-              }} />
-              
-              {serviceData.servicesArray.map(service => (
-                <Bar 
-                  key={service} 
-                  dataKey={service} 
-                  fill={serviceData.serviceColorMap[service]} 
-                  name={service}
-                />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-purple-700">Service Breakdown</h3>
-        <select
-          value={selectedYear}
-          onChange={e => setSelectedYear(e.target.value)}
-          className="px-3 py-1 rounded border border-purple-300 bg-purple-700 text-white focus:outline-none focus:ring-1 focus:ring-purple-600"
-        >
-          <option value="all">All Years</option>
-          {serviceData.years.map(year => (
-            <option key={year} value={year}>{year}</option>
-          ))}
-        </select>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <div className="p-4 bg-purple-50 rounded shadow-sm">
-          <h4 className="font-semibold text-purple-700 mb-2">
-            {selectedYear === 'all' ? 'All-Time' : selectedYear} Summary
-          </h4>
-          <div className="space-y-1">
-            <div className="flex justify-between">
-              <span className="text-purple-600">Total Plays:</span>
-              <span className="font-medium text-purple-800">{selectedYearData.totalPlays}</span>
+        {serviceData.total.length === 0 ? (
+          <div className="p-4 bg-purple-50 rounded border border-purple-100 text-center text-purple-600">
+            No service data available
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-purple-700 mb-2">Usage by Service</h4>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={serviceData.total}
+                      dataKey="totalMs"
+                      nameKey="service"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                    >
+                      {serviceData.total.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value, name, props) => {
+                        if (name === 'totalMs') return formatDuration(value);
+                        return value;
+                      }}
+                      labelFormatter={(service) => {
+                        return service.charAt(0).toUpperCase() + service.slice(1).replace('_', ' ');
+                      }}
+                    />
+                    <Legend 
+                      formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1).replace('_', ' ')}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-purple-600">Total Time:</span>
-              <span className="font-medium text-purple-800">{formatDuration(selectedYearData.totalTime)}</span>
+            
+            <div>
+              <h4 className="font-medium text-purple-700 mb-2">Service Stats</h4>
+              <div className="space-y-3 max-h-72 overflow-y-auto p-1">
+                {serviceData.total.map((service, index) => (
+                  <div key={index} className="p-3 bg-purple-50 rounded border border-purple-100">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: service.color }}></div>
+                      <h5 className="font-bold text-purple-700 capitalize">
+                        {service.service.replace('_', ' ')}
+                      </h5>
+                    </div>
+                    <div className="text-sm text-purple-600 mt-1">
+                      <div>Plays: {service.count}</div>
+                      <div>Listening Time: {formatDuration(service.totalMs)}</div>
+                      <div>Share: {service.percentage}% of total</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {selectedYearData.services
-          .filter(service => service.count > 0) // Only show services with plays
-          .map(service => (
-            <div 
-              key={service.name}
-              className="p-3 rounded border border-purple-200 bg-white"
-              style={{ borderLeftWidth: '4px', borderLeftColor: service.color }}
-            >
-              <div className="font-bold text-purple-800">
-                {formatServiceName(service.name)}
+      {availableYears.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-purple-700 mb-2">Services by Year</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {availableYears.map(year => (
+              <div key={year} className="p-4 bg-purple-50 rounded border border-purple-100">
+                <h4 className="font-bold text-purple-700 mb-2">{year}</h4>
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={serviceData.byYear[year]}
+                        dataKey="totalMs"
+                        nameKey="service"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={60}
+                        labelLine={false}
+                        label={renderCustomizedLabel}
+                      >
+                        {serviceData.byYear[year].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value, name, props) => {
+                          if (name === 'totalMs') return formatDuration(value);
+                          return value;
+                        }}
+                        labelFormatter={(service) => {
+                          return service.charAt(0).toUpperCase() + service.slice(1).replace('_', ' ');
+                        }}
+                      />
+                      <Legend 
+                        formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1).replace('_', ' ')}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="text-sm text-purple-600">
-                <div className="flex justify-between">
-                  <span>Plays:</span>
-                  <span className="font-medium">{service.count}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Time:</span>
-                  <span className="font-medium">{formatDuration(service.totalMs)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Percentage:</span>
-                  <span className="font-medium">
-                    {Math.round((service.count / selectedYearData.totalPlays) * 100)}% of plays
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-      </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
