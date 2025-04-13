@@ -4,28 +4,17 @@ import { Mail, Check, Clock, Sparkles, BugIcon } from 'lucide-react';
 const UpdatesSection = () => {
   // Past Updates - a log of changes and improvements
   const pastUpdates = [
-    { 
-      ],
-      type: 'release'
-    },
-    { 
     
-      ],
-      type: 'feature'
-    }
   ];
 
   // Planned Updates - future improvements and features
   const plannedUpdates = [
-    { 
-  
-    }
+   
   ];
 
   // Community Suggestions - placeholder for future feature
   const [communitySuggestions, setCommunitySuggestions] = useState([
-    { 
-    }
+    
   ]);
 
   // Contact information
