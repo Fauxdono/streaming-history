@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono, Comic_Neue } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
+import { ThemeProvider } from "./themeprovider.js";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -14,6 +16,7 @@ const comicNeue = Comic_Neue({
   subsets: ['latin'],
   variable: '--font-comic-neue',
 });
+
 export const metadata = {
   title: "Cakeculator - Streaming History Analyzer",
   description: "Analyze your music streaming history in depth",
@@ -34,6 +37,7 @@ export const metadata = {
     statusBarStyle: 'black-translucent',
   }
 };
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -58,7 +62,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
