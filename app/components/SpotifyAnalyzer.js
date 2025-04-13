@@ -21,7 +21,7 @@ import ExcelPreview from './excelpreview.js';
 import sampleData from './sampledata.js';
 import { selectedPatternYear, yearPatternRange, patternYearRangeMode } from './listening-patterns.js';
 import { selectedBehaviorYear, yearBehaviorRange, behaviorYearRangeMode } from './listening-behavior.js';
-
+import DarkModeToggle from './darkmode.js';
 
 
 const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
@@ -1441,9 +1441,10 @@ const TabButton = ({ id, label }) => {
 
   return (
 <Card className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
-  <CardHeader className="px-2 sm:px-6">
-    <CardTitle className="text-yellow-400">Streaming History Analyzer</CardTitle>
-  </CardHeader>
+ <CardHeader className="px-2 sm:px-6 flex justify-between items-center">
+  <CardTitle className="text-yellow-400 dark:text-yellow-300">Streaming History Analyzer</CardTitle>
+  <DarkModeToggle />
+</CardHeader>
   <CardContent className="px-2 sm:px-6">
       <div className="space-y-4">
   <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4">
