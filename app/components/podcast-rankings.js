@@ -636,7 +636,11 @@ const PodcastRankings = ({
 
   return (
     <div className="space-y-4">
-      {/* Page Title */}
+  <div className="flex justify-between items-center mb-2">
+      <h3 className="font-bold text-orange-700">
+        {getPageTitle()}
+      </h3>
+      
 
        <div className="flex items-center gap-1 sm:gap-2 text-indigo-700 ml-2">
     <label className="text-sm">Show top</label>
