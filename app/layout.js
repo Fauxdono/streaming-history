@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono, Comic_Neue } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
-import { ThemeProvider } from "./themeprovider.js";
+import { ThemeProvider } from "./components/themeprovider.js";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
