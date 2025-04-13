@@ -52,6 +52,14 @@
   --cyan-bg-light: #cffafe;
   --cyan-bg-dark: #67e8f9;
   --cyan-text: #155e75;
+  
+  --emerald-bg-light: #d1fae5;
+  --emerald-bg-dark: #6ee7b7;
+  --emerald-text: #065f46;
+  
+  --rose-bg-light: #ffe4e6;
+  --rose-bg-dark: #fda4af;
+  --rose-text: #9f1239;
 }
 
 /* System dark mode preference */
@@ -106,6 +114,14 @@
     --cyan-bg-light: #155e75;
     --cyan-bg-dark: #0e7490;
     --cyan-text: #67e8f9;
+    
+    --emerald-bg-light: #064e3b;
+    --emerald-bg-dark: #065f46;
+    --emerald-text: #6ee7b7;
+    
+    --rose-bg-light: #881337;
+    --rose-bg-dark: #9f1239;
+    --rose-text: #fda4af;
   }
 }
 
@@ -160,6 +176,14 @@
   --cyan-bg-light: #155e75;
   --cyan-bg-dark: #0e7490;
   --cyan-text: #67e8f9;
+  
+  --emerald-bg-light: #064e3b;
+  --emerald-bg-dark: #065f46;
+  --emerald-text: #6ee7b7;
+  
+  --rose-bg-light: #881337;
+  --rose-bg-dark: #9f1239;
+  --rose-text: #fda4af;
 }
 
 body {
@@ -210,6 +234,14 @@ body {
 .dark .bg-cyan-100 { background-color: var(--cyan-bg-light) !important; }
 .dark .bg-cyan-200 { background-color: var(--cyan-bg-dark) !important; }
 
+.dark .bg-emerald-50 { background-color: var(--emerald-bg-light) !important; }
+.dark .bg-emerald-100 { background-color: var(--emerald-bg-light) !important; }
+.dark .bg-emerald-200 { background-color: var(--emerald-bg-dark) !important; }
+
+.dark .bg-rose-50 { background-color: var(--rose-bg-light) !important; }
+.dark .bg-rose-100 { background-color: var(--rose-bg-light) !important; }
+.dark .bg-rose-200 { background-color: var(--rose-bg-dark) !important; }
+
 /* Tab Text Colors */
 .dark .text-orange-600, .dark .text-orange-700, .dark .text-orange-800 { color: var(--orange-text) !important; }
 .dark .text-purple-600, .dark .text-purple-700, .dark .text-purple-800 { color: var(--purple-text) !important; }
@@ -221,6 +253,8 @@ body {
 .dark .text-red-600, .dark .text-red-700, .dark .text-red-800 { color: var(--red-text) !important; }
 .dark .text-yellow-600, .dark .text-yellow-700, .dark .text-yellow-800 { color: var(--yellow-text) !important; }
 .dark .text-cyan-600, .dark .text-cyan-700, .dark .text-cyan-800 { color: var(--cyan-text) !important; }
+.dark .text-emerald-600, .dark .text-emerald-700, .dark .text-emerald-800 { color: var(--emerald-text) !important; }
+.dark .text-rose-600, .dark .text-rose-700, .dark .text-rose-800 { color: var(--rose-text) !important; }
 
 /* Card adjustments */
 .dark .bg-white {
