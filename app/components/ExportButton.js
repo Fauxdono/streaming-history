@@ -97,7 +97,7 @@ const ExportButton = ({
   // Add data in batches
   const addDataInBatches = async (sheet, data, offset, callback, progressStart, progressEnd, operationName) => {
     const totalItems = data.length;
-    // Use smaller batch size on mobile
+    // Use smaller batch size on mobile for performance
     const batchSize = isMobile ? 50 : 500;
     const totalBatches = Math.ceil(totalItems / batchSize);
     
@@ -115,7 +115,7 @@ const ExportButton = ({
       
       await updateProgress(Math.floor(progressValue), operationName);
       
-      // Longer yield on mobile
+      // Longer yield on mobile to prevent UI freezing
       await new Promise(resolve => setTimeout(resolve, isMobile ? 30 : 5));
     }
     
@@ -151,19 +151,16 @@ const ExportButton = ({
         });
       }
 
-      // Top Artists Sheet
+      // Top Artists Sheet - Include ALL artists regardless of device
       await updateProgress(10, "Processing top artists...");
       const artistsSheet = workbook.addWorksheet('Top Artists');
       artistsSheet.addRow(['Top Artists']);
       artistsSheet.addRow([]);
       artistsSheet.addRow(['Rank', 'Artist', 'Total Time', 'Play Count', 'Average Time per Play']);
       
-      // On mobile, limit to reduce memory pressure
-      const artistLimit = isMobile ? 500 : topArtists.length;
-      
       await addDataInBatches(
         artistsSheet,
-        topArtists.slice(0, artistLimit),
+        topArtists,
         1,
         (artist, rank) => {
           artistsSheet.addRow([
@@ -177,19 +174,16 @@ const ExportButton = ({
         10, 20, "Adding artists"
       );
       
-      // Top Albums Sheet
+      // Top Albums Sheet - Include ALL albums regardless of device
       await updateProgress(20, "Processing top albums...");
       const albumsSheet = workbook.addWorksheet('Top Albums');
       albumsSheet.addRow(['Top Albums']);
       albumsSheet.addRow([]);
       albumsSheet.addRow(['Rank', 'Album', 'Artist', 'Total Time', 'Play Count', 'Track Count', 'Average Time per Play']);
       
-      // On mobile, limit to reduce memory pressure
-      const albumLimit = isMobile ? 500 : topAlbums.length;
-      
       await addDataInBatches(
         albumsSheet,
-        topAlbums.slice(0, albumLimit),
+        topAlbums,
         1,
         (album, rank) => {
           albumsSheet.addRow([
@@ -205,10 +199,9 @@ const ExportButton = ({
         20, 30, "Adding albums"
       );
 
-      // All-Time Top Tracks Sheet
+      // All-Time Top Tracks Sheet - Include top 2000 tracks regardless of device
       await updateProgress(30, "Processing top tracks...");
-      // On mobile, limit to reduce memory pressure
-      const trackLimit = isMobile ? 1000 : 2000;
+      const trackLimit = 2000; // Use 2000 tracks for ALL devices
       const tracksToProcess = allSongsRef.current ? 
                              allSongsRef.current.slice(0, trackLimit) : 
                              processedData.slice(0, trackLimit);
@@ -236,16 +229,11 @@ const ExportButton = ({
         30, 45, "Adding top tracks"
       );
       
-      // Yearly Top tracks
+      // Yearly Top tracks - Include ALL years regardless of device
       if (songsByYear && Object.keys(songsByYear).length > 0) {
         await updateProgress(45, "Processing yearly top tracks...");
         
         let years = Object.keys(songsByYear).sort((a, b) => b - a);
-        
-        // On mobile, limit to most recent years
-        if (isMobile && years.length > 5) {
-          years = years.slice(0, 5);
-        }
         
         for (let i = 0; i < years.length; i++) {
           const year = years[i];
@@ -283,9 +271,8 @@ const ExportButton = ({
         }
       }
       
-      // Brief Obsessions Sheet
+      // Brief Obsessions Sheet - Include ALL obsessions regardless of device
       await updateProgress(60, "Processing brief obsessions...");
-      const obsessionLimit = isMobile ? 100 : briefObsessions.length;
       const obsessionsSheet = workbook.addWorksheet('Brief Obsessions');
       obsessionsSheet.addRow(['Brief Obsessions (Songs with intense listening periods)']);
       obsessionsSheet.addRow([]);
@@ -293,7 +280,7 @@ const ExportButton = ({
       
       await addDataInBatches(
         obsessionsSheet,
-        briefObsessions.slice(0, obsessionLimit),
+        briefObsessions,
         1,
         (track, rank) => {
           try {
@@ -313,12 +300,9 @@ const ExportButton = ({
         60, 70, "Adding brief obsessions"
       );
 
-      // Complete Streaming History
+      // Complete Streaming History - Include ALL history regardless of device
       if (rawPlayData && rawPlayData.length > 0) {
         await updateProgress(70, "Processing streaming history...");
-        
-        // On mobile, significantly limit to avoid memory issues
-        const historyLimit = isMobile ? Math.min(1000, rawPlayData.length) : rawPlayData.length;
         
         const historySheet = workbook.addWorksheet('Complete Streaming History');
         historySheet.addRow(['Complete Streaming History (Chronological Order)']);
@@ -341,23 +325,16 @@ const ExportButton = ({
           'Episode Show'
         ]);
   
-        // Sort data chronologically - On mobile, avoid full sort to save memory
-        let sortedData;
-        if (isMobile) {
-          // On mobile, just take a sample without sorting to save memory
-          sortedData = rawPlayData.slice(0, historyLimit);
-        } else {
-          // On desktop, we can afford to sort
-          sortedData = [...rawPlayData].slice(0, historyLimit).sort((a, b) => {
-            try {
-              const dateA = a._dateObj || new Date(a.ts);
-              const dateB = b._dateObj || new Date(b.ts);
-              return dateA - dateB;
-            } catch (e) {
-              return 0;
-            }
-          });
-        }
+        // Sort data chronologically for ALL devices
+        let sortedData = [...rawPlayData].sort((a, b) => {
+          try {
+            const dateA = a._dateObj || new Date(a.ts);
+            const dateB = b._dateObj || new Date(b.ts);
+            return dateA - dateB;
+          } catch (e) {
+            return 0;
+          }
+        });
         
         await addDataInBatches(
           historySheet,
@@ -400,36 +377,32 @@ const ExportButton = ({
           70, 90, "Adding streaming history"
         );
   
-        // Only set column widths on desktop
-        if (!isMobile) {
-          historySheet.columns = [
-            { header: 'Date & Time', key: 'date', width: 22 },
-            { header: 'Track', key: 'track', width: 30 },
-            { header: 'Artist', key: 'artist', width: 25 },
-            { header: 'Album', key: 'album', width: 25 },
-            { header: 'Duration (ms)', key: 'ms', width: 15 },
-            { header: 'Duration', key: 'duration', width: 15 },
-            { header: 'Service', key: 'source', width: 15 },
-            { header: 'Platform', key: 'platform', width: 18 },
-            { header: 'Reason End', key: 'reason_end', width: 15 },
-            { header: 'Reason Start', key: 'reason_start', width: 15 },
-            { header: 'Shuffle', key: 'shuffle', width: 10 },
-            { header: 'ISRC', key: 'isrc', width: 15 },
-            { header: 'Track ID', key: 'track_id', width: 15 },
-            { header: 'Episode Name', key: 'episode_name', width: 25 },
-            { header: 'Episode Show', key: 'episode_show', width: 25 }
-          ];
-        }
+        // Set column widths for all devices
+        historySheet.columns = [
+          { header: 'Date & Time', key: 'date', width: 22 },
+          { header: 'Track', key: 'track', width: 30 },
+          { header: 'Artist', key: 'artist', width: 25 },
+          { header: 'Album', key: 'album', width: 25 },
+          { header: 'Duration (ms)', key: 'ms', width: 15 },
+          { header: 'Duration', key: 'duration', width: 15 },
+          { header: 'Service', key: 'source', width: 15 },
+          { header: 'Platform', key: 'platform', width: 18 },
+          { header: 'Reason End', key: 'reason_end', width: 15 },
+          { header: 'Reason Start', key: 'reason_start', width: 15 },
+          { header: 'Shuffle', key: 'shuffle', width: 10 },
+          { header: 'ISRC', key: 'isrc', width: 15 },
+          { header: 'Track ID', key: 'track_id', width: 15 },
+          { header: 'Episode Name', key: 'episode_name', width: 25 },
+          { header: 'Episode Show', key: 'episode_show', width: 25 }
+        ];
       }
       
       await updateProgress(90, "Finalizing workbook...");
 
-      // Minimal formatting - skip on mobile
-      if (!isMobile) {
-        for (const sheet of workbook.worksheets) {
-          if (sheet.getRow(1)) sheet.getRow(1).font = { bold: true, size: 14 };
-          if (sheet.getRow(3)) sheet.getRow(3).font = { bold: true };
-        }
+      // Apply formatting for ALL devices
+      for (const sheet of workbook.worksheets) {
+        if (sheet.getRow(1)) sheet.getRow(1).font = { bold: true, size: 14 };
+        if (sheet.getRow(3)) sheet.getRow(3).font = { bold: true };
       }
 
       await updateProgress(100, "Export complete!");
@@ -460,7 +433,7 @@ const ExportButton = ({
       setCurrentOperation("Generating file...");
       const buffer = await workbook.xlsx.writeBuffer();
       
-      // Simpler download process with longer yields
+      // Simpler download process with longer yields on mobile
       setCurrentOperation("Creating download link...");
       await new Promise(resolve => setTimeout(resolve, isMobile ? 300 : 50));
       
@@ -544,7 +517,7 @@ const ExportButton = ({
       
       {isMobile && !isExporting && (
         <p className="text-xs text-purple-600">
-          On mobile, export will contain slightly reduced data to ensure smooth processing.
+          On mobile, the export may take longer but will include the complete data.
         </p>
       )}
       
