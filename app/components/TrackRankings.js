@@ -308,7 +308,7 @@ return (
     
 
         <div className="flex items-center gap-1 sm:gap-2 text-blue-700 ml-2">
-          <label className="text-sm">Show top</label>
+      <label className="text-blue-700 ml-2">Show Top</label>
           <input
             type="number"
             min="1"
