@@ -1268,7 +1268,7 @@ return (
             </span>
           </label>
         )}
-<div className="flex items-center gap-2">
+
   <button
           onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
           className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
