@@ -1587,20 +1587,16 @@ const TabButton = ({ id, label }) => {
       </p>
     )}
         
-    {isProcessing && (
+{isProcessing && (
       <div className="flex flex-col items-center justify-center p-8 space-y-4">
         <div className="flex flex-col items-center">
           <img 
             src="/loading.png" 
             alt="Cake is cakeculating..." 
-            className="w-48 h-48 object-contain animate-rock bg-transparent"
-            style={{ 
-              backgroundColor: 'transparent',
-              mixBlendMode: 'multiply'
-            }}
+            className="w-48 h-48 object-contain animate-rock bg-transparent loading-cake-image"
           />
-          <p 
-            className="text-xl text-blue-600 mt-2 animate-rainbow" 
+        <p 
+            className="text-xl text-blue-600 mt-2 animate-rainbow cakeculating-text" 
             style={{ 
               fontFamily: 'var(--font-comic-neue)',
               textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
