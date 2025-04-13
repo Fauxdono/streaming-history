@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { Mail, Check, Clock, Sparkles, BugIcon } from 'lucide-react';
 
 const UpdatesSection = () => {
+
+  // Suggestions/Problems - placeholder for future feature
+  const [communitySuggestions, setCommunitySuggestions] = useState([
+ ];
   // Past Updates - a log of changes and improvements
   const pastUpdates = [
     
@@ -9,11 +13,7 @@ const UpdatesSection = () => {
 
   // Planned Updates - future improvements and features
   const plannedUpdates = [
-   
-  ];
-
-  // Community Suggestions - placeholder for future feature
-  const [communitySuggestions, setCommunitySuggestions] = useState([
+  
     
   ]);
 
