@@ -1158,7 +1158,7 @@ return (
    
 
     {/* Date Range Selection */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+
       {/* Search input */}
       <div className="relative">
         <input
@@ -1212,7 +1212,7 @@ return (
             )}
           </div>
         )}
-      </div>
+     
       
       {/* Selected filters display */}
       <div className="flex flex-wrap gap-2 mt-2">
