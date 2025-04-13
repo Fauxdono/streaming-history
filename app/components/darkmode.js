@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { useTheme } from './ThemeProvider';
+import { useTheme } from './themeprovider.js';
 
 const DarkModeToggle = ({ className = '' }) => {
   const { theme, toggleTheme } = useTheme();
