@@ -5,22 +5,11 @@ const UpdatesSection = () => {
   // Past Updates - a log of changes and improvements
   const pastUpdates = [
     { 
-      date: '2024-03-15', 
-      version: '1.0.0', 
-      changes: [
-        'Initial release of Streaming History Analyzer',
-        'Added support for Spotify, Apple Music, and YouTube Music',
-        'Comprehensive track, artist, and album analytics'
       ],
       type: 'release'
     },
     { 
-      date: '2024-04-01', 
-      version: '1.1.0', 
-      changes: [
-        'Added Deezer and SoundCloud data support',
-        'Improved playlist export functionality',
-        'Enhanced artist discovery insights'
+    
       ],
       type: 'feature'
     }
@@ -29,45 +18,18 @@ const UpdatesSection = () => {
   // Planned Updates - future improvements and features
   const plannedUpdates = [
     { 
-      title: 'Multi-Service Comparison', 
-      description: 'Ability to compare listening habits across different streaming services',
-      priority: 'high'
-    },
-    { 
-      title: 'Export to More Formats', 
-      description: 'Add more playlist export options like Spotify, Apple Music playlists',
-      priority: 'medium'
-    },
-    { 
-      title: 'Advanced Visualization', 
-      description: 'More detailed and interactive charts and graphs',
-      priority: 'high'
-    },
-    { 
-      title: 'Machine Learning Recommendations', 
-      description: 'AI-powered music recommendations based on your listening history',
-      priority: 'low'
+  
     }
   ];
 
   // Community Suggestions - placeholder for future feature
   const [communitySuggestions, setCommunitySuggestions] = useState([
     { 
-      id: '1', 
-      suggestion: 'Add mood-based playlist generation', 
-      votes: 42,
-      status: 'under-review'
-    },
-    { 
-      id: '2', 
-      suggestion: 'Integration with last.fm for more comprehensive history', 
-      votes: 28,
-      status: 'planned'
     }
   ]);
 
   // Contact information
-  const contactEmail = "support@cakeculator.com";
+  const contactEmail = "phionnancake@gmail.com";
 
   // Active tab state
   const [activeTab, setActiveTab] = useState('past-updates');
