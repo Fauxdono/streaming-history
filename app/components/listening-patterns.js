@@ -365,7 +365,7 @@ const filteredData = useMemo(() => {
   };
 
   return (
-  <div className="space-y-4">
+   <div className="w-full">
     {/* Page Title */}
     <div className="flex justify-between items-center mb-4">
     </div>
