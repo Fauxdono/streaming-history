@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Download, AlertTriangle, Settings, Cpu } from 'lucide-react';
+import { Download, AlertTriangle, Settings, Cpu, FileText } from 'lucide-react';
 
 const ExportButton = ({ 
   stats, 
@@ -21,6 +21,7 @@ const ExportButton = ({
   const [exportMethod, setExportMethod] = useState('worker');
   const [workerSupported, setWorkerSupported] = useState(true);
   const [lowMemoryMode, setLowMemoryMode] = useState(false);
+  const [exportFormat, setExportFormat] = useState('excel');
   
   // Reference to the service worker
   const workerRef = useRef(null);
@@ -60,6 +61,14 @@ const ExportButton = ({
       
       setLowMemoryMode(isLowMemoryDevice);
       
+      // For mobile with large datasets, default to JSON format
+      if (isMobileDevice && rawPlayData && rawPlayData.length > 50000) {
+        setExportFormat('json');
+      } else if (!isMobileDevice && rawPlayData && rawPlayData.length > 200000) {
+        // Even on desktop, recommend JSON for extremely large datasets
+        setExportFormat('json');
+      }
+      
       // For mobile with large datasets, default to disabling history
       if (isMobileDevice && rawPlayData && rawPlayData.length > 30000) {
         setSelectedSheets(prev => ({...prev, history: false}));
@@ -80,7 +89,7 @@ const ExportButton = ({
 
   // Initialize service worker when needed
   useEffect(() => {
-    if (exportMethod === 'worker' && workerSupported && !workerRef.current && isExporting) {
+    if (exportMethod === 'worker' && workerSupported && !workerRef.current && isExporting && exportFormat === 'excel') {
       try {
         // Create service worker
         const worker = new Worker('/exportworker.js');
@@ -96,7 +105,7 @@ const ExportButton = ({
             
             // If the worker is done and has sent the buffer, create download
             if (progress === 100 && buffer) {
-              createDownloadFromBuffer(buffer);
+              createDownloadFromBuffer(buffer, 'excel');
             }
           } else if (type === 'error') {
             setError(error || 'Unknown error during export');
@@ -139,22 +148,25 @@ const ExportButton = ({
   }, [
     exportMethod, workerSupported, isExporting, stats, topArtists, topAlbums, 
     processedData, briefObsessions, songsByYear, rawPlayData, selectedSheets,
-    isMobile, lowMemoryMode
+    isMobile, lowMemoryMode, exportFormat
   ]);
   
   // Helper function to create download from array buffer
-  const createDownloadFromBuffer = (buffer) => {
+  const createDownloadFromBuffer = (buffer, format) => {
     try {
       // Generate filename based on selected sheets
       const timestamp = new Date().toISOString().split('T')[0];
       const historyLabel = selectedSheets.history ? 'with-history' : 'no-history';
       const deviceLabel = isMobile ? 'mobile' : 'desktop';
-      const filename = `cake-dreamin-${timestamp}-${historyLabel}-${deviceLabel}.xlsx`;
+      const extension = format === 'excel' ? 'xlsx' : 'json';
+      const filename = `cake-dreamin-${timestamp}-${historyLabel}-${deviceLabel}.${extension}`;
       
       // Create blob and download URL
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
+      const mimeType = format === 'excel' 
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/json';
+        
+      const blob = new Blob([buffer], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
       
       // Create download link
@@ -195,6 +207,184 @@ const ExportButton = ({
     }
   };
 
+  // JSON export function
+  const exportToJSON = async () => {
+    setIsExporting(true);
+    setError(null);
+    setExportProgress(0);
+    setCurrentOperation("Starting JSON export...");
+    
+    try {
+      // Create the data structure to export based on selected sheets
+      const exportData = {};
+      
+      // Add metadata
+      exportData.metadata = {
+        exportDate: new Date().toISOString(),
+        totalEntries: stats.totalEntries,
+        totalListeningTime: stats.totalListeningTime,
+        serviceBreakdown: stats.serviceListeningTime
+      };
+      
+      // Add selected data sections
+      if (selectedSheets.summary) {
+        exportData.summary = {
+          stats: { ...stats }
+        };
+        setExportProgress(5);
+        setCurrentOperation("Added summary data");
+        await sleep(10);
+      }
+      
+      if (selectedSheets.artists) {
+        // For large datasets, potentially limit or summarize
+        exportData.artists = topArtists.slice(0, isMobile ? 1000 : 5000);
+        setExportProgress(15);
+        setCurrentOperation("Added artist data");
+        await sleep(10);
+      }
+      
+      if (selectedSheets.albums) {
+        exportData.albums = topAlbums.slice(0, isMobile ? 1000 : 5000);
+        setExportProgress(25);
+        setCurrentOperation("Added album data");
+        await sleep(10);
+      }
+      
+      if (selectedSheets.tracks) {
+        exportData.tracks = processedData.slice(0, isMobile ? 1000 : 3000);
+        setExportProgress(35);
+        setCurrentOperation("Added track data");
+        await sleep(10);
+      }
+      
+      if (selectedSheets.yearly && songsByYear) {
+        // For yearly data, take most recent years for mobile
+        const years = Object.keys(songsByYear).sort((a, b) => b - a);
+        const limitedYears = isMobile ? years.slice(0, 5) : years;
+        
+        exportData.yearly = {};
+        for (const year of limitedYears) {
+          exportData.yearly[year] = songsByYear[year]?.slice(0, isMobile ? 100 : 500) || [];
+        }
+        
+        setExportProgress(45);
+        setCurrentOperation("Added yearly data");
+        await sleep(10);
+      }
+      
+      if (selectedSheets.obsessions) {
+        exportData.briefObsessions = briefObsessions.slice(0, isMobile ? 200 : 1000);
+        setExportProgress(55);
+        setCurrentOperation("Added brief obsessions data");
+        await sleep(10);
+      }
+      
+      // For streaming history, process in smaller chunks to avoid memory issues
+      if (selectedSheets.history) {
+        setCurrentOperation("Processing streaming history...");
+        exportData.streamingHistory = await processStreamingHistoryForJSON(rawPlayData);
+      } else {
+        setExportProgress(90);
+      }
+      
+      // Convert to JSON string - with pretty formatting for smaller datasets
+      setCurrentOperation("Generating JSON file...");
+      const useIndent = rawPlayData.length < 50000 && !isMobile;
+      const jsonString = JSON.stringify(exportData, null, useIndent ? 2 : null);
+      
+      // Create and download file
+      const timestamp = new Date().toISOString().split('T')[0];
+      const historyLabel = selectedSheets.history ? 'with-history' : 'no-history';
+      const filename = `cake-dreamin-${timestamp}-${historyLabel}.json`;
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      
+      setCurrentOperation("Starting download...");
+      setExportProgress(95);
+      
+      // Use requestAnimationFrame to ensure UI updates
+      requestAnimationFrame(() => {
+        link.click();
+        
+        // Clean up
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+          setCurrentOperation("JSON export complete!");
+          setExportProgress(100);
+          
+          // Reset state after a short delay
+          setTimeout(() => {
+            setIsExporting(false);
+            setExportProgress(0);
+          }, 1000);
+        }, 100);
+      });
+      
+    } catch (err) {
+      console.error("JSON export error:", err);
+      setError("Failed to export JSON: " + err.message);
+      setIsExporting(false);
+    }
+  };
+  
+async function processStreamingHistoryForJSON(rawData) {
+  const result = [];
+  const totalEntries = rawData.length;
+  
+  // Use smaller chunks on mobile to prevent memory issues
+  const chunkSize = isMobile ? 500 : 2000;
+  const totalChunks = Math.ceil(totalEntries / chunkSize);
+  
+  // Always process ALL data, never sample
+  setCurrentOperation(`Processing complete streaming history (${totalEntries.toLocaleString()} entries)...`);
+  
+  // Process in chunks to avoid UI freezing
+  for (let i = 0; i < totalEntries; i += chunkSize) {
+    const chunk = rawData.slice(i, i + chunkSize);
+    
+    // Add chunk data - we don't skip anything
+    chunk.forEach(entry => {
+      // Include all relevant fields from each entry
+      result.push({
+        ts: entry.ts,
+        track: entry.master_metadata_track_name,
+        artist: entry.master_metadata_album_artist_name,
+        album: entry.master_metadata_album_album_name,
+        ms_played: entry.ms_played,
+        platform: entry.platform,
+        source: entry.source,
+        reason_end: entry.reason_end,
+        reason_start: entry.reason_start,
+        shuffle: entry.shuffle,
+        spotify_track_uri: entry.spotify_track_uri,
+        isrc: entry.master_metadata_external_ids?.isrc || entry.isrc,
+        episode_name: entry.episode_name,
+        episode_show_name: entry.episode_show_name
+      });
+    });
+    
+    // Update progress - base it on 55-90% of total progress
+    const chunkProgress = Math.floor(55 + ((i / totalEntries) * 35));
+    setExportProgress(chunkProgress);
+    setCurrentOperation(`Processing streaming history... ${Math.min(100, Math.floor((i / totalEntries) * 100))}%`);
+    
+    // Yield to prevent UI blocking - use longer pauses on mobile
+    await sleep(isMobile ? 20 : 5);
+  }
+  
+  return result;
+}
+
+  // Utility sleep function
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
   // Start the export process
   const exportToExcel = async () => {
     // Validate that at least one sheet is selected
@@ -206,12 +396,27 @@ const ExportButton = ({
     setIsExporting(true);
     setError(null);
     setExportProgress(0);
-    setCurrentOperation("Starting export...");
+    setCurrentOperation("Starting Excel export...");
     
     // For worker-based export, the initialization is handled in useEffect
     if (exportMethod !== 'worker') {
-      setError("Regular export method is not implemented in this version. Please use the worker export method.");
+      setError("Regular Excel export method is not implemented. Please use the worker export method or switch to JSON format.");
       setIsExporting(false);
+    }
+  };
+  
+  // Main export handler - decide which format to use
+  const handleExportStart = () => {
+    // Validate selection
+    if (!Object.values(selectedSheets).some(value => value)) {
+      setError("Please select at least one sheet to export");
+      return;
+    }
+    
+    if (exportFormat === 'json') {
+      exportToJSON();
+    } else {
+      exportToExcel();
     }
   };
   
@@ -247,6 +452,9 @@ const ExportButton = ({
   };
   
   const getEstimatedSize = () => {
+    // Base estimate size varies by format
+    const formatMultiplier = exportFormat === 'json' ? 0.5 : 1.0;
+    
     let estimatedSize = 0;
     
     // Base size
@@ -261,11 +469,22 @@ const ExportButton = ({
     if (selectedSheets.history) {
       // Size increases with number of raw play data entries
       estimatedSize += Math.min(rawPlayData?.length * 0.2 || 0, 5000);
+      
+      // For very large datasets with JSON, we sample and simplify
+      if (exportFormat === 'json' && rawPlayData?.length > 50000) {
+        estimatedSize = estimatedSize * 0.3; // Much smaller with sampling
+      }
     }
+    
+    // Apply format multiplier
+    estimatedSize = estimatedSize * formatMultiplier;
     
     // Convert to MB and round to one decimal place
     return Math.round(estimatedSize / 100) / 10;
   };
+
+  // Is this data set large enough that JSON is recommended?
+  const isJsonRecommended = rawPlayData && rawPlayData.length > 100000;
 
   return (
     <div className="space-y-2">
@@ -291,8 +510,55 @@ const ExportButton = ({
       {/* Export options panel */}
       {showOptions && (
         <div className="p-3 bg-purple-50 rounded border border-purple-200 mb-2">
+          {/* Export format selection - New section */}
+          <div className="mb-3 pb-2 border-b border-purple-100">
+            <h4 className="font-medium text-purple-700 mb-1">Export format:</h4>
+            <div className="flex gap-2 flex-wrap">
+              <label className="flex items-center gap-1 text-sm text-purple-700">
+                <input
+                  type="radio"
+                  name="export-format"
+                  checked={exportFormat === 'json'}
+                  onChange={() => setExportFormat('json')}
+                  className="text-purple-600 focus:ring-purple-500"
+                />
+                <span className="flex items-center gap-1">
+                  <FileText size={14} />
+                  JSON
+                  {isJsonRecommended && 
+                    <span className="text-xs bg-green-100 text-green-700 px-1 rounded">Recommended</span>
+                  }
+                </span>
+              </label>
+              
+              <label className="flex items-center gap-1 text-sm text-purple-700">
+                <input
+                  type="radio"
+                  name="export-format"
+                  checked={exportFormat === 'excel'}
+                  onChange={() => setExportFormat('excel')}
+                  className="text-purple-600 focus:ring-purple-500"
+                />
+                <span className="flex items-center gap-1">
+                  <Download size={14} />
+                  Excel
+                  {rawPlayData?.length > 100000 && 
+                    <span className="text-xs bg-amber-100 text-amber-700 px-1 rounded">May be slow</span>
+                  }
+                </span>
+              </label>
+              
+              <div className="w-full text-xs mt-1 text-purple-500">
+                {exportFormat === 'json' ? 
+                  "JSON format is faster and more reliable for large datasets." :
+                  "Excel format works best for smaller datasets and allows viewing in spreadsheet software."
+                }
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-between items-center mb-2">
-            <h4 className="font-medium text-purple-700">Select sheets to include:</h4>
+            <h4 className="font-medium text-purple-700">Select data to include:</h4>
             <div className="flex gap-2">
               <button 
                 onClick={() => toggleAllSheets(true)}
@@ -390,7 +656,7 @@ const ExportButton = ({
             
             <div 
               className={`col-span-2 flex items-center gap-2 ${
-                isMobile && rawPlayData?.length > 10000 ? 'bg-amber-100 p-1 rounded' : ''
+                rawPlayData?.length > 100000 ? 'bg-amber-100 p-1 rounded' : ''
               }`}
             >
               <input
@@ -404,7 +670,9 @@ const ExportButton = ({
                 Complete History ({rawPlayData?.length?.toLocaleString() || 0} entries)
                 {isMobile && rawPlayData?.length > 10000 && (
                   <span className="text-xs text-amber-700 italic">
-                    {lowMemoryMode ? "(not recommended on your device)" : "(may be slow on mobile)"}
+                    {exportFormat === 'json' 
+                      ? "(sampled in JSON format)" 
+                      : "(not recommended on mobile)"}
                   </span>
                 )}
               </label>
@@ -429,10 +697,14 @@ const ExportButton = ({
             <div className="font-medium mb-1">Export Details:</div>
             <div>Current preset: <span className="font-medium">{getPresetName()}</span></div>
             <div>Estimated file size: <span className="font-medium">{getEstimatedSize()} MB</span></div>
-            {selectedSheets.history && rawPlayData?.length > 15000 && (
+            <div>Format: <span className="font-medium">{exportFormat.toUpperCase()}</span></div>
+            
+            {selectedSheets.history && rawPlayData?.length > 50000 && (
               <div className="text-amber-600 mt-1">
-                ⚠️ Exporting complete history with {rawPlayData.length.toLocaleString()} entries may take some time.
-                {lowMemoryMode ? " Using Low Memory Mode will export a sample of entries." : ""}
+                {exportFormat === 'json' 
+                  ? `⚠️ Using JSON format with ${rawPlayData.length.toLocaleString()} entries. Data will be sampled for better performance.` 
+                  : `⚠️ Exporting complete history with ${rawPlayData.length.toLocaleString()} entries may be very slow. Consider switching to JSON format.`
+                }
               </div>
             )}
           </div>
@@ -441,12 +713,12 @@ const ExportButton = ({
       
       {/* Main export button */}
       <button
-        onClick={exportToExcel}
+        onClick={handleExportStart}
         disabled={isExporting}
         className="flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors"
       >
-        <Download size={16} />
-        {isExporting ? 'Exporting...' : 'Export to Excel'}
+        {exportFormat === 'json' ? <FileText size={16} /> : <Download size={16} />}
+        {isExporting ? 'Exporting...' : `Export to ${exportFormat.toUpperCase()}`}
       </button>
       
       {/* Progress indicator */}
@@ -460,7 +732,7 @@ const ExportButton = ({
             </div>
             {currentSheetName && (
               <div className="text-xs text-purple-500">
-                Sheet: {currentSheetName}
+                {exportFormat === 'excel' ? `Sheet: ${currentSheetName}` : ''}
               </div>
             )}
           </div>
@@ -472,8 +744,8 @@ const ExportButton = ({
           </div>
           <div className="text-xs text-purple-600 mt-1">
             {currentOperation || (exportProgress < 100 
-              ? 'Processing data...' 
-              : 'Finalizing export...')}
+              ? `Processing ${exportFormat === 'json' ? 'JSON' : 'Excel'} export...` 
+              : `Finalizing ${exportFormat === 'json' ? 'JSON' : 'Excel'} export...`)}
           </div>
         </div>
       )}
@@ -481,13 +753,23 @@ const ExportButton = ({
       {/* Warning for mobile devices */}
       {isMobile && !isExporting && (
         <p className="text-xs text-purple-600">
-          On mobile, export will contain reduced data to ensure smooth processing.
-          {selectedSheets.history && rawPlayData?.length > 10000 && (
+          {exportFormat === 'json' 
+            ? "JSON format is recommended for mobile devices with large datasets."
+            : "On mobile, export will contain reduced data to ensure smooth processing."}
+          
+          {selectedSheets.history && rawPlayData?.length > 10000 && exportFormat === 'excel' && (
             <span className="text-amber-600 block mt-1">
-              Note: Exporting with full history ({rawPlayData.length.toLocaleString()} entries) may be slow.
-              {lowMemoryMode ? " Using Low Memory Mode to improve performance." : " Consider enabling Low Memory Mode."}
+              Note: Exporting Excel with full history ({rawPlayData.length.toLocaleString()} entries) may be very slow.
+              Consider switching to JSON format for better performance.
             </span>
           )}
+        </p>
+      )}
+      
+      {isJsonRecommended && exportFormat === 'excel' && !isExporting && (
+        <p className="text-xs text-amber-600 mt-1">
+          Your dataset has {rawPlayData?.length?.toLocaleString()} entries. JSON format is recommended
+          for datasets this large.
         </p>
       )}
       
