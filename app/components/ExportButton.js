@@ -80,7 +80,7 @@ const ExportButton = ({
     if (exportMethod === 'worker' && workerSupported && !workerRef.current && isExporting) {
       try {
         // Create service worker
-        const worker = new Worker('/export-worker.js');
+        const worker = new Worker('/exportworker.js');
         
         // Set up message handler
         worker.onmessage = (event) => {
