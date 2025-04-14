@@ -18,8 +18,9 @@ const ExportButton = ({
   const [currentOperation, setCurrentOperation] = useState('');
   const [currentSheetName, setCurrentSheetName] = useState('');
   const [showOptions, setShowOptions] = useState(false);
-  const [exportMethod, setExportMethod] = useState('auto');
+  const [exportMethod, setExportMethod] = useState('worker');
   const [workerSupported, setWorkerSupported] = useState(true);
+  const [lowMemoryMode, setLowMemoryMode] = useState(false);
   
   // Reference to the service worker
   const workerRef = useRef(null);
@@ -32,15 +33,18 @@ const ExportButton = ({
     tracks: true,
     yearly: true,
     obsessions: true,
-    history: true // Enable by default
+    history: true
   });
   
   // Check if we're on a mobile device and if service workers are supported
   useEffect(() => {
     const checkEnvironment = () => {
-      // Check if mobile
-      const isMobileDevice = window.innerWidth < 768 || 
-                             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      // Check if mobile based on screen size and user agent
+      const isMobileDevice = 
+        window.innerWidth < 768 || 
+        window.innerHeight < 768 || // Consider orientation
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
       setIsMobile(isMobileDevice);
       
       // Check if service workers are supported
@@ -48,18 +52,17 @@ const ExportButton = ({
                                       'Worker' in window;
       setWorkerSupported(isServiceWorkerSupported);
       
-      // Set default export method based on data size and device
-      if (rawPlayData && rawPlayData.length > 10000) {
-        // For large datasets, default to "worker" if supported
-        setExportMethod(isServiceWorkerSupported ? 'worker' : 'regular');
-        
-        // On mobile with large datasets, default to disabling streaming history
-        if (isMobileDevice && !isServiceWorkerSupported && rawPlayData.length > 10000) {
-          setSelectedSheets(prev => ({...prev, history: false}));
-        }
-      } else {
-        // For smaller datasets, use regular export
-        setExportMethod('regular');
+      // Detect if we're on a low-end device or very large dataset
+      const isLowMemoryDevice = 
+        isMobileDevice && 
+        (rawPlayData?.length > 20000 || 
+         navigator.deviceMemory < 4); // deviceMemory API isn't available on all browsers
+      
+      setLowMemoryMode(isLowMemoryDevice);
+      
+      // For mobile with large datasets, default to disabling history
+      if (isMobileDevice && rawPlayData && rawPlayData.length > 30000) {
+        setSelectedSheets(prev => ({...prev, history: false}));
       }
     };
     
@@ -98,6 +101,12 @@ const ExportButton = ({
           } else if (type === 'error') {
             setError(error || 'Unknown error during export');
             setIsExporting(false);
+            
+            // Terminate the worker on error
+            if (workerRef.current) {
+              workerRef.current.terminate();
+              workerRef.current = null;
+            }
           }
         };
         
@@ -115,7 +124,9 @@ const ExportButton = ({
             briefObsessions,
             songsByYear,
             rawPlayData,
-            selectedSheets
+            selectedSheets,
+            isMobile, // Pass the mobile flag to the worker
+            lowMemoryMode // Pass low memory mode flag
           },
           options: {}
         });
@@ -123,12 +134,12 @@ const ExportButton = ({
         console.error('Failed to initialize service worker:', err);
         setError('Failed to initialize background export: ' + err.message);
         setIsExporting(false);
-        setExportMethod('regular');
       }
     }
   }, [
     exportMethod, workerSupported, isExporting, stats, topArtists, topAlbums, 
-    processedData, briefObsessions, songsByYear, rawPlayData, selectedSheets
+    processedData, briefObsessions, songsByYear, rawPlayData, selectedSheets,
+    isMobile, lowMemoryMode
   ]);
   
   // Helper function to create download from array buffer
@@ -137,8 +148,8 @@ const ExportButton = ({
       // Generate filename based on selected sheets
       const timestamp = new Date().toISOString().split('T')[0];
       const historyLabel = selectedSheets.history ? 'with-history' : 'no-history';
-      const methodLabel = exportMethod === 'worker' ? 'bg' : 'reg';
-      const filename = `cake-dreamin-${timestamp}-${historyLabel}-${methodLabel}.xlsx`;
+      const deviceLabel = isMobile ? 'mobile' : 'desktop';
+      const filename = `cake-dreamin-${timestamp}-${historyLabel}-${deviceLabel}.xlsx`;
       
       // Create blob and download URL
       const blob = new Blob([buffer], { 
@@ -175,6 +186,12 @@ const ExportButton = ({
       console.error('Download error:', err);
       setError('Failed to download file: ' + err.message);
       setIsExporting(false);
+      
+      // Terminate worker on error
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
     }
   };
 
@@ -193,9 +210,7 @@ const ExportButton = ({
     
     // For worker-based export, the initialization is handled in useEffect
     if (exportMethod !== 'worker') {
-      // Regular export would go here, but in this implementation
-      // we're focusing on the service worker approach
-      setError("Regular export method is not implemented in this version. Please use the background worker export.");
+      setError("Regular export method is not implemented in this version. Please use the worker export method.");
       setIsExporting(false);
     }
   };
@@ -209,30 +224,47 @@ const ExportButton = ({
       tracks: value,
       yearly: value,
       obsessions: value,
-      history: value
+      history: value && (!isMobile || rawPlayData.length <= 10000)
     });
-  };
-  
-  // Get export method description
-  const getExportMethodLabel = () => {
-    if (exportMethod === 'worker') {
-      return "Background Worker (best for large datasets)";
-    } else {
-      return "Regular (best for small datasets)";
-    }
   };
   
   // Get preset name based on selected sheets
   const getPresetName = () => {
-    if (selectedSheets.history) {
+    const allSelected = Object.values(selectedSheets).every(v => v === true);
+    const noneSelected = !Object.values(selectedSheets).some(v => v === true);
+    
+    if (allSelected) {
       return "Complete (with history)";
-    } else if (Object.values(selectedSheets).every(v => v === true) && !selectedSheets.history) {
-      return "Standard (no history)";
-    } else if (!Object.values(selectedSheets).some(v => v === true)) {
+    } else if (noneSelected) {
       return "None selected";
+    } else if (Object.values(selectedSheets).every((v, i) => 
+      v === true || (Object.keys(selectedSheets)[i] === 'history' && v === false)
+    )) {
+      return "Standard (no history)";
     } else {
       return "Custom selection";
     }
+  };
+  
+  const getEstimatedSize = () => {
+    let estimatedSize = 0;
+    
+    // Base size
+    if (selectedSheets.summary) estimatedSize += 10;
+    if (selectedSheets.artists) estimatedSize += topArtists?.length * 0.1 || 0;
+    if (selectedSheets.albums) estimatedSize += topAlbums?.length * 0.15 || 0;
+    if (selectedSheets.tracks) estimatedSize += Math.min(processedData?.length || 0, 2000) * 0.1;
+    if (selectedSheets.yearly) estimatedSize += 20;
+    if (selectedSheets.obsessions) estimatedSize += briefObsessions?.length * 0.1 || 0;
+    
+    // History is the heaviest part
+    if (selectedSheets.history) {
+      // Size increases with number of raw play data entries
+      estimatedSize += Math.min(rawPlayData?.length * 0.2 || 0, 5000);
+    }
+    
+    // Convert to MB and round to one decimal place
+    return Math.round(estimatedSize / 100) / 10;
   };
 
   return (
@@ -358,7 +390,7 @@ const ExportButton = ({
             
             <div 
               className={`col-span-2 flex items-center gap-2 ${
-                isMobile && rawPlayData?.length > 20000 ? 'bg-amber-100 p-1 rounded' : ''
+                isMobile && rawPlayData?.length > 10000 ? 'bg-amber-100 p-1 rounded' : ''
               }`}
             >
               <input
@@ -370,49 +402,39 @@ const ExportButton = ({
               />
               <label htmlFor="history-sheet" className="text-sm text-purple-700 flex items-center gap-1">
                 Complete History ({rawPlayData?.length?.toLocaleString() || 0} entries)
-                {isMobile && rawPlayData?.length > 20000 && (
+                {isMobile && rawPlayData?.length > 10000 && (
                   <span className="text-xs text-amber-700 italic">
-                    (may be slow on mobile)
+                    {lowMemoryMode ? "(not recommended on your device)" : "(may be slow on mobile)"}
                   </span>
                 )}
               </label>
             </div>
           </div>
           
-          {/* Export method selection */}
-          <div className="mb-2">
-            <h4 className="font-medium text-purple-700 mb-1">Export method:</h4>
-            <div className="flex gap-2">
-              <label className="flex items-center gap-1 text-sm text-purple-700">
-                <input
-                  type="radio"
-                  name="export-method"
-                  checked={exportMethod === 'worker'}
-                  onChange={() => setExportMethod('worker')}
-                  disabled={!workerSupported}
-                  className="text-purple-600 focus:ring-purple-500"
-                />
-                <span className="flex items-center gap-1">
-                  <Cpu size={14} />
-                  Background Worker
-                  {!workerSupported && <span className="text-xs italic">(not supported)</span>}
-                </span>
-              </label>
-              <label className="flex items-center gap-1 text-sm text-purple-700">
-                <input
-                  type="radio"
-                  name="export-method"
-                  checked={exportMethod === 'regular'}
-                  onChange={() => setExportMethod('regular')}
-                  className="text-purple-600 focus:ring-purple-500"
-                />
-                <span>Regular Export</span>
-              </label>
-            </div>
+          {/* Low Memory Mode toggle */}
+          <div className="mb-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={lowMemoryMode}
+                onChange={(e) => setLowMemoryMode(e.target.checked)}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <span className="text-sm text-purple-700">Enable Low Memory Mode</span>
+              <span className="text-xs text-purple-500">(Reduces data in export for better performance)</span>
+            </label>
           </div>
           
-          <div className="text-xs text-purple-600 italic">
-            Current preset: <span className="font-medium">{getPresetName()}</span>
+          <div className="text-xs text-purple-600 bg-purple-100 p-2 rounded">
+            <div className="font-medium mb-1">Export Details:</div>
+            <div>Current preset: <span className="font-medium">{getPresetName()}</span></div>
+            <div>Estimated file size: <span className="font-medium">{getEstimatedSize()} MB</span></div>
+            {selectedSheets.history && rawPlayData?.length > 15000 && (
+              <div className="text-amber-600 mt-1">
+                ⚠️ Exporting complete history with {rawPlayData.length.toLocaleString()} entries may take some time.
+                {lowMemoryMode ? " Using Low Memory Mode will export a sample of entries." : ""}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -459,10 +481,11 @@ const ExportButton = ({
       {/* Warning for mobile devices */}
       {isMobile && !isExporting && (
         <p className="text-xs text-purple-600">
-          On mobile, export will contain slightly reduced data to ensure smooth processing.
+          On mobile, export will contain reduced data to ensure smooth processing.
           {selectedSheets.history && rawPlayData?.length > 10000 && (
             <span className="text-amber-600 block mt-1">
-              Note: Exporting with full history on mobile may be slow. Consider disabling the history sheet.
+              Note: Exporting with full history ({rawPlayData.length.toLocaleString()} entries) may be slow.
+              {lowMemoryMode ? " Using Low Memory Mode to improve performance." : " Consider enabling Low Memory Mode."}
             </span>
           )}
         </p>
