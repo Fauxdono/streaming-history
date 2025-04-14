@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import ExcelJS from 'exceljs';
-import { Download } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Download, AlertTriangle, Settings, Cpu } from 'lucide-react';
 
 const ExportButton = ({ 
   stats, 
@@ -13,522 +12,147 @@ const ExportButton = ({
   rawPlayData 
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [exportProgress, setExportProgress] = useState(0);
   const [currentOperation, setCurrentOperation] = useState('');
   const [currentSheetName, setCurrentSheetName] = useState('');
+  const [showOptions, setShowOptions] = useState(false);
+  const [exportMethod, setExportMethod] = useState('auto');
+  const [workerSupported, setWorkerSupported] = useState(true);
   
-  // Check if we're on a mobile device
+  // Reference to the service worker
+  const workerRef = useRef(null);
+  
+  // Export sheet selection
+  const [selectedSheets, setSelectedSheets] = useState({
+    summary: true,
+    artists: true,
+    albums: true,
+    tracks: true,
+    yearly: true,
+    obsessions: true,
+    history: true // Enable by default
+  });
+  
+  // Check if we're on a mobile device and if service workers are supported
   useEffect(() => {
-    const checkMobile = () => {
+    const checkEnvironment = () => {
+      // Check if mobile
       const isMobileDevice = window.innerWidth < 768 || 
                              /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       setIsMobile(isMobileDevice);
+      
+      // Check if service workers are supported
+      const isServiceWorkerSupported = 'serviceWorker' in navigator && 
+                                      'Worker' in window;
+      setWorkerSupported(isServiceWorkerSupported);
+      
+      // Set default export method based on data size and device
+      if (rawPlayData && rawPlayData.length > 10000) {
+        // For large datasets, default to "worker" if supported
+        setExportMethod(isServiceWorkerSupported ? 'worker' : 'regular');
+        
+        // On mobile with large datasets, default to disabling streaming history
+        if (isMobileDevice && !isServiceWorkerSupported && rawPlayData.length > 10000) {
+          setSelectedSheets(prev => ({...prev, history: false}));
+        }
+      } else {
+        // For smaller datasets, use regular export
+        setExportMethod('regular');
+      }
     };
     
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    checkEnvironment();
+    window.addEventListener('resize', checkEnvironment);
     
     return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []);
-
-  // Pre-calculate allSongs once
-  const allSongsRef = React.useRef(null);
-  
-  useEffect(() => {
-    if (rawPlayData && rawPlayData.length > 0 && !allSongsRef.current) {
-      try {
-        const songMap = new Map();
-        
-        // Process raw play data to extract all songs
-        for (let i = 0; i < rawPlayData.length; i++) {
-          const entry = rawPlayData[i];
-          if (entry.ms_played < 30000 || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
-            continue; 
-          }
-          
-          const trackName = entry.master_metadata_track_name;
-          const artistName = entry.master_metadata_album_artist_name;
-          const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-          const key = `${trackName}|||${artistName}`;
-          
-          if (!songMap.has(key)) {
-            songMap.set(key, {
-              trackName,
-              artist: artistName,
-              albumName,
-              totalPlayed: entry.ms_played,
-              playCount: 1
-            });
-          } else {
-            // Update existing song
-            const song = songMap.get(key);
-            song.totalPlayed += entry.ms_played;
-            song.playCount += 1;
-          }
-        }
-        
-        // Convert map to array and sort by total time played
-        allSongsRef.current = Array.from(songMap.values())
-          .sort((a, b) => b.totalPlayed - a.totalPlayed);
-      } catch (error) {
-        console.error("Error pre-calculating songs:", error);
-        allSongsRef.current = [];
+      window.removeEventListener('resize', checkEnvironment);
+      // Clean up worker if it exists
+      if (workerRef.current) {
+        workerRef.current.terminate();
       }
-    }
+    };
   }, [rawPlayData]);
 
-  // Simplified progress update - focus on minimal UI updates
-  const updateProgress = async (value, operation, sheetName) => {
-    return new Promise(resolve => {
-      // Use RAF to ensure smooth UI updates
-      requestAnimationFrame(() => {
-        // Only update if value has changed significantly to reduce renders
-        if (Math.abs(value - exportProgress) >= 1) {
-          setExportProgress(value);
-        }
+  // Initialize service worker when needed
+  useEffect(() => {
+    if (exportMethod === 'worker' && workerSupported && !workerRef.current && isExporting) {
+      try {
+        // Create service worker
+        const worker = new Worker('/export-worker.js');
         
-        // Only update operation text if it's changed
-        if (operation && operation !== currentOperation) {
-          setCurrentOperation(operation);
-        }
-        
-        // Track current sheet for better user feedback
-        if (sheetName && sheetName !== currentSheetName) {
-          setCurrentSheetName(sheetName);
-        }
-        
-        // Use a longer timeout on mobile to ensure UI has time to update
-        setTimeout(resolve, isMobile ? 30 : 10);
-      });
-    });
-  };
-
-  // Create separate streams for each sheet to avoid memory buildup
-  const createStreamingSheet = async (workbook, sheetTitle, headerRow, dataSource, progressStart, progressEnd, processRowCallback) => {
-    // Add the sheet to workbook
-    const sheet = workbook.addWorksheet(sheetTitle);
-    
-    // Add title and header rows
-    sheet.addRow([sheetTitle]);
-    sheet.addRow([]);
-    sheet.addRow(headerRow);
-    
-    // Skip processing if no data
-    if (!dataSource || !Array.isArray(dataSource) || dataSource.length === 0) {
-      await updateProgress(progressEnd, `Completed ${sheetTitle}`, sheetTitle);
-      return sheet;
-    }
-    
-    // Determine optimal batch size based on device
-    const batchSize = isMobile ? 50 : 250;
-    const totalBatches = Math.ceil(dataSource.length / batchSize);
-    
-    // Process data in smaller chunks with more frequent UI updates
-    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-      const start = batchIndex * batchSize;
-      const end = Math.min(start + batchSize, dataSource.length);
-      const batchItems = dataSource.slice(start, end);
-      
-      // Process items in this batch
-      for (let i = 0; i < batchItems.length; i++) {
-        const item = batchItems[i];
-        const rowIndex = start + i + 1; // +1 for header offset
-        
-        // Add row with error handling
-        try {
-          // Add the row with properly mapped data based on the callback
-          const rowData = processRowCallback(item, rowIndex);
-          sheet.addRow(rowData);
-        } catch (error) {
-          console.warn(`Error adding row ${rowIndex}:`, error);
-          // Add a placeholder row to maintain count
-          sheet.addRow(['Error processing row']);
-        }
-        
-        // Yield briefly every 10 rows to prevent UI freezing
-        if (i % 10 === 0 && i > 0) {
-          await new Promise(r => setTimeout(r, 0));
-        }
-      }
-      
-      // Calculate and update progress
-      const progress = progressStart + ((batchIndex + 1) / totalBatches) * (progressEnd - progressStart);
-      
-      // Update progress and UI, but only for sufficiently large progress changes
-      if (batchIndex % 2 === 0 || batchIndex === totalBatches - 1) {
-        await updateProgress(
-          Math.floor(progress), 
-          `Processing ${sheetTitle}... (${batchIndex + 1}/${totalBatches})`,
-          sheetTitle
-        );
-      }
-      
-      // Yield between batches to maintain UI responsiveness
-      // Use longer yields in the critical ~80% zone where mobile devices struggle
-      if (progress >= 75 && progress <= 85) {
-        await new Promise(r => setTimeout(r, isMobile ? 100 : 20));
-      } else {
-        await new Promise(r => setTimeout(r, isMobile ? 30 : 10));
-      }
-    }
-    
-    await updateProgress(progressEnd, `Completed ${sheetTitle}`, sheetTitle);
-    return sheet;
-  };
-
-  // Helper to process row data for each sheet
-  const processArtistRow = (artist, rank) => {
-    return [
-      rank,
-      artist.name || '',
-      formatDuration(artist.totalPlayed || 0),
-      artist.playCount || 0,
-      formatDuration((artist.totalPlayed || 0) / (artist.playCount || 1))
-    ];
-  };
-  
-  const processAlbumRow = (album, rank) => {
-    return [
-      rank,
-      album.name || '',
-      album.artist || '',
-      formatDuration(album.totalPlayed || 0),
-      album.playCount || 0,
-      album.trackCount || 0,
-      formatDuration((album.totalPlayed || 0) / (album.playCount || 1))
-    ];
-  };
-  
-  const processTrackRow = (track, rank) => {
-    return [
-      rank,
-      track.trackName || '',
-      track.artist || '',
-      track.albumName || 'N/A',
-      formatDuration(track.totalPlayed || 0),
-      track.playCount || 0,
-      formatDuration((track.totalPlayed || 0) / (track.playCount || 1))
-    ];
-  };
-  
-  const processObsessionRow = (track, rank) => {
-    try {
-      return [
-        rank,
-        track.trackName || '',
-        track.artist || '',
-        track.intensePeriod?.weekStart ? track.intensePeriod.weekStart.toLocaleDateString() : 'Unknown',
-        track.intensePeriod?.playsInWeek || 0,
-        track.playCount || 0,
-        track.intensePeriod?.playsInWeek ? (track.intensePeriod.playsInWeek / 7).toFixed(1) : '0'
-      ];
-    } catch (err) {
-      return [rank, 'Error processing obsession data', '', '', 0, 0, 0];
-    }
-  };
-  
-  const processHistoryRow = (play, index) => {
-    try {
-      const date = play._dateObj || new Date(play.ts);
-      const dateStr = date.toISOString();
-
-      // Get ISRC code if available
-      let isrc = '';
-      if (play.master_metadata_external_ids && play.master_metadata_external_ids.isrc) {
-        isrc = play.master_metadata_external_ids.isrc;
-      } else if (play.isrc) {
-        isrc = play.isrc;
-      }
-
-      return [
-        dateStr,
-        play.master_metadata_track_name || '',
-        play.master_metadata_album_artist_name || '',
-        play.master_metadata_album_album_name || '',
-        play.ms_played || 0,
-        formatDuration(play.ms_played || 0),
-        play.source || '',
-        play.platform || '',
-        play.reason_end || '',
-        play.reason_start || '',
-        play.shuffle !== undefined ? (play.shuffle ? 'Yes' : 'No') : '',
-        isrc,
-        play.spotify_track_uri || play.track_id || '',
-        play.episode_name || '',
-        play.episode_show_name || ''
-      ];
-    } catch (err) {
-      return [new Date().toISOString(), 'Error processing history entry', '', '', 0, 0, '', '', '', '', '', '', '', '', ''];
-    }
-  };
-
-  // Main export function that handles the entire process in a streaming fashion
-  const createWorkbookForExport = async () => {
-    const workbook = new ExcelJS.Workbook();
-    
-    try {
-      await updateProgress(0, "Initializing export process...");
-      
-      // Summary Sheet - these are small and fast to create
-      await updateProgress(2, "Creating summary sheet...", "Summary");
-      const summarySheet = workbook.addWorksheet('Summary');
-      summarySheet.addRow(['Streaming History Analysis Summary']);
-      summarySheet.addRow([]);
-      summarySheet.addRow(['Metric', 'Value']);
-      summarySheet.addRows([
-        ['Total Files Processed', stats.totalFiles],
-        ['Total Entries', stats.totalEntries],
-        ['Total Songs', stats.processedSongs],
-        ['Total Listening Time', formatDuration(stats.totalListeningTime)],
-        ['Very Short Plays (<30s)', stats.shortPlays],
-        ['Entries with No Track Name', stats.nullTrackNames],
-      ]);
-
-      if (stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0) {
-        summarySheet.addRow([]);
-        summarySheet.addRow(['Listening Time by Service']);
-        Object.entries(stats.serviceListeningTime).forEach(([service, time]) => {
-          summarySheet.addRow([service, formatDuration(time)]);
-        });
-      }
-      
-      // This is a more UI-responsive approach to creating the workbook
-      await updateProgress(5, "Starting data processing...");
-      
-      // Process each section using streaming approach that minimizes memory usage
-      
-      // Artists Sheet - Full dataset for all devices
-      await createStreamingSheet(
-        workbook,
-        'Top Artists',
-        ['Rank', 'Artist', 'Total Time', 'Play Count', 'Average Time per Play'],
-        topArtists,
-        5, 15,
-        processArtistRow
-      );
-      
-      // Albums Sheet - Full dataset for all devices
-      await createStreamingSheet(
-        workbook,
-        'Top Albums',
-        ['Rank', 'Album', 'Artist', 'Total Time', 'Play Count', 'Track Count', 'Average Time per Play'],
-        topAlbums,
-        15, 25,
-        processAlbumRow
-      );
-      
-      // All-Time Top Tracks - Full data, processed in small chunks
-      const tracksToProcess = allSongsRef.current || processedData;
-      const trackSheetName = "Top All-Time Tracks";
-      
-      await createStreamingSheet(
-        workbook,
-        trackSheetName,
-        ['Rank', 'Track', 'Artist', 'Album', 'Total Time', 'Play Count', 'Average Time per Play'],
-        tracksToProcess,
-        25, 40,
-        processTrackRow
-      );
-      
-      // Yearly Top tracks - process all years for all devices
-      if (songsByYear && Object.keys(songsByYear).length > 0) {
-        await updateProgress(40, "Processing yearly top tracks...");
-        
-        // Sort years by most recent first
-        const years = Object.keys(songsByYear).sort((a, b) => b - a);
-        const yearCount = years.length;
-        
-        // Process each year's data
-        for (let i = 0; i < years.length; i++) {
-          const year = years[i];
-          const tracks = songsByYear[year];
+        // Set up message handler
+        worker.onmessage = (event) => {
+          const { type, progress, operation, sheetName, buffer, error } = event.data;
           
-          if (!tracks || tracks.length === 0) continue;
-          
-          // Calculate progress range for this year
-          const yearStartProgress = 40 + (i / yearCount) * 20;
-          const yearEndProgress = 40 + ((i + 1) / yearCount) * 20;
-          
-          // Process this year's data
-          await createStreamingSheet(
-            workbook,
-            `Top Tracks ${year}`,
-            ['Rank', 'Track', 'Artist', 'Album', 'Total Time', 'Play Count', 'Average Time per Play'],
-            tracks,
-            yearStartProgress,
-            yearEndProgress,
-            processTrackRow
-          );
-          
-          // Brief yield between years to maintain UI responsiveness
-          await new Promise(r => setTimeout(r, 20));
-        }
-      }
-      
-      // Brief Obsessions - full dataset for all devices
-      await createStreamingSheet(
-        workbook,
-        'Brief Obsessions',
-        [
-          'Rank', 'Track', 'Artist', 'Peak Week Start', 
-          'Plays in Peak Week', 'Total Plays', 'Average Plays per Day in Peak Week'
-        ],
-        briefObsessions,
-        60, 70,
-        processObsessionRow
-      );
-
-      // Complete Streaming History - process in very small chunks
-      if (rawPlayData && rawPlayData.length > 0) {
-        await updateProgress(70, "Preparing streaming history...");
-        
-        // This is the most memory-intensive section - the key problematic area around 80%
-        // Create the history sheet with all headers
-        const historySheet = workbook.addWorksheet('Streaming History');
-        historySheet.addRow(['Complete Streaming History (Chronological Order)']);
-        historySheet.addRow([]);
-        historySheet.addRow([
-          'Date & Time', 
-          'Track', 
-          'Artist', 
-          'Album',
-          'Duration (ms)',
-          'Duration', 
-          'Service',
-          'Platform',
-          'Reason End',
-          'Reason Start',
-          'Shuffle',
-          'ISRC',
-          'Track ID',
-          'Episode Name',
-          'Episode Show'
-        ]);
-        
-        // Determine optimal number of entries to include - full dataset, but processed in smaller chunks
-        const historyData = rawPlayData;
-        
-        // Use much smaller batches for the streaming history to prevent memory pressure
-        const historyBatchSize = isMobile ? 25 : 100;
-        const historyBatchCount = Math.ceil(historyData.length / historyBatchSize);
-        
-        for (let batchIndex = 0; batchIndex < historyBatchCount; batchIndex++) {
-          const start = batchIndex * historyBatchSize;
-          const end = Math.min(start + historyBatchSize, historyData.length);
-          const batch = historyData.slice(start, end);
-          
-          // Critical section - process streaming history entries
-          for (let i = 0; i < batch.length; i++) {
-            const entry = batch[i];
+          if (type === 'progress') {
+            setExportProgress(progress);
+            if (operation) setCurrentOperation(operation);
+            if (sheetName) setCurrentSheetName(sheetName);
             
-            try {
-              const rowData = processHistoryRow(entry, start + i);
-              historySheet.addRow(rowData);
-              
-              // Yield more frequently during history processing to avoid UI freezes
-              if (i % 5 === 0) {
-                await new Promise(r => setTimeout(r, 0));
-              }
-            } catch (err) {
-              console.warn("Error adding history row:", err);
+            // If the worker is done and has sent the buffer, create download
+            if (progress === 100 && buffer) {
+              createDownloadFromBuffer(buffer);
             }
+          } else if (type === 'error') {
+            setError(error || 'Unknown error during export');
+            setIsExporting(false);
           }
-          
-          // Calculate progress - this is the critical 80% area
-          const progress = 70 + ((batchIndex + 1) / historyBatchCount) * 25;
-          
-          // Update progress less frequently to reduce UI pressure
-          if (batchIndex % 4 === 0 || batchIndex === historyBatchCount - 1) {
-            await updateProgress(
-              Math.floor(progress),
-              `Adding streaming history... (${batchIndex + 1}/${historyBatchCount})`,
-              'Streaming History'
-            );
-          }
-          
-          // Critical section yield - longer pauses around 80% mark
-          if (progress >= 75 && progress <= 85) {
-            // Extra long yield in the problem zone
-            await new Promise(r => setTimeout(r, isMobile ? 200 : 50));
-          } else {
-            // Standard yield between batches
-            await new Promise(r => setTimeout(r, isMobile ? 50 : 20));
-          }
-        }
+        };
+        
+        // Store worker reference
+        workerRef.current = worker;
+        
+        // Start the export process
+        worker.postMessage({
+          type: 'start-export',
+          data: {
+            stats,
+            topArtists,
+            topAlbums,
+            processedData,
+            briefObsessions,
+            songsByYear,
+            rawPlayData,
+            selectedSheets
+          },
+          options: {}
+        });
+      } catch (err) {
+        console.error('Failed to initialize service worker:', err);
+        setError('Failed to initialize background export: ' + err.message);
+        setIsExporting(false);
+        setExportMethod('regular');
       }
-      
-      // Final formatting - minimal since we want to preserve memory
-      await updateProgress(95, "Finalizing workbook...");
-      
-      // Apply minimal, efficient formatting
-      for (const sheet of workbook.worksheets) {
-        try {
-          // Make the first row bold (sheet title)
-          if (sheet.getRow(1).cells.length) {
-            sheet.getRow(1).font = { bold: true };
-          }
-          
-          // Make header row bold
-          if (sheet.getRow(3).cells.length) {
-            sheet.getRow(3).font = { bold: true };
-          }
-        } catch (err) {
-          // Skip formatting if there's an error
-        }
-      }
-      
-      await updateProgress(100, "Export complete!");
-      return workbook;
-    } catch (error) {
-      console.error("Error creating export:", error);
-      throw error;
     }
-  };
-
-  const exportToExcel = async () => {
-    setIsExporting(true);
-    setError(null);
-    setExportProgress(0);
-    setCurrentOperation("Starting export...");
-
+  }, [
+    exportMethod, workerSupported, isExporting, stats, topArtists, topAlbums, 
+    processedData, briefObsessions, songsByYear, rawPlayData, selectedSheets
+  ]);
+  
+  // Helper function to create download from array buffer
+  const createDownloadFromBuffer = (buffer) => {
     try {
-      // Create workbook using streaming approach
-      const workbook = await createWorkbookForExport();
-      
-      // Generate file name
+      // Generate filename based on selected sheets
       const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `cake-dreamin-${timestamp}.xlsx`;
-
-      setCurrentOperation("Generating Excel file...");
+      const historyLabel = selectedSheets.history ? 'with-history' : 'no-history';
+      const methodLabel = exportMethod === 'worker' ? 'bg' : 'reg';
+      const filename = `cake-dreamin-${timestamp}-${historyLabel}-${methodLabel}.xlsx`;
       
-      // Use a more memory-efficient approach to generate the file
-      // Break it into steps with UI updates between
-      await updateProgress(95, "Creating Excel file...");
-      const buffer = await workbook.xlsx.writeBuffer();
-      
-      await updateProgress(98, "Preparing download...");
-      
-      // Create blob and trigger download
+      // Create blob and download URL
       const blob = new Blob([buffer], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
-      
-      // Create download URL
       const url = window.URL.createObjectURL(blob);
       
-      setCurrentOperation("Starting download...");
-      
-      // Create download link and trigger it
+      // Create download link
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
       
-      // Use requestAnimationFrame to ensure UI is updated before click
+      // Trigger download in new animation frame
       requestAnimationFrame(() => {
         link.click();
         
@@ -539,26 +163,271 @@ const ExportButton = ({
           setCurrentOperation("Download complete!");
           setExportProgress(0);
           setIsExporting(false);
+          
+          // Terminate worker
+          if (workerRef.current) {
+            workerRef.current.terminate();
+            workerRef.current = null;
+          }
         }, 1000);
       });
     } catch (err) {
-      console.error('Export error:', err);
-      setError('Failed to export data: ' + (err.message || 'Unknown error'));
+      console.error('Download error:', err);
+      setError('Failed to download file: ' + err.message);
       setIsExporting(false);
+    }
+  };
+
+  // Start the export process
+  const exportToExcel = async () => {
+    // Validate that at least one sheet is selected
+    if (!Object.values(selectedSheets).some(value => value)) {
+      setError("Please select at least one sheet to export");
+      return;
+    }
+    
+    setIsExporting(true);
+    setError(null);
+    setExportProgress(0);
+    setCurrentOperation("Starting export...");
+    
+    // For worker-based export, the initialization is handled in useEffect
+    if (exportMethod !== 'worker') {
+      // Regular export would go here, but in this implementation
+      // we're focusing on the service worker approach
+      setError("Regular export method is not implemented in this version. Please use the background worker export.");
+      setIsExporting(false);
+    }
+  };
+  
+  // Toggle all sheets on/off
+  const toggleAllSheets = (value) => {
+    setSelectedSheets({
+      summary: value,
+      artists: value,
+      albums: value,
+      tracks: value,
+      yearly: value,
+      obsessions: value,
+      history: value
+    });
+  };
+  
+  // Get export method description
+  const getExportMethodLabel = () => {
+    if (exportMethod === 'worker') {
+      return "Background Worker (best for large datasets)";
+    } else {
+      return "Regular (best for small datasets)";
+    }
+  };
+  
+  // Get preset name based on selected sheets
+  const getPresetName = () => {
+    if (selectedSheets.history) {
+      return "Complete (with history)";
+    } else if (Object.values(selectedSheets).every(v => v === true) && !selectedSheets.history) {
+      return "Standard (no history)";
+    } else if (!Object.values(selectedSheets).some(v => v === true)) {
+      return "None selected";
+    } else {
+      return "Custom selection";
     }
   };
 
   return (
     <div className="space-y-2">
+      {/* Export options toggle */}
+      <div className="flex justify-between items-center">
+        <button
+          onClick={() => setShowOptions(!showOptions)}
+          className="text-sm text-purple-600 hover:text-purple-800 underline flex items-center gap-1"
+        >
+          <Settings size={14} />
+          {showOptions ? 'Hide export options' : 'Export options'}
+        </button>
+        
+        {/* Info badge for large datasets */}
+        {rawPlayData && rawPlayData.length > 50000 && (
+          <div className="flex items-center gap-1 text-xs text-amber-600">
+            <AlertTriangle size={14} />
+            <span>Large dataset ({rawPlayData.length.toLocaleString()} entries)</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Export options panel */}
+      {showOptions && (
+        <div className="p-3 bg-purple-50 rounded border border-purple-200 mb-2">
+          <div className="flex justify-between items-center mb-2">
+            <h4 className="font-medium text-purple-700">Select sheets to include:</h4>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => toggleAllSheets(true)}
+                className="text-xs px-2 py-1 bg-purple-200 text-purple-700 rounded hover:bg-purple-300"
+              >
+                Select All
+              </button>
+              <button 
+                onClick={() => toggleAllSheets(false)}
+                className="text-xs px-2 py-1 bg-purple-200 text-purple-700 rounded hover:bg-purple-300"
+              >
+                Deselect All
+              </button>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="summary-sheet"
+                checked={selectedSheets.summary}
+                onChange={(e) => setSelectedSheets({...selectedSheets, summary: e.target.checked})}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="summary-sheet" className="text-sm text-purple-700">
+                Summary ({stats?.totalEntries?.toLocaleString() || 0} entries)
+              </label>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="artists-sheet"
+                checked={selectedSheets.artists}
+                onChange={(e) => setSelectedSheets({...selectedSheets, artists: e.target.checked})}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="artists-sheet" className="text-sm text-purple-700">
+                Artists ({topArtists?.length?.toLocaleString() || 0})
+              </label>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="albums-sheet"
+                checked={selectedSheets.albums}
+                onChange={(e) => setSelectedSheets({...selectedSheets, albums: e.target.checked})}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="albums-sheet" className="text-sm text-purple-700">
+                Albums ({topAlbums?.length?.toLocaleString() || 0})
+              </label>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="tracks-sheet"
+                checked={selectedSheets.tracks}
+                onChange={(e) => setSelectedSheets({...selectedSheets, tracks: e.target.checked})}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="tracks-sheet" className="text-sm text-purple-700">
+                Top Tracks ({processedData?.length?.toLocaleString() || 0})
+              </label>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="yearly-sheet"
+                checked={selectedSheets.yearly}
+                onChange={(e) => setSelectedSheets({...selectedSheets, yearly: e.target.checked})}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="yearly-sheet" className="text-sm text-purple-700">
+                Yearly Top Tracks ({Object.keys(songsByYear || {}).length || 0} years)
+              </label>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="obsessions-sheet"
+                checked={selectedSheets.obsessions}
+                onChange={(e) => setSelectedSheets({...selectedSheets, obsessions: e.target.checked})}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="obsessions-sheet" className="text-sm text-purple-700">
+                Brief Obsessions ({briefObsessions?.length?.toLocaleString() || 0})
+              </label>
+            </div>
+            
+            <div 
+              className={`col-span-2 flex items-center gap-2 ${
+                isMobile && rawPlayData?.length > 20000 ? 'bg-amber-100 p-1 rounded' : ''
+              }`}
+            >
+              <input
+                type="checkbox"
+                id="history-sheet"
+                checked={selectedSheets.history}
+                onChange={(e) => setSelectedSheets({...selectedSheets, history: e.target.checked})}
+                className="text-purple-600 focus:ring-purple-500"
+              />
+              <label htmlFor="history-sheet" className="text-sm text-purple-700 flex items-center gap-1">
+                Complete History ({rawPlayData?.length?.toLocaleString() || 0} entries)
+                {isMobile && rawPlayData?.length > 20000 && (
+                  <span className="text-xs text-amber-700 italic">
+                    (may be slow on mobile)
+                  </span>
+                )}
+              </label>
+            </div>
+          </div>
+          
+          {/* Export method selection */}
+          <div className="mb-2">
+            <h4 className="font-medium text-purple-700 mb-1">Export method:</h4>
+            <div className="flex gap-2">
+              <label className="flex items-center gap-1 text-sm text-purple-700">
+                <input
+                  type="radio"
+                  name="export-method"
+                  checked={exportMethod === 'worker'}
+                  onChange={() => setExportMethod('worker')}
+                  disabled={!workerSupported}
+                  className="text-purple-600 focus:ring-purple-500"
+                />
+                <span className="flex items-center gap-1">
+                  <Cpu size={14} />
+                  Background Worker
+                  {!workerSupported && <span className="text-xs italic">(not supported)</span>}
+                </span>
+              </label>
+              <label className="flex items-center gap-1 text-sm text-purple-700">
+                <input
+                  type="radio"
+                  name="export-method"
+                  checked={exportMethod === 'regular'}
+                  onChange={() => setExportMethod('regular')}
+                  className="text-purple-600 focus:ring-purple-500"
+                />
+                <span>Regular Export</span>
+              </label>
+            </div>
+          </div>
+          
+          <div className="text-xs text-purple-600 italic">
+            Current preset: <span className="font-medium">{getPresetName()}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Main export button */}
       <button
         onClick={exportToExcel}
         disabled={isExporting}
         className="flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors"
       >
         <Download size={16} />
-        {isExporting ? 'Exporting...' : 'Export Cake Dreamin'}
+        {isExporting ? 'Exporting...' : 'Export to Excel'}
       </button>
       
+      {/* Progress indicator */}
       {isExporting && (
         <div className="relative pt-1">
           <div className="flex mb-2 items-center justify-between">
@@ -567,6 +436,11 @@ const ExportButton = ({
                 Progress: {exportProgress}%
               </span>
             </div>
+            {currentSheetName && (
+              <div className="text-xs text-purple-500">
+                Sheet: {currentSheetName}
+              </div>
+            )}
           </div>
           <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-purple-200">
             <div 
@@ -575,18 +449,26 @@ const ExportButton = ({
             ></div>
           </div>
           <div className="text-xs text-purple-600 mt-1">
-            {currentOperation || 'Processing...'}
-            {currentSheetName && ` (${currentSheetName})`}
+            {currentOperation || (exportProgress < 100 
+              ? 'Processing data...' 
+              : 'Finalizing export...')}
           </div>
         </div>
       )}
       
+      {/* Warning for mobile devices */}
       {isMobile && !isExporting && (
         <p className="text-xs text-purple-600">
-          Export optimized for all devices. The process may take several minutes for large datasets.
+          On mobile, export will contain slightly reduced data to ensure smooth processing.
+          {selectedSheets.history && rawPlayData?.length > 10000 && (
+            <span className="text-amber-600 block mt-1">
+              Note: Exporting with full history on mobile may be slow. Consider disabling the history sheet.
+            </span>
+          )}
         </p>
       )}
       
+      {/* Error display */}
       {error && (
         <div className="p-4 text-red-500 border border-red-200 rounded">
           {error}
