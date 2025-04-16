@@ -334,25 +334,49 @@ const ExportButton = ({
     }
   };
   
-async function processStreamingHistoryForJSON(rawData) {
-  const result = [];
-  const totalEntries = rawData.length;
-  
-  // Use smaller chunks on mobile to prevent memory issues
-  const chunkSize = isMobile ? 500 : 2000;
-  const totalChunks = Math.ceil(totalEntries / chunkSize);
-  
-  // Always process ALL data, never sample
-  setCurrentOperation(`Processing complete streaming history (${totalEntries.toLocaleString()} entries)...`);
-  
-  // Process in chunks to avoid UI freezing
-  for (let i = 0; i < totalEntries; i += chunkSize) {
-    const chunk = rawData.slice(i, i + chunkSize);
+  // Helper function to process streaming history in chunks
+  async function processStreamingHistoryForJSON(rawData) {
+    const result = [];
+    const totalEntries = rawData.length;
+    const chunkSize = isMobile ? 1000 : 5000;
     
-    // Add chunk data - we don't skip anything
-    chunk.forEach(entry => {
-      // Include all relevant fields from each entry
-      result.push({
+    // For extremely large datasets on mobile, sample instead of processing everything
+    let dataToProcess = rawData;
+    if (isMobile && totalEntries > 50000) {
+      const sampleSize = Math.min(10000, Math.floor(totalEntries / 5)); // Take 10k samples or 20% of data
+      const step = Math.floor(totalEntries / sampleSize);
+      const sampledData = [];
+      
+      for (let i = 0; i < totalEntries; i += step) {
+        sampledData.push(rawData[i]);
+        if (sampledData.length >= sampleSize) break;
+      }
+      
+      dataToProcess = sampledData;
+      setCurrentOperation(`Processing sampled streaming history (${sampleSize} entries)...`);
+    } else if (lowMemoryMode && totalEntries > 100000) {
+      // Even on desktop, sample for extremely large datasets in low memory mode
+      const sampleSize = Math.min(50000, Math.floor(totalEntries / 3));
+      const step = Math.floor(totalEntries / sampleSize);
+      const sampledData = [];
+      
+      for (let i = 0; i < totalEntries; i += step) {
+        sampledData.push(rawData[i]);
+        if (sampledData.length >= sampleSize) break;
+      }
+      
+      dataToProcess = sampledData;
+      setCurrentOperation(`Processing sampled streaming history (${sampleSize} entries)...`);
+    }
+    
+    const totalChunks = Math.ceil(dataToProcess.length / chunkSize);
+    
+    // Process in chunks
+    for (let i = 0; i < dataToProcess.length; i += chunkSize) {
+      const chunk = dataToProcess.slice(i, i + chunkSize);
+      
+      // Simplify entries to reduce size
+      const processedChunk = chunk.map(entry => ({
         ts: entry.ts,
         track: entry.master_metadata_track_name,
         artist: entry.master_metadata_album_artist_name,
@@ -362,25 +386,22 @@ async function processStreamingHistoryForJSON(rawData) {
         source: entry.source,
         reason_end: entry.reason_end,
         reason_start: entry.reason_start,
-        shuffle: entry.shuffle,
-        spotify_track_uri: entry.spotify_track_uri,
-        isrc: entry.master_metadata_external_ids?.isrc || entry.isrc,
-        episode_name: entry.episode_name,
-        episode_show_name: entry.episode_show_name
-      });
-    });
+        shuffle: entry.shuffle
+      }));
+      
+      result.push(...processedChunk);
+      
+      // Update progress - base it on 55-90% of total progress
+      const chunkProgress = Math.floor(55 + ((i / dataToProcess.length) * 35));
+      setExportProgress(chunkProgress);
+      setCurrentOperation(`Processing streaming history... ${Math.min(100, Math.floor((i / dataToProcess.length) * 100))}%`);
+      
+      // Yield to prevent UI blocking
+      await sleep(isMobile ? 30 : 10);
+    }
     
-    // Update progress - base it on 55-90% of total progress
-    const chunkProgress = Math.floor(55 + ((i / totalEntries) * 35));
-    setExportProgress(chunkProgress);
-    setCurrentOperation(`Processing streaming history... ${Math.min(100, Math.floor((i / totalEntries) * 100))}%`);
-    
-    // Yield to prevent UI blocking - use longer pauses on mobile
-    await sleep(isMobile ? 20 : 5);
+    return result;
   }
-  
-  return result;
-}
 
   // Utility sleep function
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));

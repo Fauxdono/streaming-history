@@ -206,25 +206,29 @@ async function processStreamingHistoryForJSON(rawData, startProgress, isMobile) 
   for (let i = 0; i < totalEntries; i += chunkSize) {
     const chunk = rawData.slice(i, i + chunkSize);
     
-    // Process each entry in chunk
+    // Process each entry in chunk - preserve exact Spotify field names and structure
     chunk.forEach(entry => {
-      // Create streamlined entry with all important fields
-      result.push({
-        ts: entry.ts,
-        track: entry.master_metadata_track_name,
-        artist: entry.master_metadata_album_artist_name,
-        album: entry.master_metadata_album_album_name,
-        ms_played: entry.ms_played,
-        platform: entry.platform,
-        source: entry.source,
-        reason_end: entry.reason_end,
-        reason_start: entry.reason_start,
-        shuffle: entry.shuffle,
-        spotify_track_uri: entry.spotify_track_uri,
-        isrc: entry.master_metadata_external_ids?.isrc || entry.isrc,
-        episode_name: entry.episode_name,
-        episode_show_name: entry.episode_show_name
-      });
+      // Create a clean copy of the original entry (exclude internal properties)
+      const cleanEntry = { ...entry };
+      
+      // Remove any internal properties that might have been added during processing
+      delete cleanEntry._dateObj;
+      
+      // Make sure we preserve all the critical Spotify fields exactly
+      // If any are missing but we have alternative versions, map them back to Spotify format
+      if (!cleanEntry.master_metadata_track_name && cleanEntry.track) {
+        cleanEntry.master_metadata_track_name = cleanEntry.track;
+      }
+      
+      if (!cleanEntry.master_metadata_album_artist_name && cleanEntry.artist) {
+        cleanEntry.master_metadata_album_artist_name = cleanEntry.artist;
+      }
+      
+      if (!cleanEntry.master_metadata_album_album_name && cleanEntry.album) {
+        cleanEntry.master_metadata_album_album_name = cleanEntry.album;
+      }
+      
+      result.push(cleanEntry);
     });
     
     // Calculate progress
