@@ -1206,10 +1206,27 @@ const displayedArtists = useMemo(() => {
       console.log(`Found ${yearArtists.length} artists for year ${selectedArtistYear}`);
       return yearArtists;
     }
-  } else {
-    // All-time mode: show the top artists
-    return topArtists;
-  }
+ } else {
+  // All-time mode: Calculate most played songs correctly
+  const artistsWithSongs = topArtists.map(artist => {
+    // Find all songs by this artist from processedData
+    const artistSongs = processedData.filter(song => 
+      song.artist === artist.name ||
+      song.fullArtist === artist.name
+    );
+
+    // Find the most played song
+    const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
+    
+    // Return artist with correctly assigned most played song
+    return {
+      ...artist,
+      mostPlayedSong: mostPlayed
+    };
+  });
+  
+  return artistsWithSongs;
+}
 }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange, rawPlayData]);
 
 
