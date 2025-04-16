@@ -1803,40 +1803,41 @@ const SpotifyAnalyzer = () => {
                           }}
                         >
                           <div className="font-bold text-teal-600">{artist.name}</div>
-                          <div className="text-sm text-teal-400">
-                            Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                            <br/>
-                            Plays: <span className="font-bold"> {artist.playCount}</span>
-                            <br/>
-                            Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
-                            <br/>
-                            Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
-                            <br/>
-                            First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
-                            {artist.longestStreak > 1 && (
-                              <>
-                                <br/>
-                                First Song: <span className="font-bold">
-                                  {artist.firstSong || "Unknown"} 
-                                  {artist.firstSongPlayCount 
-                                    ? ` (${artist.firstSongPlayCount}x)` 
-                                    : ""}
-                                </span>
-                                <br/>
-                                Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
-                                <br/>
-                                <span className="text-xs">
-                                  ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
-                                </span>
-                              </>
-                            )}
-                            {artist.currentStreak > 1 && (
-                              <>
-                                <br/>
-                                Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
-                              </>
-                            )}
-                          </div>
+                    <div className="text-sm text-teal-400">
+  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+  <br/>
+  Plays: <span className="font-bold"> {artist.playCount}</span>
+  <br/>
+  Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
+  <br/>
+  Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
+  <br/>
+  First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
+  <br/>
+  First Song: <span className="font-bold">
+    {artist.firstSong || "Unknown"} 
+    {artist.firstSongPlayCount 
+      ? ` (${artist.firstSongPlayCount}x)` 
+      : ""}
+  </span>
+  {artist.longestStreak > 1 && (
+    <>
+      <br/>
+      Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+      <br/>
+      <span className="text-xs">
+        ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
+      </span>
+    </>
+  )}
+  {artist.currentStreak > 1 && (
+    <>
+      <br/>
+      Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
+    </>
+  )}
+</div>
+
                           <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{originalIndex + 1}</div>
                           {selectedArtists.includes(artist.name) && (
                             <div className="absolute top-2 right-2 w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
