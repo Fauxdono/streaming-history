@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, useEffect} from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate } from './streaming-adapter.js';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import ExportButton from './ExportButton.js';
@@ -18,21 +18,44 @@ import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
-import sampleData from './sampledata.js';
 import { selectedPatternYear, yearPatternRange, patternYearRangeMode } from './listening-patterns.js';
 import { selectedBehaviorYear, yearBehaviorRange, behaviorYearRangeMode } from './listening-behavior.js';
 import DarkModeToggle from './darkmode.js';
 
-
-const calculateSpotifyScore = (playCount, totalPlayed, lastPlayedTimestamp) => {
-  const now = new Date();
-  const daysSinceLastPlay = (now - lastPlayedTimestamp) / (1000 * 60 * 60 * 24);
-  const recencyWeight = Math.exp(-daysSinceLastPlay / 180);
-  const playTimeWeight = Math.min(totalPlayed / (3 * 60 * 1000), 1);
-  return playCount * recencyWeight * playTimeWeight;
+// Cache for service colors to avoid recreating on each render
+const SERVICE_COLORS = {
+  spotify: {
+    unselected: 'bg-green-500 text-black',
+    selected: 'bg-lime-400 text-black'
+  },
+  apple_music: {
+    unselected: 'bg-red-400 text-white',
+    selected: 'bg-red-500 text-white'
+  },
+  youtube_music: {
+    unselected: 'bg-red-600 text-black',
+    selected: 'bg-white text-red-600'
+  },
+  deezer: {
+    unselected: 'bg-purple-400 text-black',
+    selected: 'bg-purple-600 text-black'
+  },
+  soundcloud: {
+    unselected: 'bg-orange-400 text-white',
+    selected: 'bg-orange-600 text-white'
+  },
+  tidal: {
+    unselected: 'bg-white text-black',
+    selected: 'bg-black text-white'
+  },
+  cake: {
+    unselected: 'bg-pink-300 text-black',
+    selected: 'bg-pink-500 text-white'
+  }
 };
 
 const SpotifyAnalyzer = () => {
+  // Core application state
   const [activeTab, setActiveTab] = useState('upload');
   const [activeTrackTab, setActiveTrackTab] = useState('top250');
   const [songsByMonth, setSongsByMonth] = useState({});
@@ -63,439 +86,103 @@ const SpotifyAnalyzer = () => {
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
   const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
-const [customTrackYear, setCustomTrackYear] = useState('all');
-const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
-const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
-const [showYearSidebar, setShowYearSidebar] = useState(true); // Set to true by default
-const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
-const [selectedPatternYear, setSelectedPatternYear] = useState('all');
-const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
-const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
-const [selectedBehaviorYear, setSelectedBehaviorYear] = useState('all');
-const [behaviorYearRange, setBehaviorYearRange] = useState({ startYear: '', endYear: '' });
-const [behaviorYearRangeMode, setBehaviorYearRangeMode] = useState(false);
-const [selectedDiscoveryYear, setSelectedDiscoveryYear] = useState('all');
-const [discoveryYearRange, setDiscoveryYearRange] = useState({ startYear: '', endYear: '' });
-const [discoveryYearRangeMode, setDiscoveryYearRangeMode] = useState(false);
-const [selectedPodcastYear, setSelectedPodcastYear] = useState('all');
-const [podcastYearRange, setPodcastYearRange] = useState({ startYear: '', endYear: '' });
-const [podcastYearRangeMode, setPodcastYearRangeMode] = useState(false);
+  const [customTrackYear, setCustomTrackYear] = useState('all');
+  const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
+  const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
+  const [showYearSidebar, setShowYearSidebar] = useState(true);
+  const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
+  const [selectedPatternYear, setSelectedPatternYear] = useState('all');
+  const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
+  const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
+  const [selectedBehaviorYear, setSelectedBehaviorYear] = useState('all');
+  const [behaviorYearRange, setBehaviorYearRange] = useState({ startYear: '', endYear: '' });
+  const [behaviorYearRangeMode, setBehaviorYearRangeMode] = useState(false);
+  const [selectedDiscoveryYear, setSelectedDiscoveryYear] = useState('all');
+  const [discoveryYearRange, setDiscoveryYearRange] = useState({ startYear: '', endYear: '' });
+  const [discoveryYearRangeMode, setDiscoveryYearRangeMode] = useState(false);
+  const [selectedPodcastYear, setSelectedPodcastYear] = useState('all');
+  const [podcastYearRange, setPodcastYearRange] = useState({ startYear: '', endYear: '' });
+  const [podcastYearRangeMode, setPodcastYearRangeMode] = useState(false);
 
+  // Add refs for caching expensive operations
+  const formatDurationCache = useRef(new Map());
 
-  // Define service colors
-  const serviceColors = {
-    spotify: {
-      unselected: 'bg-green-500 text-black',
-      selected: 'bg-lime-400 text-black'
-    },
-    apple_music: {
-      unselected: 'bg-red-400 text-white',
-      selected: 'bg-red-500 text-white'
-    },
-    youtube_music: {
-      unselected: 'bg-red-600 text-black',
-      selected: 'bg-white text-red-600'
-    },
-    deezer: {
-      unselected: 'bg-purple-400 text-black',
-      selected: 'bg-purple-600 text-black'
-    },
-    soundcloud: {
-      unselected: 'bg-orange-400 text-white',
-      selected: 'bg-orange-600 text-white'
-    },
-  tidal: {
-    unselected: 'bg-white text-black',
-    selected: 'bg-black text-white'
-  },
-cake: {
-    unselected: 'bg-pink-300 text-black',
-    selected: 'bg-pink-500 text-white'
-  }
-
-  };
-// Update the demo button in SpotifyAnalyzer.js
-
-const handleLoadSampleData = async () => {
-  setIsProcessing(true);
-  setError(null);
-  
-  try {
-    // URLs to your sample JSON files
-    const sampleFileUrls = [
-      '/sampledata/Streaming1.json',
-      '/sampledata/Streaming2.json',
-      '/sampledata/Streaming3.json',
-      '/sampledata/Streaming4.json'
-    ];
-    
-    // Fetch all files and create proper File objects with names the adapter expects
-    const files = await Promise.all(
-      sampleFileUrls.map(async (url, index) => {
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
-        }
-        
-        const blob = await response.blob();
-        // Use a filename that the adapter will recognize
-        return new File([blob], `Streaming_History_${index+1}.json`, { type: 'application/json' });
-      })
-    );
-    
-    console.log("Sample files created:", files);
-    
-    // Update UI to show the sample files
-    setUploadedFileList(files);
-    setUploadedFiles(files.map(file => file.name));
-    
-    // Process the files - important to wait for this to complete
-    await processFiles(files);
-    
-    // After processing completes, switch to stats tab
-    setActiveTab('stats');
-  } catch (err) {
-    console.error("Error loading sample data:", err);
-    setError("Failed to load sample data: " + err.message);
-  } finally {
-    setIsProcessing(false);
-  }
-};
-const handleCustomTrackYearChange = (year) => {
-  console.log(`Custom track year changed to: ${year}`);
-  
-  // Ensure 'all' is handled consistently
-  const isAllTime = year === 'all';
-  if (isAllTime) {
-    console.log("Setting CustomTrackRankings to ALL TIME mode");
-  }
-  
-  // Use the right string value
-  const yearValue = isAllTime ? 'all' : year;
-  setCustomTrackYear(yearValue);
-  setCustomYearRangeMode(false);
-};
-
-
-// Add a handler for custom track year range change
-const handleCustomTrackYearRangeChange = ({ startYear, endYear }) => {
-  console.log(`Custom track year range changed to: ${startYear}-${endYear}`);
-  setCustomYearRange({ startYear, endYear });
-  setCustomYearRangeMode(true);
-};
-
-// Add a handler for toggling custom track year range mode
-const handleCustomTrackYearRangeModeToggle = (isRange) => {
-  console.log(`Custom track year range mode toggled to: ${isRange}`);
-  setCustomYearRangeMode(isRange);
-  
-  // If switching to range mode, also set a default range if needed
-  if (isRange && (!customYearRange.startYear || !customYearRange.endYear)) {
-    const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
-    if (availableYears.length >= 2) {
-      setCustomYearRange({
-        startYear: availableYears[0],
-        endYear: availableYears[availableYears.length - 1]
-      });
+  // Memoized duration formatting function - caches results for performance
+  const formatDuration = useCallback((ms) => {
+    // Check cache first
+    if (formatDurationCache.current.has(ms)) {
+      return formatDurationCache.current.get(ms);
     }
-  }
-};
-
-// 2. Add a function to determine if sidebar should be shown based on current tab
-const shouldShowSidebar = (tabName) => {
-  const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior', 'custom', 'discovery', 'podcasts'];
-  return sidebarTabs.includes(tabName);
-};
-
-// 3. Add this useEffect hook to update sidebar visibility and color theme when tab changes
-useEffect(() => {
-  // Determine if sidebar should be shown for the current tab
-  const showSidebar = shouldShowSidebar(activeTab);
-  setShowYearSidebar(showSidebar);
-  
-  // Set the appropriate color theme based on the active tab
-  switch(activeTab) {
-    case 'artists':
-      setSidebarColorTheme('teal');
-      break;
-    case 'albums':
-      setSidebarColorTheme('pink');
-      break;
-    case 'tracks':
-      setSidebarColorTheme('blue');
-      break;
-    case 'patterns':
-      setSidebarColorTheme('purple');
-      break;
-    case 'behavior':
-      setSidebarColorTheme('indigo');
-      break;
-  case 'custom':
-      setSidebarColorTheme('orange');
-      break;
-case 'discovery':
-      setSidebarColorTheme('green');
-      break;
-    case 'podcasts':
-      setSidebarColorTheme('indigo');
-      break;
-    default:
-      setSidebarColorTheme('teal');
-  }
-}, [activeTab]);
-
-// 4. Add function to handle year selection from sidebar based on active tab
-const handleSidebarYearChange = (year) => {
-  const isAllTime = year === 'all';
-  if (isAllTime) {
-    console.log(`Setting ALL TIME MODE for tab: ${activeTab}`);
-  }
-  
-  // Always use 'all' string (not object reference) for consistency
-  const yearValue = isAllTime ? 'all' : year;
-switch(activeTab) {
-    case 'artists':
-      setSelectedArtistYear(year);
-      break;
-    case 'albums':
-      setSelectedAlbumYear(year);
-      break;
-    case 'tracks':
-      setSelectedTrackYear(year);
-      break;
-    case 'custom':
-      handleCustomTrackYearChange(year);
-      break;
-case 'patterns':
-      setSelectedPatternYear(year);
-      break;
-    case 'behavior':
-      setSelectedBehaviorYear(year);
-      break;
-    case 'discovery':
-      setSelectedDiscoveryYear(year);
-      break;
-    case 'podcasts':
-      setSelectedPodcastYear(year);
-      break;
-    default:
-      // Default behavior
-      break;
-  }
-};
-
-// 5. Add function to handle year range selection from sidebar
-const handleSidebarYearRangeChange = ({ startYear, endYear }) => {
-  switch(activeTab) {
-    case 'artists':
-      handleYearRangeChange({ startYear, endYear });
-      break;
-    case 'albums':
-      handleAlbumYearRangeChange({ startYear, endYear });
-  break;
-    case 'custom':
-      handleCustomTrackYearRangeChange({ startYear, endYear });
-      break;
-    case 'patterns':
-      setPatternYearRange({ startYear, endYear });
-      break;
-    case 'behavior':
-      setBehaviorYearRange({ startYear, endYear });
-      break;
-    case 'discovery':
-      setDiscoveryYearRange({ startYear, endYear });
-      break;
-    case 'podcasts':
-      setPodcastYearRange({ startYear, endYear });
-      break;
-    default:
-      // Default behavior
-      break;
-  }
-};
-
-// 6. Add function to handle range mode toggle from sidebar
-const handleSidebarRangeModeToggle = (isRange) => {
-  const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
-  
-  switch(activeTab) {
-    case 'artists':
-      toggleYearRangeMode(isRange);
-      // If switching to range mode, also set a default range
-      if (isRange && availableYears.length >= 2) {
-        handleYearRangeChange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-      break;
-    case 'albums':
-      toggleAlbumYearRangeMode(isRange);
-      // If switching to range mode, also set a default range
-      if (isRange && availableYears.length >= 2) {
-        handleAlbumYearRangeChange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-      break;
-    case 'custom':
- setCustomYearRangeMode(isRange);
-      if (isRange && availableYears.length >= 2) {
-        setCustomYearRange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-    case 'patterns':
-setPatternYearRangeMode(isRange);
-      if (isRange && availableYears.length >= 2) {
-        setPatternYearRange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-      break;
-    case 'behavior':
-      setBehaviorYearRangeMode(isRange);
-      if (isRange && availableYears.length >= 2) {
-        setBehaviorYearRange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-      break;
-    case 'discovery':
-      setDiscoveryYearRangeMode(isRange);
-      if (isRange && availableYears.length >= 2) {
-        setDiscoveryYearRange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-      break;
-    case 'podcasts':
-      setPodcastYearRangeMode(isRange);
-      if (isRange && availableYears.length >= 2) {
-        setPodcastYearRange({
-          startYear: availableYears[0],
-          endYear: availableYears[availableYears.length - 1]
-        });
-      }
-      break;
-    default:
-      // Default behavior
-      break;
-  }
-};
-
-const getCustomTabLabel = () => {
-  if (customYearRangeMode && customYearRange.startYear && customYearRange.endYear) {
-    return `${customYearRange.startYear}-${customYearRange.endYear} Custom`;
-  } else if (customTrackYear === 'all') {
-    return 'All-time Custom';
-  }
-  return `${customTrackYear} Custom`;
-};
-
-const getPatternsTabLabel = () => {
-  if (patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear) {
-    return `${patternYearRange.startYear}-${patternYearRange.endYear} Patterns`;
-  } else if (selectedPatternYear === 'all') {
-    return 'All-time Patterns';
-  }
-  return `${selectedPatternYear} Patterns`;
-};
-
-const getBehaviorTabLabel = () => {
-  if (behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear) {
-    return `${behaviorYearRange.startYear}-${behaviorYearRange.endYear} Behavior`;
-  } else if (selectedBehaviorYear === 'all') {
-    return 'All-time Behavior';
-  }
-  return `${selectedBehaviorYear} Behavior`;
-};
-
-const getDiscoveryTabLabel = () => {
-  if (discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear) {
-    return `${discoveryYearRange.startYear}-${discoveryYearRange.endYear} Discovery`;
-  } else if (selectedDiscoveryYear === 'all') {
-    return 'All-time Discovery';
-  }
-  return `${selectedDiscoveryYear} Discovery`;
-};
-
-const getPodcastsTabLabel = () => {
-  if (podcastYearRangeMode && podcastYearRange.startYear && podcastYearRange.endYear) {
-    return `${podcastYearRange.startYear}-${podcastYearRange.endYear} Podcasts`;
-  } else if (selectedPodcastYear === 'all') {
-    return 'All-time Podcasts';
-  }
-  return `${selectedPodcastYear} Podcasts`;
-};
-
-
-const formatDuration = (ms) => {
+    
     const minutes = Math.floor(ms / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
     
+    let result;
     if (days > 0) {
       const remainingHours = hours % 24;
-      return `${days}d ${remainingHours}h`;
+      result = `${days}d ${remainingHours}h`;
+    } else {
+      const remainingMinutes = minutes % 60;
+      result = hours > 0 ? 
+        `${hours}h ${remainingMinutes}m` : 
+        `${remainingMinutes}m`;
     }
     
-    const remainingMinutes = minutes % 60;
-    return hours > 0 ? 
-      `${hours}h ${remainingMinutes}m` : 
-      `${remainingMinutes}m`;
-  };
+    // Store in cache for future use
+    formatDurationCache.current.set(ms, result);
+    
+    return result;
+  }, []);
 
-useEffect(() => {
+  // Effect to add "All-Time" text to year display
+  useEffect(() => {
     if (!yearRangeMode && selectedArtistYear === 'all') {
-      // Force the BetterYearSlider to show "All-Time" instead of a specific year
       const updateAllTimeText = () => {
-        // Get all year display elements (there might be multiple)
         const yearDisplays = document.querySelectorAll('.year-display');
         yearDisplays.forEach(yearDisplay => {
           if (yearDisplay && yearDisplay.textContent !== 'All-Time') {
-            console.log("Forcing All-Time text");
             yearDisplay.textContent = 'All-Time';
           }
         });
       };
       
-      // Try multiple times to ensure it persists
+      // Try multiple times - use a more efficient approach with fewer timeouts
       updateAllTimeText();
-      setTimeout(updateAllTimeText, 50);
-      setTimeout(updateAllTimeText, 100);
-      setTimeout(updateAllTimeText, 300);
-      setTimeout(updateAllTimeText, 500);
+      const timeouts = [50, 100, 300, 500].map(delay => 
+        setTimeout(updateAllTimeText, delay)
+      );
+      
+      return () => timeouts.forEach(id => clearTimeout(id));
     }
   }, [yearRangeMode, selectedArtistYear]);
 
-const filteredArtists = useMemo(() => {
-  // Get unique artist names from topArtists instead of displayedArtists to avoid circular refs
-  const allArtists = Array.from(new Set(topArtists.map(artist => artist.name))).sort();
-  
-  return allArtists
-    .filter(artist => 
-      artist.toLowerCase().includes(artistSearch.toLowerCase()) &&
-      !selectedArtists.includes(artist)
-    )
-    .slice(0, 10);
-}, [topArtists, artistSearch, selectedArtists]);
+  // Filtered artists list - memoized for performance
+  const filteredArtists = useMemo(() => {
+    // Get unique artist names from topArtists - use a Set for efficiency
+    const allArtists = Array.from(new Set(topArtists.map(artist => artist.name))).sort();
+    
+    // Skip filtering if search is empty or if already selected
+    if (!artistSearch.trim()) return [];
+    
+    const searchLower = artistSearch.toLowerCase();
+    return allArtists
+      .filter(artist => 
+        artist.toLowerCase().includes(searchLower) &&
+        !selectedArtists.includes(artist)
+      )
+      .slice(0, 10); // Limit to 10 results for performance
+  }, [topArtists, artistSearch, selectedArtists]);
 
-
+  // Use memo for sorted years to prevent recalculating
   const sortedYears = useMemo(() => {
     return Object.keys(artistsByYear).sort((a, b) => a - b);
   }, [artistsByYear]);
 
-  const toggleYearRangeMode = (value) => {
+  // Toggle year range mode with useCallback to prevent recreation
+  const toggleYearRangeMode = useCallback((value) => {
     // If value is provided, use it directly; otherwise toggle the current state
     const newMode = typeof value === 'boolean' ? value : !yearRangeMode;
-    console.log("Setting year range mode to:", newMode);
     
     // Update the state
     setYearRangeMode(newMode);
@@ -515,142 +202,315 @@ const filteredArtists = useMemo(() => {
         }
       }
     }
-  };
+  }, [yearRangeMode, artistsByYear]);
 
-const handleAlbumYearRangeChange = ({ startYear, endYear }) => {
-  // Validate the years
-  if (!startYear || !endYear) {
-    return;
-  }
-  
-  // Ensure we're in year range mode
-  setAlbumYearRangeMode(true);
-  
-  // Update the year range state
-  setAlbumYearRange({ startYear, endYear });
-};
-
-const toggleAlbumYearRangeMode = (value) => {
-  // If value is provided, use it directly; otherwise toggle the current state
-  const newMode = typeof value === 'boolean' ? value : !albumYearRangeMode;
-  
-  // Update the state
-  setAlbumYearRangeMode(newMode);
-  
-  // Reset selected year when switching to range mode
-  if (newMode) {
-    setSelectedAlbumYear('all');
-    
-    // Set a default range
-    if (Object.keys(artistsByYear).length > 0) {
-      const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
-      if (years.length > 0) {
-        setAlbumYearRange({
-          startYear: years[0],
-          endYear: years[years.length - 1]
-        });
-      }
+  // Handle album year range changes with useCallback
+  const handleAlbumYearRangeChange = useCallback(({ startYear, endYear }) => {
+    // Validate the years
+    if (!startYear || !endYear) {
+      return;
     }
-  } else {
-    // When switching back to single mode, reset to "all"
-    setSelectedAlbumYear('all');
-  }
-};
-
-const getAlbumsTabLabel = () => {
-  if (selectedAlbumYear === 'all') {
-    return 'All-time Albums';
-  } else if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    return `${albumYearRange.startYear}-${albumYearRange.endYear} Albums`;
-  }
-  return `${selectedAlbumYear} Albums`;
-};
-// Modified portion of the displayedAlbums useMemo in SpotifyAnalyzer.js
-// This fixes the month/day selection issue
-
-const displayedAlbums = useMemo(() => {
-  console.log("Calculating displayedAlbums with filter:", {
-    selectedAlbumYear,
-    mode: albumYearRangeMode ? "range" : "single"
-  });
-
-  // First determine which albums to show based on year filter
-  let filteredAlbums;
-  
-  if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-    // Check if dates include month/day information
-    const startHasMonthDay = albumYearRange.startYear.includes('-');
-    const endHasMonthDay = albumYearRange.endYear.includes('-');
     
-    if (startHasMonthDay || endHasMonthDay) {
-      // Use direct filtering on raw play data for precise date ranges
-      // Parse dates into Date objects
-      let startDate, endDate;
+    // Ensure we're in year range mode
+    setAlbumYearRangeMode(true);
+    
+    // Update the year range state
+    setAlbumYearRange({ startYear, endYear });
+  }, []);
+
+  // Toggle album year range mode with useCallback
+  const toggleAlbumYearRangeMode = useCallback((value) => {
+    // If value is provided, use it directly; otherwise toggle the current state
+    const newMode = typeof value === 'boolean' ? value : !albumYearRangeMode;
+    
+    // Update the state
+    setAlbumYearRangeMode(newMode);
+    
+    // Reset selected year when switching to range mode
+    if (newMode) {
+      setSelectedAlbumYear('all');
       
-      try {
-        // Parse start date with proper time bounds
-        if (startHasMonthDay) {
-          if (albumYearRange.startYear.split('-').length === 3) {
-            // YYYY-MM-DD format
-            startDate = new Date(albumYearRange.startYear);
-            startDate.setHours(0, 0, 0, 0); // Start of day
+      // Set a default range
+      if (Object.keys(artistsByYear).length > 0) {
+        const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+        if (years.length > 0) {
+          setAlbumYearRange({
+            startYear: years[0],
+            endYear: years[years.length - 1]
+          });
+        }
+      }
+    } else {
+      // When switching back to single mode, reset to "all"
+      setSelectedAlbumYear('all');
+    }
+  }, [albumYearRangeMode, artistsByYear]);
+
+  // Memoized tab labels to avoid recalculation
+  const getAlbumsTabLabel = useCallback(() => {
+    if (selectedAlbumYear === 'all') {
+      return 'All-time Albums';
+    } else if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+      return `${albumYearRange.startYear}-${albumYearRange.endYear} Albums`;
+    }
+    return `${selectedAlbumYear} Albums`;
+  }, [selectedAlbumYear, albumYearRangeMode, albumYearRange]);
+
+  // Complex filtered displayed albums - heavily memoized for performance
+  const displayedAlbums = useMemo(() => {
+    // First determine which albums to show based on year filter
+    let filteredAlbums;
+    
+    if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+      // Check if dates include month/day information
+      const startHasMonthDay = albumYearRange.startYear.includes('-');
+      const endHasMonthDay = albumYearRange.endYear.includes('-');
+      
+      if (startHasMonthDay || endHasMonthDay) {
+        // Use direct filtering on raw play data for precise date ranges
+        // Parse dates into Date objects
+        let startDate, endDate;
+        
+        try {
+          // Parse start date with proper time bounds
+          if (startHasMonthDay) {
+            if (albumYearRange.startYear.split('-').length === 3) {
+              // YYYY-MM-DD format
+              startDate = new Date(albumYearRange.startYear);
+              startDate.setHours(0, 0, 0, 0); // Start of day
+            } else {
+              // YYYY-MM format
+              const [year, month] = albumYearRange.startYear.split('-').map(Number);
+              startDate = new Date(year, month - 1, 1); // First day of month
+            }
           } else {
-            // YYYY-MM format
-            const [year, month] = albumYearRange.startYear.split('-').map(Number);
-            startDate = new Date(year, month - 1, 1); // First day of month
+            // Just year
+            startDate = new Date(parseInt(albumYearRange.startYear), 0, 1); // January 1st
           }
-        } else {
-          // Just year
-          startDate = new Date(parseInt(albumYearRange.startYear), 0, 1); // January 1st
+          
+          // Parse end date with proper time bounds
+          if (endHasMonthDay) {
+            if (albumYearRange.endYear.split('-').length === 3) {
+              // YYYY-MM-DD format
+              endDate = new Date(albumYearRange.endYear);
+              endDate.setHours(23, 59, 59, 999); // End of day
+            } else {
+              // YYYY-MM format
+              const [year, month] = albumYearRange.endYear.split('-').map(Number);
+              // Last day of month
+              endDate = new Date(year, month, 0, 23, 59, 59, 999);
+            }
+          } else {
+            // Just year
+            endDate = new Date(parseInt(albumYearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+          }
+          
+          // Filter raw play data by date range - use a for loop for efficiency
+          const filteredPlayData = [];
+          for (let i = 0; i < rawPlayData.length; i++) {
+            const entry = rawPlayData[i];
+            try {
+              if (!entry.ts) continue;
+              
+              // Reuse parsed date if available
+              let entryDate = entry._dateObj || new Date(entry.ts);
+              if (isNaN(entryDate.getTime())) continue;
+              
+              // Store parsed date on entry to avoid reparsing
+              if (!entry._dateObj) entry._dateObj = entryDate;
+              
+              if (entryDate >= startDate && entryDate <= endDate) {
+                filteredPlayData.push(entry);
+              }
+            } catch (err) {
+              continue;
+            }
+          }
+          
+          // Group the filtered play data by album - use a Map for better performance
+          const albumMap = new Map();
+          
+          for (let i = 0; i < filteredPlayData.length; i++) {
+            const entry = filteredPlayData[i];
+            if (!entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) continue;
+            
+            const artistName = entry.master_metadata_album_artist_name;
+            const albumName = entry.master_metadata_album_album_name;
+            const key = `${albumName}-${artistName}`;
+            
+            if (!albumMap.has(key)) {
+              albumMap.set(key, {
+                name: albumName,
+                artist: artistName,
+                totalPlayed: 0,
+                playCount: 0,
+                trackCount: new Set(),
+                trackNames: new Set(),
+                trackObjects: [],
+                firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now()
+              });
+            }
+            
+            const album = albumMap.get(key);
+            album.totalPlayed += entry.ms_played || 0;
+            album.playCount += 1;
+            
+            if (entry.master_metadata_track_name) {
+              album.trackCount.add(entry.master_metadata_track_name.toLowerCase());
+              album.trackNames.add(entry.master_metadata_track_name);
+              
+              // Add this track to trackObjects if not already present
+              const trackExists = album.trackObjects.some(
+                t => t.trackName === entry.master_metadata_track_name
+              );
+              
+              if (!trackExists) {
+                album.trackObjects.push({
+                  trackName: entry.master_metadata_track_name,
+                  artist: entry.master_metadata_album_artist_name,
+                  totalPlayed: entry.ms_played || 0,
+                  playCount: 1,
+                  albumName
+                });
+              } else {
+                // Update existing track
+                const track = album.trackObjects.find(
+                  t => t.trackName === entry.master_metadata_track_name
+                );
+                track.totalPlayed += entry.ms_played || 0;
+                track.playCount += 1;
+              }
+            }
+            
+            const timestamp = new Date(entry.ts);
+            if (timestamp < new Date(album.firstListen)) {
+              album.firstListen = timestamp.getTime();
+            }
+          }
+          
+          // Process for final output - sort track objects
+          albumMap.forEach(album => {
+            album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+            album.trackCountValue = album.trackCount.size;
+          });
+          
+          // Convert map to array
+          filteredAlbums = Array.from(albumMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
+        } catch (err) {
+          console.error("Error processing album date range:", err);
+          filteredAlbums = [];
+        }
+      } else {
+        // Year range mode without month/day - collect albums from multiple years
+        filteredAlbums = [];
+        const startYear = parseInt(albumYearRange.startYear);
+        const endYear = parseInt(albumYearRange.endYear);
+        
+        // Collect albums from each year in the range
+        for (let year = startYear; year <= endYear; year++) {
+          if (albumsByYear[year]) {
+            filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
+          }
         }
         
-        // Parse end date with proper time bounds
-        if (endHasMonthDay) {
-          if (albumYearRange.endYear.split('-').length === 3) {
-            // YYYY-MM-DD format
-            endDate = new Date(albumYearRange.endYear);
-            endDate.setHours(23, 59, 59, 999); // End of day
+        // Remove duplicates efficiently using a Map
+        const albumIdMap = new Map();
+        
+        filteredAlbums.forEach(album => {
+          if (!album) return;
+          
+          const id = `${album.name}-${album.artist}`;
+          
+          if (!albumIdMap.has(id)) {
+            // First time seeing this album - use a deep copy to avoid modifying the original
+            albumIdMap.set(id, JSON.parse(JSON.stringify(album)));
           } else {
-            // YYYY-MM format
-            const [year, month] = albumYearRange.endYear.split('-').map(Number);
-            // Last day of month
-            endDate = new Date(year, month, 0, 23, 59, 59, 999);
-          }
-        } else {
-          // Just year
-          endDate = new Date(parseInt(albumYearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
-        }
-        
-        console.log(`Filtering raw data between ${startDate.toISOString()} and ${endDate.toISOString()}`);
-        
-        // Filter raw play data by date range
-        const filteredPlayData = rawPlayData.filter(entry => {
-          try {
-            if (!entry.ts) return false;
+            // Combine with existing album data
+            const existingAlbum = albumIdMap.get(id);
             
-            let entryDate = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
-            if (isNaN(entryDate.getTime())) return false;
+            // Sum the play counts and total played time
+            existingAlbum.totalPlayed = (existingAlbum.totalPlayed || 0) + (album.totalPlayed || 0);
+            existingAlbum.playCount = (existingAlbum.playCount || 0) + (album.playCount || 0);
             
-            return entryDate >= startDate && entryDate <= endDate;
-          } catch (err) {
-            return false;
+            // Take the earlier first listen date
+            if (album.firstListen && existingAlbum.firstListen && 
+                album.firstListen < existingAlbum.firstListen) {
+              existingAlbum.firstListen = album.firstListen;
+            }
+            
+            // Merge track objects if available
+            if (album.trackObjects && existingAlbum.trackObjects) {
+              // Create a map of existing tracks by name/key
+              const trackMap = new Map();
+              existingAlbum.trackObjects.forEach(track => {
+                if (track && track.trackName) {
+                  // Use normalized track name as key when available
+                  const key = track.normalizedTrack || track.trackName.toLowerCase();
+                  trackMap.set(key, track);
+                }
+              });
+              
+              // Add or update tracks from this year
+              album.trackObjects && album.trackObjects.forEach(track => {
+                if (!track || !track.trackName) return;
+                
+                // Use normalized track name as key when available
+                const key = track.normalizedTrack || track.trackName.toLowerCase();
+                
+                if (trackMap.has(key)) {
+                  // Update existing track stats
+                  const existingTrack = trackMap.get(key);
+                  existingTrack.totalPlayed = (existingTrack.totalPlayed || 0) + (track.totalPlayed || 0);
+                  existingTrack.playCount = (existingTrack.playCount || 0) + (track.playCount || 0);
+                  
+                  // Combine variations if needed
+                  if (track.variations && Array.isArray(track.variations)) {
+                    if (!existingTrack.variations) {
+                      existingTrack.variations = [...track.variations];
+                    } else {
+                      // Add any new variations
+                      track.variations.forEach(variation => {
+                        if (!existingTrack.variations.includes(variation)) {
+                          existingTrack.variations.push(variation);
+                        }
+                      });
+                    }
+                  }
+                } else {
+                  // Add new track
+                  trackMap.set(key, JSON.parse(JSON.stringify(track)));
+                }
+              });
+              
+              // Replace track objects with the merged and sorted list
+              existingAlbum.trackObjects = Array.from(trackMap.values())
+                .sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+            }
           }
         });
         
-        console.log(`Filtered ${filteredPlayData.length} play entries for album date range`);
+        // Convert map back to array
+        filteredAlbums = Array.from(albumIdMap.values());
+      }
+    } else if (selectedAlbumYear !== 'all') {
+      // Check if the selectedAlbumYear includes month/day information
+      if (selectedAlbumYear.includes('-')) {
+        // Filter raw data directly for more precise date filtering
+        const filteredPlayData = filterDataByDate(rawPlayData, selectedAlbumYear);
         
-        // Group the filtered play data by album
-        const albumMap = {};
+        // Group the filtered play data by album using a Map for better performance
+        const albumMap = new Map();
         
-        filteredPlayData.forEach(entry => {
-          if (!entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) return;
+        for (let i = 0; i < filteredPlayData.length; i++) {
+          const entry = filteredPlayData[i];
+          if (!entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) continue;
           
           const artistName = entry.master_metadata_album_artist_name;
           const albumName = entry.master_metadata_album_album_name;
           const key = `${albumName}-${artistName}`;
           
-          if (!albumMap[key]) {
-            albumMap[key] = {
+          if (!albumMap.has(key)) {
+            albumMap.set(key, {
               name: albumName,
               artist: artistName,
               totalPlayed: 0,
@@ -659,23 +519,24 @@ const displayedAlbums = useMemo(() => {
               trackNames: new Set(),
               trackObjects: [],
               firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now()
-            };
+            });
           }
           
-          albumMap[key].totalPlayed += entry.ms_played || 0;
-          albumMap[key].playCount += 1;
+          const album = albumMap.get(key);
+          album.totalPlayed += entry.ms_played || 0;
+          album.playCount += 1;
           
           if (entry.master_metadata_track_name) {
-            albumMap[key].trackCount.add(entry.master_metadata_track_name.toLowerCase());
-            albumMap[key].trackNames.add(entry.master_metadata_track_name);
+            album.trackCount.add(entry.master_metadata_track_name.toLowerCase());
+            album.trackNames.add(entry.master_metadata_track_name);
             
-            // Add this track to trackObjects if not already present
-            const trackExists = albumMap[key].trackObjects.some(
+            // Add this track to trackObjects if not already present - use find for efficiency
+            const existingTrackIndex = album.trackObjects.findIndex(
               t => t.trackName === entry.master_metadata_track_name
             );
             
-            if (!trackExists) {
-              albumMap[key].trackObjects.push({
+            if (existingTrackIndex === -1) {
+              album.trackObjects.push({
                 trackName: entry.master_metadata_track_name,
                 artist: entry.master_metadata_album_artist_name,
                 totalPlayed: entry.ms_played || 0,
@@ -684,283 +545,114 @@ const displayedAlbums = useMemo(() => {
               });
             } else {
               // Update existing track
-              const track = albumMap[key].trackObjects.find(
-                t => t.trackName === entry.master_metadata_track_name
-              );
-              track.totalPlayed += entry.ms_played || 0;
-              track.playCount += 1;
+              album.trackObjects[existingTrackIndex].totalPlayed += entry.ms_played || 0;
+              album.trackObjects[existingTrackIndex].playCount += 1;
             }
           }
           
           const timestamp = new Date(entry.ts);
-          if (timestamp < new Date(albumMap[key].firstListen)) {
-            albumMap[key].firstListen = timestamp.getTime();
+          if (timestamp < new Date(album.firstListen)) {
+            album.firstListen = timestamp.getTime();
           }
-        });
+        }
         
         // Process for final output - sort track objects
-        Object.values(albumMap).forEach(album => {
+        albumMap.forEach(album => {
           album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
           album.trackCountValue = album.trackCount.size;
         });
         
         // Convert to array and sort
-        filteredAlbums = Object.values(albumMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
-      } catch (err) {
-        console.error("Error processing album date range:", err);
-        filteredAlbums = [];
-      }
-    } else {
-      // Year range mode without month/day - collect albums from multiple years
-      filteredAlbums = [];
-      const startYear = parseInt(albumYearRange.startYear);
-      const endYear = parseInt(albumYearRange.endYear);
-      
-      // Collect albums from each year in the range
-      for (let year = startYear; year <= endYear; year++) {
-        if (albumsByYear[year]) {
-          filteredAlbums = [...filteredAlbums, ...albumsByYear[year]];
-        }
-      }
-      
-      // Remove duplicates (same album might appear in multiple years)
-      // When removing duplicates, combine the play counts
-      const albumIdMap = new Map();
-      
-      filteredAlbums.forEach(album => {
-        const id = `${album.name}-${album.artist}`;
-        
-        if (!albumIdMap.has(id)) {
-          // First time seeing this album - use a deep copy to avoid modifying the original
-          albumIdMap.set(id, JSON.parse(JSON.stringify(album)));
-        } else {
-          // Combine with existing album data
-          const existingAlbum = albumIdMap.get(id);
-          
-          // Sum the play counts and total played time
-          existingAlbum.totalPlayed = (existingAlbum.totalPlayed || 0) + (album.totalPlayed || 0);
-          existingAlbum.playCount = (existingAlbum.playCount || 0) + (album.playCount || 0);
-          
-          // Take the earlier first listen date
-          if (album.firstListen && existingAlbum.firstListen && 
-              album.firstListen < existingAlbum.firstListen) {
-            existingAlbum.firstListen = album.firstListen;
-          }
-          
-          // Merge track objects if available
-          if (album.trackObjects && existingAlbum.trackObjects) {
-            // Create a map of existing tracks by name/key
-            const trackMap = new Map();
-            existingAlbum.trackObjects.forEach(track => {
-              if (track && track.trackName) {
-                // Use normalized track name as key when available
-                const key = track.normalizedTrack || track.trackName.toLowerCase();
-                trackMap.set(key, track);
-              }
-            });
-            
-            // Add or update tracks from this year
-            album.trackObjects && album.trackObjects.forEach(track => {
-              if (!track || !track.trackName) return;
-              
-              // Use normalized track name as key when available
-              const key = track.normalizedTrack || track.trackName.toLowerCase();
-              
-              if (trackMap.has(key)) {
-                // Update existing track stats
-                const existingTrack = trackMap.get(key);
-                existingTrack.totalPlayed = (existingTrack.totalPlayed || 0) + (track.totalPlayed || 0);
-                existingTrack.playCount = (existingTrack.playCount || 0) + (track.playCount || 0);
-                
-                // Combine variations if needed
-                if (track.variations && Array.isArray(track.variations)) {
-                  if (!existingTrack.variations) {
-                    existingTrack.variations = [...track.variations];
-                  } else {
-                    // Add any new variations
-                    track.variations.forEach(variation => {
-                      if (!existingTrack.variations.includes(variation)) {
-                        existingTrack.variations.push(variation);
-                      }
-                    });
-                  }
-                }
-              } else {
-                // Add new track
-                trackMap.set(key, JSON.parse(JSON.stringify(track)));
-              }
-            });
-            
-            // Replace track objects with the merged and sorted list
-            existingAlbum.trackObjects = Array.from(trackMap.values())
-              .sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
-          }
-        }
-      });
-      
-      // Convert map back to array
-      filteredAlbums = Array.from(albumIdMap.values());
-    }
-  } else if (selectedAlbumYear !== 'all') {
-    // Check if the selectedAlbumYear includes month/day information
-    if (selectedAlbumYear.includes('-')) {
-      // If it has a dash, it's either YYYY-MM or YYYY-MM-DD
-      // We need to filter rawPlayData directly and build a custom album list
-      
-      const filteredPlayData = filterDataByDate(rawPlayData, selectedAlbumYear);
-      
-      // Group the filtered play data by album
-      const albumMap = {};
-      
-      filteredPlayData.forEach(entry => {
-        if (!entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) return;
-        
-        const artistName = entry.master_metadata_album_artist_name;
-        const albumName = entry.master_metadata_album_album_name;
-        const key = `${albumName}-${artistName}`;
-        
-        if (!albumMap[key]) {
-          albumMap[key] = {
-            name: albumName,
-            artist: artistName,
-            totalPlayed: 0,
-            playCount: 0,
-            trackCount: new Set(),
-            trackNames: new Set(),
-            trackObjects: [],
-            firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now()
-          };
-        }
-        
-        albumMap[key].totalPlayed += entry.ms_played || 0;
-        albumMap[key].playCount += 1;
-        
-        if (entry.master_metadata_track_name) {
-          albumMap[key].trackCount.add(entry.master_metadata_track_name.toLowerCase());
-          albumMap[key].trackNames.add(entry.master_metadata_track_name);
-          
-          // Add this track to trackObjects if not already present
-          const trackExists = albumMap[key].trackObjects.some(
-            t => t.trackName === entry.master_metadata_track_name
-          );
-          
-          if (!trackExists) {
-            albumMap[key].trackObjects.push({
-              trackName: entry.master_metadata_track_name,
-              artist: entry.master_metadata_album_artist_name,
-              totalPlayed: entry.ms_played || 0,
-              playCount: 1,
-              albumName
-            });
-          } else {
-            // Update existing track
-            const track = albumMap[key].trackObjects.find(
-              t => t.trackName === entry.master_metadata_track_name
-            );
-            track.totalPlayed += entry.ms_played || 0;
-            track.playCount += 1;
-          }
-        }
-        
-        const timestamp = new Date(entry.ts);
-        if (timestamp < new Date(albumMap[key].firstListen)) {
-          albumMap[key].firstListen = timestamp.getTime();
-        }
-      });
-      
-      // Process for final output - sort track objects
-      Object.values(albumMap).forEach(album => {
-        album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
-        album.trackCountValue = album.trackCount.size;
-      });
-      
-      // Convert to array and sort
-      filteredAlbums = Object.values(albumMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
-    } else {
-      // Regular single year, use the existing data structure
-      filteredAlbums = albumsByYear[selectedAlbumYear] ? 
+        filteredAlbums = Array.from(albumMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      } else {
+        // Regular single year, use the existing data structure
+        filteredAlbums = albumsByYear[selectedAlbumYear] ? 
                JSON.parse(JSON.stringify(albumsByYear[selectedAlbumYear])) : 
                [];
-    }
-  } else {
-    // All-time mode
-    filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
-  }
-  
-  // Then apply artist filtering if needed
-  if (selectedArtists.length > 0) {
-    filteredAlbums = filteredAlbums.filter(album => selectedArtists.includes(album.artist));
-  }
-  
-  // Make sure all albums have trackObjects even in all-time mode
-  return filteredAlbums.map(album => {
-    if (!album) return null;
-    
-    // If we already have track objects, just use them
-    if (album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
-      // Ensure they're sorted
-      album.trackObjects.sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
-      return album;
-    }
-    
-    // For albums without track objects, try to find matching tracks
-    const albumTracks = processedData.filter(track => 
-      track && track.artist === album.artist && 
-      track.albumName && (
-        track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
-        album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
-        (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
-      )
-    );
-    
-    if (albumTracks.length > 0) {
-      // Group tracks by name to handle duplicates
-      const trackGroups = {};
-      
-      albumTracks.forEach(track => {
-        const key = track.trackName.toLowerCase();
-        
-        if (!trackGroups[key]) {
-          trackGroups[key] = {
-            trackName: track.trackName,
-            artist: track.artist,
-            totalPlayed: 0,
-            playCount: 0,
-            variations: [track.trackName]
-          };
-        }
-        
-        // Only include actual year-specific play stats
-        if (selectedAlbumYear !== 'all') {
-          // For year-specific mode, scale down the track stats
-          // This is a rough approximation that should still align with the album totals
-          const yearRatio = album.playCount / track.playCount;
-          trackGroups[key].totalPlayed += track.totalPlayed * yearRatio;
-          trackGroups[key].playCount += track.playCount * yearRatio;
-        } else {
-          // For all-time mode, use the full play stats
-          trackGroups[key].totalPlayed += track.totalPlayed;
-          trackGroups[key].playCount += track.playCount;
-        }
-        
-        // Add variation if not already present
-        if (!trackGroups[key].variations.includes(track.trackName)) {
-          trackGroups[key].variations.push(track.trackName);
-        }
-      });
-      
-      // Convert to array and sort
-      album.trackObjects = Object.values(trackGroups)
-        .sort((a, b) => b.totalPlayed - a.totalPlayed);
+      }
     } else {
-      album.trackObjects = [];
+      // All-time mode
+      filteredAlbums = JSON.parse(JSON.stringify(topAlbums));
     }
     
-    return album;
-  }).filter(Boolean); // Remove any null results
-}, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData, rawPlayData]);
-  // Toggle a service in the selection
-  const toggleServiceSelection = (serviceType) => {
+    // Then apply artist filtering if needed using a Set for faster lookups
+    if (selectedArtists.length > 0) {
+      const selectedArtistsSet = new Set(selectedArtists);
+      filteredAlbums = filteredAlbums.filter(album => selectedArtistsSet.has(album.artist));
+    }
+    
+    // Make sure all albums have trackObjects even in all-time mode
+    return filteredAlbums.map(album => {
+      if (!album) return null;
+      
+      // If we already have track objects, just use them
+      if (album.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
+        // Ensure they're sorted
+        album.trackObjects.sort((a, b) => (b.totalPlayed || 0) - (a.totalPlayed || 0));
+        return album;
+      }
+      
+      // For albums without track objects, try to find matching tracks
+      const albumTracks = processedData.filter(track => 
+        track && track.artist === album.artist && 
+        track.albumName && (
+          track.albumName.toLowerCase().includes(album.name.toLowerCase()) ||
+          album.name.toLowerCase().includes(track.albumName.toLowerCase()) ||
+          (album.name === 'Unknown Album' && track.albumName === 'Unknown Album')
+        )
+      );
+      
+      if (albumTracks.length > 0) {
+        // Group tracks by name to handle duplicates using a Map for efficiency
+        const trackGroups = new Map();
+        
+        albumTracks.forEach(track => {
+          const key = track.trackName.toLowerCase();
+          
+          if (!trackGroups.has(key)) {
+            trackGroups.set(key, {
+              trackName: track.trackName,
+              artist: track.artist,
+              totalPlayed: 0,
+              playCount: 0,
+              variations: [track.trackName]
+            });
+          }
+          
+          const group = trackGroups.get(key);
+          
+          // Only include actual year-specific play stats
+          if (selectedAlbumYear !== 'all') {
+            // For year-specific mode, scale down the track stats
+            // This is a rough approximation that should still align with the album totals
+            const yearRatio = album.playCount / track.playCount;
+            group.totalPlayed += track.totalPlayed * yearRatio;
+            group.playCount += track.playCount * yearRatio;
+          } else {
+            // For all-time mode, use the full play stats
+            group.totalPlayed += track.totalPlayed;
+            group.playCount += track.playCount;
+          }
+          
+          // Add variation if not already present
+          if (!group.variations.includes(track.trackName)) {
+            group.variations.push(track.trackName);
+          }
+        });
+        
+        // Convert to array and sort
+        album.trackObjects = Array.from(trackGroups.values())
+          .sort((a, b) => b.totalPlayed - a.totalPlayed);
+      } else {
+        album.trackObjects = [];
+      }
+      
+      return album;
+    }).filter(Boolean); // Remove any null results
+  }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData, rawPlayData]);
+
+  // Toggle a service in the selection with useCallback
+  const toggleServiceSelection = useCallback((serviceType) => {
     setSelectedServices(prev => {
       if (prev.includes(serviceType)) {
         return prev.filter(s => s !== serviceType);
@@ -968,307 +660,264 @@ const displayedAlbums = useMemo(() => {
         return [...prev, serviceType];
       }
     });
-  };
+  }, []);
 
-  // Toggle service info visibility
-  const toggleServiceInfo = (serviceType) => {
+  // Toggle service info visibility with useCallback
+  const toggleServiceInfo = useCallback((serviceType) => {
     setShowServiceInfo(prev => ({
       ...prev,
       [serviceType]: !prev[serviceType]
     }));
-  };
+  }, []);
 
-  // Get accepted file formats for all selected services
-  const getAcceptedFormats = () => {
-    return selectedServices
-      .map(service => STREAMING_SERVICES[service].acceptedFormats)
-      .join(',');
-  };
-
-const displayedArtists = useMemo(() => {
-  console.log("Re-calculating displayed artists:", {
-    mode: yearRangeMode ? "range" : "single",
-    selectedYear: selectedArtistYear,
-    range: yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : "none"
-  });
-
-  // Important: Check yearRangeMode first, then check selectedArtistYear
-  if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-    // Check if dates include month/day information
-    const startHasMonthDay = yearRange.startYear.includes('-');
-    const endHasMonthDay = yearRange.endYear.includes('-');
+  // Get accepted file formats for all selected services with useMemo
+  const getAcceptedFormats = useCallback(() => {
+    // Use a Set to eliminate duplicates
+    const formatSet = new Set();
     
-    if (startHasMonthDay || endHasMonthDay) {
-      // Parse dates into Date objects
-      let startDate, endDate;
+    selectedServices.forEach(service => {
+      const formats = STREAMING_SERVICES[service].acceptedFormats.split(',');
+      formats.forEach(format => formatSet.add(format));
+    });
+    
+    return Array.from(formatSet).join(',');
+  }, [selectedServices]);
+
+  // Complex displayedArtists logic - memoized for performance
+  const displayedArtists = useMemo(() => {
+    // Important: Check yearRangeMode first, then check selectedArtistYear
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      // Check if dates include month/day information
+      const startHasMonthDay = yearRange.startYear.includes('-');
+      const endHasMonthDay = yearRange.endYear.includes('-');
       
-      try {
-        // Parse start date with proper time bounds
-        if (startHasMonthDay) {
-          if (yearRange.startYear.split('-').length === 3) {
-            // YYYY-MM-DD format
-            startDate = new Date(yearRange.startYear);
-            startDate.setHours(0, 0, 0, 0); // Start of day
+      if (startHasMonthDay || endHasMonthDay) {
+        // Parse dates into Date objects
+        let startDate, endDate;
+        
+        try {
+          // Parse start date with proper time bounds
+          if (startHasMonthDay) {
+            if (yearRange.startYear.split('-').length === 3) {
+              // YYYY-MM-DD format
+              startDate = new Date(yearRange.startYear);
+              startDate.setHours(0, 0, 0, 0); // Start of day
+            } else {
+              // YYYY-MM format
+              const [year, month] = yearRange.startYear.split('-').map(Number);
+              startDate = new Date(year, month - 1, 1); // First day of month
+            }
           } else {
-            // YYYY-MM format
-            const [year, month] = yearRange.startYear.split('-').map(Number);
-            startDate = new Date(year, month - 1, 1); // First day of month
+            // Just year
+            startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
           }
-        } else {
-          // Just year
-          startDate = new Date(parseInt(yearRange.startYear), 0, 1); // January 1st
+          
+          // Parse end date with proper time bounds
+          if (endHasMonthDay) {
+            if (yearRange.endYear.split('-').length === 3) {
+              // YYYY-MM-DD format
+              endDate = new Date(yearRange.endYear);
+              endDate.setHours(23, 59, 59, 999); // End of day
+            } else {
+              // YYYY-MM format
+              const [year, month] = yearRange.endYear.split('-').map(Number);
+              // Last day of month
+              endDate = new Date(year, month, 0, 23, 59, 59, 999);
+            }
+          } else {
+            // Just year
+            endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
+          }
+          
+          // Filter raw play data by date range - more efficiently with for loop
+          const filteredPlayData = [];
+          for (let i = 0; i < rawPlayData.length; i++) {
+            const entry = rawPlayData[i];
+            try {
+              if (!entry.ts) continue;
+              
+              // Reuse parsed date if available
+              let entryDate = entry._dateObj || new Date(entry.ts);
+              if (isNaN(entryDate.getTime())) continue;
+              
+              // Cache parsed date
+              if (!entry._dateObj) entry._dateObj = entryDate;
+              
+              if (entryDate >= startDate && entryDate <= endDate) {
+                filteredPlayData.push(entry);
+              }
+            } catch (err) {
+              continue;
+            }
+          }
+          
+          // Group data by artist using a Map for efficiency
+          const artistMap = new Map();
+          
+          for (let i = 0; i < filteredPlayData.length; i++) {
+            const entry = filteredPlayData[i];
+            if (!entry.master_metadata_album_artist_name) continue;
+            
+            const artistName = entry.master_metadata_album_artist_name;
+            
+            if (!artistMap.has(artistName)) {
+              artistMap.set(artistName, {
+                name: artistName,
+                totalPlayed: 0,
+                playCount: 0,
+                firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now(),
+                firstSong: entry.master_metadata_track_name || 'Unknown',
+                firstSongPlayCount: 1
+              });
+            }
+            
+            const artist = artistMap.get(artistName);
+            artist.totalPlayed += entry.ms_played || 0;
+            artist.playCount += 1;
+            
+            const timestamp = new Date(entry.ts);
+            if (timestamp < new Date(artist.firstListen)) {
+              artist.firstListen = timestamp.getTime();
+              artist.firstSong = entry.master_metadata_track_name;
+              artist.firstSongPlayCount = 1;
+            } else if (entry.master_metadata_track_name === artist.firstSong) {
+              artist.firstSongPlayCount += 1;
+            }
+          }
+          
+          // Convert to array and sort - more efficiently
+          return Array.from(artistMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
+        } catch (err) {
+          console.error("Error processing date range:", err);
+          return []; 
+        }
+      } else {
+        // Year-only range without month/day specificity
+        const startYear = parseInt(yearRange.startYear);
+        const endYear = parseInt(yearRange.endYear);
+        
+        // Collect artists from years within the range - use a Map for deduplication
+        const mergedArtists = new Map();
+        
+        for (let year = startYear; year <= endYear; year++) {
+          const yearStr = year.toString();
+          if (artistsByYear[yearStr] && Array.isArray(artistsByYear[yearStr])) {
+            artistsByYear[yearStr].forEach(artist => {
+              if (!artist || !artist.name) return;
+              
+              if (!mergedArtists.has(artist.name)) {
+                // First time seeing this artist
+                mergedArtists.set(artist.name, {...artist});
+              } else {
+                // Merge with existing artist data
+                const existing = mergedArtists.get(artist.name);
+                existing.totalPlayed += artist.totalPlayed || 0;
+                existing.playCount += artist.playCount || 0;
+                
+                // Update most played song if necessary
+                if (artist.mostPlayedSong && existing.mostPlayedSong &&
+                    artist.mostPlayedSong.playCount > existing.mostPlayedSong.playCount) {
+                  existing.mostPlayedSong = artist.mostPlayedSong;
+                }
+              }
+            });
+          }
         }
         
-        // Parse end date with proper time bounds
-        if (endHasMonthDay) {
-          if (yearRange.endYear.split('-').length === 3) {
-            // YYYY-MM-DD format
-            endDate = new Date(yearRange.endYear);
-            endDate.setHours(23, 59, 59, 999); // End of day
-          } else {
-            // YYYY-MM format
-            const [year, month] = yearRange.endYear.split('-').map(Number);
-            // Last day of month
-            endDate = new Date(year, month, 0, 23, 59, 59, 999);
-          }
-        } else {
-          // Just year
-          endDate = new Date(parseInt(yearRange.endYear), 11, 31, 23, 59, 59, 999); // December 31st
-        }
+        return Array.from(mergedArtists.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      }
+    } else if (selectedArtistYear !== 'all') {
+      // Check if the selectedArtistYear includes month/day information
+      if (selectedArtistYear.includes('-')) {
+        // Filter rawPlayData directly for more precise filtering
+        const filteredPlayData = filterDataByDate(rawPlayData, selectedArtistYear);
         
-        console.log(`Filtering raw data between ${startDate.toISOString()} and ${endDate.toISOString()}`);
+        // Group the filtered play data by artist using a Map for efficiency
+        const artistMap = new Map();
         
-        // Filter raw play data by date range
-        const filteredPlayData = rawPlayData.filter(entry => {
-          try {
-            if (!entry.ts) return false;
-            
-            let entryDate = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
-            if (isNaN(entryDate.getTime())) return false;
-            
-            return entryDate >= startDate && entryDate <= endDate;
-          } catch (err) {
-            return false;
-          }
-        });
-        
-        console.log(`Filtered ${filteredPlayData.length} play entries for date range`);
-        
-        // Group data by artist and build custom artist list
-        const artistMap = {};
-        
-        filteredPlayData.forEach(entry => {
-          if (!entry.master_metadata_album_artist_name) return;
+        for (let i = 0; i < filteredPlayData.length; i++) {
+          const entry = filteredPlayData[i];
+          if (!entry.master_metadata_album_artist_name) continue;
           
           const artistName = entry.master_metadata_album_artist_name;
           
-          if (!artistMap[artistName]) {
-            artistMap[artistName] = {
+          if (!artistMap.has(artistName)) {
+            artistMap.set(artistName, {
               name: artistName,
               totalPlayed: 0,
               playCount: 0,
               firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now(),
               firstSong: entry.master_metadata_track_name || 'Unknown',
               firstSongPlayCount: 1
-            };
+            });
           }
           
-          artistMap[artistName].totalPlayed += entry.ms_played || 0;
-          artistMap[artistName].playCount += 1;
+          const artist = artistMap.get(artistName);
+          artist.totalPlayed += entry.ms_played || 0;
+          artist.playCount += 1;
           
           const timestamp = new Date(entry.ts);
-          if (timestamp < new Date(artistMap[artistName].firstListen)) {
-            artistMap[artistName].firstListen = timestamp.getTime();
-            artistMap[artistName].firstSong = entry.master_metadata_track_name;
-            artistMap[artistName].firstSongPlayCount = 1;
-          } else if (entry.master_metadata_track_name === artistMap[artistName].firstSong) {
-            artistMap[artistName].firstSongPlayCount += 1;
+          if (timestamp < new Date(artist.firstListen)) {
+            artist.firstListen = timestamp.getTime();
+            artist.firstSong = entry.master_metadata_track_name;
+            artist.firstSongPlayCount = 1;
+          } else if (entry.master_metadata_track_name === artist.firstSong) {
+            artist.firstSongPlayCount += 1;
           }
-        });
+        }
         
         // Convert to array and sort
-        const result = Object.values(artistMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
-        console.log(`Returning ${result.length} artists for date range`);
-        return result;
-      } catch (err) {
-        console.error("Error processing date range:", err);
-        return []; 
+        return Array.from(artistMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      } else {
+        // Regular single year, use the existing data structure
+        const yearArtists = artistsByYear[selectedArtistYear] || [];
+        return yearArtists;
       }
     } else {
-      // Year-only range without month/day specificity
-      const startYear = parseInt(yearRange.startYear);
-      const endYear = parseInt(yearRange.endYear);
-      
-      console.log(`Filtering artists for year range ${startYear}-${endYear}`, 
-        "Available years:", Object.keys(artistsByYear));
-      
-      // Check if artistsByYear has any entries
-      const availableYears = Object.keys(artistsByYear);
-      console.log("Available years:", availableYears);
-      
-      if (availableYears.length === 0) {
-        console.warn("artistsByYear is empty!");
-        return [];
-      }
-      
-      // Collect artists from years within the range
-      const rangeArtists = Object.entries(artistsByYear)
-        .filter(([year]) => {
-          const yearNum = parseInt(year);
-          const isInRange = yearNum >= startYear && yearNum <= endYear;
-          console.log(`Year ${year} in range ${startYear}-${endYear}? ${isInRange}`);
-          return isInRange;
-        })
-        .flatMap(([year, artists]) => {
-          console.log(`Adding ${artists.length} artists from year ${year}`);
-          return artists;
-        });
-      
-      console.log(`Found ${rangeArtists.length} artists within the range`);
-      
-      if (rangeArtists.length === 0) {
-        console.log("No artists found in the selected year range");
-        return [];
-      }
-      
-      // Merge artists from different years
-      const mergedArtists = {};
-      rangeArtists.forEach(artist => {
-        const name = artist.name;
-        
-        if (!mergedArtists[name]) {
-          // First time seeing this artist
-          mergedArtists[name] = {...artist};
-        } else {
-          // Merge with existing artist data
-          mergedArtists[name].totalPlayed += artist.totalPlayed;
-          mergedArtists[name].playCount += artist.playCount;
-          
-          // Update most played song if necessary
-          if (artist.mostPlayedSong && mergedArtists[name].mostPlayedSong &&
-              artist.mostPlayedSong.playCount > mergedArtists[name].mostPlayedSong.playCount) {
-            mergedArtists[name].mostPlayedSong = artist.mostPlayedSong;
-          }
-        }
-      });
-
-      const result = Object.values(mergedArtists)
-        .sort((a, b) => b.totalPlayed - a.totalPlayed);
-      
-      console.log(`Returning ${result.length} artists for year range ${startYear}-${endYear}`);
-      return result;
+      // All-time mode: show the top artists
+      return topArtists;
     }
-  } else if (selectedArtistYear !== 'all') {
-    // Check if the selectedArtistYear includes month/day information
-    if (selectedArtistYear.includes('-')) {
-      // If it has a dash, it's either YYYY-MM or YYYY-MM-DD
-      // We need to filter rawPlayData directly and build a custom artist list
-      
-      const filteredPlayData = filterDataByDate(rawPlayData, selectedArtistYear);
-      
-      // Group the filtered play data by artist
-      const artistMap = {};
-      
-      filteredPlayData.forEach(entry => {
-        if (!entry.master_metadata_album_artist_name) return;
-        
-        const artistName = entry.master_metadata_album_artist_name;
-        
-        if (!artistMap[artistName]) {
-          artistMap[artistName] = {
-            name: artistName,
-            totalPlayed: 0,
-            playCount: 0,
-            firstListen: entry.ts ? new Date(entry.ts).getTime() : Date.now(),
-            firstSong: entry.master_metadata_track_name || 'Unknown',
-            firstSongPlayCount: 1
-          };
-        }
-        
-        artistMap[artistName].totalPlayed += entry.ms_played || 0;
-        artistMap[artistName].playCount += 1;
-        
-        const timestamp = new Date(entry.ts);
-        if (timestamp < new Date(artistMap[artistName].firstListen)) {
-          artistMap[artistName].firstListen = timestamp.getTime();
-          artistMap[artistName].firstSong = entry.master_metadata_track_name;
-          artistMap[artistName].firstSongPlayCount = 1;
-        } else if (entry.master_metadata_track_name === artistMap[artistName].firstSong) {
-          artistMap[artistName].firstSongPlayCount += 1;
-        }
-      });
-      
-      // Convert to array and sort
-      return Object.values(artistMap).sort((a, b) => b.totalPlayed - a.totalPlayed);
-    } else {
-      // Regular single year, use the existing data structure
-      const yearArtists = artistsByYear[selectedArtistYear] || [];
-      console.log(`Found ${yearArtists.length} artists for year ${selectedArtistYear}`);
-      return yearArtists;
-    }
- } else {
-  // All-time mode: Calculate most played songs correctly
-  const artistsWithSongs = topArtists.map(artist => {
-    // Find all songs by this artist from processedData
-    const artistSongs = processedData.filter(song => 
-      song.artist === artist.name ||
-      song.fullArtist === artist.name
-    );
+  }, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange, rawPlayData]);
 
-    // Find the most played song
-    const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
+  // Filtered displayed artists - memoized to prevent recalculation
+  const filteredDisplayedArtists = useMemo(() => {
+    // If no artists displayed, return empty array to avoid issues
+    if (!displayedArtists || displayedArtists.length === 0) return [];
     
-    // Return artist with correctly assigned most played song
-    return {
-      ...artist,
-      mostPlayedSong: mostPlayed
-    };
-  });
-  
-  return artistsWithSongs;
-}
-}, [topArtists, artistsByYear, selectedArtistYear, yearRangeMode, yearRange, rawPlayData]);
-
-
-const filteredDisplayedArtists = useMemo(() => {
-  // If no artists displayed, return empty array to avoid issues
-  if (!displayedArtists || displayedArtists.length === 0) return [];
-  
-  // Handle both search and selection together
-  return displayedArtists.filter(artist => {
-    // If there are selected artists, only show those
+    // If we have selected artists, only show those using a Set for faster lookups
     if (selectedArtists.length > 0) {
-      return selectedArtists.includes(artist.name);
+      const selectedArtistsSet = new Set(selectedArtists);
+      return displayedArtists.filter(artist => selectedArtistsSet.has(artist.name));
     }
     
     // Otherwise, apply search term filter if search exists
     if (artistSearch.trim()) {
-      return artist.name.toLowerCase().includes(artistSearch.toLowerCase());
+      const searchLower = artistSearch.toLowerCase();
+      return displayedArtists.filter(artist => 
+        artist.name.toLowerCase().includes(searchLower)
+      );
     }
     
     // If no filters, show all
-    return true;
-  });
-}, [displayedArtists, artistSearch, selectedArtists]);
+    return displayedArtists;
+  }, [displayedArtists, artistSearch, selectedArtists]);
 
+  // Process files with useCallback to prevent recreation
   const processFiles = useCallback(async (fileList) => {
-    // Set loading state and wait for next render cycle
+    // Set loading state 
     setIsProcessing(true);
-    console.log("Starting to process files:", fileList);
-    await new Promise(resolve => setTimeout(resolve, 0));
     
     try {
       const results = await streamingProcessor.processFiles(fileList);
-      console.log("Got results:", results);
-      console.log('Total Artists:', results.topArtists.length);
+      
+      // Update all state in batch
       setStats(results.stats);
       setTopArtists(results.topArtists);
       setArtistsByYear(results.artistsByYear || {});
       setTopAlbums(results.topAlbums);
       setAlbumsByYear(results.albumsByYear || {});
-
       
-      // Make sure we're using the totalPlayed value for sorting in the main list too
+      // Sort tracks by totalPlayed for consistency
       const sortedTracks = _.orderBy(results.processedTracks, ['totalPlayed'], ['desc']);
       setProcessedData(sortedTracks);
       
@@ -1276,62 +925,60 @@ const filteredDisplayedArtists = useMemo(() => {
       setBriefObsessions(results.briefObsessions);
       setRawPlayData(results.rawPlayData);
 
+      // Update file list
       const fileNames = Array.from(fileList).map(file => file.name);
       setUploadedFiles(fileNames);
 
+      // Switch to stats tab
       setActiveTab('stats');
+      
+      return results;
     } catch (err) {
       console.error("Error processing files:", err);
       setError(err.message);
+      throw err;
     } finally {
       setIsProcessing(false);
     }
   }, []);
 
-  const handleFileUpload = (e) => {
+  // Handle file upload with useCallback
+  const handleFileUpload = useCallback((e) => {
     const newFiles = e.target.files;
     if (!newFiles || newFiles.length === 0) return;
     
     // Create an array to store the new file objects
     const newFileObjects = Array.from(newFiles);
     
-    // Combine existing files with new files
-    let combinedFiles;
-    if (uploadedFileList) {
-      combinedFiles = [...uploadedFileList, ...newFileObjects];
-    } else {
-      combinedFiles = newFileObjects;
-    }
+    // Combine existing files with new files efficiently
+    const combinedFiles = uploadedFileList 
+      ? [...uploadedFileList, ...newFileObjects]
+      : newFileObjects;
     
-    // Update file names for display - just using the names
+    // Update file names for display
     const updatedFileNames = combinedFiles.map(file => file.name);
     
-    // Update state with combined files
+    // Update state
     setUploadedFileList(combinedFiles);
     setUploadedFiles(updatedFileNames);
-  };
+  }, [uploadedFileList]);
 
-  // Add the handleDeleteFile function here
-  const handleDeleteFile = (indexToDelete) => {
-    // Remove the file from uploadedFiles array
-    const updatedFileNames = uploadedFiles.filter((_, index) => index !== indexToDelete);
-    
-    // Create a new array without the deleted file
+  // Handle file deletion with useCallback
+  const handleDeleteFile = useCallback((indexToDelete) => {
+    // Batch state updates for better performance
     if (uploadedFileList) {
       const remainingFiles = uploadedFileList.filter((_, index) => index !== indexToDelete);
       
-      // Check if we've removed all files
-      if (remainingFiles.length === 0) {
-        setUploadedFileList(null);
-      } else {
-        setUploadedFileList(remainingFiles);
-      }
+      // Update both states at once
+      setUploadedFileList(remainingFiles.length === 0 ? null : remainingFiles);
+      setUploadedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
+    } else {
+      setUploadedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
     }
-    
-    setUploadedFiles(updatedFileNames);
-  };
+  }, [uploadedFileList]);
 
-  const handleProcessFiles = () => {
+  // Process uploaded files with useCallback
+  const handleProcessFiles = useCallback(() => {
     if (!uploadedFileList || uploadedFileList.length === 0) {
       setError("Please upload files first");
       return;
@@ -1339,6 +986,7 @@ const filteredDisplayedArtists = useMemo(() => {
     
     setIsProcessing(true);
     
+    // Use setTimeout to allow the UI to update before processing starts
     setTimeout(() => {
       processFiles(uploadedFileList)
         .then(() => {
@@ -1352,11 +1000,10 @@ const filteredDisplayedArtists = useMemo(() => {
           setIsProcessing(false);
         });
     }, 100);
-  };
+  }, [uploadedFileList, processFiles]);
 
-  const handleYearRangeChange = ({ startYear, endYear }) => {
-    console.log("Year range changed:", startYear, endYear);
-    
+  // Handle year range change with useCallback
+  const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
     // Validate the years
     if (!startYear || !endYear) {
       console.warn("Invalid year range:", { startYear, endYear });
@@ -1368,35 +1015,344 @@ const filteredDisplayedArtists = useMemo(() => {
     
     // Update the year range state
     setYearRange({ startYear, endYear });
-    
-    // Log the range for debugging
-    console.log("Set year range to:", { startYear, endYear });
-  };
+  }, []);
 
-const getTracksTabLabel = () => { 
-  if (selectedTrackYear === 'all') { 
-    return 'All-time Brief Obsessions'; 
-  } 
-  return `Brief Obsessions ${selectedTrackYear}`; 
-};
+  // Tab label functions with useCallback to prevent recreation
+  const getTracksTabLabel = useCallback(() => { 
+    if (selectedTrackYear === 'all') { 
+      return 'All-time Brief Obsessions'; 
+    } 
+    return `Brief Obsessions ${selectedTrackYear}`; 
+  }, [selectedTrackYear]);
 
-  const getArtistsTabLabel = () => {
+  const getArtistsTabLabel = useCallback(() => {
     if (selectedArtistYear === 'all') {
       return 'All-time Artists';
     } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       return `${yearRange.startYear}-${yearRange.endYear} Artists`;
     }
     return `${selectedArtistYear} Artists`;
-  };
+  }, [selectedArtistYear, yearRangeMode, yearRange]);
 
-const TabButton = ({ id, label }) => {
+  const getCustomTabLabel = useCallback(() => {
+    if (customYearRangeMode && customYearRange.startYear && customYearRange.endYear) {
+      return `${customYearRange.startYear}-${customYearRange.endYear} Custom`;
+    } else if (customTrackYear === 'all') {
+      return 'All-time Custom';
+    }
+    return `${customTrackYear} Custom`;
+  }, [customYearRangeMode, customYearRange, customTrackYear]);
+
+  const getPatternsTabLabel = useCallback(() => {
+    if (patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear) {
+      return `${patternYearRange.startYear}-${patternYearRange.endYear} Patterns`;
+    } else if (selectedPatternYear === 'all') {
+      return 'All-time Patterns';
+    }
+    return `${selectedPatternYear} Patterns`;
+  }, [patternYearRangeMode, patternYearRange, selectedPatternYear]);
+
+  const getBehaviorTabLabel = useCallback(() => {
+    if (behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear) {
+      return `${behaviorYearRange.startYear}-${behaviorYearRange.endYear} Behavior`;
+    } else if (selectedBehaviorYear === 'all') {
+      return 'All-time Behavior';
+    }
+    return `${selectedBehaviorYear} Behavior`;
+  }, [behaviorYearRangeMode, behaviorYearRange, selectedBehaviorYear]);
+
+  const getDiscoveryTabLabel = useCallback(() => {
+    if (discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear) {
+      return `${discoveryYearRange.startYear}-${discoveryYearRange.endYear} Discovery`;
+    } else if (selectedDiscoveryYear === 'all') {
+      return 'All-time Discovery';
+    }
+    return `${selectedDiscoveryYear} Discovery`;
+  }, [discoveryYearRangeMode, discoveryYearRange, selectedDiscoveryYear]);
+
+  const getPodcastsTabLabel = useCallback(() => {
+    if (podcastYearRangeMode && podcastYearRange.startYear && podcastYearRange.endYear) {
+      return `${podcastYearRange.startYear}-${podcastYearRange.endYear} Podcasts`;
+    } else if (selectedPodcastYear === 'all') {
+      return 'All-time Podcasts';
+    }
+    return `${selectedPodcastYear} Podcasts`;
+  }, [podcastYearRangeMode, podcastYearRange, selectedPodcastYear]);
+
+  // Handle loading sample data with useCallback
+  const handleLoadSampleData = useCallback(async () => {
+    setIsProcessing(true);
+    setError(null);
+    
+    try {
+      // URLs to sample JSON files
+      const sampleFileUrls = [
+        '/sampledata/Streaming1.json',
+        '/sampledata/Streaming2.json',
+        '/sampledata/Streaming3.json',
+        '/sampledata/Streaming4.json'
+      ];
+      
+      // Fetch all files in parallel
+      const files = await Promise.all(
+        sampleFileUrls.map(async (url, index) => {
+          const response = await fetch(url);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+          }
+          
+          const blob = await response.blob();
+          // Use a filename that the adapter will recognize
+          return new File([blob], `Streaming_History_${index+1}.json`, { type: 'application/json' });
+        })
+      );
+      
+      // Update UI to show the sample files
+      setUploadedFileList(files);
+      setUploadedFiles(files.map(file => file.name));
+      
+      // Process the files
+      await processFiles(files);
+      
+      // After processing completes, switch to stats tab
+      setActiveTab('stats');
+    } catch (err) {
+      console.error("Error loading sample data:", err);
+      setError("Failed to load sample data: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [processFiles]);
+
+  // Handle custom track year change with useCallback
+  const handleCustomTrackYearChange = useCallback((year) => {
+    // Ensure 'all' is handled consistently
+    const isAllTime = year === 'all';
+    
+    // Use the right string value
+    const yearValue = isAllTime ? 'all' : year;
+    setCustomTrackYear(yearValue);
+    setCustomYearRangeMode(false);
+  }, []);
+
+  // Handle custom track year range change with useCallback
+  const handleCustomTrackYearRangeChange = useCallback(({ startYear, endYear }) => {
+    setCustomYearRange({ startYear, endYear });
+    setCustomYearRangeMode(true);
+  }, []);
+
+  // Handle toggling custom track year range mode with useCallback
+  const handleCustomTrackYearRangeModeToggle = useCallback((isRange) => {
+    setCustomYearRangeMode(isRange);
+    
+    // If switching to range mode, also set a default range if needed
+    if (isRange && (!customYearRange.startYear || !customYearRange.endYear)) {
+      const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+      if (availableYears.length >= 2) {
+        setCustomYearRange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
+    }
+  }, [artistsByYear, customYearRange]);
+
+  // Determine if sidebar should be shown based on current tab
+  const shouldShowSidebar = useCallback((tabName) => {
+    const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior', 'custom', 'discovery', 'podcasts'];
+    return sidebarTabs.includes(tabName);
+  }, []);
+
+  // Update sidebar visibility and color theme when tab changes
+  useEffect(() => {
+    // Determine if sidebar should be shown for the current tab
+    const showSidebar = shouldShowSidebar(activeTab);
+    setShowYearSidebar(showSidebar);
+    
+    // Set the appropriate color theme based on the active tab
+    switch(activeTab) {
+      case 'artists':
+        setSidebarColorTheme('teal');
+        break;
+      case 'albums':
+        setSidebarColorTheme('pink');
+        break;
+      case 'tracks':
+        setSidebarColorTheme('blue');
+        break;
+      case 'patterns':
+        setSidebarColorTheme('purple');
+        break;
+      case 'behavior':
+        setSidebarColorTheme('indigo');
+        break;
+      case 'custom':
+        setSidebarColorTheme('orange');
+        break;
+      case 'discovery':
+        setSidebarColorTheme('green');
+        break;
+      case 'podcasts':
+        setSidebarColorTheme('indigo');
+        break;
+      default:
+        setSidebarColorTheme('teal');
+    }
+  }, [activeTab, shouldShowSidebar]);
+
+  // Handle year selection from sidebar based on active tab
+  const handleSidebarYearChange = useCallback((year) => {
+    // Always use 'all' string (not object reference) for consistency
+    const yearValue = year === 'all' ? 'all' : year;
+    
+    switch(activeTab) {
+      case 'artists':
+        setSelectedArtistYear(year);
+        break;
+      case 'albums':
+        setSelectedAlbumYear(year);
+        break;
+      case 'tracks':
+        setSelectedTrackYear(year);
+        break;
+      case 'custom':
+        handleCustomTrackYearChange(year);
+        break;
+      case 'patterns':
+        setSelectedPatternYear(year);
+        break;
+      case 'behavior':
+        setSelectedBehaviorYear(year);
+        break;
+      case 'discovery':
+        setSelectedDiscoveryYear(year);
+        break;
+      case 'podcasts':
+        setSelectedPodcastYear(year);
+        break;
+      default:
+        // Default behavior
+        break;
+    }
+  }, [activeTab, handleCustomTrackYearChange]);
+
+  // Handle year range selection from sidebar
+  const handleSidebarYearRangeChange = useCallback(({ startYear, endYear }) => {
+    switch(activeTab) {
+      case 'artists':
+        handleYearRangeChange({ startYear, endYear });
+        break;
+      case 'albums':
+        handleAlbumYearRangeChange({ startYear, endYear });
+        break;
+      case 'custom':
+        handleCustomTrackYearRangeChange({ startYear, endYear });
+        break;
+      case 'patterns':
+        setPatternYearRange({ startYear, endYear });
+        break;
+      case 'behavior':
+        setBehaviorYearRange({ startYear, endYear });
+        break;
+      case 'discovery':
+        setDiscoveryYearRange({ startYear, endYear });
+        break;
+      case 'podcasts':
+        setPodcastYearRange({ startYear, endYear });
+        break;
+      default:
+        // Default behavior
+        break;
+    }
+  }, [activeTab, handleYearRangeChange, handleAlbumYearRangeChange, handleCustomTrackYearRangeChange]);
+
+  // Handle range mode toggle from sidebar
+  const handleSidebarRangeModeToggle = useCallback((isRange) => {
+    const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    switch(activeTab) {
+      case 'artists':
+        toggleYearRangeMode(isRange);
+        // If switching to range mode, also set a default range
+        if (isRange && availableYears.length >= 2) {
+          handleYearRangeChange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      case 'albums':
+        toggleAlbumYearRangeMode(isRange);
+        // If switching to range mode, also set a default range
+        if (isRange && availableYears.length >= 2) {
+          handleAlbumYearRangeChange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      case 'custom':
+        setCustomYearRangeMode(isRange);
+        if (isRange && availableYears.length >= 2) {
+          setCustomYearRange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      case 'patterns':
+        setPatternYearRangeMode(isRange);
+        if (isRange && availableYears.length >= 2) {
+          setPatternYearRange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      case 'behavior':
+        setBehaviorYearRangeMode(isRange);
+        if (isRange && availableYears.length >= 2) {
+          setBehaviorYearRange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      case 'discovery':
+        setDiscoveryYearRangeMode(isRange);
+        if (isRange && availableYears.length >= 2) {
+          setDiscoveryYearRange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      case 'podcasts':
+        setPodcastYearRangeMode(isRange);
+        if (isRange && availableYears.length >= 2) {
+          setPodcastYearRange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      default:
+        // Default behavior
+        break;
+    }
+  }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
+
+  // Memoized TabButton component to prevent recreation
+  const TabButton = useCallback(({ id, label }) => {
+    // Helper function to get the color based on tab ID
     const getTabColor = (tabId) => {
       switch (tabId) {
-       case 'updates':
-  return activeTab === tabId 
-    ? 'bg-cyan-50 text-cyan-600 border-b-2 border-cyan-600' 
-    : 'bg-cyan-200 text-cyan-600 hover:bg-cyan-300';
- case 'upload':
+        case 'updates':
+          return activeTab === tabId 
+            ? 'bg-cyan-50 text-cyan-600 border-b-2 border-cyan-600' 
+            : 'bg-cyan-200 text-cyan-600 hover:bg-cyan-300';
+        case 'upload':
           return activeTab === tabId 
             ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600' 
             : 'bg-orange-200 text-orange-600 hover:bg-orange-300';
@@ -1404,7 +1360,6 @@ const TabButton = ({ id, label }) => {
           return activeTab === tabId 
             ? 'bg-purple-100 text-purple-600 border-b-2 border-purple-600' 
             : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
-
         case 'artists':
           return activeTab === tabId 
             ? 'bg-emerald-50 text-teal-600 border-b-2 border-teal-600' 
@@ -1447,752 +1402,732 @@ const TabButton = ({ id, label }) => {
     };
 
     return (
-<button
-  onClick={() => setActiveTab(id)}
-  className={`px-2 sm:px-4 py-2 font-medium text-sm sm:text-base ${getTabColor(id)}`}
->
-  {label}
-</button>
+      <button
+        onClick={() => setActiveTab(id)}
+        className={`px-2 sm:px-4 py-2 font-medium text-sm sm:text-base ${getTabColor(id)}`}
+      >
+        {label}
+      </button>
     );
-  };
+  }, [activeTab]);
 
   return (
-<Card className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
- <CardHeader className="px-2 sm:px-6 flex justify-between items-center">
-  <CardTitle className="text-yellow-400 dark:text-yellow-300">Streaming History Analyzer</CardTitle>
-  <DarkModeToggle />
-</CardHeader>
-  <CardContent className="px-2 sm:px-6">
-      <div className="space-y-4">
-  <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4">
-    <div className="flex gap-1 sm:gap-2 border-b border-violet-200 min-w-max text-sm sm:text-base">
+    <Card className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
+      <CardHeader className="px-2 sm:px-6 flex justify-between items-center">
+        <CardTitle className="text-yellow-400 dark:text-yellow-300">Streaming History Analyzer</CardTitle>
+        <DarkModeToggle />
+      </CardHeader>
+      <CardContent className="px-2 sm:px-6">
+        <div className="space-y-4">
+          <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4">
+            <div className="flex gap-1 sm:gap-2 border-b border-violet-200 min-w-max text-sm sm:text-base">
               {stats && <TabButton id="updates" label="Updates" />} 
-               <TabButton id="upload" label="Upload" />
-            {stats && <TabButton id="stats" label="Statistics" />}
-            {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
-      {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
-        {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
-            {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-            {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
-            {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
-         {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-            {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
-
+              <TabButton id="upload" label="Upload" />
+              {stats && <TabButton id="stats" label="Statistics" />}
+              {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
+              {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
+              {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
+              {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
+              {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+            </div>
           </div>
-        </div>
-        
-{activeTab === 'upload' && (
-  <div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
-      <div className="p-2 sm:p-4 border rounded bg-blue-50">
-        <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
-        <ol className="list-decimal list-inside space-y-1 text-blue-700">
-          <li>Select your streaming service below</li>
-          <li>Download your streaming history</li>
-          <li>Upload your file(s)</li>
-
-          <div className="mt-4">
-            <button
-              onClick={handleLoadSampleData}
-              disabled={isProcessing}
-              className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
-            >
-              <Download size={14} className="hidden sm:inline" />
-              DEMO
-            </button>
-            <p className="text-sm text-gray-600 mt-1">
-              Want to test the app without uploading your own data? Click DEMO to load sample streaming history.
-            </p>
-          </div>
-          <li>Click "Calculate Statistics"</li>
-        </ol>
-      </div>
-      
-      <div className="p-4 border rounded bg-green-50">
-        <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
-        <div className="space-y-2 text-green-700">
-    
-          <div className="space-y-1">
-            <h4 className="font-medium text-green-800">Desktop:</h4>
-            <p>1. Open the site in Chrome/Edge</p>
-            <p>2. Click the "+" or install icon in the address bar</p>
-
-          </div>
-          <div className="space-y-1">
-            <h4 className="font-medium text-green-800">Mobile:</h4>
-            <p>1. Open in Safari (iOS) or Chrome (Android)</p>
-            <p>2. Tap "Add to Home Screen"</p>
-       
-          </div>
-          <p className="text-sm text-green-600">
-            Enjoy offline access
-          </p>
-        </div>
-      </div>
-    </div>
-      
-    <h3 className="font-bold text-orange-700 mb-3 mt-4">Select Streaming Services:</h3>
-               
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
-      {/* Standard Service Tiles */}
-      {Object.entries(STREAMING_SERVICES)
-        .map(([type, service]) => (
-        <div key={type} className="border rounded-lg overflow-hidden">
-          <button
-            onClick={() => toggleServiceSelection(type)}
-            className={`w-full aspect-square sm:aspect-auto sm:px-4 sm:py-2 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors ${
-              selectedServices.includes(type)
-                ? serviceColors[type]?.selected || 'bg-gray-600 text-white'
-                : serviceColors[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <span className="text-center sm:text-left">{service.name}</span>
-            {selectedServices.includes(type) && <Check size={18} className="mt-2 sm:mt-0" />}
-          </button>
           
-          <div className="px-2 sm:px-4 py-2 border-t bg-white">
-            <button 
-              onClick={() => toggleServiceInfo(type)}
-              className="flex items-center justify-center w-full text-xs sm:text-sm text-orange-600 hover:text-orange-800"
-            >
-              {showServiceInfo[type] ? 
-                <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
-                <><ChevronDown size={14} className="mr-1" /> Show Details</>
-              }
-            </button>
-            
-            {showServiceInfo[type] && (
-              <div className="mt-2 text-xs sm:text-sm text-orange-700">
-                <p className="mb-2">{service.instructions}</p>
-                <a
-                  href={service.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-orange-600 hover:text-orange-800 underline"
-                >
-                  Download your data here
-                </a>
-                <p className="mt-1">Accepted formats: {service.acceptedFormats}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-</div>
-        
-    {selectedServices.length > 0 ? (
-      <div>
-        <p className="mb-2 text-orange-700 font-bold">
-          Upload your files from selected services:
-        </p>
-        <input
-          type="file"
-          multiple
-          accept={getAcceptedFormats()}
-          onChange={handleFileUpload}
-          className="block w-full text-sm text-slate-600 
-            file:mr-4 file:py-2 file:px-4 file:rounded-full 
-            file:border-2 file:border-yellow-400 file:text-sm 
-            file:font-semibold file:bg-yellow-300 
-            file:text-yellow-800 hover:file:bg-yellow-400"
-        />
-      </div>
-    ) : (
-      <p className="text-orange-700 font-semibold">
-        Please select at least one streaming service
-      </p>
-    )}
-        
-{isProcessing && (
-      <div className="flex flex-col items-center justify-center p-8 space-y-4">
-        <div className="flex flex-col items-center">
-          <img 
-            src="/loading.png" 
-            alt="Cake is cakeculating..." 
-            className="w-48 h-48 object-contain animate-rock bg-transparent loading-cake-image"
-          />
-        <p 
-            className="text-xl text-blue-600 mt-2 animate-rainbow cakeculating-text" 
-            style={{ 
-              fontFamily: 'var(--font-comic-neue)',
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
-            }}
-          >
-            Cakeculating...
-          </p>
-        </div>
-      </div>
-    )}
-        
-    {uploadedFiles.length > 0 && (
-      <div className="mt-4">
-        <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
-        <ul className="list-disc list-inside text-orange-600 space-y-1">
-          {uploadedFiles.map((fileName, index) => (
-            <li key={index} className="flex items-center">
-              <span className="mr-2">{fileName}</span>
-              <button 
-                onClick={() => handleDeleteFile(index)}
-                className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                title="Remove file"
-              >
-                <Trash2 size={14} />
-              </button>
-            </li>
-          ))}
-        </ul>
-        
-        {uploadedFileList && uploadedFileList.length === 1 && 
-         uploadedFileList[0].name.endsWith('.xlsx') && (
-          <ExcelPreview file={uploadedFileList[0]} />
-        )}
-        
-        <button
-          onClick={handleProcessFiles}
-          disabled={isProcessing}
-          className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
-            hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
-        >
-          {isProcessing ? "Processing..." : "Calculate Statistics"}
-        </button>
-      </div>
-    )}
-        
-    {error && (
-      <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
-        {error}
-      </div>
-    )}
-  </div>
-)}
-        
-{activeTab === 'stats' && stats && (
-  <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
-            <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-       <ul className="space-y-1 text-purple-700">
-                    <li>Files processed: {stats.totalFiles}</li>
-                    <li>Total entries: {stats.totalEntries}</li>
-                    <li>Processed songs: {stats.processedSongs}</li>
-                    <li>Unique songs: {stats.uniqueSongs || 0}</li>
-                    <li>Entries with no track name: {stats.nullTrackNames}</li>
-                    <li>Plays under 30s: {stats.shortPlays}</li>
-                  </ul>
+          {activeTab === 'upload' && (
+            <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
+                <div className="p-2 sm:p-4 border rounded bg-blue-50">
+                  <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
+                  <ol className="list-decimal list-inside space-y-1 text-blue-700">
+                    <li>Select your streaming service below</li>
+                    <li>Download your streaming history</li>
+                    <li>Upload your file(s)</li>
+
+                    <div className="mt-4">
+                      <button
+                        onClick={handleLoadSampleData}
+                        disabled={isProcessing}
+                        className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
+                      >
+                        <Download size={14} className="hidden sm:inline" />
+                        DEMO
+                      </button>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Want to test the app without uploading your own data? Click DEMO to load sample streaming history.
+                      </p>
+                    </div>
+                    <li>Click "Calculate Statistics"</li>
+                  </ol>
                 </div>
-                <div className="bg-purple-50 p-3 rounded space-y-2">
-                  <div className="font-semibold mb-1 text-purple-700">Total Listening Time:</div>
-                  <div className="text-2xl text-purple-700">{formatDuration(stats.totalListeningTime)}</div>
-                  <div className="text-sm text-purple-600">(only counting plays over 30 seconds)</div>
+                
+                <div className="p-4 border rounded bg-green-50">
+                  <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
+                  <div className="space-y-2 text-green-700">
+                
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-green-800">Desktop:</h4>
+                      <p>1. Open the site in Chrome/Edge</p>
+                      <p>2. Click the "+" or install icon in the address bar</p>
+
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-green-800">Mobile:</h4>
+                      <p>1. Open in Safari (iOS) or Chrome (Android)</p>
+                      <p>2. Tap "Add to Home Screen"</p>
+                
+                    </div>
+                    <p className="text-sm text-green-600">
+                      Enjoy offline access
+                    </p>
+                  </div>
+                </div>
+              </div>
+                
+              <h3 className="font-bold text-orange-700 mb-3 mt-4">Select Streaming Services:</h3>
+                         
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+                {/* Service Tiles */}
+                {Object.entries(STREAMING_SERVICES)
+                  .map(([type, service]) => (
+                  <div key={type} className="border rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => toggleServiceSelection(type)}
+                      className={`w-full aspect-square sm:aspect-auto sm:px-4 sm:py-2 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors ${
+                        selectedServices.includes(type)
+                          ? SERVICE_COLORS[type]?.selected || 'bg-gray-600 text-white'
+                          : SERVICE_COLORS[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span className="text-center sm:text-left">{service.name}</span>
+                      {selectedServices.includes(type) && <Check size={18} className="mt-2 sm:mt-0" />}
+                    </button>
+                    
+                    <div className="px-2 sm:px-4 py-2 border-t bg-white">
+                      <button 
+                        onClick={() => toggleServiceInfo(type)}
+                        className="flex items-center justify-center w-full text-xs sm:text-sm text-orange-600 hover:text-orange-800"
+                      >
+                        {showServiceInfo[type] ? 
+                          <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
+                          <><ChevronDown size={14} className="mr-1" /> Show Details</>
+                        }
+                      </button>
+                      
+                      {showServiceInfo[type] && (
+                        <div className="mt-2 text-xs sm:text-sm text-orange-700">
+                          <p className="mb-2">{service.instructions}</p>
+                          <a
+                            href={service.downloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-orange-600 hover:text-orange-800 underline"
+                          >
+                            Download your data here
+                          </a>
+                          <p className="mt-1">Accepted formats: {service.acceptedFormats}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
                   
-                  {/* Service breakdown */}
-                  {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-purple-200">
-                      <div className="font-semibold text-purple-700 mb-2">Listening Time by Service:</div>
-                      <ul className="space-y-1">
-                        {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
-                          <li key={service} className="flex justify-between items-center">
-                            <span className="text-purple-600">{service}:</span>
-                            <span className="font-medium text-purple-700">{formatDuration(time)}</span>
-                          </li>
-                        ))}
-                      </ul>
+              {selectedServices.length > 0 ? (
+                <div>
+                  <p className="mb-2 text-orange-700 font-bold">
+                    Upload your files from selected services:
+                  </p>
+                  <input
+                    type="file"
+                    multiple
+                    accept={getAcceptedFormats()}
+                    onChange={handleFileUpload}
+                    className="block w-full text-sm text-slate-600 
+                      file:mr-4 file:py-2 file:px-4 file:rounded-full 
+                      file:border-2 file:border-yellow-400 file:text-sm 
+                      file:font-semibold file:bg-yellow-300 
+                      file:text-yellow-800 hover:file:bg-yellow-400"
+                  />
+                </div>
+              ) : (
+                <p className="text-orange-700 font-semibold">
+                  Please select at least one streaming service
+                </p>
+              )}
+                  
+              {isProcessing && (
+                <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src="/loading.png" 
+                      alt="Cake is cakeculating..." 
+                      className="w-48 h-48 object-contain animate-rock bg-transparent loading-cake-image"
+                    />
+                    <p 
+                      className="text-xl text-blue-600 mt-2 animate-rainbow cakeculating-text" 
+                      style={{ 
+                        fontFamily: 'var(--font-comic-neue)',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
+                      }}
+                    >
+                      Cakeculating...
+                    </p>
+                  </div>
+                </div>
+              )}
+                  
+              {uploadedFiles.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
+                  <ul className="list-disc list-inside text-orange-600 space-y-1">
+                    {uploadedFiles.map((fileName, index) => (
+                      <li key={index} className="flex items-center">
+                        <span className="mr-2">{fileName}</span>
+                        <button 
+                          onClick={() => handleDeleteFile(index)}
+                          className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          title="Remove file"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  {uploadedFileList && uploadedFileList.length === 1 && 
+                   uploadedFileList[0].name.endsWith('.xlsx') && (
+                    <ExcelPreview file={uploadedFileList[0]} />
+                  )}
+                  
+                  <button
+                    onClick={handleProcessFiles}
+                    disabled={isProcessing}
+                    className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
+                      hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? "Processing..." : "Calculate Statistics"}
+                  </button>
+                </div>
+              )}
+                  
+              {error && (
+                <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
+                  {error}
+                </div>
+              )}
+            </div>
+          )}
+                  
+          {activeTab === 'stats' && stats && (
+            <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
+              <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <ul className="space-y-1 text-purple-700">
+                      <li>Files processed: {stats.totalFiles}</li>
+                      <li>Total entries: {stats.totalEntries}</li>
+                      <li>Processed songs: {stats.processedSongs}</li>
+                      <li>Unique songs: {stats.uniqueSongs || 0}</li>
+                      <li>Entries with no track name: {stats.nullTrackNames}</li>
+                      <li>Plays under 30s: {stats.shortPlays}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded space-y-2">
+                    <div className="font-semibold mb-1 text-purple-700">Total Listening Time:</div>
+                    <div className="text-2xl text-purple-700">{formatDuration(stats.totalListeningTime)}</div>
+                    <div className="text-sm text-purple-600">(only counting plays over 30 seconds)</div>
+                    
+                    {/* Service breakdown */}
+                    {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-purple-200">
+                        <div className="font-semibold text-purple-700 mb-2">Listening Time by Service:</div>
+                        <ul className="space-y-1">
+                          {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
+                            <li key={service} className="flex justify-between items-center">
+                              <span className="text-purple-600">{service}:</span>
+                              <span className="font-medium text-purple-700">{formatDuration(time)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {stats && processedData.length > 0 && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ExportButton
+                      stats={stats}
+                      topArtists={topArtists}
+                      topAlbums={topAlbums}
+                      processedData={processedData}
+                      briefObsessions={briefObsessions}
+                      formatDuration={formatDuration}
+                      songsByYear={songsByYear}
+                      rawPlayData={rawPlayData}
+                    />
+                    <SupportOptions className="h-full" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'updates' && (
+            <div className="p-2 sm:p-4 bg-cyan-200 rounded border-2 border-cyan-400">
+              <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
+              <UpdatesSection />
+            </div>
+          )}
+                          
+          {activeTab === 'artists' && (
+            <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-teal-700">
+                  {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
+                    yearRangeMode && yearRange.startYear && yearRange.endYear ? 
+                    `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
+                    `Most Played Artists (${selectedArtistYear})`}
+                </h3>
+                
+                <div className="flex items-center gap-2">
+                  <label className="text-teal-700">Show Top</label>
+                  <input
+                    type="number" 
+                    min="1" 
+                    max="999" 
+                    value={topArtistsCount} 
+                    onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
+                    className="w-16 border rounded px-2 py-1 text-teal-700"
+                  />
+                </div>
+              </div>
+              
+              {/* Artist Selection */}
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedArtists.map(artist => (
+                    <div 
+                      key={artist} 
+                      className="flex items-center bg-teal-600 text-white px-2 py-1 rounded text-sm"
+                    >
+                      {artist}
+                      <button 
+                        onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
+                        className="ml-2 text-white hover:text-teal-200"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={artistSearch}
+                    onChange={(e) => setArtistSearch(e.target.value)}
+                    placeholder="Search artists..."
+                    className="w-full border border-teal-300 rounded px-2 py-1 text-teal-700 focus:border-teal-400 focus:ring-teal-400 focus:outline-none"
+                  />
+                  {artistSearch && (
+                    <button
+                      onClick={() => setArtistSearch('')}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-teal-500 hover:text-teal-700"
+                    >
+                      ×
+                    </button>
+                  )}
+                  {artistSearch && filteredArtists.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white border border-teal-200 rounded shadow-lg mt-1">
+                      {filteredArtists.map(artist => (
+                        <div
+                          key={artist}
+                          onClick={() => {
+                            setSelectedArtists(prev => [...prev, artist]);
+                            setArtistSearch('');
+                          }}
+                          className="px-2 py-1 hover:bg-teal-100 text-teal-700 cursor-pointer"
+                        >
+                          {artist}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
 
-{stats && processedData.length > 0 && (
-  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-    <ExportButton
-      stats={stats}
-      topArtists={topArtists}
-      topAlbums={topAlbums}
-      processedData={processedData}
-      briefObsessions={briefObsessions}
-      formatDuration={formatDuration}
-      songsByYear={songsByYear}
-  rawPlayData={rawPlayData}
-    />
-    <SupportOptions className="h-full" />
-  </div>
-)}
+              {displayedArtists.length === 0 ? (
+                <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
+                  <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
+                  <p className="text-teal-600 mt-2">
+                    {yearRangeMode 
+                      ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
+                      : selectedArtistYear !== 'all' 
+                        ? `No artists found for the year ${selectedArtistYear}.`
+                        : "No artist data available."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setYearRangeMode(false);
+                      setSelectedArtistYear('all');
+                      setSelectedArtists([]);
+                    }}
+                    className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                  >
+                    Show All Artists
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                  {filteredDisplayedArtists
+                    .slice(0, topArtistsCount)
+                    .map((artist, index) => {
+                      // Find original index to preserve ranking
+                      const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
+                      
+                      return (
+                        <div key={artist.name} 
+                          className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
+                          onClick={() => {
+                            // Toggle artist selection
+                            if (selectedArtists.includes(artist.name)) {
+                              setSelectedArtists(prev => prev.filter(a => a !== artist.name));
+                            } else {
+                              setSelectedArtists(prev => [...prev, artist.name]);
+                            }
+                          }}
+                        >
+                          <div className="font-bold text-teal-600">{artist.name}</div>
+                          <div className="text-sm text-teal-400">
+                            Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+                            <br/>
+                            Plays: <span className="font-bold"> {artist.playCount}</span>
+                            <br/>
+                            Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
+                            <br/>
+                            Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
+                            <br/>
+                            First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
+                            {artist.longestStreak > 1 && (
+                              <>
+                                <br/>
+                                First Song: <span className="font-bold">
+                                  {artist.firstSong || "Unknown"} 
+                                  {artist.firstSongPlayCount 
+                                    ? ` (${artist.firstSongPlayCount}x)` 
+                                    : ""}
+                                </span>
+                                <br/>
+                                Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
+                                <br/>
+                                <span className="text-xs">
+                                  ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
+                                </span>
+                              </>
+                            )}
+                            {artist.currentStreak > 1 && (
+                              <>
+                                <br/>
+                                Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
+                              </>
+                            )}
+                          </div>
+                          <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{originalIndex + 1}</div>
+                          {selectedArtists.includes(artist.name) && (
+                            <div className="absolute top-2 right-2 w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
+                              ✓
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
             </div>
-          </div>
-        )}
-
-{activeTab === 'updates' && (
-  <div className="p-2 sm:p-4 bg-cyan-200 rounded border-2 border-cyan-400">
-    <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
-    <UpdatesSection />
-  </div>
-)}
-                
-{activeTab === 'artists' && (
-  <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="font-bold text-teal-700">
-        {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
-          yearRangeMode && yearRange.startYear && yearRange.endYear ? 
-          `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
-          `Most Played Artists (${selectedArtistYear})`}
-      </h3>
-      
-      <div className="flex items-center gap-2">
-        <label className="text-teal-700">Show Top</label>
-        <input
-          type="number" 
-          min="1" 
-          max="999" 
-          value={topArtistsCount} 
-          onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
-          className="w-16 border rounded px-2 py-1 text-teal-700"
-        />
-      </div>
-    </div>
-    
-  {/* Artist Selection */}
-    <div className="mb-4">
-      <div className="flex flex-wrap gap-2 mb-2">
-        {selectedArtists.map(artist => (
-          <div 
-            key={artist} 
-            className="flex items-center bg-teal-600 text-white px-2 py-1 rounded text-sm"
-          >
-            {artist}
-            <button 
-              onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-              className="ml-2 text-white hover:text-teal-200"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="relative">
-        <input
-          type="text"
-          value={artistSearch}
-          onChange={(e) => setArtistSearch(e.target.value)}
-          placeholder="Search artists..."
-          className="w-full border border-teal-300 rounded px-2 py-1 text-teal-700 focus:border-teal-400 focus:ring-teal-400 focus:outline-none"
-        />
-        {artistSearch && (
-          <button
-            onClick={() => setArtistSearch('')}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-teal-500 hover:text-teal-700"
-          >
-            ×
-          </button>
-        )}
-        {artistSearch && filteredArtists.length > 0 && (
-          <div className="absolute z-10 w-full bg-white border border-teal-200 rounded shadow-lg mt-1">
-            {filteredArtists.map(artist => (
-              <div
-                key={artist}
-                onClick={() => {
-                  setSelectedArtists(prev => [...prev, artist]);
-                  setArtistSearch('');
-                }}
-                className="px-2 py-1 hover:bg-teal-100 text-teal-700 cursor-pointer"
-              >
-                {artist}
+          )}
+          
+          {activeTab === 'albums' && (
+            <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-pink-700">
+                  {selectedAlbumYear === 'all' ? 'Most Played Albums (All Time)' : 
+                    albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
+                    `Most Played Albums (${albumYearRange.startYear}-${albumYearRange.endYear})` : 
+                    `Most Played Albums (${selectedAlbumYear})`}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <label className="text-pink-700">Show Top</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="999" 
+                    value={topAlbumsCount} 
+                    onChange={(e) => setTopAlbumsCount(parseInt(e.target.value))}
+                    className="w-16 border rounded px-2 py-1 text-pink-700"
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+             
+              {/* Artist Selection */}
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedArtists.map(artist => (
+                    <div 
+                      key={artist} 
+                      className="flex items-center bg-pink-600 text-white px-2 py-1 rounded text-sm"
+                    >
+                      {artist}
+                      <button 
+                        onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
+                        className="ml-2 text-white hover:text-pink-200"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
 
-    {displayedArtists.length === 0 ? (
-      <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
-        <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
-        <p className="text-teal-600 mt-2">
-          {yearRangeMode 
-            ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
-            : selectedArtistYear !== 'all' 
-              ? `No artists found for the year ${selectedArtistYear}.`
-              : "No artist data available."}
-        </p>
-        <button
-          onClick={() => {
-            setYearRangeMode(false);
-            setSelectedArtistYear('all');
-            setSelectedArtists([]);
-          }}
-          className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
-        >
-          Show All Artists
-        </button>
-      </div>
-    ) : (
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-        {displayedArtists
-          .filter(artist => {
-            // If we have selected artists, only show them
-            if (selectedArtists.length > 0) {
-              return selectedArtists.includes(artist.name);
-            }
-            
-            // If we're searching, filter by that
-            if (artistSearch.trim()) {
-              return artist.name.toLowerCase().includes(artistSearch.toLowerCase());
-            }
-            
-            // Otherwise show all
-            return true;
-          })
-          .slice(0, topArtistsCount)
-          .map((artist, index) => {
-            // Find original index to preserve ranking
-            const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
-            
-            return (
-              <div key={artist.name} 
-                className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
-                onClick={() => {
-                  // Toggle artist selection
-                  if (selectedArtists.includes(artist.name)) {
-                    setSelectedArtists(prev => prev.filter(a => a !== artist.name));
-                  } else {
-                    setSelectedArtists(prev => [...prev, artist.name]);
-                  }
-                }}
-              >
-                <div className="font-bold text-teal-600">{artist.name}</div>
-                <div className="text-sm text-teal-400">
-                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                  <br/>
-                  Plays: <span className="font-bold"> {artist.playCount}</span>
-                  <br/>
-                  Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
-                  <br/>
-                  Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
-                  <br/>
-                  First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
-                  {artist.longestStreak > 1 && (
-                    <>
-                      <br/>
-                      First Song: <span className="font-bold">
-                        {artist.firstSong || "Unknown"} 
-                        {artist.firstSongPlayCount 
-                          ? ` (${artist.firstSongPlayCount}x)` 
-                          : ""}
-                      </span>
-                      <br/>
-                      Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
-                      <br/>
-                      <span className="text-xs">
-                        ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
-                      </span>
-                    </>
-                  )}
-                  {artist.currentStreak > 1 && (
-                    <>
-                      <br/>
-                      Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
-                    </>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={artistSearch}
+                    onChange={(e) => setArtistSearch(e.target.value)}
+                    placeholder="Search artists..."
+                    className="w-full border border-pink-300 rounded px-2 py-1 text-pink-700 focus:border-pink-400 focus:ring-pink-400 focus:outline-none"
+                  />
+                  {artistSearch && filteredArtists.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white border border-pink-200 rounded shadow-lg mt-1">
+                      {filteredArtists.map(artist => (
+                        <div
+                          key={artist}
+                          onClick={() => {
+                            setSelectedArtists(prev => [...prev, artist]);
+                            setArtistSearch('');
+                          }}
+                          className="px-2 py-1 hover:bg-pink-100 text-pink-700 cursor-pointer"
+                        >
+                          {artist}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-                <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{originalIndex + 1}</div>
-                {selectedArtists.includes(artist.name) && (
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
-                    ✓
-                  </div>
-                )}
               </div>
-            );
-          })}
-      </div>
-    )}
-  </div>
-)}
-{activeTab === 'albums' && (
-  <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-pink-700">
-        {selectedAlbumYear === 'all' ? 'Most Played Albums (All Time)' : 
-          albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
-          `Most Played Albums (${albumYearRange.startYear}-${albumYearRange.endYear})` : 
-          `Most Played Albums (${selectedAlbumYear})`}
-      </h3>
-      <div className="flex items-center gap-2">
-        <label className="text-pink-700">Show Top</label>
-        <input 
-          type="number" 
-          min="1" 
-          max="999" 
-          value={topAlbumsCount} 
-          onChange={(e) => setTopAlbumsCount(parseInt(e.target.value))}
-          className="w-16 border rounded px-2 py-1 text-pink-700"
-        />
-      </div>
-    </div>
-   
-    
-    {/* Artist Selection */}
+              
+              {/* Albums Display */}
+              {displayedAlbums.length === 0 ? (
+                <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
+                  <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
+                  <p className="text-pink-600 mt-2">
+                    {albumYearRangeMode 
+                      ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
+                      : selectedAlbumYear !== 'all' 
+                        ? `No albums found for the year ${selectedAlbumYear}.`
+                        : "No album data available."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setAlbumYearRangeMode(false);
+                      setSelectedAlbumYear('all');
+                      setSelectedArtists([]);
+                    }}
+                    className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
+                  >
+                    Show All Albums
+                  </button>
+                </div>
+              ) : (
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                  {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
+                    <AlbumCard 
+                      key={`${album.name}-${album.artist}`}
+                      album={album}
+                      index={index}
+                      processedData={processedData}
+                      formatDuration={formatDuration}
+                      selectedYear={selectedAlbumYear}
+                      yearRange={albumYearRange}
+                      isYearRangeMode={albumYearRangeMode}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {activeTab === 'tracks' && (
+            <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
+              <TrackRankings 
+                processedData={processedData} 
+                briefObsessions={briefObsessions} 
+                formatDuration={formatDuration} 
+                songsByYear={songsByYear}
+                songsByMonth={songsByMonth}
+                initialYear={selectedTrackYear}
+                onYearChange={setSelectedTrackYear}
+                yearRange={yearRange}
+                yearRangeMode={yearRangeMode}
+                onYearRangeChange={handleYearRangeChange}
+                onToggleYearRangeMode={toggleYearRangeMode}
+              />
+            </div>
+          )}
+          
+          {activeTab === 'custom' && (
+            <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
+              <CustomTrackRankings 
+                rawPlayData={rawPlayData}
+                formatDuration={formatDuration}
+                initialArtists={selectedArtists}
+                selectedYear={customTrackYear}
+                yearRange={customYearRange}
+                yearRangeMode={customYearRangeMode}
+                onYearChange={handleCustomTrackYearChange}
+                onYearRangeChange={handleCustomTrackYearRangeChange}
+                onToggleYearRangeMode={handleCustomTrackYearRangeModeToggle}
+              />
+            </div>
+          )}
 
+          {activeTab === 'playlists' && (
+            <div className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-red-700">Custom Playlists</h3>
+              </div>
+              
+              <CustomPlaylistCreator
+                processedData={processedData}
+                formatDuration={formatDuration}
+                rawPlayData={rawPlayData}
+              />
+            </div>
+          )}
 
-<div className="mb-4">
-  <div className="flex flex-wrap gap-2 mb-2">
-    {selectedArtists.map(artist => (
-      <div 
-        key={artist} 
-        className="flex items-center bg-pink-600 text-white px-2 py-1 rounded text-sm"
-      >
-        {artist}
-        <button 
-          onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-          className="ml-2 text-white hover:text-pink-200"
-        >
-          ×
-        </button>
-      </div>
-    ))}
-  </div>
+          {activeTab === 'podcasts' && (
+            <div 
+              id="podcast-rankings"
+              className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300"
+            >
+              <PodcastRankings 
+                rawPlayData={rawPlayData}
+                formatDuration={formatDuration}
+                selectedYear={selectedPodcastYear}
+                yearRange={podcastYearRange}
+                yearRangeMode={podcastYearRangeMode}
+              />
+            </div>
+          )}
 
-  <div className="relative">
-    <input
-      type="text"
-      value={artistSearch}
-      onChange={(e) => setArtistSearch(e.target.value)}
-      placeholder="Search artists..."
-      className="w-full border border-pink-300 rounded px-2 py-1 text-pink-700 focus:border-pink-400 focus:ring-pink-400 focus:outline-none"
-    />
-    {artistSearch && filteredArtists.length > 0 && (
-      <div className="absolute z-10 w-full bg-white border border-pink-200 rounded shadow-lg mt-1">
-        {filteredArtists.map(artist => (
-          <div
-            key={artist}
-            onClick={() => {
-              setSelectedArtists(prev => [...prev, artist]);
-              setArtistSearch('');
-            }}
-            className="px-2 py-1 hover:bg-pink-100 text-pink-700 cursor-pointer"
-          >
-            {artist}
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
-    
-    {/* Albums Display */}
-    {displayedAlbums.length === 0 ? (
-      <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
-        <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
-        <p className="text-pink-600 mt-2">
-          {albumYearRangeMode 
-            ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
-            : selectedAlbumYear !== 'all' 
-              ? `No albums found for the year ${selectedAlbumYear}.`
-              : "No album data available."}
-        </p>
-        <button
-          onClick={() => {
-            setAlbumYearRangeMode(false);
-            setSelectedAlbumYear('all');
-            setSelectedArtists([]);
-          }}
-          className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-        >
-          Show All Albums
-        </button>
-      </div>
-    ) : (
-     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-        {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-          <AlbumCard 
-            key={`${album.name}-${album.artist}`}
-            album={album}
-            index={index}
-            processedData={processedData}
-            formatDuration={formatDuration}
-            selectedYear={selectedAlbumYear}
-            yearRange={albumYearRange}
-      isYearRangeMode={albumYearRangeMode}
-          />
-        ))}
-      </div>
-    )}
-  </div>
-)}
-{activeTab === 'tracks' && (
-  <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
-   
-    
-    <TrackRankings 
-      processedData={processedData} 
-      briefObsessions={briefObsessions} 
-      formatDuration={formatDuration} 
-      songsByYear={songsByYear}
-      songsByMonth={songsByMonth}
-      initialYear={selectedTrackYear}
-      onYearChange={setSelectedTrackYear}
-      yearRange={customYearRange}
-      yearRangeMode={customYearRangeMode}
-      onYearRangeChange={handleCustomTrackYearRangeChange}
-      onToggleYearRangeMode={handleCustomTrackYearRangeModeToggle}
-    />
-  </div>
-)}
-{activeTab === 'custom' && (
-  <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
+          {activeTab === 'patterns' && (
+            <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-purple-700">
+                  {selectedPatternYear === 'all' ? 'Listening Patterns (All Time)' : 
+                    patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear ? 
+                    `Listening Patterns (${patternYearRange.startYear}-${patternYearRange.endYear})` : 
+                    `Listening Patterns (${selectedPatternYear})`}
+                </h3>
+              </div>
+              
+              <ListeningPatterns 
+                rawPlayData={rawPlayData} 
+                formatDuration={formatDuration}
+                selectedYear={selectedPatternYear}
+                yearRange={patternYearRange}
+                yearRangeMode={patternYearRangeMode}
+              />
+            </div>
+          )}
 
-    <CustomTrackRankings 
-      rawPlayData={rawPlayData}
-      formatDuration={formatDuration}
-      initialArtists={selectedArtists}
-      selectedYear={customTrackYear}
-      yearRange={customYearRange}
-      yearRangeMode={customYearRangeMode}
-      onYearChange={handleCustomTrackYearChange}
-      onYearRangeChange={handleCustomTrackYearRangeChange}
-      onToggleYearRangeMode={handleCustomTrackYearRangeModeToggle}
-    />
-  </div>
-)}
+          {activeTab === 'behavior' && (
+            <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-indigo-700">
+                  {selectedBehaviorYear === 'all' ? 'Listening Behavior (All Time)' : 
+                    behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear ? 
+                    `Listening Behavior (${behaviorYearRange.startYear}-${behaviorYearRange.endYear})` : 
+                    `Listening Behavior (${selectedBehaviorYear})`}
+                </h3>
+              </div>
+              
+              <ListeningBehavior 
+                rawPlayData={rawPlayData} 
+                formatDuration={formatDuration}
+                selectedYear={selectedBehaviorYear}
+                yearRange={behaviorYearRange}
+                yearRangeMode={behaviorYearRangeMode}
+              />
+            </div>
+          )}
 
-{activeTab === 'playlists' && (
-  <div className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-red-700">Custom Playlists</h3>
-    </div>
-    
-    <CustomPlaylistCreator
-      processedData={processedData}
-      formatDuration={formatDuration}
-      rawPlayData={rawPlayData}
-    />
-  </div>
-)}
-
-{activeTab === 'podcasts' && (
-  <div 
-    id="podcast-rankings"
-    className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300"
-  >
-    <div className="flex justify-between items-center mb-2">
-    </div>
-    
-    <PodcastRankings 
-      rawPlayData={rawPlayData}
-      formatDuration={formatDuration}
-      selectedYear={selectedPodcastYear}
-      yearRange={podcastYearRange}
-      yearRangeMode={podcastYearRangeMode}
-    />
-  </div>
-)}
-
-{activeTab === 'patterns' && (
-  <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="font-bold text-purple-700">
-        {selectedPatternYear === 'all' ? 'Listening Patterns (All Time)' : 
-          patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear ? 
-          `Listening Patterns (${patternYearRange.startYear}-${patternYearRange.endYear})` : 
-          `Listening Patterns (${selectedPatternYear})`}
-      </h3>
-    </div>
-    
-    <ListeningPatterns 
-      rawPlayData={rawPlayData} 
-      formatDuration={formatDuration}
-      selectedYear={selectedPatternYear}
-      yearRange={patternYearRange}
-      yearRangeMode={patternYearRangeMode}
-    />
-  </div>
-)}
-
-{activeTab === 'behavior' && (
-  <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-indigo-700">
-        {selectedBehaviorYear === 'all' ? 'Listening Behavior (All Time)' : 
-          behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear ? 
-          `Listening Behavior (${behaviorYearRange.startYear}-${behaviorYearRange.endYear})` : 
-          `Listening Behavior (${selectedBehaviorYear})`}
-      </h3>
-    </div>
-    
-    <ListeningBehavior 
-      rawPlayData={rawPlayData} 
-      formatDuration={formatDuration}
-      selectedYear={selectedBehaviorYear}
-      yearRange={behaviorYearRange}
-      yearRangeMode={behaviorYearRangeMode}
-    />
-  </div>
-)}
-
-{activeTab === 'discovery' && (
-  <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-green-700">
-        {selectedDiscoveryYear === 'all' ? 'Music Discovery (All Time)' : 
-          discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear ? 
-          `Music Discovery (${discoveryYearRange.startYear}-${discoveryYearRange.endYear})` : 
-          `Music Discovery (${selectedDiscoveryYear})`}
-      </h3>
-    </div>
-    
-    <DiscoveryAnalysis 
-      rawPlayData={rawPlayData} 
-      formatDuration={formatDuration}
-      selectedYear={selectedDiscoveryYear}
-      yearRange={discoveryYearRange}
-      yearRangeMode={discoveryYearRangeMode}
-    />
-  </div>
-)}
-{showYearSidebar && (
-  <YearSelector
-    artistsByYear={artistsByYear}
-    onYearChange={handleSidebarYearChange}
-    onYearRangeChange={handleSidebarYearRangeChange}
-    initialYear={
-      activeTab === 'artists' ? selectedArtistYear :
-      activeTab === 'albums' ? selectedAlbumYear :
-      activeTab === 'tracks' ? selectedTrackYear : 
-      activeTab === 'custom' ? customTrackYear :
-      activeTab === 'patterns' ? selectedPatternYear :
-      activeTab === 'behavior' ? selectedBehaviorYear :
-      activeTab === 'discovery' ? selectedDiscoveryYear :
-      activeTab === 'podcasts' ? selectedPodcastYear : 'all'
-    }
-    initialYearRange={
-      activeTab === 'artists' ? yearRange :
-      activeTab === 'albums' ? albumYearRange : 
-      activeTab === 'custom' ? customYearRange :
-      activeTab === 'patterns' ? patternYearRange :
-      activeTab === 'behavior' ? behaviorYearRange :
-      activeTab === 'discovery' ? discoveryYearRange :
-      activeTab === 'podcasts' ? podcastYearRange :
-      { startYear: '', endYear: '' }
-    }
-    isRangeMode={
-      activeTab === 'artists' ? yearRangeMode :
-      activeTab === 'albums' ? albumYearRangeMode :
-      activeTab === 'custom' ? customYearRangeMode :
-      activeTab === 'patterns' ? patternYearRangeMode :
-      activeTab === 'behavior' ? behaviorYearRangeMode :
-      activeTab === 'discovery' ? discoveryYearRangeMode :
-      activeTab === 'podcasts' ? podcastYearRangeMode : false
-    }
-    onToggleRangeMode={handleSidebarRangeModeToggle}
-    colorTheme={sidebarColorTheme}
-    asSidebar={true}
-    position="right"
-    startMinimized={false}
-  />
-)}
-       </div>
+          {activeTab === 'discovery' && (
+            <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-bold text-green-700">
+                  {selectedDiscoveryYear === 'all' ? 'Music Discovery (All Time)' : 
+                    discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear ? 
+                    `Music Discovery (${discoveryYearRange.startYear}-${discoveryYearRange.endYear})` : 
+                    `Music Discovery (${selectedDiscoveryYear})`}
+                </h3>
+              </div>
+              
+              <DiscoveryAnalysis 
+                rawPlayData={rawPlayData} 
+                formatDuration={formatDuration}
+                selectedYear={selectedDiscoveryYear}
+                yearRange={discoveryYearRange}
+                yearRangeMode={discoveryYearRangeMode}
+              />
+            </div>
+          )}
+          
+          {showYearSidebar && (
+            <YearSelector
+              artistsByYear={artistsByYear}
+              onYearChange={handleSidebarYearChange}
+              onYearRangeChange={handleSidebarYearRangeChange}
+              initialYear={
+                activeTab === 'artists' ? selectedArtistYear :
+                activeTab === 'albums' ? selectedAlbumYear :
+                activeTab === 'tracks' ? selectedTrackYear : 
+                activeTab === 'custom' ? customTrackYear :
+                activeTab === 'patterns' ? selectedPatternYear :
+                activeTab === 'behavior' ? selectedBehaviorYear :
+                activeTab === 'discovery' ? selectedDiscoveryYear :
+                activeTab === 'podcasts' ? selectedPodcastYear : 'all'
+              }
+              initialYearRange={
+                activeTab === 'artists' ? yearRange :
+                activeTab === 'albums' ? albumYearRange : 
+                activeTab === 'custom' ? customYearRange :
+                activeTab === 'patterns' ? patternYearRange :
+                activeTab === 'behavior' ? behaviorYearRange :
+                activeTab === 'discovery' ? discoveryYearRange :
+                activeTab === 'podcasts' ? podcastYearRange :
+                { startYear: '', endYear: '' }
+              }
+              isRangeMode={
+                activeTab === 'artists' ? yearRangeMode :
+                activeTab === 'albums' ? albumYearRangeMode :
+                activeTab === 'custom' ? customYearRangeMode :
+                activeTab === 'patterns' ? patternYearRangeMode :
+                activeTab === 'behavior' ? behaviorYearRangeMode :
+                activeTab === 'discovery' ? discoveryYearRangeMode :
+                activeTab === 'podcasts' ? podcastYearRangeMode : false
+              }
+              onToggleRangeMode={handleSidebarRangeModeToggle}
+              colorTheme={sidebarColorTheme}
+              asSidebar={true}
+              position="right"
+              startMinimized={false}
+            />
+          )}
+        </div>
       </CardContent>
     </Card>
   );
