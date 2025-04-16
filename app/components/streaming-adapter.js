@@ -674,7 +674,7 @@ async function processCakeExcelFile(file) {
     
     let allPlayData = [];
     
-    // Look for the "Complete Streaming History" sheet
+    // Look for the "cake dreamin" sheet
     if (workbook.SheetNames.includes('Complete Streaming History')) {
       const historySheet = workbook.Sheets['Complete Streaming History'];
       const data = XLSX.utils.sheet_to_json(historySheet, { raw: false });
@@ -1831,6 +1831,28 @@ export const streamingProcessor = {
         const batchResults = await Promise.all(
           batch.map(async (file) => {
             try {
+              // Cake export JSON files first (these might also match the Spotify check)
+              if (file.name.endsWith('.json')) {
+                const content = await file.text();
+                
+                // Quick check for our Cake export format
+                if (content.includes('"exportType":"JSON Background Worker"') || 
+                    content.includes('"exportType": "JSON Background Worker"')) {
+                  try {
+                    const data = JSON.parse(content);
+                    if (data.metadata && data.streamingHistory && Array.isArray(data.streamingHistory)) {
+                      console.log(`Processing ${file.name} as a Cake Export file with ${data.streamingHistory.length} entries`);
+                      return data.streamingHistory.map(entry => ({
+                        ...entry,
+                        source: entry.source || 'cake_export'
+                      }));
+                    }
+                  } catch (err) {
+                    console.error("Error parsing Cake export JSON:", err);
+                  }
+                }
+              }
+              
               // Spotify JSON files
               if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
                 const content = await file.text();
@@ -1841,25 +1863,41 @@ export const streamingProcessor = {
                 }));
               }
               
+              // Also check other JSON files that might be Spotify format but don't have the naming convention
+              else if (file.name.endsWith('.json') && !file.name.includes('cake-dreamin')) {
+                try {
+                  const content = await file.text();
+                  const data = JSON.parse(content);
+                  
+                  // Check if it looks like Spotify data (array of objects with typical Spotify fields)
+                  if (Array.isArray(data) && data.length > 0 && 
+                      (data[0].ts || data[0].master_metadata_track_name) &&
+                      !data.metadata) { // Not a Cake export
+                    console.log(`Processing ${file.name} as Spotify-like JSON with ${data.length} entries`);
+                    return data.map(entry => ({
+                      ...entry,
+                      source: 'spotify'
+                    }));
+                  }
+                } catch (e) {
+                  // Not valid JSON or not our format
+                }
+              }
+              
               // Apple Music CSV files
               else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
                 const content = await file.text();
                 return await processAppleMusicCSV(content);
               }
-            else if (file.name.endsWith('.xlsx')) {
-              // Try to process as cake file first
-              const cakeData = await processCakeExcelFile(file);
-              if (cakeData && cakeData.length > 0) {
-                console.log(`Processed ${cakeData.length} entries from Cake Excel file`);
-                return cakeData;
-              }
-              
-              // Fallback to Deezer processing if no cake data found
-              return await processDeezerXLSX(file);
-            }
-              
-              // Deezer XLSX files
               else if (file.name.endsWith('.xlsx')) {
+                // Try to process as cake file first
+                const cakeData = await processCakeExcelFile(file);
+                if (cakeData && cakeData.length > 0) {
+                  console.log(`Processed ${cakeData.length} entries from Cake Excel file`);
+                  return cakeData;
+                }
+                
+                // Fallback to Deezer processing if no cake data found
                 return await processDeezerXLSX(file);
               }
               
