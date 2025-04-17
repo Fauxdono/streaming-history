@@ -55,7 +55,7 @@ export const STREAMING_SERVICES = {
     name: 'Cake',
     downloadUrl: '#',
     instructions: 'In the statitics page you can download an excel.',
-    acceptedFormats: '.xlsx'
+    acceptedFormats: '.xlsx,.json'
   }
 };
 
