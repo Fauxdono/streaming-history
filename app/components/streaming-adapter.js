@@ -2025,13 +2025,6 @@ export const streamingProcessor = {
           }
         });
       }
-
-      // Rest of the function remains the same
-      // ...
-    }
-  }
-}
-
       // Process ISRC codes from Deezer data
       allProcessedData.forEach(item => {
         if (item.source === 'deezer' && item.isrc) {
