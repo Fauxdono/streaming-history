@@ -1930,6 +1930,39 @@ export const streamingProcessor = {
                 }));
               }
               
+              // Our custom cake-dreamin JSON export format
+              else if (file.name.includes('cake-dreamin') && file.name.endsWith('.json')) {
+                const content = await file.text();
+                try {
+                  const parsedData = JSON.parse(content);
+                  // Check if it has the streaming history property
+                  if (parsedData.streamingHistory && Array.isArray(parsedData.streamingHistory)) {
+                    console.log(`Processing ${parsedData.streamingHistory.length} entries from cake-dreamin export`);
+                    return parsedData.streamingHistory.map(entry => {
+                      // Transform from our simplified format back to the expected format
+                      return {
+                        ts: entry.ts,
+                        master_metadata_track_name: entry.track,
+                        master_metadata_album_artist_name: entry.artist,
+                        master_metadata_album_album_name: entry.album,
+                        ms_played: entry.ms_played,
+                        platform: entry.platform,
+                        source: entry.source || 'cake-export',
+                        reason_end: entry.reason_end,
+                        reason_start: entry.reason_start,
+                        shuffle: entry.shuffle
+                      };
+                    });
+                  } else {
+                    console.log("File doesn't contain streaming history data in the expected format");
+                    return [];
+                  }
+                } catch (error) {
+                  console.error(`Error parsing JSON file ${file.name}:`, error);
+                  return [];
+                }
+              }
+              
               // Apple Music CSV files
               else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
                 const content = await file.text();
@@ -1992,6 +2025,12 @@ export const streamingProcessor = {
           }
         });
       }
+
+      // Rest of the function remains the same
+      // ...
+    }
+  }
+}
 
       // Process ISRC codes from Deezer data
       allProcessedData.forEach(item => {
