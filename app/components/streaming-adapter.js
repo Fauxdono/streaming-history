@@ -1378,13 +1378,26 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
         tracks: new Set(),
         totalPlayed: 0,
         playCount: 0,
-        trackPlays: new Map() // Track plays per song
+        trackPlays: new Map(), // Track plays per song
+        // Track first play info
+        firstPlay: {
+          timestamp: timestamp.getTime(),
+          trackName: entry.master_metadata_track_name || 'Unknown'
+        }
       });
     }
     
     // Add data
     const artistData = dateIndex.get(artist).get(year);
     artistData.timestamps.push(timestamp.getTime());
+    
+    // Update first play if this is earlier
+    if (timestamp.getTime() < artistData.firstPlay.timestamp) {
+      artistData.firstPlay = {
+        timestamp: timestamp.getTime(),
+        trackName: entry.master_metadata_track_name || 'Unknown'
+      };
+    }
     
     if (entry.master_metadata_track_name) {
       artistData.tracks.add(entry.master_metadata_track_name);
@@ -1479,25 +1492,7 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
       const artistScore = Math.pow(data.playCount, 1.5);
       
       // Get first song listened to and its play count
-      // We'll use the first timestamp to find the first song
-      const firstPlayed = new Date(firstListen);
-      
-      // Get first song name - if we can find it directly from our track data
-      const tracksArray = Array.from(data.trackPlays.entries());
-      const firstSongData = tracksArray.find(([name, count]) => {
-        // Try to match to a song played on the first listen date
-        // This is an estimation as we don't have the exact first song in all cases
-        return allTimestamps && allTimestamps.some(ts => {
-          const tsDate = new Date(ts);
-          return tsDate.getTime() === firstListen;
-        });
-      });
-      
-      // Get the first song (either from our matching or use the first in our list)
-      const firstSong = firstSongData ? firstSongData[0] : 
-        (tracksArray.length > 0 ? tracksArray[0][0] : 'Unknown');
-      
-      // Get the play count for the first song
+      const firstSong = data.firstPlay.trackName;
       const firstSongPlayCount = data.trackPlays.get(firstSong) || 0;
       
       // Add to final result
@@ -1507,7 +1502,7 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
         playCount: data.playCount,
         tracks: data.tracks.size,
         firstListen,
-        firstSong, 
+        firstSong,
         firstSongPlayCount,
         mostPlayedSong,
         longestStreak,
