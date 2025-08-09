@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useTheme } from './themeprovider.js';
 
 const DiscoveryAnalysis = ({ 
   rawPlayData = [], 
@@ -14,6 +15,10 @@ const DiscoveryAnalysis = ({
 }) => {
   const [activeTab, setActiveTab] = useState('discovery');
   const [timeframe, setTimeframe] = useState('all');
+  
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   
 // Update the filteredData useMemo in DiscoveryAnalysis.js
 const filteredData = useMemo(() => {
@@ -226,8 +231,8 @@ const filteredData = useMemo(() => {
     // Format for loyalty pie chart
     const otherPlayTime = totalPlayTime - top5PlayTime;
     const loyaltyData = [
-      { name: 'Top 5 Artists', value: top5PlayTime, color: '#8884d8' },
-      { name: 'All Other Artists', value: otherPlayTime, color: '#82ca9d' }
+      { name: 'Top 5 Artists', value: top5PlayTime, color: isDarkMode ? '#9a7ced' : '#8884d8' },
+      { name: 'All Other Artists', value: otherPlayTime, color: isDarkMode ? '#82e3cf' : '#82ca9d' }
     ];
     
     return {
@@ -240,7 +245,7 @@ const filteredData = useMemo(() => {
       uniqueArtistsCount: sortedArtists.length,
       artistPlayCounts
     };
-  }, [filteredData]);
+  }, [filteredData, isDarkMode]);
   
   // Analyze listening depth
   const depthData = useMemo(() => {
@@ -446,8 +451,12 @@ const filteredData = useMemo(() => {
       onClick={() => setActiveTab(id)}
       className={`px-4 py-2 whitespace-nowrap font-medium ${
         activeTab === id
-          ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
-          : 'bg-green-200 text-green-600 hover:bg-green-300'
+          ? isDarkMode 
+            ? 'bg-gray-700 text-green-400 border-b-2 border-green-400' 
+            : 'bg-green-50 text-green-600 border-b-2 border-green-600'
+          : isDarkMode
+            ? 'bg-gray-800 text-green-400 hover:bg-gray-700'
+            : 'bg-green-200 text-green-600 hover:bg-green-300'
       }`}
     >
       {label}
@@ -459,8 +468,8 @@ const filteredData = useMemo(() => {
       onClick={() => setTimeframe(id)}
       className={`px-3 py-1 text-sm font-medium ${
         timeframe === id
-          ? 'bg-green-500 text-white'
-          : 'bg-green-100 text-green-600 hover:bg-green-200'
+          ? isDarkMode ? 'bg-green-600 text-white' : 'bg-green-500 text-white'
+          : isDarkMode ? 'bg-gray-700 text-green-400 hover:bg-gray-600' : 'bg-green-100 text-green-600 hover:bg-green-200'
       } rounded-full`}
     >
       {label}
@@ -483,8 +492,12 @@ const filteredData = useMemo(() => {
 
       {activeTab === 'discovery' && (
         <div className="space-y-6">
-          <div className="p-4 bg-green-50 rounded">
-            <h3 className="font-bold text-green-700 mb-4">Artist Discovery Stats</h3>
+          <div className={`p-4 rounded ${
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+          }`}>
+            <h3 className={`font-bold mb-4 ${
+              isDarkMode ? 'text-green-400' : 'text-green-700'
+            }`}>Artist Discovery Stats</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-3 bg-white rounded shadow">
                 <div className="text-sm text-green-600">Total Unique Artists</div>
@@ -527,7 +540,7 @@ const filteredData = useMemo(() => {
                   <Line 
                     type="monotone" 
                     dataKey="count" 
-                    stroke="#82ca9d" 
+                    stroke={isDarkMode ? '#82e3cf' : '#82ca9d'}
                     name="New Artists Discovered" 
                     strokeWidth={2}
                     dot={{ r: 3 }}
@@ -538,10 +551,14 @@ const filteredData = useMemo(() => {
             </div>
           </div>
           
-          <div className="p-4 bg-green-50 rounded">
-            <h3 className="font-bold text-green-700">Discovery Insights</h3>
+          <div className={`p-4 rounded ${
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+          }`}>
+            <h3 className={`font-bold ${
+              isDarkMode ? 'text-green-400' : 'text-green-700'
+            }`}>Discovery Insights</h3>
             <ul className="mt-2 space-y-2">
-              <li className="text-green-600">
+              <li className={isDarkMode ? 'text-green-400' : 'text-green-600'}>
                 {discoveryData.newArtistsByMonth.length > 0 ? (
                   <>
                     Your peak discovery month was 
