@@ -35,32 +35,32 @@ const ListeningPatterns = ({
       // Time periods
       timePeriods: [
         { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#9a7ced' : '#8884d8' },
+          color: isDarkMode ? '#4C1D95' : '#8884d8' },
         { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#82e3cf' : '#82ca9d' },
+          color: isDarkMode ? '#065F46' : '#82ca9d' },
         { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#ffdc94' : '#ffc658' },
+          color: isDarkMode ? '#92400E' : '#ffc658' },
         { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#7bceff' : '#4B9CD3' }
+          color: isDarkMode ? '#1E40AF' : '#4B9CD3' }
       ],
       
       // Days of week
       dayColors: [
-        isDarkMode ? '#ff9f73' : '#FF8042', // Sun
-        isDarkMode ? '#5ce6be' : '#00C49F', // Mon
-        isDarkMode ? '#ffe77e' : '#FFBB28', // Tue
-        isDarkMode ? '#ff9f73' : '#FF8042', // Wed
-        isDarkMode ? '#5cc0ff' : '#0088FE', // Thu
-        isDarkMode ? '#b19cff' : '#8884d8', // Fri
-        isDarkMode ? '#82e3cf' : '#82ca9d'  // Sat
+        isDarkMode ? '#DC2626' : '#FF8042', // Sun
+        isDarkMode ? '#059669' : '#00C49F', // Mon
+        isDarkMode ? '#D97706' : '#FFBB28', // Tue
+        isDarkMode ? '#DC2626' : '#FF8042', // Wed
+        isDarkMode ? '#2563EB' : '#0088FE', // Thu
+        isDarkMode ? '#7C3AED' : '#8884d8', // Fri
+        isDarkMode ? '#059669' : '#82ca9d'  // Sat
       ],
       
       // Months/seasons
       seasonColors: {
-        spring: isDarkMode ? '#82e3cf' : '#82ca9d',
-        summer: isDarkMode ? '#ffdc94' : '#ffc658',
-        fall: isDarkMode ? '#ff9f73' : '#FF8042',
-        winter: isDarkMode ? '#7bceff' : '#4B9CD3'
+        spring: isDarkMode ? '#059669' : '#82ca9d',
+        summer: isDarkMode ? '#D97706' : '#ffc658',
+        fall: isDarkMode ? '#DC2626' : '#FF8042',
+        winter: isDarkMode ? '#1E40AF' : '#4B9CD3'
       }
     };
   }, [isDarkMode]);
@@ -431,7 +431,9 @@ const ListeningPatterns = ({
             isDarkMode ? 'text-purple-400' : 'text-purple-600'
           }`}>When do you listen to music the most?</p>
           
-          <div className="h-64 w-full">
+          <div className={`h-64 w-full rounded p-2 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={timeOfDayData.hourly}
@@ -452,7 +454,7 @@ const ListeningPatterns = ({
                   }}
                 />
                 <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#9a7ced" : "#8884d8"} />
+                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -463,7 +465,9 @@ const ListeningPatterns = ({
             <h3 className={`text-lg font-bold mb-2 ${
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Time Periods</h3>
-            <div className="h-64">
+            <div className={`h-64 rounded p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -543,7 +547,9 @@ const ListeningPatterns = ({
             </div>
           </div>
           
-          <div className="h-64 w-full">
+          <div className={`h-64 w-full rounded p-2 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={dayOfWeekData}
@@ -566,9 +572,9 @@ const ListeningPatterns = ({
                 />
                 <Legend />
                 {dayOfWeekViewMode === 'plays' ? (
-                  <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#9a7ced" : "#8884d8"} />
+                  <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
                 ) : (
-                  <Bar name="Average per Day" dataKey="avgPerDay" fill={isDarkMode ? "#82e3cf" : "#82ca9d"} />
+                  <Bar name="Average per Day" dataKey="avgPerDay" fill={isDarkMode ? "#059669" : "#82ca9d"} />
                 )}
               </BarChart>
             </ResponsiveContainer>
@@ -603,7 +609,9 @@ const ListeningPatterns = ({
           <h3 className="text-lg font-bold text-purple-700 mb-2">Listening by Month</h3>
           <p className="text-purple-600 mb-4">How does your listening change throughout the year?</p>
           
-          <div className="h-64 w-full">
+          <div className={`h-64 w-full rounded p-2 ${
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={monthlyData.months}
@@ -622,7 +630,7 @@ const ListeningPatterns = ({
                   }}
                 />
                 <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#9a7ced" : "#8884d8"} />
+                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -631,7 +639,9 @@ const ListeningPatterns = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Listening</h3>
-            <div className="h-64">
+            <div className={`h-64 rounded p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
