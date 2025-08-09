@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { useTheme } from './themeprovider.js';
 
 const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
-  const [selectedTimePeriod, setSelectedTimePeriod] = useState('all');
+  const [selectedTimeHours, setSelectedTimeHours] = useState([]); // Array of selected hours
   const [artistLimit, setArtistLimit] = useState(5);
   
   // Get the current theme
@@ -122,43 +122,92 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
     };
   }, [rawPlayData, isDarkMode]);
   
-  // Format period data for display based on selected period and artist limit
+  // Format period data for display based on selected hours and artist limit
   const periodChartData = useMemo(() => {
-    let periodData;
+    let filteredData = {};
     
-    if (selectedTimePeriod === 'all' || selectedTimePeriod === '') {
-      // Show all time data
-      periodData = artistTimeData.periodTopArtists['all'] || [];
+    if (selectedTimeHours.length === 0) {
+      // Show all time data if no specific hours selected
+      filteredData = artistTimeData.periodTopArtists['all'] || [];
     } else {
-      // Filter by exact time - convert time input to hour and find matching period
-      const [hours] = selectedTimePeriod.split(':').map(Number);
-      let periodKey = 'all';
+      // Aggregate data for selected hours
+      const artistTotals = {};
       
-      // Determine which period this hour belongs to
-      for (const [key, period] of Object.entries(artistTimeData.timePeriods)) {
-        if (period.hours.includes(hours)) {
-          periodKey = key;
-          break;
+      // Go through each selected hour and aggregate artist data
+      selectedTimeHours.forEach(hour => {
+        // Find which period this hour belongs to
+        let periodKey = 'all';
+        for (const [key, period] of Object.entries(artistTimeData.timePeriods)) {
+          if (period.hours.includes(hour)) {
+            periodKey = key;
+            break;
+          }
         }
-      }
+        
+        // Add artists from this period
+        const periodArtists = artistTimeData.periodTopArtists[periodKey] || [];
+        periodArtists.forEach(artist => {
+          if (!artistTotals[artist.name]) {
+            artistTotals[artist.name] = {
+              name: artist.name,
+              plays: 0,
+              totalMs: 0
+            };
+          }
+          // Weight the contribution based on how many hours from this period are selected
+          const periodHoursSelected = selectedTimeHours.filter(h => 
+            artistTimeData.timePeriods[periodKey]?.hours.includes(h)
+          ).length;
+          const periodTotalHours = artistTimeData.timePeriods[periodKey]?.hours.length || 1;
+          const weight = periodHoursSelected / periodTotalHours;
+          
+          artistTotals[artist.name].plays += Math.round(artist.plays * weight);
+          artistTotals[artist.name].totalMs += Math.round(artist.totalMs * weight);
+        });
+      });
       
-      periodData = artistTimeData.periodTopArtists[periodKey] || [];
+      // Convert to array and calculate averages
+      filteredData = Object.values(artistTotals)
+        .map(artist => ({
+          ...artist,
+          avgPlayTime: artist.totalMs / Math.max(artist.plays, 1)
+        }))
+        .sort((a, b) => b.totalMs - a.totalMs);
     }
     
-    return periodData.slice(0, artistLimit).map(artist => ({
+    return filteredData.slice(0, artistLimit).map(artist => ({
       ...artist,
       formattedTime: formatDuration(artist.totalMs)
     }));
-  }, [artistTimeData, selectedTimePeriod, artistLimit, formatDuration]);
+  }, [artistTimeData, selectedTimeHours, artistLimit, formatDuration]);
   
-  // Calculate what percentage of a period's listening is the top artists
+  // Calculate what percentage of selected time's listening is the top artists
   const topArtistsPercentage = useMemo(() => {
-    const periodData = artistTimeData.periodTopArtists[selectedTimePeriod] || [];
-    const totalTime = periodData.reduce((sum, artist) => sum + artist.totalMs, 0);
-    const topTime = periodChartData.reduce((sum, artist) => sum + artist.totalMs, 0);
+    let totalTime = 0;
     
+    if (selectedTimeHours.length === 0) {
+      const allData = artistTimeData.periodTopArtists['all'] || [];
+      totalTime = allData.reduce((sum, artist) => sum + artist.totalMs, 0);
+    } else {
+      // Calculate total for selected hours (approximate based on periods)
+      selectedTimeHours.forEach(hour => {
+        let periodKey = 'all';
+        for (const [key, period] of Object.entries(artistTimeData.timePeriods)) {
+          if (period.hours.includes(hour)) {
+            periodKey = key;
+            break;
+          }
+        }
+        const periodData = artistTimeData.periodTopArtists[periodKey] || [];
+        const periodTotal = periodData.reduce((sum, artist) => sum + artist.totalMs, 0);
+        const periodHours = artistTimeData.timePeriods[periodKey]?.hours.length || 1;
+        totalTime += periodTotal / periodHours; // Approximate per hour
+      });
+    }
+    
+    const topTime = periodChartData.reduce((sum, artist) => sum + artist.totalMs, 0);
     return totalTime > 0 ? Math.round((topTime / totalTime) * 100) : 0;
-  }, [artistTimeData, selectedTimePeriod, periodChartData]);
+  }, [artistTimeData, selectedTimeHours, periodChartData]);
 
   // Create a chart showing hourly listening patterns
   const hourlyArtistChart = useMemo(() => {
@@ -184,16 +233,50 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   const TimeFilter = () => (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
-        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Exact time (leave empty for all):</span>
-        <input
-          type="time"
-          value={selectedTimePeriod === 'all' ? '' : selectedTimePeriod}
-          onChange={e => setSelectedTimePeriod(e.target.value || 'all')}
-          className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Select hours (check multiple):</span>
+        <div className="grid grid-cols-6 gap-2 mt-2 max-h-32 overflow-y-auto">
+          {Array.from({ length: 24 }, (_, i) => {
+            const hour = i;
+            const displayHour = hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
+            const isSelected = selectedTimeHours.includes(hour);
+            
+            return (
+              <label key={hour} className="flex items-center text-xs cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedTimeHours([...selectedTimeHours, hour]);
+                    } else {
+                      setSelectedTimeHours(selectedTimeHours.filter(h => h !== hour));
+                    }
+                  }}
+                  className="mr-1"
+                />
+                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                  {displayHour}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => setSelectedTimeHours([])}
+          className={`mt-2 px-2 py-1 text-xs rounded ${
+            isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}
-          placeholder="Select time or leave empty for all"
-        />
+        >
+          Clear All
+        </button>
+        <button
+          onClick={() => setSelectedTimeHours(Array.from({ length: 24 }, (_, i) => i))}
+          className={`mt-2 ml-2 px-2 py-1 text-xs rounded ${
+            isDarkMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'
+          }`}
+        >
+          Select All
+        </button>
       </div>
       
       <div className="flex items-center gap-2">
@@ -262,7 +345,9 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
           isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
         }`}>
           {periodChartData.length > 0 
-            ? `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your ${selectedTimePeriod === 'all' || selectedTimePeriod === '' ? 'total' : `listening time around ${selectedTimePeriod}`}`
+            ? selectedTimeHours.length === 0 
+              ? `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your total listening time`
+              : `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your listening time during ${selectedTimeHours.length} selected hour${selectedTimeHours.length > 1 ? 's' : ''}`
             : 'No data available for this time selection'}
         </div>
       </div>
