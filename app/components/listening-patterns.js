@@ -35,13 +35,13 @@ const ListeningPatterns = ({
       // Time periods
       timePeriods: [
         { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#4C1D95' : '#8884d8' },
+          color: isDarkMode ? '#8B5CF6' : '#8884d8' },
         { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#065F46' : '#82ca9d' },
+          color: isDarkMode ? '#10B981' : '#82ca9d' },
         { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#92400E' : '#ffc658' },
+          color: isDarkMode ? '#F59E0B' : '#ffc658' },
         { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#1E40AF' : '#4B9CD3' }
+          color: isDarkMode ? '#3B82F6' : '#4B9CD3' }
       ],
       
       // Days of week
