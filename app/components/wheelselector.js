@@ -307,16 +307,16 @@ const WheelSelector = ({
           ))}
         </div>
         
-        {/* Gradient fades for visual polish - dark mode aware */}
+        {/* Gradient fades for visual polish - using theme colors */}
         <div className={`absolute top-0 left-0 right-0 h-1/3 pointer-events-none ${
           isDarkMode 
-            ? 'bg-gradient-to-b from-gray-800 to-transparent'
-            : 'bg-gradient-to-b from-white to-transparent'
+            ? `bg-gradient-to-b from-${colorTheme}-900 to-transparent`
+            : `bg-gradient-to-b from-${colorTheme}-50 to-transparent`
         }`}></div>
         <div className={`absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none ${
           isDarkMode 
-            ? 'bg-gradient-to-t from-gray-800 to-transparent'
-            : 'bg-gradient-to-t from-white to-transparent'
+            ? `bg-gradient-to-t from-${colorTheme}-900 to-transparent`
+            : `bg-gradient-to-t from-${colorTheme}-50 to-transparent`
         }`}></div>
         
         {/* Arrows */}
