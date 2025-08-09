@@ -57,7 +57,7 @@ const UpdatesSection = () => {
               : 'text-gray-500 hover:text-violet-700'
           }`}
         >
-          Suggestions/Problems
+          Suggestions/Bugs
         </button>
         <button
           onClick={() => setActiveTab('past-updates')}

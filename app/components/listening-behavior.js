@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
+import { useTheme } from './themeprovider.js';
 
 // Export variables for SpotifyAnalyzer.js to use for dynamic tab names
 export let selectedBehaviorYear = 'all';
@@ -15,6 +16,10 @@ const ListeningBehavior = ({
   yearRangeMode = false
 }) => {
   const [activeTab, setActiveTab] = useState('behavior');
+  
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   
 // Update the filteredData useMemo in ListeningBehavior.js
 const filteredData = useMemo(() => {
@@ -199,16 +204,16 @@ const filteredData = useMemo(() => {
       }
     });
     
-    // Format for pie charts
+    // Format for pie charts with dark mode support
     const shuffleData = [
-      { name: 'Shuffle On', value: shufflePlays, color: '#8884d8' },
-      { name: 'Shuffle Off', value: normalPlays, color: '#82ca9d' }
+      { name: 'Shuffle On', value: shufflePlays, color: isDarkMode ? '#9a7ced' : '#8884d8' },
+      { name: 'Shuffle Off', value: normalPlays, color: isDarkMode ? '#82e3cf' : '#82ca9d' }
     ];
     
     const skipData = [
-      { name: 'Completed', value: completedTracks, color: '#82ca9d' },
-      { name: 'Skipped', value: skippedTracks, color: '#ff8042' },
-      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: '#8884d8' }
+      { name: 'Completed', value: completedTracks, color: isDarkMode ? '#82e3cf' : '#82ca9d' },
+      { name: 'Skipped', value: skippedTracks, color: isDarkMode ? '#ff9f73' : '#ff8042' },
+      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: isDarkMode ? '#9a7ced' : '#8884d8' }
     ];
     
     // Format reasons for bar charts
@@ -368,13 +373,13 @@ const filteredData = useMemo(() => {
     const mostActiveMonth = Object.values(monthStats)
       .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
     
-    // Group sessions by duration
+    // Group sessions by duration with dark mode support
     const durationGroups = [
-      { name: "< 15 min", count: 0, color: "#8884d8" },
-      { name: "15-30 min", count: 0, color: "#82ca9d" },
-      { name: "30-60 min", count: 0, color: "#ffc658" },
-      { name: "1-2 hours", count: 0, color: "#ff8042" },
-      { name: "> 2 hours", count: 0, color: "#8dd1e1" }
+      { name: "< 15 min", count: 0, color: isDarkMode ? "#9a7ced" : "#8884d8" },
+      { name: "15-30 min", count: 0, color: isDarkMode ? "#82e3cf" : "#82ca9d" },
+      { name: "30-60 min", count: 0, color: isDarkMode ? "#ffdc94" : "#ffc658" },
+      { name: "1-2 hours", count: 0, color: isDarkMode ? "#ff9f73" : "#ff8042" },
+      { name: "> 2 hours", count: 0, color: isDarkMode ? "#7bceff" : "#8dd1e1" }
     ];
     
     sessionLengths.forEach(session => {
@@ -419,7 +424,7 @@ const filteredData = useMemo(() => {
       longestListeningDay,
       mostActiveMonth
     };
-  }, [filteredData]);
+  }, [filteredData, isDarkMode]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -431,7 +436,7 @@ const filteredData = useMemo(() => {
       <text 
         x={x} 
         y={y} 
-        fill="white" 
+        fill={isDarkMode ? "#ffffff" : "#ffffff"} 
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="12px"
@@ -447,8 +452,12 @@ const filteredData = useMemo(() => {
       onClick={() => setActiveTab(id)}
       className={`px-4 py-2 whitespace-nowrap font-medium ${
         activeTab === id
-          ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
-          : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300'
+          ? isDarkMode 
+            ? 'bg-gray-700 text-indigo-400 border-b-2 border-indigo-400' 
+            : 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
+          : isDarkMode
+            ? 'bg-gray-800 text-indigo-400 hover:bg-gray-700'
+            : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300'
       }`}
     >
       {label}

@@ -145,17 +145,25 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-bold text-purple-700 mb-2">Streaming Services</h3>
-        <p className="text-purple-600 mb-4">How do you distribute your listening across services?</p>
+        <h3 className={`text-lg font-bold mb-2 ${
+          isDarkMode ? 'text-purple-300' : 'text-purple-700'
+        }`}>Streaming Services</h3>
+        <p className={`mb-4 ${
+          isDarkMode ? 'text-purple-400' : 'text-purple-600'
+        }`}>How do you distribute your listening across services?</p>
         
         {serviceData.total.length === 0 ? (
-          <div className="p-4 bg-purple-50 rounded border border-purple-100 text-center text-purple-600">
+          <div className={`p-4 rounded border text-center ${
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600'
+          }`}>
             No service data available
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-medium text-purple-700 mb-2">Usage by Service</h4>
+              <h4 className={`font-medium mb-2 ${
+                isDarkMode ? 'text-purple-300' : 'text-purple-700'
+              }`}>Usage by Service</h4>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -191,17 +199,25 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
             </div>
             
             <div>
-              <h4 className="font-medium text-purple-700 mb-2">Service Stats</h4>
+              <h4 className={`font-medium mb-2 ${
+                isDarkMode ? 'text-purple-300' : 'text-purple-700'
+              }`}>Service Stats</h4>
               <div className="space-y-3 max-h-72 overflow-y-auto p-1">
                 {serviceData.total.map((service, index) => (
-                  <div key={index} className="p-3 bg-purple-50 rounded border border-purple-100">
+                  <div key={index} className={`p-3 rounded border ${
+                    isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-purple-100'
+                  }`}>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: service.color }}></div>
-                      <h5 className="font-bold text-purple-700 capitalize">
+                      <h5 className={`font-bold capitalize ${
+                        isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                      }`}>
                         {service.service.replace('_', ' ')}
                       </h5>
                     </div>
-                    <div className="text-sm text-purple-600 mt-1">
+                    <div className={`text-sm mt-1 ${
+                      isDarkMode ? 'text-purple-400' : 'text-purple-600'
+                    }`}>
                       <div>Plays: {service.count}</div>
                       <div>Listening Time: {formatDuration(service.totalMs)}</div>
                       <div>Share: {service.percentage}% of total</div>
@@ -216,11 +232,17 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
       
       {availableYears.length > 0 && (
         <div>
-          <h3 className="text-lg font-bold text-purple-700 mb-2">Services by Year</h3>
+          <h3 className={`text-lg font-bold mb-2 ${
+            isDarkMode ? 'text-purple-300' : 'text-purple-700'
+          }`}>Services by Year</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableYears.map(year => (
-              <div key={year} className="p-4 bg-purple-50 rounded border border-purple-100">
-                <h4 className="font-bold text-purple-700 mb-2">{year}</h4>
+              <div key={year} className={`p-4 rounded border ${
+                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-purple-100'
+              }`}>
+                <h4 className={`font-bold mb-2 ${
+                  isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                }`}>{year}</h4>
                 <div className="h-60">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>

@@ -1,18 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useTheme } from './themeprovider.js';
 
 const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState('all');
   const [artistLimit, setArtistLimit] = useState(5);
   
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  
   // Analyze artists by time of day
   const artistTimeData = useMemo(() => {
-    // Define time periods
+    // Define time periods with dark mode support
     const timePeriods = {
-      morning: { name: 'Morning (5-11)', hours: [5, 6, 7, 8, 9, 10, 11], color: '#8884d8' },
-      afternoon: { name: 'Afternoon (12-16)', hours: [12, 13, 14, 15, 16], color: '#82ca9d' },
-      evening: { name: 'Evening (17-21)', hours: [17, 18, 19, 20, 21], color: '#ffc658' },
-      night: { name: 'Night (22-4)', hours: [22, 23, 0, 1, 2, 3, 4], color: '#4B9CD3' },
+      morning: { name: 'Morning (5-11)', hours: [5, 6, 7, 8, 9, 10, 11], color: isDarkMode ? '#9a7ced' : '#8884d8' },
+      afternoon: { name: 'Afternoon (12-16)', hours: [12, 13, 14, 15, 16], color: isDarkMode ? '#82e3cf' : '#82ca9d' },
+      evening: { name: 'Evening (17-21)', hours: [17, 18, 19, 20, 21], color: isDarkMode ? '#ffdc94' : '#ffc658' },
+      night: { name: 'Night (22-4)', hours: [22, 23, 0, 1, 2, 3, 4], color: isDarkMode ? '#7bceff' : '#4B9CD3' },
     };
     
     // Create artist plays count by hour
@@ -115,7 +120,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
       periodTopArtists,
       timePeriods
     };
-  }, [rawPlayData]);
+  }, [rawPlayData, isDarkMode]);
   
   // Format period data for display based on selected period and artist limit
   const periodChartData = useMemo(() => {
@@ -159,11 +164,13 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   const TimeFilter = () => (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
-        <span className="text-indigo-700">Time period:</span>
+        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Time period:</span>
         <select
           value={selectedTimePeriod}
           onChange={e => setSelectedTimePeriod(e.target.value)}
-          className="px-2 py-1 border rounded text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+            isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+          }`}
         >
           <option value="all">All Hours</option>
           <option value="morning">Morning (5-11 AM)</option>
@@ -174,11 +181,13 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
       </div>
       
       <div className="flex items-center gap-2">
-        <span className="text-indigo-700">Top artists:</span>
+        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Top artists:</span>
         <select
           value={artistLimit}
           onChange={e => setArtistLimit(parseInt(e.target.value))}
-          className="w-16 px-2 py-1 border rounded text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-16 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+            isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+          }`}
         >
           <option value="5">5</option>
           <option value="10">10</option>
@@ -191,9 +200,15 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-indigo-50 p-4 rounded">
-        <h3 className="font-bold text-indigo-700 mb-4">Top Artists by Time of Day</h3>
-        <p className="text-indigo-600 mb-4">
+      <div className={`p-4 rounded ${
+        isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+      }`}>
+        <h3 className={`font-bold mb-4 ${
+          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+        }`}>Top Artists by Time of Day</h3>
+        <p className={`mb-4 ${
+          isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+        }`}>
           Discover which artists you listen to most during different parts of the day
         </p>
         
@@ -222,13 +237,15 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
                 }}
               />
               <Legend />
-              <Bar name="Listening Time" dataKey="totalMs" fill="#8884d8" />
-              <Bar name="Play Count" dataKey="plays" fill="#82ca9d" />
+              <Bar name="Listening Time" dataKey="totalMs" fill={isDarkMode ? '#9a7ced' : '#8884d8'} />
+              <Bar name="Play Count" dataKey="plays" fill={isDarkMode ? '#82e3cf' : '#82ca9d'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
         
-        <div className="text-sm text-indigo-600 text-center mt-2">
+        <div className={`text-sm text-center mt-2 ${
+          isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+        }`}>
           {periodChartData.length > 0 
             ? `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your ${selectedTimePeriod === 'all' ? 'total' : selectedTimePeriod} listening time`
             : 'No data available for this time period'}
@@ -236,8 +253,12 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
       </div>
       
       <div>
-        <h3 className="font-bold text-indigo-700 mb-2">Listening by Hour of Day</h3>
-        <p className="text-indigo-600 mb-4">See when during the day you listen to different artists</p>
+        <h3 className={`font-bold mb-2 ${
+          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+        }`}>Listening by Hour of Day</h3>
+        <p className={`mb-4 ${
+          isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+        }`}>See when during the day you listen to different artists</p>
         
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -262,22 +283,30 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
                 labelFormatter={(label) => `Hour: ${label}`}
               />
               <Legend />
-              <Bar name="Total Plays" dataKey="totalPlays" fill="#8884d8" />
-              <Bar name="Unique Artists" dataKey="uniqueArtists" fill="#82ca9d" />
+              <Bar name="Total Plays" dataKey="totalPlays" fill={isDarkMode ? '#9a7ced' : '#8884d8'} />
+              <Bar name="Unique Artists" dataKey="uniqueArtists" fill={isDarkMode ? '#82e3cf' : '#82ca9d'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
       
       <div>
-        <h3 className="font-bold text-indigo-700 mb-2">Artist Insights by Time</h3>
+        <h3 className={`font-bold mb-2 ${
+          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+        }`}>Artist Insights by Time</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {periodChartData.slice(0, 4).map((artist, index) => (
-            <div key={index} className="p-3 bg-indigo-50 rounded border border-indigo-100">
-              <h4 className="font-bold text-indigo-700">
+            <div key={index} className={`p-3 rounded border ${
+              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-indigo-50 border-indigo-100'
+            }`}>
+              <h4 className={`font-bold ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>
                 {index + 1}. {artist.name}
               </h4>
-              <div className="text-sm text-indigo-600">
+              <div className={`text-sm ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>
                 <div>Total Time: {artist.formattedTime}</div>
                 <div>Play Count: {artist.plays} tracks</div>
                 <div>

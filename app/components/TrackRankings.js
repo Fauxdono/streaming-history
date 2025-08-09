@@ -299,7 +299,7 @@ return (
     <div className="flex justify-between items-center mb-4">
       <h3 className="font-bold text-blue-700">
         {yearRangeMode && yearRange.startYear && yearRange.endYear
-          ? `Brief Obsessions for ${yearRange.startYear}-${yearRange.endYear}`
+          ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
           : initialYear === 'all' 
             ? 'Brief Obsessions (All Time)' 
             : `Brief Obsessions (${initialYear})`}

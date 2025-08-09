@@ -386,8 +386,12 @@ const ListeningPatterns = ({
       onClick={() => setActiveTab(id)}
       className={`px-4 py-2 whitespace-nowrap font-medium ${
         activeTab === id
-          ? 'bg-purple-50 text-purple-600 border-b-2 border-purple-600'
-          : 'bg-purple-200 text-purple-600 hover:bg-purple-300'
+          ? isDarkMode 
+            ? 'bg-gray-700 text-purple-400 border-b-2 border-purple-400' 
+            : 'bg-purple-50 text-purple-600 border-b-2 border-purple-600'
+          : isDarkMode
+            ? 'bg-gray-800 text-purple-400 hover:bg-gray-700'
+            : 'bg-purple-200 text-purple-600 hover:bg-purple-300'
       }`}
     >
       {label}
@@ -420,8 +424,12 @@ const ListeningPatterns = ({
     {activeTab === 'timeOfDay' && (
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-bold text-purple-700 mb-2">Listening by Time of Day</h3>
-          <p className="text-purple-600 mb-4">When do you listen to music the most?</p>
+          <h3 className={`text-lg font-bold mb-2 ${
+            isDarkMode ? 'text-purple-300' : 'text-purple-700'
+          }`}>Listening by Time of Day</h3>
+          <p className={`mb-4 ${
+            isDarkMode ? 'text-purple-400' : 'text-purple-600'
+          }`}>When do you listen to music the most?</p>
           
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
