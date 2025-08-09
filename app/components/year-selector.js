@@ -17,7 +17,8 @@ const YearSelector = ({
   colorTheme = 'teal', 
   position = 'right', 
   startMinimized = false,
-  asSidebar = false 
+  asSidebar = false,
+  activeTab = null // Add activeTab to determine behavior
 }) => {
   // Core state
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
@@ -226,9 +227,10 @@ const YearSelector = ({
           setShowMonthSelector(false);
           setShowDaySelector(false);
         } else {
-          // If it's a specific year (not "all"), show month and day selectors by default
-          setShowMonthSelector(true);
-          setShowDaySelector(true);
+          // Only show month/day selectors for listening history contexts
+          const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+          setShowMonthSelector(isHistoryTab);
+          setShowDaySelector(isHistoryTab);
         }
       }
       
@@ -243,7 +245,7 @@ const YearSelector = ({
     
     // Refresh UI to update selectors
     setRefreshCounter(prev => prev + 1);
-  }, [initialYear, onToggleRangeMode]);
+  }, [initialYear, onToggleRangeMode, activeTab]);
   
   // Reset month and day selection when year changes
   useEffect(() => {
@@ -631,33 +633,51 @@ const YearSelector = ({
       setShowMonthSelector(false);
       setShowDaySelector(false);
     } else {
-      // If selecting a specific year, automatically show month selector
-      setShowMonthSelector(true);
-      // Also show day selector for immediate date selection
-      setShowDaySelector(true);
+      // Only auto-show month/day selectors for listening history tab
+      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior'; // behavior contains history tab
       
-      // Find the first day with actual data in this year
-      const firstDataDay = findFirstDayWithData(year);
-      
-      // Set to the first day with data
-      setSelectedMonth(firstDataDay.month);
-      setSelectedDay(firstDataDay.day);
-      
-      // Validate the day exists in the month (should be valid since it came from data)
-      const validDay = Math.min(firstDataDay.day, getDaysInMonth(year, firstDataDay.month));
-      if (validDay !== firstDataDay.day) {
-        setSelectedDay(validDay);
+      if (isHistoryTab) {
+        // For listening history, automatically show month and day selectors
+        setShowMonthSelector(true);
+        setShowDaySelector(true);
+        
+        // Find the first day with actual data in this year
+        const firstDataDay = findFirstDayWithData(year);
+        
+        // Set to the first day with data
+        setSelectedMonth(firstDataDay.month);
+        setSelectedDay(firstDataDay.day);
+        
+        // Validate the day exists in the month (should be valid since it came from data)
+        const validDay = Math.min(firstDataDay.day, getDaysInMonth(year, firstDataDay.month));
+        if (validDay !== firstDataDay.day) {
+          setSelectedDay(validDay);
+        }
+      } else {
+        // For other tabs, keep month/day selectors hidden by default
+        setShowMonthSelector(false);
+        setShowDaySelector(false);
       }
     }
     
-    // Update parent with the full date or just the year
-    const finalMonth = year === 'all' ? selectedMonth : (findFirstDayWithData(year).month);
-    const finalDay = year === 'all' ? selectedDay : (findFirstDayWithData(year).day);
-    updateParentWithDate(year, finalMonth, finalDay);
+    // Update parent with appropriate date format
+    if (year === 'all') {
+      updateParentWithDate(year, selectedMonth, selectedDay);
+    } else {
+      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+      if (isHistoryTab) {
+        // For history tab, use the first data day
+        const firstDataDay = findFirstDayWithData(year);
+        updateParentWithDate(year, firstDataDay.month, firstDataDay.day);
+      } else {
+        // For other tabs, just use the year
+        updateParentWithDate(year, selectedMonth, selectedDay);
+      }
+    }
     
     // Force UI refresh
     setRefreshCounter(prev => prev + 1);
-  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData]);
+  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData, activeTab]);
   
   // Handle month change in single mode
   const handleMonthChange = useCallback((month) => {
