@@ -16,7 +16,13 @@ const ListeningBehavior = ({
   yearRangeMode = false
 }) => {
   const [activeTab, setActiveTab] = useState('behavior');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Today's date
+  // Use selectedYear if it's a specific date (YYYY-MM-DD), otherwise use today
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) {
+      return selectedYear; // Use the date from year selector
+    }
+    return new Date().toISOString().split('T')[0]; // Default to today
+  });
   
   // Get the current theme
   const { theme } = useTheme();
@@ -427,9 +433,20 @@ const filteredData = useMemo(() => {
     };
   }, [filteredData, isDarkMode]);
 
+  // Update selectedDate when selectedYear changes to a specific date
+  React.useEffect(() => {
+    if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) {
+      setSelectedDate(selectedYear);
+    }
+  }, [selectedYear]);
+
   // Analyze listening history for selected date
   const historyData = useMemo(() => {
-    const selectedDateObj = new Date(selectedDate);
+    // Use selectedYear if it's a specific date, otherwise use selectedDate
+    const dateToUse = (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) 
+      ? selectedYear 
+      : selectedDate;
+    const selectedDateObj = new Date(dateToUse);
     const nextDay = new Date(selectedDateObj);
     nextDay.setDate(nextDay.getDate() + 1);
 
@@ -498,7 +515,7 @@ const filteredData = useMemo(() => {
         day: 'numeric'
       })
     };
-  }, [filteredData, selectedDate, formatDuration]);
+  }, [filteredData, selectedDate, selectedYear, formatDuration]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -893,12 +910,19 @@ const filteredData = useMemo(() => {
             }`}>Select date:</label>
             <input
               type="date"
-              value={selectedDate}
+              value={selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 ? selectedYear : selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                 isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
               }`}
             />
+            {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
+              <span className={`text-xs px-2 py-1 rounded ${
+                isDarkMode ? 'bg-indigo-700 text-indigo-200' : 'bg-indigo-100 text-indigo-700'
+              }`}>
+                From year selector
+              </span>
+            )}
           </div>
         </div>
         
