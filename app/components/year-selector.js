@@ -224,6 +224,10 @@ const YearSelector = ({
         if (initialYear === 'all') {
           setShowMonthSelector(false);
           setShowDaySelector(false);
+        } else {
+          // If it's a specific year (not "all"), show month and day selectors by default
+          setShowMonthSelector(true);
+          setShowDaySelector(true);
         }
       }
       
@@ -595,10 +599,12 @@ const YearSelector = ({
     if (year === 'all') {
       setShowMonthSelector(false);
       setShowDaySelector(false);
-    }
-    
-    // If not "all", make sure the month/day are valid for this year
-    if (year !== 'all') {
+    } else {
+      // If selecting a specific year, automatically show month selector
+      setShowMonthSelector(true);
+      // Also show day selector for immediate date selection
+      setShowDaySelector(true);
+      
       // Validate month and day for the selected year
       const validDay = Math.min(selectedDay, getDaysInMonth(year, selectedMonth));
       if (validDay !== selectedDay) {
