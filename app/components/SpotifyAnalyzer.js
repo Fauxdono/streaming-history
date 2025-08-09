@@ -2091,6 +2091,7 @@ const SpotifyAnalyzer = () => {
             <YearSelector
               artistsByYear={artistsByYear}
               rawPlayData={rawPlayData}
+              activeTab={activeTab}
               onYearChange={handleSidebarYearChange}
               onYearRangeChange={handleSidebarYearRangeChange}
               initialYear={
