@@ -3,7 +3,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { useTheme } from './themeprovider.js';
 
 const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
-  const [selectedTimeHours, setSelectedTimeHours] = useState([]); // Array of selected hours
+  const [startTime, setStartTime] = useState(''); // Start time in HH:MM format
+  const [endTime, setEndTime] = useState('');   // End time in HH:MM format
   const [artistLimit, setArtistLimit] = useState(5);
   
   // Get the current theme
@@ -122,19 +123,39 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
     };
   }, [rawPlayData, isDarkMode]);
   
-  // Format period data for display based on selected hours and artist limit
+  // Format period data for display based on time range and artist limit
   const periodChartData = useMemo(() => {
     let filteredData = {};
     
-    if (selectedTimeHours.length === 0) {
-      // Show all time data if no specific hours selected
+    if (!startTime && !endTime) {
+      // Show all time data if no time range specified
       filteredData = artistTimeData.periodTopArtists['all'] || [];
     } else {
-      // Aggregate data for selected hours
+      // Get hours in the specified range
+      const startHour = startTime ? parseInt(startTime.split(':')[0]) : 0;
+      const endHour = endTime ? parseInt(endTime.split(':')[0]) : 23;
+      
+      // Handle time ranges that cross midnight
+      let hoursInRange = [];
+      if (startHour <= endHour) {
+        // Normal range (e.g., 9:00 to 17:00)
+        for (let h = startHour; h <= endHour; h++) {
+          hoursInRange.push(h);
+        }
+      } else {
+        // Range crosses midnight (e.g., 22:00 to 06:00)
+        for (let h = startHour; h <= 23; h++) {
+          hoursInRange.push(h);
+        }
+        for (let h = 0; h <= endHour; h++) {
+          hoursInRange.push(h);
+        }
+      }
+      
+      // Aggregate data for hours in range
       const artistTotals = {};
       
-      // Go through each selected hour and aggregate artist data
-      selectedTimeHours.forEach(hour => {
+      hoursInRange.forEach(hour => {
         // Find which period this hour belongs to
         let periodKey = 'all';
         for (const [key, period] of Object.entries(artistTimeData.timePeriods)) {
@@ -154,12 +175,13 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
               totalMs: 0
             };
           }
-          // Weight the contribution based on how many hours from this period are selected
-          const periodHoursSelected = selectedTimeHours.filter(h => 
+          
+          // Weight the contribution based on how many hours from this period are in range
+          const periodHoursInRange = hoursInRange.filter(h => 
             artistTimeData.timePeriods[periodKey]?.hours.includes(h)
           ).length;
           const periodTotalHours = artistTimeData.timePeriods[periodKey]?.hours.length || 1;
-          const weight = periodHoursSelected / periodTotalHours;
+          const weight = periodHoursInRange / periodTotalHours;
           
           artistTotals[artist.name].plays += Math.round(artist.plays * weight);
           artistTotals[artist.name].totalMs += Math.round(artist.totalMs * weight);
@@ -179,18 +201,35 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
       ...artist,
       formattedTime: formatDuration(artist.totalMs)
     }));
-  }, [artistTimeData, selectedTimeHours, artistLimit, formatDuration]);
+  }, [artistTimeData, startTime, endTime, artistLimit, formatDuration]);
   
-  // Calculate what percentage of selected time's listening is the top artists
+  // Calculate what percentage of selected time range's listening is the top artists
   const topArtistsPercentage = useMemo(() => {
     let totalTime = 0;
     
-    if (selectedTimeHours.length === 0) {
+    if (!startTime && !endTime) {
       const allData = artistTimeData.periodTopArtists['all'] || [];
       totalTime = allData.reduce((sum, artist) => sum + artist.totalMs, 0);
     } else {
-      // Calculate total for selected hours (approximate based on periods)
-      selectedTimeHours.forEach(hour => {
+      // Calculate total for time range (approximate based on periods)
+      const startHour = startTime ? parseInt(startTime.split(':')[0]) : 0;
+      const endHour = endTime ? parseInt(endTime.split(':')[0]) : 23;
+      
+      let hoursInRange = [];
+      if (startHour <= endHour) {
+        for (let h = startHour; h <= endHour; h++) {
+          hoursInRange.push(h);
+        }
+      } else {
+        for (let h = startHour; h <= 23; h++) {
+          hoursInRange.push(h);
+        }
+        for (let h = 0; h <= endHour; h++) {
+          hoursInRange.push(h);
+        }
+      }
+      
+      hoursInRange.forEach(hour => {
         let periodKey = 'all';
         for (const [key, period] of Object.entries(artistTimeData.timePeriods)) {
           if (period.hours.includes(hour)) {
@@ -207,7 +246,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
     
     const topTime = periodChartData.reduce((sum, artist) => sum + artist.totalMs, 0);
     return totalTime > 0 ? Math.round((topTime / totalTime) * 100) : 0;
-  }, [artistTimeData, selectedTimeHours, periodChartData]);
+  }, [artistTimeData, startTime, endTime, periodChartData]);
 
   // Create a chart showing hourly listening patterns
   const hourlyArtistChart = useMemo(() => {
@@ -233,50 +272,46 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   const TimeFilter = () => (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
-        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Select hours (check multiple):</span>
-        <div className="grid grid-cols-6 gap-2 mt-2 max-h-32 overflow-y-auto">
-          {Array.from({ length: 24 }, (_, i) => {
-            const hour = i;
-            const displayHour = hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
-            const isSelected = selectedTimeHours.includes(hour);
-            
-            return (
-              <label key={hour} className="flex items-center text-xs cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedTimeHours([...selectedTimeHours, hour]);
-                    } else {
-                      setSelectedTimeHours(selectedTimeHours.filter(h => h !== hour));
-                    }
-                  }}
-                  className="mr-1"
-                />
-                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                  {displayHour}
-                </span>
-              </label>
-            );
-          })}
+        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Time range (leave empty for all day):</span>
+        <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2">
+            <label className={`text-sm ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>From:</label>
+            <input
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+              }`}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className={`text-sm ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>To:</label>
+            <input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+              }`}
+            />
+          </div>
+          <button
+            onClick={() => {
+              setStartTime('');
+              setEndTime('');
+            }}
+            className={`px-3 py-1 text-sm rounded ${
+              isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Clear
+          </button>
         </div>
-        <button
-          onClick={() => setSelectedTimeHours([])}
-          className={`mt-2 px-2 py-1 text-xs rounded ${
-            isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Clear All
-        </button>
-        <button
-          onClick={() => setSelectedTimeHours(Array.from({ length: 24 }, (_, i) => i))}
-          className={`mt-2 ml-2 px-2 py-1 text-xs rounded ${
-            isDarkMode ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-indigo-500 text-white hover:bg-indigo-400'
-          }`}
-        >
-          Select All
-        </button>
       </div>
       
       <div className="flex items-center gap-2">
@@ -345,10 +380,10 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
           isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
         }`}>
           {periodChartData.length > 0 
-            ? selectedTimeHours.length === 0 
+            ? (!startTime && !endTime)
               ? `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your total listening time`
-              : `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your listening time during ${selectedTimeHours.length} selected hour${selectedTimeHours.length > 1 ? 's' : ''}`
-            : 'No data available for this time selection'}
+              : `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your listening time from ${startTime || '00:00'} to ${endTime || '23:59'}`
+            : 'No data available for this time range'}
         </div>
       </div>
       
