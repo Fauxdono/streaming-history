@@ -481,7 +481,7 @@ const filteredData = useMemo(() => {
     
       
       {/* Horizontally scrollable tabs */}
-      <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
+      <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
         <div className="flex min-w-max">
           <TabButton id="discovery" label="Artist Discovery" />
           <TabButton id="loyalty" label="Artist Loyalty" />

@@ -480,7 +480,7 @@ const filteredData = useMemo(() => {
       {/* Main title is only shown here - removed from SpotifyAnalyzer */}
       
       {/* Horizontally scrollable tabs */}
-      <div className="relative border-b overflow-x-auto pb-1 -mx-4 px-4">
+      <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
         <div className="flex min-w-max">
           <TabButton id="behavior" label="Listening Behavior" />
           <TabButton id="sessions" label="Listening Sessions" />
