@@ -124,7 +124,27 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   
   // Format period data for display based on selected period and artist limit
   const periodChartData = useMemo(() => {
-    const periodData = artistTimeData.periodTopArtists[selectedTimePeriod] || [];
+    let periodData;
+    
+    if (selectedTimePeriod === 'all' || selectedTimePeriod === '') {
+      // Show all time data
+      periodData = artistTimeData.periodTopArtists['all'] || [];
+    } else {
+      // Filter by exact time - convert time input to hour and find matching period
+      const [hours] = selectedTimePeriod.split(':').map(Number);
+      let periodKey = 'all';
+      
+      // Determine which period this hour belongs to
+      for (const [key, period] of Object.entries(artistTimeData.timePeriods)) {
+        if (period.hours.includes(hours)) {
+          periodKey = key;
+          break;
+        }
+      }
+      
+      periodData = artistTimeData.periodTopArtists[periodKey] || [];
+    }
+    
     return periodData.slice(0, artistLimit).map(artist => ({
       ...artist,
       formattedTime: formatDuration(artist.totalMs)
@@ -164,36 +184,30 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   const TimeFilter = () => (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-2">
-        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Time period:</span>
-        <select
-          value={selectedTimePeriod}
-          onChange={e => setSelectedTimePeriod(e.target.value)}
+        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Exact time (leave empty for all):</span>
+        <input
+          type="time"
+          value={selectedTimePeriod === 'all' ? '' : selectedTimePeriod}
+          onChange={e => setSelectedTimePeriod(e.target.value || 'all')}
           className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
             isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
           }`}
-        >
-          <option value="all">All Hours</option>
-          <option value="morning">Morning (5-11 AM)</option>
-          <option value="afternoon">Afternoon (12-4 PM)</option>
-          <option value="evening">Evening (5-9 PM)</option>
-          <option value="night">Night (10 PM-4 AM)</option>
-        </select>
+          placeholder="Select time or leave empty for all"
+        />
       </div>
       
       <div className="flex items-center gap-2">
-        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Top artists:</span>
-        <select
+        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Number of artists (1-99):</span>
+        <input
+          type="number"
+          min="1"
+          max="99"
           value={artistLimit}
-          onChange={e => setArtistLimit(parseInt(e.target.value))}
+          onChange={e => setArtistLimit(Math.min(99, Math.max(1, parseInt(e.target.value) || 5)))}
           className={`w-16 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
             isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
           }`}
-        >
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-        </select>
+        />
       </div>
     </div>
   );
@@ -248,8 +262,8 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
           isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
         }`}>
           {periodChartData.length > 0 
-            ? `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your ${selectedTimePeriod === 'all' ? 'total' : selectedTimePeriod} listening time`
-            : 'No data available for this time period'}
+            ? `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your ${selectedTimePeriod === 'all' || selectedTimePeriod === '' ? 'total' : `listening time around ${selectedTimePeriod}`}`
+            : 'No data available for this time selection'}
         </div>
       </div>
       
