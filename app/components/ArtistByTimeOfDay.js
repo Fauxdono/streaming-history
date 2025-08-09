@@ -221,13 +221,14 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
               margin={{ top: 10, right: 30, left: 40, bottom: 40 }}
               layout="vertical"
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+              <XAxis type="number" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
               <YAxis 
                 dataKey="name" 
                 type="category" 
                 width={150}
                 tick={{ fontSize: 12 }}
+                stroke={isDarkMode ? '#9CA3AF' : '#374151'}
               />
               <Tooltip 
                 formatter={(value, name) => {
@@ -266,14 +267,15 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
               data={hourlyArtistChart}
               margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
               <XAxis 
                 dataKey="displayHour" 
                 angle={-45} 
                 textAnchor="end" 
                 height={60}
+                stroke={isDarkMode ? '#9CA3AF' : '#374151'}
               />
-              <YAxis />
+              <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
               <Tooltip 
                 formatter={(value, name) => {
                   if (name === 'uniqueArtists') return `${value} unique artists`;

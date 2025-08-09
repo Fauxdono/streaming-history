@@ -437,14 +437,19 @@ const ListeningPatterns = ({
                 data={timeOfDayData.hourly}
                 margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="displayHour" />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                <XAxis dataKey="displayHour" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                 <Tooltip 
                   formatter={(value, name) => {
                     return name === 'totalMs' ? formatDuration(value) : value;
                   }}
                   labelFormatter={(value) => `Hour: ${value}`}
+                  contentStyle={{
+                    backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                    border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+                    color: isDarkMode ? '#ffffff' : '#000000'
+                  }}
                 />
                 <Legend />
                 <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#9a7ced" : "#8884d8"} />
@@ -455,7 +460,9 @@ const ListeningPatterns = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className="text-lg font-bold text-purple-700 mb-2">Time Periods</h3>
+            <h3 className={`text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-purple-300' : 'text-purple-700'
+            }`}>Time Periods</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -542,9 +549,9 @@ const ListeningPatterns = ({
                 data={dayOfWeekData}
                 margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
                 <XAxis dataKey="name" />
-                <YAxis />
+                <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                 <Tooltip 
                   formatter={(value, name) => {
                     if (name === 'totalMs') return formatDuration(value);
@@ -602,9 +609,9 @@ const ListeningPatterns = ({
                 data={monthlyData.months}
                 margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
                 <XAxis dataKey="name" />
-                <YAxis />
+                <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                 <Tooltip 
                   formatter={(value, name) => {
                     return name === 'totalMs' ? formatDuration(value) : value;
