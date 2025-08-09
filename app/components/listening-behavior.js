@@ -16,6 +16,7 @@ const ListeningBehavior = ({
   yearRangeMode = false
 }) => {
   const [activeTab, setActiveTab] = useState('behavior');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]); // Today's date
   
   // Get the current theme
   const { theme } = useTheme();
@@ -426,6 +427,79 @@ const filteredData = useMemo(() => {
     };
   }, [filteredData, isDarkMode]);
 
+  // Analyze listening history for selected date
+  const historyData = useMemo(() => {
+    const selectedDateObj = new Date(selectedDate);
+    const nextDay = new Date(selectedDateObj);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    // Filter tracks for the selected date
+    const dayTracks = filteredData
+      .filter(entry => {
+        const trackDate = new Date(entry.ts);
+        return trackDate >= selectedDateObj && trackDate < nextDay;
+      })
+      .sort((a, b) => new Date(a.ts) - new Date(b.ts)) // Chronological order
+      .map(entry => ({
+        ...entry,
+        formattedTime: new Date(entry.ts).toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        }),
+        formattedDuration: formatDuration(entry.ms_played),
+        completionRate: entry.master_metadata_track_name ? 
+          Math.min(100, Math.round((entry.ms_played / 30000) * 100)) : 0 // Assume 30sec = 100% for short tracks
+      }));
+
+    // Calculate day statistics
+    const totalTracks = dayTracks.length;
+    const totalListeningTime = dayTracks.reduce((sum, track) => sum + track.ms_played, 0);
+    const uniqueTracks = new Set(dayTracks.map(t => `${t.master_metadata_track_name}-${t.master_metadata_album_artist_name}`)).size;
+    const uniqueArtists = new Set(dayTracks.filter(t => t.master_metadata_album_artist_name).map(t => t.master_metadata_album_artist_name)).size;
+    
+    // Find listening sessions (gaps > 30 minutes)
+    const sessions = [];
+    let currentSession = null;
+    const SESSION_GAP = 30 * 60 * 1000; // 30 minutes
+    
+    dayTracks.forEach(track => {
+      const trackTime = new Date(track.ts);
+      
+      if (!currentSession || (trackTime - currentSession.endTime) > SESSION_GAP) {
+        if (currentSession) sessions.push(currentSession);
+        currentSession = {
+          startTime: trackTime,
+          endTime: new Date(trackTime.getTime() + track.ms_played),
+          tracks: [track],
+          count: 1
+        };
+      } else {
+        currentSession.endTime = new Date(trackTime.getTime() + track.ms_played);
+        currentSession.tracks.push(track);
+        currentSession.count++;
+      }
+    });
+    
+    if (currentSession) sessions.push(currentSession);
+
+    return {
+      tracks: dayTracks,
+      totalTracks,
+      totalListeningTime,
+      uniqueTracks,
+      uniqueArtists,
+      sessions: sessions.length,
+      formattedDate: selectedDateObj.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    };
+  }, [filteredData, selectedDate, formatDuration]);
+
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
@@ -485,6 +559,7 @@ const filteredData = useMemo(() => {
           <TabButton id="behavior" label="Listening Behavior" />
           <TabButton id="sessions" label="Listening Sessions" />
           <TabButton id="artistsTime" label="Artists by Time" />
+          <TabButton id="history" label="Listening History" />
         </div>
       </div>
 
@@ -798,6 +873,142 @@ const filteredData = useMemo(() => {
         rawPlayData={filteredData}
         formatDuration={formatDuration}
       />
+    )}
+    
+    {activeTab === 'history' && (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 className={`text-lg font-bold ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>Daily Listening History</h3>
+            <p className={`text-sm ${
+              isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+            }`}>See what you listened to in chronological order</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <label className={`text-sm ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>Select date:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+              }`}
+            />
+          </div>
+        </div>
+        
+        <div className={`p-4 rounded ${
+          isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50 border border-indigo-100'
+        }`}>
+          <h4 className={`font-bold mb-2 ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>Summary for {historyData.formattedDate}</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div>
+              <div className={`font-medium ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Total Tracks</div>
+              <div className={`text-lg font-bold ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{historyData.totalTracks}</div>
+            </div>
+            <div>
+              <div className={`font-medium ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Listening Time</div>
+              <div className={`text-lg font-bold ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{formatDuration(historyData.totalListeningTime)}</div>
+            </div>
+            <div>
+              <div className={`font-medium ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Unique Tracks</div>
+              <div className={`text-lg font-bold ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{historyData.uniqueTracks}</div>
+            </div>
+            <div>
+              <div className={`font-medium ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Unique Artists</div>
+              <div className={`text-lg font-bold ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{historyData.uniqueArtists}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h4 className={`font-bold mb-4 ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>Chronological Track List ({historyData.tracks.length} tracks)</h4>
+          
+          {historyData.tracks.length === 0 ? (
+            <div className={`text-center py-8 ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              No listening data found for this date.
+            </div>
+          ) : (
+            <div className={`max-h-96 overflow-y-auto border rounded ${
+              isDarkMode ? 'border-gray-700' : 'border-gray-200'
+            }`}>
+              <div className="space-y-1 p-2">
+                {historyData.tracks.map((track, index) => (
+                  <div key={index} className={`flex items-center justify-between p-3 rounded text-sm hover:bg-opacity-50 transition-colors ${
+                    isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'
+                  }`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                          isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {track.formattedTime}
+                        </span>
+                        <span className={`font-medium truncate ${
+                          isDarkMode ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {track.master_metadata_track_name || 'Unknown Track'}
+                        </span>
+                      </div>
+                      <div className={`text-xs mt-1 truncate ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {track.master_metadata_album_artist_name || 'Unknown Artist'}
+                        {track.master_metadata_album_album_name && ` • ${track.master_metadata_album_album_name}`}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 ml-4">
+                      <div className={`text-xs ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        {track.formattedDuration}
+                      </div>
+                      {track.reason_end === 'trackdone' && (
+                        <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                          ✓ Completed
+                        </span>
+                      )}
+                      {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && (
+                        <span className="text-xs text-orange-600 bg-orange-100 px-2 py-0.5 rounded">
+                          ⏭ Skipped
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     )}
   </div>
 );
