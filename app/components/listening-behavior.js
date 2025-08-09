@@ -894,34 +894,20 @@ const filteredData = useMemo(() => {
     
     {activeTab === 'history' && (
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
             <h3 className={`text-lg font-bold ${
               isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
             }`}>Daily Listening History</h3>
             <p className={`text-sm ${
               isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-            }`}>See what you listened to in chronological order</p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <label className={`text-sm ${
-              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-            }`}>Select date:</label>
-            <input
-              type="date"
-              value={selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 ? selectedYear : selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
-              }`}
-            />
+            }`}>Use the year selector to pick a specific date and see what you listened to in chronological order</p>
             {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
-              <span className={`text-xs px-2 py-1 rounded ${
-                isDarkMode ? 'bg-indigo-700 text-indigo-200' : 'bg-indigo-100 text-indigo-700'
+              <div className={`mt-2 text-sm px-3 py-2 rounded ${
+                isDarkMode ? 'bg-indigo-800 text-indigo-200 border border-indigo-600' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
               }`}>
-                From year selector
-              </span>
+                📅 Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
+              </div>
             )}
           </div>
         </div>
