@@ -501,9 +501,11 @@ const ListeningPatterns = ({
             <h3 className="text-lg font-bold text-purple-700 mb-2">Time Period Stats</h3>
             <ul className="space-y-2">
               {timeOfDayData.periods.map((period, index) => (
-                <li key={index} className="p-2 bg-purple-50 rounded">
+                <li key={index} className={`p-2 rounded ${
+                  isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-purple-50'
+                }`}>
                   <span className="font-bold" style={{ color: period.color }}>{period.fullName}:</span>
-                  <div className="ml-2 text-purple-400">
+                  <div className="ml-2" style={{ color: period.color }}>
                     <div>{period.count} plays</div>
                     <div>{formatDuration(period.totalMs)} listening time</div>
                   </div>
@@ -585,13 +587,19 @@ const ListeningPatterns = ({
           <h3 className="text-lg font-bold text-purple-700 mb-2">Day of Week Stats</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {dayOfWeekData.map((day, index) => (
-              <div key={index} className="p-3 bg-purple-50 rounded border border-purple-100 relative">
+              <div key={index} className={`p-3 rounded border relative ${
+                isDarkMode ? 'bg-gray-800' : 'bg-purple-50'
+              }`} style={{ borderColor: day.color }}>
                 {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
                 (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
                   <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
                 ) : null}
-                <h4 className="font-bold text-purple-700">{day.fullName}</h4>
-                <div className="text-sm text-purple-600">
+                <h4 className={`font-bold ${
+                  isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                }`}>{day.fullName}</h4>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-purple-400' : 'text-purple-600'
+                }`}>
                   <div>Total Plays: {day.count}</div>
                   <div>Listening Time: {formatDuration(day.totalMs)}</div>
                   <div>Avg. Plays Per Day: {day.avgPerDay.toFixed(1)}</div>
@@ -675,9 +683,11 @@ const ListeningPatterns = ({
             <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Stats</h3>
             <ul className="space-y-2">
               {monthlyData.seasons.map((season, index) => (
-                <li key={index} className="p-2 bg-purple-50 rounded">
+                <li key={index} className={`p-2 rounded ${
+                  isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-purple-50'
+                }`}>
                   <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
-                  <div className="ml-2 text-purple-400">
+                  <div className="ml-2" style={{ color: season.color }}>
                     <div>{season.count} plays</div>
                     <div>{formatDuration(season.totalMs)} listening time</div>
                   </div>
