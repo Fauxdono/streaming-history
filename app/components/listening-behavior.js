@@ -204,16 +204,16 @@ const filteredData = useMemo(() => {
       }
     });
     
-    // Format for pie charts with dark mode support
+    // Format for pie charts with much darker colors for dark mode
     const shuffleData = [
-      { name: 'Shuffle On', value: shufflePlays, color: isDarkMode ? '#9a7ced' : '#8884d8' },
-      { name: 'Shuffle Off', value: normalPlays, color: isDarkMode ? '#82e3cf' : '#82ca9d' }
+      { name: 'Shuffle On', value: shufflePlays, color: isDarkMode ? '#4C1D95' : '#8884d8' },
+      { name: 'Shuffle Off', value: normalPlays, color: isDarkMode ? '#065F46' : '#82ca9d' }
     ];
     
     const skipData = [
-      { name: 'Completed', value: completedTracks, color: isDarkMode ? '#82e3cf' : '#82ca9d' },
-      { name: 'Skipped', value: skippedTracks, color: isDarkMode ? '#ff9f73' : '#ff8042' },
-      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: isDarkMode ? '#9a7ced' : '#8884d8' }
+      { name: 'Completed', value: completedTracks, color: isDarkMode ? '#065F46' : '#82ca9d' },
+      { name: 'Skipped', value: skippedTracks, color: isDarkMode ? '#DC2626' : '#ff8042' },
+      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: isDarkMode ? '#4C1D95' : '#8884d8' }
     ];
     
     // Format reasons for bar charts
@@ -373,13 +373,13 @@ const filteredData = useMemo(() => {
     const mostActiveMonth = Object.values(monthStats)
       .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
     
-    // Group sessions by duration with dark mode support
+    // Group sessions by duration with much darker colors for dark mode
     const durationGroups = [
-      { name: "< 15 min", count: 0, color: isDarkMode ? "#9a7ced" : "#8884d8" },
-      { name: "15-30 min", count: 0, color: isDarkMode ? "#82e3cf" : "#82ca9d" },
-      { name: "30-60 min", count: 0, color: isDarkMode ? "#ffdc94" : "#ffc658" },
-      { name: "1-2 hours", count: 0, color: isDarkMode ? "#ff9f73" : "#ff8042" },
-      { name: "> 2 hours", count: 0, color: isDarkMode ? "#7bceff" : "#8dd1e1" }
+      { name: "< 15 min", count: 0, color: isDarkMode ? "#4C1D95" : "#8884d8" },
+      { name: "15-30 min", count: 0, color: isDarkMode ? "#065F46" : "#82ca9d" },
+      { name: "30-60 min", count: 0, color: isDarkMode ? "#D97706" : "#ffc658" },
+      { name: "1-2 hours", count: 0, color: isDarkMode ? "#DC2626" : "#ff8042" },
+      { name: "> 2 hours", count: 0, color: isDarkMode ? "#1E40AF" : "#8dd1e1" }
     ];
     
     sessionLengths.forEach(session => {
@@ -586,8 +586,8 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  <Bar name="Count" dataKey="count" fill="#8884d8" />
-                  <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
+                  <Bar name="Count" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
+                  <Bar name="Percentage" dataKey="percentage" fill={isDarkMode ? "#065F46" : "#82ca9d"} unit="%" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -614,8 +614,8 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  <Bar name="Count" dataKey="count" fill="#8884d8" />
-                  <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
+                  <Bar name="Count" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
+                  <Bar name="Percentage" dataKey="percentage" fill={isDarkMode ? "#065F46" : "#82ca9d"} unit="%" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -642,8 +642,8 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  <Bar name="Count" dataKey="count" fill="#8884d8" />
-                  <Bar name="Percentage" dataKey="percentage" fill="#82ca9d" unit="%" />
+                  <Bar name="Count" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
+                  <Bar name="Percentage" dataKey="percentage" fill={isDarkMode ? "#065F46" : "#82ca9d"} unit="%" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

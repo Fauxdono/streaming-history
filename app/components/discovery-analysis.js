@@ -228,11 +228,11 @@ const filteredData = useMemo(() => {
     const top5PlayTime = top5Artists.reduce((sum, artist) => sum + artist.time, 0);
     const top5Percentage = Math.round((top5PlayTime / totalPlayTime) * 100);
     
-    // Format for loyalty pie chart
+    // Format for loyalty pie chart with darker colors for dark mode
     const otherPlayTime = totalPlayTime - top5PlayTime;
     const loyaltyData = [
-      { name: 'Top 5 Artists', value: top5PlayTime, color: isDarkMode ? '#9a7ced' : '#8884d8' },
-      { name: 'All Other Artists', value: otherPlayTime, color: isDarkMode ? '#82e3cf' : '#82ca9d' }
+      { name: 'Top 5 Artists', value: top5PlayTime, color: isDarkMode ? '#4C1D95' : '#8884d8' },
+      { name: 'All Other Artists', value: otherPlayTime, color: isDarkMode ? '#065F46' : '#82ca9d' }
     ];
     
     return {
@@ -541,7 +541,7 @@ const filteredData = useMemo(() => {
                   <Line 
                     type="monotone" 
                     dataKey="count" 
-                    stroke={isDarkMode ? '#82e3cf' : '#82ca9d'}
+                    stroke={isDarkMode ? '#059669' : '#82ca9d'}
                     name="New Artists Discovered" 
                     strokeWidth={2}
                     dot={{ r: 3 }}
@@ -704,8 +704,8 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  <Bar name="Unique Tracks" dataKey="uniqueTracks" fill="#82ca9d" />
-                  <Bar name="Depth Score" dataKey="depthScore" fill="#8884d8" />
+                  <Bar name="Unique Tracks" dataKey="uniqueTracks" fill={isDarkMode ? "#065F46" : "#82ca9d"} />
+                  <Bar name="Depth Score" dataKey="depthScore" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -795,7 +795,7 @@ const filteredData = useMemo(() => {
                   <Line 
                     type="monotone" 
                     dataKey="varietyScore" 
-                    stroke="#82ca9d" 
+                    stroke={isDarkMode ? "#059669" : "#82ca9d"} 
                     name="Variety Score" 
                     strokeWidth={2}
                     dot={{ r: 3 }}

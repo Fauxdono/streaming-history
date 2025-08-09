@@ -12,12 +12,12 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   
   // Analyze artists by time of day
   const artistTimeData = useMemo(() => {
-    // Define time periods with dark mode support
+    // Define time periods with much darker colors for dark mode
     const timePeriods = {
-      morning: { name: 'Morning (5-11)', hours: [5, 6, 7, 8, 9, 10, 11], color: isDarkMode ? '#9a7ced' : '#8884d8' },
-      afternoon: { name: 'Afternoon (12-16)', hours: [12, 13, 14, 15, 16], color: isDarkMode ? '#82e3cf' : '#82ca9d' },
-      evening: { name: 'Evening (17-21)', hours: [17, 18, 19, 20, 21], color: isDarkMode ? '#ffdc94' : '#ffc658' },
-      night: { name: 'Night (22-4)', hours: [22, 23, 0, 1, 2, 3, 4], color: isDarkMode ? '#7bceff' : '#4B9CD3' },
+      morning: { name: 'Morning (5-11)', hours: [5, 6, 7, 8, 9, 10, 11], color: isDarkMode ? '#4C1D95' : '#8884d8' },
+      afternoon: { name: 'Afternoon (12-16)', hours: [12, 13, 14, 15, 16], color: isDarkMode ? '#065F46' : '#82ca9d' },
+      evening: { name: 'Evening (17-21)', hours: [17, 18, 19, 20, 21], color: isDarkMode ? '#D97706' : '#ffc658' },
+      night: { name: 'Night (22-4)', hours: [22, 23, 0, 1, 2, 3, 4], color: isDarkMode ? '#1E40AF' : '#4B9CD3' },
     };
     
     // Create artist plays count by hour
@@ -238,8 +238,8 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
                 }}
               />
               <Legend />
-              <Bar name="Listening Time" dataKey="totalMs" fill={isDarkMode ? '#9a7ced' : '#8884d8'} />
-              <Bar name="Play Count" dataKey="plays" fill={isDarkMode ? '#82e3cf' : '#82ca9d'} />
+              <Bar name="Listening Time" dataKey="totalMs" fill={isDarkMode ? '#4C1D95' : '#8884d8'} />
+              <Bar name="Play Count" dataKey="plays" fill={isDarkMode ? '#065F46' : '#82ca9d'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -285,8 +285,8 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
                 labelFormatter={(label) => `Hour: ${label}`}
               />
               <Legend />
-              <Bar name="Total Plays" dataKey="totalPlays" fill={isDarkMode ? '#9a7ced' : '#8884d8'} />
-              <Bar name="Unique Artists" dataKey="uniqueArtists" fill={isDarkMode ? '#82e3cf' : '#82ca9d'} />
+              <Bar name="Total Plays" dataKey="totalPlays" fill={isDarkMode ? '#4C1D95' : '#8884d8'} />
+              <Bar name="Unique Artists" dataKey="uniqueArtists" fill={isDarkMode ? '#065F46' : '#82ca9d'} />
             </BarChart>
           </ResponsiveContainer>
         </div>
