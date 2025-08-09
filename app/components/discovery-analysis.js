@@ -524,14 +524,15 @@ const filteredData = useMemo(() => {
                   data={discoveryData.newArtistsByMonth}
                   margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
                   <XAxis 
                     dataKey="month" 
                     angle={-45} 
                     textAnchor="end" 
                     height={60}
+                    stroke={isDarkMode ? '#9CA3AF' : '#374151'}
                   />
-                  <YAxis />
+                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                   <Tooltip 
                     formatter={(value) => [value, 'New Artists']}
                     labelFormatter={(value, payload) => payload[0]?.payload?.fullLabel || value}
@@ -687,7 +688,7 @@ const filteredData = useMemo(() => {
                   margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                   layout="vertical"
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
                   <XAxis type="number" domain={[0, 100]} />
                   <YAxis 
                     dataKey="name" 
@@ -773,7 +774,7 @@ const filteredData = useMemo(() => {
                   }
                   margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
                   <XAxis 
                     dataKey={timeframe === 'month' ? 'label' : 'timeframe'} 
                     angle={-45} 
