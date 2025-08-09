@@ -7,6 +7,7 @@ const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
 
 const YearSelector = ({ 
   artistsByYear, 
+  rawPlayData = [], // Add rawPlayData to find first day with data
   onYearChange, 
   onYearRangeChange, 
   initialYear, 
@@ -587,6 +588,36 @@ const YearSelector = ({
     );
   }, []);
   
+  // Function to find first day with data in a given year
+  const findFirstDayWithData = useCallback((year) => {
+    if (!rawPlayData || rawPlayData.length === 0 || year === 'all') {
+      return { month: 1, day: 1 }; // Default fallback
+    }
+    
+    // Filter data for the selected year and sort by date
+    const yearData = rawPlayData
+      .filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          return !isNaN(date.getTime()) && date.getFullYear() === parseInt(year);
+        } catch {
+          return false;
+        }
+      })
+      .sort((a, b) => new Date(a.ts) - new Date(b.ts));
+    
+    if (yearData.length === 0) {
+      return { month: 1, day: 1 }; // Default if no data found
+    }
+    
+    // Get the first entry's date
+    const firstDate = new Date(yearData[0].ts);
+    return {
+      month: firstDate.getMonth() + 1, // JavaScript months are 0-based
+      day: firstDate.getDate()
+    };
+  }, [rawPlayData]);
+
   // Handle year change in single mode
   const handleYearChange = useCallback((year) => {
     // Save the previous year
@@ -605,19 +636,28 @@ const YearSelector = ({
       // Also show day selector for immediate date selection
       setShowDaySelector(true);
       
-      // Validate month and day for the selected year
-      const validDay = Math.min(selectedDay, getDaysInMonth(year, selectedMonth));
-      if (validDay !== selectedDay) {
+      // Find the first day with actual data in this year
+      const firstDataDay = findFirstDayWithData(year);
+      
+      // Set to the first day with data
+      setSelectedMonth(firstDataDay.month);
+      setSelectedDay(firstDataDay.day);
+      
+      // Validate the day exists in the month (should be valid since it came from data)
+      const validDay = Math.min(firstDataDay.day, getDaysInMonth(year, firstDataDay.month));
+      if (validDay !== firstDataDay.day) {
         setSelectedDay(validDay);
       }
     }
     
     // Update parent with the full date or just the year
-    updateParentWithDate(year, selectedMonth, selectedDay);
+    const finalMonth = year === 'all' ? selectedMonth : (findFirstDayWithData(year).month);
+    const finalDay = year === 'all' ? selectedDay : (findFirstDayWithData(year).day);
+    updateParentWithDate(year, finalMonth, finalDay);
     
     // Force UI refresh
     setRefreshCounter(prev => prev + 1);
-  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth]);
+  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData]);
   
   // Handle month change in single mode
   const handleMonthChange = useCallback((month) => {
