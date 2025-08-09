@@ -38,7 +38,11 @@ const WheelSelector = ({
           highlight: 'bg-pink-100',
           text: 'text-pink-700',
           activeText: 'text-pink-800 font-bold',
-          shadow: 'shadow-pink-200'
+          shadow: 'shadow-pink-200',
+          gradientLight: 'bg-gradient-to-b from-pink-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-pink-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-pink-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-pink-900 to-transparent'
         };
       case 'purple':
         return {
@@ -46,7 +50,11 @@ const WheelSelector = ({
           highlight: 'bg-purple-100',
           text: 'text-purple-700',
           activeText: 'text-purple-800 font-bold',
-          shadow: 'shadow-purple-200'
+          shadow: 'shadow-purple-200',
+          gradientLight: 'bg-gradient-to-b from-purple-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-purple-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-purple-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-purple-900 to-transparent'
         };
       case 'blue':
         return {
@@ -54,7 +62,11 @@ const WheelSelector = ({
           highlight: 'bg-blue-100',
           text: 'text-blue-700',
           activeText: 'text-blue-800 font-bold',
-          shadow: 'shadow-blue-200'
+          shadow: 'shadow-blue-200',
+          gradientLight: 'bg-gradient-to-b from-blue-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-blue-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-blue-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-blue-900 to-transparent'
         };
       case 'teal':
       default:
@@ -63,7 +75,11 @@ const WheelSelector = ({
           highlight: 'bg-teal-100',
           text: 'text-teal-700',
           activeText: 'text-teal-800 font-bold',
-          shadow: 'shadow-teal-200'
+          shadow: 'shadow-teal-200',
+          gradientLight: 'bg-gradient-to-b from-teal-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-teal-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-teal-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-teal-900 to-transparent'
         };
       case 'orange':
         return {
@@ -71,7 +87,11 @@ const WheelSelector = ({
           highlight: 'bg-orange-100',
           text: 'text-orange-700',
           activeText: 'text-orange-800 font-bold',
-          shadow: 'shadow-orange-200'
+          shadow: 'shadow-orange-200',
+          gradientLight: 'bg-gradient-to-b from-orange-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-orange-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-orange-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-orange-900 to-transparent'
         };
    case 'indigo':
         return {
@@ -79,7 +99,11 @@ const WheelSelector = ({
           highlight: 'bg-indigo-100',
           text: 'text-indigo-700',
           activeText: 'text-indigo-800 font-bold',
-          shadow: 'shadow-indigo-200'
+          shadow: 'shadow-indigo-200',
+          gradientLight: 'bg-gradient-to-b from-indigo-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-indigo-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-indigo-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-indigo-900 to-transparent'
         };
    case 'green':
         return {
@@ -87,7 +111,11 @@ const WheelSelector = ({
           highlight: 'bg-green-100',
           text: 'text-green-700',
           activeText: 'text-green-800 font-bold',
-          shadow: 'shadow-green-200'
+          shadow: 'shadow-green-200',
+          gradientLight: 'bg-gradient-to-b from-green-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-green-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-green-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-green-900 to-transparent'
         };
     }
   };
@@ -309,14 +337,10 @@ const WheelSelector = ({
         
         {/* Gradient fades for visual polish - using theme colors */}
         <div className={`absolute top-0 left-0 right-0 h-1/3 pointer-events-none ${
-          isDarkMode 
-            ? `bg-gradient-to-b from-${colorTheme}-900 to-transparent`
-            : `bg-gradient-to-b from-${colorTheme}-50 to-transparent`
+          isDarkMode ? colors.gradientDark : colors.gradientLight
         }`}></div>
         <div className={`absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none ${
-          isDarkMode 
-            ? `bg-gradient-to-t from-${colorTheme}-900 to-transparent`
-            : `bg-gradient-to-t from-${colorTheme}-50 to-transparent`
+          isDarkMode ? colors.gradientDarkBottom : colors.gradientLightBottom
         }`}></div>
         
         {/* Arrows */}
