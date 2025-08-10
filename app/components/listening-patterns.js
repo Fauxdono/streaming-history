@@ -19,12 +19,7 @@ const ListeningPatterns = ({
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   
-  // Update exported variables when props change
-  useEffect(() => {
-    selectedPatternYear = selectedYear;
-    yearPatternRange = yearRange;
-    patternYearRangeMode = yearRangeMode;
-  }, [selectedYear, yearRange, yearRangeMode]);
+  // Removed useEffect that updated exported variables (now handled by SpotifyAnalyzer state)
   
   // Chart colors that adjust with theme
   const chartColors = useMemo(() => {
