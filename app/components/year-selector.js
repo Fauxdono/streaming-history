@@ -64,7 +64,7 @@ const YearSelector = ({
   // Generate available months for the selected year
   const months = useMemo(() => {
     return getAvailableMonths(selectedYear);
-  }, [selectedYear, getAvailableMonths]);
+  }, [selectedYear, rawPlayData]);
   
   // Efficient function to get days in month
   const getDaysInMonth = useCallback((year, month) => {
@@ -76,24 +76,24 @@ const YearSelector = ({
   // Create the days arrays as memoized values - only available days
   const days = useMemo(() => {
     return getAvailableDays(selectedYear, selectedMonth);
-  }, [selectedYear, selectedMonth, getAvailableDays, refreshCounter]);
+  }, [selectedYear, selectedMonth, rawPlayData, refreshCounter]);
   
   const startDays = useMemo(() => {
     return getAvailableDays(yearRange.startYear, startMonth);
-  }, [yearRange.startYear, startMonth, getAvailableDays, refreshCounter]);
+  }, [yearRange.startYear, startMonth, rawPlayData, refreshCounter]);
   
   const endDays = useMemo(() => {
     return getAvailableDays(yearRange.endYear, endMonth);
-  }, [yearRange.endYear, endMonth, getAvailableDays, refreshCounter]);
+  }, [yearRange.endYear, endMonth, rawPlayData, refreshCounter]);
   
   // Generate available months for range mode (these could be different for start/end years)
   const startMonths = useMemo(() => {
     return getAvailableMonths(yearRange.startYear);
-  }, [yearRange.startYear, getAvailableMonths]);
+  }, [yearRange.startYear, rawPlayData]);
   
   const endMonths = useMemo(() => {
     return getAvailableMonths(yearRange.endYear);
-  }, [yearRange.endYear, getAvailableMonths]);
+  }, [yearRange.endYear, rawPlayData]);
   
   // Check for mobile viewport
   useEffect(() => {
@@ -651,7 +651,7 @@ const YearSelector = ({
   }, [rawPlayData]);
   
   // Function to get available months for a given year
-  const getAvailableMonths = useCallback((year) => {
+  const getAvailableMonths = (year) => {
     if (!rawPlayData || rawPlayData.length === 0 || year === 'all') {
       return Array.from({ length: 12 }, (_, i) => i + 1); // Default to all months
     }
@@ -673,10 +673,10 @@ const YearSelector = ({
       });
     
     return Array.from(monthsSet).sort((a, b) => a - b);
-  }, [rawPlayData]);
+  };
   
   // Function to get available days for a given year and month
-  const getAvailableDays = useCallback((year, month) => {
+  const getAvailableDays = (year, month) => {
     if (!rawPlayData || rawPlayData.length === 0 || year === 'all') {
       const daysInMonth = getDaysInMonth(year, month);
       return Array.from({ length: daysInMonth }, (_, i) => i + 1); // Default to all days
@@ -701,7 +701,7 @@ const YearSelector = ({
       });
     
     return Array.from(daysSet).sort((a, b) => a - b);
-  }, [rawPlayData, getDaysInMonth]);
+  };
 
   // Handle year change in single mode
   const handleYearChange = useCallback((year) => {
