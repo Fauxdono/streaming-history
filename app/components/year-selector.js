@@ -40,6 +40,8 @@ const YearSelector = ({
   const [showDaySelector, setShowDaySelector] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [selectedDay, setSelectedDay] = useState(1);
+  // Track if user has manually enabled selectors to preserve their choice
+  const [userEnabledSelectors, setUserEnabledSelectors] = useState(false);
   
   // Month and Day Selection - for range mode
   const [showRangeMonthDaySelectors, setShowRangeMonthDaySelectors] = useState(false);
@@ -222,15 +224,24 @@ const YearSelector = ({
         // Just a simple year or "all"
         setSelectedYear(initialYear);
         
-        // If switching to "all", hide selectors
+        // If switching to "all", hide selectors and reset user preference
         if (initialYear === 'all') {
           setShowMonthSelector(false);
           setShowDaySelector(false);
+          setUserEnabledSelectors(false);
         } else {
-          // Only show month/day selectors for listening history contexts
+          // Only auto-show month/day selectors for listening history contexts
+          // But preserve user manual choices in other tabs
           const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
-          setShowMonthSelector(isHistoryTab);
-          setShowDaySelector(isHistoryTab);
+          if (isHistoryTab) {
+            setShowMonthSelector(true);
+            setShowDaySelector(true);
+          } else if (!userEnabledSelectors) {
+            // Only hide selectors if user hasn't manually enabled them
+            setShowMonthSelector(false);
+            setShowDaySelector(false);
+          }
+          // If userEnabledSelectors is true, preserve current selector state
         }
       }
       
@@ -246,6 +257,20 @@ const YearSelector = ({
     // Refresh UI to update selectors
     setRefreshCounter(prev => prev + 1);
   }, [initialYear, onToggleRangeMode, activeTab]);
+  
+  // Reset user preference when switching tabs to allow fresh automatic behavior
+  useEffect(() => {
+    // Small delay to avoid interfering with normal initialization
+    const timer = setTimeout(() => {
+      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+      if (isHistoryTab) {
+        // Reset flag so automatic behavior works in history tabs
+        setUserEnabledSelectors(false);
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [activeTab]);
   
   // Reset month and day selection when year changes
   useEffect(() => {
@@ -1057,6 +1082,12 @@ const YearSelector = ({
                           const newMonthValue = !showMonthSelector;
                           setShowMonthSelector(newMonthValue);
                           
+                          // Track that user has manually interacted with selectors
+                          const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+                          if (!isHistoryTab) {
+                            setUserEnabledSelectors(newMonthValue);
+                          }
+                          
                           // If turning off month, also turn off day
                           if (!newMonthValue) {
                             setShowDaySelector(false);
@@ -1109,6 +1140,12 @@ const YearSelector = ({
                           onChange={() => {
                             const newDayValue = !showDaySelector;
                             setShowDaySelector(newDayValue);
+                            
+                            // Track that user has manually interacted with selectors
+                            const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+                            if (!isHistoryTab && newDayValue) {
+                              setUserEnabledSelectors(true);
+                            }
                             
                             // Update parent with appropriate date format based on the new state
                             if (newDayValue) {
