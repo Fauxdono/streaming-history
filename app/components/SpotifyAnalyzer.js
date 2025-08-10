@@ -18,8 +18,7 @@ import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
-import { selectedPatternYear, yearPatternRange, patternYearRangeMode } from './listening-patterns.js';
-import { selectedBehaviorYear, yearBehaviorRange, behaviorYearRangeMode } from './listening-behavior.js';
+// Removed imports of exported variables that were conflicting with local state
 import DarkModeToggle from './darkmode.js';
 
 // Cache for service colors to avoid recreating on each render
