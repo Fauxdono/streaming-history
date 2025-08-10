@@ -726,7 +726,7 @@ const YearSelector = ({
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [selectedYear, selectedDay, getDaysInMonth]);
+  }, [selectedYear, selectedDay, getDaysInMonth, updateParentWithDate]);
   
   // Handle day change in single mode
   const handleDayChange = useCallback((day) => {
@@ -736,7 +736,7 @@ const YearSelector = ({
     if (selectedYear !== 'all') {
       updateParentWithDate(selectedYear, selectedMonth, day);
     }
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, updateParentWithDate]);
   
   // Handle start month change in range mode
   const handleStartMonthChange = useCallback((month) => {
@@ -756,7 +756,7 @@ const YearSelector = ({
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [yearRange, startDay, endMonth, endDay, getDaysInMonth]);
+  }, [yearRange, startDay, endMonth, endDay, getDaysInMonth, updateParentWithDateRange]);
   
   // Handle start day change in range mode
   const handleStartDayChange = useCallback((day) => {
@@ -764,7 +764,7 @@ const YearSelector = ({
     
     // Update parent with the new range
     updateParentWithDateRange(yearRange.startYear, startMonth, day, yearRange.endYear, endMonth, endDay);
-  }, [yearRange, startMonth, endMonth, endDay]);
+  }, [yearRange, startMonth, endMonth, endDay, updateParentWithDateRange]);
   
   // Handle end month change in range mode
   const handleEndMonthChange = useCallback((month) => {
@@ -784,7 +784,7 @@ const YearSelector = ({
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [yearRange, startMonth, startDay, endDay, getDaysInMonth]);
+  }, [yearRange, startMonth, startDay, endDay, getDaysInMonth, updateParentWithDateRange]);
   
   // Handle end day change in range mode
   const handleEndDayChange = useCallback((day) => {
@@ -792,10 +792,10 @@ const YearSelector = ({
     
     // Update parent with the new range
     updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, endMonth, day);
-  }, [yearRange, startMonth, startDay, endMonth]);
+  }, [yearRange, startMonth, startDay, endMonth, updateParentWithDateRange]);
   
   // Unified function to update parent with date
-  const updateParentWithDate = (year, month, day) => {
+  const updateParentWithDate = useCallback((year, month, day) => {
     if (!onYearChange) return;
     
     if (year === 'all') {
@@ -818,10 +818,10 @@ const YearSelector = ({
       // Just year - this path is taken for the first year (not "all")
       onYearChange(year);
     }
-  };
+  }, [onYearChange, showMonthSelector, showDaySelector]);
 
   // Unified function to update parent with date range
-  const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
+  const updateParentWithDateRange = useCallback((startYear, startM, startD, endYear, endM, endD) => {
     // Only proceed if we have the callback function
     if (!onYearRangeChange) return;
     
@@ -854,7 +854,7 @@ const YearSelector = ({
       startYear: startValue,
       endYear: endValue
     });
-  };
+  }, [onYearRangeChange, yearRange, startMonth, startDay, endMonth, endDay, showRangeMonthDaySelectors]);
   
   // Handler for year range change in range mode
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
