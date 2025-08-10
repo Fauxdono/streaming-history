@@ -258,6 +258,7 @@ const SpotifyAnalyzer = () => {
 
   // Complex filtered displayed albums - heavily memoized for performance
   const displayedAlbums = useMemo(() => {
+    console.log("displayedAlbums useMemo called with selectedAlbumYear:", selectedAlbumYear);
     // First determine which albums to show based on year filter
     let filteredAlbums;
     
@@ -496,7 +497,9 @@ const SpotifyAnalyzer = () => {
       // Check if the selectedAlbumYear includes month/day information
       if (selectedAlbumYear.includes('-')) {
         // Filter raw data directly for more precise date filtering
+        console.log("Calling filterDataByDate with:", { selectedAlbumYear, rawPlayDataLength: rawPlayData.length });
         const filteredPlayData = filterDataByDate(rawPlayData, selectedAlbumYear);
+        console.log("filterDataByDate returned:", { filteredLength: filteredPlayData.length });
         
         // Group the filtered play data by album using a Map for better performance
         const albumMap = new Map();
@@ -1206,11 +1209,15 @@ const SpotifyAnalyzer = () => {
     // Always use 'all' string (not object reference) for consistency
     const yearValue = year === 'all' ? 'all' : year;
     
+    console.log("handleSidebarYearChange called with:", { year, activeTab });
+    
     switch(activeTab) {
       case 'artists':
+        console.log("Setting selectedArtistYear to:", year);
         setSelectedArtistYear(year);
         break;
       case 'albums':
+        console.log("Setting selectedAlbumYear to:", year);
         setSelectedAlbumYear(year);
         break;
       case 'tracks':
