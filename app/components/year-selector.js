@@ -654,9 +654,13 @@ const YearSelector = ({
           setSelectedDay(validDay);
         }
       } else {
-        // For other tabs, keep month/day selectors hidden by default
-        setShowMonthSelector(false);
-        setShowDaySelector(false);
+        // For other tabs, only hide selectors if this is the initial year selection
+        // Don't override user manual choices to show month/day selectors
+        if (prevYear === 'all' || prevYear === null || prevYear === undefined) {
+          setShowMonthSelector(false);
+          setShowDaySelector(false);
+        }
+        // If selectors are already visible, keep them visible
       }
     }
     
