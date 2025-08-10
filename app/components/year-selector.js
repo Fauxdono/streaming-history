@@ -244,15 +244,15 @@ const YearSelector = ({
   useEffect(() => {
     // Only modify selector visibility for initial tab switches, don't override user selections
     if (selectedYear && selectedYear !== 'all') {
-      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+      const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
       if (isHistoryTab) {
-        // For history tabs, auto-show selectors but don't reset user preference once they've interacted
+        // For history tab, auto-show selectors but don't reset user preference once they've interacted
         if (!userEnabledSelectors) {
           setShowMonthSelector(true);
           setShowDaySelector(true);
         }
       } else if (!userEnabledSelectors) {
-        // For other tabs, only hide if user hasn't manually enabled
+        // For other tabs (including behavior), only hide if user hasn't manually enabled
         setShowMonthSelector(false);
         setShowDaySelector(false);
       }
@@ -646,29 +646,25 @@ const YearSelector = ({
       setShowDaySelector(false);
     } else {
       // Only auto-show month/day selectors for listening history tab
-      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior'; // behavior contains history tab
+      const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
       
       if (isHistoryTab) {
-        // For history tabs, automatically show month and day selectors
+        // For history tab, automatically show month and day selectors
         setShowMonthSelector(true);
         setShowDaySelector(true);
         
-        // Only auto-select first data day for 'history' tab, not 'behavior' tab
-        if (activeTab === 'history') {
-          // Find the first day with actual data in this year
-          const firstDataDay = findFirstDayWithData(year);
-          
-          // Set to the first day with data
-          setSelectedMonth(firstDataDay.month);
-          setSelectedDay(firstDataDay.day);
-          
-          // Validate the day exists in the month (should be valid since it came from data)
-          const validDay = Math.min(firstDataDay.day, getDaysInMonth(year, firstDataDay.month));
-          if (validDay !== firstDataDay.day) {
-            setSelectedDay(validDay);
-          }
+        // Find the first day with actual data in this year
+        const firstDataDay = findFirstDayWithData(year);
+        
+        // Set to the first day with data
+        setSelectedMonth(firstDataDay.month);
+        setSelectedDay(firstDataDay.day);
+        
+        // Validate the day exists in the month (should be valid since it came from data)
+        const validDay = Math.min(firstDataDay.day, getDaysInMonth(year, firstDataDay.month));
+        if (validDay !== firstDataDay.day) {
+          setSelectedDay(validDay);
         }
-        // For behavior tab, just show selectors but don't auto-select dates
       } else {
         // For other tabs, only hide selectors if this is the initial year selection
         // Don't override user manual choices to show month/day selectors
@@ -684,16 +680,11 @@ const YearSelector = ({
     if (year === 'all') {
       updateParentWithDate(year, 1, 1); // Use default values for 'all'
     } else {
-      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+      const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
       if (isHistoryTab) {
-        // Only auto-use first data day for 'history' tab, not 'behavior' tab
-        if (activeTab === 'history') {
-          const firstDataDay = findFirstDayWithData(year);
-          updateParentWithDate(year, firstDataDay.month, firstDataDay.day);
-        } else {
-          // For behavior tab, just send the year (let user manually select month/day)
-          updateParentWithDate(year, 1, 1, null); // Just year
-        }
+        // For history tab, use the first data day
+        const firstDataDay = findFirstDayWithData(year);
+        updateParentWithDate(year, firstDataDay.month, firstDataDay.day);
       } else {
         // For other tabs, use current month/day only if selectors are active, otherwise just year
         if (showDaySelector && showMonthSelector) {
@@ -715,7 +706,7 @@ const YearSelector = ({
     setSelectedMonth(month);
     
     // When user manually selects a month, mark that they've enabled selectors
-    const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+    const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
     if (!isHistoryTab && showMonthSelector) {
       setUserEnabledSelectors(true);
     }
@@ -749,7 +740,7 @@ const YearSelector = ({
     setSelectedDay(day);
     
     // When user manually selects a day, mark that they've enabled selectors
-    const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+    const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
     if (!isHistoryTab) {
       setUserEnabledSelectors(true);
     }
@@ -1115,7 +1106,7 @@ const YearSelector = ({
                           setShowMonthSelector(newMonthValue);
                           
                           // Track that user has manually interacted with selectors
-                          const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+                          const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
                           if (!isHistoryTab) {
                             setUserEnabledSelectors(newMonthValue);
                           }
@@ -1174,7 +1165,7 @@ const YearSelector = ({
                             setShowDaySelector(newDayValue);
                             
                             // Track that user has manually interacted with selectors
-                            const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+                            const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
                             if (!isHistoryTab && newDayValue) {
                               setUserEnabledSelectors(true);
                             }
