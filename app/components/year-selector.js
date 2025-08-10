@@ -678,7 +678,7 @@ const YearSelector = ({
     
     // Update parent with appropriate date format
     if (year === 'all') {
-      updateParentWithDate(year, selectedMonth, selectedDay);
+      updateParentWithDate(year, 1, 1); // Use default values for 'all'
     } else {
       const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
       if (isHistoryTab) {
@@ -686,14 +686,20 @@ const YearSelector = ({
         const firstDataDay = findFirstDayWithData(year);
         updateParentWithDate(year, firstDataDay.month, firstDataDay.day);
       } else {
-        // For other tabs, just use the year
-        updateParentWithDate(year, selectedMonth, selectedDay);
+        // For other tabs, use current month/day only if selectors are active, otherwise just year
+        if (showDaySelector && showMonthSelector) {
+          updateParentWithDate(year, selectedMonth, selectedDay, 'day');
+        } else if (showMonthSelector) {
+          updateParentWithDate(year, selectedMonth, 1, 'month');
+        } else {
+          updateParentWithDate(year, 1, 1, null); // Just year
+        }
       }
     }
     
     // Force UI refresh
     setRefreshCounter(prev => prev + 1);
-  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData, activeTab]);
+  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData, activeTab, showDaySelector, showMonthSelector]);
   
   // Handle month change in single mode
   const handleMonthChange = useCallback((month) => {
@@ -713,17 +719,21 @@ const YearSelector = ({
         setSelectedDay(validDay);
       }
       
-      // Update parent with the appropriate format based on current selectors
-      if (showDaySelector) {
-        updateParentWithDate(selectedYear, month, validDay, 'day');
-      } else {
-        updateParentWithDate(selectedYear, month, validDay, 'month');
+      // Update parent immediately with appropriate format based on current selectors
+      if (showDaySelector && onYearChange) {
+        const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
+        console.log("Month selector sending YYYY-MM-DD:", dateStr);
+        onYearChange(dateStr);
+      } else if (onYearChange) {
+        const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}`;
+        console.log("Month selector sending YYYY-MM:", dateStr);
+        onYearChange(dateStr);
       }
       
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [selectedYear, selectedDay, getDaysInMonth, showDaySelector, activeTab, showMonthSelector]);
+  }, [selectedYear, selectedDay, getDaysInMonth, showDaySelector, activeTab, showMonthSelector, onYearChange]);
   
   // Handle day change in single mode
   const handleDayChange = useCallback((day) => {
@@ -735,11 +745,13 @@ const YearSelector = ({
       setUserEnabledSelectors(true);
     }
     
-    // Update parent with the new date - always use day format when day changes
-    if (selectedYear !== 'all') {
-      updateParentWithDate(selectedYear, selectedMonth, day, 'day');
+    // Update parent immediately with the new date - always use day format when day changes
+    if (selectedYear && selectedYear !== 'all' && onYearChange) {
+      const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      console.log("Day selector sending YYYY-MM-DD:", dateStr);
+      onYearChange(dateStr);
     }
-  }, [selectedYear, selectedMonth, activeTab]);
+  }, [selectedYear, selectedMonth, activeTab, onYearChange]);
   
   // Handle start month change in range mode
   const handleStartMonthChange = useCallback((month) => {
