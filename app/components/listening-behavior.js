@@ -18,7 +18,7 @@ const ListeningBehavior = ({
     if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) {
       return selectedYear; // Use the date from year selector
     }
-    return new Date().toISOString().split('T')[0]; // Default to today
+    return null; // No automatic date selection
   });
   
   // Get the current theme
@@ -440,9 +440,12 @@ const filteredData = useMemo(() => {
   // Analyze listening history for selected date
   const historyData = useMemo(() => {
     // Use selectedYear if it's a specific date, otherwise use selectedDate
-    const dateToUse = (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) 
-      ? selectedYear 
-      : selectedDate;
+    // Only show data when a specific date is selected
+    if (!selectedYear || !selectedYear.includes('-') || selectedYear.split('-').length !== 3) {
+      return { tracks: [], totalTracks: 0, totalListeningTime: 0, uniqueTracks: 0, uniqueArtists: 0, sessions: 0, formattedDate: 'No date selected' };
+    }
+    
+    const dateToUse = selectedYear;
     const selectedDateObj = new Date(dateToUse);
     const nextDay = new Date(selectedDateObj);
     nextDay.setDate(nextDay.getDate() + 1);
