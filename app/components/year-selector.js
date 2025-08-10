@@ -230,18 +230,8 @@ const YearSelector = ({
           setShowDaySelector(false);
           setUserEnabledSelectors(false);
         } else {
-          // Only auto-show month/day selectors for listening history contexts
-          // But preserve user manual choices in other tabs
-          const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
-          if (isHistoryTab) {
-            setShowMonthSelector(true);
-            setShowDaySelector(true);
-          } else if (!userEnabledSelectors) {
-            // Only hide selectors if user hasn't manually enabled them
-            setShowMonthSelector(false);
-            setShowDaySelector(false);
-          }
-          // If userEnabledSelectors is true, preserve current selector state
+          // For non-"all" initial years, let the activeTab useEffect handle selector visibility
+          // This avoids conflicts between initialYear and activeTab logic
         }
       }
       
@@ -256,21 +246,25 @@ const YearSelector = ({
     
     // Refresh UI to update selectors
     setRefreshCounter(prev => prev + 1);
-  }, [initialYear, onToggleRangeMode, activeTab]);
+  }, [initialYear, onToggleRangeMode]);
   
-  // Reset user preference when switching tabs to allow fresh automatic behavior
+  // Handle activeTab changes separately to avoid interfering with initialYear logic
   useEffect(() => {
-    // Small delay to avoid interfering with normal initialization
-    const timer = setTimeout(() => {
+    // Only modify selector visibility, don't trigger other side effects
+    if (selectedYear && selectedYear !== 'all') {
       const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
       if (isHistoryTab) {
-        // Reset flag so automatic behavior works in history tabs
+        // For history tabs, auto-show selectors and reset user preference
+        setShowMonthSelector(true);
+        setShowDaySelector(true);
         setUserEnabledSelectors(false);
+      } else if (!userEnabledSelectors) {
+        // For other tabs, only hide if user hasn't manually enabled
+        setShowMonthSelector(false);
+        setShowDaySelector(false);
       }
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [activeTab]);
+    }
+  }, [activeTab, selectedYear, userEnabledSelectors]);
   
   // Reset month and day selection when year changes
   useEffect(() => {
@@ -690,26 +684,23 @@ const YearSelector = ({
     }
     
     // Update parent with appropriate date format
-    if (onYearChange) {
-      if (year === 'all') {
-        onYearChange('all');
+    if (year === 'all') {
+      updateParentWithDate(year, selectedMonth, selectedDay);
+    } else {
+      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+      if (isHistoryTab) {
+        // For history tab, use the first data day
+        const firstDataDay = findFirstDayWithData(year);
+        updateParentWithDate(year, firstDataDay.month, firstDataDay.day);
       } else {
-        const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
-        if (isHistoryTab) {
-          // For history tab, use the first data day with full date format
-          const firstDataDay = findFirstDayWithData(year);
-          const dateStr = `${year}-${firstDataDay.month.toString().padStart(2, '0')}-${firstDataDay.day.toString().padStart(2, '0')}`;
-          onYearChange(dateStr);
-        } else {
-          // For other tabs, just use the year
-          onYearChange(year);
-        }
+        // For other tabs, just use the year
+        updateParentWithDate(year, selectedMonth, selectedDay);
       }
     }
     
     // Force UI refresh
     setRefreshCounter(prev => prev + 1);
-  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData, activeTab, onYearChange]);
+  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData, activeTab]);
   
   // Handle month change in single mode
   const handleMonthChange = useCallback((month) => {
@@ -729,7 +720,7 @@ const YearSelector = ({
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [selectedYear, selectedDay, getDaysInMonth, updateParentWithDate]);
+  }, [selectedYear, selectedDay, getDaysInMonth]);
   
   // Handle day change in single mode
   const handleDayChange = useCallback((day) => {
@@ -739,7 +730,7 @@ const YearSelector = ({
     if (selectedYear !== 'all') {
       updateParentWithDate(selectedYear, selectedMonth, day);
     }
-  }, [selectedYear, selectedMonth, updateParentWithDate]);
+  }, [selectedYear, selectedMonth]);
   
   // Handle start month change in range mode
   const handleStartMonthChange = useCallback((month) => {
@@ -759,7 +750,7 @@ const YearSelector = ({
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [yearRange, startDay, endMonth, endDay, getDaysInMonth, updateParentWithDateRange]);
+  }, [yearRange, startDay, endMonth, endDay, getDaysInMonth]);
   
   // Handle start day change in range mode
   const handleStartDayChange = useCallback((day) => {
@@ -767,7 +758,7 @@ const YearSelector = ({
     
     // Update parent with the new range
     updateParentWithDateRange(yearRange.startYear, startMonth, day, yearRange.endYear, endMonth, endDay);
-  }, [yearRange, startMonth, endMonth, endDay, updateParentWithDateRange]);
+  }, [yearRange, startMonth, endMonth, endDay]);
   
   // Handle end month change in range mode
   const handleEndMonthChange = useCallback((month) => {
@@ -787,7 +778,7 @@ const YearSelector = ({
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [yearRange, startMonth, startDay, endDay, getDaysInMonth, updateParentWithDateRange]);
+  }, [yearRange, startMonth, startDay, endDay, getDaysInMonth]);
   
   // Handle end day change in range mode
   const handleEndDayChange = useCallback((day) => {
@@ -795,10 +786,10 @@ const YearSelector = ({
     
     // Update parent with the new range
     updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, endMonth, day);
-  }, [yearRange, startMonth, startDay, endMonth, updateParentWithDateRange]);
+  }, [yearRange, startMonth, startDay, endMonth]);
   
   // Unified function to update parent with date
-  const updateParentWithDate = useCallback((year, month, day) => {
+  const updateParentWithDate = (year, month, day) => {
     if (!onYearChange) return;
     
     if (year === 'all') {
@@ -821,20 +812,20 @@ const YearSelector = ({
       // Just year - this path is taken for the first year (not "all")
       onYearChange(year);
     }
-  }, [onYearChange, showMonthSelector, showDaySelector]);
+  };
 
   // Unified function to update parent with date range
-  const updateParentWithDateRange = useCallback((startYear, startM, startD, endYear, endM, endD) => {
+  const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
     // Only proceed if we have the callback function
     if (!onYearRangeChange) return;
     
-    // Use provided values (callers must provide all values)
-    const sYear = startYear;
-    const sMonth = startM;
-    const sDay = startD;
-    const eYear = endYear;
-    const eMonth = endM;
-    const eDay = endD;
+    // Use provided values or fall back to state
+    const sYear = startYear || yearRange.startYear;
+    const sMonth = startM || startMonth;
+    const sDay = startD || startDay;
+    const eYear = endYear || yearRange.endYear;
+    const eMonth = endM || endMonth;
+    const eDay = endD || endDay;
     
     if (!sYear || !eYear) return;
     
@@ -857,7 +848,7 @@ const YearSelector = ({
       startYear: startValue,
       endYear: endValue
     });
-  }, [onYearRangeChange, showRangeMonthDaySelectors]);
+  };
   
   // Handler for year range change in range mode
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
