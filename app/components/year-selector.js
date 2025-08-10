@@ -690,23 +690,26 @@ const YearSelector = ({
     }
     
     // Update parent with appropriate date format
-    if (year === 'all') {
-      updateParentWithDate(year, selectedMonth, selectedDay);
-    } else {
-      const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
-      if (isHistoryTab) {
-        // For history tab, use the first data day
-        const firstDataDay = findFirstDayWithData(year);
-        updateParentWithDate(year, firstDataDay.month, firstDataDay.day);
+    if (onYearChange) {
+      if (year === 'all') {
+        onYearChange('all');
       } else {
-        // For other tabs, just use the year
-        updateParentWithDate(year, selectedMonth, selectedDay);
+        const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+        if (isHistoryTab) {
+          // For history tab, use the first data day with full date format
+          const firstDataDay = findFirstDayWithData(year);
+          const dateStr = `${year}-${firstDataDay.month.toString().padStart(2, '0')}-${firstDataDay.day.toString().padStart(2, '0')}`;
+          onYearChange(dateStr);
+        } else {
+          // For other tabs, just use the year
+          onYearChange(year);
+        }
       }
     }
     
     // Force UI refresh
     setRefreshCounter(prev => prev + 1);
-  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData, activeTab]);
+  }, [selectedYear, selectedMonth, selectedDay, getDaysInMonth, findFirstDayWithData, activeTab, onYearChange]);
   
   // Handle month change in single mode
   const handleMonthChange = useCallback((month) => {
@@ -825,13 +828,13 @@ const YearSelector = ({
     // Only proceed if we have the callback function
     if (!onYearRangeChange) return;
     
-    // Use provided values or fall back to state
-    const sYear = startYear || yearRange.startYear;
-    const sMonth = startM || startMonth;
-    const sDay = startD || startDay;
-    const eYear = endYear || yearRange.endYear;
-    const eMonth = endM || endMonth;
-    const eDay = endD || endDay;
+    // Use provided values (callers must provide all values)
+    const sYear = startYear;
+    const sMonth = startM;
+    const sDay = startD;
+    const eYear = endYear;
+    const eMonth = endM;
+    const eDay = endD;
     
     if (!sYear || !eYear) return;
     
@@ -854,7 +857,7 @@ const YearSelector = ({
       startYear: startValue,
       endYear: endValue
     });
-  }, [onYearRangeChange, yearRange, startMonth, startDay, endMonth, endDay, showRangeMonthDaySelectors]);
+  }, [onYearRangeChange, showRangeMonthDaySelectors]);
   
   // Handler for year range change in range mode
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
