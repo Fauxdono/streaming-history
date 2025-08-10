@@ -228,11 +228,19 @@ const SpotifyAnalyzer = () => {
     // If value is provided, use it directly; otherwise toggle the current state
     const newMode = typeof value === 'boolean' ? value : !albumYearRangeMode;
     
+    // Only update if the mode is actually changing
+    if (newMode === albumYearRangeMode) {
+      return; // No change needed
+    }
+    
+    console.log("toggleAlbumYearRangeMode: changing from", albumYearRangeMode, "to", newMode);
+    
     // Update the state
     setAlbumYearRangeMode(newMode);
     
     // Reset selected year when switching to range mode
     if (newMode) {
+      console.log("toggleAlbumYearRangeMode: resetting selectedAlbumYear to 'all' (range mode)");
       setSelectedAlbumYear('all');
       
       // Set a default range
@@ -247,6 +255,7 @@ const SpotifyAnalyzer = () => {
       }
     } else {
       // When switching back to single mode, reset to "all"
+      console.log("toggleAlbumYearRangeMode: resetting selectedAlbumYear to 'all' (single mode)");
       setSelectedAlbumYear('all');
     }
   }, [albumYearRangeMode, artistsByYear]);
@@ -934,7 +943,7 @@ const SpotifyAnalyzer = () => {
         setSelectedArtistYear(year);
         break;
       case 'albums':
-        console.log("Setting selectedAlbumYear to:", year);
+        console.log("Setting selectedAlbumYear to:", year, "current value was:", selectedAlbumYear);
         setSelectedAlbumYear(year);
         break;
       case 'tracks':
@@ -993,6 +1002,7 @@ const SpotifyAnalyzer = () => {
 
   // Handle range mode toggle from sidebar
   const handleSidebarRangeModeToggle = useCallback((isRange) => {
+    console.log("handleSidebarRangeModeToggle called with:", { isRange, activeTab });
     const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
     
     switch(activeTab) {
