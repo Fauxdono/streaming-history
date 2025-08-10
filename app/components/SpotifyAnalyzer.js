@@ -277,11 +277,14 @@ const SpotifyAnalyzer = () => {
     const end = isAllTime ? new Date() : new Date(albumEndDate);
     end.setHours(23, 59, 59, 999);
     
-    // Filter raw data by date range
+    // Filter raw data by date range and 30-second minimum (like CustomTrackRankings)
     const dateFilteredEntries = isAllTime 
-      ? rawPlayData 
+      ? rawPlayData.filter(entry => entry.ms_played >= 30000) // Apply 30-second filter
       : rawPlayData.filter(entry => {
           try {
+            // Skip plays shorter than 30 seconds (like CustomTrackRankings)
+            if (entry.ms_played < 30000) return false;
+            
             const timestamp = new Date(entry.ts);
             return timestamp >= start && timestamp <= end;
           } catch (err) {
@@ -405,11 +408,14 @@ const SpotifyAnalyzer = () => {
     const end = isAllTime ? new Date() : new Date(artistEndDate);
     end.setHours(23, 59, 59, 999);
     
-    // Filter raw data by date range
+    // Filter raw data by date range and 30-second minimum (like CustomTrackRankings)
     const dateFilteredEntries = isAllTime 
-      ? rawPlayData 
+      ? rawPlayData.filter(entry => entry.ms_played >= 30000) // Apply 30-second filter
       : rawPlayData.filter(entry => {
           try {
+            // Skip plays shorter than 30 seconds (like CustomTrackRankings)
+            if (entry.ms_played < 30000) return false;
+            
             const timestamp = new Date(entry.ts);
             return timestamp >= start && timestamp <= end;
           } catch (err) {
