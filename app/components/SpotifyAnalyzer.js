@@ -712,10 +712,8 @@ const SpotifyAnalyzer = () => {
       } else {
         album.trackObjects = [];
       }
-      
-      return album;
-    }).filter(Boolean); // Remove any null results
-  }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData, rawPlayData]);
+    // Old displayedAlbums logic removed
+  };
 
   // Toggle a service in the selection with useCallback
   const toggleServiceSelection = useCallback((serviceType) => {
