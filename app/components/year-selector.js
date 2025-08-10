@@ -790,18 +790,23 @@ const YearSelector = ({
       return;
     }
     
+    console.log("updateParentWithDate called with:", { year, month, day, showMonthSelector, showDaySelector });
+    
     // For any other year, including the first year in the list,
     // format according to what selectors are shown
     if (showMonthSelector && showDaySelector) {
       // Year-Month-Day format
       const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      console.log("YearSelector sending YYYY-MM-DD:", dateStr);
       onYearChange(dateStr);
     } else if (showMonthSelector) {
       // Year-Month format
       const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
+      console.log("YearSelector sending YYYY-MM:", dateStr);
       onYearChange(dateStr);
     } else {
       // Just year - this path is taken for the first year (not "all")
+      console.log("YearSelector sending year only:", year);
       onYearChange(year);
     }
   };

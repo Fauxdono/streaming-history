@@ -262,9 +262,8 @@ const SpotifyAnalyzer = () => {
     return `${selectedAlbumYear} Albums`;
   }, [selectedAlbumYear, albumYearRangeMode, albumYearRange]);
 
-  // Simplified albums filtering using date range approach (like CustomTrackRankings)
+  // Simplified albums filtering using date range approach (like CustomTrackRankings)  
   const displayedAlbums = useMemo(() => {
-    console.log("displayedAlbums useMemo called with selectedAlbumYear:", selectedAlbumYear, "date range:", { albumStartDate, albumEndDate });
     
     // If all-time, use the existing topAlbums
     if (selectedAlbumYear === 'all') {
@@ -712,8 +711,10 @@ const SpotifyAnalyzer = () => {
       } else {
         album.trackObjects = [];
       }
-    // Old displayedAlbums logic removed
-  };
+      
+      return album;
+    }).filter(Boolean); // Remove any null results
+  }, [topAlbums, albumsByYear, selectedAlbumYear, albumYearRangeMode, albumYearRange, selectedArtists, processedData, rawPlayData]);
 
   // Toggle a service in the selection with useCallback
   const toggleServiceSelection = useCallback((serviceType) => {
