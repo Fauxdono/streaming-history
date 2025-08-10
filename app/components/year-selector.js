@@ -61,8 +61,10 @@ const YearSelector = ({
     return Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
   }, [artistsByYear]);
   
-  // Generate all months (1-12) - constant array
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  // Generate available months for the selected year
+  const months = useMemo(() => {
+    return getAvailableMonths(selectedYear);
+  }, [selectedYear, getAvailableMonths]);
   
   // Efficient function to get days in month
   const getDaysInMonth = useCallback((year, month) => {
@@ -71,18 +73,27 @@ const YearSelector = ({
     return new Date(parseInt(year), month, 0).getDate();
   }, []);
   
-  // Create the days arrays as memoized values
+  // Create the days arrays as memoized values - only available days
   const days = useMemo(() => {
-    return Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => i + 1);
-  }, [selectedYear, selectedMonth, getDaysInMonth, refreshCounter]);
+    return getAvailableDays(selectedYear, selectedMonth);
+  }, [selectedYear, selectedMonth, getAvailableDays, refreshCounter]);
   
   const startDays = useMemo(() => {
-    return Array.from({ length: getDaysInMonth(yearRange.startYear, startMonth) }, (_, i) => i + 1);
-  }, [yearRange.startYear, startMonth, getDaysInMonth, refreshCounter]);
+    return getAvailableDays(yearRange.startYear, startMonth);
+  }, [yearRange.startYear, startMonth, getAvailableDays, refreshCounter]);
   
   const endDays = useMemo(() => {
-    return Array.from({ length: getDaysInMonth(yearRange.endYear, endMonth) }, (_, i) => i + 1);
-  }, [yearRange.endYear, endMonth, getDaysInMonth, refreshCounter]);
+    return getAvailableDays(yearRange.endYear, endMonth);
+  }, [yearRange.endYear, endMonth, getAvailableDays, refreshCounter]);
+  
+  // Generate available months for range mode (these could be different for start/end years)
+  const startMonths = useMemo(() => {
+    return getAvailableMonths(yearRange.startYear);
+  }, [yearRange.startYear, getAvailableMonths]);
+  
+  const endMonths = useMemo(() => {
+    return getAvailableMonths(yearRange.endYear);
+  }, [yearRange.endYear, getAvailableMonths]);
   
   // Check for mobile viewport
   useEffect(() => {
@@ -638,6 +649,59 @@ const YearSelector = ({
       day: firstDate.getDate()
     };
   }, [rawPlayData]);
+  
+  // Function to get available months for a given year
+  const getAvailableMonths = useCallback((year) => {
+    if (!rawPlayData || rawPlayData.length === 0 || year === 'all') {
+      return Array.from({ length: 12 }, (_, i) => i + 1); // Default to all months
+    }
+    
+    // Get unique months from data for the selected year
+    const monthsSet = new Set();
+    rawPlayData
+      .filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          return !isNaN(date.getTime()) && date.getFullYear() === parseInt(year);
+        } catch {
+          return false;
+        }
+      })
+      .forEach(entry => {
+        const date = new Date(entry.ts);
+        monthsSet.add(date.getMonth() + 1); // JavaScript months are 0-based
+      });
+    
+    return Array.from(monthsSet).sort((a, b) => a - b);
+  }, [rawPlayData]);
+  
+  // Function to get available days for a given year and month
+  const getAvailableDays = useCallback((year, month) => {
+    if (!rawPlayData || rawPlayData.length === 0 || year === 'all') {
+      const daysInMonth = getDaysInMonth(year, month);
+      return Array.from({ length: daysInMonth }, (_, i) => i + 1); // Default to all days
+    }
+    
+    // Get unique days from data for the selected year and month
+    const daysSet = new Set();
+    rawPlayData
+      .filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          return !isNaN(date.getTime()) && 
+                 date.getFullYear() === parseInt(year) && 
+                 date.getMonth() + 1 === month;
+        } catch {
+          return false;
+        }
+      })
+      .forEach(entry => {
+        const date = new Date(entry.ts);
+        daysSet.add(date.getDate());
+      });
+    
+    return Array.from(daysSet).sort((a, b) => a - b);
+  }, [rawPlayData, getDaysInMonth]);
 
   // Handle year change in single mode
   const handleYearChange = useCallback((year) => {
@@ -1275,7 +1339,7 @@ const YearSelector = ({
                       <div className={`text-xs mb-1 font-medium ${colors.text}`}>START M</div>
                       <WheelSelector
                         key={`start-month-${refreshCounter}`}
-                        items={months}
+                        items={startMonths}
                         value={startMonth}
                         onChange={handleStartMonthChange}
                         colorTheme={colorTheme}
@@ -1287,7 +1351,7 @@ const YearSelector = ({
                       <div className={`text-xs mb-1 font-medium ${colors.text}`}>END M</div>
                       <WheelSelector
                         key={`end-month-${refreshCounter}`}
-                        items={months}
+                        items={endMonths}
                         value={endMonth}
                         onChange={handleEndMonthChange}
                         colorTheme={colorTheme}
