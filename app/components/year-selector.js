@@ -242,14 +242,15 @@ const YearSelector = ({
   
   // Handle activeTab changes separately to avoid interfering with initialYear logic
   useEffect(() => {
-    // Only modify selector visibility, don't trigger other side effects
+    // Only modify selector visibility for initial tab switches, don't override user selections
     if (selectedYear && selectedYear !== 'all') {
       const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
       if (isHistoryTab) {
-        // For history tabs, auto-show selectors and reset user preference
-        setShowMonthSelector(true);
-        setShowDaySelector(true);
-        setUserEnabledSelectors(false);
+        // For history tabs, auto-show selectors but don't reset user preference once they've interacted
+        if (!userEnabledSelectors) {
+          setShowMonthSelector(true);
+          setShowDaySelector(true);
+        }
       } else if (!userEnabledSelectors) {
         // For other tabs, only hide if user hasn't manually enabled
         setShowMonthSelector(false);
@@ -698,6 +699,12 @@ const YearSelector = ({
   const handleMonthChange = useCallback((month) => {
     setSelectedMonth(month);
     
+    // When user manually selects a month, mark that they've enabled selectors
+    const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+    if (!isHistoryTab && showMonthSelector) {
+      setUserEnabledSelectors(true);
+    }
+    
     // Make sure day is valid for this month
     if (selectedYear !== 'all') {
       const daysInMonth = getDaysInMonth(selectedYear, month);
@@ -706,23 +713,33 @@ const YearSelector = ({
         setSelectedDay(validDay);
       }
       
-      // Update parent with the new date
-      updateParentWithDate(selectedYear, month, validDay);
+      // Update parent with the appropriate format based on current selectors
+      if (showDaySelector) {
+        updateParentWithDate(selectedYear, month, validDay, 'day');
+      } else {
+        updateParentWithDate(selectedYear, month, validDay, 'month');
+      }
       
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [selectedYear, selectedDay, getDaysInMonth]);
+  }, [selectedYear, selectedDay, getDaysInMonth, showDaySelector, activeTab, showMonthSelector]);
   
   // Handle day change in single mode
   const handleDayChange = useCallback((day) => {
     setSelectedDay(day);
     
-    // Update parent with the new date
-    if (selectedYear !== 'all') {
-      updateParentWithDate(selectedYear, selectedMonth, day);
+    // When user manually selects a day, mark that they've enabled selectors
+    const isHistoryTab = activeTab === 'history' || activeTab === 'behavior';
+    if (!isHistoryTab) {
+      setUserEnabledSelectors(true);
     }
-  }, [selectedYear, selectedMonth]);
+    
+    // Update parent with the new date - always use day format when day changes
+    if (selectedYear !== 'all') {
+      updateParentWithDate(selectedYear, selectedMonth, day, 'day');
+    }
+  }, [selectedYear, selectedMonth, activeTab]);
   
   // Handle start month change in range mode
   const handleStartMonthChange = useCallback((month) => {
@@ -780,8 +797,8 @@ const YearSelector = ({
     updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, endMonth, day);
   }, [yearRange, startMonth, startDay, endMonth]);
   
-  // Unified function to update parent with date
-  const updateParentWithDate = (year, month, day) => {
+  // Unified function to update parent with date - explicit format control
+  const updateParentWithDate = (year, month, day, forceFormat = null) => {
     if (!onYearChange) return;
     
     if (year === 'all') {
@@ -790,16 +807,19 @@ const YearSelector = ({
       return;
     }
     
-    console.log("updateParentWithDate called with:", { year, month, day, showMonthSelector, showDaySelector });
+    console.log("updateParentWithDate called with:", { year, month, day, showMonthSelector, showDaySelector, forceFormat });
     
-    // For any other year, including the first year in the list,
-    // format according to what selectors are shown
-    if (showMonthSelector && showDaySelector) {
+    // Use explicit format if provided, otherwise use current toggle states
+    const useMonthSelector = forceFormat === 'month' || (forceFormat === null && showMonthSelector);
+    const useDaySelector = forceFormat === 'day' || (forceFormat === null && showDaySelector);
+    
+    // For any other year, format according to what selectors should be shown
+    if (useDaySelector && useMonthSelector) {
       // Year-Month-Day format
       const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
       console.log("YearSelector sending YYYY-MM-DD:", dateStr);
       onYearChange(dateStr);
-    } else if (showMonthSelector) {
+    } else if (useMonthSelector) {
       // Year-Month format
       const dateStr = `${year}-${month.toString().padStart(2, '0')}`;
       console.log("YearSelector sending YYYY-MM:", dateStr);
