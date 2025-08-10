@@ -3,10 +3,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 import { useTheme } from './themeprovider.js';
 
-// Export variables for SpotifyAnalyzer.js to use for dynamic tab names
-export let selectedBehaviorYear = 'all';
-export let yearBehaviorRange = { startYear: '', endYear: '' };
-export let behaviorYearRangeMode = false;
+// Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
 const ListeningBehavior = ({ 
   rawPlayData = [], 

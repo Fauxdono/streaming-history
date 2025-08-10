@@ -3,10 +3,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import StreamingByYear from './streaming-by-year.js';
 import { useTheme } from './themeprovider.js'; // Import the theme hook
 
-// Export variables for SpotifyAnalyzer.js to use for dynamic tab names
-export let selectedPatternYear = 'all';
-export let yearPatternRange = { startYear: '', endYear: '' };
-export let patternYearRangeMode = false;
+// Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
 const ListeningPatterns = ({ 
   rawPlayData = [], 
