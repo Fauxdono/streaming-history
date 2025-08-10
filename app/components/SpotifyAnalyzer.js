@@ -261,6 +261,34 @@ const SpotifyAnalyzer = () => {
     return `${selectedAlbumYear} Albums`;
   }, [selectedAlbumYear, albumYearRangeMode, albumYearRange]);
 
+  // useEffect to set album date ranges when year changes (like CustomTrackRankings)
+  useEffect(() => {
+    if (selectedAlbumYear === 'all') {
+      // Clear date filters for all-time
+      setAlbumStartDate('');
+      setAlbumEndDate('');
+    } else if (selectedAlbumYear.includes('-')) {
+      // Handle YYYY-MM or YYYY-MM-DD format
+      if (selectedAlbumYear.split('-').length === 3) {
+        // YYYY-MM-DD format - set to exact day
+        setAlbumStartDate(selectedAlbumYear);
+        setAlbumEndDate(selectedAlbumYear);
+      } else if (selectedAlbumYear.split('-').length === 2) {
+        // YYYY-MM format - set to whole month
+        const [year, month] = selectedAlbumYear.split('-');
+        const startDate = `${year}-${month}-01`;
+        const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+        const endDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+        setAlbumStartDate(startDate);
+        setAlbumEndDate(endDate);
+      }
+    } else {
+      // Regular year - set to whole year
+      setAlbumStartDate(`${selectedAlbumYear}-01-01`);
+      setAlbumEndDate(`${selectedAlbumYear}-12-31`);
+    }
+  }, [selectedAlbumYear]);
+
   // Simplified albums filtering using date range approach (like CustomTrackRankings)  
   const displayedAlbums = useMemo(() => {
     
@@ -391,6 +419,34 @@ const SpotifyAnalyzer = () => {
     
     return Array.from(formatSet).join(',');
   }, [selectedServices]);
+
+  // useEffect to set artist date ranges when year changes (like CustomTrackRankings)
+  useEffect(() => {
+    if (selectedArtistYear === 'all') {
+      // Clear date filters for all-time
+      setArtistStartDate('');
+      setArtistEndDate('');
+    } else if (selectedArtistYear.includes('-')) {
+      // Handle YYYY-MM or YYYY-MM-DD format
+      if (selectedArtistYear.split('-').length === 3) {
+        // YYYY-MM-DD format - set to exact day
+        setArtistStartDate(selectedArtistYear);
+        setArtistEndDate(selectedArtistYear);
+      } else if (selectedArtistYear.split('-').length === 2) {
+        // YYYY-MM format - set to whole month
+        const [year, month] = selectedArtistYear.split('-');
+        const startDate = `${year}-${month}-01`;
+        const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+        const endDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+        setArtistStartDate(startDate);
+        setArtistEndDate(endDate);
+      }
+    } else {
+      // Regular year - set to whole year
+      setArtistStartDate(`${selectedArtistYear}-01-01`);
+      setArtistEndDate(`${selectedArtistYear}-12-31`);
+    }
+  }, [selectedArtistYear]);
 
   // Simple displayedArtists logic using CustomTrackRankings pattern
   const displayedArtists = useMemo(() => {
