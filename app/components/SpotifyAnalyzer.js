@@ -296,7 +296,9 @@ const SpotifyAnalyzer = () => {
       
       const artistName = entry.master_metadata_album_artist_name;
       const albumName = entry.master_metadata_album_album_name;
+      const trackName = entry.master_metadata_track_name || 'Unknown Track';
       const key = `${albumName}-${artistName}`;
+      const timestamp = new Date(entry.ts);
       
       if (!albumMap.has(key)) {
         albumMap.set(key, {
@@ -306,16 +308,50 @@ const SpotifyAnalyzer = () => {
           playCount: 0,
           trackCount: new Set(),
           trackNames: new Set(),
+          trackObjects: [],
+          firstListen: timestamp.getTime()
         });
       }
       
       const album = albumMap.get(key);
       album.totalPlayed += entry.ms_played || 0;
       album.playCount++;
-      if (entry.master_metadata_track_name) {
-        album.trackNames.add(entry.master_metadata_track_name);
-        album.trackCount.add(entry.master_metadata_track_name);
+      
+      // Track first listen date
+      if (timestamp < new Date(album.firstListen)) {
+        album.firstListen = timestamp.getTime();
       }
+      
+      if (trackName) {
+        album.trackNames.add(trackName);
+        album.trackCount.add(trackName);
+        
+        // Find or create track object
+        let trackObj = album.trackObjects.find(t => t.trackName === trackName);
+        if (!trackObj) {
+          trackObj = {
+            trackName: trackName,
+            artist: artistName,
+            totalPlayed: 0,
+            playCount: 0,
+            albumName: albumName
+          };
+          album.trackObjects.push(trackObj);
+        }
+        
+        // Update track stats
+        trackObj.totalPlayed += entry.ms_played || 0;
+        trackObj.playCount++;
+      }
+    });
+    
+    // Process albums - convert Sets to values and sort tracks
+    albumMap.forEach(album => {
+      album.trackCountValue = album.trackCount.size;
+      album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+      // Clean up Sets as they're not needed anymore
+      delete album.trackCount;
+      delete album.trackNames;
     });
     
     return Array.from(albumMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
@@ -387,18 +423,56 @@ const SpotifyAnalyzer = () => {
       if (!entry.master_metadata_album_artist_name) return;
       
       const artistName = entry.master_metadata_album_artist_name;
+      const trackName = entry.master_metadata_track_name || 'Unknown';
+      const timestamp = new Date(entry.ts);
       
       if (!artistMap.has(artistName)) {
         artistMap.set(artistName, {
           name: artistName,
           totalPlayed: 0,
-          playCount: 0
+          playCount: 0,
+          firstListen: timestamp.getTime(),
+          firstSong: trackName,
+          firstSongPlayCount: 1,
+          tracks: new Map(), // Track all songs and their play counts
+          longestStreak: 1,
+          currentStreak: 1,
+          streakStart: timestamp.getTime(),
+          streakEnd: timestamp.getTime()
         });
       }
       
       const artist = artistMap.get(artistName);
       artist.totalPlayed += entry.ms_played || 0;
       artist.playCount++;
+      
+      // Track first listen date
+      if (timestamp < new Date(artist.firstListen)) {
+        artist.firstListen = timestamp.getTime();
+        artist.firstSong = trackName;
+        artist.firstSongPlayCount = 1;
+      } else if (trackName === artist.firstSong) {
+        artist.firstSongPlayCount++;
+      }
+      
+      // Track all songs for mostPlayedSong
+      if (!artist.tracks.has(trackName)) {
+        artist.tracks.set(trackName, { trackName, playCount: 0, totalPlayed: 0 });
+      }
+      const trackData = artist.tracks.get(trackName);
+      trackData.playCount++;
+      trackData.totalPlayed += entry.ms_played || 0;
+    });
+    
+    // Process each artist to find most played song
+    artistMap.forEach(artist => {
+      if (artist.tracks.size > 0) {
+        const mostPlayedTrack = Array.from(artist.tracks.values())
+          .sort((a, b) => b.playCount - a.playCount)[0];
+        artist.mostPlayedSong = mostPlayedTrack;
+      }
+      // Remove the tracks map as it's no longer needed
+      delete artist.tracks;
     });
     
     return Array.from(artistMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
