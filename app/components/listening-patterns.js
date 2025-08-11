@@ -996,7 +996,6 @@ const ListeningPatterns = ({
                           <td className={`p-6 text-center ${
                             isDarkMode ? 'text-gray-500' : 'text-gray-400'
                           }`} colSpan="2">
-                            <div className="text-2xl mb-2">🔇</div>
                             <div className="text-sm">No listening data</div>
                           </td>
                         </tr>
@@ -1007,12 +1006,12 @@ const ListeningPatterns = ({
                             <td className={`p-2 text-center text-xs ${
                               isDarkMode ? 'text-purple-300' : 'text-purple-600'
                             }`}>
-                              🎵 {monthData.uniqueSongCount} songs
+{monthData.uniqueSongCount} songs
                             </td>
                             <td className={`p-2 text-center text-xs ${
                               isDarkMode ? 'text-purple-300' : 'text-purple-600'
                             }`}>
-                              🎤 {monthData.uniqueArtistCount} artists
+                              {monthData.uniqueArtistCount} artists
                             </td>
                           </tr>
 
@@ -1022,7 +1021,7 @@ const ListeningPatterns = ({
                               <td className={`p-2 text-center text-xs font-medium ${
                                 isDarkMode ? 'text-purple-400' : 'text-purple-700'
                               }`} colSpan="2">
-                                🔥 Top Artist
+                                Top Artist
                               </td>
                             </tr>
                           )}
@@ -1047,7 +1046,7 @@ const ListeningPatterns = ({
                               <td className={`p-2 text-center text-xs font-medium ${
                                 isDarkMode ? 'text-purple-400' : 'text-purple-700'
                               }`} colSpan="2">
-                                💿 Top Album
+                                Top Album
                               </td>
                             </tr>
                           )}
@@ -1072,7 +1071,7 @@ const ListeningPatterns = ({
                               <td className={`p-2 text-center text-xs font-medium ${
                                 isDarkMode ? 'text-purple-400' : 'text-purple-700'
                               }`} colSpan="2">
-                                ✨ New Discoveries ({monthData.firstListens.length})
+                                New Discoveries ({monthData.firstListens.length})
                               </td>
                             </tr>
                           )}
@@ -1147,7 +1146,6 @@ const ListeningPatterns = ({
                           <td className={`p-4 text-center ${
                             isDarkMode ? 'text-gray-500' : 'text-gray-400'
                           }`} colSpan="2">
-                            <div className="text-lg mb-1">🔇</div>
                             <div className="text-xs">No data</div>
                           </td>
                         </tr>
@@ -1158,12 +1156,12 @@ const ListeningPatterns = ({
                             <td className={`p-1 text-center text-xs ${
                               isDarkMode ? 'text-purple-300' : 'text-purple-600'
                             }`}>
-                              🎵 {dayData.uniqueSongCount}
+                              {dayData.uniqueSongCount} songs
                             </td>
                             <td className={`p-1 text-center text-xs ${
                               isDarkMode ? 'text-purple-300' : 'text-purple-600'
                             }`}>
-                              🎤 {dayData.uniqueArtistCount}
+                              {dayData.uniqueArtistCount} artists
                             </td>
                           </tr>
 
@@ -1174,7 +1172,7 @@ const ListeningPatterns = ({
                                 <td className={`p-1 text-center text-xs font-medium ${
                                   isDarkMode ? 'text-purple-400' : 'text-purple-700'
                                 }`} colSpan="2">
-                                  🔥 Top Artist
+                                  Top Artist
                                 </td>
                               </tr>
                               <tr>
@@ -1199,7 +1197,7 @@ const ListeningPatterns = ({
                                 <td className={`p-1 text-center text-xs font-medium ${
                                   isDarkMode ? 'text-purple-400' : 'text-purple-700'
                                 }`} colSpan="2">
-                                  💿 Top Album
+                                  Top Album
                                 </td>
                               </tr>
                               <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
@@ -1224,7 +1222,7 @@ const ListeningPatterns = ({
                                 <td className={`p-1 text-center text-xs font-medium ${
                                   isDarkMode ? 'text-purple-400' : 'text-purple-700'
                                 }`} colSpan="2">
-                                  ✨ New ({dayData.firstListens.length})
+                                  New ({dayData.firstListens.length})
                                 </td>
                               </tr>
                               <tr>
