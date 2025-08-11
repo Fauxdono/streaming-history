@@ -357,8 +357,133 @@ const ListeningPatterns = ({
     return { months, seasons };
   }, [filteredData, chartColors.seasonColors]);
 
+  // Check if we're viewing a specific month (YYYY-MM format)
+  const isMonthView = selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 2;
+  
+  // Daily data for when a specific month is selected
+  const dailyCalendarData = useMemo(() => {
+    if (!isMonthView) return [];
+    
+    const [year, month] = selectedYear.split('-');
+    const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+    
+    // Initialize array for each day of the month
+    const daysData = Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      date: `${year}-${month}-${(i + 1).toString().padStart(2, '0')}`,
+      totalPlays: 0,
+      totalTime: 0,
+      topArtist: { name: '', playCount: 0, totalTime: 0 },
+      topAlbum: { name: '', artist: '', playCount: 0, totalTime: 0 },
+      firstListens: [], // New songs discovered this day
+      uniqueArtists: new Set(),
+      uniqueSongs: new Set()
+    }));
+
+    // Track artists and albums per day
+    const dailyArtists = Array(daysInMonth).fill().map(() => new Map());
+    const dailyAlbums = Array(daysInMonth).fill().map(() => new Map());
+    const songFirstListens = new Map();
+
+    filteredData.forEach(entry => {
+      if (entry.ms_played >= 30000) {
+        const date = new Date(entry.ts);
+        const dayIndex = date.getDate() - 1; // 0-based index
+        
+        if (dayIndex >= 0 && dayIndex < daysInMonth) {
+          const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
+          const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+          const songName = entry.master_metadata_track_name || 'Unknown Song';
+          const songKey = `${songName}-${artistName}`;
+
+          // Update daily totals
+          daysData[dayIndex].totalPlays++;
+          daysData[dayIndex].totalTime += entry.ms_played;
+          daysData[dayIndex].uniqueArtists.add(artistName);
+          daysData[dayIndex].uniqueSongs.add(songKey);
+
+          // Track artists per day
+          if (!dailyArtists[dayIndex].has(artistName)) {
+            dailyArtists[dayIndex].set(artistName, { playCount: 0, totalTime: 0 });
+          }
+          const artistData = dailyArtists[dayIndex].get(artistName);
+          artistData.playCount++;
+          artistData.totalTime += entry.ms_played;
+
+          // Track albums per day
+          const albumKey = `${albumName}-${artistName}`;
+          if (!dailyAlbums[dayIndex].has(albumKey)) {
+            dailyAlbums[dayIndex].set(albumKey, { name: albumName, artist: artistName, playCount: 0, totalTime: 0 });
+          }
+          const albumData = dailyAlbums[dayIndex].get(albumKey);
+          albumData.playCount++;
+          albumData.totalTime += entry.ms_played;
+
+          // Track first listens for this day
+          if (!songFirstListens.has(songKey)) {
+            songFirstListens.set(songKey, {
+              song: songName,
+              artist: artistName,
+              album: albumName,
+              firstHeard: date,
+              day: dayIndex
+            });
+          } else {
+            const existing = songFirstListens.get(songKey);
+            if (date < existing.firstHeard) {
+              existing.firstHeard = date;
+              existing.day = dayIndex;
+            }
+          }
+        }
+      }
+    });
+
+    // Process the data to find top items for each day
+    daysData.forEach((dayData, dayIndex) => {
+      // Find top artist for this day
+      let topArtist = { name: '', playCount: 0, totalTime: 0 };
+      dailyArtists[dayIndex].forEach((data, artistName) => {
+        if (data.playCount > topArtist.playCount) {
+          topArtist = { name: artistName, playCount: data.playCount, totalTime: data.totalTime };
+        }
+      });
+      dayData.topArtist = topArtist;
+
+      // Find top album for this day
+      let topAlbum = { name: '', artist: '', playCount: 0, totalTime: 0 };
+      dailyAlbums[dayIndex].forEach((data, albumKey) => {
+        if (data.playCount > topAlbum.playCount) {
+          topAlbum = data;
+        }
+      });
+      dayData.topAlbum = topAlbum;
+
+      // Get first listens for this day
+      const dayFirstListens = [];
+      songFirstListens.forEach((data, songKey) => {
+        if (data.day === dayIndex) {
+          dayFirstListens.push(data);
+        }
+      });
+      
+      dayFirstListens.sort((a, b) => a.firstHeard - b.firstHeard);
+      dayData.firstListens = dayFirstListens.slice(0, 3);
+
+      // Convert Sets to counts
+      dayData.uniqueArtistCount = dayData.uniqueArtists.size;
+      dayData.uniqueSongCount = dayData.uniqueSongs.size;
+      delete dayData.uniqueArtists;
+      delete dayData.uniqueSongs;
+    });
+
+    return daysData;
+  }, [filteredData, selectedYear, isMonthView]);
+
   // Calendar view data - monthly insights with top artist, album, and first listens
   const calendarData = useMemo(() => {
+    if (isMonthView) return []; // Don't compute monthly data if we're in daily view
+    
     const monthsData = Array.from({ length: 12 }, (_, i) => ({
       month: i + 1,
       name: monthNamesShort[i],
@@ -818,160 +943,323 @@ const ListeningPatterns = ({
     {activeTab === 'calendar' && (
       <div className="space-y-6">
         <div>
+          {/* Dynamic header based on view mode */}
           <h3 className={`text-lg font-bold mb-2 ${
             isDarkMode ? 'text-purple-300' : 'text-purple-700'
-          }`}>Yearly Calendar Overview</h3>
+          }`}>
+            {isMonthView ? 
+              `Daily Calendar - ${selectedYear.split('-')[1]}/${selectedYear.split('-')[0]}` : 
+              'Yearly Calendar Overview'}
+          </h3>
           <p className={`mb-4 ${
             isDarkMode ? 'text-purple-400' : 'text-purple-600'
-          }`}>Monthly insights showing your top artist, album, and new discoveries for each month</p>
+          }`}>
+            {isMonthView ? 
+              'Daily breakdown showing your top artist, album, and new discoveries for each day' :
+              'Monthly insights showing your top artist, album, and new discoveries for each month'}
+          </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {calendarData.map((monthData, index) => (
-              <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
-                isDarkMode 
-                  ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                  : 'bg-white border-purple-200 hover:border-purple-400'
-              }`}>
-                
-                {/* Table Layout */}
-                <table className="w-full h-full">
-                  {/* Month Header */}
-                  <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
-                    <tr>
-                      <th className={`p-2 text-center font-bold text-sm ${
-                        isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                      }`} colSpan="2">
-                        {monthData.fullName}
-                      </th>
-                    </tr>
-                    <tr>
-                      <th className={`p-1 text-center text-xs ${
-                        isDarkMode ? 'text-purple-400' : 'text-purple-500'
-                      }`} colSpan="2">
-                        {monthData.totalPlays} plays • {formatDuration(monthData.totalTime)}
-                      </th>
-                    </tr>
-                  </thead>
+          {/* Monthly View */}
+          {!isMonthView && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {calendarData.map((monthData, index) => (
+                <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
+                  isDarkMode 
+                    ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
+                    : 'bg-white border-purple-200 hover:border-purple-400'
+                }`}>
                   
-                  <tbody>
-                    {/* Empty State */}
-                    {monthData.totalPlays === 0 ? (
+                  {/* Table Layout */}
+                  <table className="w-full h-full">
+                    {/* Month Header */}
+                    <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
                       <tr>
-                        <td className={`p-6 text-center ${
-                          isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                        <th className={`p-2 text-center font-bold text-sm ${
+                          isDarkMode ? 'text-purple-300' : 'text-purple-600'
                         }`} colSpan="2">
-                          <div className="text-2xl mb-2">🔇</div>
-                          <div className="text-sm">No listening data</div>
-                        </td>
+                          {monthData.fullName}
+                        </th>
                       </tr>
-                    ) : (
-                      <>
-                        {/* Stats Row */}
-                        <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
-                          <td className={`p-2 text-center text-xs ${
-                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                          }`}>
-                            🎵 {monthData.uniqueSongCount} songs
-                          </td>
-                          <td className={`p-2 text-center text-xs ${
-                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                          }`}>
-                            🎤 {monthData.uniqueArtistCount} artists
+                      <tr>
+                        <th className={`p-1 text-center text-xs ${
+                          isDarkMode ? 'text-purple-400' : 'text-purple-500'
+                        }`} colSpan="2">
+                          {monthData.totalPlays} plays • {formatDuration(monthData.totalTime)}
+                        </th>
+                      </tr>
+                    </thead>
+                    
+                    <tbody>
+                      {/* Empty State */}
+                      {monthData.totalPlays === 0 ? (
+                        <tr>
+                          <td className={`p-6 text-center ${
+                            isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                          }`} colSpan="2">
+                            <div className="text-2xl mb-2">🔇</div>
+                            <div className="text-sm">No listening data</div>
                           </td>
                         </tr>
-
-                        {/* Top Artist */}
-                        {monthData.topArtist.name && (
-                          <tr>
-                            <td className={`p-2 text-center text-xs font-medium ${
-                              isDarkMode ? 'text-purple-400' : 'text-purple-700'
-                            }`} colSpan="2">
-                              🔥 Top Artist
-                            </td>
-                          </tr>
-                        )}
-                        {monthData.topArtist.name && (
-                          <tr>
-                            <td className={`p-1 text-center text-sm ${
-                              isDarkMode ? 'text-white' : 'text-gray-900'
-                            }`} colSpan="2">
-                              <div className="truncate font-medium">{monthData.topArtist.name}</div>
-                              <div className={`text-xs ${
-                                isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                              }`}>
-                                {monthData.topArtist.playCount} plays
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-
-                        {/* Top Album */}
-                        {monthData.topAlbum.name && (
+                      ) : (
+                        <>
+                          {/* Stats Row */}
                           <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
-                            <td className={`p-2 text-center text-xs font-medium ${
-                              isDarkMode ? 'text-purple-400' : 'text-purple-700'
-                            }`} colSpan="2">
-                              💿 Top Album
+                            <td className={`p-2 text-center text-xs ${
+                              isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                            }`}>
+                              🎵 {monthData.uniqueSongCount} songs
+                            </td>
+                            <td className={`p-2 text-center text-xs ${
+                              isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                            }`}>
+                              🎤 {monthData.uniqueArtistCount} artists
                             </td>
                           </tr>
-                        )}
-                        {monthData.topAlbum.name && (
-                          <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
-                            <td className={`p-1 text-center text-sm ${
-                              isDarkMode ? 'text-white' : 'text-gray-900'
-                            }`} colSpan="2">
-                              <div className="truncate font-medium">{monthData.topAlbum.name}</div>
-                              <div className={`text-xs truncate ${
-                                isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                              }`}>
-                                by {monthData.topAlbum.artist}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
 
-                        {/* First Listens */}
-                        {monthData.firstListens.length > 0 && (
-                          <tr>
-                            <td className={`p-2 text-center text-xs font-medium ${
-                              isDarkMode ? 'text-purple-400' : 'text-purple-700'
-                            }`} colSpan="2">
-                              ✨ New Discoveries ({monthData.firstListens.length})
-                            </td>
-                          </tr>
-                        )}
-                        {monthData.firstListens.length > 0 && (
-                          <tr>
-                            <td className={`p-1 text-center text-xs ${
-                              isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                            }`} colSpan="2">
-                              {monthData.firstListens.slice(0, 2).map((song, songIndex) => (
-                                <div key={songIndex} className="mb-1">
-                                  <div className="truncate font-medium">{song.song}</div>
-                                  <div className={`truncate ${
-                                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                                  }`}>
-                                    by {song.artist}
-                                  </div>
-                                </div>
-                              ))}
-                              {monthData.firstListens.length > 2 && (
+                          {/* Top Artist */}
+                          {monthData.topArtist.name && (
+                            <tr>
+                              <td className={`p-2 text-center text-xs font-medium ${
+                                isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                              }`} colSpan="2">
+                                🔥 Top Artist
+                              </td>
+                            </tr>
+                          )}
+                          {monthData.topArtist.name && (
+                            <tr>
+                              <td className={`p-1 text-center text-sm ${
+                                isDarkMode ? 'text-white' : 'text-gray-900'
+                              }`} colSpan="2">
+                                <div className="truncate font-medium">{monthData.topArtist.name}</div>
                                 <div className={`text-xs ${
                                   isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                 }`}>
-                                  +{monthData.firstListens.length - 2} more
+                                  {monthData.topArtist.playCount} plays
                                 </div>
-                              )}
+                              </td>
+                            </tr>
+                          )}
+
+                          {/* Top Album */}
+                          {monthData.topAlbum.name && (
+                            <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
+                              <td className={`p-2 text-center text-xs font-medium ${
+                                isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                              }`} colSpan="2">
+                                💿 Top Album
+                              </td>
+                            </tr>
+                          )}
+                          {monthData.topAlbum.name && (
+                            <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
+                              <td className={`p-1 text-center text-sm ${
+                                isDarkMode ? 'text-white' : 'text-gray-900'
+                              }`} colSpan="2">
+                                <div className="truncate font-medium">{monthData.topAlbum.name}</div>
+                                <div className={`text-xs truncate ${
+                                  isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                }`}>
+                                  by {monthData.topAlbum.artist}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+
+                          {/* First Listens */}
+                          {monthData.firstListens.length > 0 && (
+                            <tr>
+                              <td className={`p-2 text-center text-xs font-medium ${
+                                isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                              }`} colSpan="2">
+                                ✨ New Discoveries ({monthData.firstListens.length})
+                              </td>
+                            </tr>
+                          )}
+                          {monthData.firstListens.length > 0 && (
+                            <tr>
+                              <td className={`p-1 text-center text-xs ${
+                                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                              }`} colSpan="2">
+                                {monthData.firstListens.slice(0, 2).map((song, songIndex) => (
+                                  <div key={songIndex} className="mb-1">
+                                    <div className="truncate font-medium">{song.song}</div>
+                                    <div className={`truncate ${
+                                      isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                    }`}>
+                                      by {song.artist}
+                                    </div>
+                                  </div>
+                                ))}
+                                {monthData.firstListens.length > 2 && (
+                                  <div className={`text-xs ${
+                                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                  }`}>
+                                    +{monthData.firstListens.length - 2} more
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Daily View */}
+          {isMonthView && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+              {dailyCalendarData.map((dayData, index) => (
+                <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
+                  isDarkMode 
+                    ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
+                    : 'bg-white border-purple-200 hover:border-purple-400'
+                }`}>
+                  
+                  {/* Daily Table Layout */}
+                  <table className="w-full h-full">
+                    {/* Day Header */}
+                    <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
+                      <tr>
+                        <th className={`p-2 text-center font-bold text-sm ${
+                          isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                        }`} colSpan="2">
+                          Day {dayData.day}
+                        </th>
+                      </tr>
+                      <tr>
+                        <th className={`p-1 text-center text-xs ${
+                          isDarkMode ? 'text-purple-400' : 'text-purple-500'
+                        }`} colSpan="2">
+                          {dayData.totalPlays} plays • {formatDuration(dayData.totalTime)}
+                        </th>
+                      </tr>
+                    </thead>
+                    
+                    <tbody>
+                      {/* Empty State */}
+                      {dayData.totalPlays === 0 ? (
+                        <tr>
+                          <td className={`p-4 text-center ${
+                            isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                          }`} colSpan="2">
+                            <div className="text-lg mb-1">🔇</div>
+                            <div className="text-xs">No data</div>
+                          </td>
+                        </tr>
+                      ) : (
+                        <>
+                          {/* Stats Row */}
+                          <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
+                            <td className={`p-1 text-center text-xs ${
+                              isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                            }`}>
+                              🎵 {dayData.uniqueSongCount}
+                            </td>
+                            <td className={`p-1 text-center text-xs ${
+                              isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                            }`}>
+                              🎤 {dayData.uniqueArtistCount}
                             </td>
                           </tr>
-                        )}
-                      </>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </div>
+
+                          {/* Top Artist */}
+                          {dayData.topArtist.name && (
+                            <>
+                              <tr>
+                                <td className={`p-1 text-center text-xs font-medium ${
+                                  isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                                }`} colSpan="2">
+                                  🔥 Top Artist
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className={`p-1 text-center text-xs ${
+                                  isDarkMode ? 'text-white' : 'text-gray-900'
+                                }`} colSpan="2">
+                                  <div className="truncate font-medium text-xs">{dayData.topArtist.name}</div>
+                                  <div className={`text-xs ${
+                                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                  }`}>
+                                    {dayData.topArtist.playCount} plays
+                                  </div>
+                                </td>
+                              </tr>
+                            </>
+                          )}
+
+                          {/* Top Album */}
+                          {dayData.topAlbum.name && (
+                            <>
+                              <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
+                                <td className={`p-1 text-center text-xs font-medium ${
+                                  isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                                }`} colSpan="2">
+                                  💿 Top Album
+                                </td>
+                              </tr>
+                              <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
+                                <td className={`p-1 text-center text-xs ${
+                                  isDarkMode ? 'text-white' : 'text-gray-900'
+                                }`} colSpan="2">
+                                  <div className="truncate font-medium text-xs">{dayData.topAlbum.name}</div>
+                                  <div className={`text-xs truncate ${
+                                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                  }`}>
+                                    {dayData.topAlbum.artist}
+                                  </div>
+                                </td>
+                              </tr>
+                            </>
+                          )}
+
+                          {/* First Listens */}
+                          {dayData.firstListens.length > 0 && (
+                            <>
+                              <tr>
+                                <td className={`p-1 text-center text-xs font-medium ${
+                                  isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                                }`} colSpan="2">
+                                  ✨ New ({dayData.firstListens.length})
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className={`p-1 text-center text-xs ${
+                                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                                }`} colSpan="2">
+                                  {dayData.firstListens.slice(0, 1).map((song, songIndex) => (
+                                    <div key={songIndex} className="mb-1">
+                                      <div className="truncate font-medium text-xs">{song.song}</div>
+                                      <div className={`truncate text-xs ${
+                                        isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                      }`}>
+                                        {song.artist}
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {dayData.firstListens.length > 1 && (
+                                    <div className={`text-xs ${
+                                      isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                                    }`}>
+                                      +{dayData.firstListens.length - 1} more
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )}
