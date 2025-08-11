@@ -19,6 +19,10 @@ const ListeningPatterns = ({
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   
+  // Month names for calendar data
+  const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
   // Removed useEffect that updated exported variables (now handled by SpotifyAnalyzer state)
   
   // Chart colors that adjust with theme
@@ -353,6 +357,121 @@ const ListeningPatterns = ({
     return { months, seasons };
   }, [filteredData, chartColors.seasonColors]);
 
+  // Calendar view data - monthly insights with top artist, album, and first listens
+  const calendarData = useMemo(() => {
+    const monthsData = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      name: monthNamesShort[i],
+      fullName: ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'][i],
+      totalPlays: 0,
+      totalTime: 0,
+      topArtist: { name: '', playCount: 0, totalTime: 0 },
+      topAlbum: { name: '', artist: '', playCount: 0, totalTime: 0 },
+      firstListens: [], // New songs discovered this month
+      uniqueArtists: new Set(),
+      uniqueSongs: new Set()
+    }));
+
+    // Track artists and albums per month
+    const monthlyArtists = Array(12).fill().map(() => new Map());
+    const monthlyAlbums = Array(12).fill().map(() => new Map());
+    const songFirstListens = new Map(); // Track when each song was first heard
+
+    filteredData.forEach(entry => {
+      if (entry.ms_played >= 30000) {
+        const date = new Date(entry.ts);
+        const month = date.getMonth(); // 0-based
+        const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
+        const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+        const songName = entry.master_metadata_track_name || 'Unknown Song';
+        const songKey = `${songName}-${artistName}`;
+
+        // Update monthly totals
+        monthsData[month].totalPlays++;
+        monthsData[month].totalTime += entry.ms_played;
+        monthsData[month].uniqueArtists.add(artistName);
+        monthsData[month].uniqueSongs.add(songKey);
+
+        // Track artists per month
+        if (!monthlyArtists[month].has(artistName)) {
+          monthlyArtists[month].set(artistName, { playCount: 0, totalTime: 0 });
+        }
+        const artistData = monthlyArtists[month].get(artistName);
+        artistData.playCount++;
+        artistData.totalTime += entry.ms_played;
+
+        // Track albums per month
+        const albumKey = `${albumName}-${artistName}`;
+        if (!monthlyAlbums[month].has(albumKey)) {
+          monthlyAlbums[month].set(albumKey, { name: albumName, artist: artistName, playCount: 0, totalTime: 0 });
+        }
+        const albumData = monthlyAlbums[month].get(albumKey);
+        albumData.playCount++;
+        albumData.totalTime += entry.ms_played;
+
+        // Track first listens
+        if (!songFirstListens.has(songKey)) {
+          songFirstListens.set(songKey, {
+            song: songName,
+            artist: artistName,
+            album: albumName,
+            firstHeard: date,
+            month: month
+          });
+        } else {
+          // Update if this is earlier
+          const existing = songFirstListens.get(songKey);
+          if (date < existing.firstHeard) {
+            existing.firstHeard = date;
+            existing.month = month;
+          }
+        }
+      }
+    });
+
+    // Process the data to find top items and first listens for each month
+    monthsData.forEach((monthData, index) => {
+      // Find top artist for this month
+      let topArtist = { name: '', playCount: 0, totalTime: 0 };
+      monthlyArtists[index].forEach((data, artistName) => {
+        if (data.playCount > topArtist.playCount) {
+          topArtist = { name: artistName, playCount: data.playCount, totalTime: data.totalTime };
+        }
+      });
+      monthData.topArtist = topArtist;
+
+      // Find top album for this month
+      let topAlbum = { name: '', artist: '', playCount: 0, totalTime: 0 };
+      monthlyAlbums[index].forEach((data, albumKey) => {
+        if (data.playCount > topAlbum.playCount) {
+          topAlbum = data;
+        }
+      });
+      monthData.topAlbum = topAlbum;
+
+      // Get first listens for this month (songs first heard in this month)
+      const monthFirstListens = [];
+      songFirstListens.forEach((data, songKey) => {
+        if (data.month === index) {
+          monthFirstListens.push(data);
+        }
+      });
+      
+      // Sort by first heard date and limit to top 5
+      monthFirstListens.sort((a, b) => a.firstHeard - b.firstHeard);
+      monthData.firstListens = monthFirstListens.slice(0, 5);
+
+      // Convert Sets to counts
+      monthData.uniqueArtistCount = monthData.uniqueArtists.size;
+      monthData.uniqueSongCount = monthData.uniqueSongs.size;
+      delete monthData.uniqueArtists;
+      delete monthData.uniqueSongs;
+    });
+
+    return monthsData;
+  }, [filteredData]);
+
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
@@ -413,6 +532,7 @@ const ListeningPatterns = ({
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
+        <TabButton id="calendar" label="Calendar" />
         <TabButton id="streaming" label="Streaming Services" />
       </div>
     </div>
@@ -690,6 +810,134 @@ const ListeningPatterns = ({
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {activeTab === 'calendar' && (
+      <div className="space-y-6">
+        <div>
+          <h3 className={`text-lg font-bold mb-2 ${
+            isDarkMode ? 'text-purple-300' : 'text-purple-700'
+          }`}>Yearly Calendar Overview</h3>
+          <p className={`mb-4 ${
+            isDarkMode ? 'text-purple-400' : 'text-purple-600'
+          }`}>Monthly insights showing your top artist, album, and new discoveries for each month</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {calendarData.map((monthData, index) => (
+              <div key={index} className={`p-4 rounded-lg border ${
+                isDarkMode 
+                  ? 'bg-gray-800 border-gray-700' 
+                  : 'bg-white border-gray-200'
+              } shadow-sm hover:shadow-md transition-shadow`}>
+                
+                {/* Month Header */}
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className={`font-bold text-lg ${
+                    isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                  }`}>{monthData.fullName}</h4>
+                  <div className={`text-sm ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
+                    {monthData.totalPlays} plays
+                  </div>
+                </div>
+
+                {/* Month Stats */}
+                <div className={`text-xs space-y-1 mb-3 ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  <div>⏱️ {formatDuration(monthData.totalTime)}</div>
+                  <div>🎵 {monthData.uniqueSongCount} songs</div>
+                  <div>🎤 {monthData.uniqueArtistCount} artists</div>
+                </div>
+
+                {/* Top Artist */}
+                {monthData.topArtist.name && (
+                  <div className="mb-3">
+                    <h5 className={`font-medium text-sm mb-1 ${
+                      isDarkMode ? 'text-green-400' : 'text-green-700'
+                    }`}>🔥 Top Artist</h5>
+                    <div className={`text-sm ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      <div className="truncate font-medium">{monthData.topArtist.name}</div>
+                      <div className={`text-xs ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        {monthData.topArtist.playCount} plays • {formatDuration(monthData.topArtist.totalTime)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Top Album */}
+                {monthData.topAlbum.name && (
+                  <div className="mb-3">
+                    <h5 className={`font-medium text-sm mb-1 ${
+                      isDarkMode ? 'text-blue-400' : 'text-blue-700'
+                    }`}>💿 Top Album</h5>
+                    <div className={`text-sm ${
+                      isDarkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      <div className="truncate font-medium">{monthData.topAlbum.name}</div>
+                      <div className={`text-xs truncate ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        by {monthData.topAlbum.artist}
+                      </div>
+                      <div className={`text-xs ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        {monthData.topAlbum.playCount} plays
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* First Listens */}
+                {monthData.firstListens.length > 0 && (
+                  <div className="mb-2">
+                    <h5 className={`font-medium text-sm mb-1 ${
+                      isDarkMode ? 'text-yellow-400' : 'text-yellow-700'
+                    }`}>✨ New Discoveries</h5>
+                    <div className="space-y-1">
+                      {monthData.firstListens.slice(0, 3).map((song, songIndex) => (
+                        <div key={songIndex} className={`text-xs ${
+                          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          <div className="truncate font-medium">{song.song}</div>
+                          <div className={`truncate ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
+                            by {song.artist}
+                          </div>
+                        </div>
+                      ))}
+                      {monthData.firstListens.length > 3 && (
+                        <div className={`text-xs ${
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          +{monthData.firstListens.length - 3} more
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {monthData.totalPlays === 0 && (
+                  <div className={`text-center py-4 ${
+                    isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                  }`}>
+                    <div className="text-2xl mb-2">🔇</div>
+                    <div className="text-sm">No listening data</div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
