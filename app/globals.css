@@ -194,54 +194,54 @@ body {
 }
 
 /* Dark mode class-based styles */
-/* Tab Background Colors - Using CSS Variables */
-.dark .bg-orange-50 { background-color: var(--orange-bg-light) !important; }
-.dark .bg-orange-100 { background-color: var(--orange-bg-light) !important; }
-.dark .bg-orange-200 { background-color: var(--orange-bg-dark) !important; }
+/* Tab Background Colors - Using CSS Variables - EXCLUDING gradient classes */
+.dark .bg-orange-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--orange-bg-light) !important; }
+.dark .bg-orange-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--orange-bg-light) !important; }
+.dark .bg-orange-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--orange-bg-dark) !important; }
 
-.dark .bg-purple-50 { background-color: var(--purple-bg-light) !important; }
-.dark .bg-purple-100 { background-color: var(--purple-bg-light) !important; }
-.dark .bg-purple-200 { background-color: var(--purple-bg-dark) !important; }
+.dark .bg-purple-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--purple-bg-light) !important; }
+.dark .bg-purple-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--purple-bg-light) !important; }
+.dark .bg-purple-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--purple-bg-dark) !important; }
 
-.dark .bg-teal-50 { background-color: var(--teal-bg-light) !important; }
-.dark .bg-teal-100 { background-color: var(--teal-bg-light) !important; }
-.dark .bg-teal-200 { background-color: var(--teal-bg-dark) !important; }
+.dark .bg-teal-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--teal-bg-light) !important; }
+.dark .bg-teal-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--teal-bg-light) !important; }
+.dark .bg-teal-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--teal-bg-dark) !important; }
 
-.dark .bg-blue-50 { background-color: var(--blue-bg-light) !important; }
-.dark .bg-blue-100 { background-color: var(--blue-bg-light) !important; }
-.dark .bg-blue-200 { background-color: var(--blue-bg-dark) !important; }
+.dark .bg-blue-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--blue-bg-light) !important; }
+.dark .bg-blue-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--blue-bg-light) !important; }
+.dark .bg-blue-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--blue-bg-dark) !important; }
 
-.dark .bg-green-50 { background-color: var(--green-bg-light) !important; }
-.dark .bg-green-100 { background-color: var(--green-bg-light) !important; }
-.dark .bg-green-200 { background-color: var(--green-bg-dark) !important; }
+.dark .bg-green-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--green-bg-light) !important; }
+.dark .bg-green-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--green-bg-light) !important; }
+.dark .bg-green-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--green-bg-dark) !important; }
 
-.dark .bg-indigo-50 { background-color: var(--indigo-bg-light) !important; }
-.dark .bg-indigo-100 { background-color: var(--indigo-bg-light) !important; }
-.dark .bg-indigo-200 { background-color: var(--indigo-bg-dark) !important; }
+.dark .bg-indigo-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--indigo-bg-light) !important; }
+.dark .bg-indigo-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--indigo-bg-light) !important; }
+.dark .bg-indigo-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--indigo-bg-dark) !important; }
 
-.dark .bg-pink-50 { background-color: var(--pink-bg-light) !important; }
-.dark .bg-pink-100 { background-color: var(--pink-bg-light) !important; }
-.dark .bg-pink-200 { background-color: var(--pink-bg-dark) !important; }
+.dark .bg-pink-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--pink-bg-light) !important; }
+.dark .bg-pink-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--pink-bg-light) !important; }
+.dark .bg-pink-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--pink-bg-dark) !important; }
 
-.dark .bg-red-50 { background-color: var(--red-bg-light) !important; }
-.dark .bg-red-100 { background-color: var(--red-bg-light) !important; }
-.dark .bg-red-200 { background-color: var(--red-bg-dark) !important; }
+.dark .bg-red-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--red-bg-light) !important; }
+.dark .bg-red-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--red-bg-light) !important; }
+.dark .bg-red-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--red-bg-dark) !important; }
 
-.dark .bg-yellow-50 { background-color: var(--yellow-bg-light) !important; }
-.dark .bg-yellow-100 { background-color: var(--yellow-bg-light) !important; }
-.dark .bg-yellow-200 { background-color: var(--yellow-bg-dark) !important; }
+.dark .bg-yellow-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--yellow-bg-light) !important; }
+.dark .bg-yellow-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--yellow-bg-light) !important; }
+.dark .bg-yellow-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--yellow-bg-dark) !important; }
 
-.dark .bg-cyan-50 { background-color: var(--cyan-bg-light) !important; }
-.dark .bg-cyan-100 { background-color: var(--cyan-bg-light) !important; }
-.dark .bg-cyan-200 { background-color: var(--cyan-bg-dark) !important; }
+.dark .bg-cyan-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--cyan-bg-light) !important; }
+.dark .bg-cyan-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--cyan-bg-light) !important; }
+.dark .bg-cyan-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--cyan-bg-dark) !important; }
 
-.dark .bg-emerald-50 { background-color: var(--emerald-bg-light) !important; }
-.dark .bg-emerald-100 { background-color: var(--emerald-bg-light) !important; }
-.dark .bg-emerald-200 { background-color: var(--emerald-bg-dark) !important; }
+.dark .bg-emerald-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--emerald-bg-light) !important; }
+.dark .bg-emerald-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--emerald-bg-light) !important; }
+.dark .bg-emerald-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--emerald-bg-dark) !important; }
 
-.dark .bg-rose-50 { background-color: var(--rose-bg-light) !important; }
-.dark .bg-rose-100 { background-color: var(--rose-bg-light) !important; }
-.dark .bg-rose-200 { background-color: var(--rose-bg-dark) !important; }
+.dark .bg-rose-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--rose-bg-light) !important; }
+.dark .bg-rose-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--rose-bg-light) !important; }
+.dark .bg-rose-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--rose-bg-dark) !important; }
 
 /* Tab Text Colors */
 .dark .text-orange-600, .dark .text-orange-700, .dark .text-orange-800 { color: var(--orange-text) !important; }
