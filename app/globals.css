@@ -191,6 +191,7 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: auto; /* Ensure horizontal scrollbar appears when needed */
+  border: 5px solid red !important; /* TEMPORARY - to test if CSS is loading */
 }
 
 /* Dark mode class-based styles */
@@ -407,24 +408,55 @@ body {
   animation: rainbow 2s linear infinite;
 }
 
-/* Scrollbar styles - for all modes */
+/* Scrollbar styles - for all modes - FORCED */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #00FF00 #FF0000 !important;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 12px !important;
+  height: 12px !important;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FF0000; /* Temporary red track to identify which scrollbar */
-  border-radius: 8px;
+  background: #FF0000 !important; /* Temporary red track to identify which scrollbar */
+  border-radius: 8px !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #00FF00; /* Temporary green thumb to identify which scrollbar */
-  border-radius: 8px;
+  background: #00FF00 !important; /* Temporary green thumb to identify which scrollbar */
+  border-radius: 8px !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0000FF; /* Temporary blue hover to identify which scrollbar */
+  background: #0000FF !important; /* Temporary blue hover to identify which scrollbar */
+}
+
+html::-webkit-scrollbar {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+html::-webkit-scrollbar-track {
+  background: #FF0000 !important;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: #00FF00 !important;
+}
+
+body::-webkit-scrollbar {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+body::-webkit-scrollbar-track {
+  background: #FF0000 !important;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #00FF00 !important;
 }
 
 /* Dark mode scrollbar override */
