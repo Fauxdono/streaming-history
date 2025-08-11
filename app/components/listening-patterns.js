@@ -827,19 +827,19 @@ const ListeningPatterns = ({
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {calendarData.map((monthData, index) => (
-              <div key={index} className={`p-4 rounded-lg border ${
+              <div key={index} className={`p-3 rounded shadow-sm border-2 transition-colors ${
                 isDarkMode 
-                  ? 'bg-gray-800 border-gray-700' 
-                  : 'bg-white border-gray-200'
-              } shadow-sm hover:shadow-md transition-shadow`}>
+                  ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
+                  : 'bg-white border-purple-200 hover:border-purple-400'
+              }`}>
                 
                 {/* Month Header */}
                 <div className="flex justify-between items-center mb-3">
                   <h4 className={`font-bold text-lg ${
-                    isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
                   }`}>{monthData.fullName}</h4>
                   <div className={`text-sm ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    isDarkMode ? 'text-purple-400' : 'text-purple-500'
                   }`}>
                     {monthData.totalPlays} plays
                   </div>
@@ -858,14 +858,14 @@ const ListeningPatterns = ({
                 {monthData.topArtist.name && (
                   <div className="mb-3">
                     <h5 className={`font-medium text-sm mb-1 ${
-                      isDarkMode ? 'text-green-400' : 'text-green-700'
+                      isDarkMode ? 'text-purple-400' : 'text-purple-700'
                     }`}>🔥 Top Artist</h5>
                     <div className={`text-sm ${
                       isDarkMode ? 'text-white' : 'text-gray-900'
                     }`}>
                       <div className="truncate font-medium">{monthData.topArtist.name}</div>
                       <div className={`text-xs ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        isDarkMode ? 'text-purple-300' : 'text-purple-600'
                       }`}>
                         {monthData.topArtist.playCount} plays • {formatDuration(monthData.topArtist.totalTime)}
                       </div>
@@ -877,19 +877,19 @@ const ListeningPatterns = ({
                 {monthData.topAlbum.name && (
                   <div className="mb-3">
                     <h5 className={`font-medium text-sm mb-1 ${
-                      isDarkMode ? 'text-blue-400' : 'text-blue-700'
+                      isDarkMode ? 'text-purple-400' : 'text-purple-700'
                     }`}>💿 Top Album</h5>
                     <div className={`text-sm ${
                       isDarkMode ? 'text-white' : 'text-gray-900'
                     }`}>
                       <div className="truncate font-medium">{monthData.topAlbum.name}</div>
                       <div className={`text-xs truncate ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        isDarkMode ? 'text-purple-300' : 'text-purple-600'
                       }`}>
                         by {monthData.topAlbum.artist}
                       </div>
                       <div className={`text-xs ${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        isDarkMode ? 'text-purple-300' : 'text-purple-600'
                       }`}>
                         {monthData.topAlbum.playCount} plays
                       </div>
@@ -901,7 +901,7 @@ const ListeningPatterns = ({
                 {monthData.firstListens.length > 0 && (
                   <div className="mb-2">
                     <h5 className={`font-medium text-sm mb-1 ${
-                      isDarkMode ? 'text-yellow-400' : 'text-yellow-700'
+                      isDarkMode ? 'text-purple-400' : 'text-purple-700'
                     }`}>✨ New Discoveries</h5>
                     <div className="space-y-1">
                       {monthData.firstListens.slice(0, 3).map((song, songIndex) => (
@@ -910,7 +910,7 @@ const ListeningPatterns = ({
                         }`}>
                           <div className="truncate font-medium">{song.song}</div>
                           <div className={`truncate ${
-                            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
                           }`}>
                             by {song.artist}
                           </div>
@@ -918,7 +918,7 @@ const ListeningPatterns = ({
                       ))}
                       {monthData.firstListens.length > 3 && (
                         <div className={`text-xs ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                          isDarkMode ? 'text-purple-300' : 'text-purple-600'
                         }`}>
                           +{monthData.firstListens.length - 3} more
                         </div>
