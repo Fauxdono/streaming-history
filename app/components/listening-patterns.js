@@ -650,7 +650,7 @@ const ListeningPatterns = ({
   };
 
   return (
-   <div className="w-full">
+   <div className={`w-full ${isDarkMode ? 'text-purple-200' : 'text-gray-900'}`}>
     {/* Horizontally scrollable tabs */}
     <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
       <div className="flex min-w-max">
