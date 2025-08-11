@@ -17,6 +17,7 @@ const WheelSelector = ({
         (document.documentElement.classList.contains('dark') || 
          document.body.classList.contains('dark') ||
          window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+      console.log('WheelSelector dark mode check:', darkModeActive);
       setIsDarkMode(darkModeActive);
     };
     
@@ -326,6 +327,8 @@ const WheelSelector = ({
           height: `${totalHeight}px`,
           backgroundColor: isDarkMode ? '#1f2937' : '#ffffff'
         }}
+        data-dark-mode={isDarkMode}
+        data-bg-color={isDarkMode ? '#1f2937' : '#ffffff'}
         onWheel={handleWheel}
       >
         {/* Selection box with lower z-index to stay behind text */}
