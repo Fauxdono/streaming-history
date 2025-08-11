@@ -39,6 +39,7 @@ const WheelSelector = ({
           text: 'text-pink-700',
           activeText: 'text-pink-800 font-bold',
           shadow: 'shadow-pink-200',
+          background: 'bg-white',
           gradientLight: 'bg-gradient-to-b from-pink-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-pink-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-pink-50 to-transparent',
@@ -51,6 +52,7 @@ const WheelSelector = ({
           text: 'text-purple-700',
           activeText: 'text-purple-800 font-bold',
           shadow: 'shadow-purple-200',
+          background: 'bg-white',
           gradientLight: 'bg-gradient-to-b from-purple-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-purple-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-purple-50 to-transparent',
@@ -63,6 +65,7 @@ const WheelSelector = ({
           text: 'text-blue-700',
           activeText: 'text-blue-800 font-bold',
           shadow: 'shadow-blue-200',
+          background: 'bg-white',
           gradientLight: 'bg-gradient-to-b from-blue-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-blue-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-blue-50 to-transparent',
@@ -76,6 +79,7 @@ const WheelSelector = ({
           text: 'text-teal-700',
           activeText: 'text-teal-800 font-bold',
           shadow: 'shadow-teal-200',
+          background: 'bg-white',
           gradientLight: 'bg-gradient-to-b from-teal-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-teal-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-teal-50 to-transparent',
@@ -88,6 +92,7 @@ const WheelSelector = ({
           text: 'text-orange-700',
           activeText: 'text-orange-800 font-bold',
           shadow: 'shadow-orange-200',
+          background: 'bg-white',
           gradientLight: 'bg-gradient-to-b from-orange-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-orange-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-orange-50 to-transparent',
@@ -100,6 +105,7 @@ const WheelSelector = ({
           text: 'text-indigo-700',
           activeText: 'text-indigo-800 font-bold',
           shadow: 'shadow-indigo-200',
+          background: 'bg-white',
           gradientLight: 'bg-gradient-to-b from-indigo-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-indigo-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-indigo-50 to-transparent',
@@ -112,6 +118,7 @@ const WheelSelector = ({
           text: 'text-green-700',
           activeText: 'text-green-800 font-bold',
           shadow: 'shadow-green-200',
+          background: 'bg-white',
           gradientLight: 'bg-gradient-to-b from-green-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-green-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-green-50 to-transparent',
@@ -284,7 +291,9 @@ const WheelSelector = ({
       
       <div 
         ref={containerRef}
-        className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
+        className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none ${
+          isDarkMode ? 'bg-gray-800' : colors.background
+        }`}
         style={{ height: `${totalHeight}px` }}
         onWheel={handleWheel}
       >
