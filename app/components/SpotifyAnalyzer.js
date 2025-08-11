@@ -20,6 +20,7 @@ import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 // Removed imports of exported variables that were conflicting with local state
 import DarkModeToggle from './darkmode.js';
+import { useTheme } from './themeprovider.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -54,6 +55,10 @@ const SERVICE_COLORS = {
 };
 
 const SpotifyAnalyzer = () => {
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  
   // Core application state
   const [activeTab, setActiveTab] = useState('upload');
   const [activeTrackTab, setActiveTrackTab] = useState('top250');
@@ -1153,7 +1158,13 @@ const SpotifyAnalyzer = () => {
       </CardHeader>
       <CardContent className="px-2 sm:px-6">
         <div className="space-y-4">
-          <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4">
+          <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4"
+               style={{
+                 scrollbarWidth: 'thin',
+                 scrollbarColor: isDarkMode 
+                   ? '#7C3AED #1F2937'  // purple thumb, gray track for dark mode
+                   : '#A855F7 #F3F4F6'  // purple thumb, light gray track for light mode
+               }}>
             <div className="flex gap-1 sm:gap-2 border-b border-violet-200 min-w-max text-sm sm:text-base">
               {stats && <TabButton id="updates" label="Updates" />} 
               <TabButton id="upload" label="Upload" />
