@@ -160,6 +160,20 @@ const WheelSelector = ({
   
   const colors = getColors();
   
+  // Get highlight color based on theme for light mode
+  const getHighlightColor = (theme) => {
+    const highlightColors = {
+      pink: '#fce7f3',      // pink-100
+      purple: '#f3e8ff',    // purple-100  
+      blue: '#dbeafe',      // blue-100
+      teal: '#ccfbf1',      // teal-100
+      orange: '#fed7aa',    // orange-100
+      indigo: '#e0e7ff',    // indigo-100
+      green: '#dcfce7'      // green-100
+    };
+    return highlightColors[theme] || highlightColors.teal;
+  };
+  
   // If no value is selected or item not found, default to first item if available
   useEffect(() => {
     if ((selectedIndex === -1 || value === undefined) && items.length > 0 && onChange) {
@@ -333,9 +347,10 @@ const WheelSelector = ({
       >
         {/* Selection box with lower z-index to stay behind text */}
         <div 
-          className={`absolute left-1 right-1 top-1/2 -translate-y-1/2 h-${itemHeight}px ${colors.highlight} border-2 ${colors.border} rounded-md pointer-events-none`}
+          className={`absolute left-1 right-1 top-1/2 -translate-y-1/2 border-2 ${colors.border} rounded-md pointer-events-none`}
           style={{ 
             height: `${itemHeight}px`,
+            backgroundColor: isDarkMode ? '#374151' : getHighlightColor(colorTheme),
             boxShadow: `0 0 2px rgba(0,0,0,0.1) inset`,
             zIndex: 5 
           }}
