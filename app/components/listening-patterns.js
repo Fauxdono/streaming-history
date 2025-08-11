@@ -994,7 +994,7 @@ const ListeningPatterns = ({
                       {monthData.totalPlays === 0 ? (
                         <tr>
                           <td className={`p-6 text-center ${
-                            isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                            isDarkMode ? 'text-purple-400' : 'text-purple-500'
                           }`} colSpan="2">
                             <div className="text-sm">No listening data</div>
                           </td>
@@ -1078,7 +1078,7 @@ const ListeningPatterns = ({
                           {monthData.firstListens.length > 0 && (
                             <tr>
                               <td className={`p-1 text-center text-xs ${
-                                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                                isDarkMode ? 'text-purple-300' : 'text-purple-700'
                               }`} colSpan="2">
                                 {monthData.firstListens.slice(0, 2).map((song, songIndex) => (
                                   <div key={songIndex} className="mb-1">
@@ -1144,7 +1144,7 @@ const ListeningPatterns = ({
                       {dayData.totalPlays === 0 ? (
                         <tr>
                           <td className={`p-4 text-center ${
-                            isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                            isDarkMode ? 'text-purple-400' : 'text-purple-500'
                           }`} colSpan="2">
                             <div className="text-xs">No data</div>
                           </td>
@@ -1227,7 +1227,7 @@ const ListeningPatterns = ({
                               </tr>
                               <tr>
                                 <td className={`p-1 text-center text-xs ${
-                                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                                  isDarkMode ? 'text-purple-300' : 'text-purple-700'
                                 }`} colSpan="2">
                                   {dayData.firstListens.slice(0, 1).map((song, songIndex) => (
                                     <div key={songIndex} className="mb-1">
