@@ -8,11 +8,41 @@ const WheelSelector = ({
   colorTheme = 'teal',
   displayFormat = (val) => val
 }) => {
-  // Check if we're in dark mode by looking at the document
-  const isDarkMode = typeof window !== 'undefined' && 
-    (document.documentElement.classList.contains('dark') || 
-     document.body.classList.contains('dark') ||
-     window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+  // Check if we're in dark mode by looking at the document - make it reactive
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const darkModeActive = typeof window !== 'undefined' && 
+        (document.documentElement.classList.contains('dark') || 
+         document.body.classList.contains('dark') ||
+         window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+      setIsDarkMode(darkModeActive);
+    };
+    
+    // Initial check
+    checkDarkMode();
+    
+    // Listen for changes
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (mediaQuery) {
+      mediaQuery.addEventListener('change', checkDarkMode);
+    }
+    
+    // Also listen for class changes on document element
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => {
+      if (mediaQuery) {
+        mediaQuery.removeEventListener('change', checkDarkMode);
+      }
+      observer.disconnect();
+    };
+  }, []);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [currentOffset, setCurrentOffset] = useState(0);
@@ -291,10 +321,11 @@ const WheelSelector = ({
       
       <div 
         ref={containerRef}
-        className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none ${
-          isDarkMode ? 'bg-gray-800' : colors.background
-        }`}
-        style={{ height: `${totalHeight}px` }}
+        className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
+        style={{ 
+          height: `${totalHeight}px`,
+          backgroundColor: isDarkMode ? '#1f2937' : '#ffffff'
+        }}
         onWheel={handleWheel}
       >
         {/* Selection box with lower z-index to stay behind text */}
