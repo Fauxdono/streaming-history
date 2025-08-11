@@ -830,23 +830,23 @@ const ListeningPatterns = ({
               <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
                 isDarkMode 
                   ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                  : 'bg-white border-teal-200 hover:border-teal-400'
+                  : 'bg-white border-purple-200 hover:border-purple-400'
               }`}>
                 
                 {/* Table Layout */}
                 <table className="w-full h-full">
                   {/* Month Header */}
-                  <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-teal-50'}`}>
+                  <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
                     <tr>
                       <th className={`p-2 text-center font-bold text-sm ${
-                        isDarkMode ? 'text-teal-300' : 'text-teal-600'
+                        isDarkMode ? 'text-purple-300' : 'text-purple-600'
                       }`} colSpan="2">
                         {monthData.fullName}
                       </th>
                     </tr>
                     <tr>
                       <th className={`p-1 text-center text-xs ${
-                        isDarkMode ? 'text-teal-400' : 'text-teal-500'
+                        isDarkMode ? 'text-purple-400' : 'text-purple-500'
                       }`} colSpan="2">
                         {monthData.totalPlays} plays • {formatDuration(monthData.totalTime)}
                       </th>
@@ -867,14 +867,14 @@ const ListeningPatterns = ({
                     ) : (
                       <>
                         {/* Stats Row */}
-                        <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-teal-25'}`}>
+                        <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
                           <td className={`p-2 text-center text-xs ${
-                            isDarkMode ? 'text-teal-300' : 'text-teal-600'
+                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
                           }`}>
                             🎵 {monthData.uniqueSongCount} songs
                           </td>
                           <td className={`p-2 text-center text-xs ${
-                            isDarkMode ? 'text-teal-300' : 'text-teal-600'
+                            isDarkMode ? 'text-purple-300' : 'text-purple-600'
                           }`}>
                             🎤 {monthData.uniqueArtistCount} artists
                           </td>
@@ -884,7 +884,7 @@ const ListeningPatterns = ({
                         {monthData.topArtist.name && (
                           <tr>
                             <td className={`p-2 text-center text-xs font-medium ${
-                              isDarkMode ? 'text-teal-400' : 'text-teal-700'
+                              isDarkMode ? 'text-purple-400' : 'text-purple-700'
                             }`} colSpan="2">
                               🔥 Top Artist
                             </td>
@@ -897,7 +897,7 @@ const ListeningPatterns = ({
                             }`} colSpan="2">
                               <div className="truncate font-medium">{monthData.topArtist.name}</div>
                               <div className={`text-xs ${
-                                isDarkMode ? 'text-teal-300' : 'text-teal-600'
+                                isDarkMode ? 'text-purple-300' : 'text-purple-600'
                               }`}>
                                 {monthData.topArtist.playCount} plays
                               </div>
@@ -907,22 +907,22 @@ const ListeningPatterns = ({
 
                         {/* Top Album */}
                         {monthData.topAlbum.name && (
-                          <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-teal-25'}`}>
+                          <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
                             <td className={`p-2 text-center text-xs font-medium ${
-                              isDarkMode ? 'text-teal-400' : 'text-teal-700'
+                              isDarkMode ? 'text-purple-400' : 'text-purple-700'
                             }`} colSpan="2">
                               💿 Top Album
                             </td>
                           </tr>
                         )}
                         {monthData.topAlbum.name && (
-                          <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-teal-25'}`}>
+                          <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
                             <td className={`p-1 text-center text-sm ${
                               isDarkMode ? 'text-white' : 'text-gray-900'
                             }`} colSpan="2">
                               <div className="truncate font-medium">{monthData.topAlbum.name}</div>
                               <div className={`text-xs truncate ${
-                                isDarkMode ? 'text-teal-300' : 'text-teal-600'
+                                isDarkMode ? 'text-purple-300' : 'text-purple-600'
                               }`}>
                                 by {monthData.topAlbum.artist}
                               </div>
@@ -934,7 +934,7 @@ const ListeningPatterns = ({
                         {monthData.firstListens.length > 0 && (
                           <tr>
                             <td className={`p-2 text-center text-xs font-medium ${
-                              isDarkMode ? 'text-teal-400' : 'text-teal-700'
+                              isDarkMode ? 'text-purple-400' : 'text-purple-700'
                             }`} colSpan="2">
                               ✨ New Discoveries ({monthData.firstListens.length})
                             </td>
@@ -949,7 +949,7 @@ const ListeningPatterns = ({
                                 <div key={songIndex} className="mb-1">
                                   <div className="truncate font-medium">{song.song}</div>
                                   <div className={`truncate ${
-                                    isDarkMode ? 'text-teal-300' : 'text-teal-600'
+                                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                   }`}>
                                     by {song.artist}
                                   </div>
@@ -957,7 +957,7 @@ const ListeningPatterns = ({
                               ))}
                               {monthData.firstListens.length > 2 && (
                                 <div className={`text-xs ${
-                                  isDarkMode ? 'text-teal-300' : 'text-teal-600'
+                                  isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                 }`}>
                                   +{monthData.firstListens.length - 2} more
                                 </div>
