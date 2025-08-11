@@ -652,11 +652,13 @@ const ListeningPatterns = ({
   return (
    <div className={`w-full ${isDarkMode ? 'text-purple-200' : 'text-gray-900'}`}>
     {/* Horizontally scrollable tabs */}
-    <div className={`relative overflow-x-auto pb-1 -mx-4 px-4 ${
-      isDarkMode 
-        ? 'scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-purple-600 hover:scrollbar-thumb-purple-500'
-        : 'scrollbar-thin scrollbar-track-gray-200 scrollbar-thumb-purple-400 hover:scrollbar-thumb-purple-500'
-    }`}>
+    <div className={`relative overflow-x-auto pb-1 -mx-4 px-4`} 
+         style={{
+           scrollbarWidth: 'thin',
+           scrollbarColor: isDarkMode 
+             ? '#7C3AED #1F2937'  // purple thumb, gray track for dark mode
+             : '#A855F7 #F3F4F6'  // purple thumb, light gray track for light mode
+         }}>
       <div className="flex min-w-max">
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
