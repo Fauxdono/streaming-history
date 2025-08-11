@@ -339,8 +339,7 @@ const WheelSelector = ({
         className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
         style={{ 
           height: `${totalHeight}px`,
-          backgroundColor: isDarkMode ? '#1f2937' : '#ff0000',
-          border: '3px solid #00ff00'
+          backgroundColor: isDarkMode ? '#1f2937' : '#ffffff'
         }}
         data-dark-mode={isDarkMode}
         data-bg-color={isDarkMode ? '#1f2937' : '#ffffff'}
