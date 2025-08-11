@@ -191,7 +191,6 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
   overflow-x: auto; /* Ensure horizontal scrollbar appears when needed */
-  border: 5px solid red !important; /* TEMPORARY - to test if CSS is loading */
 }
 
 /* Dark mode class-based styles */
@@ -408,78 +407,61 @@ body {
   animation: rainbow 2s linear infinite;
 }
 
-/* Scrollbar styles - for all modes - FORCED */
-* {
-  scrollbar-width: thin !important;
-  scrollbar-color: #00FF00 #FF0000 !important;
+/* Desktop scrollbar styling - targeting webkit browsers specifically */
+@media (hover: hover) and (pointer: fine) {
+  /* Only apply to desktop devices with mouse/trackpad */
+  
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(243, 244, 246, 0.3);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.8);
+    border-radius: 10px;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(147, 51, 234, 0.9);
+  }
+
+  /* Dark mode overrides for desktop */
+  .dark ::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.3);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(124, 58, 237, 0.8);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(109, 40, 217, 0.9);
+  }
 }
 
-::-webkit-scrollbar {
-  width: 12px !important;
-  height: 12px !important;
+/* Mobile and general fallback scrollbar styling */
+@media not all and (hover: hover) and (pointer: fine) {
+  /* Mobile devices - keep native styling */
+  ::-webkit-scrollbar {
+    display: none; /* Let mobile use native overlay scrollbars */
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #FF0000 !important; /* Temporary red track to identify which scrollbar */
-  border-radius: 8px !important;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #00FF00 !important; /* Temporary green thumb to identify which scrollbar */
-  border-radius: 8px !important;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #0000FF !important; /* Temporary blue hover to identify which scrollbar */
-}
-
-html::-webkit-scrollbar {
-  width: 12px !important;
-  height: 12px !important;
-}
-
-html::-webkit-scrollbar-track {
-  background: #FF0000 !important;
-}
-
-html::-webkit-scrollbar-thumb {
-  background: #00FF00 !important;
-}
-
-body::-webkit-scrollbar {
-  width: 12px !important;
-  height: 12px !important;
-}
-
-body::-webkit-scrollbar-track {
-  background: #FF0000 !important;
-}
-
-body::-webkit-scrollbar-thumb {
-  background: #00FF00 !important;
-}
-
-/* Dark mode scrollbar override */
-.dark ::-webkit-scrollbar-track {
-  background: #FF0000; /* Temporary red track for dark mode too */
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #00FF00; /* Temporary green thumb for dark mode too */
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #0000FF; /* Temporary blue hover for dark mode too */
-}
-
-/* For Firefox */
+/* Firefox scrollbar styling */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #A855F7 #F3F4F6;
+  scrollbar-color: rgba(168, 85, 247, 0.8) rgba(243, 244, 246, 0.3);
 }
 
 .dark * {
-  scrollbar-color: #7C3AED #1F2937;
+  scrollbar-color: rgba(124, 58, 237, 0.8) rgba(31, 41, 55, 0.3);
 }
 
 /* Loading animation */
