@@ -739,7 +739,9 @@ const ListeningPatterns = ({
           </div>
           
           <div className="flex flex-col justify-center">
-            <h3 className="text-lg font-bold text-purple-700 mb-2">Time Period Stats</h3>
+            <h3 className={`text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-purple-300' : 'text-purple-700'
+            }`}>Time Period Stats</h3>
             <ul className="space-y-2">
               {timeOfDayData.periods.map((period, index) => (
                 <li key={index} className={`p-2 rounded ${
@@ -763,8 +765,12 @@ const ListeningPatterns = ({
         <div>
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="text-lg font-bold text-purple-700">Listening by Day of Week</h3>
-              <p className="text-purple-600">Which days do you stream music the most?</p>
+              <h3 className={`text-lg font-bold ${
+                isDarkMode ? 'text-purple-300' : 'text-purple-700'
+              }`}>Listening by Day of Week</h3>
+              <p className={`${
+                isDarkMode ? 'text-purple-400' : 'text-purple-600'
+              }`}>Which days do you stream music the most?</p>
             </div>
             <div className="flex bg-purple-100 rounded-full p-1">
               <button
@@ -825,7 +831,9 @@ const ListeningPatterns = ({
         </div>
         
         <div>
-          <h3 className="text-lg font-bold text-purple-700 mb-2">Day of Week Stats</h3>
+          <h3 className={`text-lg font-bold mb-2 ${
+            isDarkMode ? 'text-purple-300' : 'text-purple-700'
+          }`}>Day of Week Stats</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {dayOfWeekData.map((day, index) => (
               <div key={index} className={`p-3 rounded border relative ${
@@ -855,8 +863,12 @@ const ListeningPatterns = ({
     {activeTab === 'seasonal' && (
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-bold text-purple-700 mb-2">Listening by Month</h3>
-          <p className="text-purple-600 mb-4">How does your listening change throughout the year?</p>
+          <h3 className={`text-lg font-bold mb-2 ${
+            isDarkMode ? 'text-purple-300' : 'text-purple-700'
+          }`}>Listening by Month</h3>
+          <p className={`mb-4 ${
+            isDarkMode ? 'text-purple-400' : 'text-purple-600'
+          }`}>How does your listening change throughout the year?</p>
           
           <div className={`h-64 w-full rounded p-2 ${
             isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -887,7 +899,9 @@ const ListeningPatterns = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Listening</h3>
+            <h3 className={`text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-purple-300' : 'text-purple-700'
+            }`}>Seasonal Listening</h3>
             <div className={`h-64 rounded p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
@@ -921,7 +935,9 @@ const ListeningPatterns = ({
           </div>
           
           <div className="flex flex-col justify-center">
-            <h3 className="text-lg font-bold text-purple-700 mb-2">Seasonal Stats</h3>
+            <h3 className={`text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-purple-300' : 'text-purple-700'
+            }`}>Seasonal Stats</h3>
             <ul className="space-y-2">
               {monthlyData.seasons.map((season, index) => (
                 <li key={index} className={`p-2 rounded ${
@@ -1023,8 +1039,12 @@ const ListeningPatterns = ({
                             }`}>
                               {monthData.topArtist.name ? (
                                 <>
-                                  <div className="text-xs font-medium mb-0.5">Top Artist</div>
-                                  <div className="truncate font-medium text-xs">{monthData.topArtist.name}</div>
+                                  <div className={`text-xs font-medium mb-0.5 ${
+                                    isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                                  }`}>Top Artist</div>
+                                  <div className={`truncate font-medium text-xs ${
+                                    isDarkMode ? 'text-purple-200' : 'text-purple-900'
+                                  }`}>{monthData.topArtist.name}</div>
                                   <div className={`text-xs ${
                                     isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                   }`}>
@@ -1046,8 +1066,12 @@ const ListeningPatterns = ({
                             }`}>
                               {monthData.topAlbum.name ? (
                                 <>
-                                  <div className="text-xs font-medium mb-0.5">Top Album</div>
-                                  <div className="truncate font-medium text-xs">{monthData.topAlbum.name}</div>
+                                  <div className={`text-xs font-medium mb-0.5 ${
+                                    isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                                  }`}>Top Album</div>
+                                  <div className={`truncate font-medium text-xs ${
+                                    isDarkMode ? 'text-purple-200' : 'text-purple-900'
+                                  }`}>{monthData.topAlbum.name}</div>
                                   <div className={`text-xs truncate ${
                                     isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                   }`}>
@@ -1070,10 +1094,14 @@ const ListeningPatterns = ({
                               <td className={`p-1 text-center text-xs ${
                                 isDarkMode ? 'text-purple-300' : 'text-purple-700'
                               }`} colSpan="2">
-                                <div className="text-xs font-medium mb-0.5">New ({monthData.firstListens.length})</div>
+                                <div className={`text-xs font-medium mb-0.5 ${
+                                  isDarkMode ? 'text-purple-400' : 'text-purple-700'
+                                }`}>New ({monthData.firstListens.length})</div>
                                 {monthData.firstListens.slice(0, 1).map((song, songIndex) => (
                                   <div key={songIndex} className="mb-1">
-                                    <div className="truncate font-medium text-xs">{song.song}</div>
+                                    <div className={`truncate font-medium text-xs ${
+                                      isDarkMode ? 'text-purple-200' : 'text-purple-900'
+                                    }`}>{song.song}</div>
                                     <div className={`truncate text-xs ${
                                       isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                     }`}>
@@ -1170,7 +1198,9 @@ const ListeningPatterns = ({
                                 <td className={`p-1 text-center text-xs ${
                                   isDarkMode ? 'text-purple-200' : 'text-purple-900'
                                 }`} colSpan="2">
-                                  <div className="truncate font-medium text-xs">{dayData.topArtist.name}</div>
+                                  <div className={`truncate font-medium text-xs ${
+                                    isDarkMode ? 'text-purple-200' : 'text-purple-900'
+                                  }`}>{dayData.topArtist.name}</div>
                                   <div className={`text-xs ${
                                     isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                   }`}>
@@ -1195,7 +1225,9 @@ const ListeningPatterns = ({
                                 <td className={`p-1 text-center text-xs ${
                                   isDarkMode ? 'text-purple-200' : 'text-purple-900'
                                 }`} colSpan="2">
-                                  <div className="truncate font-medium text-xs">{dayData.topAlbum.name}</div>
+                                  <div className={`truncate font-medium text-xs ${
+                                    isDarkMode ? 'text-purple-200' : 'text-purple-900'
+                                  }`}>{dayData.topAlbum.name}</div>
                                   <div className={`text-xs truncate ${
                                     isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                   }`}>
@@ -1222,7 +1254,9 @@ const ListeningPatterns = ({
                                 }`} colSpan="2">
                                   {dayData.firstListens.slice(0, 1).map((song, songIndex) => (
                                     <div key={songIndex} className="mb-1">
-                                      <div className="truncate font-medium text-xs">{song.song}</div>
+                                      <div className={`truncate font-medium text-xs ${
+                                        isDarkMode ? 'text-purple-200' : 'text-purple-900'
+                                      }`}>{song.song}</div>
                                       <div className={`truncate text-xs ${
                                         isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                       }`}>
