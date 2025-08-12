@@ -961,7 +961,7 @@ const ListeningPatterns = ({
           
           {/* Monthly View */}
           {!isMonthView && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
               {calendarData.map((monthData, index) => (
                 <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
                   isDarkMode 
@@ -974,17 +974,17 @@ const ListeningPatterns = ({
                     {/* Month Header */}
                     <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
                       <tr>
-                        <th className={`p-2 text-center font-bold text-sm ${
+                        <th className={`p-1.5 text-center font-bold text-xs ${
                           isDarkMode ? 'text-purple-300' : 'text-purple-600'
                         }`} colSpan="2">
-                          {monthData.fullName}
+                          {monthData.name}
                         </th>
                       </tr>
                       <tr>
-                        <th className={`p-1 text-center text-xs ${
+                        <th className={`pb-1 text-center text-xs ${
                           isDarkMode ? 'text-purple-400' : 'text-purple-500'
                         }`} colSpan="2">
-                          {monthData.totalPlays} plays • {formatDuration(monthData.totalTime)}
+                          {monthData.totalPlays} plays
                         </th>
                       </tr>
                     </thead>
@@ -1003,12 +1003,12 @@ const ListeningPatterns = ({
                         <>
                           {/* Stats Row */}
                           <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
-                            <td className={`p-2 text-center text-xs ${
+                            <td className={`p-1 text-center text-xs ${
                               isDarkMode ? 'text-purple-300' : 'text-purple-600'
                             }`}>
-{monthData.uniqueSongCount} songs
+                              {monthData.uniqueSongCount} songs
                             </td>
-                            <td className={`p-2 text-center text-xs ${
+                            <td className={`p-1 text-center text-xs ${
                               isDarkMode ? 'text-purple-300' : 'text-purple-600'
                             }`}>
                               {monthData.uniqueArtistCount} artists
@@ -1018,19 +1018,11 @@ const ListeningPatterns = ({
                           {/* Top Artist */}
                           {monthData.topArtist.name && (
                             <tr>
-                              <td className={`p-2 text-center text-xs font-medium ${
-                                isDarkMode ? 'text-purple-400' : 'text-purple-700'
-                              }`} colSpan="2">
-                                Top Artist
-                              </td>
-                            </tr>
-                          )}
-                          {monthData.topArtist.name && (
-                            <tr>
-                              <td className={`p-1 text-center text-sm ${
+                              <td className={`p-1 text-center text-xs ${
                                 isDarkMode ? 'text-purple-100' : 'text-purple-900'
                               }`} colSpan="2">
-                                <div className="truncate font-medium">{monthData.topArtist.name}</div>
+                                <div className="text-xs font-medium mb-0.5">Top Artist</div>
+                                <div className="truncate font-medium text-xs">{monthData.topArtist.name}</div>
                                 <div className={`text-xs ${
                                   isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                 }`}>
@@ -1043,19 +1035,11 @@ const ListeningPatterns = ({
                           {/* Top Album */}
                           {monthData.topAlbum.name && (
                             <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
-                              <td className={`p-2 text-center text-xs font-medium ${
-                                isDarkMode ? 'text-purple-400' : 'text-purple-700'
-                              }`} colSpan="2">
-                                Top Album
-                              </td>
-                            </tr>
-                          )}
-                          {monthData.topAlbum.name && (
-                            <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
-                              <td className={`p-1 text-center text-sm ${
+                              <td className={`p-1 text-center text-xs ${
                                 isDarkMode ? 'text-purple-100' : 'text-purple-900'
                               }`} colSpan="2">
-                                <div className="truncate font-medium">{monthData.topAlbum.name}</div>
+                                <div className="text-xs font-medium mb-0.5">Top Album</div>
+                                <div className="truncate font-medium text-xs">{monthData.topAlbum.name}</div>
                                 <div className={`text-xs truncate ${
                                   isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                 }`}>
@@ -1068,33 +1052,25 @@ const ListeningPatterns = ({
                           {/* First Listens */}
                           {monthData.firstListens.length > 0 && (
                             <tr>
-                              <td className={`p-2 text-center text-xs font-medium ${
-                                isDarkMode ? 'text-purple-400' : 'text-purple-700'
-                              }`} colSpan="2">
-                                New Discoveries ({monthData.firstListens.length})
-                              </td>
-                            </tr>
-                          )}
-                          {monthData.firstListens.length > 0 && (
-                            <tr>
                               <td className={`p-1 text-center text-xs ${
                                 isDarkMode ? 'text-purple-300' : 'text-purple-700'
                               }`} colSpan="2">
-                                {monthData.firstListens.slice(0, 2).map((song, songIndex) => (
+                                <div className="text-xs font-medium mb-0.5">New ({monthData.firstListens.length})</div>
+                                {monthData.firstListens.slice(0, 1).map((song, songIndex) => (
                                   <div key={songIndex} className="mb-1">
-                                    <div className="truncate font-medium">{song.song}</div>
-                                    <div className={`truncate ${
+                                    <div className="truncate font-medium text-xs">{song.song}</div>
+                                    <div className={`truncate text-xs ${
                                       isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                     }`}>
                                       by {song.artist}
                                     </div>
                                   </div>
                                 ))}
-                                {monthData.firstListens.length > 2 && (
+                                {monthData.firstListens.length > 1 && (
                                   <div className={`text-xs ${
                                     isDarkMode ? 'text-purple-300' : 'text-purple-600'
                                   }`}>
-                                    +{monthData.firstListens.length - 2} more
+                                    +{monthData.firstListens.length - 1} more
                                   </div>
                                 )}
                               </td>
@@ -1111,7 +1087,7 @@ const ListeningPatterns = ({
           
           {/* Daily View */}
           {isMonthView && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2">
               {dailyCalendarData.map((dayData, index) => (
                 <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
                   isDarkMode 
@@ -1124,17 +1100,17 @@ const ListeningPatterns = ({
                     {/* Day Header */}
                     <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
                       <tr>
-                        <th className={`p-2 text-center font-bold text-sm ${
+                        <th className={`p-1 text-center font-bold text-xs ${
                           isDarkMode ? 'text-purple-300' : 'text-purple-600'
                         }`} colSpan="2">
-                          Day {dayData.day}
+                          {dayData.day}
                         </th>
                       </tr>
                       <tr>
-                        <th className={`p-1 text-center text-xs ${
+                        <th className={`pb-1 text-center text-xs ${
                           isDarkMode ? 'text-purple-400' : 'text-purple-500'
                         }`} colSpan="2">
-                          {dayData.totalPlays} plays • {formatDuration(dayData.totalTime)}
+                          {dayData.totalPlays} plays
                         </th>
                       </tr>
                     </thead>
