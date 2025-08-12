@@ -992,14 +992,14 @@ const ListeningPatterns = ({
                       <tr>
                         <th className={`p-1.5 text-center font-bold text-xs ${
                           isDarkMode ? 'text-purple-200' : 'text-purple-600'
-                        }`} colSpan="2">
+                        } ${isDarkMode ? '!text-purple-200' : ''}`} colSpan="2">
                           {monthData.name}
                         </th>
                       </tr>
                       <tr>
                         <th className={`pb-1 text-center text-xs ${
                           isDarkMode ? 'text-purple-300' : 'text-purple-500'
-                        }`} colSpan="2">
+                        } ${isDarkMode ? '!text-purple-300' : ''}`} colSpan="2">
                           {monthData.totalPlays} plays
                         </th>
                       </tr>
@@ -1023,12 +1023,12 @@ const ListeningPatterns = ({
                           <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
                             <td className={`p-1 text-center text-xs ${
                               isDarkMode ? 'text-purple-200' : 'text-purple-600'
-                            }`}>
+                            } ${isDarkMode ? '!text-purple-200' : ''}`}>
                               {monthData.uniqueSongCount} songs
                             </td>
                             <td className={`p-1 text-center text-xs ${
                               isDarkMode ? 'text-purple-200' : 'text-purple-600'
-                            }`}>
+                            } ${isDarkMode ? '!text-purple-200' : ''}`}>
                               {monthData.uniqueArtistCount} artists
                             </td>
                           </tr>
