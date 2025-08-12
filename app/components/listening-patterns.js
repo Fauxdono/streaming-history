@@ -1019,7 +1019,7 @@ const ListeningPatterns = ({
                           <tr>
                             {/* Left Column - Top Artist */}
                             <td className={`p-1 text-center text-xs align-top ${
-                              isDarkMode ? 'text-purple-100' : 'text-purple-900'
+                              isDarkMode ? 'text-purple-200' : 'text-purple-900'
                             }`}>
                               {monthData.topArtist.name ? (
                                 <>
@@ -1042,7 +1042,7 @@ const ListeningPatterns = ({
 
                             {/* Right Column - Top Album */}
                             <td className={`p-1 text-center text-xs align-top ${
-                              isDarkMode ? 'text-purple-100' : 'text-purple-900'
+                              isDarkMode ? 'text-purple-200' : 'text-purple-900'
                             }`}>
                               {monthData.topAlbum.name ? (
                                 <>
@@ -1168,7 +1168,7 @@ const ListeningPatterns = ({
                               </tr>
                               <tr>
                                 <td className={`p-1 text-center text-xs ${
-                                  isDarkMode ? 'text-purple-100' : 'text-purple-900'
+                                  isDarkMode ? 'text-purple-200' : 'text-purple-900'
                                 }`} colSpan="2">
                                   <div className="truncate font-medium text-xs">{dayData.topArtist.name}</div>
                                   <div className={`text-xs ${
@@ -1193,7 +1193,7 @@ const ListeningPatterns = ({
                               </tr>
                               <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
                                 <td className={`p-1 text-center text-xs ${
-                                  isDarkMode ? 'text-purple-100' : 'text-purple-900'
+                                  isDarkMode ? 'text-purple-200' : 'text-purple-900'
                                 }`} colSpan="2">
                                   <div className="truncate font-medium text-xs">{dayData.topAlbum.name}</div>
                                   <div className={`text-xs truncate ${
