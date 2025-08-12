@@ -8,11 +8,6 @@ const WheelSelector = ({
   colorTheme = 'teal',
   displayFormat = (val) => val
 }) => {
-  // Check if we're in dark mode by looking at the document
-  const isDarkMode = typeof window !== 'undefined' && 
-    (document.documentElement.classList.contains('dark') || 
-     document.body.classList.contains('dark') ||
-     window.matchMedia?.('(prefers-color-scheme: dark)').matches);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [currentOffset, setCurrentOffset] = useState(0);
@@ -343,12 +338,8 @@ const WheelSelector = ({
         </div>
         
         {/* Gradient fades for visual polish - using theme colors */}
-        <div className={`absolute top-0 left-0 right-0 h-1/3 pointer-events-none ${
-          isDarkMode ? colors.gradientDark : colors.gradientLight
-        }`}></div>
-        <div className={`absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none ${
-          isDarkMode ? colors.gradientDarkBottom : colors.gradientLightBottom
-        }`}></div>
+        <div className={`absolute top-0 left-0 right-0 h-1/3 pointer-events-none ${colors.gradientLight}`}></div>
+        <div className={`absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none ${colors.gradientLightBottom}`}></div>
         
         {/* Arrows */}
         <div className="absolute top-0 left-0 right-0 flex justify-center pointer-events-none">
