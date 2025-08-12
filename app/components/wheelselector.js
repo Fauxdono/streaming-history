@@ -336,10 +336,12 @@ const WheelSelector = ({
       
       <div 
         ref={containerRef}
-        className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
+        className="relative w-24 overflow-hidden rounded-lg border shadow select-none"
         style={{ 
           height: `${totalHeight}px`,
-          backgroundColor: isDarkMode ? '#1f2937' : '#ffffff'
+          backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+          borderColor: isDarkMode ? '#6b7280' : '#d1d5db',
+          boxShadow: isDarkMode ? '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)' : '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
         }}
         data-dark-mode={isDarkMode}
         data-bg-color={isDarkMode ? '#1f2937' : '#ffffff'}
@@ -347,10 +349,11 @@ const WheelSelector = ({
       >
         {/* Selection box with lower z-index to stay behind text */}
         <div 
-          className={`absolute left-1 right-1 top-1/2 -translate-y-1/2 border-2 ${colors.border} rounded-md pointer-events-none`}
+          className="absolute left-1 right-1 top-1/2 -translate-y-1/2 border-2 rounded-md pointer-events-none"
           style={{ 
             height: `${itemHeight}px`,
             backgroundColor: isDarkMode ? '#374151' : getHighlightColor(colorTheme),
+            borderColor: isDarkMode ? '#6b7280' : '#d1d5db',
             boxShadow: `0 0 2px rgba(0,0,0,0.1) inset`,
             zIndex: 5 
           }}
