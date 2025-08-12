@@ -991,14 +991,14 @@ const ListeningPatterns = ({
                     <thead className={`${isDarkMode ? 'bg-gray-700' : 'bg-purple-50'}`}>
                       <tr>
                         <th className={`p-1.5 text-center font-bold text-xs ${
-                          isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                          isDarkMode ? 'text-purple-200' : 'text-purple-600'
                         }`} colSpan="2">
                           {monthData.name}
                         </th>
                       </tr>
                       <tr>
                         <th className={`pb-1 text-center text-xs ${
-                          isDarkMode ? 'text-purple-400' : 'text-purple-500'
+                          isDarkMode ? 'text-purple-300' : 'text-purple-500'
                         }`} colSpan="2">
                           {monthData.totalPlays} plays
                         </th>
@@ -1012,7 +1012,9 @@ const ListeningPatterns = ({
                           <td className={`p-6 text-center ${
                             isDarkMode ? 'text-purple-400' : 'text-purple-500'
                           }`} colSpan="2">
-                            <div className="text-sm">No listening data</div>
+                            <div className={`text-sm ${
+                              isDarkMode ? 'text-purple-400' : 'text-purple-600'
+                            }`}>No listening data</div>
                           </td>
                         </tr>
                       ) : (
@@ -1020,12 +1022,12 @@ const ListeningPatterns = ({
                           {/* Stats Row */}
                           <tr className={`${isDarkMode ? 'bg-gray-750' : 'bg-purple-25'}`}>
                             <td className={`p-1 text-center text-xs ${
-                              isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                              isDarkMode ? 'text-purple-200' : 'text-purple-600'
                             }`}>
                               {monthData.uniqueSongCount} songs
                             </td>
                             <td className={`p-1 text-center text-xs ${
-                              isDarkMode ? 'text-purple-300' : 'text-purple-600'
+                              isDarkMode ? 'text-purple-200' : 'text-purple-600'
                             }`}>
                               {monthData.uniqueArtistCount} artists
                             </td>
