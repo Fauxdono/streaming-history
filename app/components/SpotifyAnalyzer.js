@@ -54,13 +54,12 @@ const SERVICE_COLORS = {
   }
 };
 
-const SpotifyAnalyzer = () => {
+const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   
   // Core application state
-  const [activeTab, setActiveTab] = useState('upload');
   const [activeTrackTab, setActiveTrackTab] = useState('top250');
   const [songsByMonth, setSongsByMonth] = useState({});
   const [songsByYear, setSongsByYear] = useState({});
@@ -1082,98 +1081,35 @@ const SpotifyAnalyzer = () => {
     }
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
-  // Memoized TabButton component to prevent recreation
-  const TabButton = useCallback(({ id, label }) => {
-    // Helper function to get the color based on tab ID
-    const getTabColor = (tabId) => {
-      switch (tabId) {
-        case 'updates':
-          return activeTab === tabId 
-            ? 'bg-cyan-50 text-cyan-600 border-b-2 border-cyan-600' 
-            : 'bg-cyan-200 text-cyan-600 hover:bg-cyan-300';
-        case 'upload':
-          return activeTab === tabId 
-            ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600' 
-            : 'bg-orange-200 text-orange-600 hover:bg-orange-300';
-        case 'stats':
-          return activeTab === tabId 
-            ? 'bg-purple-100 text-purple-600 border-b-2 border-purple-600' 
-            : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
-        case 'artists':
-          return activeTab === tabId 
-            ? 'bg-emerald-50 text-teal-600 border-b-2 border-teal-600' 
-            : 'bg-emerald-100 text-teal-600 hover:bg-teal-200';
-        case 'albums':
-          return activeTab === tabId 
-            ? 'bg-rose-50 text-pink-600 border-b-2 border-pink-600' 
-            : 'bg-rose-200 text-pink-600 hover:bg-pink-300';
-        case 'tracks':
-          return activeTab === tabId 
-            ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600' 
-            : 'bg-blue-200 text-blue-600 hover:bg-blue-300';
-        case 'custom':
-          return activeTab === tabId 
-            ? 'bg-yellow-100 text-yellow-600 border-b-2 border-yellow-600' 
-            : 'bg-yellow-200 text-yellow-600 hover:bg-yellow-300';
-        case 'playlists':
-          return activeTab === tabId 
-            ? 'bg-red-50 text-red-600 border-b-2 border-red-600' 
-            : 'bg-red-200 text-red-600 hover:bg-red-300';
-        case 'podcasts':
-          return activeTab === tabId 
-            ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
-            : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
-        case 'patterns':
-          return activeTab === tabId 
-            ? 'bg-purple-50 text-purple-600 border-b-2 border-purple-600' 
-            : 'bg-purple-200 text-purple-600 hover:bg-purple-300';
-        case 'behavior':
-          return activeTab === tabId 
-            ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600' 
-            : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300';
-        case 'discovery':
-          return activeTab === tabId 
-            ? 'bg-green-50 text-green-600 border-b-2 border-green-600' 
-            : 'bg-green-200 text-green-600 hover:bg-green-300';
-        default:
-          return '';
-      }
-    };
-
-    return (
-      <button
-        onClick={() => setActiveTab(id)}
-        className={`px-2 sm:px-4 py-2 font-medium text-sm sm:text-base ${getTabColor(id)}`}
-      >
-        {label}
-      </button>
-    );
-  }, [activeTab]);
 
   return (
-    <Card className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
-      <CardHeader className="px-2 sm:px-6 flex justify-between items-center">
-        <CardTitle className="text-yellow-400 dark:text-yellow-300">Streaming History Analyzer</CardTitle>
-        <DarkModeToggle />
-      </CardHeader>
-      <CardContent className="px-2 sm:px-6">
-        <div className="space-y-4">
-          <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4 main-tabs-scrollbar">
-            <div className="flex gap-1 sm:gap-2 border-b border-violet-200 min-w-max text-sm sm:text-base">
-              {stats && <TabButton id="updates" label="Updates" />} 
-              <TabButton id="upload" label="Upload" />
-              {stats && <TabButton id="stats" label="Statistics" />}
-              {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
-              {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
-              {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
-              {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-              {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
-            </div>
-          </div>
+    <div className="w-full h-full">
+      {TopTabsComponent && (
+        <TopTabsComponent
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          stats={stats}
+          topArtists={topArtists}
+          topAlbums={topAlbums}
+          processedData={processedData}
+          rawPlayData={rawPlayData}
+          getArtistsTabLabel={getArtistsTabLabel}
+          getAlbumsTabLabel={getAlbumsTabLabel}
+          getCustomTabLabel={getCustomTabLabel}
+          getTracksTabLabel={getTracksTabLabel}
+          getPatternsTabLabel={getPatternsTabLabel}
+          getBehaviorTabLabel={getBehaviorTabLabel}
+        />
+      )}
+      
+      <div className="flex flex-col items-center justify-between p-4 sm:p-8 md:p-16 lg:p-24">
+        <Card className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
+          <CardHeader className="px-2 sm:px-6 flex justify-between items-center">
+            <CardTitle className="text-yellow-400 dark:text-yellow-300">Streaming History Analyzer</CardTitle>
+            <DarkModeToggle />
+          </CardHeader>
+          <CardContent className="px-2 sm:px-6">
+            <div className="space-y-4">
           
           {activeTab === 'upload' && (
             <div>
@@ -1869,9 +1805,11 @@ const SpotifyAnalyzer = () => {
               startMinimized={false}
             />
           )}
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

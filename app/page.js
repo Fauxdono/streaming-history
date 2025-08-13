@@ -1,9 +1,19 @@
+"use client";
+
+import React, { useState } from 'react';
 import SpotifyAnalyzer from './components/SpotifyAnalyzer';
+import TopTabs from './components/TopTabs';
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState('upload');
+
   return (
- <main className="min-h-screen flex flex-col items-center justify-between p-4 sm:p-8 md:p-16 lg:p-24 bg-gradient-to-b from-blue-400 via-yellow-300 to-orange-300">
-  <SpotifyAnalyzer />
-</main>
+    <main className="min-h-screen bg-gradient-to-b from-blue-400 via-yellow-300 to-orange-300">
+      <SpotifyAnalyzer 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        TopTabsComponent={TopTabs}
+      />
+    </main>
   );
 }
