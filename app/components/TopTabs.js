@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback } from 'react';
+import DarkModeToggle from './darkmode.js';
 
 const TopTabs = ({ 
   activeTab, 
@@ -87,20 +88,25 @@ const TopTabs = ({
 
   return (
     <div className="w-full bg-white dark:bg-gray-800 border-b border-violet-200 dark:border-gray-600 sticky top-0 z-20">
-      <div className="overflow-x-auto px-4 main-tabs-scrollbar">
-        <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base">
-          {stats && <TabButton id="updates" label="Updates" />} 
-          <TabButton id="upload" label="Upload" />
-          {stats && <TabButton id="stats" label="Statistics" />}
-          {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
-          {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
-          {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
-          {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-          {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+      <div className="flex items-center justify-between px-4">
+        <div className="overflow-x-auto flex-1 main-tabs-scrollbar">
+          <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base">
+            {stats && <TabButton id="updates" label="Updates" />} 
+            <TabButton id="upload" label="Upload" />
+            {stats && <TabButton id="stats" label="Statistics" />}
+            {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
+            {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
+            {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
+            {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
+            {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
+            {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
+            {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
+            {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
+            {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+          </div>
+        </div>
+        <div className="ml-4">
+          <DarkModeToggle />
         </div>
       </div>
     </div>
