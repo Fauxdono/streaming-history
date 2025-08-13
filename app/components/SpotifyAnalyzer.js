@@ -68,6 +68,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topArtists, setTopArtists] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(10);
+  const [artistsCompactView, setArtistsCompactView] = useState(false);
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -1369,16 +1370,32 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     `Most Played Artists (${selectedArtistYear})`}
                 </h3>
                 
-                <div className="flex items-center gap-2">
-                  <label className="text-teal-700">Show Top</label>
-                  <input
-                    type="number" 
-                    min="1" 
-                    max="999" 
-                    value={topArtistsCount} 
-                    onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
-                    className="w-16 border rounded px-2 py-1 text-teal-700"
-                  />
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-teal-700">Show Top</label>
+                    <input
+                      type="number" 
+                      min="1" 
+                      max="999" 
+                      value={topArtistsCount} 
+                      onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
+                      className="w-16 border rounded px-2 py-1 text-teal-700"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-teal-700">Compact View</label>
+                    <button
+                      onClick={() => setArtistsCompactView(!artistsCompactView)}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        artistsCompactView 
+                          ? 'bg-teal-600 text-white' 
+                          : 'bg-teal-200 text-teal-700 hover:bg-teal-300'
+                      }`}
+                    >
+                      {artistsCompactView ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
                 </div>
               </div>
               
@@ -1456,6 +1473,69 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   >
                     Show All Artists
                   </button>
+                </div>
+              ) : artistsCompactView ? (
+                <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="p-2 text-left text-teal-700">Rank</th>
+                        <th className="p-2 text-left text-teal-700">Artist</th>
+                        <th className="p-2 text-right text-teal-700">Total Time</th>
+                        <th className="p-2 text-right text-teal-700">Plays</th>
+                        <th className="p-2 text-left text-teal-700">Most Played Song</th>
+                        <th className="p-2 text-left text-teal-700">First Listen</th>
+                        <th className="p-2 text-center text-teal-700">Select</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredDisplayedArtists
+                        .slice(0, topArtistsCount)
+                        .map((artist, index) => {
+                          // Find original index to preserve ranking
+                          const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
+                          const isSelected = selectedArtists.includes(artist.name);
+                          
+                          return (
+                            <tr 
+                              key={artist.name} 
+                              className={`border-b hover:bg-teal-50 cursor-pointer ${
+                                isSelected ? 'bg-teal-100' : ''
+                              }`}
+                              onClick={() => {
+                                // Toggle artist selection
+                                if (selectedArtists.includes(artist.name)) {
+                                  setSelectedArtists(prev => prev.filter(a => a !== artist.name));
+                                } else {
+                                  setSelectedArtists(prev => [...prev, artist.name]);
+                                }
+                              }}
+                            >
+                              <td className="p-2 text-teal-700 font-bold">#{originalIndex + 1}</td>
+                              <td className="p-2 text-teal-700 font-medium">{artist.name}</td>
+                              <td className="p-2 text-right text-teal-700">{formatDuration(artist.totalPlayed)}</td>
+                              <td className="p-2 text-right text-teal-700">{artist.playCount}</td>
+                              <td className="p-2 text-teal-700">
+                                {artist.mostPlayedSong?.trackName || "N/A"}
+                                {artist.mostPlayedSong?.playCount && (
+                                  <span className="text-teal-500 text-sm"> ({artist.mostPlayedSong.playCount}x)</span>
+                                )}
+                              </td>
+                              <td className="p-2 text-teal-700">{new Date(artist.firstListen).toLocaleDateString()}</td>
+                              <td className="p-2 text-center">
+                                <div className={`w-5 h-5 rounded-full border-2 mx-auto flex items-center justify-center ${
+                                  isSelected 
+                                    ? 'bg-teal-600 border-teal-600 text-white' 
+                                    : 'border-teal-400 hover:border-teal-600'
+                                }`}>
+                                  {isSelected && '✓'}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
