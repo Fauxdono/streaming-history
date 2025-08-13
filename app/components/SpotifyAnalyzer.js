@@ -1158,7 +1158,7 @@ const SpotifyAnalyzer = () => {
       </CardHeader>
       <CardContent className="px-2 sm:px-6">
         <div className="space-y-4">
-          <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4 main-tabs-scrollbar">
+          <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4 main-tabs-scrollbar">
             <div className="flex gap-1 sm:gap-2 border-b border-violet-200 min-w-max text-sm sm:text-base">
               {stats && <TabButton id="updates" label="Updates" />} 
               <TabButton id="upload" label="Upload" />
