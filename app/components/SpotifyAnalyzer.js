@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate } from './streaming-adapter.js';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
 import ExportButton from './ExportButton.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
@@ -19,7 +18,6 @@ import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 // Removed imports of exported variables that were conflicting with local state
-import DarkModeToggle from './darkmode.js';
 import { useTheme } from './themeprovider.js';
 
 // Cache for service colors to avoid recreating on each render
@@ -1105,12 +1103,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       )}
       
       <div className="flex flex-col items-center justify-between p-4 sm:p-8 md:p-16 lg:p-24">
-        <Card className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
-          <CardHeader className="px-2 sm:px-6 flex justify-between items-center">
-            <CardTitle className="text-yellow-400 dark:text-yellow-300">Streaming History Analyzer</CardTitle>
-            <DarkModeToggle />
-          </CardHeader>
-          <CardContent className="px-2 sm:px-6">
+        <div className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
+          <div className="px-2 sm:px-6">
             <div className="space-y-4">
           
           {activeTab === 'upload' && (
@@ -1938,8 +1932,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             />
           )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
