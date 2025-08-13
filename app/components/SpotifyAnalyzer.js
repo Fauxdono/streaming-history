@@ -70,6 +70,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topArtistsCount, setTopArtistsCount] = useState(10);
   const [artistsCompactView, setArtistsCompactView] = useState(false);
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
+  const [albumsCompactView, setAlbumsCompactView] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
@@ -1616,16 +1617,32 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     `Most Played Albums (${albumYearRange.startYear}-${albumYearRange.endYear})` : 
                     `Most Played Albums (${selectedAlbumYear})`}
                 </h3>
-                <div className="flex items-center gap-2">
-                  <label className="text-pink-700">Show Top</label>
-                  <input 
-                    type="number" 
-                    min="1" 
-                    max="999" 
-                    value={topAlbumsCount} 
-                    onChange={(e) => setTopAlbumsCount(parseInt(e.target.value))}
-                    className="w-16 border rounded px-2 py-1 text-pink-700"
-                  />
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-pink-700">Show Top</label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="999" 
+                      value={topAlbumsCount} 
+                      onChange={(e) => setTopAlbumsCount(parseInt(e.target.value))}
+                      className="w-16 border rounded px-2 py-1 text-pink-700"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-pink-700">Compact View</label>
+                    <button
+                      onClick={() => setAlbumsCompactView(!albumsCompactView)}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        albumsCompactView 
+                          ? 'bg-pink-600 text-white' 
+                          : 'bg-pink-200 text-pink-700 hover:bg-pink-300'
+                      }`}
+                    >
+                      {albumsCompactView ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
                 </div>
               </div>
              
@@ -1696,6 +1713,41 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   >
                     Show All Albums
                   </button>
+                </div>
+              ) : albumsCompactView ? (
+                <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="p-2 text-left text-pink-700">Rank</th>
+                        <th className="p-2 text-left text-pink-700">Album</th>
+                        <th className="p-2 text-left text-pink-700">Artist</th>
+                        <th className="p-2 text-right text-pink-700">Total Time</th>
+                        <th className="p-2 text-right text-pink-700">Plays</th>
+                        <th className="p-2 text-right text-pink-700">Track Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
+                        <tr 
+                          key={`${album.name}-${album.artist}`}
+                          className="border-b hover:bg-pink-50"
+                        >
+                          <td className="p-2 text-pink-700 font-bold">#{index + 1}</td>
+                          <td className="p-2 text-pink-700 font-medium">{album.name}</td>
+                          <td className="p-2 text-pink-700">{album.artist}</td>
+                          <td className="p-2 text-right text-pink-700">{formatDuration(album.totalPlayed)}</td>
+                          <td className="p-2 text-right text-pink-700">{album.playCount || 0}</td>
+                          <td className="p-2 text-right text-pink-700">
+                            {album.trackCountValue || album.trackObjects?.length || 0}
+                            {album.trackObjects?.length > 0 && (
+                              <span className="text-pink-500 text-sm"> tracks</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
