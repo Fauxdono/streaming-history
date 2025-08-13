@@ -1105,8 +1105,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       <div className="flex flex-col items-center justify-between p-4 sm:p-8 md:p-16 lg:p-24">
         <div className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
-          <div className="px-2 sm:px-6 relative">
-            <div className="absolute top-0 right-0 z-10">
+          <div className="px-2 sm:px-6">
+            <div className="flex justify-center mb-4">
               <DarkModeToggle />
             </div>
             <div className="space-y-4">
