@@ -1592,7 +1592,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   )}
 </div>
 
-                          <div className="absolute bottom-1 right-3 text-teal-600 text-[2rem]">{originalIndex + 1}</div>
+                          <div className="absolute top-1 right-3 text-teal-600 text-[2rem]">{originalIndex + 1}</div>
                           {selectedArtists.includes(artist.name) && (
                             <div className="absolute top-2 right-2 w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
                               ✓
