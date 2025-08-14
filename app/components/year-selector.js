@@ -955,7 +955,7 @@ const YearSelector = ({
   if (!expanded && asSidebar) {
     return (
       <div 
-        className={`fixed ${positionStyles} top-2 h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        className={`fixed ${positionStyles} top-[60px] h-[calc(100vh-68px)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
         {/* Expand button */}
         <button 
@@ -978,7 +978,7 @@ const YearSelector = ({
         {/* Position toggle button - at bottom */}
         <button 
           onClick={togglePosition}
-          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-4 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Toggle sidebar position"
         >
           <span className="text-xs">⇄</span>
@@ -997,7 +997,7 @@ const YearSelector = ({
   
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `fixed ${positionStyles} top-2 h-[calc(100vh-1rem)] max-h-screen z-50 transition-all duration-300 ${
+    ? `fixed ${positionStyles} top-[60px] h-[calc(100vh-68px)] max-h-screen z-50 transition-all duration-300 ${
         mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
       } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
