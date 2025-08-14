@@ -48,26 +48,10 @@ const CustomTrackRankings = ({
   const [omittedArtists, setOmittedArtists] = useState([]);
   const [showOmittedTab, setShowOmittedTab] = useState(false);
   
-  // Update the check to consider orientation instead of just width
+  // Force compact layout for all track counts
   useEffect(() => {
-    const checkOrientation = () => {
-      // Check if we're in portrait mode (height > width)
-      const isPortrait = window.innerHeight > window.innerWidth;
-      setIsMobile(isPortrait);
-    };
-    
-    // Initial check
-    checkOrientation();
-    
-    // Add both resize and orientation change listeners
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
+    // Always use compact (mobile) layout regardless of screen size
+    setIsMobile(true);
   }, []);
 
   // Load omitted content from localStorage
