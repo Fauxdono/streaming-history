@@ -123,7 +123,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
         </div>
       )}
       
-      <div className="absolute bottom-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
+      <div className="absolute top-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
     </div>
   );
 };
