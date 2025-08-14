@@ -1478,13 +1478,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="p-2 text-left text-teal-700">Rank</th>
-                        <th className="p-2 text-left text-teal-700">Artist</th>
-                        <th className="p-2 text-right text-teal-700">Total Time</th>
-                        <th className="p-2 text-right text-teal-700">Plays</th>
-                        <th className="p-2 text-left text-teal-700">Most Played Song</th>
-                        <th className="p-2 text-left text-teal-700">First Listen</th>
-                        <th className="p-2 text-center text-teal-700">Select</th>
+                        <th className="p-2 text-left text-teal-700">Artist Info</th>
+                        <th className="p-2 text-right text-teal-700">Stats</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1510,25 +1505,32 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                 }
                               }}
                             >
-                              <td className="p-2 text-teal-700 font-bold">#{originalIndex + 1}</td>
-                              <td className="p-2 text-teal-700 font-medium">{artist.name}</td>
-                              <td className="p-2 text-right text-teal-700">{formatDuration(artist.totalPlayed)}</td>
-                              <td className="p-2 text-right text-teal-700">{artist.playCount}</td>
                               <td className="p-2 text-teal-700">
-                                {artist.mostPlayedSong?.trackName || "N/A"}
-                                {artist.mostPlayedSong?.playCount && (
-                                  <span className="text-teal-500 text-sm"> ({artist.mostPlayedSong.playCount}x)</span>
-                                )}
-                              </td>
-                              <td className="p-2 text-teal-700">{new Date(artist.firstListen).toLocaleDateString()}</td>
-                              <td className="p-2 text-center">
-                                <div className={`w-5 h-5 rounded-full border-2 mx-auto flex items-center justify-center ${
-                                  isSelected 
-                                    ? 'bg-teal-600 border-teal-600 text-white' 
-                                    : 'border-teal-400 hover:border-teal-600'
-                                }`}>
-                                  {isSelected && '✓'}
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <div className="font-medium">#{originalIndex + 1} {artist.name}</div>
+                                    <div className="text-sm text-teal-500">
+                                      Most Played: {artist.mostPlayedSong?.trackName || "N/A"}
+                                      {artist.mostPlayedSong?.playCount && (
+                                        <span> ({artist.mostPlayedSong.playCount}x)</span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-teal-400">
+                                      First Listen: {new Date(artist.firstListen).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                    isSelected 
+                                      ? 'bg-teal-600 border-teal-600 text-white' 
+                                      : 'border-teal-400 hover:border-teal-600'
+                                  }`}>
+                                    {isSelected && '✓'}
+                                  </div>
                                 </div>
+                              </td>
+                              <td className="p-2 text-right text-teal-700">
+                                <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
+                                <div className="text-sm text-teal-500">{artist.playCount} plays</div>
                               </td>
                             </tr>
                           );
@@ -1717,12 +1719,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="p-2 text-left text-pink-700">Rank</th>
-                        <th className="p-2 text-left text-pink-700">Album</th>
-                        <th className="p-2 text-left text-pink-700">Artist</th>
-                        <th className="p-2 text-right text-pink-700">Total Time</th>
-                        <th className="p-2 text-right text-pink-700">Plays</th>
-                        <th className="p-2 text-right text-pink-700">Track Count</th>
+                        <th className="p-2 text-left text-pink-700">Album Info</th>
+                        <th className="p-2 text-right text-pink-700">Stats</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1731,16 +1729,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           key={`${album.name}-${album.artist}`}
                           className="border-b hover:bg-pink-50"
                         >
-                          <td className="p-2 text-pink-700 font-bold">#{index + 1}</td>
-                          <td className="p-2 text-pink-700 font-medium">{album.name}</td>
-                          <td className="p-2 text-pink-700">{album.artist}</td>
-                          <td className="p-2 text-right text-pink-700">{formatDuration(album.totalPlayed)}</td>
-                          <td className="p-2 text-right text-pink-700">{album.playCount || 0}</td>
+                          <td className="p-2 text-pink-700">
+                            <div className="font-medium">#{index + 1} {album.name}</div>
+                            <div className="text-sm text-pink-500">by {album.artist}</div>
+                            <div className="text-xs text-pink-400">
+                              {album.trackCountValue || album.trackObjects?.length || 0} tracks
+                            </div>
+                          </td>
                           <td className="p-2 text-right text-pink-700">
-                            {album.trackCountValue || album.trackObjects?.length || 0}
-                            {album.trackObjects?.length > 0 && (
-                              <span className="text-pink-500 text-sm"> tracks</span>
-                            )}
+                            <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
+                            <div className="text-sm text-pink-500">{album.playCount || 0} plays</div>
                           </td>
                         </tr>
                       ))}
