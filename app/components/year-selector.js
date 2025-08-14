@@ -955,7 +955,7 @@ const YearSelector = ({
   if (!expanded && asSidebar) {
     return (
       <div 
-        className={`fixed ${positionStyles} top-[60px] h-[calc(100vh-68px)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        className={`fixed ${positionStyles} top-[48px] h-[calc(100vh-48px)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
         {/* Expand button */}
         <button 
@@ -997,7 +997,7 @@ const YearSelector = ({
   
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `fixed ${positionStyles} top-[60px] h-[calc(100vh-68px)] max-h-screen z-50 transition-all duration-300 ${
+    ? `fixed ${positionStyles} top-[48px] h-[calc(100vh-48px)] max-h-screen z-50 transition-all duration-300 ${
         mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
       } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
@@ -1355,7 +1355,7 @@ const YearSelector = ({
         </div>
         
         {/* Bottom section with only sidebar position toggle - always visible */}
-        <div className="flex flex-col items-center mb-4 mt-2">
+        <div className="flex flex-col items-center mb-6 mt-2">
           {/* Sidebar position toggle - only for sidebar */}
           {asSidebar && (
             <button 
