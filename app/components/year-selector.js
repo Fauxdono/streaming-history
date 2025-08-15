@@ -1411,7 +1411,6 @@ const YearSelector = ({
             </>
           )}
           </div>
-        )}
         
         {/* Position toggle button - different layout for bottom position */}
         {currentPosition === 'bottom' ? (
