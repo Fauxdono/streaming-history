@@ -1025,22 +1025,22 @@ const YearSelector = ({
         
         <div className={`${
           isBottom 
-            ? 'flex flex-row items-center justify-center space-x-2 ml-4' 
+            ? 'flex flex-row items-center justify-center space-x-2 ml-5' 
             : 'h-full pt-16 pb-16 flex flex-col items-center justify-center'
         } ${colors.text}`}>
-          <div className={`${
-            isBottom 
-              ? 'text-xs font-bold' 
-              : 'writing-mode-vertical text-xs font-bold my-2'
-          }`}>
-            {getYearLabel()}
-          </div>
           <div className={`${
             isBottom 
               ? 'text-xs opacity-70' 
               : 'writing-mode-vertical text-xs opacity-70'
           }`}>
             {mode === 'single' ? 'Year' : 'Year Range'}
+          </div>
+          <div className={`${
+            isBottom 
+              ? 'text-xs font-bold' 
+              : 'writing-mode-vertical text-xs font-bold my-2'
+          }`}>
+            {getYearLabel()}
           </div>
         </div>
         
