@@ -1085,19 +1085,28 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
-  // Calculate margin based on year selector width
+  // Calculate margin based on year selector width using proper Tailwind classes
   const getYearSelectorMargin = () => {
     if (!showYearSidebar) return '';
     
     if (typeof yearSelectorWidth === 'number') {
-      // Simple collapsed width
-      return yearSelectorPosition === 'left' ? `ml-[${yearSelectorWidth}px]` :
-             yearSelectorPosition === 'right' ? `mr-[${yearSelectorWidth}px]` : 'mb-12';
+      // Collapsed width (32px = w-8)
+      return yearSelectorPosition === 'left' ? 'ml-8' :
+             yearSelectorPosition === 'right' ? 'mr-8' : 'mb-12';
     } else {
-      // Responsive width object
+      // Expanded width - use the closest matching Tailwind classes
       const { mobile, desktop } = yearSelectorWidth;
-      return yearSelectorPosition === 'left' ? `ml-[${mobile}px] sm:ml-[${desktop}px]` :
-             yearSelectorPosition === 'right' ? `mr-[${mobile}px] sm:mr-[${desktop}px]` : 'mb-12';
+      // mobile: 192px = w-48, desktop: 256px = w-64 for range mode
+      // mobile: 64px = w-16, desktop: 128px = w-32 for single mode
+      if (mobile === 192 && desktop === 256) {
+        // Range mode
+        return yearSelectorPosition === 'left' ? 'ml-48 sm:ml-64' :
+               yearSelectorPosition === 'right' ? 'mr-48 sm:mr-64' : 'mb-12';
+      } else {
+        // Single mode
+        return yearSelectorPosition === 'left' ? 'ml-16 sm:ml-32' :
+               yearSelectorPosition === 'right' ? 'mr-16 sm:mr-32' : 'mb-12';
+      }
     }
   };
 
@@ -1123,7 +1132,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       <div className="flex h-full w-full">
         {/* Main content area that adjusts based on year selector state */}
-        <div className={`flex-1 transition-all duration-300 ${getYearSelectorMargin()}`}>
+        <div className={`flex-1 transition-all duration-300 ${getYearSelectorMargin()}`} 
+             style={{
+               // Debug info
+               '--year-selector-width': JSON.stringify(yearSelectorWidth),
+               '--year-selector-position': yearSelectorPosition,
+               '--year-selector-expanded': yearSelectorExpanded
+             }}>
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
               <div className="w-full">
