@@ -992,20 +992,64 @@ const YearSelector = ({
             ? 'flex flex-row items-center justify-center space-x-2' 
             : 'h-full pt-16 pb-16 flex flex-col items-center justify-center'
         } ${colors.text}`}>
-          <div className={`${
-            isBottom 
-              ? 'text-xs font-bold' 
-              : 'writing-mode-vertical text-xs font-bold my-2'
-          }`}>
-            {getYearLabel()}
-          </div>
-          <div className={`${
-            isBottom 
-              ? 'text-xs opacity-70' 
-              : 'writing-mode-vertical text-xs opacity-70'
-          }`}>
-            {mode === 'single' ? 'Year' : 'Year Range'}
-          </div>
+          {isBottom ? (
+            <>
+              {/* Year indication and collapsed selector button */}
+              <div className="flex flex-col items-center">
+                <div className="text-xs opacity-70 mb-1">{mode === 'single' ? 'Year' : 'Year Range'}</div>
+                <div className="text-xs font-bold">{getYearLabel()}</div>
+              </div>
+              
+              {/* Collapsed year selector button */}
+              <button
+                onClick={toggleExpanded}
+                className={`px-2 py-1 text-xs rounded-md transition-colors w-16 ${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`}
+                title="Open year selector"
+              >
+                Select
+              </button>
+              
+              {/* All Time button */}
+              <button
+                onClick={(e) => {
+                  console.log("All Time button clicked");
+                  
+                  // First update local state
+                  setSelectedYear('all');
+                  setShowMonthSelector(false);
+                  setShowDaySelector(false);
+                  
+                  // Then directly call parent callback - this is key!
+                  if (onYearChange) {
+                    console.log("Directly calling parent onYearChange with 'all'");
+                    onYearChange('all');
+                  } else {
+                    console.error("onYearChange callback not available!");
+                  }
+                  
+                  // Force UI refresh
+                  setRefreshCounter(prev => prev + 1);
+                }}
+                className={`px-2 py-1 text-xs rounded-md transition-colors w-16 ${
+                  selectedYear === 'all' 
+                    ? `${colors.bgActive} ${colors.textActive} font-bold` 
+                    : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
+                }`}
+                title="Show all-time data"
+              >
+                All Time
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="writing-mode-vertical text-xs font-bold my-2">
+                {getYearLabel()}
+              </div>
+              <div className="writing-mode-vertical text-xs opacity-70">
+                {mode === 'single' ? 'Year' : 'Year Range'}
+              </div>
+            </>
+          )}
         </div>
         
         {/* Position toggle button */}
