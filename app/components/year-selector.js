@@ -1012,11 +1012,11 @@ const YearSelector = ({
       >
         {/* Horizontal layout container for bottom position */}
         {isBottom ? (
-          <div className="flex flex-row items-center justify-center ml-20">
+          <div className="flex flex-row items-center justify-center">
             {/* Expand button */}
             <button 
               onClick={toggleExpanded}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-2`}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-4`}
               aria-label="Expand sidebar"
             >
               ↑
@@ -1035,7 +1035,7 @@ const YearSelector = ({
             {/* Position toggle button */}
             <button 
               onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-2`}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-4`}
               aria-label="Toggle sidebar position"
             >
               <span className="text-xs">⇄</span>
