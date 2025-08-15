@@ -101,6 +101,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
   const [showYearSidebar, setShowYearSidebar] = useState(true);
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
+  const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
@@ -1104,14 +1105,22 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         />
       )}
       
-      <div className="flex h-full">
+      <div className="flex h-full w-full bg-white dark:bg-gray-900">
         {/* Main content area that adjusts based on year selector state */}
         <div className={`flex-1 transition-all duration-300 ${
-          showYearSidebar && yearSelectorExpanded 
-            ? 'mr-48 sm:mr-64' // Adjust margin when year selector is expanded
-            : showYearSidebar 
-              ? 'mr-8' // Small margin when collapsed
-              : '' // No margin when hidden
+          showYearSidebar 
+            ? yearSelectorExpanded 
+              ? yearSelectorPosition === 'left' 
+                ? 'ml-48 sm:ml-64' // Left expanded
+                : yearSelectorPosition === 'right' 
+                  ? 'mr-48 sm:mr-64' // Right expanded  
+                  : 'mb-12' // Bottom expanded
+              : yearSelectorPosition === 'left'
+                ? 'ml-8' // Left collapsed
+                : yearSelectorPosition === 'right'
+                  ? 'mr-8' // Right collapsed
+                  : 'mb-12' // Bottom collapsed
+            : '' // No margin when hidden
         }`}>
           <div className="flex flex-col p-4 sm:p-8 md:p-16 lg:p-24 h-full w-full">
             <div className="w-full h-full">
@@ -1915,6 +1924,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             onYearChange={handleSidebarYearChange}
             onYearRangeChange={handleSidebarYearRangeChange}
             onExpandChange={setYearSelectorExpanded}
+            onPositionChange={setYearSelectorPosition}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :
