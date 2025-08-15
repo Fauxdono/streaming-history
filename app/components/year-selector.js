@@ -1138,8 +1138,8 @@ const YearSelector = ({
             // Single mode - year picker and optional month/day
             <>
               {/* Year selection */}
-              <div className={`flex ${currentPosition === 'bottom' ? 'flex-row' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-x-2' : ''}`}>
-                <div className={`text-xs ${currentPosition === 'bottom' ? 'mr-2' : 'mb-1'} font-medium ${colors.text}`}>YEAR</div>
+              <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : ''}`}>
+                <div className={`text-xs ${currentPosition === 'bottom' ? 'mb-1' : 'mb-1'} font-medium ${colors.text}`}>YEAR</div>
 
                 <div className={`flex ${currentPosition === 'bottom' ? 'flex-row space-x-2' : 'flex-col'} items-center`}>
                   {/* Add a quick "All Time" button with direct callback - only for vertical layouts */}
@@ -1275,8 +1275,8 @@ const YearSelector = ({
                   
                   {/* Month Selector */}
                   {showMonthSelector && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-row space-x-2' : 'flex-col'} items-center ${currentPosition === 'bottom' ? '' : 'w-full'}`}>
-                      <div className={`text-xs ${currentPosition === 'bottom' ? '' : 'mb-1'} font-medium ${colors.text}`}>MONTH</div>
+                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
+                      <div className={`text-xs ${currentPosition === 'bottom' ? 'mb-1' : 'mb-1'} font-medium ${colors.text}`}>MONTH</div>
                       <WheelSelector
                         key={`month-selector-${selectedYear}-${refreshCounter}`}
                         items={months}
@@ -1290,8 +1290,8 @@ const YearSelector = ({
                   
                   {/* Day Selector */}
                   {showMonthSelector && showDaySelector && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-row space-x-2' : 'flex-col'} items-center ${currentPosition === 'bottom' ? '' : 'w-full'}`}>
-                      <div className={`text-xs ${currentPosition === 'bottom' ? '' : 'mb-1'} font-medium ${colors.text}`}>DAY</div>
+                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
+                      <div className={`text-xs ${currentPosition === 'bottom' ? 'mb-1' : 'mb-1'} font-medium ${colors.text}`}>DAY</div>
                       <WheelSelector
                         key={`day-selector-${selectedYear}-${selectedMonth}-${refreshCounter}`}
                         items={days}
