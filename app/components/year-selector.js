@@ -1010,52 +1010,66 @@ const YearSelector = ({
             : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
-        {/* Expand button */}
-        <button 
-          onClick={toggleExpanded}
-          className={`${
-            isBottom 
-              ? 'absolute left-1/2 transform -translate-x-20 top-1/2 -translate-y-1/2' 
-              : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2`
-          } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
-          aria-label="Expand sidebar"
-        >
-          {isBottom ? '↑' : currentPosition === 'left' ? '→' : '←'}
-        </button>
-        
-        <div className={`${
-          isBottom 
-            ? 'flex flex-row items-center justify-center space-x-2 ml-5' 
-            : 'h-full pt-16 pb-16 flex flex-col items-center justify-center'
-        } ${colors.text}`}>
-          <div className={`${
-            isBottom 
-              ? 'text-xs opacity-70' 
-              : 'writing-mode-vertical text-xs opacity-70'
-          }`}>
-            {mode === 'single' ? 'Year' : 'Year Range'}
+        {/* Horizontal layout container for bottom position */}
+        {isBottom ? (
+          <div className="flex flex-row items-center justify-center ml-20">
+            {/* Expand button */}
+            <button 
+              onClick={toggleExpanded}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-2`}
+              aria-label="Expand sidebar"
+            >
+              ↑
+            </button>
+            
+            {/* Text container */}
+            <div className={`flex flex-row items-center space-x-2 ${colors.text}`}>
+              <div className="text-xs opacity-70">
+                {mode === 'single' ? 'Year' : 'Year Range'}
+              </div>
+              <div className="text-xs font-bold">
+                {getYearLabel()}
+              </div>
+            </div>
+            
+            {/* Position toggle button */}
+            <button 
+              onClick={togglePosition}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-2`}
+              aria-label="Toggle sidebar position"
+            >
+              <span className="text-xs">⇄</span>
+            </button>
           </div>
-          <div className={`${
-            isBottom 
-              ? 'text-xs font-bold' 
-              : 'writing-mode-vertical text-xs font-bold my-2'
-          }`}>
-            {getYearLabel()}
-          </div>
-        </div>
-        
-        {/* Position toggle button */}
-        <button 
-          onClick={togglePosition}
-          className={`${
-            isBottom 
-              ? 'relative ml-16' 
-              : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10`
-          } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
-          aria-label="Toggle sidebar position"
-        >
-          <span className="text-xs">{isBottom ? '⇄' : '⇄'}</span>
-        </button>
+        ) : (
+          <>
+            {/* Vertical layout - keep original structure */}
+            <button 
+              onClick={toggleExpanded}
+              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+              aria-label="Expand sidebar"
+            >
+              {currentPosition === 'left' ? '→' : '←'}
+            </button>
+            
+            <div className={`h-full pt-16 pb-16 flex flex-col items-center justify-center ${colors.text}`}>
+              <div className="writing-mode-vertical text-xs opacity-70">
+                {mode === 'single' ? 'Year' : 'Year Range'}
+              </div>
+              <div className="writing-mode-vertical text-xs font-bold my-2">
+                {getYearLabel()}
+              </div>
+            </div>
+            
+            <button 
+              onClick={togglePosition}
+              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+              aria-label="Toggle sidebar position"
+            >
+              <span className="text-xs">⇄</span>
+            </button>
+          </>
+        )}
         
         <style jsx>{`
           .writing-mode-vertical {
