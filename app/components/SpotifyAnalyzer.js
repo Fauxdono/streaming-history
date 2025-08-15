@@ -1105,7 +1105,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         />
       )}
       
-      <div className="flex h-full w-full bg-white dark:bg-gray-900">
+      <div className="flex h-full w-full">
         {/* Main content area that adjusts based on year selector state */}
         <div className={`flex-1 transition-all duration-300 ${
           showYearSidebar 
@@ -1122,13 +1122,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   : 'mb-12' // Bottom collapsed
             : '' // No margin when hidden
         }`}>
-          <div className="flex flex-col p-4 sm:p-8 md:p-16 lg:p-24 h-full w-full">
+          <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
               <div className="w-full">
-                <div className="flex justify-center mb-4">
+                <div className="flex justify-center mb-4 pt-4">
                   <DarkModeToggle />
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-4 px-4 pb-4">
           
           {activeTab === 'upload' && (
             <div>
