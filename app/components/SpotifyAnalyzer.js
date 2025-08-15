@@ -102,6 +102,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [showYearSidebar, setShowYearSidebar] = useState(true);
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
+  const [yearSelectorWidth, setYearSelectorWidth] = useState(32);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
@@ -1084,6 +1085,21 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
+  // Calculate margin based on year selector width
+  const getYearSelectorMargin = () => {
+    if (!showYearSidebar) return '';
+    
+    if (typeof yearSelectorWidth === 'number') {
+      // Simple collapsed width
+      return yearSelectorPosition === 'left' ? `ml-[${yearSelectorWidth}px]` :
+             yearSelectorPosition === 'right' ? `mr-[${yearSelectorWidth}px]` : 'mb-12';
+    } else {
+      // Responsive width object
+      const { mobile, desktop } = yearSelectorWidth;
+      return yearSelectorPosition === 'left' ? `ml-[${mobile}px] sm:ml-[${desktop}px]` :
+             yearSelectorPosition === 'right' ? `mr-[${mobile}px] sm:mr-[${desktop}px]` : 'mb-12';
+    }
+  };
 
   return (
     <div className="w-full h-full">
@@ -1107,21 +1123,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       <div className="flex h-full w-full">
         {/* Main content area that adjusts based on year selector state */}
-        <div className={`flex-1 transition-all duration-300 ${
-          showYearSidebar 
-            ? yearSelectorExpanded 
-              ? yearSelectorPosition === 'left' 
-                ? 'ml-48 sm:ml-64' // Left expanded
-                : yearSelectorPosition === 'right' 
-                  ? 'mr-48 sm:mr-64' // Right expanded  
-                  : 'mb-12' // Bottom expanded
-              : yearSelectorPosition === 'left'
-                ? 'ml-8' // Left collapsed
-                : yearSelectorPosition === 'right'
-                  ? 'mr-8' // Right collapsed
-                  : 'mb-12' // Bottom collapsed
-            : '' // No margin when hidden
-        }`}>
+        <div className={`flex-1 transition-all duration-300 ${getYearSelectorMargin()}`}>
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
               <div className="w-full">
@@ -1925,6 +1927,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             onYearRangeChange={handleSidebarYearRangeChange}
             onExpandChange={setYearSelectorExpanded}
             onPositionChange={setYearSelectorPosition}
+            onWidthChange={setYearSelectorWidth}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :
