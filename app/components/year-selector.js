@@ -1187,54 +1187,68 @@ const YearSelector = ({
 
               {selectedYear !== 'all' && (
                 <>
-                  {/* All toggles grouped together */}
-                  <div className={`flex ${currentPosition === 'bottom' ? 'flex-col space-y-2' : 'flex-col space-y-2'} ${currentPosition === 'bottom' ? '' : 'w-full mb-4'}`}>
-                    {/* Month toggle */}
-                    <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2' : 'justify-between w-full'}`}>
-                      <div className={`text-xs font-medium ${colors.text}`}>MONTH</div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={showMonthSelector} 
-                          onChange={() => {
-                            const newMonthValue = !showMonthSelector;
-                            setShowMonthSelector(newMonthValue);
-                            
-                            // Track that user has manually interacted with selectors
-                            const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
-                            if (!isHistoryTab) {
-                              setUserEnabledSelectors(newMonthValue);
-                            }
-                            
-                            // If turning off month, also turn off day
-                            if (!newMonthValue) {
-                              setShowDaySelector(false);
+                  {/* Month Selector */}
+                  {showMonthSelector && (
+                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
+                      {/* Month toggle positioned above wheel */}
+                      <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2 mb-1' : 'justify-between w-full'}`}>
+                        <div className={`text-xs font-medium ${colors.text}`}>MONTH</div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={showMonthSelector} 
+                            onChange={() => {
+                              const newMonthValue = !showMonthSelector;
+                              setShowMonthSelector(newMonthValue);
                               
-                              // When turning off month selector, update parent with just the year
-                              if (onYearChange && selectedYear !== 'all') {
-                                onYearChange(selectedYear);
+                              // Track that user has manually interacted with selectors
+                              const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
+                              if (!isHistoryTab) {
+                                setUserEnabledSelectors(newMonthValue);
                               }
-                            } else {
-                              // When turning on month selector, update parent with year-month format
-                              if (onYearChange && selectedYear !== 'all') {
-                                const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-                                onYearChange(dateStr);
+                              
+                              // If turning off month, also turn off day
+                              if (!newMonthValue) {
+                                setShowDaySelector(false);
+                                
+                                // When turning off month selector, update parent with just the year
+                                if (onYearChange && selectedYear !== 'all') {
+                                  onYearChange(selectedYear);
+                                }
+                              } else {
+                                // When turning on month selector, update parent with year-month format
+                                if (onYearChange && selectedYear !== 'all') {
+                                  const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                                  onYearChange(dateStr);
+                                }
                               }
-                            }
-                            
-                            // Refresh UI
-                            setRefreshCounter(prev => prev + 1);
-                          }}
-                          className="sr-only"
-                        />
-                        <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
-                        <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
-                      </label>
+                              
+                              // Refresh UI
+                              setRefreshCounter(prev => prev + 1);
+                            }}
+                            className="sr-only"
+                          />
+                          <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+                          <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
+                        </label>
+                      </div>
+                      
+                      <WheelSelector
+                        key={`month-selector-${selectedYear}-${refreshCounter}`}
+                        items={months}
+                        value={selectedMonth}
+                        onChange={handleMonthChange}
+                        colorTheme={colorTheme}
+                        displayFormat={getMonthName}
+                      />
                     </div>
-                    
-                    {/* Day toggle - only shown if month is selected */}
-                    {showMonthSelector && (
-                      <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2' : 'justify-between w-full'}`}>
+                  )}
+                  
+                  {/* Day Selector */}
+                  {showMonthSelector && showDaySelector && (
+                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
+                      {/* Day toggle positioned above wheel */}
+                      <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2 mb-1' : 'justify-between w-full'}`}>
                         <div className={`text-xs font-medium ${colors.text}`}>DAY</div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -1270,28 +1284,7 @@ const YearSelector = ({
                           <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-4' : ''}`}></div>
                         </label>
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* Month Selector */}
-                  {showMonthSelector && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
-                      <div className={`text-xs ${currentPosition === 'bottom' ? 'mb-1' : 'mb-1'} font-medium ${colors.text}`}>MONTH</div>
-                      <WheelSelector
-                        key={`month-selector-${selectedYear}-${refreshCounter}`}
-                        items={months}
-                        value={selectedMonth}
-                        onChange={handleMonthChange}
-                        colorTheme={colorTheme}
-                        displayFormat={getMonthName}
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Day Selector */}
-                  {showMonthSelector && showDaySelector && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
-                      <div className={`text-xs ${currentPosition === 'bottom' ? 'mb-1' : 'mb-1'} font-medium ${colors.text}`}>DAY</div>
+                      
                       <WheelSelector
                         key={`day-selector-${selectedYear}-${selectedMonth}-${refreshCounter}`}
                         items={days}
@@ -1299,6 +1292,54 @@ const YearSelector = ({
                         onChange={handleDayChange}
                         colorTheme={colorTheme}
                       />
+                    </div>
+                  )}
+                  
+                  {/* Show month toggle separately if month selector is off */}
+                  {!showMonthSelector && (
+                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col space-y-2' : 'flex-col space-y-2'} ${currentPosition === 'bottom' ? '' : 'w-full mb-4'}`}>
+                      {/* Month toggle */}
+                      <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2' : 'justify-between w-full'}`}>
+                        <div className={`text-xs font-medium ${colors.text}`}>MONTH</div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={showMonthSelector} 
+                            onChange={() => {
+                              const newMonthValue = !showMonthSelector;
+                              setShowMonthSelector(newMonthValue);
+                              
+                              // Track that user has manually interacted with selectors
+                              const isHistoryTab = activeTab === 'history'; // Only 'history' tab, not 'behavior'
+                              if (!isHistoryTab) {
+                                setUserEnabledSelectors(newMonthValue);
+                              }
+                              
+                              // If turning off month, also turn off day
+                              if (!newMonthValue) {
+                                setShowDaySelector(false);
+                                
+                                // When turning off month selector, update parent with just the year
+                                if (onYearChange && selectedYear !== 'all') {
+                                  onYearChange(selectedYear);
+                                }
+                              } else {
+                                // When turning on month selector, update parent with year-month format
+                                if (onYearChange && selectedYear !== 'all') {
+                                  const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                                  onYearChange(dateStr);
+                                }
+                              }
+                              
+                              // Refresh UI
+                              setRefreshCounter(prev => prev + 1);
+                            }}
+                            className="sr-only"
+                          />
+                          <div className={`w-9 h-5 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+                          <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-4' : ''}`}></div>
+                        </label>
+                      </div>
                     </div>
                   )}
                 </>
