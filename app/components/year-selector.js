@@ -978,7 +978,7 @@ const YearSelector = ({
         {/* Position toggle button - at bottom */}
         <button 
           onClick={togglePosition}
-          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-4 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Toggle sidebar position"
         >
           <span className="text-xs">⇄</span>
@@ -1355,7 +1355,7 @@ const YearSelector = ({
         </div>
         
         {/* Bottom section with only sidebar position toggle - always visible */}
-        <div className="flex flex-col items-center mb-6 mt-2">
+        <div className="flex flex-col items-center mb-10 mt-2">
           {/* Sidebar position toggle - only for sidebar */}
           {asSidebar && (
             <button 
