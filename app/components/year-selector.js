@@ -12,6 +12,7 @@ const YearSelector = ({
   onYearRangeChange, 
   onExpandChange, // New callback to communicate expanded state to parent
   onPositionChange, // New callback to communicate position changes to parent
+  onWidthChange, // New callback to communicate width changes to parent
   initialYear, 
   initialYearRange, 
   isRangeMode, 
@@ -112,6 +113,25 @@ const YearSelector = ({
       onPositionChange(currentPosition);
     }
   }, [currentPosition, onPositionChange, asSidebar]);
+
+  // Communicate width changes to parent
+  useEffect(() => {
+    if (onWidthChange && asSidebar) {
+      const currentWidth = {
+        collapsed: 32, // w-8
+        expandedSingle: { mobile: 64, desktop: 128 }, // w-16 sm:w-32
+        expandedRange: { mobile: 192, desktop: 256 } // w-48 sm:w-64
+      };
+      
+      if (!expanded) {
+        onWidthChange(currentWidth.collapsed);
+      } else if (mode === 'range') {
+        onWidthChange(currentWidth.expandedRange);
+      } else {
+        onWidthChange(currentWidth.expandedSingle);
+      }
+    }
+  }, [expanded, mode, onWidthChange, asSidebar]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
