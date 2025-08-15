@@ -18,7 +18,7 @@ const WheelSelector = ({
   const animationRef = useRef(null);
   
   // Smaller control with fewer visible items
-  const itemHeight = 28; // Height in pixels
+  const itemHeight = 19; // Height in pixels (33% smaller: 28 * 0.67 ≈ 19)
   const totalHeight = itemHeight * 3; // Show 3 items total (selected + one above + one below)
   
   // Find the index of the currently selected value
@@ -286,7 +286,7 @@ const WheelSelector = ({
       
       <div 
         ref={containerRef}
-        className={`relative w-24 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
+        className={`relative w-16 overflow-hidden rounded-lg ${colors.border} border ${colors.shadow} shadow select-none`}
         style={{ height: `${totalHeight}px` }}
         onWheel={handleWheel}
       >
