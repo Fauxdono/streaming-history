@@ -11,6 +11,7 @@ const YearSelector = ({
   onYearChange, 
   onYearRangeChange, 
   onExpandChange, // New callback to communicate expanded state to parent
+  onPositionChange, // New callback to communicate position changes to parent
   initialYear, 
   initialYearRange, 
   isRangeMode, 
@@ -104,6 +105,13 @@ const YearSelector = ({
       onExpandChange(expanded);
     }
   }, [expanded, onExpandChange, asSidebar]);
+
+  // Communicate position changes to parent
+  useEffect(() => {
+    if (onPositionChange && asSidebar) {
+      onPositionChange(currentPosition);
+    }
+  }, [currentPosition, onPositionChange, asSidebar]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
