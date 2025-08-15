@@ -1049,7 +1049,7 @@ const YearSelector = ({
           onClick={togglePosition}
           className={`${
             isBottom 
-              ? 'absolute left-1/2 transform translate-x-20 top-1/2 -translate-y-1/2' 
+              ? 'relative ml-8' 
               : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10`
           } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Toggle sidebar position"
