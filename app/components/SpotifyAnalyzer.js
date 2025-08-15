@@ -100,6 +100,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
   const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
   const [showYearSidebar, setShowYearSidebar] = useState(true);
+  const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
@@ -1103,13 +1104,22 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         />
       )}
       
-      <div className="flex flex-col items-center justify-between p-4 sm:p-8 md:p-16 lg:p-24">
-        <div className="w-full max-w-full sm:max-w-4xl lg:max-w-6xl xl:max-w-7xl 2xl:max-w-screen-2xl h-full">
-          <div className="px-2 sm:px-6">
-            <div className="flex justify-center mb-4">
-              <DarkModeToggle />
-            </div>
-            <div className="space-y-4">
+      <div className="flex h-full">
+        {/* Main content area that adjusts based on year selector state */}
+        <div className={`flex-1 transition-all duration-300 ${
+          showYearSidebar && yearSelectorExpanded 
+            ? 'mr-48 sm:mr-64' // Adjust margin when year selector is expanded
+            : showYearSidebar 
+              ? 'mr-8' // Small margin when collapsed
+              : '' // No margin when hidden
+        }`}>
+          <div className="flex flex-col p-4 sm:p-8 md:p-16 lg:p-24 h-full w-full">
+            <div className="w-full h-full">
+              <div className="w-full">
+                <div className="flex justify-center mb-4">
+                  <DarkModeToggle />
+                </div>
+                <div className="space-y-4">
           
           {activeTab === 'upload' && (
             <div>
@@ -1890,52 +1900,57 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             </div>
           )}
           
-          {showYearSidebar && (
-            <YearSelector
-              artistsByYear={artistsByYear}
-              rawPlayData={rawPlayData}
-              activeTab={activeTab}
-              onYearChange={handleSidebarYearChange}
-              onYearRangeChange={handleSidebarYearRangeChange}
-              initialYear={
-                activeTab === 'artists' ? selectedArtistYear :
-                activeTab === 'albums' ? selectedAlbumYear :
-                activeTab === 'tracks' ? selectedTrackYear : 
-                activeTab === 'custom' ? customTrackYear :
-                activeTab === 'patterns' ? selectedPatternYear :
-                activeTab === 'behavior' ? selectedBehaviorYear :
-                activeTab === 'discovery' ? selectedDiscoveryYear :
-                activeTab === 'podcasts' ? selectedPodcastYear : 'all'
-              }
-              initialYearRange={
-                activeTab === 'artists' ? yearRange :
-                activeTab === 'albums' ? albumYearRange : 
-                activeTab === 'custom' ? customYearRange :
-                activeTab === 'patterns' ? patternYearRange :
-                activeTab === 'behavior' ? behaviorYearRange :
-                activeTab === 'discovery' ? discoveryYearRange :
-                activeTab === 'podcasts' ? podcastYearRange :
-                { startYear: '', endYear: '' }
-              }
-              isRangeMode={
-                activeTab === 'artists' ? yearRangeMode :
-                activeTab === 'albums' ? albumYearRangeMode :
-                activeTab === 'custom' ? customYearRangeMode :
-                activeTab === 'patterns' ? patternYearRangeMode :
-                activeTab === 'behavior' ? behaviorYearRangeMode :
-                activeTab === 'discovery' ? discoveryYearRangeMode :
-                activeTab === 'podcasts' ? podcastYearRangeMode : false
-              }
-              onToggleRangeMode={handleSidebarRangeModeToggle}
-              colorTheme={sidebarColorTheme}
-              asSidebar={true}
-              position="right"
-              startMinimized={false}
-            />
-          )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        
+        {/* Year Selector - positioned outside the main content flow */}
+        {showYearSidebar && (
+          <YearSelector
+            artistsByYear={artistsByYear}
+            rawPlayData={rawPlayData}
+            activeTab={activeTab}
+            onYearChange={handleSidebarYearChange}
+            onYearRangeChange={handleSidebarYearRangeChange}
+            onExpandChange={setYearSelectorExpanded}
+            initialYear={
+              activeTab === 'artists' ? selectedArtistYear :
+              activeTab === 'albums' ? selectedAlbumYear :
+              activeTab === 'tracks' ? selectedTrackYear : 
+              activeTab === 'custom' ? customTrackYear :
+              activeTab === 'patterns' ? selectedPatternYear :
+              activeTab === 'behavior' ? selectedBehaviorYear :
+              activeTab === 'discovery' ? selectedDiscoveryYear :
+              activeTab === 'podcasts' ? selectedPodcastYear : 'all'
+            }
+            initialYearRange={
+              activeTab === 'artists' ? yearRange :
+              activeTab === 'albums' ? albumYearRange : 
+              activeTab === 'custom' ? customYearRange :
+              activeTab === 'patterns' ? patternYearRange :
+              activeTab === 'behavior' ? behaviorYearRange :
+              activeTab === 'discovery' ? discoveryYearRange :
+              activeTab === 'podcasts' ? podcastYearRange :
+              { startYear: '', endYear: '' }
+            }
+            isRangeMode={
+              activeTab === 'artists' ? yearRangeMode :
+              activeTab === 'albums' ? albumYearRangeMode :
+              activeTab === 'custom' ? customYearRangeMode :
+              activeTab === 'patterns' ? patternYearRangeMode :
+              activeTab === 'behavior' ? behaviorYearRangeMode :
+              activeTab === 'discovery' ? discoveryYearRangeMode :
+              activeTab === 'podcasts' ? podcastYearRangeMode : false
+            }
+            onToggleRangeMode={handleSidebarRangeModeToggle}
+            colorTheme={sidebarColorTheme}
+            asSidebar={true}
+            position="right"
+            startMinimized={false}
+          />
+        )}
       </div>
     </div>
   );

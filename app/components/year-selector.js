@@ -10,6 +10,7 @@ const YearSelector = ({
   rawPlayData = [], // Add rawPlayData to find first day with data
   onYearChange, 
   onYearRangeChange, 
+  onExpandChange, // New callback to communicate expanded state to parent
   initialYear, 
   initialYearRange, 
   isRangeMode, 
@@ -96,6 +97,13 @@ const YearSelector = ({
       window.removeEventListener('orientationchange', checkOrientation);
     };
   }, []);
+
+  // Communicate expanded state changes to parent
+  useEffect(() => {
+    if (onExpandChange && asSidebar) {
+      onExpandChange(expanded);
+    }
+  }, [expanded, onExpandChange, asSidebar]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
