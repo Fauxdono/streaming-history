@@ -292,7 +292,7 @@ const WheelSelector = ({
       >
         {/* Selection box with lower z-index to stay behind text */}
         <div 
-          className={`absolute left-1 right-1 top-1/2 -translate-y-1/2 ${colors.highlight} border ${colors.border} rounded-md pointer-events-none`}
+          className={`absolute left-1 right-1 top-1/2 -translate-y-1/2 ${colors.highlight} border-2 ${colors.border} rounded-md pointer-events-none`}
           style={{ 
             height: `${itemHeight}px`,
             boxShadow: `0 0 2px rgba(0,0,0,0.1) inset`,
