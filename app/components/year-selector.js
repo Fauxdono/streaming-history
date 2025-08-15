@@ -1066,10 +1066,10 @@ const YearSelector = ({
         {/* Mode toggle buttons */}
         <div className={`${
           currentPosition === 'bottom'
-            ? 'flex flex-row gap-2 items-center'
+            ? 'flex flex-col gap-1 items-center'
             : 'flex flex-col gap-1 items-center mb-2'
         }`}>
-          <div className={`text-xs ${currentPosition === 'bottom' ? 'mr-2' : 'mb-1'} font-medium ${colors.text}`}>MODE</div>
+          <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
           <button
             onClick={() => handleModeChange('single')}
             className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
