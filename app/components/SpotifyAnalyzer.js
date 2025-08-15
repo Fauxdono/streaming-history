@@ -1089,10 +1089,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const getYearSelectorMargin = () => {
     if (!showYearSidebar) return '';
     
+    // Always reset all margins first, then apply the correct one
+    let classes = '';
+    
     if (typeof yearSelectorWidth === 'number') {
       // Collapsed width (32px = w-8)
-      return yearSelectorPosition === 'left' ? 'ml-8' :
-             yearSelectorPosition === 'right' ? 'mr-8' : 'mb-12';
+      if (yearSelectorPosition === 'left') {
+        classes = 'ml-8 mr-0';
+      } else if (yearSelectorPosition === 'right') {
+        classes = 'mr-8 ml-0';
+      } else {
+        classes = 'mb-12 ml-0 mr-0';
+      }
     } else {
       // Expanded width - use the closest matching Tailwind classes
       const { mobile, desktop } = yearSelectorWidth;
@@ -1100,14 +1108,26 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // mobile: 64px = w-16, desktop: 128px = w-32 for single mode
       if (mobile === 192 && desktop === 256) {
         // Range mode
-        return yearSelectorPosition === 'left' ? 'ml-48 sm:ml-64' :
-               yearSelectorPosition === 'right' ? 'mr-48 sm:mr-64' : 'mb-12';
+        if (yearSelectorPosition === 'left') {
+          classes = 'ml-48 sm:ml-64 mr-0';
+        } else if (yearSelectorPosition === 'right') {
+          classes = 'mr-48 sm:mr-64 ml-0';
+        } else {
+          classes = 'mb-12 ml-0 mr-0';
+        }
       } else {
         // Single mode
-        return yearSelectorPosition === 'left' ? 'ml-16 sm:ml-32' :
-               yearSelectorPosition === 'right' ? 'mr-16 sm:mr-32' : 'mb-12';
+        if (yearSelectorPosition === 'left') {
+          classes = 'ml-16 sm:ml-32 mr-0';
+        } else if (yearSelectorPosition === 'right') {
+          classes = 'mr-16 sm:mr-32 ml-0';
+        } else {
+          classes = 'mb-12 ml-0 mr-0';
+        }
       }
     }
+    
+    return classes;
   };
 
   return (
@@ -1145,10 +1165,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 <div className="flex justify-center mb-4 pt-4">
                   <DarkModeToggle />
                 </div>
-                <div className="space-y-4 px-4 pb-4">
+                <div className="space-y-4 pb-4">
           
           {activeTab === 'upload' && (
-            <div>
+            <div className="px-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
                 <div className="p-2 sm:p-4 border rounded bg-blue-50">
                   <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
@@ -1333,7 +1353,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           )}
                   
           {activeTab === 'stats' && stats && (
-            <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
+            <div className="px-4">
+              <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
               <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1386,6 +1407,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 )}
               </div>
             </div>
+            </div>
           )}
 
           {activeTab === 'updates' && (
@@ -1396,7 +1418,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           )}
                           
           {activeTab === 'artists' && (
-            <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
+            <div className="px-4">
+              <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-teal-700">
                   {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
@@ -1641,6 +1664,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     })}
                 </div>
               )}
+              </div>
             </div>
           )}
           
