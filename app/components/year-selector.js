@@ -1244,8 +1244,8 @@ const YearSelector = ({
                     </div>
                   )}
                   
-                  {/* Day Selector */}
-                  {showMonthSelector && showDaySelector && (
+                  {/* Day Toggle and Selector */}
+                  {showMonthSelector && (
                     <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
                       {/* Day toggle positioned above wheel */}
                       <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2 mb-1' : 'justify-between w-full'}`}>
@@ -1285,13 +1285,16 @@ const YearSelector = ({
                         </label>
                       </div>
                       
-                      <WheelSelector
-                        key={`day-selector-${selectedYear}-${selectedMonth}-${refreshCounter}`}
-                        items={days}
-                        value={selectedDay}
-                        onChange={handleDayChange}
-                        colorTheme={colorTheme}
-                      />
+                      {/* Day wheel selector - only shown when day toggle is on */}
+                      {showDaySelector && (
+                        <WheelSelector
+                          key={`day-selector-${selectedYear}-${selectedMonth}-${refreshCounter}`}
+                          items={days}
+                          value={selectedDay}
+                          onChange={handleDayChange}
+                          colorTheme={colorTheme}
+                        />
+                      )}
                     </div>
                   )}
                   
