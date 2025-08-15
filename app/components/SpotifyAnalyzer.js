@@ -1168,7 +1168,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 <div className="space-y-4 pb-4">
           
           {activeTab === 'upload' && (
-            <div className="px-4">
+            <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
                 <div className="p-2 sm:p-4 border rounded bg-blue-50">
                   <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
@@ -1353,8 +1353,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           )}
                   
           {activeTab === 'stats' && stats && (
-            <div className="px-4">
-              <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
+            <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
               <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1407,7 +1406,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 )}
               </div>
             </div>
-            </div>
           )}
 
           {activeTab === 'updates' && (
@@ -1418,8 +1416,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           )}
                           
           {activeTab === 'artists' && (
-            <div className="px-4">
-              <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
+            <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-teal-700">
                   {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
@@ -1664,7 +1661,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     })}
                 </div>
               )}
-              </div>
             </div>
           )}
           
