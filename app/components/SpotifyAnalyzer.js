@@ -1107,20 +1107,20 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // mobile: 192px = w-48, desktop: 256px = w-64 for range mode
       // mobile: 64px = w-16, desktop: 128px = w-32 for single mode
       if (mobile === 192 && desktop === 256) {
-        // Range mode
+        // Range mode - add extra space to prevent mobile overlap
         if (yearSelectorPosition === 'left') {
-          classes = 'ml-48 sm:ml-64 mr-0';
+          classes = 'ml-52 sm:ml-68 mr-0';
         } else if (yearSelectorPosition === 'right') {
-          classes = 'mr-48 sm:mr-64 ml-0';
+          classes = 'mr-52 sm:mr-68 ml-0';
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
       } else {
-        // Single mode
+        // Single mode - add extra space to prevent mobile overlap
         if (yearSelectorPosition === 'left') {
-          classes = 'ml-16 sm:ml-32 mr-0';
+          classes = 'ml-20 sm:ml-36 mr-0';
         } else if (yearSelectorPosition === 'right') {
-          classes = 'mr-16 sm:mr-32 ml-0';
+          classes = 'mr-20 sm:mr-36 ml-0';
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
