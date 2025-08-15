@@ -1015,7 +1015,7 @@ const YearSelector = ({
           onClick={toggleExpanded}
           className={`${
             isBottom 
-              ? 'absolute left-1/2 transform -translate-x-32 top-1/2 -translate-y-1/2' 
+              ? 'absolute left-1/2 transform -translate-x-24 top-1/2 -translate-y-1/2' 
               : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2`
           } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Expand sidebar"
@@ -1025,7 +1025,7 @@ const YearSelector = ({
         
         <div className={`${
           isBottom 
-            ? 'flex flex-row items-center justify-center space-x-2' 
+            ? 'flex flex-row items-center justify-center space-x-2 ml-4' 
             : 'h-full pt-16 pb-16 flex flex-col items-center justify-center'
         } ${colors.text}`}>
           <div className={`${
@@ -1049,7 +1049,7 @@ const YearSelector = ({
           onClick={togglePosition}
           className={`${
             isBottom 
-              ? 'relative ml-8' 
+              ? 'relative ml-12' 
               : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10`
           } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Toggle sidebar position"
