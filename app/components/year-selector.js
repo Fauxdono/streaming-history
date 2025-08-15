@@ -462,9 +462,13 @@ const YearSelector = ({
     setExpanded(prev => !prev);
   }, []);
   
-  // Toggle sidebar position
+  // Toggle sidebar position - cycles through left, right, bottom
   const togglePosition = useCallback(() => {
-    setCurrentPosition(prev => prev === 'left' ? 'right' : 'left');
+    setCurrentPosition(prev => {
+      if (prev === 'left') return 'right';
+      if (prev === 'right') return 'bottom';
+      return 'left';
+    });
   }, []);
 
   // Handle mode changes efficiently
@@ -949,39 +953,72 @@ const YearSelector = ({
   };
 
   // Position styles for the sidebar
-  const positionStyles = currentPosition === 'left' ? 'left-0' : 'right-0';
+  const positionStyles = (() => {
+    switch (currentPosition) {
+      case 'left': return 'left-0 top-[40px] h-[calc(100vh-40px)]';
+      case 'right': return 'right-0 top-[40px] h-[calc(100vh-40px)]';
+      case 'bottom': return 'bottom-0 left-0 right-0 h-auto';
+      default: return 'right-0 top-[40px] h-[calc(100vh-40px)]';
+    }
+  })();
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
+    const isBottom = currentPosition === 'bottom';
+    
     return (
       <div 
-        className={`fixed ${positionStyles} top-[40px] h-[calc(100vh-40px)] max-h-screen z-50 transition-all duration-300 w-8 ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        className={`fixed ${positionStyles} max-h-screen z-50 transition-all duration-300 ${
+          isBottom 
+            ? 'w-full h-12 flex items-center justify-center' 
+            : 'w-8'
+        } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
         {/* Expand button */}
         <button 
           onClick={toggleExpanded}
-          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`${
+            isBottom 
+              ? 'relative mr-4' 
+              : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2`
+          } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Expand sidebar"
         >
-          {currentPosition === 'left' ? '→' : '←'}
+          {isBottom ? '↑' : currentPosition === 'left' ? '→' : '←'}
         </button>
         
-        <div className={`h-full pt-16 pb-16 flex flex-col items-center justify-center ${colors.text}`}>
-          <div className="writing-mode-vertical text-xs font-bold my-2">
+        <div className={`${
+          isBottom 
+            ? 'flex flex-row items-center justify-center space-x-2' 
+            : 'h-full pt-16 pb-16 flex flex-col items-center justify-center'
+        } ${colors.text}`}>
+          <div className={`${
+            isBottom 
+              ? 'text-xs font-bold' 
+              : 'writing-mode-vertical text-xs font-bold my-2'
+          }`}>
             {getYearLabel()}
           </div>
-          <div className="writing-mode-vertical text-xs opacity-70">
+          <div className={`${
+            isBottom 
+              ? 'text-xs opacity-70' 
+              : 'writing-mode-vertical text-xs opacity-70'
+          }`}>
             {mode === 'single' ? 'Year' : 'Year Range'}
           </div>
         </div>
         
-        {/* Position toggle button - at bottom */}
+        {/* Position toggle button */}
         <button 
           onClick={togglePosition}
-          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`${
+            isBottom 
+              ? 'relative ml-4' 
+              : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10`
+          } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Toggle sidebar position"
         >
-          <span className="text-xs">⇄</span>
+          <span className="text-xs">{isBottom ? '⇄' : '⇄'}</span>
         </button>
         
         <style jsx>{`
@@ -997,8 +1034,10 @@ const YearSelector = ({
   
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `fixed ${positionStyles} top-[40px] h-[calc(100vh-40px)] max-h-screen z-50 transition-all duration-300 ${
-        mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
+    ? `fixed ${positionStyles} max-h-screen z-50 transition-all duration-300 ${
+        currentPosition === 'bottom'
+          ? 'w-full h-auto max-h-[50vh]'
+          : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
       } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
@@ -1008,17 +1047,29 @@ const YearSelector = ({
       {asSidebar && (
         <button 
           onClick={toggleExpanded}
-          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`${
+            currentPosition === 'bottom'
+              ? 'absolute right-2 top-2'
+              : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2`
+          } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Collapse sidebar"
         >
-          {currentPosition === 'left' ? '←' : '→'}
+          {currentPosition === 'bottom' ? '↓' : currentPosition === 'left' ? '←' : '→'}
         </button>
       )}
       
-      <div className="h-full flex flex-col justify-between pt-4 pb-8">
-        {/* Mode toggle buttons at top - stacked vertically */}
-        <div className="flex flex-col gap-1 items-center mb-2">
-          <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
+      <div className={`${
+        currentPosition === 'bottom' 
+          ? 'flex flex-row justify-between items-center p-4' 
+          : 'h-full flex flex-col justify-between pt-4 pb-8'
+      }`}>
+        {/* Mode toggle buttons */}
+        <div className={`${
+          currentPosition === 'bottom'
+            ? 'flex flex-row gap-2 items-center'
+            : 'flex flex-col gap-1 items-center mb-2'
+        }`}>
+          <div className={`text-xs ${currentPosition === 'bottom' ? 'mr-2' : 'mb-1'} font-medium ${colors.text}`}>MODE</div>
           <button
             onClick={() => handleModeChange('single')}
             className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
@@ -1041,9 +1092,23 @@ const YearSelector = ({
           </button>
         </div>
         
-        <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
-          mode === 'range' ? 'px-2' : 'px-1'
-        } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
+        {/* Content area - different layout for bottom position */}
+        {currentPosition === 'bottom' ? (
+          <div className="flex flex-row items-center space-x-4 overflow-x-auto max-w-full">
+            {/* For bottom position, show a simplified horizontal layout */}
+            <div className="flex items-center space-x-2">
+              <div className={`text-xs font-medium ${colors.text}`}>
+                {mode === 'single' ? 'YEAR' : 'RANGE'}
+              </div>
+              <div className={`text-sm font-bold ${colors.text}`}>
+                {getYearLabel()}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className={`overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
+            mode === 'range' ? 'px-2' : 'px-1'
+          } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`}>
 
           {mode === 'single' ? (
             // Single mode - year picker and optional month/day
@@ -1352,21 +1417,35 @@ const YearSelector = ({
               )}
             </>
           )}
-        </div>
+          </div>
+        )}
         
-        {/* Bottom section with only sidebar position toggle - always visible */}
-        <div className="absolute bottom-10 left-0 right-0 flex justify-center">
-          {/* Sidebar position toggle - only for sidebar */}
-          {asSidebar && (
-            <button 
-              onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className="text-sm">⇄</span>
-            </button>
-          )}
-        </div>
+        {/* Position toggle button - different layout for bottom position */}
+        {currentPosition === 'bottom' ? (
+          <div className="flex items-center">
+            {asSidebar && (
+              <button 
+                onClick={togglePosition}
+                className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                aria-label="Toggle sidebar position"
+              >
+                <span className="text-sm">⇄</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="absolute bottom-10 left-0 right-0 flex justify-center">
+            {asSidebar && (
+              <button 
+                onClick={togglePosition}
+                className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                aria-label="Toggle sidebar position"
+              >
+                <span className="text-sm">⇄</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
       
       <style jsx>{`
