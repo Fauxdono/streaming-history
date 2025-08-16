@@ -69,7 +69,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topArtistsCount, setTopArtistsCount] = useState(10);
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
-  const [albumsCompactView, setAlbumsCompactView] = useState(false);
+  const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
@@ -1814,17 +1814,29 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
           {activeTab === 'albums' && (
             <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300">
-              <div className="flex justify-between items-center mb-2">
+              {/* Title - mobile gets its own row */}
+              <div className="block sm:hidden mb-3">
                 <h3 className="font-bold text-pink-700">
                   {selectedAlbumYear === 'all' ? 'Most Played Albums (All Time)' : 
                     albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
                     `Most Played Albums (${albumYearRange.startYear}-${albumYearRange.endYear})` : 
                     `Most Played Albums (${selectedAlbumYear})`}
                 </h3>
+              </div>
+              
+              {/* Desktop layout - title and controls on same row */}
+              <div className="hidden sm:flex justify-between items-center mb-4">
+                <h3 className="font-bold text-pink-700">
+                  {selectedAlbumYear === 'all' ? 'Most Played Albums (All Time)' : 
+                    albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
+                    `Most Played Albums (${albumYearRange.startYear}-${albumYearRange.endYear})` : 
+                    `Most Played Albums (${selectedAlbumYear})`}
+                </h3>
+                
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <label className="text-pink-700">Show Top</label>
-                    <input 
+                    <input
                       type="number" 
                       min="1" 
                       max="999" 
@@ -1835,16 +1847,51 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-pink-700">Compact View</label>
+                    <label className="text-pink-700">View Mode</label>
                     <button
-                      onClick={() => setAlbumsCompactView(!albumsCompactView)}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        albumsCompactView 
-                          ? 'bg-pink-600 text-white' 
-                          : 'bg-pink-200 text-pink-700 hover:bg-pink-300'
-                      }`}
+                      onClick={() => {
+                        const modes = ['grid', 'compact', 'mobile'];
+                        const currentIndex = modes.indexOf(albumsViewMode);
+                        const nextIndex = (currentIndex + 1) % modes.length;
+                        setAlbumsViewMode(modes[nextIndex]);
+                      }}
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
                     >
-                      {albumsCompactView ? 'ON' : 'OFF'}
+                      {albumsViewMode === 'grid' ? 'Grid' : 
+                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Mobile controls - separate row */}
+              <div className="block sm:hidden mb-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <label className="text-pink-700 text-sm">Top</label>
+                    <input
+                      type="number" 
+                      min="1" 
+                      max="999" 
+                      value={topAlbumsCount} 
+                      onChange={(e) => setTopAlbumsCount(parseInt(e.target.value))}
+                      className="w-12 border rounded px-1 py-1 text-pink-700 text-sm"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <label className="text-pink-700 text-sm">View</label>
+                    <button
+                      onClick={() => {
+                        const modes = ['grid', 'compact', 'mobile'];
+                        const currentIndex = modes.indexOf(albumsViewMode);
+                        const nextIndex = (currentIndex + 1) % modes.length;
+                        setAlbumsViewMode(modes[nextIndex]);
+                      }}
+                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
+                    >
+                      {albumsViewMode === 'grid' ? 'Grid' : 
+                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
                     </button>
                   </div>
                 </div>
@@ -1918,7 +1965,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     Show All Albums
                   </button>
                 </div>
-              ) : albumsCompactView ? (
+              ) : albumsViewMode === 'mobile' ? (
                 <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
                   <table className="w-full border-collapse">
                     <thead>
@@ -1948,6 +1995,76 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              ) : albumsViewMode === 'compact' ? (
+                <div className="border rounded-lg p-3 sm:p-4 bg-pink-50">
+                  <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
+                    <div className="text-pink-700 font-medium text-sm">
+                      {selectedAlbumYear === 'all' ? 'All-time albums' : 
+                        albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
+                        `Albums for ${albumYearRange.startYear}-${albumYearRange.endYear}` : 
+                        `Albums for ${selectedAlbumYear}`}
+                    </div>
+                    <div className="text-pink-700 text-sm">
+                      Found <span className="font-bold">{displayedAlbums.length}</span> albums
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+                    <div className="min-w-full">
+                      <table className="w-full border-collapse text-sm sm:text-base">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="p-1 sm:p-2 text-left text-pink-700 text-xs sm:text-sm">Rank</th>
+                            <th className="p-1 sm:p-2 text-left text-pink-700 text-xs sm:text-sm">Album</th>
+                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm">Time</th>
+                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm">Plays</th>
+                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">Artist</th>
+                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">Tracks</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {displayedAlbums.length > 0 ? (
+                            displayedAlbums
+                              .slice(0, topAlbumsCount)
+                              .map((album, index) => (
+                                <tr 
+                                  key={`${album.name}-${album.artist}`} 
+                                  className="border-b hover:bg-pink-100"
+                                >
+                                  <td className="p-1 sm:p-2 text-pink-700 font-medium text-xs sm:text-sm">{index + 1}</td>
+                                  <td className="p-1 sm:p-2 text-pink-700">
+                                    <span className="font-medium text-xs sm:text-sm truncate">{album.name}</span>
+                                  </td>
+                                  <td className="p-1 sm:p-2 text-right text-pink-700 font-medium text-xs sm:text-sm">
+                                    {formatDuration(album.totalPlayed)}
+                                  </td>
+                                  <td className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm">
+                                    {album.playCount || 0}
+                                  </td>
+                                  <td className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">
+                                    {album.artist}
+                                  </td>
+                                  <td className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">
+                                    {album.trackCountValue || album.trackObjects?.length || 0}
+                                  </td>
+                                </tr>
+                              ))
+                          ) : (
+                            <tr>
+                              <td colSpan="6" className="p-4 text-center text-pink-500">
+                                {albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear
+                                  ? `No albums found for ${albumYearRange.startYear}-${albumYearRange.endYear}`
+                                  : selectedAlbumYear !== 'all' 
+                                    ? `No albums found for ${selectedAlbumYear}`
+                                    : "No album data available"}
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               ) : (
                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
