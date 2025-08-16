@@ -1099,7 +1099,7 @@ const YearSelector = ({
           onClick={toggleExpanded}
           className={`${
             currentPosition === 'bottom'
-              ? 'absolute right-2 top-1/2 -translate-y-6'
+              ? 'absolute right-2 top-1/2 -translate-y-8'
               : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2`
           } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Collapse sidebar"
