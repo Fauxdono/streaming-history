@@ -1612,15 +1612,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
                   <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
                     <div className="min-w-full">
-                      <table className="w-full border-collapse">
+                      <table className="w-full border-collapse text-sm sm:text-base">
                         <thead>
                           <tr className="border-b">
-                            <th className="p-2 text-left text-teal-700">Rank</th>
-                            <th className="p-2 text-left text-teal-700">Artist</th>
-                            <th className="p-2 text-right text-teal-700">Listening Time</th>
-                            <th className="p-2 text-right text-teal-700">Play Count</th>
-                            <th className="p-2 text-right text-teal-700 hidden sm:table-cell">Most Played Song</th>
-                            <th className="p-2 text-right text-teal-700 hidden sm:table-cell">First Listen</th>
+                            <th className="p-1 sm:p-2 text-left text-teal-700 text-xs sm:text-sm">Rank</th>
+                            <th className="p-1 sm:p-2 text-left text-teal-700 text-xs sm:text-sm">Artist</th>
+                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm">Time</th>
+                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm">Plays</th>
+                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm hidden sm:table-cell">Most Played Song</th>
+                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm hidden sm:table-cell">First Listen</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1645,11 +1645,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                       }
                                     }}
                                   >
-                                    <td className="p-2 text-teal-700 font-medium">#{originalIndex + 1}</td>
-                                    <td className="p-2 text-teal-700">
+                                    <td className="p-1 sm:p-2 text-teal-700 font-medium text-xs sm:text-sm">{originalIndex + 1}</td>
+                                    <td className="p-1 sm:p-2 text-teal-700">
                                       <div className="flex items-center justify-between">
-                                        <span className="font-medium">{artist.name}</span>
-                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ml-2 hidden sm:flex ${
+                                        <span className="font-medium text-xs sm:text-sm truncate">{artist.name}</span>
+                                        <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex items-center justify-center ml-1 sm:ml-2 hidden sm:flex ${
                                           isSelected 
                                             ? 'bg-teal-600 border-teal-600 text-white text-xs' 
                                             : 'border-teal-400 hover:border-teal-600'
@@ -1658,13 +1658,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                         </div>
                                       </div>
                                     </td>
-                                    <td className="p-2 text-right text-teal-700 font-medium">
+                                    <td className="p-1 sm:p-2 text-right text-teal-700 font-medium text-xs sm:text-sm">
                                       {formatDuration(artist.totalPlayed)}
                                     </td>
-                                    <td className="p-2 text-right text-teal-700">
+                                    <td className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm">
                                       {artist.playCount}
                                     </td>
-                                    <td className="p-2 text-right text-teal-700 hidden sm:table-cell">
+                                    <td className="p-1 sm:p-2 text-right text-teal-700 hidden sm:table-cell">
                                       <div className="text-sm">
                                         <div className="truncate max-w-[120px]">
                                           {artist.mostPlayedSong?.trackName || "N/A"}
@@ -1676,7 +1676,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                         )}
                                       </div>
                                     </td>
-                                    <td className="p-2 text-right text-teal-700 text-sm hidden sm:table-cell">
+                                    <td className="p-1 sm:p-2 text-right text-teal-700 text-sm hidden sm:table-cell">
                                       {new Date(artist.firstListen).toLocaleDateString()}
                                     </td>
                                   </tr>
