@@ -67,7 +67,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topArtists, setTopArtists] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(10);
-  const [artistsCompactView, setArtistsCompactView] = useState(false);
+  const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
   const [albumsCompactView, setAlbumsCompactView] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -1439,17 +1439,39 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-teal-700">Compact View</label>
-                    <button
-                      onClick={() => setArtistsCompactView(!artistsCompactView)}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        artistsCompactView 
-                          ? 'bg-teal-600 text-white' 
-                          : 'bg-teal-200 text-teal-700 hover:bg-teal-300'
-                      }`}
-                    >
-                      {artistsCompactView ? 'ON' : 'OFF'}
-                    </button>
+                    <label className="text-teal-700">View Mode</label>
+                    <div className="flex rounded-lg overflow-hidden border border-teal-300">
+                      <button
+                        onClick={() => setArtistsViewMode('grid')}
+                        className={`px-2 py-1 text-xs font-medium transition-colors ${
+                          artistsViewMode === 'grid'
+                            ? 'bg-teal-600 text-white' 
+                            : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                        }`}
+                      >
+                        Grid
+                      </button>
+                      <button
+                        onClick={() => setArtistsViewMode('compact')}
+                        className={`px-2 py-1 text-xs font-medium transition-colors ${
+                          artistsViewMode === 'compact'
+                            ? 'bg-teal-600 text-white' 
+                            : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                        }`}
+                      >
+                        Compact
+                      </button>
+                      <button
+                        onClick={() => setArtistsViewMode('mobile')}
+                        className={`px-2 py-1 text-xs font-medium transition-colors ${
+                          artistsViewMode === 'mobile'
+                            ? 'bg-teal-600 text-white' 
+                            : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                        }`}
+                      >
+                        Mobile
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1529,7 +1551,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     Show All Artists
                   </button>
                 </div>
-              ) : artistsCompactView ? (
+              ) : artistsViewMode === 'mobile' ? (
                 <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
                   <table className="w-full border-collapse">
                     <thead>
@@ -1593,6 +1615,108 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         })}
                     </tbody>
                   </table>
+                </div>
+              ) : artistsViewMode === 'compact' ? (
+                <div className="border rounded-lg p-3 sm:p-4 bg-teal-50">
+                  <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
+                    <div className="text-teal-700 font-medium text-sm">
+                      {selectedArtistYear === 'all' ? 'All-time artists' : 
+                        yearRangeMode && yearRange.startYear && yearRange.endYear ? 
+                        `Artists for ${yearRange.startYear}-${yearRange.endYear}` : 
+                        `Artists for ${selectedArtistYear}`}
+                    </div>
+                    <div className="text-teal-700 text-sm">
+                      Found <span className="font-bold">{filteredDisplayedArtists.length}</span> artists
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+                    <div className="min-w-full">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="p-2 text-left text-teal-700">Rank</th>
+                            <th className="p-2 text-left text-teal-700">Artist</th>
+                            <th className="p-2 text-right text-teal-700">Listening Time</th>
+                            <th className="p-2 text-right text-teal-700">Play Count</th>
+                            <th className="p-2 text-right text-teal-700">Most Played Song</th>
+                            <th className="p-2 text-right text-teal-700">First Listen</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredDisplayedArtists.length > 0 ? (
+                            filteredDisplayedArtists
+                              .slice(0, topArtistsCount)
+                              .map((artist, index) => {
+                                const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
+                                const isSelected = selectedArtists.includes(artist.name);
+                                
+                                return (
+                                  <tr 
+                                    key={artist.name} 
+                                    className={`border-b hover:bg-teal-100 cursor-pointer ${
+                                      isSelected ? 'bg-teal-100' : ''
+                                    }`}
+                                    onClick={() => {
+                                      if (selectedArtists.includes(artist.name)) {
+                                        setSelectedArtists(prev => prev.filter(a => a !== artist.name));
+                                      } else {
+                                        setSelectedArtists(prev => [...prev, artist.name]);
+                                      }
+                                    }}
+                                  >
+                                    <td className="p-2 text-teal-700 font-medium">#{originalIndex + 1}</td>
+                                    <td className="p-2 text-teal-700">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-medium">{artist.name}</span>
+                                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ml-2 ${
+                                          isSelected 
+                                            ? 'bg-teal-600 border-teal-600 text-white text-xs' 
+                                            : 'border-teal-400 hover:border-teal-600'
+                                        }`}>
+                                          {isSelected && '✓'}
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="p-2 text-right text-teal-700 font-medium">
+                                      {formatDuration(artist.totalPlayed)}
+                                    </td>
+                                    <td className="p-2 text-right text-teal-700">
+                                      {artist.playCount}
+                                    </td>
+                                    <td className="p-2 text-right text-teal-700">
+                                      <div className="text-sm">
+                                        <div className="truncate max-w-[120px]">
+                                          {artist.mostPlayedSong?.trackName || "N/A"}
+                                        </div>
+                                        {artist.mostPlayedSong?.playCount && (
+                                          <div className="text-xs text-teal-500">
+                                            ({artist.mostPlayedSong.playCount}x)
+                                          </div>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-2 text-right text-teal-700 text-sm">
+                                      {new Date(artist.firstListen).toLocaleDateString()}
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                          ) : (
+                            <tr>
+                              <td colSpan="6" className="p-4 text-center text-teal-500">
+                                {yearRangeMode && yearRange.startYear && yearRange.endYear
+                                  ? `No artists found for ${yearRange.startYear}-${yearRange.endYear}`
+                                  : selectedArtistYear !== 'all' 
+                                    ? `No artists found for ${selectedArtistYear}`
+                                    : "No artist data available"}
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
