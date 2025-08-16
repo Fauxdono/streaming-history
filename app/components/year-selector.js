@@ -1099,7 +1099,7 @@ const YearSelector = ({
           onClick={toggleExpanded}
           className={`${
             currentPosition === 'bottom'
-              ? 'absolute right-2 top-2 translate-y-4'
+              ? 'absolute left-2 top-2 translate-y-4'
               : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2`
           } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Collapse sidebar"
@@ -1553,17 +1553,15 @@ const YearSelector = ({
         
         {/* Position toggle button - different layout for bottom position */}
         {currentPosition === 'bottom' ? (
-          <div className="flex items-center">
-            {asSidebar && (
-              <button 
-                onClick={togglePosition}
-                className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
-                aria-label="Toggle sidebar position"
-              >
-                <span className="text-sm">⇄</span>
-              </button>
-            )}
-          </div>
+          asSidebar && (
+            <button 
+              onClick={togglePosition}
+              className={`absolute right-2 top-2 translate-y-4 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+              aria-label="Toggle sidebar position"
+            >
+              <span className="text-sm">⇄</span>
+            </button>
+          )
         ) : (
           <div className="absolute bottom-10 left-0 right-0 flex justify-center">
             {asSidebar && (
