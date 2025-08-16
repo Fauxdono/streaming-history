@@ -1440,38 +1440,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   
                   <div className="flex items-center gap-2">
                     <label className="text-teal-700">View Mode</label>
-                    <div className="flex rounded-lg overflow-hidden border border-teal-300">
-                      <button
-                        onClick={() => setArtistsViewMode('grid')}
-                        className={`px-2 py-1 text-xs font-medium transition-colors ${
-                          artistsViewMode === 'grid'
-                            ? 'bg-teal-600 text-white' 
-                            : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                        }`}
-                      >
-                        Grid
-                      </button>
-                      <button
-                        onClick={() => setArtistsViewMode('compact')}
-                        className={`px-2 py-1 text-xs font-medium transition-colors ${
-                          artistsViewMode === 'compact'
-                            ? 'bg-teal-600 text-white' 
-                            : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                        }`}
-                      >
-                        Compact
-                      </button>
-                      <button
-                        onClick={() => setArtistsViewMode('mobile')}
-                        className={`px-2 py-1 text-xs font-medium transition-colors ${
-                          artistsViewMode === 'mobile'
-                            ? 'bg-teal-600 text-white' 
-                            : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                        }`}
-                      >
-                        Mobile
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => {
+                        const modes = ['grid', 'compact', 'mobile'];
+                        const currentIndex = modes.indexOf(artistsViewMode);
+                        const nextIndex = (currentIndex + 1) % modes.length;
+                        setArtistsViewMode(modes[nextIndex]);
+                      }}
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
+                    >
+                      {artistsViewMode === 'grid' ? 'Grid' : 
+                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                    </button>
                   </div>
                 </div>
               </div>
