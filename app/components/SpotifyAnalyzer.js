@@ -1469,7 +1469,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               
               {/* Mobile controls - separate row */}
               <div className="block sm:hidden mb-4">
-                <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <label className="text-teal-700">Show Top</label>
                     <input
