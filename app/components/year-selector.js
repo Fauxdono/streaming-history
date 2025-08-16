@@ -1110,13 +1110,13 @@ const YearSelector = ({
       
       <div className={`${
         currentPosition === 'bottom' 
-          ? 'flex flex-row justify-center items-center p-4' 
+          ? 'flex flex-row justify-center items-center p-4 relative' 
           : 'h-full flex flex-col justify-between pt-4 pb-8'
       }`}>
         {/* Mode toggle buttons */}
         <div className={`${
           currentPosition === 'bottom'
-            ? 'flex flex-col gap-1 items-center'
+            ? 'absolute left-2 top-1/2 -translate-y-1/2 flex flex-col gap-1 items-center'
             : 'flex flex-col gap-1 items-center mb-2'
         }`}>
           <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
