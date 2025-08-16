@@ -1417,7 +1417,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           
           {activeTab === 'artists' && (
             <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
-              <div className="flex justify-between items-center mb-4">
+              {/* Title - mobile gets its own row */}
+              <div className="block sm:hidden mb-3">
+                <h3 className="font-bold text-teal-700">
+                  {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
+                    yearRangeMode && yearRange.startYear && yearRange.endYear ? 
+                    `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
+                    `Most Played Artists (${selectedArtistYear})`}
+                </h3>
+              </div>
+              
+              {/* Desktop layout - title and controls on same row */}
+              <div className="hidden sm:flex justify-between items-center mb-4">
                 <h3 className="font-bold text-teal-700">
                   {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
                     yearRangeMode && yearRange.startYear && yearRange.endYear ? 
@@ -1426,6 +1437,39 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </h3>
                 
                 <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-teal-700">Show Top</label>
+                    <input
+                      type="number" 
+                      min="1" 
+                      max="999" 
+                      value={topArtistsCount} 
+                      onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
+                      className="w-16 border rounded px-2 py-1 text-teal-700"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-teal-700">View Mode</label>
+                    <button
+                      onClick={() => {
+                        const modes = ['grid', 'compact', 'mobile'];
+                        const currentIndex = modes.indexOf(artistsViewMode);
+                        const nextIndex = (currentIndex + 1) % modes.length;
+                        setArtistsViewMode(modes[nextIndex]);
+                      }}
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
+                    >
+                      {artistsViewMode === 'grid' ? 'Grid' : 
+                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Mobile controls - separate row */}
+              <div className="block sm:hidden mb-4">
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2">
                     <label className="text-teal-700">Show Top</label>
                     <input
