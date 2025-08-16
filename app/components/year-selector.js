@@ -1046,7 +1046,7 @@ const YearSelector = ({
             {/* Vertical layout - keep original structure */}
             <button 
               onClick={toggleExpanded}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} top-2 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
               aria-label="Expand sidebar"
             >
               {currentPosition === 'left' ? '→' : '←'}
