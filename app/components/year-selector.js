@@ -1016,7 +1016,7 @@ const YearSelector = ({
             {/* Expand button */}
             <button 
               onClick={toggleExpanded}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-8`}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
               ↑
@@ -1035,7 +1035,7 @@ const YearSelector = ({
             {/* Position toggle button */}
             <button 
               onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8`}
+              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
               <span className="text-xs">⇄</span>
@@ -1046,7 +1046,7 @@ const YearSelector = ({
             {/* Vertical layout - keep original structure */}
             <button 
               onClick={toggleExpanded}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-16 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
               {currentPosition === 'left' ? '→' : '←'}
@@ -1063,7 +1063,7 @@ const YearSelector = ({
             
             <button 
               onClick={togglePosition}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
               <span className="text-xs">⇄</span>
