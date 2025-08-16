@@ -1110,7 +1110,7 @@ const YearSelector = ({
       
       <div className={`${
         currentPosition === 'bottom' 
-          ? 'flex flex-row justify-between items-center p-4' 
+          ? 'flex flex-row items-center p-4' 
           : 'h-full flex flex-col justify-between pt-4 pb-8'
       }`}>
         {/* Mode toggle buttons */}
@@ -1178,7 +1178,7 @@ const YearSelector = ({
         {/* Content area - horizontal layout for bottom position */}
         <div className={`${
           currentPosition === 'bottom' 
-            ? 'flex flex-row items-center space-x-4 overflow-x-auto max-w-full px-4'
+            ? 'flex flex-row items-center space-x-4 overflow-x-auto max-w-full px-4 flex-grow justify-center'
             : `overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
                 mode === 'range' ? 'px-2' : 'px-1'
               } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`
