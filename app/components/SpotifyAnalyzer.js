@@ -1469,21 +1469,21 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               
               {/* Mobile controls - separate row */}
               <div className="block sm:hidden mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <label className="text-teal-700">Show Top</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <label className="text-teal-700 text-sm">Top</label>
                     <input
                       type="number" 
                       min="1" 
                       max="999" 
                       value={topArtistsCount} 
                       onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
-                      className="w-16 border rounded px-2 py-1 text-teal-700"
+                      className="w-12 border rounded px-1 py-1 text-teal-700 text-sm"
                     />
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <label className="text-teal-700">View Mode</label>
+                  <div className="flex items-center gap-1">
+                    <label className="text-teal-700 text-sm">View</label>
                     <button
                       onClick={() => {
                         const modes = ['grid', 'compact', 'mobile'];
@@ -1491,7 +1491,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
+                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
