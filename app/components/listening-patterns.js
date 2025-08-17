@@ -747,9 +747,18 @@ const ListeningPatterns = ({
                   />
                   <Legend 
                     wrapperStyle={{ 
-                      color: isDarkMode ? '#C4B5FD' : '#7C3AED',
+                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important',
                       fontSize: '12px'
                     }}
+                    contentStyle={{
+                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important'
+                    }}
+                    iconType="rect"
+                    formatter={(value) => (
+                      <span style={{ color: isDarkMode ? '#C4B5FD' : '#7C3AED' }}>
+                        {value}
+                      </span>
+                    )}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -965,9 +974,18 @@ const ListeningPatterns = ({
                   />
                   <Legend 
                     wrapperStyle={{ 
-                      color: isDarkMode ? '#C4B5FD' : '#7C3AED',
+                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important',
                       fontSize: '12px'
                     }}
+                    contentStyle={{
+                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important'
+                    }}
+                    iconType="rect"
+                    formatter={(value) => (
+                      <span style={{ color: isDarkMode ? '#C4B5FD' : '#7C3AED' }}>
+                        {value}
+                      </span>
+                    )}
                   />
                 </PieChart>
               </ResponsiveContainer>
