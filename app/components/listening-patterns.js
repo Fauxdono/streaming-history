@@ -604,7 +604,7 @@ const ListeningPatterns = ({
     const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
     
     // Adjust text color based on theme
-    const textFill = isDarkMode ? "#ffffff" : "#ffffff";
+    const textFill = isDarkMode ? "#ffffff" : "#374151";
     
     return (
       <text 
@@ -613,7 +613,7 @@ const ListeningPatterns = ({
         fill={textFill}
         textAnchor="middle" 
         dominantBaseline="central"
-        fontSize="12px"
+        fontSize="10px"
         fontWeight="bold"
       >
         {`${(percent * 100).toFixed(0)}%`}
@@ -725,7 +725,7 @@ const ListeningPatterns = ({
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius="70%"
                     labelLine={false}
                     label={renderCustomizedLabel}
                   >
@@ -738,6 +738,11 @@ const ListeningPatterns = ({
                     labelFormatter={(name) => {
                       const period = timeOfDayData.periods.find(p => p.name === name);
                       return period ? period.fullName : name;
+                    }}
+                    contentStyle={{
+                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                      border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+                      color: isDarkMode ? '#ffffff' : '#000000'
                     }}
                   />
                   <Legend />
@@ -933,7 +938,7 @@ const ListeningPatterns = ({
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius="70%"
                     labelLine={false}
                     label={renderCustomizedLabel}
                   >
@@ -946,6 +951,11 @@ const ListeningPatterns = ({
                     labelFormatter={(name) => {
                       const season = monthlyData.seasons.find(s => s.name === name);
                       return season ? season.fullName : name;
+                    }}
+                    contentStyle={{
+                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                      border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+                      color: isDarkMode ? '#ffffff' : '#000000'
                     }}
                   />
                   <Legend />
