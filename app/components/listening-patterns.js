@@ -35,6 +35,43 @@ const ListeningPatterns = ({
     console.log('Legend color:', color, 'isDarkMode:', isDarkMode, 'colorTheme:', colorTheme);
     return color;
   }, [colorTheme, isDarkMode]);
+
+  // Color theme for pie chart strokes
+  const getStrokeColor = useMemo(() => {
+    if (isDarkMode) {
+      switch (colorTheme) {
+        case 'purple': return '#6B21A8';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#166534';
+        case 'blue': return '#1E40AF';
+        case 'teal': return '#115E59';
+        case 'orange': return '#9A3412';
+        case 'pink': return '#9D174D';
+        case 'red': return '#991B1B';
+        case 'yellow': return '#854D0E';
+        case 'cyan': return '#0E7490';
+        case 'emerald': return '#065F46';
+        case 'rose': return '#9F1239';
+        default: return '#6B21A8';
+      }
+    } else {
+      switch (colorTheme) {
+        case 'purple': return '#7C3AED';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#14532D';
+        case 'blue': return '#1E40AF';
+        case 'teal': return '#115E59';
+        case 'orange': return '#9A3412';
+        case 'pink': return '#831843';
+        case 'red': return '#7F1D1D';
+        case 'yellow': return '#713F12';
+        case 'cyan': return '#155E75';
+        case 'emerald': return '#065F46';
+        case 'rose': return '#9F1239';
+        default: return '#7C3AED';
+      }
+    }
+  }, [colorTheme, isDarkMode]);
   
   // Month names for calendar data
   const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
@@ -620,14 +657,11 @@ const ListeningPatterns = ({
     const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
     const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
     
-    // Use white text for contrast against colored pie slices
-    const textFill = "#ffffff";
-    
     return (
       <text 
         x={x} 
         y={y} 
-        fill={textFill}
+        fill={getStrokeColor}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="10px"
@@ -745,6 +779,8 @@ const ListeningPatterns = ({
                     outerRadius="70%"
                     labelLine={false}
                     label={renderCustomizedLabel}
+                    stroke={getStrokeColor}
+                    strokeWidth={1}
                   >
                     {timeOfDayData.periods.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -972,6 +1008,8 @@ const ListeningPatterns = ({
                     outerRadius="70%"
                     labelLine={false}
                     label={renderCustomizedLabel}
+                    stroke={getStrokeColor}
+                    strokeWidth={1}
                   >
                     {monthlyData.seasons.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
