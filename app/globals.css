@@ -296,10 +296,6 @@ body {
   filter: brightness(1.75) contrast(1.1);
 }
 
-/* Fix for pie chart text and labels - excluding legend text */
-.dark .recharts-text:not(.recharts-legend-item-text) {
-  fill: #f3f4f6 !important; /* Light text for dark backgrounds */
-}
 
 /* Make tooltip background darker in dark mode */
 .dark .recharts-tooltip-wrapper .recharts-default-tooltip {
@@ -315,16 +311,6 @@ body {
   color: #e5e7eb !important;
 }
 
-/* Ensure axes and gridlines are visible */
-.dark .recharts-cartesian-axis-line,
-.dark .recharts-cartesian-axis-tick-line {
-  stroke: #4b5563 !important;
-}
-
-.dark .recharts-cartesian-grid-horizontal line,
-.dark .recharts-cartesian-grid-vertical line {
-  stroke: #374151 !important;
-}
 
 /* Better colors for chart elements in dark mode */
 .dark .recharts-pie-sector {
@@ -361,10 +347,6 @@ body {
   filter: brightness(1.7);
 }
 
-/* Fix for pie chart labels */
-.dark .recharts-pie-label-text {
-  fill: #e5e7eb !important;
-}
 
 
 /* Fix loading animation to not change in dark mode */
