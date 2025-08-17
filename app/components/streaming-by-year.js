@@ -20,7 +20,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
   }), [isDarkMode]);
 
   // Stroke color for pie charts
-  const getStrokeColor = isDarkMode ? '#374151' : '#6B7280';
+  const getStrokeColor = isDarkMode ? '#9CA3AF' : '#6B7280';
 
   // Custom pie chart label renderer
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
