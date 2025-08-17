@@ -301,11 +301,6 @@ body {
   fill: #f3f4f6 !important; /* Light text for dark backgrounds */
 }
 
-/* Fix for legends in dark mode */
-.dark .recharts-legend-item-text {
-  color: #f3f4f6 !important;
-}
-
 /* Make tooltip background darker in dark mode */
 .dark .recharts-tooltip-wrapper .recharts-default-tooltip {
   background-color: #1f2937 !important;
@@ -338,24 +333,6 @@ body {
 
 .dark .recharts-bar-rectangle {
   filter: brightness(1.3);
-}
-
-/* Fix for legend text */
-.dark .recharts-legend-item-text {
-  color: #e5e7eb !important;
-}
-
-/* Purple theme override for listening patterns pie charts */
-[class*="listening-patterns"] .dark .recharts-legend-item-text,
-.dark [id*="timeOfDay"] .recharts-legend-item-text,
-.dark [id*="seasonal"] .recharts-legend-item-text {
-  color: #C4B5FD !important;
-}
-
-[class*="listening-patterns"] .recharts-legend-item-text,
-[id*="timeOfDay"] .recharts-legend-item-text,
-[id*="seasonal"] .recharts-legend-item-text {
-  color: #7C3AED !important;
 }
 
 /* Make chart areas more distinct */
