@@ -19,6 +19,32 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     'unknown': isDarkMode ? '#888888' : '#AAAAAA'
   }), [isDarkMode]);
 
+  // Stroke color for pie charts
+  const getStrokeColor = isDarkMode ? '#374151' : '#6B7280';
+
+  // Custom pie chart label renderer
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+    if (percent < 0.05) return null; // Hide labels for slices less than 5%
+    
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
+    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
+    
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill={getStrokeColor}
+        textAnchor="middle" 
+        dominantBaseline="central"
+        fontSize="11px"
+        fontWeight="bold"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   // Process raw data to get usage by service
   const serviceData = useMemo(() => {
     if (!rawPlayData || rawPlayData.length === 0) {
@@ -176,6 +202,8 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
                       outerRadius={80}
                       labelLine={false}
                       label={renderCustomizedLabel}
+                      stroke={getStrokeColor}
+                      strokeWidth={1}
                     >
                       {serviceData.total.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -255,6 +283,8 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
                         outerRadius={60}
                         labelLine={false}
                         label={renderCustomizedLabel}
+                        stroke={getStrokeColor}
+                        strokeWidth={1}
                       >
                         {serviceData.byYear[year].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
