@@ -625,7 +625,7 @@ const filteredData = useMemo(() => {
         x={x} 
         y={y} 
         fill={getTextColor}
-        style={{ fill: `${getTextColor} !important` }}
+        style={{ fill: getTextColor }}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="12px"

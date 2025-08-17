@@ -326,15 +326,6 @@ body {
   color: inherit !important;
 }
 
-/* Force SVG text elements in charts to respect custom fill colors */
-.recharts-pie text {
-  fill: inherit !important;
-}
-
-.recharts-surface text {
-  fill: inherit !important;
-}
-
 .dark .recharts-bar-rectangle {
   filter: brightness(1.3);
 }
