@@ -42,64 +42,76 @@ const DiscoveryAnalysis = ({
     }
   }, [colorTheme, isDarkMode]);
 
-  // Color theme for pie chart strokes
+  // Color theme for pie chart strokes - use actual hex values for SVG compatibility
   const getStrokeColor = useMemo(() => {
     if (isDarkMode) {
       switch (colorTheme) {
-        case 'purple': return '#C4B5FD';
-        case 'indigo': return '#A5B4FC';
-        case 'green': return '#86EFAC';
-        case 'blue': return '#93C5FD';
-        case 'teal': return '#5EEAD4';
-        case 'orange': return '#FDBA74';
-        case 'pink': return '#F9A8D4';
-        case 'red': return '#FCA5A5';
-        case 'yellow': return '#FDE047';
-        case 'cyan': return '#67E8F9';
-        case 'emerald': return '#6EE7B7';
-        case 'rose': return '#FDA4AF';
-        default: return '#86EFAC';
+        case 'purple': return '#d8b4fe';
+        case 'indigo': return '#a5b4fc';
+        case 'green': return '#86efac';
+        case 'blue': return '#93c5fd';
+        case 'teal': return '#5eead4';
+        case 'orange': return '#fdba74';
+        case 'pink': return '#f9a8d4';
+        case 'red': return '#fca5a5';
+        case 'yellow': return '#fde047';
+        case 'cyan': return '#67e8f9';
+        case 'emerald': return '#6ee7b7';
+        case 'rose': return '#fda4af';
+        default: return '#86efac';
       }
     } else {
       switch (colorTheme) {
-        case 'purple': return '#7C3AED';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#14532D';
-        case 'blue': return '#1E40AF';
-        case 'teal': return '#115E59';
-        case 'orange': return '#9A3412';
+        case 'purple': return '#6b21a8';
+        case 'indigo': return '#3730a3';
+        case 'green': return '#14532d';
+        case 'blue': return '#1e40af';
+        case 'teal': return '#115e59';
+        case 'orange': return '#9a3412';
         case 'pink': return '#831843';
-        case 'red': return '#7F1D1D';
-        case 'yellow': return '#713F12';
-        case 'cyan': return '#155E75';
-        case 'emerald': return '#065F46';
-        case 'rose': return '#9F1239';
-        default: return '#14532D';
+        case 'red': return '#7f1d1d';
+        case 'yellow': return '#713f12';
+        case 'cyan': return '#155e75';
+        case 'emerald': return '#065f46';
+        case 'rose': return '#9f1239';
+        default: return '#14532d';
       }
     }
   }, [colorTheme, isDarkMode]);
 
-  // Color theme for pie chart text labels (for readability contrast)
+  // Color theme for pie chart text labels - use actual hex values for SVG compatibility
   const getTextColor = useMemo(() => {
-    // In dark mode, use white for contrast against colored pie slices
-    // In light mode, use dark theme colors for contrast
     if (isDarkMode) {
-      return '#ffffff';
+      switch (colorTheme) {
+        case 'purple': return '#d8b4fe';
+        case 'indigo': return '#a5b4fc';
+        case 'green': return '#86efac';
+        case 'blue': return '#93c5fd';
+        case 'teal': return '#5eead4';
+        case 'orange': return '#fdba74';
+        case 'pink': return '#f9a8d4';
+        case 'red': return '#fca5a5';
+        case 'yellow': return '#fde047';
+        case 'cyan': return '#67e8f9';
+        case 'emerald': return '#6ee7b7';
+        case 'rose': return '#fda4af';
+        default: return '#86efac';
+      }
     } else {
       switch (colorTheme) {
-        case 'purple': return '#7C3AED';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#14532D';
-        case 'blue': return '#1E40AF';
-        case 'teal': return '#115E59';
-        case 'orange': return '#9A3412';
+        case 'purple': return '#6b21a8';
+        case 'indigo': return '#3730a3';
+        case 'green': return '#14532d';
+        case 'blue': return '#1e40af';
+        case 'teal': return '#115e59';
+        case 'orange': return '#9a3412';
         case 'pink': return '#831843';
-        case 'red': return '#7F1D1D';
-        case 'yellow': return '#713F12';
-        case 'cyan': return '#155E75';
-        case 'emerald': return '#065F46';
-        case 'rose': return '#9F1239';
-        default: return '#14532D';
+        case 'red': return '#7f1d1d';
+        case 'yellow': return '#713f12';
+        case 'cyan': return '#155e75';
+        case 'emerald': return '#065f46';
+        case 'rose': return '#9f1239';
+        default: return '#14532d';
       }
     }
   }, [colorTheme, isDarkMode]);
@@ -724,7 +736,7 @@ const filteredData = useMemo(() => {
                       outerRadius={80}
                       label={renderCustomizedLabel}
                       stroke={getStrokeColor}
-                      strokeWidth={1}
+                      strokeWidth={2}
                     >
                       {discoveryData.loyaltyData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
