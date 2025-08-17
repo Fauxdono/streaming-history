@@ -84,12 +84,25 @@ const ListeningBehavior = ({
     }
   }, [colorTheme, isDarkMode]);
 
-  // Color theme for pie chart text labels (for readability contrast)
+  // Color theme for pie chart text labels (same as stroke colors for consistency)
   const getTextColor = useMemo(() => {
-    // In dark mode, use white for contrast against colored pie slices
-    // In light mode, use dark theme colors for contrast
+    // Use the same colors as stroke for consistent theming
     if (isDarkMode) {
-      return '#ffffff';
+      switch (colorTheme) {
+        case 'purple': return '#C4B5FD';
+        case 'indigo': return '#A5B4FC';
+        case 'green': return '#86EFAC';
+        case 'blue': return '#93C5FD';
+        case 'teal': return '#5EEAD4';
+        case 'orange': return '#FDBA74';
+        case 'pink': return '#F9A8D4';
+        case 'red': return '#FCA5A5';
+        case 'yellow': return '#FDE047';
+        case 'cyan': return '#67E8F9';
+        case 'emerald': return '#6EE7B7';
+        case 'rose': return '#FDA4AF';
+        default: return '#A5B4FC';
+      }
     } else {
       switch (colorTheme) {
         case 'purple': return '#7C3AED';
