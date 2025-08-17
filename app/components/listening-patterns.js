@@ -603,8 +603,8 @@ const ListeningPatterns = ({
     const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
     const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
     
-    // Adjust text color based on theme
-    const textFill = isDarkMode ? "#ffffff" : "#374151";
+    // Use white text for contrast against colored pie slices
+    const textFill = "#ffffff";
     
     return (
       <text 
@@ -745,7 +745,12 @@ const ListeningPatterns = ({
                       color: isDarkMode ? '#ffffff' : '#000000'
                     }}
                   />
-                  <Legend />
+                  <Legend 
+                    wrapperStyle={{ 
+                      color: isDarkMode ? '#C4B5FD' : '#7C3AED',
+                      fontSize: '12px'
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -958,7 +963,12 @@ const ListeningPatterns = ({
                       color: isDarkMode ? '#ffffff' : '#000000'
                     }}
                   />
-                  <Legend />
+                  <Legend 
+                    wrapperStyle={{ 
+                      color: isDarkMode ? '#C4B5FD' : '#7C3AED',
+                      fontSize: '12px'
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
