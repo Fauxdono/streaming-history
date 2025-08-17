@@ -10,7 +10,8 @@ const ListeningBehavior = ({
   formatDuration,
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
-  yearRangeMode = false
+  yearRangeMode = false,
+  colorTheme = 'indigo'
 }) => {
   const [activeTab, setActiveTab] = useState('behavior');
   // Use selectedYear if it's a specific date (YYYY-MM-DD), otherwise use today
@@ -24,6 +25,27 @@ const ListeningBehavior = ({
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  // Color theme for legends
+  const getLegendTextColor = useMemo(() => {
+    if (isDarkMode) {
+      switch (colorTheme) {
+        case 'purple': return '#C4B5FD';
+        case 'indigo': return '#A5B4FC';
+        case 'green': return '#86EFAC';
+        case 'blue': return '#93C5FD';
+        default: return '#A5B4FC';
+      }
+    } else {
+      switch (colorTheme) {
+        case 'purple': return '#7C3AED';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#14532D';
+        case 'blue': return '#1E40AF';
+        default: return '#3730A3';
+      }
+    }
+  }, [colorTheme, isDarkMode]);
   
 // Update the filteredData useMemo in ListeningBehavior.js
 const filteredData = useMemo(() => {
@@ -610,7 +632,21 @@ const filteredData = useMemo(() => {
                         color: isDarkMode ? '#ffffff' : '#000000'
                       }}
                     />
-                    <Legend />
+                    <Legend 
+                      wrapperStyle={{ 
+                        color: getLegendTextColor,
+                        fontSize: '12px'
+                      }}
+                      contentStyle={{
+                        color: getLegendTextColor
+                      }}
+                      iconType="rect"
+                      formatter={(value) => (
+                        <span style={{ color: getLegendTextColor }}>
+                          {value}
+                        </span>
+                      )}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -647,7 +683,21 @@ const filteredData = useMemo(() => {
                         color: isDarkMode ? '#ffffff' : '#000000'
                       }}
                     />
-                    <Legend />
+                    <Legend 
+                      wrapperStyle={{ 
+                        color: getLegendTextColor,
+                        fontSize: '12px'
+                      }}
+                      contentStyle={{
+                        color: getLegendTextColor
+                      }}
+                      iconType="rect"
+                      formatter={(value) => (
+                        <span style={{ color: getLegendTextColor }}>
+                          {value}
+                        </span>
+                      )}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

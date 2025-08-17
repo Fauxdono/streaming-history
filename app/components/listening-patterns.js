@@ -10,7 +10,8 @@ const ListeningPatterns = ({
   formatDuration,
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
-  yearRangeMode = false
+  yearRangeMode = false,
+  colorTheme = 'purple'
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
@@ -18,6 +19,27 @@ const ListeningPatterns = ({
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  // Color theme for legends (similar to year selector)
+  const getLegendTextColor = useMemo(() => {
+    if (isDarkMode) {
+      switch (colorTheme) {
+        case 'purple': return '#C4B5FD';
+        case 'indigo': return '#A5B4FC';
+        case 'green': return '#86EFAC';
+        case 'blue': return '#93C5FD';
+        default: return '#C4B5FD';
+      }
+    } else {
+      switch (colorTheme) {
+        case 'purple': return '#7C3AED';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#14532D';
+        case 'blue': return '#1E40AF';
+        default: return '#7C3AED';
+      }
+    }
+  }, [colorTheme, isDarkMode]);
   
   // Month names for calendar data
   const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
@@ -747,15 +769,15 @@ const ListeningPatterns = ({
                   />
                   <Legend 
                     wrapperStyle={{ 
-                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important',
+                      color: getLegendTextColor,
                       fontSize: '12px'
                     }}
                     contentStyle={{
-                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important'
+                      color: getLegendTextColor
                     }}
                     iconType="rect"
                     formatter={(value) => (
-                      <span style={{ color: isDarkMode ? '#C4B5FD' : '#7C3AED' }}>
+                      <span style={{ color: getLegendTextColor }}>
                         {value}
                       </span>
                     )}
@@ -974,15 +996,15 @@ const ListeningPatterns = ({
                   />
                   <Legend 
                     wrapperStyle={{ 
-                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important',
+                      color: getLegendTextColor,
                       fontSize: '12px'
                     }}
                     contentStyle={{
-                      color: isDarkMode ? '#C4B5FD !important' : '#7C3AED !important'
+                      color: getLegendTextColor
                     }}
                     iconType="rect"
                     formatter={(value) => (
-                      <span style={{ color: isDarkMode ? '#C4B5FD' : '#7C3AED' }}>
+                      <span style={{ color: getLegendTextColor }}>
                         {value}
                       </span>
                     )}

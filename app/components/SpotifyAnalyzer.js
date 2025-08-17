@@ -2182,6 +2182,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 selectedYear={selectedPatternYear}
                 yearRange={patternYearRange}
                 yearRangeMode={patternYearRangeMode}
+                colorTheme="purple"
               />
             </div>
           )}
@@ -2203,6 +2204,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 selectedYear={selectedBehaviorYear}
                 yearRange={behaviorYearRange}
                 yearRangeMode={behaviorYearRangeMode}
+                colorTheme="indigo"
               />
             </div>
           )}
@@ -2224,6 +2226,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 selectedYear={selectedDiscoveryYear}
                 yearRange={discoveryYearRange}
                 yearRangeMode={discoveryYearRangeMode}
+                colorTheme="green"
               />
             </div>
           )}
