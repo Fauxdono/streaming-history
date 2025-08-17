@@ -22,23 +22,18 @@ const ListeningPatterns = ({
 
   // Color theme for legends (similar to year selector)
   const getLegendTextColor = useMemo(() => {
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#C4B5FD';
-        case 'indigo': return '#A5B4FC';
-        case 'green': return '#86EFAC';
-        case 'blue': return '#93C5FD';
-        default: return '#C4B5FD';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#7C3AED';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#14532D';
-        case 'blue': return '#1E40AF';
-        default: return '#7C3AED';
-      }
-    }
+    const color = isDarkMode ? 
+      (colorTheme === 'purple' ? '#C4B5FD' :
+       colorTheme === 'indigo' ? '#A5B4FC' :
+       colorTheme === 'green' ? '#86EFAC' :
+       colorTheme === 'blue' ? '#93C5FD' : '#C4B5FD') :
+      (colorTheme === 'purple' ? '#7C3AED' :
+       colorTheme === 'indigo' ? '#3730A3' :
+       colorTheme === 'green' ? '#14532D' :
+       colorTheme === 'blue' ? '#1E40AF' : '#7C3AED');
+    
+    console.log('Legend color:', color, 'isDarkMode:', isDarkMode, 'colorTheme:', colorTheme);
+    return color;
   }, [colorTheme, isDarkMode]);
   
   // Month names for calendar data
