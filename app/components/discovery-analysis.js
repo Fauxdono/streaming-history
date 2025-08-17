@@ -11,7 +11,8 @@ const DiscoveryAnalysis = ({
   yearRangeMode = false,
   onYearChange,
   onYearRangeChange,
-  onToggleYearRangeMode
+  onToggleYearRangeMode,
+  colorTheme = 'green'
 }) => {
   const [activeTab, setActiveTab] = useState('discovery');
   const [timeframe, setTimeframe] = useState('all');
@@ -19,6 +20,27 @@ const DiscoveryAnalysis = ({
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  // Color theme for legends
+  const getLegendTextColor = useMemo(() => {
+    if (isDarkMode) {
+      switch (colorTheme) {
+        case 'purple': return '#C4B5FD';
+        case 'indigo': return '#A5B4FC';
+        case 'green': return '#86EFAC';
+        case 'blue': return '#93C5FD';
+        default: return '#86EFAC';
+      }
+    } else {
+      switch (colorTheme) {
+        case 'purple': return '#7C3AED';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#14532D';
+        case 'blue': return '#1E40AF';
+        default: return '#14532D';
+      }
+    }
+  }, [colorTheme, isDarkMode]);
   
 // Update the filteredData useMemo in DiscoveryAnalysis.js
 const filteredData = useMemo(() => {
@@ -537,7 +559,21 @@ const filteredData = useMemo(() => {
                     formatter={(value) => [value, 'New Artists']}
                     labelFormatter={(value, payload) => payload[0]?.payload?.fullLabel || value}
                   />
-                  <Legend />
+                  <Legend 
+                    wrapperStyle={{ 
+                      color: getLegendTextColor,
+                      fontSize: '12px'
+                    }}
+                    contentStyle={{
+                      color: getLegendTextColor
+                    }}
+                    iconType="rect"
+                    formatter={(value) => (
+                      <span style={{ color: getLegendTextColor }}>
+                        {value}
+                      </span>
+                    )}
+                  />
                   <Line 
                     type="monotone" 
                     dataKey="count" 
@@ -703,7 +739,21 @@ const filteredData = useMemo(() => {
                       return [value, name];
                     }}
                   />
-                  <Legend />
+                  <Legend 
+                    wrapperStyle={{ 
+                      color: getLegendTextColor,
+                      fontSize: '12px'
+                    }}
+                    contentStyle={{
+                      color: getLegendTextColor
+                    }}
+                    iconType="rect"
+                    formatter={(value) => (
+                      <span style={{ color: getLegendTextColor }}>
+                        {value}
+                      </span>
+                    )}
+                  />
                   <Bar name="Unique Tracks" dataKey="uniqueTracks" fill={isDarkMode ? "#065F46" : "#82ca9d"} />
                   <Bar name="Depth Score" dataKey="depthScore" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
                 </BarChart>
@@ -791,7 +841,21 @@ const filteredData = useMemo(() => {
                       return new Date(value).toLocaleDateString();
                     }}
                   />
-                  <Legend />
+                  <Legend 
+                    wrapperStyle={{ 
+                      color: getLegendTextColor,
+                      fontSize: '12px'
+                    }}
+                    contentStyle={{
+                      color: getLegendTextColor
+                    }}
+                    iconType="rect"
+                    formatter={(value) => (
+                      <span style={{ color: getLegendTextColor }}>
+                        {value}
+                      </span>
+                    )}
+                  />
                   <Line 
                     type="monotone" 
                     dataKey="varietyScore" 
