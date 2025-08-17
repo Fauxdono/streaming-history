@@ -624,14 +624,14 @@ const ListeningPatterns = ({
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 whitespace-nowrap font-medium ${
+      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? isDarkMode 
-            ? 'bg-gray-700 text-purple-400 border-b-2 border-purple-400' 
-            : 'bg-purple-50 text-purple-600 border-b-2 border-purple-600'
+            ? 'bg-gray-700 text-purple-400 border border-purple-400' 
+            : 'bg-purple-600 text-white border border-purple-600'
           : isDarkMode
-            ? 'bg-gray-800 text-purple-400 hover:bg-gray-700'
-            : 'bg-purple-200 text-purple-600 hover:bg-purple-300'
+            ? 'bg-gray-800 text-purple-400 hover:bg-gray-700 border border-gray-600'
+            : 'bg-purple-200 text-purple-600 hover:bg-purple-300 border border-purple-300'
       }`}
     >
       {label}
@@ -651,38 +651,46 @@ const ListeningPatterns = ({
 
   return (
    <div className={`w-full ${isDarkMode ? 'text-purple-200' : 'text-gray-900'}`}>
-    {/* Horizontally scrollable tabs */}
-    <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
-      <div className="flex min-w-max">
+    {/* Mobile-friendly tabs */}
+    <div className="mb-4">
+      <div className="flex flex-wrap gap-1 sm:gap-2">
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
         <TabButton id="calendar" label="Calendar" />
-        <TabButton id="streaming" label="Streaming Services" />
+        <TabButton id="streaming" label="Streaming" />
       </div>
     </div>
 
     {activeTab === 'timeOfDay' && (
       <div className="space-y-6">
         <div>
-          <h3 className={`text-lg font-bold mb-2 ${
+          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
             isDarkMode ? 'text-purple-300' : 'text-purple-700'
           }`}>Listening by Time of Day</h3>
           <p className={`mb-4 ${
             isDarkMode ? 'text-purple-400' : 'text-purple-600'
           }`}>When do you listen to music the most?</p>
           
-          <div className={`h-64 w-full rounded p-2 ${
+          <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
             isDarkMode ? 'bg-gray-800' : 'bg-white'
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={timeOfDayData.hourly}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                <XAxis dataKey="displayHour" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                <XAxis 
+                  dataKey="displayHour" 
+                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                  tick={{ fontSize: 10 }}
+                  interval="preserveStartEnd"
+                />
+                <YAxis 
+                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                  tick={{ fontSize: 10 }}
+                />
                 <Tooltip 
                   formatter={(value, name) => {
                     return name === 'totalMs' ? formatDuration(value) : value;
@@ -703,10 +711,10 @@ const ListeningPatterns = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className={`text-lg font-bold mb-2 ${
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Time Periods</h3>
-            <div className={`h-64 rounded p-2 ${
+            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
@@ -739,7 +747,7 @@ const ListeningPatterns = ({
           </div>
           
           <div className="flex flex-col justify-center">
-            <h3 className={`text-lg font-bold mb-2 ${
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Time Period Stats</h3>
             <ul className="space-y-2">
@@ -765,48 +773,54 @@ const ListeningPatterns = ({
         <div>
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className={`text-lg font-bold ${
+              <h3 className={`text-sm sm:text-lg font-bold ${
                 isDarkMode ? 'text-purple-300' : 'text-purple-700'
               }`}>Listening by Day of Week</h3>
               <p className={`${
                 isDarkMode ? 'text-purple-400' : 'text-purple-600'
               }`}>Which days do you stream music the most?</p>
             </div>
-            <div className="flex bg-purple-100 rounded-full p-1">
+            <div className={`flex rounded-lg p-1 ${isDarkMode ? 'bg-gray-700' : 'bg-purple-100'}`}>
               <button
                 onClick={() => setDayOfWeekViewMode('plays')}
-                className={`px-3 py-1 rounded-full text-sm ${
+                className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
                   dayOfWeekViewMode === 'plays' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'text-purple-700 hover:bg-purple-200'
+                    ? isDarkMode ? 'bg-purple-600 text-white' : 'bg-purple-600 text-white'
+                    : isDarkMode ? 'text-purple-300 hover:bg-gray-600' : 'text-purple-700 hover:bg-purple-200'
                 }`}
               >
-                Total Plays
+                Total
               </button>
               <button
                 onClick={() => setDayOfWeekViewMode('average')}
-                className={`px-3 py-1 rounded-full text-sm ${
+                className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
                   dayOfWeekViewMode === 'average' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'text-purple-700 hover:bg-purple-200'
+                    ? isDarkMode ? 'bg-purple-600 text-white' : 'bg-purple-600 text-white'
+                    : isDarkMode ? 'text-purple-300 hover:bg-gray-600' : 'text-purple-700 hover:bg-purple-200'
                 }`}
               >
-                Average per Day
+                Average
               </button>
             </div>
           </div>
           
-          <div className={`h-64 w-full rounded p-2 ${
+          <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
             isDarkMode ? 'bg-gray-800' : 'bg-white'
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={dayOfWeekData}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                <XAxis dataKey="name" />
-                <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 10 }}
+                />
+                <YAxis 
+                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                  tick={{ fontSize: 10 }}
+                />
                 <Tooltip 
                   formatter={(value, name) => {
                     if (name === 'totalMs') return formatDuration(value);
@@ -831,10 +845,10 @@ const ListeningPatterns = ({
         </div>
         
         <div>
-          <h3 className={`text-lg font-bold mb-2 ${
+          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
             isDarkMode ? 'text-purple-300' : 'text-purple-700'
           }`}>Day of Week Stats</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
             {dayOfWeekData.map((day, index) => (
               <div key={index} className={`p-3 rounded border relative ${
                 isDarkMode ? 'bg-gray-800' : 'bg-purple-50'
@@ -863,24 +877,30 @@ const ListeningPatterns = ({
     {activeTab === 'seasonal' && (
       <div className="space-y-6">
         <div>
-          <h3 className={`text-lg font-bold mb-2 ${
+          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
             isDarkMode ? 'text-purple-300' : 'text-purple-700'
           }`}>Listening by Month</h3>
           <p className={`mb-4 ${
             isDarkMode ? 'text-purple-400' : 'text-purple-600'
           }`}>How does your listening change throughout the year?</p>
           
-          <div className={`h-64 w-full rounded p-2 ${
+          <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
             isDarkMode ? 'bg-gray-800' : 'bg-white'
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={monthlyData.months}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                <XAxis dataKey="name" />
-                <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 10 }}
+                />
+                <YAxis 
+                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                  tick={{ fontSize: 10 }}
+                />
                 <Tooltip 
                   formatter={(value, name) => {
                     return name === 'totalMs' ? formatDuration(value) : value;
@@ -899,10 +919,10 @@ const ListeningPatterns = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className={`text-lg font-bold mb-2 ${
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Seasonal Listening</h3>
-            <div className={`h-64 rounded p-2 ${
+            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
@@ -935,7 +955,7 @@ const ListeningPatterns = ({
           </div>
           
           <div className="flex flex-col justify-center">
-            <h3 className={`text-lg font-bold mb-2 ${
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Seasonal Stats</h3>
             <ul className="space-y-2">
@@ -960,7 +980,7 @@ const ListeningPatterns = ({
       <div className="space-y-6">
         <div>
           {/* Dynamic header based on view mode */}
-          <h3 className={`text-lg font-bold mb-2 ${
+          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
             isDarkMode ? 'text-purple-300' : 'text-purple-700'
           }`}>
             {isMonthView ? 
@@ -977,7 +997,7 @@ const ListeningPatterns = ({
           
           {/* Monthly View */}
           {!isMonthView && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
               {calendarData.map((monthData, index) => (
                 <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
                   isDarkMode 
@@ -1132,7 +1152,7 @@ const ListeningPatterns = ({
           
           {/* Daily View */}
           {isMonthView && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-1 sm:gap-2">
               {dailyCalendarData.map((dayData, index) => (
                 <div key={index} className={`rounded shadow-sm border-2 transition-colors overflow-hidden ${
                   isDarkMode 
