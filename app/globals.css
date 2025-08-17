@@ -317,6 +317,15 @@ body {
   filter: brightness(1.3);
 }
 
+/* Force legend text to use our theme colors instead of auto-generated colors */
+.dark .recharts-legend-item-text {
+  color: inherit !important;
+}
+
+.recharts-legend-item-text {
+  color: inherit !important;
+}
+
 .dark .recharts-bar-rectangle {
   filter: brightness(1.3);
 }
