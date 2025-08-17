@@ -291,15 +291,9 @@ body {
 }
 
 /* ENHANCED DARK MODE CHART STYLES */
-/* Make sure SVG charts are visible in dark mode - but not text elements */
-.dark .recharts-surface {
-  filter: brightness(1.75) contrast(1.1);
-}
+/* Removed brightness filter - using theme-aware colors instead */
 
-/* Override brightness filter for text elements to preserve custom colors */
-.dark .recharts-surface text {
-  filter: none !important;
-}
+/* Text elements use theme-aware colors directly */
 
 
 /* Make tooltip background darker in dark mode */
@@ -317,10 +311,7 @@ body {
 }
 
 
-/* Better colors for chart elements in dark mode */
-.dark .recharts-pie-sector {
-  filter: brightness(1.3);
-}
+/* Pie sectors use theme-aware colors directly - no filter needed */
 
 /* Force legend text to use our theme colors instead of auto-generated colors */
 .dark .recharts-legend-item-text {
