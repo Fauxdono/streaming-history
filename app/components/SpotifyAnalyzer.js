@@ -273,9 +273,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     if (selectedAlbumYear === 'all') {
       return 'All-time Albums';
     } else if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-      return `${albumYearRange.startYear}-${albumYearRange.endYear} Albums`;
+      return `Albums - ${albumYearRange.startYear}-${albumYearRange.endYear}`;
     }
-    return `${selectedAlbumYear} Albums`;
+    return `Albums - ${selectedAlbumYear}`;
   }, [selectedAlbumYear, albumYearRangeMode, albumYearRange]);
 
   // useEffect to set album date ranges when year changes (like CustomTrackRankings)
@@ -699,16 +699,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     if (selectedTrackYear === 'all') { 
       return 'All-time Brief Obsessions'; 
     } 
-    return `Brief Obsessions ${selectedTrackYear}`; 
+    return `Brief Obsessions - ${selectedTrackYear}`; 
   }, [selectedTrackYear]);
 
   const getArtistsTabLabel = useCallback(() => {
     if (selectedArtistYear === 'all') {
       return 'All-time Artists';
     } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `${yearRange.startYear}-${yearRange.endYear} Artists`;
+      return `Artists - ${yearRange.startYear}-${yearRange.endYear}`;
     }
-    return `${selectedArtistYear} Artists`;
+    return `Artists - ${selectedArtistYear}`;
   }, [selectedArtistYear, yearRangeMode, yearRange]);
 
   const getCustomTabLabel = useCallback(() => {
@@ -722,38 +722,38 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   const getPatternsTabLabel = useCallback(() => {
     if (patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear) {
-      return `${patternYearRange.startYear}-${patternYearRange.endYear} Patterns`;
+      return `Patterns - ${patternYearRange.startYear}-${patternYearRange.endYear}`;
     } else if (selectedPatternYear === 'all') {
       return 'All-time Patterns';
     }
-    return `${selectedPatternYear} Patterns`;
+    return `Patterns - ${selectedPatternYear}`;
   }, [patternYearRangeMode, patternYearRange, selectedPatternYear]);
 
   const getBehaviorTabLabel = useCallback(() => {
     if (behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear) {
-      return `${behaviorYearRange.startYear}-${behaviorYearRange.endYear} Behavior`;
+      return `Behavior - ${behaviorYearRange.startYear}-${behaviorYearRange.endYear}`;
     } else if (selectedBehaviorYear === 'all') {
       return 'All-time Behavior';
     }
-    return `${selectedBehaviorYear} Behavior`;
+    return `Behavior - ${selectedBehaviorYear}`;
   }, [behaviorYearRangeMode, behaviorYearRange, selectedBehaviorYear]);
 
   const getDiscoveryTabLabel = useCallback(() => {
     if (discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear) {
-      return `${discoveryYearRange.startYear}-${discoveryYearRange.endYear} Discovery`;
+      return `Discovery - ${discoveryYearRange.startYear}-${discoveryYearRange.endYear}`;
     } else if (selectedDiscoveryYear === 'all') {
       return 'All-time Discovery';
     }
-    return `${selectedDiscoveryYear} Discovery`;
+    return `Discovery - ${selectedDiscoveryYear}`;
   }, [discoveryYearRangeMode, discoveryYearRange, selectedDiscoveryYear]);
 
   const getPodcastsTabLabel = useCallback(() => {
     if (podcastYearRangeMode && podcastYearRange.startYear && podcastYearRange.endYear) {
-      return `${podcastYearRange.startYear}-${podcastYearRange.endYear} Podcasts`;
+      return `Podcasts - ${podcastYearRange.startYear}-${podcastYearRange.endYear}`;
     } else if (selectedPodcastYear === 'all') {
       return 'All-time Podcasts';
     }
-    return `${selectedPodcastYear} Podcasts`;
+    return `Podcasts - ${selectedPodcastYear}`;
   }, [podcastYearRangeMode, podcastYearRange, selectedPodcastYear]);
 
   // Handle loading sample data with useCallback
