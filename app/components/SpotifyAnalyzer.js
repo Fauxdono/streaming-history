@@ -713,11 +713,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   const getCustomTabLabel = useCallback(() => {
     if (customYearRangeMode && customYearRange.startYear && customYearRange.endYear) {
-      return `${customYearRange.startYear}-${customYearRange.endYear} Custom`;
+      return `Songs - ${customYearRange.startYear}-${customYearRange.endYear}`;
     } else if (customTrackYear === 'all') {
-      return 'All-time Custom';
+      return 'All-time Songs';
     }
-    return `${customTrackYear} Custom`;
+    return `Songs - ${customTrackYear}`;
   }, [customYearRangeMode, customYearRange, customTrackYear]);
 
   const getPatternsTabLabel = useCallback(() => {
