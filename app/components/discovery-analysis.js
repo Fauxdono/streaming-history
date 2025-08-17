@@ -533,6 +533,7 @@ const filteredData = useMemo(() => {
         x={x} 
         y={y} 
         fill={getStrokeColor}
+        style={{ fill: getStrokeColor }}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="11px"

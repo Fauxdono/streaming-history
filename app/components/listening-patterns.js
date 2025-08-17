@@ -662,6 +662,7 @@ const ListeningPatterns = ({
         x={x} 
         y={y} 
         fill={getStrokeColor}
+        style={{ fill: getStrokeColor }}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="10px"
