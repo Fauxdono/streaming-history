@@ -2034,11 +2034,23 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                 >
                                   <td className="p-1 sm:p-2 text-pink-700 font-medium text-xs sm:text-sm">{index + 1}</td>
                                   <td className="p-1 sm:p-2 text-pink-700">
-                                    <span 
-                                      className="font-medium text-xs sm:text-sm truncate"
-                                      title={album.name.length > 20 ? album.name : undefined}
-                                    >
-                                      {album.name.length > 20 ? `${album.name.substring(0, 20)}...` : album.name}
+                                    <span className="font-medium text-xs sm:text-sm">
+                                      <span className="sm:hidden">
+                                        {album.name.length > 20 ? (
+                                          <span 
+                                            className="cursor-pointer underline decoration-dotted"
+                                            onClick={(e) => {
+                                              e.target.textContent = album.name;
+                                              e.target.className = e.target.className.replace('underline decoration-dotted cursor-pointer', '');
+                                            }}
+                                          >
+                                            {`${album.name.substring(0, 20)}...`}
+                                          </span>
+                                        ) : album.name}
+                                      </span>
+                                      <span className="hidden sm:inline">
+                                        {album.name}
+                                      </span>
                                     </span>
                                   </td>
                                   <td className="p-1 sm:p-2 text-right text-pink-700 font-medium text-xs sm:text-sm">
