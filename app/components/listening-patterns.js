@@ -710,7 +710,7 @@ const ListeningPatterns = ({
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+          <div id="timeOfDay">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Time Periods</h3>
@@ -937,7 +937,7 @@ const ListeningPatterns = ({
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+          <div id="seasonal">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Seasonal Listening</h3>
