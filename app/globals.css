@@ -296,8 +296,8 @@ body {
   filter: brightness(1.75) contrast(1.1);
 }
 
-/* Fix for pie chart text and labels */
-.dark .recharts-text {
+/* Fix for pie chart text and labels - excluding legend text */
+.dark .recharts-text:not(.recharts-legend-item-text) {
   fill: #f3f4f6 !important; /* Light text for dark backgrounds */
 }
 
@@ -366,10 +366,6 @@ body {
   fill: #e5e7eb !important;
 }
 
-/* Handle color-specific elements that might need additional tweaking */
-.dark .recharts-customized-legend {
-  color: #e5e7eb !important;
-}
 
 /* Fix loading animation to not change in dark mode */
 .dark .animate-rock {
