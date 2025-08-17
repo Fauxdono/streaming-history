@@ -47,80 +47,45 @@ const ListeningBehavior = ({
     }
   }, [colorTheme, isDarkMode]);
 
-  // Color theme for pie chart strokes
+  // Color theme for pie chart strokes using CSS variables  
   const getStrokeColor = useMemo(() => {
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#C4B5FD';
-        case 'indigo': return '#A5B4FC';
-        case 'green': return '#86EFAC';
-        case 'blue': return '#93C5FD';
-        case 'teal': return '#5EEAD4';
-        case 'orange': return '#FDBA74';
-        case 'pink': return '#F9A8D4';
-        case 'red': return '#FCA5A5';
-        case 'yellow': return '#FDE047';
-        case 'cyan': return '#67E8F9';
-        case 'emerald': return '#6EE7B7';
-        case 'rose': return '#FDA4AF';
-        default: return '#A5B4FC';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#7C3AED';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#14532D';
-        case 'blue': return '#1E40AF';
-        case 'teal': return '#115E59';
-        case 'orange': return '#9A3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7F1D1D';
-        case 'yellow': return '#713F12';
-        case 'cyan': return '#155E75';
-        case 'emerald': return '#065F46';
-        case 'rose': return '#9F1239';
-        default: return '#3730A3';
-      }
+    // Use CSS variables that automatically change with dark mode
+    switch (colorTheme) {
+      case 'purple': return 'var(--purple-text)';
+      case 'indigo': return 'var(--indigo-text)';
+      case 'green': return 'var(--green-text)';
+      case 'blue': return 'var(--blue-text)';
+      case 'teal': return 'var(--teal-text)';
+      case 'orange': return 'var(--orange-text)';
+      case 'pink': return 'var(--pink-text)';
+      case 'red': return 'var(--red-text)';
+      case 'yellow': return 'var(--yellow-text)';
+      case 'cyan': return 'var(--cyan-text)';
+      case 'emerald': return 'var(--emerald-text)';
+      case 'rose': return 'var(--rose-text)';
+      default: return 'var(--indigo-text)';
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme]);
 
-  // Color theme for pie chart text labels (same as stroke colors for consistency)
+  // Color theme for pie chart text labels using CSS variables
   const getTextColor = useMemo(() => {
-    // Use the same colors as stroke for consistent theming
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#C4B5FD';
-        case 'indigo': return '#A5B4FC';
-        case 'green': return '#86EFAC';
-        case 'blue': return '#93C5FD';
-        case 'teal': return '#5EEAD4';
-        case 'orange': return '#FDBA74';
-        case 'pink': return '#F9A8D4';
-        case 'red': return '#FCA5A5';
-        case 'yellow': return '#FDE047';
-        case 'cyan': return '#67E8F9';
-        case 'emerald': return '#6EE7B7';
-        case 'rose': return '#FDA4AF';
-        default: return '#A5B4FC';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#7C3AED';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#14532D';
-        case 'blue': return '#1E40AF';
-        case 'teal': return '#115E59';
-        case 'orange': return '#9A3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7F1D1D';
-        case 'yellow': return '#713F12';
-        case 'cyan': return '#155E75';
-        case 'emerald': return '#065F46';
-        case 'rose': return '#9F1239';
-        default: return '#3730A3';
-      }
+    // Use CSS variables that automatically change with dark mode
+    switch (colorTheme) {
+      case 'purple': return 'var(--purple-text)';
+      case 'indigo': return 'var(--indigo-text)';
+      case 'green': return 'var(--green-text)';
+      case 'blue': return 'var(--blue-text)';
+      case 'teal': return 'var(--teal-text)';
+      case 'orange': return 'var(--orange-text)';
+      case 'pink': return 'var(--pink-text)';
+      case 'red': return 'var(--red-text)';
+      case 'yellow': return 'var(--yellow-text)';
+      case 'cyan': return 'var(--cyan-text)';
+      case 'emerald': return 'var(--emerald-text)';
+      case 'rose': return 'var(--rose-text)';
+      default: return 'var(--indigo-text)';
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme]);
   
 // Update the filteredData useMemo in ListeningBehavior.js
 const filteredData = useMemo(() => {
