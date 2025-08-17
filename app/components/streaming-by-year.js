@@ -35,6 +35,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
         x={x} 
         y={y} 
         fill={getStrokeColor}
+        style={{ fill: getStrokeColor }}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="11px"

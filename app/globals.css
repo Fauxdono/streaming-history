@@ -326,6 +326,11 @@ body {
   color: inherit !important;
 }
 
+/* Force pie chart labels to respect custom fill colors */
+.recharts-pie-label-text {
+  fill: inherit !important;
+}
+
 .dark .recharts-bar-rectangle {
   filter: brightness(1.3);
 }
