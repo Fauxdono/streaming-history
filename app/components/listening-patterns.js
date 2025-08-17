@@ -1005,10 +1005,6 @@ const ListeningPatterns = ({
                     : 'bg-white border-purple-200 hover:border-purple-400'
                 }`}>
                   
-                  <div className={`font-bold ${
-                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                  }`}>{monthData.fullName}</div>
-                  
                   <div className={`text-sm ${
                     isDarkMode ? 'text-purple-400' : 'text-purple-500'
                   }`}>
@@ -1043,9 +1039,9 @@ const ListeningPatterns = ({
                     )}
                   </div>
                   
-                  <div className={`absolute top-2 right-3 text-lg font-bold ${
+                  <div className={`absolute top-2 right-3 text-sm font-bold ${
                     isDarkMode ? 'text-purple-500' : 'text-purple-300'
-                  }`}>{monthData.name}</div>
+                  }`}>{monthData.fullName}</div>
                 </div>
               ))}
             </div>
