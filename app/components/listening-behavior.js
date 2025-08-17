@@ -585,6 +585,8 @@ const filteredData = useMemo(() => {
     const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
     const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
     
+    console.log('Pie chart render - Theme:', theme, 'isDarkMode:', isDarkMode, 'textColor:', getTextColor, 'strokeColor:', getStrokeColor);
+    
     return (
       <text 
         x={x} 
@@ -647,7 +649,7 @@ const filteredData = useMemo(() => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play</h3>
+              <h3 className="text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play (Theme: {theme}, Dark: {isDarkMode ? 'Yes' : 'No'})</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart key={`pie-shuffle-${isDarkMode}-${colorTheme}`}>
