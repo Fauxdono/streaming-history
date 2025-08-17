@@ -22,6 +22,9 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
   // Stroke color for pie charts
   const getStrokeColor = isDarkMode ? '#9CA3AF' : '#6B7280';
 
+  // Text color for pie chart labels (for readability contrast)
+  const getTextColor = isDarkMode ? '#ffffff' : '#374151';
+
   // Custom pie chart label renderer
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     if (percent < 0.05) return null; // Hide labels for slices less than 5%
@@ -34,8 +37,8 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
       <text 
         x={x} 
         y={y} 
-        fill={getStrokeColor}
-        style={{ fill: getStrokeColor }}
+        fill={getTextColor}
+        style={{ fill: getTextColor }}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="11px"

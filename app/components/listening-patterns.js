@@ -72,6 +72,31 @@ const ListeningPatterns = ({
       }
     }
   }, [colorTheme, isDarkMode]);
+
+  // Color theme for pie chart text labels (for readability contrast)
+  const getTextColor = useMemo(() => {
+    // In dark mode, use white for contrast against colored pie slices
+    // In light mode, use dark theme colors for contrast
+    if (isDarkMode) {
+      return '#ffffff';
+    } else {
+      switch (colorTheme) {
+        case 'purple': return '#7C3AED';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#14532D';
+        case 'blue': return '#1E40AF';
+        case 'teal': return '#115E59';
+        case 'orange': return '#9A3412';
+        case 'pink': return '#831843';
+        case 'red': return '#7F1D1D';
+        case 'yellow': return '#713F12';
+        case 'cyan': return '#155E75';
+        case 'emerald': return '#065F46';
+        case 'rose': return '#9F1239';
+        default: return '#7C3AED';
+      }
+    }
+  }, [colorTheme, isDarkMode]);
   
   // Month names for calendar data
   const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
@@ -661,8 +686,8 @@ const ListeningPatterns = ({
       <text 
         x={x} 
         y={y} 
-        fill={getStrokeColor}
-        style={{ fill: getStrokeColor }}
+        fill={getTextColor}
+        style={{ fill: getTextColor }}
         textAnchor="middle" 
         dominantBaseline="central"
         fontSize="10px"
