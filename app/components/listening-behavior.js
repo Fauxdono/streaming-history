@@ -46,6 +46,43 @@ const ListeningBehavior = ({
       }
     }
   }, [colorTheme, isDarkMode]);
+
+  // Color theme for pie chart strokes
+  const getStrokeColor = useMemo(() => {
+    if (isDarkMode) {
+      switch (colorTheme) {
+        case 'purple': return '#6B21A8';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#166534';
+        case 'blue': return '#1E40AF';
+        case 'teal': return '#115E59';
+        case 'orange': return '#9A3412';
+        case 'pink': return '#9D174D';
+        case 'red': return '#991B1B';
+        case 'yellow': return '#854D0E';
+        case 'cyan': return '#0E7490';
+        case 'emerald': return '#065F46';
+        case 'rose': return '#9F1239';
+        default: return '#3730A3';
+      }
+    } else {
+      switch (colorTheme) {
+        case 'purple': return '#7C3AED';
+        case 'indigo': return '#3730A3';
+        case 'green': return '#14532D';
+        case 'blue': return '#1E40AF';
+        case 'teal': return '#115E59';
+        case 'orange': return '#9A3412';
+        case 'pink': return '#831843';
+        case 'red': return '#7F1D1D';
+        case 'yellow': return '#713F12';
+        case 'cyan': return '#155E75';
+        case 'emerald': return '#065F46';
+        case 'rose': return '#9F1239';
+        default: return '#3730A3';
+      }
+    }
+  }, [colorTheme, isDarkMode]);
   
 // Update the filteredData useMemo in ListeningBehavior.js
 const filteredData = useMemo(() => {
@@ -619,6 +656,8 @@ const filteredData = useMemo(() => {
                       outerRadius={80}
                       labelLine={false}
                       label={renderCustomizedLabel}
+                      stroke={getStrokeColor}
+                      strokeWidth={1}
                     >
                       {behaviorData.shuffleData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -670,6 +709,8 @@ const filteredData = useMemo(() => {
                       outerRadius={80}
                       labelLine={false}
                       label={renderCustomizedLabel}
+                      stroke={getStrokeColor}
+                      strokeWidth={1}
                     >
                       {behaviorData.skipData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -826,6 +867,8 @@ const filteredData = useMemo(() => {
                     outerRadius={80}
                     labelLine={false}
                     label={renderCustomizedLabel}
+                    stroke={getStrokeColor}
+                    strokeWidth={1}
                   >
                     {sessionData.durationGroups.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
