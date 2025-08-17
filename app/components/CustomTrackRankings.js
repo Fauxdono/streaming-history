@@ -916,7 +916,7 @@ const CustomTrackRankings = ({
   // Function to get page title based on date selection
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Custom Track Range (${yearRange.startYear}-${yearRange.endYear})`;
+      return `Songs - ${yearRange.startYear}-${yearRange.endYear}`;
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         const parts = selectedYear.split('-');
@@ -924,7 +924,7 @@ const CustomTrackRankings = ({
           // Display format for a specific date (YYYY-MM-DD)
           const date = new Date(selectedYear);
           if (!isNaN(date.getTime())) {
-            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
+            return `Songs - ${date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
@@ -936,17 +936,17 @@ const CustomTrackRankings = ({
           const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
           const date = new Date(year, month, 1);
           if (!isNaN(date.getTime())) {
-            return `Custom Track Range for ${date.toLocaleDateString(undefined, {
+            return `Songs - ${date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long'
             })}`;
           }
         }
-        return `Custom Track Range for ${selectedYear}`;
+        return `Songs - ${selectedYear}`;
       }
-      return `Custom Track Range (${selectedYear})`;
+      return `Songs - ${selectedYear}`;
     } else {
-      return 'Custom Date Range (All Time)';
+      return 'All-time Songs';
     }
   };
 
