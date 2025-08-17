@@ -2034,7 +2034,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                 >
                                   <td className="p-1 sm:p-2 text-pink-700 font-medium text-xs sm:text-sm">{index + 1}</td>
                                   <td className="p-1 sm:p-2 text-pink-700">
-                                    <span className="font-medium text-xs sm:text-sm truncate">{album.name}</span>
+                                    <span 
+                                      className="font-medium text-xs sm:text-sm truncate"
+                                      title={album.name.length > 20 ? album.name : undefined}
+                                    >
+                                      {album.name.length > 20 ? `${album.name.substring(0, 20)}...` : album.name}
+                                    </span>
                                   </td>
                                   <td className="p-1 sm:p-2 text-right text-pink-700 font-medium text-xs sm:text-sm">
                                     {formatDuration(album.totalPlayed)}
