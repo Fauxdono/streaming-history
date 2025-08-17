@@ -40,19 +40,19 @@ const ListeningPatterns = ({
   const getStrokeColor = useMemo(() => {
     if (isDarkMode) {
       switch (colorTheme) {
-        case 'purple': return '#6B21A8';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#166534';
-        case 'blue': return '#1E40AF';
-        case 'teal': return '#115E59';
-        case 'orange': return '#9A3412';
-        case 'pink': return '#9D174D';
-        case 'red': return '#991B1B';
-        case 'yellow': return '#854D0E';
-        case 'cyan': return '#0E7490';
-        case 'emerald': return '#065F46';
-        case 'rose': return '#9F1239';
-        default: return '#6B21A8';
+        case 'purple': return '#C4B5FD';
+        case 'indigo': return '#A5B4FC';
+        case 'green': return '#86EFAC';
+        case 'blue': return '#93C5FD';
+        case 'teal': return '#5EEAD4';
+        case 'orange': return '#FDBA74';
+        case 'pink': return '#F9A8D4';
+        case 'red': return '#FCA5A5';
+        case 'yellow': return '#FDE047';
+        case 'cyan': return '#67E8F9';
+        case 'emerald': return '#6EE7B7';
+        case 'rose': return '#FDA4AF';
+        default: return '#C4B5FD';
       }
     } else {
       switch (colorTheme) {
