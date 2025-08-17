@@ -685,7 +685,7 @@ const filteredData = useMemo(() => {
               <h3 className="text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                  <PieChart key={`pie-shuffle-${isDarkMode}-${colorTheme}`}>
                     <Pie
                       data={behaviorData.shuffleData}
                       dataKey="value"
@@ -738,7 +738,7 @@ const filteredData = useMemo(() => {
               <h3 className="text-lg font-bold text-indigo-700 mb-2">Track Completion</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                  <PieChart key={`pie-completion-${isDarkMode}-${colorTheme}`}>
                     <Pie
                       data={behaviorData.skipData}
                       dataKey="value"
@@ -896,7 +896,7 @@ const filteredData = useMemo(() => {
             <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Duration Distribution</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart key={`pie-session-${isDarkMode}-${colorTheme}`}>
                   <Pie
                     data={sessionData.durationGroups}
                     dataKey="count"

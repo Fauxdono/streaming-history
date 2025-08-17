@@ -291,9 +291,14 @@ body {
 }
 
 /* ENHANCED DARK MODE CHART STYLES */
-/* Make sure SVG charts are visible in dark mode */
+/* Make sure SVG charts are visible in dark mode - but not text elements */
 .dark .recharts-surface {
   filter: brightness(1.75) contrast(1.1);
+}
+
+/* Override brightness filter for text elements to preserve custom colors */
+.dark .recharts-surface text {
+  filter: none !important;
 }
 
 
