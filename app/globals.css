@@ -345,6 +345,19 @@ body {
   color: #e5e7eb !important;
 }
 
+/* Purple theme override for listening patterns pie charts */
+[class*="listening-patterns"] .dark .recharts-legend-item-text,
+.dark [id*="timeOfDay"] .recharts-legend-item-text,
+.dark [id*="seasonal"] .recharts-legend-item-text {
+  color: #C4B5FD !important;
+}
+
+[class*="listening-patterns"] .recharts-legend-item-text,
+[id*="timeOfDay"] .recharts-legend-item-text,
+[id*="seasonal"] .recharts-legend-item-text {
+  color: #7C3AED !important;
+}
+
 /* Make chart areas more distinct */
 .dark .recharts-area {
   filter: brightness(1.3);
