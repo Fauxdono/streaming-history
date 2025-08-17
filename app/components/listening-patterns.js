@@ -1043,9 +1043,9 @@ const ListeningPatterns = ({
                     )}
                   </div>
                   
-                  <div className={`absolute top-2 right-3 text-2xl font-bold ${
+                  <div className={`absolute top-2 right-3 text-lg font-bold ${
                     isDarkMode ? 'text-purple-500' : 'text-purple-300'
-                  }`}>{index + 1}</div>
+                  }`}>{monthData.name}</div>
                 </div>
               ))}
             </div>
@@ -1060,10 +1060,6 @@ const ListeningPatterns = ({
                     ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
                     : 'bg-white border-purple-200 hover:border-purple-400'
                 }`}>
-                  
-                  <div className={`font-bold ${
-                    isDarkMode ? 'text-purple-300' : 'text-purple-600'
-                  }`}>Day {dayData.day}</div>
                   
                   <div className={`text-sm ${
                     isDarkMode ? 'text-purple-400' : 'text-purple-500'
@@ -1099,9 +1095,19 @@ const ListeningPatterns = ({
                     )}
                   </div>
                   
-                  <div className={`absolute top-2 right-3 text-2xl font-bold ${
+                  <div className={`absolute top-2 right-3 text-lg font-bold ${
                     isDarkMode ? 'text-purple-500' : 'text-purple-300'
-                  }`}>{dayData.day}</div>
+                  }`}>{selectedYear.split('-')[1].padStart(2, '0') === '01' ? 'Jan' : 
+                      selectedYear.split('-')[1].padStart(2, '0') === '02' ? 'Feb' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '03' ? 'Mar' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '04' ? 'Apr' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '05' ? 'May' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '06' ? 'Jun' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '07' ? 'Jul' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '08' ? 'Aug' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '09' ? 'Sep' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '10' ? 'Oct' :
+                      selectedYear.split('-')[1].padStart(2, '0') === '11' ? 'Nov' : 'Dec'} {dayData.day}</div>
                 </div>
               ))}
             </div>
