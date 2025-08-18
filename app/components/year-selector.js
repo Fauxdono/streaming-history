@@ -1024,43 +1024,46 @@ const YearSelector = ({
   };
 
   // Position styles for the sidebar - accounts for TopTabs position to avoid overlap
-  const positionStyles = (() => {
-    // Calculate offset based on TopTabs position to avoid overlap
-    const getOffset = (side) => {
-      if (topTabsPosition === side) {
-        // TopTabs are on the same side, so we need to position inside them
-        switch (side) {
-          case 'top': return `top-[${topTabsHeight}px]`;
-          case 'bottom': return `bottom-[${topTabsHeight}px]`;
-          case 'left': return 'left-48'; // 12rem = 192px sidebar width
-          case 'right': return 'right-48'; // 12rem = 192px sidebar width
-          default: return '';
-        }
-      } else {
-        // TopTabs are on a different side, use standard positioning
-        switch (side) {
-          case 'top': return 'top-0';
-          case 'bottom': return 'bottom-0';
-          case 'left': return 'left-0';
-          case 'right': return 'right-0';
-          default: return '';
-        }
+  const getPositionStyles = () => {
+    const baseClasses = 'fixed';
+    let inlineStyles = {};
+    
+    if (topTabsPosition === currentPosition) {
+      // TopTabs are on the same side, so position year selector NEXT to TopTabs (between TopTabs and content)
+      switch (currentPosition) {
+        case 'top':
+          inlineStyles = { top: `${topTabsHeight}px`, left: 0, right: 0 };
+          return { className: `${baseClasses} h-auto`, style: inlineStyles };
+        case 'bottom':
+          inlineStyles = { bottom: `${topTabsHeight}px`, left: 0, right: 0 };
+          return { className: `${baseClasses} h-auto`, style: inlineStyles };
+        case 'left':
+          inlineStyles = { left: `${topTabsWidth}px`, top: 0 };
+          return { className: `${baseClasses} h-full`, style: inlineStyles };
+        case 'right':
+          inlineStyles = { right: `${topTabsWidth}px`, top: 0 };
+          return { className: `${baseClasses} h-full`, style: inlineStyles };
+        default:
+          return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
       }
-    };
-
-    switch (currentPosition) {
-      case 'left': 
-        return `${getOffset('left')} top-0 h-full`;
-      case 'right': 
-        return `${getOffset('right')} top-0 h-full`;
-      case 'bottom': 
-        return `${getOffset('bottom')} left-0 right-0 h-auto`;
-      case 'top': 
-        return `${getOffset('top')} left-0 right-0 h-auto`;
-      default: 
-        return `${getOffset('right')} top-0 h-full`;
+    } else {
+      // TopTabs are on a different side, use standard positioning
+      switch (currentPosition) {
+        case 'left':
+          return { className: `${baseClasses} left-0 top-0 h-full`, style: {} };
+        case 'right':
+          return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
+        case 'bottom':
+          return { className: `${baseClasses} bottom-0 left-0 right-0 h-auto`, style: {} };
+        case 'top':
+          return { className: `${baseClasses} top-0 left-0 right-0 h-auto`, style: {} };
+        default:
+          return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
+      }
     }
-  })();
+  };
+
+  const positionConfig = getPositionStyles();
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
@@ -1069,11 +1072,12 @@ const YearSelector = ({
     
     return (
       <div 
-        className={`fixed ${positionStyles} max-h-screen z-40 transition-all duration-300 ${
+        className={`${positionConfig.className} max-h-screen z-40 transition-all duration-300 ${
           isBottom || isTop 
             ? 'w-full h-20 flex items-start justify-center' 
             : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        style={positionConfig.style}
       >
         {/* Horizontal layout container for bottom and top positions */}
         {isBottom || isTop ? (
@@ -1159,15 +1163,17 @@ const YearSelector = ({
   
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `fixed ${positionStyles} max-h-screen z-40 transition-all duration-300 ${
+    ? `${positionConfig.className} max-h-screen z-40 transition-all duration-300 ${
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
       } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
+    
+  const containerStyle = asSidebar ? positionConfig.style : {};
 
   return (
-    <div className={`year-selector-sidebar ${containerClass}`} style={{ transition: 'width 0.3s ease-in-out' }}>
+    <div className={`year-selector-sidebar ${containerClass}`} style={{ ...containerStyle, transition: 'width 0.3s ease-in-out' }}>
       {/* Collapse button for sidebar */}
       {asSidebar && (
         <button 
