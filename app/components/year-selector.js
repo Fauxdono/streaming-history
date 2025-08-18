@@ -499,13 +499,13 @@ const YearSelector = ({
     setExpanded(prev => !prev);
   }, []);
   
-  // Toggle sidebar position - cycles through left, right, bottom, top
+  // Toggle sidebar position - cycles through right, bottom, left, top
   const togglePosition = useCallback(() => {
     setCurrentPosition(prev => {
-      if (prev === 'left') return 'right';
       if (prev === 'right') return 'bottom';
-      if (prev === 'bottom') return 'top';
-      return 'left';
+      if (prev === 'bottom') return 'left';
+      if (prev === 'left') return 'top';
+      return 'right'; // default fallback for 'top' and initial state
     });
   }, []);
 
