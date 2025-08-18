@@ -1099,10 +1099,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
       } else if (yearSelectorPosition === 'top') {
-        // Dynamic height: top-[40px] + actual height from year selector
-        const topOffset = 40; // top-[40px]
-        const totalHeight = topOffset + yearSelectorHeight;
-        classes = `mt-[${totalHeight}px] ml-0 mr-0`;
+        // Dynamic height: year selector height only (it's positioned over TopTabs)
+        // TopTabs pushes content down naturally, year selector adds additional height
+        classes = `mt-[${yearSelectorHeight}px] ml-0 mr-0`;
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
@@ -1119,11 +1118,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           classes = 'mr-48 sm:mr-64 ml-0';
         } else if (yearSelectorPosition === 'top') {
           // Dynamic height for expanded range mode
-          const topOffset = 40; // top-[40px]
           const { mobile, desktop } = yearSelectorHeight;
-          const mobileTotal = topOffset + mobile;
-          const desktopTotal = topOffset + desktop;
-          classes = `mt-[${mobileTotal}px] sm:mt-[${desktopTotal}px] ml-0 mr-0`;
+          classes = `mt-[${mobile}px] sm:mt-[${desktop}px] ml-0 mr-0`;
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1135,11 +1131,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           classes = 'mr-16 sm:mr-32 ml-0';
         } else if (yearSelectorPosition === 'top') {
           // Dynamic height for expanded single mode
-          const topOffset = 40; // top-[40px]
           const { mobile, desktop } = yearSelectorHeight;
-          const mobileTotal = topOffset + mobile;
-          const desktopTotal = topOffset + desktop;
-          classes = `mt-[${mobileTotal}px] sm:mt-[${desktopTotal}px] ml-0 mr-0`;
+          classes = `mt-[${mobile}px] sm:mt-[${desktop}px] ml-0 mr-0`;
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
