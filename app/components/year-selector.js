@@ -1145,7 +1145,7 @@ const YearSelector = ({
           isBottom || isTop 
             ? 'w-full h-20 flex items-start justify-center' 
             : 'w-8'
-        } ${colors.sidebarBg} overflow-hidden`}
+        } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
         style={positionConfig.style}
       >
         {/* Horizontal layout container for bottom and top positions */}
