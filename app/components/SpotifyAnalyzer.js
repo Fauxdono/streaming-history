@@ -1097,6 +1097,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         classes = 'ml-8 mr-0';
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
+      } else if (yearSelectorPosition === 'top') {
+        classes = 'mt-12 ml-0 mr-0';
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
@@ -1111,6 +1113,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           classes = 'ml-48 sm:ml-64 mr-0';
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-48 sm:mr-64 ml-0';
+        } else if (yearSelectorPosition === 'top') {
+          classes = 'mt-12 ml-0 mr-0';
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1120,6 +1124,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           classes = 'ml-16 sm:ml-32 mr-0';
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-16 sm:mr-32 ml-0';
+        } else if (yearSelectorPosition === 'top') {
+          classes = 'mt-12 ml-0 mr-0';
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
