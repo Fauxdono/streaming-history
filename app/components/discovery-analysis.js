@@ -545,14 +545,14 @@ const filteredData = useMemo(() => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm whitespace-nowrap font-medium ${
+      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? isDarkMode 
-            ? 'bg-gray-700 text-green-400 border-b-2 border-green-400' 
-            : 'bg-green-50 text-green-600 border-b-2 border-green-600'
+            ? 'bg-gray-700 text-green-400 border border-green-400' 
+            : 'bg-green-600 text-white border border-green-600'
           : isDarkMode
-            ? 'bg-gray-800 text-green-400 hover:bg-gray-700'
-            : 'bg-green-200 text-green-600 hover:bg-green-300'
+            ? 'bg-gray-800 text-green-400 hover:bg-gray-700 border border-gray-600'
+            : 'bg-green-200 text-green-600 hover:bg-green-300 border border-green-300'
       }`}
     >
       {label}
@@ -595,12 +595,12 @@ const filteredData = useMemo(() => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className={`w-full space-y-4 ${isDarkMode ? 'text-green-200' : 'text-gray-900'}`}>
     
       
-      {/* Horizontally scrollable tabs */}
-      <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
-        <div className="flex flex-wrap gap-1 sm:gap-2 min-w-max">
+      {/* Mobile-friendly tabs */}
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-1 sm:gap-2">
           <TabButton id="discovery" label="Artist Discovery" />
           <TabButton id="loyalty" label="Artist Loyalty" />
           <TabButton id="depth" label="Listening Depth" />
@@ -617,13 +617,25 @@ const filteredData = useMemo(() => {
               isDarkMode ? 'text-green-400' : 'text-green-700'
             }`}>Artist Discovery Stats</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-3 bg-white rounded shadow">
-                <div className="text-sm text-green-600">Total Unique Artists</div>
-                <div className="text-3xl font-bold text-green-700">{discoveryData.uniqueArtistsCount}</div>
+              <div className={`p-3 rounded shadow ${
+                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>Total Unique Artists</div>
+                <div className={`text-3xl font-bold ${
+                  isDarkMode ? 'text-green-400' : 'text-green-700'
+                }`}>{discoveryData.uniqueArtistsCount}</div>
               </div>
-              <div className="p-3 bg-white rounded shadow">
-                <div className="text-sm text-green-600">Average New Artists per Month</div>
-                <div className="text-3xl font-bold text-green-700">
+              <div className={`p-3 rounded shadow ${
+                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>Average New Artists per Month</div>
+                <div className={`text-3xl font-bold ${
+                  isDarkMode ? 'text-green-400' : 'text-green-700'
+                }`}>
                   {discoveryData.newArtistsByMonth.length > 0 ? 
                     Math.round(discoveryData.totalArtistsDiscovered / discoveryData.newArtistsByMonth.length) : 0
                   }
@@ -633,10 +645,14 @@ const filteredData = useMemo(() => {
           </div>
 
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Discovery Rate</h3>
-            <p className="text-green-600 mb-4">New artists discovered over time</p>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Artist Discovery Rate</h3>
+            <p className={`mb-4 ${
+              isDarkMode ? 'text-green-400' : 'text-green-600'
+            }`}>New artists discovered over time</p>
             
-            <div className={`h-48 sm:h-72 w-full rounded p-1 sm:p-2 ${
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
@@ -707,7 +723,7 @@ const filteredData = useMemo(() => {
                 ) : 'No discovery data available.'}
               </li>
               {discoveryData.newArtistsByMonth.length > 6 && (
-                <li className="text-green-600">
+                <li className={isDarkMode ? 'text-green-400' : 'text-green-600'}>
                   In the last 6 months, you've discovered 
                   <span className="font-bold">{' '}
                     {discoveryData.newArtistsByMonth.slice(-6).reduce((sum, month) => sum + month.count, 0)}
@@ -723,8 +739,12 @@ const filteredData = useMemo(() => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Loyalty</h3>
-              <p className="text-green-600 mb-4">Your listening time distribution</p>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+                isDarkMode ? 'text-green-300' : 'text-green-700'
+              }`}>Artist Loyalty</h3>
+              <p className={`mb-4 ${
+                isDarkMode ? 'text-green-400' : 'text-green-600'
+              }`}>Your listening time distribution</p>
               
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -750,23 +770,35 @@ const filteredData = useMemo(() => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="text-sm text-green-600 text-center mt-2">
+              <div className={`text-sm text-center mt-2 ${
+                isDarkMode ? 'text-green-400' : 'text-green-600'
+              }`}>
                 Your top 5 artists account for {discoveryData.top5Percentage}% of your total listening time
               </div>
             </div>
             
             <div>
-              <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Your Top 5 Artists</h3>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+                isDarkMode ? 'text-green-300' : 'text-green-700'
+              }`}>Your Top 5 Artists</h3>
               <div className="space-y-3">
                 {discoveryData.top5Artists.map((artist, index) => (
-                  <div key={index} className="p-3 bg-green-50 rounded flex justify-between items-center">
+                  <div key={index} className={`p-3 rounded flex justify-between items-center ${
+                    isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+                  }`}>
                     <div>
-                      <span className="font-bold text-lg text-green-700">{index + 1}. {artist.name}</span>
-                      <div className="text-sm text-green-600">
+                      <span className={`font-bold text-lg ${
+                        isDarkMode ? 'text-green-300' : 'text-green-700'
+                      }`}>{index + 1}. {artist.name}</span>
+                      <div className={`text-sm ${
+                        isDarkMode ? 'text-green-400' : 'text-green-600'
+                      }`}>
                         {formatDuration(artist.time)} total listening time
                       </div>
                     </div>
-                    <div className="text-green-600 font-bold">
+                    <div className={`font-bold ${
+                      isDarkMode ? 'text-green-400' : 'text-green-600'
+                    }`}>
                       {Math.round((artist.time / discoveryData.loyaltyData[0].value) * 100)}%
                     </div>
                   </div>
@@ -775,9 +807,13 @@ const filteredData = useMemo(() => {
             </div>
           </div>
           
-          <div className="p-4 bg-green-50 rounded">
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Loyalty Profile</h3>
-            <div className="text-green-600">
+          <div className={`p-4 rounded ${
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+          }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Loyalty Profile</h3>
+            <div className={isDarkMode ? 'text-green-400' : 'text-green-600'}>
               {discoveryData.top5Percentage > 75 ? (
                 <p>You're a <span className="font-bold">super fan</span>! You spend most of your time with your favorite artists.</p>
               ) : discoveryData.top5Percentage > 50 ? (
@@ -794,20 +830,40 @@ const filteredData = useMemo(() => {
       
       {activeTab === 'depth' && (
         <div className="space-y-6">
-          <div className="p-4 bg-green-50 rounded">
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-4">Artist Catalog Exploration</h3>
+          <div className={`p-4 rounded ${
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+          }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-4 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Artist Catalog Exploration</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-3 bg-white rounded shadow">
-                <div className="text-sm text-green-600">Average Listening Depth Score</div>
-                <div className="text-3xl font-bold text-green-700">{depthData.averageDepth} / 100</div>
-                <div className="text-xs text-green-500 mt-1">Higher scores indicate deeper exploration of artists' catalogs</div>
+              <div className={`p-3 rounded shadow ${
+                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>Average Listening Depth Score</div>
+                <div className={`text-3xl font-bold ${
+                  isDarkMode ? 'text-green-400' : 'text-green-700'
+                }`}>{depthData.averageDepth} / 100</div>
+                <div className={`text-xs mt-1 ${
+                  isDarkMode ? 'text-green-500' : 'text-green-500'
+                }`}>Higher scores indicate deeper exploration of artists' catalogs</div>
               </div>
-              <div className="p-3 bg-white rounded shadow">
-                <div className="text-sm text-green-600">Most Explored Artist</div>
-                <div className="text-3xl font-bold text-green-700">
+              <div className={`p-3 rounded shadow ${
+                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>Most Explored Artist</div>
+                <div className={`text-3xl font-bold ${
+                  isDarkMode ? 'text-green-400' : 'text-green-700'
+                }`}>
                   {depthData.artistDepths[0]?.name || "N/A"}
                 </div>
-                <div className="text-xs text-green-500 mt-1">
+                <div className={`text-xs mt-1 ${
+                  isDarkMode ? 'text-green-500' : 'text-green-500'
+                }`}>
                   {depthData.artistDepths[0] ? 
                     `${depthData.artistDepths[0].uniqueTracks} unique tracks listened to` : ""}
                 </div>
@@ -816,10 +872,14 @@ const filteredData = useMemo(() => {
           </div>
 
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Catalog Depth</h3>
-            <p className="text-green-600 mb-4">How deeply you explore your favorite artists' music</p>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Artist Catalog Depth</h3>
+            <p className={`mb-4 ${
+              isDarkMode ? 'text-green-400' : 'text-green-600'
+            }`}>How deeply you explore your favorite artists' music</p>
             
-            <div className={`h-64 sm:h-96 w-full rounded p-1 sm:p-2 ${
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
@@ -866,14 +926,24 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Replay Value Kings</h3>
-            <p className="text-green-600 mb-4">Your most repeated tracks</p>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Replay Value Kings</h3>
+            <p className={`mb-4 ${
+              isDarkMode ? 'text-green-400' : 'text-green-600'
+            }`}>Your most repeated tracks</p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {depthData.replayValue.map((track, index) => (
-                <div key={index} className="p-3 bg-green-50 rounded border border-green-100">
-                  <div className="font-bold text-green-700">{index + 1}. {track.track}</div>
-                  <div className="text-sm text-green-600">
+                <div key={index} className={`p-3 rounded border ${
+                  isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-green-50 border-green-100'
+                }`}>
+                  <div className={`font-bold ${
+                    isDarkMode ? 'text-green-300' : 'text-green-700'
+                  }`}>{index + 1}. {track.track}</div>
+                  <div className={`text-sm ${
+                    isDarkMode ? 'text-green-400' : 'text-green-600'
+                  }`}>
                     Played <span className="font-bold">{track.plays}</span> times
                   </div>
                 </div>
@@ -891,34 +961,66 @@ const filteredData = useMemo(() => {
             <TimeframeButton id="month" label="Monthly" />
           </div>
           
-          <div className="p-4 bg-green-50 rounded">
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-4">Music Variety Overview</h3>
+          <div className={`p-4 rounded ${
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+          }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-4 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Music Variety Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-3 bg-white rounded shadow">
-                <div className="text-sm text-green-600">Daily Variety Score</div>
-                <div className="text-3xl font-bold text-green-700">{Math.round(varietyData.avgDailyVariety)}%</div>
-                <div className="text-xs text-green-500 mt-1">Average percentage of unique tracks in a day</div>
+              <div className={`p-3 rounded shadow ${
+                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>Daily Variety Score</div>
+                <div className={`text-3xl font-bold ${
+                  isDarkMode ? 'text-green-400' : 'text-green-700'
+                }`}>{Math.round(varietyData.avgDailyVariety)}%</div>
+                <div className={`text-xs mt-1 ${
+                  isDarkMode ? 'text-green-500' : 'text-green-500'
+                }`}>Average percentage of unique tracks in a day</div>
               </div>
-              <div className="p-3 bg-white rounded shadow">
-                <div className="text-sm text-green-600">Weekly Variety Score</div>
-              <div className="text-3xl font-bold text-green-700">{Math.round(varietyData.avgWeeklyVariety)}%</div>
-                <div className="text-xs text-green-500 mt-1">Average percentage of unique tracks in a week</div>
+              <div className={`p-3 rounded shadow ${
+                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>Weekly Variety Score</div>
+              <div className={`text-3xl font-bold ${
+                isDarkMode ? 'text-green-400' : 'text-green-700'
+              }`}>{Math.round(varietyData.avgWeeklyVariety)}%</div>
+                <div className={`text-xs mt-1 ${
+                  isDarkMode ? 'text-green-500' : 'text-green-500'
+                }`}>Average percentage of unique tracks in a week</div>
               </div>
-              <div className="p-3 bg-white rounded shadow">
-                <div className="text-sm text-green-600">Monthly Variety Score</div>
-                <div className="text-3xl font-bold text-green-700">{Math.round(varietyData.avgMonthlyVariety)}%</div>
-                <div className="text-xs text-green-500 mt-1">Average percentage of unique tracks in a month</div>
+              <div className={`p-3 rounded shadow ${
+                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              }`}>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>Monthly Variety Score</div>
+                <div className={`text-3xl font-bold ${
+                  isDarkMode ? 'text-green-400' : 'text-green-700'
+                }`}>{Math.round(varietyData.avgMonthlyVariety)}%</div>
+                <div className={`text-xs mt-1 ${
+                  isDarkMode ? 'text-green-500' : 'text-green-500'
+                }`}>Average percentage of unique tracks in a month</div>
               </div>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Music Variety Over Time</h3>
-            <p className="text-green-600 mb-4">
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Music Variety Over Time</h3>
+            <p className={`mb-4 ${
+              isDarkMode ? 'text-green-400' : 'text-green-600'
+            }`}>
               Higher percentages indicate more unique tracks (less repetition)
             </p>
             
-            <div className={`h-48 sm:h-72 w-full rounded p-1 sm:p-2 ${
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
@@ -976,9 +1078,13 @@ const filteredData = useMemo(() => {
             </div>
           </div>
           
-          <div className="p-4 bg-green-50 rounded">
-            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Variety Profile</h3>
-            <div className="text-green-600">
+          <div className={`p-4 rounded ${
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+          }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-green-300' : 'text-green-700'
+            }`}>Variety Profile</h3>
+            <div className={isDarkMode ? 'text-green-400' : 'text-green-600'}>
               {Math.round(
                 (varietyData.avgDailyVariety + varietyData.avgWeeklyVariety + varietyData.avgMonthlyVariety) / 3
               ) > 80 ? (
