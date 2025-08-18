@@ -48,10 +48,20 @@ const CustomTrackRankings = ({
   const [omittedArtists, setOmittedArtists] = useState([]);
   const [showOmittedTab, setShowOmittedTab] = useState(false);
   
-  // Force compact layout for all track counts
+  // Add check for mobile viewport like other components
   useEffect(() => {
-    // Always use compact (mobile) layout regardless of screen size
-    setIsMobile(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // Load omitted content from localStorage
@@ -1405,7 +1415,8 @@ return (
 
         {filteredTracks.length > 0 ? (
           <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-            <table className="w-full border-collapse">
+            <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
+              <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b">
                   {!isMobile && (
@@ -1444,7 +1455,8 @@ return (
               <tbody>
                 {filteredTracks.map(renderTrackRow)}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         ) : (
           <div className="text-center py-4 text-orange-500">
