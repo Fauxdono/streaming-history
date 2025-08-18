@@ -25,12 +25,20 @@ const YearSelector = ({
   asSidebar = false,
   activeTab = null, // Add activeTab to determine behavior
   topTabsPosition = 'top', // Add topTabsPosition to avoid collision
-  topTabsHeight = 72 // Add topTabsHeight for proper spacing
+  topTabsHeight = 72, // Add topTabsHeight for proper spacing
+  followTopTabs = true // Whether to follow TopTabs position automatically
 }) => {
   // Core state
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   const [expanded, setExpanded] = useState(!startMinimized);
-  const [currentPosition, setCurrentPosition] = useState(position);
+  const [currentPosition, setCurrentPosition] = useState(followTopTabs ? topTabsPosition : position);
+
+  // Auto-sync position with TopTabs when followTopTabs is true
+  useEffect(() => {
+    if (followTopTabs && topTabsPosition !== currentPosition) {
+      setCurrentPosition(topTabsPosition);
+    }
+  }, [topTabsPosition, followTopTabs, currentPosition]);
   const [selectedYear, setSelectedYear] = useState(initialYear || 'all');
   const [yearRange, setYearRange] = useState({ 
     startYear: initialYearRange?.startYear || '', 
@@ -1091,14 +1099,16 @@ const YearSelector = ({
               </div>
             </div>
             
-            {/* Position toggle button */}
-            <button 
-              onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8 w-8 h-8 flex items-center justify-center`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className="text-xs">⇄</span>
-            </button>
+            {/* Position toggle button - only show when not following TopTabs */}
+            {!followTopTabs && (
+              <button 
+                onClick={togglePosition}
+                className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8 w-8 h-8 flex items-center justify-center`}
+                aria-label="Toggle sidebar position"
+              >
+                <span className="text-xs">⇄</span>
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -1125,13 +1135,15 @@ const YearSelector = ({
               </div>
             </div>
             
-            <button 
-              onClick={togglePosition}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className="text-xs">⇄</span>
-            </button>
+            {!followTopTabs && (
+              <button 
+                onClick={togglePosition}
+                className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                aria-label="Toggle sidebar position"
+              >
+                <span className="text-xs">⇄</span>
+              </button>
+            )}
           </>
         )}
         
@@ -1633,7 +1645,7 @@ const YearSelector = ({
         
         {/* Position toggle button - different layout for bottom and top positions */}
         {(currentPosition === 'bottom' || currentPosition === 'top') ? (
-          asSidebar && (
+          asSidebar && !followTopTabs && (
             <button 
               onClick={togglePosition}
               className={`absolute right-2 ${currentPosition === 'top' ? 'bottom-1/2 -translate-y-6' : 'top-1/2 translate-y-6'} p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
@@ -1644,7 +1656,7 @@ const YearSelector = ({
           )
         ) : (
           <div className="absolute bottom-10 left-0 right-0 flex justify-center">
-            {asSidebar && (
+            {asSidebar && !followTopTabs && (
               <button 
                 onClick={togglePosition}
                 className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
