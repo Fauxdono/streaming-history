@@ -1,6 +1,7 @@
 // Optimized YearSelector.js with performance improvements
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import WheelSelector from './wheelselector.js';
+import DarkModeToggle from './darkmode.js';
 
 // Cache for expensive operations
 const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1013,6 +1014,11 @@ const YearSelector = ({
         {/* Horizontal layout container for bottom position */}
         {isBottom ? (
           <div className="flex flex-row items-center justify-center">
+            {/* Dark mode toggle - positioned left */}
+            <div className="mr-6">
+              <DarkModeToggle className="!p-1.5 !rounded-full w-8 h-8" />
+            </div>
+            
             {/* Expand button */}
             <button 
               onClick={toggleExpanded}
@@ -1044,6 +1050,11 @@ const YearSelector = ({
         ) : (
           <>
             {/* Vertical layout - keep original structure */}
+            {/* Dark mode toggle - positioned above expand button */}
+            <div className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-28`}>
+              <DarkModeToggle className="!p-1 !rounded-full w-6 h-6" />
+            </div>
+            
             <button 
               onClick={toggleExpanded}
               className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
@@ -1113,12 +1124,26 @@ const YearSelector = ({
           ? 'flex flex-row items-center p-4' 
           : 'h-full flex flex-col justify-between pt-4 pb-8'
       }`}>
+        {/* Dark Mode Toggle - positioned at the top for vertical layouts */}
+        {currentPosition !== 'bottom' && (
+          <div className="flex justify-center mb-2">
+            <DarkModeToggle className="!p-1.5 !rounded-full w-8 h-8" />
+          </div>
+        )}
+        
         {/* Mode toggle buttons */}
         <div className={`${
           currentPosition === 'bottom'
             ? 'flex flex-col gap-1 items-center'
             : 'flex flex-col gap-1 items-center mb-2'
         }`}>
+          {/* Dark Mode Toggle - positioned at the top for bottom layout */}
+          {currentPosition === 'bottom' && (
+            <div className="mb-3">
+              <DarkModeToggle className="!p-1.5 !rounded-full w-8 h-8" />
+            </div>
+          )}
+          
           <div className={`text-xs mb-1 font-medium ${colors.text}`}>MODE</div>
           <button
             onClick={() => handleModeChange('single')}
