@@ -640,14 +640,14 @@ const filteredData = useMemo(() => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm whitespace-nowrap font-medium ${
+      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? isDarkMode 
-            ? 'bg-gray-700 text-indigo-400 border-b-2 border-indigo-400' 
-            : 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
+            ? 'bg-gray-700 text-indigo-400 border border-indigo-400' 
+            : 'bg-indigo-600 text-white border border-indigo-600'
           : isDarkMode
-            ? 'bg-gray-800 text-indigo-400 hover:bg-gray-700'
-            : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300'
+            ? 'bg-gray-800 text-indigo-400 hover:bg-gray-700 border border-gray-600'
+            : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300 border border-indigo-300'
       }`}
     >
       {label}
@@ -666,12 +666,12 @@ const filteredData = useMemo(() => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={`w-full space-y-4 ${isDarkMode ? 'text-indigo-200' : 'text-gray-900'}`}>
       {/* Main title is only shown here - removed from SpotifyAnalyzer */}
       
-      {/* Horizontally scrollable tabs */}
-      <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
-        <div className="flex flex-wrap gap-1 sm:gap-2 min-w-max">
+      {/* Mobile-friendly tabs */}
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-1 sm:gap-2">
           <TabButton id="behavior" label="Listening Behavior" />
           <TabButton id="sessions" label="Listening Sessions" />
           <TabButton id="artistsTime" label="Artists by Time" />
@@ -683,7 +683,9 @@ const filteredData = useMemo(() => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play (Theme: {theme}, Dark: {isDarkMode ? 'Yes' : 'No'})</h3>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Shuffle vs. Normal Play</h3>
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
               }`}>
@@ -732,13 +734,17 @@ const filteredData = useMemo(() => {
                 </ResponsiveContainer>
               </div>
     
-              <div className="text-sm text-indigo-600 text-center mt-2">
+              <div className={`text-sm text-center mt-2 ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>
                 You listen in shuffle mode {behaviorData.shufflePercentage}% of the time
               </div>
             </div>
             
             <div>
-              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Track Completion</h3>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Track Completion</h3>
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
               }`}>
@@ -786,14 +792,18 @@ const filteredData = useMemo(() => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="text-sm text-indigo-600 text-center mt-2">
+              <div className={`text-sm text-center mt-2 ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>
                 You completed {behaviorData.completedPercentage}% of tracks, skipped {behaviorData.skippedPercentage}%
               </div>
             </div>
           </div>
           
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">How You Start Tracks</h3>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>How You Start Tracks</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
@@ -823,7 +833,9 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">How Tracks End</h3>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>How Tracks End</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
@@ -853,7 +865,9 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Platforms Used</h3>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>Platforms Used</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
@@ -887,24 +901,44 @@ const filteredData = useMemo(() => {
       {activeTab === 'sessions' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-indigo-50 rounded">
-              <h3 className="font-bold text-indigo-700">Total Sessions</h3>
-              <p className="text-3xl text-indigo-600">{sessionData.totalSessions}</p>
+            <div className={`p-4 rounded ${
+              isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+            }`}>
+              <h3 className={`font-bold ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Total Sessions</h3>
+              <p className={`text-3xl ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{sessionData.totalSessions}</p>
             </div>
             
-            <div className="p-4 bg-indigo-50 rounded">
-              <h3 className="font-bold text-indigo-700">Avg. Session Length</h3>
-              <p className="text-3xl text-indigo-600">{sessionData.averageSessionDuration} min</p>
+            <div className={`p-4 rounded ${
+              isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+            }`}>
+              <h3 className={`font-bold ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Avg. Session Length</h3>
+              <p className={`text-3xl ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{sessionData.averageSessionDuration} min</p>
             </div>
             
-            <div className="p-4 bg-indigo-50 rounded">
-              <h3 className="font-bold text-indigo-700">Avg. Tracks per Session</h3>
-              <p className="text-3xl text-indigo-600">{sessionData.averageTracksPerSession}</p>
+            <div className={`p-4 rounded ${
+              isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+            }`}>
+              <h3 className={`font-bold ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Avg. Tracks per Session</h3>
+              <p className={`text-3xl ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{sessionData.averageTracksPerSession}</p>
             </div>
           </div>
           
           <div>
-            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Session Duration Distribution</h3>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>Session Duration Distribution</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}>
@@ -935,13 +969,23 @@ const filteredData = useMemo(() => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Session Statistics</h3>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Session Statistics</h3>
               <ul className="space-y-2">
                 {sessionData.longestSession && (
-                  <li className="p-2 bg-indigo-50 rounded">
-                    <span className="font-bold text-indigo-700">Longest Session:</span>
-                    <span className="ml-2 text-indigo-600">{sessionData.longestSession.durationMinutes} minutes</span>
-                    <div className="text-sm text-indigo-500">
+                  <li className={`p-2 rounded ${
+                    isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+                  }`}>
+                    <span className={`font-bold ${
+                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                    }`}>Longest Session:</span>
+                    <span className={`ml-2 ${
+                      isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                    }`}>{sessionData.longestSession.durationMinutes} minutes</span>
+                    <div className={`text-sm ${
+                      isDarkMode ? 'text-indigo-500' : 'text-indigo-500'
+                    }`}>
                       on {sessionData.longestSession.fullDate.toLocaleDateString(undefined, {
                         weekday: 'long',
                         year: 'numeric',
@@ -953,10 +997,18 @@ const filteredData = useMemo(() => {
                 )}
                 
                 {sessionData.mostTracksSession && (
-                  <li className="p-2 bg-indigo-50 rounded">
-                    <span className="font-bold text-indigo-700">Most Tracks in a Session:</span>
-                    <span className="ml-2 text-indigo-600">{sessionData.mostTracksSession.tracksCount} tracks</span>
-                    <div className="text-sm text-indigo-500">
+                  <li className={`p-2 rounded ${
+                    isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+                  }`}>
+                    <span className={`font-bold ${
+                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                    }`}>Most Tracks in a Session:</span>
+                    <span className={`ml-2 ${
+                      isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                    }`}>{sessionData.mostTracksSession.tracksCount} tracks</span>
+                    <div className={`text-sm ${
+                      isDarkMode ? 'text-indigo-500' : 'text-indigo-500'
+                    }`}>
                       on {sessionData.mostTracksSession.fullDate.toLocaleDateString(undefined, {
                         weekday: 'long',
                         year: 'numeric',
@@ -967,9 +1019,15 @@ const filteredData = useMemo(() => {
                   </li>
                 )}
                 
-                <li className="p-2 bg-indigo-50 rounded">
-                  <span className="font-bold text-indigo-700">Total Listening Time:</span>
-                  <span className="ml-2 text-indigo-600">
+                <li className={`p-2 rounded ${
+                  isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+                }`}>
+                  <span className={`font-bold ${
+                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                  }`}>Total Listening Time:</span>
+                  <span className={`ml-2 ${
+                    isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                  }`}>
                     {formatDuration(sessionData.sessionLengths.reduce((sum, session) => sum + (session.durationMinutes * 60000), 0))}
                   </span>
                 </li>
@@ -977,33 +1035,59 @@ const filteredData = useMemo(() => {
             </div>
             
             <div>
-              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Notable Days & Months</h3>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>Notable Days & Months</h3>
               <div className="space-y-3">
                 {sessionData.mostActiveDay && (
-                  <div className="p-3 bg-indigo-50 rounded">
-                    <h4 className="font-medium text-indigo-700">Most Active Day:</h4>
-                    <div className="text-indigo-600 font-bold">{sessionData.mostActiveDay.displayDate}</div>
-                    <div className="text-sm text-indigo-500">
+                  <div className={`p-3 rounded ${
+                    isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+                  }`}>
+                    <h4 className={`font-medium ${
+                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                    }`}>Most Active Day:</h4>
+                    <div className={`font-bold ${
+                      isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                    }`}>{sessionData.mostActiveDay.displayDate}</div>
+                    <div className={`text-sm ${
+                      isDarkMode ? 'text-indigo-500' : 'text-indigo-500'
+                    }`}>
                       {sessionData.mostActiveDay.totalPlays} tracks played
                     </div>
                   </div>
                 )}
                 
                 {sessionData.longestListeningDay && (
-                  <div className="p-3 bg-indigo-50 rounded">
-                  <h4 className="font-medium text-indigo-700">Longest Listening Day:</h4>
-                  <div className="text-indigo-600 font-bold">{sessionData.longestListeningDay.displayDate}</div>
-                  <div className="text-sm text-indigo-500">
+                  <div className={`p-3 rounded ${
+                    isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+                  }`}>
+                  <h4 className={`font-medium ${
+                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                  }`}>Longest Listening Day:</h4>
+                  <div className={`font-bold ${
+                    isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                  }`}>{sessionData.longestListeningDay.displayDate}</div>
+                  <div className={`text-sm ${
+                    isDarkMode ? 'text-indigo-500' : 'text-indigo-500'
+                  }`}>
                     {formatDuration(sessionData.longestListeningDay.totalTime)} of listening
                   </div>
                 </div>
               )}
               
               {sessionData.mostActiveMonth && (
-                <div className="p-3 bg-indigo-50 rounded">
-                  <h4 className="font-medium text-indigo-700">Most Active Month:</h4>
-                  <div className="text-indigo-600 font-bold">{sessionData.mostActiveMonth.displayDate}</div>
-                  <div className="text-sm text-indigo-500">
+                <div className={`p-3 rounded ${
+                  isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+                }`}>
+                  <h4 className={`font-medium ${
+                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                  }`}>Most Active Month:</h4>
+                  <div className={`font-bold ${
+                    isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                  }`}>{sessionData.mostActiveMonth.displayDate}</div>
+                  <div className={`text-sm ${
+                    isDarkMode ? 'text-indigo-500' : 'text-indigo-500'
+                  }`}>
                     {sessionData.mostActiveMonth.totalPlays} tracks played
                   </div>
                 </div>
@@ -1013,15 +1097,23 @@ const filteredData = useMemo(() => {
         </div>
         
         <div>
-          <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Session Insights</h3>
-          <div className="p-3 bg-indigo-50 rounded space-y-2">
-            <p className="text-indigo-700">
+          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>Session Insights</h3>
+          <div className={`p-3 rounded space-y-2 ${
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+          }`}>
+            <p className={`${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>
               Most of your listening sessions are 
               <span className="font-bold"> {
                 sessionData.durationGroups.sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
               }</span>.
             </p>
-            <p className="text-indigo-700">
+            <p className={`${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>
               On average, you listen to {sessionData.averageTracksPerSession} tracks per session
               for about {sessionData.averageSessionDuration} minutes.
             </p>
