@@ -1003,38 +1003,69 @@ const CustomTrackRankings = ({
   // Updated renderTrackRow function with omit buttons preserved
   const renderTrackRow = (song, index) => {
     if (isMobile) {
-      // True mobile view - very condensed, 2 columns only
+      // True mobile view - grid layout like yesterday
       return (
-        <tr 
+        <div 
           key={song.key} 
-          className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+          className={`p-3 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow ${song.isFeatured ? 'border-orange-200 bg-orange-50' : 'border-gray-200'}`}
         >
-          <td className="p-2 text-orange-700">
-            <div className="flex flex-col">
-              <div className="flex items-center">
-                <span className="font-bold text-xs mr-2 text-orange-800">{index + 1}.</span>
-                {song.isFeatured && (
-                  <span className="inline-block px-1 py-0.5 mr-1 bg-orange-200 text-orange-700 rounded text-xs">
-                    FEAT
-                  </span>
-                )}
-                <div className="font-medium text-sm">{song.displayName || song.trackName}</div>
-              </div>
-              <div 
-                className="text-xs text-orange-600 cursor-pointer hover:underline"
-                onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex items-center">
+              <span className="font-bold text-sm mr-2 text-orange-800">{index + 1}.</span>
+              {song.isFeatured && (
+                <span className="inline-block px-1 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+                  FEAT
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => omitSong(song)}
+                className="p-1 text-orange-600 hover:text-orange-800 rounded"
+                title="Omit this song"
               >
-                {song.displayArtist || song.artist}
-              </div>
+                <XCircle size={14} />
+              </button>
             </div>
-          </td>
-          <td className="p-2 align-top text-right text-orange-700">
-            <div className="flex flex-col">
-              <span className="font-medium text-sm">{formatDuration(song.totalPlayed)}</span>
-              <span className="text-xs">{song.playCount} plays</span>
+          </div>
+          
+          <div className="mb-2">
+            <div className="font-medium text-orange-900 text-sm leading-tight mb-1">
+              {song.displayName || song.trackName}
             </div>
-          </td>
-        </tr>
+            <div 
+              className="text-sm text-orange-600 cursor-pointer hover:underline flex items-center"
+              onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
+            >
+              {song.displayArtist || song.artist}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  omitArtist(song.artist);
+                }}
+                className="ml-1 text-orange-600 hover:text-orange-800"
+                title="Omit this artist"
+              >
+                <XCircle size={12} />
+              </button>
+            </div>
+            <div 
+              className="text-xs text-orange-500 cursor-pointer hover:underline mt-1"
+              onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+            >
+              {song.albumName}
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <div className="text-sm font-medium text-orange-700">
+              {formatDuration(song.totalPlayed)}
+            </div>
+            <div className="text-xs text-orange-600">
+              {song.playCount} plays
+            </div>
+          </div>
+        </div>
       );
     } else if (isCompactView) {
       // Compact view - all data but smaller table format
@@ -1448,75 +1479,77 @@ return (
         </div>
 
         {filteredTracks.length > 0 ? (
-          <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-            <div className={(isMobile || isCompactView) ? "min-w-full" : "min-w-[640px]"}>
-              <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  {isMobile && (
-                    <>
-                      <th className="p-2 text-left text-orange-700">Track Info</th>
-                      <th className="p-2 text-right text-orange-700">Stats</th>
-                    </>
-                  )}
-                  {isCompactView && !isMobile && (
-                    <>
-                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Rank</th>
-                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Track</th>
-                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Artist</th>
-                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Album</th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
-                          sortBy === 'totalPlayed' ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSortBy('totalPlayed')}
-                      >
-                        Time {sortBy === 'totalPlayed' && '▼'}
-                      </th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
-                          sortBy === 'playCount' ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSortBy('playCount')}
-                      >
-                        Plays {sortBy === 'playCount' && '▼'}
-                      </th>
-                      <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Actions</th>
-                    </>
-                  )}
-                  {!isMobile && !isCompactView && (
-                    <>
-                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Rank</th>
-                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Track</th>
-                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Artist</th>
-                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Album</th>
-                      <th 
-                        className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
-                          sortBy === 'totalPlayed' ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSortBy('totalPlayed')}
-                      >
-                        Time {sortBy === 'totalPlayed' && '▼'}
-                      </th>
-                      <th 
-                        className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
-                          sortBy === 'playCount' ? 'font-bold' : ''
-                        }`}
-                        onClick={() => setSortBy('playCount')}
-                      >
-                        Plays {sortBy === 'playCount' && '▼'}
-                      </th>
-                      <th className="p-3 text-right text-orange-700 text-base font-semibold">Actions</th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTracks.map(renderTrackRow)}
-              </tbody>
-              </table>
+          isMobile ? (
+            // Mobile view - grid layout
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+              {filteredTracks.map(renderTrackRow)}
             </div>
-          </div>
+          ) : (
+            // Desktop and compact views - table layout
+            <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+              <div className={isCompactView ? "min-w-full" : "min-w-[640px]"}>
+                <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    {isCompactView && (
+                      <>
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Rank</th>
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Track</th>
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Artist</th>
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Album</th>
+                        <th 
+                          className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
+                            sortBy === 'totalPlayed' ? 'font-bold' : ''
+                          }`}
+                          onClick={() => setSortBy('totalPlayed')}
+                        >
+                          Time {sortBy === 'totalPlayed' && '▼'}
+                        </th>
+                        <th 
+                          className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
+                            sortBy === 'playCount' ? 'font-bold' : ''
+                          }`}
+                          onClick={() => setSortBy('playCount')}
+                        >
+                          Plays {sortBy === 'playCount' && '▼'}
+                        </th>
+                        <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Actions</th>
+                      </>
+                    )}
+                    {!isCompactView && (
+                      <>
+                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Rank</th>
+                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Track</th>
+                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Artist</th>
+                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Album</th>
+                        <th 
+                          className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
+                            sortBy === 'totalPlayed' ? 'font-bold' : ''
+                          }`}
+                          onClick={() => setSortBy('totalPlayed')}
+                        >
+                          Time {sortBy === 'totalPlayed' && '▼'}
+                        </th>
+                        <th 
+                          className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
+                            sortBy === 'playCount' ? 'font-bold' : ''
+                          }`}
+                          onClick={() => setSortBy('playCount')}
+                        >
+                          Plays {sortBy === 'playCount' && '▼'}
+                        </th>
+                        <th className="p-3 text-right text-orange-700 text-base font-semibold">Actions</th>
+                      </>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTracks.map(renderTrackRow)}
+                </tbody>
+                </table>
+              </div>
+            </div>
+          )
         ) : (
           <div className="text-center py-4 text-orange-500">
             {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
