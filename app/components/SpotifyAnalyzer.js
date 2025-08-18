@@ -104,6 +104,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [yearSelectorWidth, setYearSelectorWidth] = useState(32);
   const [yearSelectorHeight, setYearSelectorHeight] = useState(80);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
+
+  // TopTabs position state
+  const [topTabsPosition, setTopTabsPosition] = useState('top');
+  const [topTabsHeight, setTopTabsHeight] = useState(72);
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
   const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
@@ -1085,61 +1089,80 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
-  // Calculate margin based on year selector width using proper Tailwind classes
+  // Calculate margin based on year selector width and TopTabs position using proper Tailwind classes
   const getYearSelectorMargin = () => {
-    if (!showYearSidebar) return '';
-    
-    // Always reset all margins first, then apply the correct one
     let classes = '';
+    let topMargin = 0;
+    let bottomMargin = 0;
+    let leftMargin = 0;
+    let rightMargin = 0;
     
-    if (typeof yearSelectorWidth === 'number') {
-      // Collapsed width (32px = w-8)
-      if (yearSelectorPosition === 'left') {
-        classes = 'ml-8 mr-0';
-      } else if (yearSelectorPosition === 'right') {
-        classes = 'mr-8 ml-0';
-      } else if (yearSelectorPosition === 'top') {
-        // Dynamic height: year selector height only (it's positioned over TopTabs)
-        // TopTabs pushes content down naturally, year selector adds additional height
-        classes = `mt-[${yearSelectorHeight}px] ml-0 mr-0`;
-      } else {
-        classes = 'mb-12 ml-0 mr-0';
-      }
-    } else {
-      // Expanded width - use the closest matching Tailwind classes
-      const { mobile, desktop } = yearSelectorWidth;
-      // mobile: 192px = w-48, desktop: 256px = w-64 for range mode
-      // mobile: 64px = w-16, desktop: 128px = w-32 for single mode
-      if (mobile === 192 && desktop === 256) {
-        // Range mode - match the actual visual width more closely
+    // Handle TopTabs positioning
+    if (topTabsPosition === 'top') {
+      topMargin += topTabsHeight;
+    } else if (topTabsPosition === 'bottom') {
+      bottomMargin += topTabsHeight;
+    } else if (topTabsPosition === 'left') {
+      leftMargin += 192; // 12rem = 192px for sidebar tabs
+    } else if (topTabsPosition === 'right') {
+      rightMargin += 192;
+    }
+    
+    // Handle year selector if it's shown
+    if (showYearSidebar) {
+      if (typeof yearSelectorWidth === 'number') {
+        // Collapsed width (32px = w-8)
         if (yearSelectorPosition === 'left') {
-          classes = 'ml-48 sm:ml-64 mr-0';
+          leftMargin += 32;
         } else if (yearSelectorPosition === 'right') {
-          classes = 'mr-48 sm:mr-64 ml-0';
+          rightMargin += 32;
         } else if (yearSelectorPosition === 'top') {
-          // Dynamic height for expanded range mode
-          const { mobile, desktop } = yearSelectorHeight;
-          classes = `mt-[${mobile}px] sm:mt-[${desktop}px] ml-0 mr-0`;
-        } else {
-          classes = 'mb-12 ml-0 mr-0';
+          topMargin += yearSelectorHeight;
+        } else if (yearSelectorPosition === 'bottom') {
+          bottomMargin += 48; // 12 * 4px
         }
       } else {
-        // Single mode - match the actual visual width more closely
-        if (yearSelectorPosition === 'left') {
-          classes = 'ml-16 sm:ml-32 mr-0';
-        } else if (yearSelectorPosition === 'right') {
-          classes = 'mr-16 sm:mr-32 ml-0';
-        } else if (yearSelectorPosition === 'top') {
-          // Dynamic height for expanded single mode
-          const { mobile, desktop } = yearSelectorHeight;
-          classes = `mt-[${mobile}px] sm:mt-[${desktop}px] ml-0 mr-0`;
+        // Expanded width - use the closest matching Tailwind classes
+        const { mobile, desktop } = yearSelectorWidth;
+        // mobile: 192px = w-48, desktop: 256px = w-64 for range mode
+        // mobile: 64px = w-16, desktop: 128px = w-32 for single mode
+        if (mobile === 192 && desktop === 256) {
+          // Range mode - match the actual visual width more closely
+          if (yearSelectorPosition === 'left') {
+            leftMargin += mobile; // Use mobile value as base
+          } else if (yearSelectorPosition === 'right') {
+            rightMargin += mobile;
+          } else if (yearSelectorPosition === 'top') {
+            // Dynamic height for expanded range mode
+            const { mobile: mobHeight, desktop: deskHeight } = yearSelectorHeight;
+            topMargin += mobHeight;
+          } else if (yearSelectorPosition === 'bottom') {
+            bottomMargin += 48; // 12 * 4px
+          }
         } else {
-          classes = 'mb-12 ml-0 mr-0';
+          // Single mode - match the actual visual width more closely
+          if (yearSelectorPosition === 'left') {
+            leftMargin += mobile; // Use mobile value as base
+          } else if (yearSelectorPosition === 'right') {
+            rightMargin += mobile;
+          } else if (yearSelectorPosition === 'top') {
+            // Dynamic height for expanded single mode
+            const { mobile: mobHeight, desktop: deskHeight } = yearSelectorHeight;
+            topMargin += mobHeight;
+          } else if (yearSelectorPosition === 'bottom') {
+            bottomMargin += 48; // 12 * 4px
+          }
         }
       }
     }
     
-    return classes;
+    // Build the final classes
+    if (topMargin > 0) classes += `pt-[${topMargin}px] `;
+    if (bottomMargin > 0) classes += `pb-[${bottomMargin}px] `;
+    if (leftMargin > 0) classes += `pl-[${leftMargin}px] `;
+    if (rightMargin > 0) classes += `pr-[${rightMargin}px] `;
+    
+    return classes.trim();
   };
 
   return (
@@ -1159,6 +1182,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           getTracksTabLabel={getTracksTabLabel}
           getPatternsTabLabel={getPatternsTabLabel}
           getBehaviorTabLabel={getBehaviorTabLabel}
+          onPositionChange={setTopTabsPosition}
+          onHeightChange={setTopTabsHeight}
+          position={topTabsPosition}
         />
       )}
       
@@ -1170,7 +1196,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                '--year-selector-width': JSON.stringify(yearSelectorWidth),
                '--year-selector-height': JSON.stringify(yearSelectorHeight),
                '--year-selector-position': yearSelectorPosition,
-               '--year-selector-expanded': yearSelectorExpanded
+               '--year-selector-expanded': yearSelectorExpanded,
+               '--top-tabs-position': topTabsPosition,
+               '--top-tabs-height': topTabsHeight
              }}>
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
