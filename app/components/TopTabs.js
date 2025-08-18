@@ -40,21 +40,27 @@ const TopTabs = ({
     };
   }, []);
 
-  // Re-measure width on window resize
+  // Re-measure dimensions on window resize
   useEffect(() => {
-    if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
-      const handleResize = () => {
-        const topTabsElement = document.querySelector('.toptabs-container');
-        if (topTabsElement) {
+    const handleResize = () => {
+      const topTabsElement = document.querySelector('.toptabs-container');
+      if (topTabsElement) {
+        // Re-measure width for left/right positions
+        if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
           const actualWidth = topTabsElement.offsetWidth;
           onWidthChange(actualWidth);
         }
-      };
+        // Re-measure height for top/bottom positions
+        if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
+          const actualHeight = topTabsElement.offsetHeight;
+          onHeightChange(actualHeight);
+        }
+      }
+    };
 
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, [currentPosition, onWidthChange]);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentPosition, onWidthChange, onHeightChange]);
 
   // Communicate position changes to parent
   useEffect(() => {
@@ -67,9 +73,24 @@ const TopTabs = ({
   useEffect(() => {
     if (onHeightChange) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
-        // Approximate height based on content
-        const tabHeight = isMobile ? 60 : 72; // Based on py-2 and text sizes
-        onHeightChange(tabHeight);
+        // Measure actual height dynamically
+        const measureHeight = () => {
+          const topTabsElement = document.querySelector('.toptabs-container');
+          if (topTabsElement) {
+            const actualHeight = topTabsElement.offsetHeight;
+            onHeightChange(actualHeight);
+          } else {
+            // Fallback to responsive approximation
+            const tabHeight = isMobile ? 60 : 72;
+            onHeightChange(tabHeight);
+          }
+        };
+        
+        // Measure immediately and after a brief delay to ensure rendering is complete
+        measureHeight();
+        const timer = setTimeout(measureHeight, 100);
+        
+        return () => clearTimeout(timer);
       } else {
         // Reset height to 0 when not on top/bottom sides
         onHeightChange(0);

@@ -147,25 +147,46 @@ const YearSelector = ({
   useEffect(() => {
     if (onHeightChange && asSidebar) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
-        const currentHeight = {
-          collapsed: 80, // h-20
-          expandedSingle: { mobile: 160, desktop: 200 }, // Approximate heights based on content
-          expandedRange: { mobile: 200, desktop: 280 } // Approximate heights based on content
+        // Measure actual height dynamically
+        const measureHeight = () => {
+          const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+          if (yearSelectorElement) {
+            const actualHeight = yearSelectorElement.offsetHeight;
+            onHeightChange(actualHeight);
+          } else {
+            // Fallback to approximation based on state
+            const fallbackHeight = !expanded ? 80 : (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200));
+            onHeightChange(fallbackHeight);
+          }
         };
         
-        if (!expanded) {
-          onHeightChange(currentHeight.collapsed);
-        } else if (mode === 'range') {
-          onHeightChange(currentHeight.expandedRange);
-        } else {
-          onHeightChange(currentHeight.expandedSingle);
-        }
+        // Measure immediately and after a brief delay to ensure rendering is complete
+        measureHeight();
+        const timer = setTimeout(measureHeight, 100);
+        
+        return () => clearTimeout(timer);
       } else {
         // Reset height to 0 when not on top/bottom sides
         onHeightChange(0);
       }
     }
-  }, [expanded, mode, onHeightChange, asSidebar, currentPosition]);
+  }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile]);
+
+  // Re-measure height on window resize for top/bottom positions
+  useEffect(() => {
+    if (onHeightChange && asSidebar && (currentPosition === 'top' || currentPosition === 'bottom')) {
+      const handleResize = () => {
+        const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+        if (yearSelectorElement) {
+          const actualHeight = yearSelectorElement.offsetHeight;
+          onHeightChange(actualHeight);
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [currentPosition, onHeightChange, asSidebar]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
