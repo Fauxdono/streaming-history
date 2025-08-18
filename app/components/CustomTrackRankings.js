@@ -1093,27 +1093,27 @@ const CustomTrackRankings = ({
       );
     }
     
-    // Desktop view - full table
+    // Desktop view - full table with larger text and padding than compact
     return (
       <tr 
         key={song.key} 
         className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
       >
-        <td className="p-2 text-orange-700">{index + 1}</td>
-        <td className="p-2 text-orange-700">
+        <td className="p-3 text-orange-700 text-base">{index + 1}</td>
+        <td className="p-3 text-orange-700 text-base">
           <div className="flex items-center">
             {song.isFeatured && (
-              <span className="inline-block px-1.5 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+              <span className="inline-block px-2 py-1 mr-2 bg-orange-200 text-orange-700 rounded text-sm">
                 FEAT
               </span>
             )}
-            <div>
+            <div className="font-medium">
               {song.displayName || song.trackName}
             </div>
           </div>
         </td>
         <td 
-          className="p-2 text-orange-700" 
+          className="p-3 text-orange-700 text-base" 
         > 
           <div className="flex items-center">
             <span 
@@ -1130,25 +1130,25 @@ const CustomTrackRankings = ({
               className="ml-2 text-orange-600 hover:text-orange-800"
               title="Omit this artist"
             >
-              <XCircle size={16} />
+              <XCircle size={18} />
             </button>
           </div>
         </td>
         <td 
-          className="p-2 text-orange-700 cursor-pointer hover:underline" 
+          className="p-3 text-orange-700 text-base cursor-pointer hover:underline" 
           onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
         >
           {song.albumName}
         </td>
-        <td className="p-2 text-right text-orange-700">{formatDuration(song.totalPlayed)}</td>
-        <td className="p-2 text-right text-orange-700">{song.playCount}</td>
-        <td className="p-2 text-right text-orange-700">
+        <td className="p-3 text-right text-orange-700 text-base font-medium">{formatDuration(song.totalPlayed)}</td>
+        <td className="p-3 text-right text-orange-700 text-base">{song.playCount}</td>
+        <td className="p-3 text-right text-orange-700">
           <button
             onClick={() => omitSong(song)}
             className="p-1 text-orange-600 hover:text-orange-800 rounded"
             title="Omit this song"
           >
-            <XCircle size={16} />
+            <XCircle size={18} />
           </button>
         </td>
       </tr>
@@ -1486,12 +1486,12 @@ return (
                   )}
                   {!isMobile && !isCompactView && (
                     <>
-                      <th className="p-2 text-left text-orange-700">Rank</th>
-                      <th className="p-2 text-left text-orange-700">Track</th>
-                      <th className="p-2 text-left text-orange-700">Artist</th>
-                      <th className="p-2 text-left text-orange-700">Album</th>
+                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Rank</th>
+                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Track</th>
+                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Artist</th>
+                      <th className="p-3 text-left text-orange-700 text-base font-semibold">Album</th>
                       <th 
-                        className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                        className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
                           sortBy === 'totalPlayed' ? 'font-bold' : ''
                         }`}
                         onClick={() => setSortBy('totalPlayed')}
@@ -1499,14 +1499,14 @@ return (
                         Time {sortBy === 'totalPlayed' && '▼'}
                       </th>
                       <th 
-                        className={`p-2 text-right text-orange-700 cursor-pointer hover:bg-orange-100 ${
+                        className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
                           sortBy === 'playCount' ? 'font-bold' : ''
                         }`}
                         onClick={() => setSortBy('playCount')}
                       >
                         Plays {sortBy === 'playCount' && '▼'}
                       </th>
-                      <th className="p-2 text-right text-orange-700">Actions</th>
+                      <th className="p-3 text-right text-orange-700 text-base font-semibold">Actions</th>
                     </>
                   )}
                 </tr>
