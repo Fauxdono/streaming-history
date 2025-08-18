@@ -1113,12 +1113,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       if (typeof yearSelectorWidth === 'number') {
         // Collapsed width (32px = w-8)
         if (yearSelectorPosition === 'left') {
-          // If TopTabs are also on left, year selector is positioned inside them
-          leftMargin += (topTabsPosition === 'left') ? 32 : 32; // Same margin regardless
+          leftMargin += 32; // Always add year selector width
         } else if (yearSelectorPosition === 'right') {
-          rightMargin += (topTabsPosition === 'right') ? 32 : 32; // Same margin regardless  
+          rightMargin += 32; // Always add year selector width
         } else if (yearSelectorPosition === 'top') {
-          // If TopTabs are also on top, year selector is positioned below them
           topMargin += yearSelectorHeight; // Year selector adds to existing TopTabs margin
         } else if (yearSelectorPosition === 'bottom') {
           bottomMargin += 48; // 12 * 4px
@@ -1129,10 +1127,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         // mobile: 192px = w-48, desktop: 256px = w-64 for range mode
         // mobile: 64px = w-16, desktop: 128px = w-32 for single mode
         if (mobile === 192 && desktop === 256) {
-          // Range mode - match the actual visual width more closely
+          // Range mode - always add the year selector width
           if (yearSelectorPosition === 'left') {
-            // Year selector adds to existing margin (positioned inside TopTabs if on same side)
-            leftMargin += mobile; // Use mobile value as base
+            leftMargin += mobile; // Add year selector width to existing margins
           } else if (yearSelectorPosition === 'right') {
             rightMargin += mobile;
           } else if (yearSelectorPosition === 'top') {
@@ -1143,9 +1140,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             bottomMargin += 48; // 12 * 4px
           }
         } else {
-          // Single mode - match the actual visual width more closely
+          // Single mode - always add the year selector width
           if (yearSelectorPosition === 'left') {
-            leftMargin += mobile; // Use mobile value as base
+            leftMargin += mobile; // Add year selector width to existing margins
           } else if (yearSelectorPosition === 'right') {
             rightMargin += mobile;
           } else if (yearSelectorPosition === 'top') {
