@@ -23,7 +23,9 @@ const YearSelector = ({
   position = 'right', 
   startMinimized = false,
   asSidebar = false,
-  activeTab = null // Add activeTab to determine behavior
+  activeTab = null, // Add activeTab to determine behavior
+  topTabsPosition = 'top', // Add topTabsPosition to avoid collision
+  topTabsHeight = 72 // Add topTabsHeight for proper spacing
 }) => {
   // Core state
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
@@ -1010,14 +1012,42 @@ const YearSelector = ({
     }
   };
 
-  // Position styles for the sidebar
+  // Position styles for the sidebar - accounts for TopTabs position
   const positionStyles = (() => {
+    // Calculate offset based on TopTabs position to avoid overlap
+    const getOffset = (side) => {
+      if (topTabsPosition === side) {
+        // TopTabs are on the same side, so we need to position inside them
+        switch (side) {
+          case 'top': return `top-[${topTabsHeight}px]`;
+          case 'bottom': return `bottom-[${topTabsHeight}px]`;
+          case 'left': return 'left-48'; // 12rem = 192px sidebar width
+          case 'right': return 'right-48'; // 12rem = 192px sidebar width
+          default: return '';
+        }
+      } else {
+        // TopTabs are on a different side, use standard positioning
+        switch (side) {
+          case 'top': return 'top-0';
+          case 'bottom': return 'bottom-0';
+          case 'left': return 'left-0';
+          case 'right': return 'right-0';
+          default: return '';
+        }
+      }
+    };
+
     switch (currentPosition) {
-      case 'left': return 'left-0 top-[40px] h-[calc(100vh-40px)]';
-      case 'right': return 'right-0 top-[40px] h-[calc(100vh-40px)]';
-      case 'bottom': return 'bottom-0 left-0 right-0 h-auto';
-      case 'top': return 'top-[40px] left-0 right-0 h-auto';
-      default: return 'right-0 top-[40px] h-[calc(100vh-40px)]';
+      case 'left': 
+        return `${getOffset('left')} top-0 h-full`;
+      case 'right': 
+        return `${getOffset('right')} top-0 h-full`;
+      case 'bottom': 
+        return `${getOffset('bottom')} left-0 right-0 h-auto`;
+      case 'top': 
+        return `${getOffset('top')} left-0 right-0 h-auto`;
+      default: 
+        return `${getOffset('right')} top-0 h-full`;
     }
   })();
 
@@ -1028,7 +1058,7 @@ const YearSelector = ({
     
     return (
       <div 
-        className={`fixed ${positionStyles} max-h-screen z-50 transition-all duration-300 ${
+        className={`fixed ${positionStyles} max-h-screen z-40 transition-all duration-300 ${
           isBottom || isTop 
             ? 'w-full h-20 flex items-start justify-center' 
             : 'w-8'
@@ -1118,7 +1148,7 @@ const YearSelector = ({
   
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `fixed ${positionStyles} max-h-screen z-50 transition-all duration-300 ${
+    ? `fixed ${positionStyles} max-h-screen z-40 transition-all duration-300 ${
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
