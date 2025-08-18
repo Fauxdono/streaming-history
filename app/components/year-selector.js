@@ -25,7 +25,8 @@ const YearSelector = ({
   asSidebar = false,
   activeTab = null, // Add activeTab to determine behavior
   topTabsPosition = 'top', // Add topTabsPosition to avoid collision
-  topTabsHeight = 72 // Add topTabsHeight for proper spacing
+  topTabsHeight = 72, // Add topTabsHeight for proper spacing
+  topTabsWidth = 192 // Add topTabsWidth for proper spacing
 }) => {
   // Core state
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
@@ -1021,8 +1022,8 @@ const YearSelector = ({
         switch (side) {
           case 'top': return `top-[${topTabsHeight}px]`;
           case 'bottom': return `bottom-[${topTabsHeight}px]`;
-          case 'left': return 'left-48'; // 12rem = 192px sidebar width
-          case 'right': return 'right-48'; // 12rem = 192px sidebar width
+          case 'left': return `left-[${topTabsWidth}px]`; // Use actual TopTabs width
+          case 'right': return `right-[${topTabsWidth}px]`; // Use actual TopTabs width
           default: return '';
         }
       } else {

@@ -18,6 +18,7 @@ const TopTabs = ({
   getBehaviorTabLabel,
   onPositionChange, // New callback to communicate position changes to parent
   onHeightChange,   // New callback to communicate height changes to parent
+  onWidthChange,    // New callback to communicate width changes to parent
   position = 'top'  // New prop for initial position
 }) => {
   // Position state - cycles through top, right, bottom, left
@@ -54,6 +55,15 @@ const TopTabs = ({
       onHeightChange(tabHeight);
     }
   }, [currentPosition, onHeightChange, isMobile]);
+
+  // Communicate width changes to parent (for left/right positions)
+  useEffect(() => {
+    if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
+      // Approximate width based on content and orientation
+      const tabWidth = isMobile ? 160 : 192; // Responsive width for sidebar tabs
+      onWidthChange(tabWidth);
+    }
+  }, [currentPosition, onWidthChange, isMobile]);
 
   // Toggle position - cycles through top, right, bottom, left
   const togglePosition = useCallback(() => {

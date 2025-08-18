@@ -108,6 +108,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // TopTabs position state
   const [topTabsPosition, setTopTabsPosition] = useState('top');
   const [topTabsHeight, setTopTabsHeight] = useState(72);
+  const [topTabsWidth, setTopTabsWidth] = useState(192); // Default width for side positioning
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
   const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
@@ -1103,9 +1104,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     } else if (topTabsPosition === 'bottom') {
       bottomMargin += topTabsHeight;
     } else if (topTabsPosition === 'left') {
-      leftMargin += 192; // 12rem = 192px for sidebar tabs
+      leftMargin += topTabsWidth; // Use dynamic width
     } else if (topTabsPosition === 'right') {
-      rightMargin += 192;
+      rightMargin += topTabsWidth;
     }
     
     // Handle year selector if it's shown (inner layer)
@@ -1184,6 +1185,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           getBehaviorTabLabel={getBehaviorTabLabel}
           onPositionChange={setTopTabsPosition}
           onHeightChange={setTopTabsHeight}
+          onWidthChange={setTopTabsWidth}
           position={topTabsPosition}
         />
       )}
@@ -2289,6 +2291,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             onHeightChange={setYearSelectorHeight}
             topTabsPosition={topTabsPosition}
             topTabsHeight={topTabsHeight}
+            topTabsWidth={topTabsWidth}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :
