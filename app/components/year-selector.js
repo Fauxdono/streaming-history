@@ -123,19 +123,24 @@ const YearSelector = ({
   useEffect(() => {
     if (onWidthChange && asSidebar) {
       if (currentPosition === 'left' || currentPosition === 'right') {
-        const currentWidth = {
-          collapsed: 32, // w-8
-          expandedSingle: isMobile ? 64 : 128, // w-16 sm:w-32
-          expandedRange: isMobile ? 192 : 256 // w-48 sm:w-64
+        // Measure actual width dynamically
+        const measureWidth = () => {
+          const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+          if (yearSelectorElement) {
+            const actualWidth = yearSelectorElement.offsetWidth;
+            onWidthChange(actualWidth);
+          } else {
+            // Fallback to responsive approximation
+            const fallbackWidth = !expanded ? 32 : (mode === 'range' ? (isMobile ? 192 : 256) : (isMobile ? 64 : 128));
+            onWidthChange(fallbackWidth);
+          }
         };
         
-        if (!expanded) {
-          onWidthChange(currentWidth.collapsed);
-        } else if (mode === 'range') {
-          onWidthChange(currentWidth.expandedRange);
-        } else {
-          onWidthChange(currentWidth.expandedSingle);
-        }
+        // Measure immediately and after a brief delay to ensure rendering is complete
+        measureWidth();
+        const timer = setTimeout(measureWidth, 100);
+        
+        return () => clearTimeout(timer);
       } else {
         // Reset width to 0 when not on left/right sides
         onWidthChange(0);
@@ -172,21 +177,27 @@ const YearSelector = ({
     }
   }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile]);
 
-  // Re-measure height on window resize for top/bottom positions
+  // Re-measure dimensions on window resize
   useEffect(() => {
-    if (onHeightChange && asSidebar && (currentPosition === 'top' || currentPosition === 'bottom')) {
-      const handleResize = () => {
-        const yearSelectorElement = document.querySelector('.year-selector-sidebar');
-        if (yearSelectorElement) {
+    const handleResize = () => {
+      const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+      if (yearSelectorElement) {
+        // Re-measure width for left/right positions
+        if (onWidthChange && asSidebar && (currentPosition === 'left' || currentPosition === 'right')) {
+          const actualWidth = yearSelectorElement.offsetWidth;
+          onWidthChange(actualWidth);
+        }
+        // Re-measure height for top/bottom positions
+        if (onHeightChange && asSidebar && (currentPosition === 'top' || currentPosition === 'bottom')) {
           const actualHeight = yearSelectorElement.offsetHeight;
           onHeightChange(actualHeight);
         }
-      };
+      }
+    };
 
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, [currentPosition, onHeightChange, asSidebar]);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [currentPosition, onWidthChange, onHeightChange, asSidebar]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
