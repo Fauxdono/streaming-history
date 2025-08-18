@@ -636,7 +636,9 @@ const filteredData = useMemo(() => {
             <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Discovery Rate</h3>
             <p className="text-green-600 mb-4">New artists discovered over time</p>
             
-            <div className="h-48 sm:h-72 w-full">
+            <div className={`h-48 sm:h-72 w-full rounded p-1 sm:p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={discoveryData.newArtistsByMonth}
@@ -724,7 +726,9 @@ const filteredData = useMemo(() => {
               <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Loyalty</h3>
               <p className="text-green-600 mb-4">Your listening time distribution</p>
               
-              <div className="h-48 sm:h-64">
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
+                isDarkMode ? 'bg-gray-800' : 'bg-white'
+              }`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -815,7 +819,9 @@ const filteredData = useMemo(() => {
             <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Catalog Depth</h3>
             <p className="text-green-600 mb-4">How deeply you explore your favorite artists' music</p>
             
-            <div className="h-64 sm:h-96 w-full">
+            <div className={`h-64 sm:h-96 w-full rounded p-1 sm:p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={depthData.artistDepths.slice(0, 10)}
@@ -912,7 +918,9 @@ const filteredData = useMemo(() => {
               Higher percentages indicate more unique tracks (less repetition)
             </p>
             
-            <div className="h-48 sm:h-72 w-full">
+            <div className={`h-48 sm:h-72 w-full rounded p-1 sm:p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={
