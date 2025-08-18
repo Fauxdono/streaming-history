@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
-import { Download, Plus, XCircle, Eye } from 'lucide-react';
+import { Download, Plus, XCircle, Eye, LayoutGrid, List } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 
 const CustomTrackRankings = ({ 
@@ -36,6 +36,7 @@ const CustomTrackRankings = ({
   const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isCompactView, setIsCompactView] = useState(false);
 
   // Create a ref to hold our normalization cache that persists across renders
   const normalizationCache = useRef(new Map());
@@ -1001,7 +1002,7 @@ const CustomTrackRankings = ({
 
   // Updated renderTrackRow function with omit buttons preserved
   const renderTrackRow = (song, index) => {
-    if (isMobile) {
+    if (isMobile || isCompactView) {
       // Mobile view - compact layout
       return (
         <tr 
@@ -1138,6 +1139,15 @@ return (
       </h3>
       
       <div className="flex items-center gap-2">
+        <button
+          onClick={() => setIsCompactView(!isCompactView)}
+          className={`p-1 rounded ${
+            isCompactView ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-700'
+          } hover:bg-orange-700 hover:text-white`}
+          title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
+        >
+          {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
+        </button>
         <label className="text-orange-700 ml-2">Show Top</label>
         <input
           type="number"
@@ -1415,11 +1425,11 @@ return (
 
         {filteredTracks.length > 0 ? (
           <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-            <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
+            <div className={(isMobile || isCompactView) ? "min-w-full" : "min-w-[640px]"}>
               <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b">
-                  {!isMobile && (
+                  {!(isMobile || isCompactView) && (
                     <>
                       <th className="p-2 text-left text-orange-700">Rank</th>
                       <th className="p-2 text-left text-orange-700">Track</th>
@@ -1444,7 +1454,7 @@ return (
                       <th className="p-2 text-right text-orange-700">Actions</th>
                     </>
                   )}
-                  {isMobile && (
+                  {(isMobile || isCompactView) && (
                     <>
                       <th className="p-2 text-left text-orange-700">Track Info</th>
                       <th className="p-2 text-right text-orange-700">Stats</th>

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   format, parseISO, isValid
 } from 'date-fns';
+import { LayoutGrid, List } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 
 // Helper to safely parse dates and check validity
@@ -43,6 +44,7 @@ const PodcastRankings = ({
   const [duplicatesFound, setDuplicatesFound] = useState(0);
   const [duplicateTypes, setDuplicateTypes] = useState({ exact: 0, overlapping: 0, zeroTime: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [isCompactView, setIsCompactView] = useState(false);
 
   // Get the current theme
   const { theme } = useTheme();
@@ -658,7 +660,7 @@ const PodcastRankings = ({
 
   // Render episode row with compact mode support
   const renderEpisodeRow = (episode, index) => {
-    if (isMobile) {
+    if (isMobile || isCompactView) {
       // Mobile/compact view for episodes
       return (
         <tr key={episode.key} className={`border-b hover:opacity-80 ${
@@ -767,7 +769,18 @@ const PodcastRankings = ({
        <div className={`flex items-center gap-1 sm:gap-2 ${
          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
        }`}>
-    <label className="text-xs sm:text-sm">Show top</label>
+        <button
+          onClick={() => setIsCompactView(!isCompactView)}
+          className={`p-1 rounded ${
+            isCompactView 
+              ? (isDarkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white')
+              : (isDarkMode ? 'bg-gray-700 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
+          } hover:opacity-80`}
+          title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
+        >
+          {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
+        </button>
+        <label className="text-xs sm:text-sm">Show top</label>
           <input
             type="number"
             min="1"
@@ -896,11 +909,11 @@ const PodcastRankings = ({
 
       {filteredEpisodes.length > 0 ? (
         <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4">
-          <div className={isMobile ? "min-w-full" : "min-w-[800px]"}>
+          <div className={(isMobile || isCompactView) ? "min-w-full" : "min-w-[800px]"}>
             <table className="w-full border-collapse">
               <thead>
                 <tr className={`border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                  {!isMobile && (
+                  {!(isMobile || isCompactView) && (
                     <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
                       isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
                     }`}>Rank</th>
@@ -908,14 +921,14 @@ const PodcastRankings = ({
                   <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
                     isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
                   }`}>
-                    {isMobile ? "Episode Info" : "Episode"}
+                    {(isMobile || isCompactView) ? "Episode Info" : "Episode"}
                   </th>
-                  {!isMobile && (
+                  {!(isMobile || isCompactView) && (
                     <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
                       isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
                     }`}>Show</th>
                   )}
-                  {!isMobile ? (
+                  {!(isMobile || isCompactView) ? (
                     <>
                       <th 
                         className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
