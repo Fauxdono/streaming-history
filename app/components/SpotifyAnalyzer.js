@@ -108,6 +108,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // TopTabs position state
   const [topTabsPosition, setTopTabsPosition] = useState('top');
   const [topTabsHeight, setTopTabsHeight] = useState(72);
+
+  // Auto-sync year selector position with TopTabs position
+  useEffect(() => {
+    if (showYearSidebar) {
+      setYearSelectorPosition(topTabsPosition);
+    }
+  }, [topTabsPosition, showYearSidebar]);
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
   const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
@@ -2292,6 +2299,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             onHeightChange={setYearSelectorHeight}
             topTabsPosition={topTabsPosition}
             topTabsHeight={topTabsHeight}
+            followTopTabs={true}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :
