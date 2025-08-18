@@ -1123,30 +1123,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     // Calculate year selector margins
     let yearSelectorTop = 0, yearSelectorBottom = 0, yearSelectorLeft = 0, yearSelectorRight = 0;
     if (showYearSidebar) {
-      if (typeof yearSelectorWidth === 'number') {
-        // Collapsed width (32px)
-        if (yearSelectorPosition === 'left') {
-          yearSelectorLeft = 32;
-        } else if (yearSelectorPosition === 'right') {
-          yearSelectorRight = 32;
-        } else if (yearSelectorPosition === 'top') {
-          yearSelectorTop = 80; // Use fixed collapsed height (similar to left/right pattern)
-        } else if (yearSelectorPosition === 'bottom') {
-          yearSelectorBottom = 80; // Use fixed collapsed height
-        }
-      } else {
-        // Expanded width
-        const { mobile, desktop } = yearSelectorWidth;
-        if (yearSelectorPosition === 'left') {
-          yearSelectorLeft = mobile;
-        } else if (yearSelectorPosition === 'right') {
-          yearSelectorRight = mobile;
-        } else if (yearSelectorPosition === 'top') {
-          // Use fixed expanded heights based on mobile/desktop similar to left/right pattern
-          yearSelectorTop = (mobile === 192 && desktop === 256) ? 160 : 120; // Range mode: 160px, Single mode: 120px
-        } else if (yearSelectorPosition === 'bottom') {
-          yearSelectorBottom = (mobile === 192 && desktop === 256) ? 160 : 120; // Range mode: 160px, Single mode: 120px
-        }
+      if (yearSelectorPosition === 'left') {
+        yearSelectorLeft = yearSelectorWidth || 0;
+      } else if (yearSelectorPosition === 'right') {
+        yearSelectorRight = yearSelectorWidth || 0;
+      } else if (yearSelectorPosition === 'top') {
+        yearSelectorTop = yearSelectorHeight || 0;
+      } else if (yearSelectorPosition === 'bottom') {
+        yearSelectorBottom = yearSelectorHeight || 0;
       }
     }
 
@@ -2291,7 +2275,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             activeTab={activeTab}
             onYearChange={handleSidebarYearChange}
             onYearRangeChange={handleSidebarYearRangeChange}
-            onExpandChange={setYearSelectorExpanded}
+            onExpandChange={(expanded) => {
+              console.log('SpotifyAnalyzer: Received year selector expansion change:', expanded);
+              setYearSelectorExpanded(expanded);
+            }}
             onPositionChange={setYearSelectorPosition}
             onWidthChange={setYearSelectorWidth}
             onHeightChange={setYearSelectorHeight}
