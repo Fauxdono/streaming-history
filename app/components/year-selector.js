@@ -108,6 +108,7 @@ const YearSelector = ({
   // Communicate expanded state changes to parent
   useEffect(() => {
     if (onExpandChange && asSidebar) {
+      console.log('YearSelector: Reporting expansion state change to parent:', expanded);
       onExpandChange(expanded);
     }
   }, [expanded, onExpandChange, asSidebar]);
