@@ -1155,17 +1155,19 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     leftMargin = topTabsLeft + yearSelectorLeft;
     rightMargin = topTabsRight + yearSelectorRight;
     
-    // Build the final classes
-    if (topMargin > 0) classes += `pt-[${topMargin}px] `;
-    if (bottomMargin > 0) classes += `pb-[${bottomMargin}px] `;
-    if (leftMargin > 0) classes += `pl-[${leftMargin}px] `;
-    if (rightMargin > 0) classes += `pr-[${rightMargin}px] `;
+    // Return as an object for inline styles instead of Tailwind classes
+    const marginStyles = {
+      paddingTop: topMargin > 0 ? `${topMargin}px` : undefined,
+      paddingBottom: bottomMargin > 0 ? `${bottomMargin}px` : undefined,
+      paddingLeft: leftMargin > 0 ? `${leftMargin}px` : undefined,
+      paddingRight: rightMargin > 0 ? `${rightMargin}px` : undefined,
+    };
     
     console.log('Final margins:', { topMargin, bottomMargin, leftMargin, rightMargin });
-    console.log('Generated CSS classes:', classes.trim());
+    console.log('Generated inline styles:', marginStyles);
     console.log('==================');
     
-    return classes.trim();
+    return marginStyles;
   };
 
   return (
@@ -1194,8 +1196,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       <div className="flex h-full w-full">
         {/* Main content area that adjusts based on year selector state */}
-        <div className={`flex-1 transition-all duration-300 ${getYearSelectorMargin()}`} 
+        <div className="flex-1 transition-all duration-300" 
              style={{
+               ...getYearSelectorMargin(),
                // Debug info
                '--year-selector-width': JSON.stringify(yearSelectorWidth),
                '--year-selector-height': JSON.stringify(yearSelectorHeight),
