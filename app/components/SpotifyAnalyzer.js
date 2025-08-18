@@ -102,6 +102,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
   const [yearSelectorWidth, setYearSelectorWidth] = useState(32);
+  const [yearSelectorHeight, setYearSelectorHeight] = useState(80);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
@@ -1098,8 +1099,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
       } else if (yearSelectorPosition === 'top') {
-        // Collapsed: top-[40px] + h-20 = 120px, but try smaller to eliminate gap
-        classes = 'mt-[100px] ml-0 mr-0';
+        // Dynamic height: top-[40px] + actual height from year selector
+        const topOffset = 40; // top-[40px]
+        const totalHeight = topOffset + yearSelectorHeight;
+        classes = `mt-[${totalHeight}px] ml-0 mr-0`;
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
@@ -1115,8 +1118,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-48 sm:mr-64 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          // Expanded range mode: try smaller values to eliminate gap
-          classes = 'mt-[180px] sm:mt-[200px] ml-0 mr-0';
+          // Dynamic height for expanded range mode
+          const topOffset = 40; // top-[40px]
+          const { mobile, desktop } = yearSelectorHeight;
+          const mobileTotal = topOffset + mobile;
+          const desktopTotal = topOffset + desktop;
+          classes = `mt-[${mobileTotal}px] sm:mt-[${desktopTotal}px] ml-0 mr-0`;
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1127,8 +1134,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-16 sm:mr-32 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          // Expanded single mode: try smaller values to eliminate gap
-          classes = 'mt-[140px] sm:mt-[160px] ml-0 mr-0';
+          // Dynamic height for expanded single mode
+          const topOffset = 40; // top-[40px]
+          const { mobile, desktop } = yearSelectorHeight;
+          const mobileTotal = topOffset + mobile;
+          const desktopTotal = topOffset + desktop;
+          classes = `mt-[${mobileTotal}px] sm:mt-[${desktopTotal}px] ml-0 mr-0`;
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1164,6 +1175,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
              style={{
                // Debug info
                '--year-selector-width': JSON.stringify(yearSelectorWidth),
+               '--year-selector-height': JSON.stringify(yearSelectorHeight),
                '--year-selector-position': yearSelectorPosition,
                '--year-selector-expanded': yearSelectorExpanded
              }}>
@@ -2253,6 +2265,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             onExpandChange={setYearSelectorExpanded}
             onPositionChange={setYearSelectorPosition}
             onWidthChange={setYearSelectorWidth}
+            onHeightChange={setYearSelectorHeight}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :

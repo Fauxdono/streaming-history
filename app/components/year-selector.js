@@ -14,6 +14,7 @@ const YearSelector = ({
   onExpandChange, // New callback to communicate expanded state to parent
   onPositionChange, // New callback to communicate position changes to parent
   onWidthChange, // New callback to communicate width changes to parent
+  onHeightChange, // New callback to communicate height changes to parent
   initialYear, 
   initialYearRange, 
   isRangeMode, 
@@ -133,6 +134,25 @@ const YearSelector = ({
       }
     }
   }, [expanded, mode, onWidthChange, asSidebar]);
+
+  // Communicate height changes to parent (for top/bottom positions)
+  useEffect(() => {
+    if (onHeightChange && asSidebar && (currentPosition === 'top' || currentPosition === 'bottom')) {
+      const currentHeight = {
+        collapsed: 80, // h-20
+        expandedSingle: { mobile: 160, desktop: 200 }, // Approximate heights based on content
+        expandedRange: { mobile: 200, desktop: 280 } // Approximate heights based on content
+      };
+      
+      if (!expanded) {
+        onHeightChange(currentHeight.collapsed);
+      } else if (mode === 'range') {
+        onHeightChange(currentHeight.expandedRange);
+      } else {
+        onHeightChange(currentHeight.expandedSingle);
+      }
+    }
+  }, [expanded, mode, onHeightChange, asSidebar, currentPosition]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
