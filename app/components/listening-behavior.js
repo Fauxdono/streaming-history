@@ -640,7 +640,7 @@ const filteredData = useMemo(() => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 whitespace-nowrap font-medium ${
+      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm whitespace-nowrap font-medium ${
         activeTab === id
           ? isDarkMode 
             ? 'bg-gray-700 text-indigo-400 border-b-2 border-indigo-400' 
@@ -671,7 +671,7 @@ const filteredData = useMemo(() => {
       
       {/* Horizontally scrollable tabs */}
       <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
-        <div className="flex min-w-max">
+        <div className="flex flex-wrap gap-1 sm:gap-2 min-w-max">
           <TabButton id="behavior" label="Listening Behavior" />
           <TabButton id="sessions" label="Listening Sessions" />
           <TabButton id="artistsTime" label="Artists by Time" />
@@ -683,8 +683,8 @@ const filteredData = useMemo(() => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play (Theme: {theme}, Dark: {isDarkMode ? 'Yes' : 'No'})</h3>
-              <div className="h-64">
+              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play (Theme: {theme}, Dark: {isDarkMode ? 'Yes' : 'No'})</h3>
+              <div className="h-48 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart key={`pie-shuffle-${isDarkMode}-${colorTheme}`}>
                     <Pie
@@ -736,8 +736,8 @@ const filteredData = useMemo(() => {
             </div>
             
             <div>
-              <h3 className="text-lg font-bold text-indigo-700 mb-2">Track Completion</h3>
-              <div className="h-64">
+              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Track Completion</h3>
+              <div className="h-48 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart key={`pie-completion-${isDarkMode}-${colorTheme}`}>
                     <Pie
@@ -789,8 +789,8 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">How You Start Tracks</h3>
-            <div className="h-64 w-full">
+            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">How You Start Tracks</h3>
+            <div className="h-48 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.startReasons}
@@ -817,8 +817,8 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">How Tracks End</h3>
-            <div className="h-64 w-full">
+            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">How Tracks End</h3>
+            <div className="h-48 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.endReasons}
@@ -845,8 +845,8 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">Platforms Used</h3>
-            <div className="h-64 w-full">
+            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Platforms Used</h3>
+            <div className="h-48 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.platformData}
@@ -894,8 +894,8 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Duration Distribution</h3>
-            <div className="h-64">
+            <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Session Duration Distribution</h3>
+            <div className="h-48 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart key={`pie-session-${isDarkMode}-${colorTheme}`}>
                   <Pie
@@ -923,7 +923,7 @@ const filteredData = useMemo(() => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Statistics</h3>
+              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Session Statistics</h3>
               <ul className="space-y-2">
                 {sessionData.longestSession && (
                   <li className="p-2 bg-indigo-50 rounded">
@@ -965,7 +965,7 @@ const filteredData = useMemo(() => {
             </div>
             
             <div>
-              <h3 className="text-lg font-bold text-indigo-700 mb-2">Notable Days & Months</h3>
+              <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Notable Days & Months</h3>
               <div className="space-y-3">
                 {sessionData.mostActiveDay && (
                   <div className="p-3 bg-indigo-50 rounded">
@@ -1001,7 +1001,7 @@ const filteredData = useMemo(() => {
         </div>
         
         <div>
-          <h3 className="text-lg font-bold text-indigo-700 mb-2">Session Insights</h3>
+          <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Session Insights</h3>
           <div className="p-3 bg-indigo-50 rounded space-y-2">
             <p className="text-indigo-700">
               Most of your listening sessions are 

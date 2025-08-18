@@ -545,7 +545,7 @@ const filteredData = useMemo(() => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-4 py-2 whitespace-nowrap font-medium ${
+      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm whitespace-nowrap font-medium ${
         activeTab === id
           ? isDarkMode 
             ? 'bg-gray-700 text-green-400 border-b-2 border-green-400' 
@@ -600,7 +600,7 @@ const filteredData = useMemo(() => {
       
       {/* Horizontally scrollable tabs */}
       <div className="relative overflow-x-auto pb-1 -mx-4 px-4">
-        <div className="flex min-w-max">
+        <div className="flex flex-wrap gap-1 sm:gap-2 min-w-max">
           <TabButton id="discovery" label="Artist Discovery" />
           <TabButton id="loyalty" label="Artist Loyalty" />
           <TabButton id="depth" label="Listening Depth" />
@@ -613,7 +613,7 @@ const filteredData = useMemo(() => {
           <div className={`p-4 rounded ${
             isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
           }`}>
-            <h3 className={`font-bold mb-4 ${
+            <h3 className={`text-sm sm:text-lg font-bold mb-4 ${
               isDarkMode ? 'text-green-400' : 'text-green-700'
             }`}>Artist Discovery Stats</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -633,10 +633,10 @@ const filteredData = useMemo(() => {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-green-700 mb-2">Artist Discovery Rate</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Discovery Rate</h3>
             <p className="text-green-600 mb-4">New artists discovered over time</p>
             
-            <div className="h-72 w-full">
+            <div className="h-48 sm:h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={discoveryData.newArtistsByMonth}
@@ -687,7 +687,7 @@ const filteredData = useMemo(() => {
           <div className={`p-4 rounded ${
             isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
           }`}>
-            <h3 className={`font-bold ${
+            <h3 className={`text-sm sm:text-lg font-bold ${
               isDarkMode ? 'text-green-400' : 'text-green-700'
             }`}>Discovery Insights</h3>
             <ul className="mt-2 space-y-2">
@@ -721,10 +721,10 @@ const filteredData = useMemo(() => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-lg font-bold text-green-700 mb-2">Artist Loyalty</h3>
+              <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Loyalty</h3>
               <p className="text-green-600 mb-4">Your listening time distribution</p>
               
-              <div className="h-64">
+              <div className="h-48 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -752,7 +752,7 @@ const filteredData = useMemo(() => {
             </div>
             
             <div>
-              <h3 className="text-lg font-bold text-green-700 mb-2">Your Top 5 Artists</h3>
+              <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Your Top 5 Artists</h3>
               <div className="space-y-3">
                 {discoveryData.top5Artists.map((artist, index) => (
                   <div key={index} className="p-3 bg-green-50 rounded flex justify-between items-center">
@@ -772,7 +772,7 @@ const filteredData = useMemo(() => {
           </div>
           
           <div className="p-4 bg-green-50 rounded">
-            <h3 className="font-bold text-green-700 mb-2">Loyalty Profile</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Loyalty Profile</h3>
             <div className="text-green-600">
               {discoveryData.top5Percentage > 75 ? (
                 <p>You're a <span className="font-bold">super fan</span>! You spend most of your time with your favorite artists.</p>
@@ -791,7 +791,7 @@ const filteredData = useMemo(() => {
       {activeTab === 'depth' && (
         <div className="space-y-6">
           <div className="p-4 bg-green-50 rounded">
-            <h3 className="font-bold text-green-700 mb-4">Artist Catalog Exploration</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-4">Artist Catalog Exploration</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-3 bg-white rounded shadow">
                 <div className="text-sm text-green-600">Average Listening Depth Score</div>
@@ -812,10 +812,10 @@ const filteredData = useMemo(() => {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-green-700 mb-2">Artist Catalog Depth</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Artist Catalog Depth</h3>
             <p className="text-green-600 mb-4">How deeply you explore your favorite artists' music</p>
             
-            <div className="h-96 w-full">
+            <div className="h-64 sm:h-96 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={depthData.artistDepths.slice(0, 10)}
@@ -860,7 +860,7 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className="text-lg font-bold text-green-700 mb-2">Replay Value Kings</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Replay Value Kings</h3>
             <p className="text-green-600 mb-4">Your most repeated tracks</p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -886,7 +886,7 @@ const filteredData = useMemo(() => {
           </div>
           
           <div className="p-4 bg-green-50 rounded">
-            <h3 className="font-bold text-green-700 mb-4">Music Variety Overview</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-4">Music Variety Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-3 bg-white rounded shadow">
                 <div className="text-sm text-green-600">Daily Variety Score</div>
@@ -907,12 +907,12 @@ const filteredData = useMemo(() => {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-green-700 mb-2">Music Variety Over Time</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Music Variety Over Time</h3>
             <p className="text-green-600 mb-4">
               Higher percentages indicate more unique tracks (less repetition)
             </p>
             
-            <div className="h-72 w-full">
+            <div className="h-48 sm:h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={
@@ -969,7 +969,7 @@ const filteredData = useMemo(() => {
           </div>
           
           <div className="p-4 bg-green-50 rounded">
-            <h3 className="font-bold text-green-700 mb-2">Variety Profile</h3>
+            <h3 className="text-sm sm:text-lg font-bold text-green-700 mb-2">Variety Profile</h3>
             <div className="text-green-600">
               {Math.round(
                 (varietyData.avgDailyVariety + varietyData.avgWeeklyVariety + varietyData.avgMonthlyVariety) / 3
