@@ -1002,8 +1002,8 @@ const CustomTrackRankings = ({
 
   // Updated renderTrackRow function with omit buttons preserved
   const renderTrackRow = (song, index) => {
-    if (isMobile || isCompactView) {
-      // Mobile view - compact layout
+    if (isMobile) {
+      // True mobile view - very condensed, 2 columns only
       return (
         <tr 
           key={song.key} 
@@ -1018,52 +1018,76 @@ const CustomTrackRankings = ({
                     FEAT
                   </span>
                 )}
-                <div className="font-medium">{song.displayName || song.trackName}</div>
-                
-                {/* Add omit buttons */}
-                <div className="ml-auto flex gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      omitSong(song);
-                    }}
-                    className="text-orange-600 hover:text-orange-800"
-                    title="Omit this song"
-                  >
-                    <XCircle size={16} />
-                  </button>
-                </div>
+                <div className="font-medium text-sm">{song.displayName || song.trackName}</div>
               </div>
               <div 
-                className="text-xs text-orange-600 cursor-pointer hover:underline flex items-center"
+                className="text-xs text-orange-600 cursor-pointer hover:underline"
+                onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
               >
-                <span onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}>
-                  {song.displayArtist || song.artist}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    omitArtist(song.artist);
-                  }}
-                  className="ml-1 text-orange-600 hover:text-orange-800"
-                  title="Omit this artist"
-                >
-                  <XCircle size={14} />
-                </button>
-              </div>
-              <div 
-                className="text-xs text-orange-500 cursor-pointer hover:underline truncate max-w-[200px]"
-                onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-              >
-                {song.albumName}
+                {song.displayArtist || song.artist}
               </div>
             </div>
           </td>
           <td className="p-2 align-top text-right text-orange-700">
             <div className="flex flex-col">
-              <span className="font-medium">{formatDuration(song.totalPlayed)}</span>
+              <span className="font-medium text-sm">{formatDuration(song.totalPlayed)}</span>
               <span className="text-xs">{song.playCount} plays</span>
             </div>
+          </td>
+        </tr>
+      );
+    } else if (isCompactView) {
+      // Compact view - all data but smaller table format
+      return (
+        <tr 
+          key={song.key} 
+          className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+        >
+          <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm">{index + 1}</td>
+          <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm">
+            <div className="flex items-center">
+              {song.isFeatured && (
+                <span className="inline-block px-1 py-0.5 mr-1 bg-orange-200 text-orange-700 rounded text-xs">
+                  FEAT
+                </span>
+              )}
+              <div>{song.displayName || song.trackName}</div>
+            </div>
+          </td>
+          <td 
+            className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm cursor-pointer hover:underline" 
+            onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
+          >
+            <div className="flex items-center">
+              {song.displayArtist || song.artist}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  omitArtist(song.artist);
+                }}
+                className="ml-1 text-orange-600 hover:text-orange-800"
+                title="Omit this artist"
+              >
+                <XCircle size={12} />
+              </button>
+            </div>
+          </td>
+          <td 
+            className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm cursor-pointer hover:underline" 
+            onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+          >
+            {song.albumName}
+          </td>
+          <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{formatDuration(song.totalPlayed)}</td>
+          <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{song.playCount}</td>
+          <td className="p-1 sm:p-2 text-right text-orange-700">
+            <button
+              onClick={() => omitSong(song)}
+              className="p-1 text-orange-600 hover:text-orange-800 rounded"
+              title="Omit this song"
+            >
+              <XCircle size={12} />
+            </button>
           </td>
         </tr>
       );
@@ -1429,7 +1453,38 @@ return (
               <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b">
-                  {!(isMobile || isCompactView) && (
+                  {isMobile && (
+                    <>
+                      <th className="p-2 text-left text-orange-700">Track Info</th>
+                      <th className="p-2 text-right text-orange-700">Stats</th>
+                    </>
+                  )}
+                  {isCompactView && !isMobile && (
+                    <>
+                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Rank</th>
+                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Track</th>
+                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Artist</th>
+                      <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Album</th>
+                      <th 
+                        className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
+                          sortBy === 'totalPlayed' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('totalPlayed')}
+                      >
+                        Time {sortBy === 'totalPlayed' && '▼'}
+                      </th>
+                      <th 
+                        className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
+                          sortBy === 'playCount' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('playCount')}
+                      >
+                        Plays {sortBy === 'playCount' && '▼'}
+                      </th>
+                      <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Actions</th>
+                    </>
+                  )}
+                  {!isMobile && !isCompactView && (
                     <>
                       <th className="p-2 text-left text-orange-700">Rank</th>
                       <th className="p-2 text-left text-orange-700">Track</th>
@@ -1452,12 +1507,6 @@ return (
                         Plays {sortBy === 'playCount' && '▼'}
                       </th>
                       <th className="p-2 text-right text-orange-700">Actions</th>
-                    </>
-                  )}
-                  {(isMobile || isCompactView) && (
-                    <>
-                      <th className="p-2 text-left text-orange-700">Track Info</th>
-                      <th className="p-2 text-right text-orange-700">Stats</th>
                     </>
                   )}
                 </tr>
