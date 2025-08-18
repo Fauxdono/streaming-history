@@ -1098,7 +1098,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
       } else if (yearSelectorPosition === 'top') {
-        classes = 'mt-12 ml-0 mr-0';
+        classes = 'mt-20 ml-0 mr-0'; // h-20 for collapsed top position
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
@@ -1114,7 +1114,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-48 sm:mr-64 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          classes = 'mt-12 ml-0 mr-0';
+          classes = 'mt-40 sm:mt-48 ml-0 mr-0'; // Responsive top margin for range mode
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1125,7 +1125,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-16 sm:mr-32 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          classes = 'mt-12 ml-0 mr-0';
+          classes = 'mt-32 sm:mt-40 ml-0 mr-0'; // Responsive top margin for single mode
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
