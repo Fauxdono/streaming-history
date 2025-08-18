@@ -125,8 +125,8 @@ const YearSelector = ({
       if (currentPosition === 'left' || currentPosition === 'right') {
         const currentWidth = {
           collapsed: 32, // w-8
-          expandedSingle: { mobile: 64, desktop: 128 }, // w-16 sm:w-32
-          expandedRange: { mobile: 192, desktop: 256 } // w-48 sm:w-64
+          expandedSingle: isMobile ? 64 : 128, // w-16 sm:w-32
+          expandedRange: isMobile ? 192 : 256 // w-48 sm:w-64
         };
         
         if (!expanded) {
@@ -141,7 +141,7 @@ const YearSelector = ({
         onWidthChange(0);
       }
     }
-  }, [expanded, mode, onWidthChange, asSidebar, currentPosition]);
+  }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile]);
 
   // Communicate height changes to parent (for top/bottom positions)
   useEffect(() => {
