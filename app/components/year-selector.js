@@ -124,24 +124,60 @@ const YearSelector = ({
   useEffect(() => {
     if (onWidthChange && asSidebar) {
       if (currentPosition === 'left' || currentPosition === 'right') {
-        // Measure actual width dynamically
+        // Use ResizeObserver for dynamic width measurement
         const measureWidth = () => {
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
-            const actualWidth = yearSelectorElement.offsetWidth;
-            onWidthChange(actualWidth);
+            // Get the computed style to check what the CSS actually resolves to
+            const computedStyle = window.getComputedStyle(yearSelectorElement);
+            const cssWidth = parseFloat(computedStyle.width);
+            
+            // For debugging, let's see what we're getting
+            console.log('Year selector width measurement:', {
+              offsetWidth: yearSelectorElement.offsetWidth,
+              computedWidth: cssWidth,
+              clientWidth: yearSelectorElement.clientWidth,
+              scrollWidth: yearSelectorElement.scrollWidth,
+              position: currentPosition,
+              expanded,
+              mode
+            });
+            
+            // Use the computed CSS width if it's reasonable, otherwise fall back to a safer measurement
+            const finalWidth = (cssWidth > 0 && cssWidth < 500) ? cssWidth : yearSelectorElement.clientWidth;
+            onWidthChange(finalWidth);
           } else {
             // Fallback to responsive approximation
             const fallbackWidth = !expanded ? 32 : (mode === 'range' ? (isMobile ? 192 : 256) : (isMobile ? 64 : 128));
+            console.log('Year selector width fallback:', fallbackWidth);
             onWidthChange(fallbackWidth);
           }
         };
         
-        // Measure immediately and after a brief delay to ensure rendering is complete
-        measureWidth();
-        const timer = setTimeout(measureWidth, 100);
+        // Set up ResizeObserver for dynamic measurement
+        let resizeObserver;
+        const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+        if (yearSelectorElement && window.ResizeObserver) {
+          resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              const width = entry.contentRect.width;
+              console.log('ResizeObserver detected width change:', width);
+              if (width > 0 && width < 500) { // Sanity check
+                onWidthChange(width);
+              }
+            }
+          });
+          resizeObserver.observe(yearSelectorElement);
+        }
         
-        return () => clearTimeout(timer);
+        // Initial measurement as fallback
+        measureWidth();
+        
+        return () => {
+          if (resizeObserver) {
+            resizeObserver.disconnect();
+          }
+        };
       } else {
         // Reset width to 0 when not on left/right sides
         onWidthChange(0);
