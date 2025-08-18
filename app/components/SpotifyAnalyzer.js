@@ -1205,7 +1205,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
               <div className="w-full">
-                <div className="space-y-4 pb-4">
+                <div>
           
           {activeTab === 'upload' && (
             <div>
