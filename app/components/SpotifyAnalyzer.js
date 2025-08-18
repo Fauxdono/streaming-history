@@ -1098,7 +1098,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
       } else if (yearSelectorPosition === 'top') {
-        classes = 'mt-20 ml-0 mr-0'; // h-20 for collapsed top position
+        classes = 'mt-16 ml-0 mr-0'; // Reduced margin for seamless attachment to collapsed top selector
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
