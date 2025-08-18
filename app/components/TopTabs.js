@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 const TopTabs = ({ 
   activeTab, 
@@ -15,8 +15,55 @@ const TopTabs = ({
   getCustomTabLabel,
   getTracksTabLabel,
   getPatternsTabLabel,
-  getBehaviorTabLabel
+  getBehaviorTabLabel,
+  onPositionChange, // New callback to communicate position changes to parent
+  onHeightChange,   // New callback to communicate height changes to parent
+  position = 'top'  // New prop for initial position
 }) => {
+  // Position state - cycles through top, right, bottom, left
+  const [currentPosition, setCurrentPosition] = useState(position);
+  
+  // Check for mobile viewport
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
+
+  // Communicate position changes to parent
+  useEffect(() => {
+    if (onPositionChange) {
+      onPositionChange(currentPosition);
+    }
+  }, [currentPosition, onPositionChange]);
+
+  // Communicate height changes to parent (for top/bottom positions)
+  useEffect(() => {
+    if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
+      // Approximate height based on content
+      const tabHeight = isMobile ? 60 : 72; // Based on py-2 and text sizes
+      onHeightChange(tabHeight);
+    }
+  }, [currentPosition, onHeightChange, isMobile]);
+
+  // Toggle position - cycles through top, right, bottom, left
+  const togglePosition = useCallback(() => {
+    setCurrentPosition(prev => {
+      if (prev === 'top') return 'right';
+      if (prev === 'right') return 'bottom';
+      if (prev === 'bottom') return 'left';
+      return 'top'; // default fallback for 'left' and initial state
+    });
+  }, []);
   // Memoized TabButton component to prevent recreation
   const TabButton = useCallback(({ id, label }) => {
     // Helper function to get the color based on tab ID
@@ -85,10 +132,86 @@ const TopTabs = ({
     );
   }, [activeTab, setActiveTab]);
 
+  // Position styles for different placements
+  const getPositionStyles = () => {
+    switch (currentPosition) {
+      case 'top':
+        return 'fixed top-0 left-0 right-0 w-full z-30';
+      case 'bottom':
+        return 'fixed bottom-0 left-0 right-0 w-full z-30';
+      case 'left':
+        return 'fixed left-0 top-0 bottom-0 h-full w-auto z-30';
+      case 'right':
+        return 'fixed right-0 top-0 bottom-0 h-full w-auto z-30';
+      default:
+        return 'fixed top-0 left-0 right-0 w-full z-30';
+    }
+  };
+
+  // Container styles for different orientations
+  const getContainerStyles = () => {
+    const baseStyles = 'bg-white dark:bg-gray-800 border-violet-200 dark:border-gray-600 transition-all duration-300';
+    
+    switch (currentPosition) {
+      case 'top':
+        return `${baseStyles} border-b`;
+      case 'bottom':
+        return `${baseStyles} border-t`;
+      case 'left':
+        return `${baseStyles} border-r`;
+      case 'right':
+        return `${baseStyles} border-l`;
+      default:
+        return `${baseStyles} border-b`;
+    }
+  };
+
+  // Scrollbar and flex styles for different orientations
+  const getScrollContainerStyles = () => {
+    switch (currentPosition) {
+      case 'top':
+      case 'bottom':
+        return 'overflow-x-auto px-4 main-tabs-scrollbar';
+      case 'left':
+      case 'right':
+        return 'overflow-y-auto py-4 main-tabs-scrollbar max-h-full';
+      default:
+        return 'overflow-x-auto px-4 main-tabs-scrollbar';
+    }
+  };
+
+  // Flex direction and styles for tab container
+  const getTabsContainerStyles = () => {
+    switch (currentPosition) {
+      case 'top':
+      case 'bottom':
+        return 'flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base';
+      case 'left':
+      case 'right':
+        return 'flex flex-col gap-1 sm:gap-2 min-h-max text-sm sm:text-base';
+      default:
+        return 'flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base';
+    }
+  };
+
   return (
-    <div className="w-full bg-white dark:bg-gray-800 border-b border-violet-200 dark:border-gray-600 sticky top-0 z-20">
-      <div className="overflow-x-auto px-4 main-tabs-scrollbar">
-        <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base">
+    <div className={`${getPositionStyles()} ${getContainerStyles()}`}>
+      {/* Position toggle button */}
+      <button 
+        onClick={togglePosition}
+        className={`absolute z-40 p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg ${
+          currentPosition === 'top' ? 'top-1 right-1' :
+          currentPosition === 'bottom' ? 'bottom-1 right-1' :
+          currentPosition === 'left' ? 'top-1 right-1' :
+          'top-1 left-1'
+        }`}
+        title="Change tab position"
+      >
+        <span className="text-xs">⇄</span>
+      </button>
+
+      <div className={getScrollContainerStyles()}>
+        <div className={getTabsContainerStyles()}>
           {stats && <TabButton id="updates" label="Updates" />} 
           <TabButton id="upload" label="Upload" />
           {stats && <TabButton id="stats" label="Statistics" />}
