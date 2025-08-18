@@ -1101,6 +1101,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     console.log('=== MARGIN DEBUG ===');
     console.log('topTabsPosition:', topTabsPosition);
     console.log('yearSelectorPosition:', yearSelectorPosition);
+    console.log('yearSelectorExpanded:', yearSelectorExpanded);
     console.log('topTabsHeight:', topTabsHeight);
     console.log('topTabsWidth:', topTabsWidth);
     console.log('yearSelectorWidth:', yearSelectorWidth);
