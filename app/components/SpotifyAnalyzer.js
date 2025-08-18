@@ -1098,8 +1098,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
       } else if (yearSelectorPosition === 'top') {
-        // Collapsed: top-[40px] + h-20 = 120px total from viewport top
-        classes = 'mt-[120px] ml-0 mr-0';
+        // Collapsed: top-[40px] + h-20 = 120px, but try smaller to eliminate gap
+        classes = 'mt-[100px] ml-0 mr-0';
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
@@ -1115,9 +1115,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-48 sm:mr-64 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          // Expanded range mode: top-[40px] + dynamic height
-          // Approximate height based on content: ~200px mobile, ~240px desktop
-          classes = 'mt-[240px] sm:mt-[280px] ml-0 mr-0';
+          // Expanded range mode: try smaller values to eliminate gap
+          classes = 'mt-[180px] sm:mt-[200px] ml-0 mr-0';
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1128,9 +1127,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-16 sm:mr-32 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          // Expanded single mode: top-[40px] + dynamic height  
-          // Approximate height based on content: ~160px mobile, ~192px desktop
-          classes = 'mt-[200px] sm:mt-[232px] ml-0 mr-0';
+          // Expanded single mode: try smaller values to eliminate gap
+          classes = 'mt-[140px] sm:mt-[160px] ml-0 mr-0';
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
