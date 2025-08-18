@@ -1120,9 +1120,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           yearSelectorRight = 32;
         } else if (yearSelectorPosition === 'top') {
-          yearSelectorTop = yearSelectorHeight;
+          yearSelectorTop = 80; // Use fixed collapsed height (similar to left/right pattern)
         } else if (yearSelectorPosition === 'bottom') {
-          yearSelectorBottom = 48;
+          yearSelectorBottom = 80; // Use fixed collapsed height
         }
       } else {
         // Expanded width
@@ -1132,19 +1132,19 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           yearSelectorRight = mobile;
         } else if (yearSelectorPosition === 'top') {
-          const { mobile: mobHeight } = yearSelectorHeight;
-          yearSelectorTop = mobHeight;
+          // Use fixed expanded heights based on mobile/desktop similar to left/right pattern
+          yearSelectorTop = (mobile === 192 && desktop === 256) ? 160 : 120; // Range mode: 160px, Single mode: 120px
         } else if (yearSelectorPosition === 'bottom') {
-          yearSelectorBottom = 48;
+          yearSelectorBottom = (mobile === 192 && desktop === 256) ? 160 : 120; // Range mode: 160px, Single mode: 120px
         }
       }
     }
 
-    // Combine margins intelligently - use maximum when overlapping, add when different sides
-    topMargin = Math.max(topTabsTop, yearSelectorTop);
-    bottomMargin = Math.max(topTabsBottom, yearSelectorBottom);
-    leftMargin = Math.max(topTabsLeft, yearSelectorLeft);
-    rightMargin = Math.max(topTabsRight, yearSelectorRight);
+    // Combine margins additively - both components need space (like the working left/right approach)
+    topMargin = topTabsTop + yearSelectorTop;
+    bottomMargin = topTabsBottom + yearSelectorBottom;
+    leftMargin = topTabsLeft + yearSelectorLeft;
+    rightMargin = topTabsRight + yearSelectorRight;
     
     // Build the final classes
     if (topMargin > 0) classes += `pt-[${topMargin}px] `;
@@ -1772,7 +1772,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 transition-all duration-300">
                   {filteredDisplayedArtists
                     .slice(0, topArtistsCount)
                     .map((artist, index) => {
@@ -1781,7 +1781,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       
                       return (
                         <div key={artist.name} 
-                          className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-colors cursor-pointer relative"
+                          className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-all duration-300 cursor-pointer relative"
                           onClick={() => {
                             // Toggle artist selection
                             if (selectedArtists.includes(artist.name)) {

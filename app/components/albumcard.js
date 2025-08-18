@@ -38,7 +38,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   }, [albumTracks]);
 
   return (
-    <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-colors relative">
+    <div className="p-3 bg-white rounded shadow-sm border-2 border-pink-200 hover:border-pink-400 transition-all duration-300 relative">
       <div className="font-bold text-pink-600">{album.name}</div>
       
       <div className="text-sm text-pink-400">
