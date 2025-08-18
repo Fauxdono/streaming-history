@@ -194,10 +194,29 @@ const YearSelector = ({
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
             const actualHeight = yearSelectorElement.offsetHeight;
+            const computedStyle = window.getComputedStyle(yearSelectorElement);
+            
+            console.log('Year selector height measurement:', {
+              offsetHeight: actualHeight,
+              clientHeight: yearSelectorElement.clientHeight,
+              scrollHeight: yearSelectorElement.scrollHeight,
+              computedHeight: computedStyle.height,
+              marginTop: computedStyle.marginTop,
+              marginBottom: computedStyle.marginBottom,
+              paddingTop: computedStyle.paddingTop,
+              paddingBottom: computedStyle.paddingBottom,
+              borderTop: computedStyle.borderTopWidth,
+              borderBottom: computedStyle.borderBottomWidth,
+              position: currentPosition,
+              expanded,
+              mode
+            });
+            
             onHeightChange(actualHeight);
           } else {
             // Fallback to approximation based on state
             const fallbackHeight = !expanded ? 80 : (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200));
+            console.log('Year selector height fallback:', fallbackHeight, 'expanded:', expanded);
             onHeightChange(fallbackHeight);
           }
         };
