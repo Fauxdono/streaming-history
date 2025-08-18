@@ -49,19 +49,29 @@ const TopTabs = ({
 
   // Communicate height changes to parent (for top/bottom positions)
   useEffect(() => {
-    if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
-      // Approximate height based on content
-      const tabHeight = isMobile ? 60 : 72; // Based on py-2 and text sizes
-      onHeightChange(tabHeight);
+    if (onHeightChange) {
+      if (currentPosition === 'top' || currentPosition === 'bottom') {
+        // Approximate height based on content
+        const tabHeight = isMobile ? 60 : 72; // Based on py-2 and text sizes
+        onHeightChange(tabHeight);
+      } else {
+        // Reset height to 0 when not on top/bottom sides
+        onHeightChange(0);
+      }
     }
   }, [currentPosition, onHeightChange, isMobile]);
 
   // Communicate width changes to parent (for left/right positions)
   useEffect(() => {
-    if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
-      // Approximate width based on content and orientation
-      const tabWidth = isMobile ? 160 : 192; // Responsive width for sidebar tabs
-      onWidthChange(tabWidth);
+    if (onWidthChange) {
+      if (currentPosition === 'left' || currentPosition === 'right') {
+        // Approximate width based on content and orientation
+        const tabWidth = isMobile ? 160 : 192; // Responsive width for sidebar tabs
+        onWidthChange(tabWidth);
+      } else {
+        // Reset width to 0 when not on left/right sides
+        onWidthChange(0);
+      }
     }
   }, [currentPosition, onWidthChange, isMobile]);
 

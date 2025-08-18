@@ -122,37 +122,47 @@ const YearSelector = ({
   // Communicate width changes to parent
   useEffect(() => {
     if (onWidthChange && asSidebar) {
-      const currentWidth = {
-        collapsed: 32, // w-8
-        expandedSingle: { mobile: 64, desktop: 128 }, // w-16 sm:w-32
-        expandedRange: { mobile: 192, desktop: 256 } // w-48 sm:w-64
-      };
-      
-      if (!expanded) {
-        onWidthChange(currentWidth.collapsed);
-      } else if (mode === 'range') {
-        onWidthChange(currentWidth.expandedRange);
+      if (currentPosition === 'left' || currentPosition === 'right') {
+        const currentWidth = {
+          collapsed: 32, // w-8
+          expandedSingle: { mobile: 64, desktop: 128 }, // w-16 sm:w-32
+          expandedRange: { mobile: 192, desktop: 256 } // w-48 sm:w-64
+        };
+        
+        if (!expanded) {
+          onWidthChange(currentWidth.collapsed);
+        } else if (mode === 'range') {
+          onWidthChange(currentWidth.expandedRange);
+        } else {
+          onWidthChange(currentWidth.expandedSingle);
+        }
       } else {
-        onWidthChange(currentWidth.expandedSingle);
+        // Reset width to 0 when not on left/right sides
+        onWidthChange(0);
       }
     }
-  }, [expanded, mode, onWidthChange, asSidebar]);
+  }, [expanded, mode, onWidthChange, asSidebar, currentPosition]);
 
   // Communicate height changes to parent (for top/bottom positions)
   useEffect(() => {
-    if (onHeightChange && asSidebar && (currentPosition === 'top' || currentPosition === 'bottom')) {
-      const currentHeight = {
-        collapsed: 80, // h-20
-        expandedSingle: { mobile: 160, desktop: 200 }, // Approximate heights based on content
-        expandedRange: { mobile: 200, desktop: 280 } // Approximate heights based on content
-      };
-      
-      if (!expanded) {
-        onHeightChange(currentHeight.collapsed);
-      } else if (mode === 'range') {
-        onHeightChange(currentHeight.expandedRange);
+    if (onHeightChange && asSidebar) {
+      if (currentPosition === 'top' || currentPosition === 'bottom') {
+        const currentHeight = {
+          collapsed: 80, // h-20
+          expandedSingle: { mobile: 160, desktop: 200 }, // Approximate heights based on content
+          expandedRange: { mobile: 200, desktop: 280 } // Approximate heights based on content
+        };
+        
+        if (!expanded) {
+          onHeightChange(currentHeight.collapsed);
+        } else if (mode === 'range') {
+          onHeightChange(currentHeight.expandedRange);
+        } else {
+          onHeightChange(currentHeight.expandedSingle);
+        }
       } else {
-        onHeightChange(currentHeight.expandedSingle);
+        // Reset height to 0 when not on top/bottom sides
+        onHeightChange(0);
       }
     }
   }, [expanded, mode, onHeightChange, asSidebar, currentPosition]);
