@@ -1013,19 +1013,42 @@ const YearSelector = ({
     }
   };
 
-  // Position styles for the sidebar - simple independent positioning
+  // Position styles for the sidebar - accounts for TopTabs position to avoid overlap
   const positionStyles = (() => {
+    // Calculate offset based on TopTabs position to avoid overlap
+    const getOffset = (side) => {
+      if (topTabsPosition === side) {
+        // TopTabs are on the same side, so we need to position inside them
+        switch (side) {
+          case 'top': return `top-[${topTabsHeight}px]`;
+          case 'bottom': return `bottom-[${topTabsHeight}px]`;
+          case 'left': return 'left-48'; // 12rem = 192px sidebar width
+          case 'right': return 'right-48'; // 12rem = 192px sidebar width
+          default: return '';
+        }
+      } else {
+        // TopTabs are on a different side, use standard positioning
+        switch (side) {
+          case 'top': return 'top-0';
+          case 'bottom': return 'bottom-0';
+          case 'left': return 'left-0';
+          case 'right': return 'right-0';
+          default: return '';
+        }
+      }
+    };
+
     switch (currentPosition) {
       case 'left': 
-        return 'left-0 top-0 h-full';
+        return `${getOffset('left')} top-0 h-full`;
       case 'right': 
-        return 'right-0 top-0 h-full';
+        return `${getOffset('right')} top-0 h-full`;
       case 'bottom': 
-        return 'bottom-0 left-0 right-0 h-auto';
+        return `${getOffset('bottom')} left-0 right-0 h-auto`;
       case 'top': 
-        return 'top-0 left-0 right-0 h-auto';
+        return `${getOffset('top')} left-0 right-0 h-auto`;
       default: 
-        return 'right-0 top-0 h-full';
+        return `${getOffset('right')} top-0 h-full`;
     }
   })();
 
