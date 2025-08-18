@@ -1823,7 +1823,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           )}
           
           {activeTab === 'albums' && (
-            <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300">
+            <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300 transition-all duration-300">
               {/* Title - mobile gets its own row */}
               <div className="block sm:hidden mb-3">
                 <h3 className="font-bold text-pink-700">
@@ -1976,7 +1976,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </button>
                 </div>
               ) : albumsViewMode === 'mobile' ? (
-                <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
+                <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 transition-all duration-300">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
@@ -2007,7 +2007,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </table>
                 </div>
               ) : albumsViewMode === 'compact' ? (
-                <div className="border rounded-lg p-3 sm:p-4 bg-pink-50">
+                <div className="border rounded-lg p-3 sm:p-4 bg-pink-50 transition-all duration-300">
                   <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
                     <div className="text-pink-700 font-medium text-sm">
                       {selectedAlbumYear === 'all' ? 'All-time albums' : 
@@ -2094,7 +2094,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </div>
                 </div>
               ) : (
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+               <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 transition-all duration-300`}>
                   {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
                     <AlbumCard 
                       key={`${album.name}-${album.artist}`}
