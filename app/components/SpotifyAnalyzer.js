@@ -1098,6 +1098,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     let leftMargin = 0;
     let rightMargin = 0;
     
+    console.log('=== MARGIN DEBUG ===');
+    console.log('topTabsPosition:', topTabsPosition);
+    console.log('yearSelectorPosition:', yearSelectorPosition);
+    console.log('topTabsHeight:', topTabsHeight);
+    console.log('topTabsWidth:', topTabsWidth);
+    console.log('yearSelectorWidth:', yearSelectorWidth);
+    console.log('yearSelectorHeight:', yearSelectorHeight);
+    console.log('showYearSidebar:', showYearSidebar);
+    
     // Calculate TopTabs margins
     let topTabsTop = 0, topTabsBottom = 0, topTabsLeft = 0, topTabsRight = 0;
     if (topTabsPosition === 'top') {
@@ -1151,6 +1160,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     if (bottomMargin > 0) classes += `pb-[${bottomMargin}px] `;
     if (leftMargin > 0) classes += `pl-[${leftMargin}px] `;
     if (rightMargin > 0) classes += `pr-[${rightMargin}px] `;
+    
+    console.log('Final margins:', { topMargin, bottomMargin, leftMargin, rightMargin });
+    console.log('Generated CSS classes:', classes.trim());
+    console.log('==================');
     
     return classes.trim();
   };
