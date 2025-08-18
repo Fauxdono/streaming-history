@@ -222,15 +222,19 @@ const TopTabs = ({
 
   // Container styles for different orientations
   const getContainerStyles = () => {
-    const baseStyles = 'bg-white dark:bg-gray-800 transition-all duration-300';
+    const baseStyles = 'bg-white dark:bg-gray-800 border-violet-200 dark:border-gray-600 transition-all duration-300';
     
     switch (currentPosition) {
       case 'top':
+        return `${baseStyles} border-b`;
       case 'bottom':
+        return `${baseStyles} border-t`;
       case 'left':
+        return `${baseStyles} border-r`;
       case 'right':
+        return `${baseStyles} border-l`;
       default:
-        return baseStyles;
+        return `${baseStyles} border-b`;
     }
   };
 
