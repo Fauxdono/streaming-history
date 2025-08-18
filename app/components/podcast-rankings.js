@@ -42,10 +42,27 @@ const PodcastRankings = ({
   const [showDuplicateStats, setShowDuplicateStats] = useState(false);
   const [duplicatesFound, setDuplicatesFound] = useState(0);
   const [duplicateTypes, setDuplicateTypes] = useState({ exact: 0, overlapping: 0, zeroTime: 0 });
+  const [isMobile, setIsMobile] = useState(false);
 
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  // Add check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add resize listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Update date range based on year selection (from YearSelector)
   useEffect(() => {
@@ -639,6 +656,106 @@ const PodcastRankings = ({
     }
   };
 
+  // Render episode row with compact mode support
+  const renderEpisodeRow = (episode, index) => {
+    if (isMobile) {
+      // Mobile/compact view for episodes
+      return (
+        <tr key={episode.key} className={`border-b hover:opacity-80 ${
+          isDarkMode 
+            ? 'border-gray-700 hover:bg-gray-800' 
+            : 'border-gray-200 hover:bg-indigo-50'
+        }`}>
+          <td className={`p-2 ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>
+            <div className="flex flex-col">
+              <div className="flex items-center">
+                <span className="font-bold text-xs mr-2 text-indigo-800">{index + 1}.</span>
+                <div className="font-medium text-sm">{episode.episodeName}</div>
+              </div>
+              <div 
+                className={`text-xs cursor-pointer hover:underline ${
+                  isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-800'
+                }`}
+                onClick={() => addShowFromEpisode(episode.showName)}
+              >
+                {episode.showName}
+              </div>
+              <div className={`text-xs ${
+                isDarkMode ? 'text-indigo-500' : 'text-indigo-500'
+              }`}>
+                {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).join(', ')}
+              </div>
+            </div>
+          </td>
+          <td className={`p-2 align-top text-right ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>
+            <div className="flex flex-col">
+              <span className="font-medium text-sm">{formatDuration(episode.totalPlayed)}</span>
+              <span className="text-xs">{formatDuration(episode.longestSession)} longest</span>
+              <span className="text-xs">{episode.segmentCount} sessions</span>
+              {showDuplicateStats && (
+                <span className="text-xs">{episode.duplicatesRemoved} dupes</span>
+              )}
+            </div>
+          </td>
+        </tr>
+      );
+    } else {
+      // Desktop view - full table
+      return (
+        <tr key={episode.key} className={`border-b hover:opacity-80 ${
+          isDarkMode 
+            ? 'border-gray-700 hover:bg-gray-800' 
+            : 'border-gray-200 hover:bg-indigo-50'
+        }`}>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>{index + 1}</td>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>{episode.episodeName}</td>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm cursor-pointer hover:underline ${
+            isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-700 hover:text-indigo-800'
+          }`} 
+              onClick={() => addShowFromEpisode(episode.showName)}
+          >
+            {episode.showName}
+          </td>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>
+            {formatDuration(episode.totalPlayed)}
+          </td>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>
+            {formatDuration(episode.longestSession)}
+          </td>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
+            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+          }`}>
+            {episode.segmentCount}
+          </td>
+          {showDuplicateStats && (
+            <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
+              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            }`}>
+              {episode.duplicatesRemoved}
+            </td>
+          )}
+          <td className={`p-1 sm:p-2 text-right text-xs ${
+            isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+          }`}>
+            {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).join(', ')}
+          </td>
+        </tr>
+      );
+    }
+  };
+
   return (
     <div className={`w-full space-y-4 ${isDarkMode ? 'text-indigo-200' : 'text-gray-900'}`}>
   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
@@ -779,102 +896,69 @@ const PodcastRankings = ({
 
       {filteredEpisodes.length > 0 ? (
         <div className="overflow-x-auto -mx-2 sm:-mx-4 px-2 sm:px-4">
-          <div className="min-w-[800px]">
+          <div className={isMobile ? "min-w-full" : "min-w-[800px]"}>
             <table className="w-full border-collapse">
               <thead>
                 <tr className={`border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                  {!isMobile && (
+                    <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
+                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                    }`}>Rank</th>
+                  )}
                   <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
                     isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                  }`}>Rank</th>
-                  <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                  }`}>Episode</th>
-                  <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                  }`}>Show</th>
-                  <th 
-                    className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                      isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
-                    } ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
-                    onClick={() => setSortBy('totalPlayed')}
-                  >
-                    Total Time {sortBy === 'totalPlayed' && '▼'}
+                  }`}>
+                    {isMobile ? "Episode Info" : "Episode"}
                   </th>
-                  <th 
-                    className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                      isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
-                    } ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
-                    onClick={() => setSortBy('longestSession')}
-                  >
-                    Longest Session {sortBy === 'longestSession' && '▼'}
-                  </th>
-                  <th 
-                    className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                      isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
-                    } ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
-                    onClick={() => setSortBy('segmentCount')}
-                  >
-                    Sessions {sortBy === 'segmentCount' && '▼'}
-                  </th>
-                  {showDuplicateStats && (
+                  {!isMobile && (
+                    <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
+                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                    }`}>Show</th>
+                  )}
+                  {!isMobile ? (
+                    <>
+                      <th 
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
+                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                        } ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
+                        onClick={() => setSortBy('totalPlayed')}
+                      >
+                        Total Time {sortBy === 'totalPlayed' && '▼'}
+                      </th>
+                      <th 
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
+                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                        } ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
+                        onClick={() => setSortBy('longestSession')}
+                      >
+                        Longest Session {sortBy === 'longestSession' && '▼'}
+                      </th>
+                      <th 
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
+                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                        } ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
+                        onClick={() => setSortBy('segmentCount')}
+                      >
+                        Sessions {sortBy === 'segmentCount' && '▼'}
+                      </th>
+                      {showDuplicateStats && (
+                        <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
+                          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                        }`}>Duplicates Removed</th>
+                      )}
+                      <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
+                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+                      }`}>Platforms</th>
+                    </>
+                  ) : (
                     <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
                       isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                    }`}>Duplicates Removed</th>
+                    }`}>Stats</th>
                   )}
-                  <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                    isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                  }`}>Platforms</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredEpisodes.map((episode, index) => (
-                  <tr key={episode.key} className={`border-b hover:opacity-80 ${
-                    isDarkMode 
-                      ? 'border-gray-700 hover:bg-gray-800' 
-                      : 'border-gray-200 hover:bg-indigo-50'
-                  }`}>
-                    <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
-                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                    }`}>{index + 1}</td>
-                    <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
-                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                    }`}>{episode.episodeName}</td>
-                    <td className={`p-1 sm:p-2 text-xs sm:text-sm cursor-pointer hover:underline ${
-                      isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-700 hover:text-indigo-800'
-                    }`} 
-                        onClick={() => addShowFromEpisode(episode.showName)}
-                    >
-                      {episode.showName}
-                    </td>
-                    <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                    }`}>
-                      {formatDuration(episode.totalPlayed)}
-                    </td>
-                    <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                    }`}>
-                      {formatDuration(episode.longestSession)}
-                    </td>
-                    <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                      isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                    }`}>
-                      {episode.segmentCount}
-                    </td>
-                    {showDuplicateStats && (
-                      <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>
-                        {episode.duplicatesRemoved}
-                      </td>
-                    )}
-                    <td className={`p-1 sm:p-2 text-right text-xs ${
-                      isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-                    }`}>
-                      {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).join(', ')}
-                    </td>
-                  </tr>
-                ))}
+                {filteredEpisodes.map(renderEpisodeRow)}
               </tbody>
             </table>
           </div>
