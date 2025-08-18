@@ -1125,12 +1125,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     if (showYearSidebar) {
       if (yearSelectorPosition === 'left') {
         yearSelectorLeft = yearSelectorWidth || 0;
+        console.log('Year selector LEFT margin will be:', yearSelectorLeft);
       } else if (yearSelectorPosition === 'right') {
         yearSelectorRight = yearSelectorWidth || 0;
+        console.log('Year selector RIGHT margin will be:', yearSelectorRight);
       } else if (yearSelectorPosition === 'top') {
         yearSelectorTop = yearSelectorHeight || 0;
+        console.log('Year selector TOP margin will be:', yearSelectorTop);
       } else if (yearSelectorPosition === 'bottom') {
         yearSelectorBottom = yearSelectorHeight || 0;
+        console.log('Year selector BOTTOM margin will be:', yearSelectorBottom);
       }
     }
 
@@ -1139,6 +1143,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     bottomMargin = topTabsBottom + yearSelectorBottom;
     leftMargin = topTabsLeft + yearSelectorLeft;
     rightMargin = topTabsRight + yearSelectorRight;
+    
+    console.log('FINAL CALCULATED MARGINS:');
+    console.log('  topTabsTop:', topTabsTop, '+ yearSelectorTop:', yearSelectorTop, '= topMargin:', topMargin);
+    console.log('  topTabsBottom:', topTabsBottom, '+ yearSelectorBottom:', yearSelectorBottom, '= bottomMargin:', bottomMargin);
+    console.log('  topTabsLeft:', topTabsLeft, '+ yearSelectorLeft:', yearSelectorLeft, '= leftMargin:', leftMargin);
+    console.log('  topTabsRight:', topTabsRight, '+ yearSelectorRight:', yearSelectorRight, '= rightMargin:', rightMargin);
     
     // Return as an object for inline styles instead of Tailwind classes
     const marginStyles = {
