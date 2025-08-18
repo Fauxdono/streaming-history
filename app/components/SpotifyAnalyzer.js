@@ -1098,7 +1098,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
       } else if (yearSelectorPosition === 'top') {
-        classes = 'mt-12 ml-0 mr-0'; // Account for pt-3 padding in collapsed top selector
+        classes = 'mt-20 ml-0 mr-0'; // Account for h-20 height of collapsed top selector
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
