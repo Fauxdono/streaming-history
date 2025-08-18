@@ -221,11 +221,30 @@ const YearSelector = ({
           }
         };
         
-        // Measure immediately and after a brief delay to ensure rendering is complete
-        measureHeight();
-        const timer = setTimeout(measureHeight, 100);
+        // Set up ResizeObserver for dynamic height measurement
+        let resizeObserver;
+        const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+        if (yearSelectorElement && window.ResizeObserver) {
+          resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              const height = entry.contentRect.height;
+              console.log('ResizeObserver detected height change:', height);
+              if (height > 0) { // Basic sanity check for height
+                onHeightChange(height);
+              }
+            }
+          });
+          resizeObserver.observe(yearSelectorElement);
+        }
         
-        return () => clearTimeout(timer);
+        // Initial measurement as fallback
+        measureHeight();
+        
+        return () => {
+          if (resizeObserver) {
+            resizeObserver.disconnect();
+          }
+        };
       } else {
         // Reset height to 0 when not on top/bottom sides
         onHeightChange(0);
