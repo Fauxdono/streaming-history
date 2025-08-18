@@ -1097,7 +1097,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     let leftMargin = 0;
     let rightMargin = 0;
     
-    // Handle TopTabs positioning
+    // Handle TopTabs positioning (outer layer)
     if (topTabsPosition === 'top') {
       topMargin += topTabsHeight;
     } else if (topTabsPosition === 'bottom') {
@@ -1108,16 +1108,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       rightMargin += 192;
     }
     
-    // Handle year selector if it's shown
+    // Handle year selector if it's shown (inner layer)
     if (showYearSidebar) {
       if (typeof yearSelectorWidth === 'number') {
         // Collapsed width (32px = w-8)
         if (yearSelectorPosition === 'left') {
-          leftMargin += 32;
+          // If TopTabs are also on left, year selector is positioned inside them
+          leftMargin += (topTabsPosition === 'left') ? 32 : 32; // Same margin regardless
         } else if (yearSelectorPosition === 'right') {
-          rightMargin += 32;
+          rightMargin += (topTabsPosition === 'right') ? 32 : 32; // Same margin regardless  
         } else if (yearSelectorPosition === 'top') {
-          topMargin += yearSelectorHeight;
+          // If TopTabs are also on top, year selector is positioned below them
+          topMargin += yearSelectorHeight; // Year selector adds to existing TopTabs margin
         } else if (yearSelectorPosition === 'bottom') {
           bottomMargin += 48; // 12 * 4px
         }
@@ -1129,13 +1131,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         if (mobile === 192 && desktop === 256) {
           // Range mode - match the actual visual width more closely
           if (yearSelectorPosition === 'left') {
+            // Year selector adds to existing margin (positioned inside TopTabs if on same side)
             leftMargin += mobile; // Use mobile value as base
           } else if (yearSelectorPosition === 'right') {
             rightMargin += mobile;
           } else if (yearSelectorPosition === 'top') {
             // Dynamic height for expanded range mode
             const { mobile: mobHeight, desktop: deskHeight } = yearSelectorHeight;
-            topMargin += mobHeight;
+            topMargin += mobHeight; // Adds to existing TopTabs margin
           } else if (yearSelectorPosition === 'bottom') {
             bottomMargin += 48; // 12 * 4px
           }
@@ -1148,7 +1151,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           } else if (yearSelectorPosition === 'top') {
             // Dynamic height for expanded single mode
             const { mobile: mobHeight, desktop: deskHeight } = yearSelectorHeight;
-            topMargin += mobHeight;
+            topMargin += mobHeight; // Adds to existing TopTabs margin
           } else if (yearSelectorPosition === 'bottom') {
             bottomMargin += 48; // 12 * 4px
           }
@@ -2287,6 +2290,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             onPositionChange={setYearSelectorPosition}
             onWidthChange={setYearSelectorWidth}
             onHeightChange={setYearSelectorHeight}
+            topTabsPosition={topTabsPosition}
+            topTabsHeight={topTabsHeight}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :

@@ -136,15 +136,15 @@ const TopTabs = ({
   const getPositionStyles = () => {
     switch (currentPosition) {
       case 'top':
-        return 'fixed top-0 left-0 right-0 w-full z-30';
+        return 'fixed top-0 left-0 right-0 w-full z-60';
       case 'bottom':
-        return 'fixed bottom-0 left-0 right-0 w-full z-30';
+        return 'fixed bottom-0 left-0 right-0 w-full z-60';
       case 'left':
-        return 'fixed left-0 top-0 bottom-0 h-full w-auto z-30';
+        return 'fixed left-0 top-0 bottom-0 h-full w-auto z-60';
       case 'right':
-        return 'fixed right-0 top-0 bottom-0 h-full w-auto z-30';
+        return 'fixed right-0 top-0 bottom-0 h-full w-auto z-60';
       default:
-        return 'fixed top-0 left-0 right-0 w-full z-30';
+        return 'fixed top-0 left-0 right-0 w-full z-60';
     }
   };
 
@@ -199,7 +199,7 @@ const TopTabs = ({
       {/* Position toggle button */}
       <button 
         onClick={togglePosition}
-        className={`absolute z-40 p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg ${
+        className={`absolute z-70 p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg ${
           currentPosition === 'top' ? 'top-1 right-1' :
           currentPosition === 'bottom' ? 'bottom-1 right-1' :
           currentPosition === 'left' ? 'top-1 right-1' :
