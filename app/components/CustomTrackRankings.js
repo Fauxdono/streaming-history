@@ -36,7 +36,7 @@ const CustomTrackRankings = ({
   const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isCompactView, setIsCompactView] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
 
   // Create a ref to hold our normalization cache that persists across renders
   const normalizationCache = useRef(new Map());
@@ -1002,79 +1002,52 @@ const CustomTrackRankings = ({
 
   // Updated renderTrackRow function with omit buttons preserved
   const renderTrackRow = (song, index) => {
-    if (isMobile) {
-      // True mobile view - grid layout like yesterday
-      return (
-        <div 
-          key={song.key} 
-          className={`p-3 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow ${song.isFeatured ? 'border-orange-200 bg-orange-50' : 'border-gray-200'}`}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center">
-              <span className="font-bold text-sm mr-2 text-orange-800">{index + 1}.</span>
-              {song.isFeatured && (
-                <span className="inline-block px-1 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
-                  FEAT
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => omitSong(song)}
-                className="p-1 text-orange-600 hover:text-orange-800 rounded"
-                title="Omit this song"
-              >
-                <XCircle size={14} />
-              </button>
-            </div>
-          </div>
-          
-          <div className="mb-2">
-            <div className="font-medium text-orange-900 text-sm leading-tight mb-1">
-              {song.displayName || song.trackName}
-            </div>
-            <div 
-              className="text-sm text-orange-600 cursor-pointer hover:underline flex items-center"
-              onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
-            >
-              {song.displayArtist || song.artist}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  omitArtist(song.artist);
-                }}
-                className="ml-1 text-orange-600 hover:text-orange-800"
-                title="Omit this artist"
-              >
-                <XCircle size={12} />
-              </button>
-            </div>
-            <div 
-              className="text-xs text-orange-500 cursor-pointer hover:underline mt-1"
-              onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-            >
-              {song.albumName}
-            </div>
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <div className="text-sm font-medium text-orange-700">
-              {formatDuration(song.totalPlayed)}
-            </div>
-            <div className="text-xs text-orange-600">
-              {song.playCount} plays
-            </div>
-          </div>
-        </div>
-      );
-    } else if (isCompactView) {
-      // Compact view - all data but smaller table format
+    if (viewMode === 'mobile') {
+      // Mobile view - simplified 2-column table like artists tab
       return (
         <tr 
           key={song.key} 
           className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
         >
-          <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm">{index + 1}</td>
+          <td className="p-2 text-orange-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium">#{index + 1} {song.displayName || song.trackName}</div>
+                <div className="text-sm text-orange-500">
+                  {song.displayArtist || song.artist}
+                  {song.isFeatured && (
+                    <span className="inline-block px-1 py-0.5 ml-1 bg-orange-200 text-orange-700 rounded text-xs">
+                      FEAT
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-orange-400">{song.albumName}</div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => omitSong(song)}
+                  className="p-1 text-orange-600 hover:text-orange-800 rounded"
+                  title="Omit this song"
+                >
+                  <XCircle size={12} />
+                </button>
+              </div>
+            </div>
+          </td>
+          <td className="p-2 text-right text-orange-700">
+            <div>{formatDuration(song.totalPlayed)}</div>
+            <div className="text-sm text-orange-500">{song.playCount} plays</div>
+          </td>
+        </tr>
+      );
+    } else if (viewMode === 'compact') {
+      // Compact view - like artists tab compact view
+      return (
+        <tr 
+          key={song.key} 
+          className={`border-b hover:bg-orange-100 ${song.isFeatured ? 'bg-orange-100' : ''}`}
+        >
+          <td className="p-1 sm:p-2 text-orange-700 font-medium text-xs sm:text-sm">{index + 1}</td>
           <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm">
             <div className="flex items-center">
               {song.isFeatured && (
@@ -1085,133 +1058,90 @@ const CustomTrackRankings = ({
               <div>{song.displayName || song.trackName}</div>
             </div>
           </td>
-          <td 
-            className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm cursor-pointer hover:underline" 
-            onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
-          >
-            <div className="flex items-center">
-              {song.displayArtist || song.artist}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  omitArtist(song.artist);
-                }}
-                className="ml-1 text-orange-600 hover:text-orange-800"
-                title="Omit this artist"
-              >
-                <XCircle size={12} />
-              </button>
-            </div>
-          </td>
-          <td 
-            className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm cursor-pointer hover:underline" 
-            onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-          >
-            {song.albumName}
-          </td>
+          <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm">{song.displayArtist || song.artist}</td>
           <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{formatDuration(song.totalPlayed)}</td>
           <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{song.playCount}</td>
-          <td className="p-1 sm:p-2 text-right text-orange-700">
-            <button
-              onClick={() => omitSong(song)}
-              className="p-1 text-orange-600 hover:text-orange-800 rounded"
-              title="Omit this song"
-            >
-              <XCircle size={12} />
-            </button>
-          </td>
+          <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm hidden sm:table-cell">{song.albumName}</td>
         </tr>
       );
     }
-    
-    // Desktop view - full table with larger text and padding than compact
-    return (
-      <tr 
-        key={song.key} 
-        className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
-      >
-        <td className="p-3 text-orange-700 text-base">{index + 1}</td>
-        <td className="p-3 text-orange-700 text-base">
-          <div className="flex items-center">
-            {song.isFeatured && (
-              <span className="inline-block px-2 py-1 mr-2 bg-orange-200 text-orange-700 rounded text-sm">
-                FEAT
-              </span>
-            )}
-            <div className="font-medium">
-              {song.displayName || song.trackName}
-            </div>
-          </div>
-        </td>
-        <td 
-          className="p-3 text-orange-700 text-base" 
-        > 
-          <div className="flex items-center">
-            <span 
-              className="cursor-pointer hover:underline"
-              onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
-            >
-              {song.displayArtist || song.artist}
-            </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                omitArtist(song.artist);
-              }}
-              className="ml-2 text-orange-600 hover:text-orange-800"
-              title="Omit this artist"
-            >
-              <XCircle size={18} />
-            </button>
-          </div>
-        </td>
-        <td 
-          className="p-3 text-orange-700 text-base cursor-pointer hover:underline" 
-          onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-        >
-          {song.albumName}
-        </td>
-        <td className="p-3 text-right text-orange-700 text-base font-medium">{formatDuration(song.totalPlayed)}</td>
-        <td className="p-3 text-right text-orange-700 text-base">{song.playCount}</td>
-        <td className="p-3 text-right text-orange-700">
-          <button
-            onClick={() => omitSong(song)}
-            className="p-1 text-orange-600 hover:text-orange-800 rounded"
-            title="Omit this song"
-          >
-            <XCircle size={18} />
-          </button>
-        </td>
-      </tr>
-    );
   };
 return (
   <div className="space-y-4">
-    {/* Header with title and controls */}
-    <div className="flex justify-between items-center mb-2">
+    {/* Title - mobile gets its own row */}
+    <div className="block sm:hidden mb-3">
+      <h3 className="font-bold text-orange-700">
+        {getPageTitle()}
+      </h3>
+    </div>
+    
+    {/* Desktop layout - title and controls on same row */}
+    <div className="hidden sm:flex justify-between items-center mb-4">
       <h3 className="font-bold text-orange-700">
         {getPageTitle()}
       </h3>
       
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setIsCompactView(!isCompactView)}
-          className={`p-1 rounded ${
-            isCompactView ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-700'
-          } hover:bg-orange-700 hover:text-white`}
-          title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
-        >
-          {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
-        </button>
-        <label className="text-orange-700 ml-2">Show Top</label>
-        <input
-          type="number"
-          min="1"
-          max="999"
-          value={topN}
-          onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-          className="w-16 border rounded px-2 py-1 text-orange-700"
-        />
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-orange-700">Show Top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
+            className="w-16 border rounded px-2 py-1 text-orange-700"
+          />
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <label className="text-orange-700">View Mode</label>
+          <button
+            onClick={() => {
+              const modes = ['grid', 'compact', 'mobile'];
+              const currentIndex = modes.indexOf(viewMode);
+              const nextIndex = (currentIndex + 1) % modes.length;
+              setViewMode(modes[nextIndex]);
+            }}
+            className="px-3 py-1 rounded text-sm font-medium transition-colors bg-orange-600 text-white hover:bg-orange-700"
+          >
+            {viewMode === 'grid' ? 'Grid' : 
+             viewMode === 'compact' ? 'Compact' : 'Mobile'}
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    {/* Mobile controls - separate row */}
+    <div className="block sm:hidden mb-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1">
+          <label className="text-orange-700 text-sm">Top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
+            className="w-12 border rounded px-1 py-1 text-orange-700 text-sm"
+          />
+        </div>
+        
+        <div className="flex items-center gap-1">
+          <label className="text-orange-700 text-sm">View</label>
+          <button
+            onClick={() => {
+              const modes = ['grid', 'compact', 'mobile'];
+              const currentIndex = modes.indexOf(viewMode);
+              const nextIndex = (currentIndex + 1) % modes.length;
+              setViewMode(modes[nextIndex]);
+            }}
+            className="px-2 py-1 rounded text-xs font-medium transition-colors bg-orange-600 text-white hover:bg-orange-700"
+          >
+            {viewMode === 'grid' ? 'Grid' : 
+             viewMode === 'compact' ? 'Compact' : 'Mobile'}
+          </button>
+        </div>
       </div>
     </div>
    
@@ -1479,76 +1409,120 @@ return (
         </div>
 
         {filteredTracks.length > 0 ? (
-          isMobile ? (
-            // Mobile view - grid layout
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-              {filteredTracks.map(renderTrackRow)}
+          viewMode === 'grid' ? (
+            // Grid view - like artists tab grid
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredTracks.map((song, index) => (
+                <div 
+                  key={song.key}
+                  className={`p-3 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow ${song.isFeatured ? 'border-orange-200 bg-orange-50' : 'border-gray-200'}`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center">
+                      <span className="font-bold text-sm mr-2 text-orange-800">#{index + 1}</span>
+                      {song.isFeatured && (
+                        <span className="inline-block px-1 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
+                          FEAT
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => omitSong(song)}
+                      className="p-1 text-orange-600 hover:text-orange-800 rounded"
+                      title="Omit this song"
+                    >
+                      <XCircle size={14} />
+                    </button>
+                  </div>
+                  
+                  <div className="mb-2">
+                    <div className="font-medium text-orange-900 text-sm leading-tight mb-1">
+                      {song.displayName || song.trackName}
+                    </div>
+                    <div 
+                      className="text-sm text-orange-600 cursor-pointer hover:underline flex items-center"
+                      onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
+                    >
+                      {song.displayArtist || song.artist}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          omitArtist(song.artist);
+                        }}
+                        className="ml-1 text-orange-600 hover:text-orange-800"
+                        title="Omit this artist"
+                      >
+                        <XCircle size={12} />
+                      </button>
+                    </div>
+                    <div 
+                      className="text-xs text-orange-500 cursor-pointer hover:underline mt-1"
+                      onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
+                    >
+                      {song.albumName}
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm font-medium text-orange-700">
+                      {formatDuration(song.totalPlayed)}
+                    </div>
+                    <div className="text-xs text-orange-600">
+                      {song.playCount} plays
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : (
-            // Desktop and compact views - table layout
-            <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-              <div className={isCompactView ? "min-w-full" : "min-w-[640px]"}>
-                <table className="w-full border-collapse">
+          ) : viewMode === 'mobile' ? (
+            // Mobile view - 2-column table like artists tab
+            <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
+              <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b">
-                    {isCompactView && (
-                      <>
-                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Rank</th>
-                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Track</th>
-                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Artist</th>
-                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Album</th>
-                        <th 
-                          className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
-                            sortBy === 'totalPlayed' ? 'font-bold' : ''
-                          }`}
-                          onClick={() => setSortBy('totalPlayed')}
-                        >
-                          Time {sortBy === 'totalPlayed' && '▼'}
-                        </th>
-                        <th 
-                          className={`p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm cursor-pointer hover:bg-orange-100 ${
-                            sortBy === 'playCount' ? 'font-bold' : ''
-                          }`}
-                          onClick={() => setSortBy('playCount')}
-                        >
-                          Plays {sortBy === 'playCount' && '▼'}
-                        </th>
-                        <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Actions</th>
-                      </>
-                    )}
-                    {!isCompactView && (
-                      <>
-                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Rank</th>
-                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Track</th>
-                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Artist</th>
-                        <th className="p-3 text-left text-orange-700 text-base font-semibold">Album</th>
-                        <th 
-                          className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
-                            sortBy === 'totalPlayed' ? 'font-bold' : ''
-                          }`}
-                          onClick={() => setSortBy('totalPlayed')}
-                        >
-                          Time {sortBy === 'totalPlayed' && '▼'}
-                        </th>
-                        <th 
-                          className={`p-3 text-right text-orange-700 text-base font-semibold cursor-pointer hover:bg-orange-100 ${
-                            sortBy === 'playCount' ? 'font-bold' : ''
-                          }`}
-                          onClick={() => setSortBy('playCount')}
-                        >
-                          Plays {sortBy === 'playCount' && '▼'}
-                        </th>
-                        <th className="p-3 text-right text-orange-700 text-base font-semibold">Actions</th>
-                      </>
-                    )}
+                    <th className="p-2 text-left text-orange-700">Track Info</th>
+                    <th className="p-2 text-right text-orange-700">Stats</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTracks.map(renderTrackRow)}
                 </tbody>
-                </table>
+              </table>
+            </div>
+          ) : viewMode === 'compact' ? (
+            // Compact view - like artists tab compact
+            <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
+              <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
+                <div className="text-orange-700 font-medium text-sm">
+                  Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+                </div>
+                <div className="text-orange-700 text-sm">
+                  Found <span className="font-bold">{filteredTracks.length}</span> tracks
+                </div>
+              </div>
+              <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+                <div className="min-w-full">
+                  <table className="w-full border-collapse text-sm sm:text-base">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Rank</th>
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Track</th>
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Artist</th>
+                        <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Time</th>
+                        <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Plays</th>
+                        <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm hidden sm:table-cell">Album</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredTracks.map(renderTrackRow)}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
+          ) : (
+            // Default view - should not happen
+            <div>Unknown view mode</div>
           )
         ) : (
           <div className="text-center py-4 text-orange-500">
