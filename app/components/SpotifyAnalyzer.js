@@ -1090,7 +1090,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
-  // Calculate margin based on year selector width and TopTabs position using proper Tailwind classes
+  // Calculate margin based on component positions - smart overlapping logic
   const getYearSelectorMargin = () => {
     let classes = '';
     let topMargin = 0;
@@ -1098,64 +1098,53 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     let leftMargin = 0;
     let rightMargin = 0;
     
-    // Handle TopTabs positioning (outer layer)
+    // Calculate TopTabs margins
+    let topTabsTop = 0, topTabsBottom = 0, topTabsLeft = 0, topTabsRight = 0;
     if (topTabsPosition === 'top') {
-      topMargin += topTabsHeight;
+      topTabsTop = topTabsHeight;
     } else if (topTabsPosition === 'bottom') {
-      bottomMargin += topTabsHeight;
+      topTabsBottom = topTabsHeight;
     } else if (topTabsPosition === 'left') {
-      leftMargin += topTabsWidth; // Use dynamic width
+      topTabsLeft = topTabsWidth;
     } else if (topTabsPosition === 'right') {
-      rightMargin += topTabsWidth;
+      topTabsRight = topTabsWidth;
     }
-    
-    // Handle year selector if it's shown (inner layer)
+
+    // Calculate year selector margins
+    let yearSelectorTop = 0, yearSelectorBottom = 0, yearSelectorLeft = 0, yearSelectorRight = 0;
     if (showYearSidebar) {
       if (typeof yearSelectorWidth === 'number') {
-        // Collapsed width (32px = w-8)
+        // Collapsed width (32px)
         if (yearSelectorPosition === 'left') {
-          leftMargin += 32; // Always add year selector width
+          yearSelectorLeft = 32;
         } else if (yearSelectorPosition === 'right') {
-          rightMargin += 32; // Always add year selector width
+          yearSelectorRight = 32;
         } else if (yearSelectorPosition === 'top') {
-          topMargin += yearSelectorHeight; // Year selector adds to existing TopTabs margin
+          yearSelectorTop = yearSelectorHeight;
         } else if (yearSelectorPosition === 'bottom') {
-          bottomMargin += 48; // 12 * 4px
+          yearSelectorBottom = 48;
         }
       } else {
-        // Expanded width - use the closest matching Tailwind classes
+        // Expanded width
         const { mobile, desktop } = yearSelectorWidth;
-        // mobile: 192px = w-48, desktop: 256px = w-64 for range mode
-        // mobile: 64px = w-16, desktop: 128px = w-32 for single mode
-        if (mobile === 192 && desktop === 256) {
-          // Range mode - always add the year selector width
-          if (yearSelectorPosition === 'left') {
-            leftMargin += mobile; // Add year selector width to existing margins
-          } else if (yearSelectorPosition === 'right') {
-            rightMargin += mobile;
-          } else if (yearSelectorPosition === 'top') {
-            // Dynamic height for expanded range mode
-            const { mobile: mobHeight, desktop: deskHeight } = yearSelectorHeight;
-            topMargin += mobHeight; // Adds to existing TopTabs margin
-          } else if (yearSelectorPosition === 'bottom') {
-            bottomMargin += 48; // 12 * 4px
-          }
-        } else {
-          // Single mode - always add the year selector width
-          if (yearSelectorPosition === 'left') {
-            leftMargin += mobile; // Add year selector width to existing margins
-          } else if (yearSelectorPosition === 'right') {
-            rightMargin += mobile;
-          } else if (yearSelectorPosition === 'top') {
-            // Dynamic height for expanded single mode
-            const { mobile: mobHeight, desktop: deskHeight } = yearSelectorHeight;
-            topMargin += mobHeight; // Adds to existing TopTabs margin
-          } else if (yearSelectorPosition === 'bottom') {
-            bottomMargin += 48; // 12 * 4px
-          }
+        if (yearSelectorPosition === 'left') {
+          yearSelectorLeft = mobile;
+        } else if (yearSelectorPosition === 'right') {
+          yearSelectorRight = mobile;
+        } else if (yearSelectorPosition === 'top') {
+          const { mobile: mobHeight } = yearSelectorHeight;
+          yearSelectorTop = mobHeight;
+        } else if (yearSelectorPosition === 'bottom') {
+          yearSelectorBottom = 48;
         }
       }
     }
+
+    // Combine margins intelligently - use maximum when overlapping, add when different sides
+    topMargin = Math.max(topTabsTop, yearSelectorTop);
+    bottomMargin = Math.max(topTabsBottom, yearSelectorBottom);
+    leftMargin = Math.max(topTabsLeft, yearSelectorLeft);
+    rightMargin = Math.max(topTabsRight, yearSelectorRight);
     
     // Build the final classes
     if (topMargin > 0) classes += `pt-[${topMargin}px] `;
