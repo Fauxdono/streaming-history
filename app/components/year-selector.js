@@ -499,11 +499,12 @@ const YearSelector = ({
     setExpanded(prev => !prev);
   }, []);
   
-  // Toggle sidebar position - cycles through left, right, bottom
+  // Toggle sidebar position - cycles through left, right, bottom, top
   const togglePosition = useCallback(() => {
     setCurrentPosition(prev => {
       if (prev === 'left') return 'right';
       if (prev === 'right') return 'bottom';
+      if (prev === 'bottom') return 'top';
       return 'left';
     });
   }, []);
@@ -995,6 +996,7 @@ const YearSelector = ({
       case 'left': return 'left-0 top-[40px] h-[calc(100vh-40px)]';
       case 'right': return 'right-0 top-[40px] h-[calc(100vh-40px)]';
       case 'bottom': return 'bottom-0 left-0 right-0 h-auto';
+      case 'top': return 'top-[40px] left-0 right-0 h-auto';
       default: return 'right-0 top-[40px] h-[calc(100vh-40px)]';
     }
   })();
@@ -1002,17 +1004,18 @@ const YearSelector = ({
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
     const isBottom = currentPosition === 'bottom';
+    const isTop = currentPosition === 'top';
     
     return (
       <div 
         className={`fixed ${positionStyles} max-h-screen z-50 transition-all duration-300 ${
-          isBottom 
+          isBottom || isTop 
             ? 'w-full h-20 flex items-start justify-center pt-3' 
             : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
       >
-        {/* Horizontal layout container for bottom position */}
-        {isBottom ? (
+        {/* Horizontal layout container for bottom and top positions */}
+        {isBottom || isTop ? (
           <div className="flex flex-row items-center justify-center">
             {/* Dark mode toggle - positioned left */}
             <div className="mr-6">
@@ -1025,7 +1028,7 @@ const YearSelector = ({
               className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
-              ↑
+              {isTop ? '↓' : '↑'}
             </button>
             
             {/* Text container */}
@@ -1096,7 +1099,7 @@ const YearSelector = ({
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
     ? `fixed ${positionStyles} max-h-screen z-50 transition-all duration-300 ${
-        currentPosition === 'bottom'
+        currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
       } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
@@ -1111,21 +1114,23 @@ const YearSelector = ({
           className={`${
             currentPosition === 'bottom'
               ? 'absolute right-2 top-1/2 -translate-y-8'
+              : currentPosition === 'top'
+              ? 'absolute right-2 bottom-1/2 translate-y-8'
               : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20`
           } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Collapse sidebar"
         >
-          {currentPosition === 'bottom' ? '↓' : currentPosition === 'left' ? '←' : '→'}
+          {currentPosition === 'bottom' ? '↓' : currentPosition === 'top' ? '↑' : currentPosition === 'left' ? '←' : '→'}
         </button>
       )}
       
       <div className={`${
-        currentPosition === 'bottom' 
+        currentPosition === 'bottom' || currentPosition === 'top'
           ? 'flex flex-row items-center p-4' 
           : 'h-full flex flex-col justify-between pt-4 pb-8'
       }`}>
         {/* Dark Mode Toggle - positioned at the top for vertical layouts */}
-        {currentPosition !== 'bottom' && (
+        {currentPosition !== 'bottom' && currentPosition !== 'top' && (
           <div className="flex justify-center mb-2">
             <DarkModeToggle className="!p-1.5 !rounded-full w-8 h-8" />
           </div>
@@ -1133,12 +1138,12 @@ const YearSelector = ({
         
         {/* Mode toggle buttons */}
         <div className={`${
-          currentPosition === 'bottom'
+          currentPosition === 'bottom' || currentPosition === 'top'
             ? 'flex flex-col gap-1 items-center'
             : 'flex flex-col gap-1 items-center mb-2'
         }`}>
-          {/* Dark Mode Toggle - positioned at the top for bottom layout */}
-          {currentPosition === 'bottom' && (
+          {/* Dark Mode Toggle - positioned at the top for bottom and top layouts */}
+          {(currentPosition === 'bottom' || currentPosition === 'top') && (
             <div className="mb-3">
               <DarkModeToggle className="!p-1.5 !rounded-full w-8 h-8" />
             </div>
@@ -1166,8 +1171,8 @@ const YearSelector = ({
             Range
           </button>
           
-          {/* All Time button - positioned after Range button in bottom layout */}
-          {currentPosition === 'bottom' && (
+          {/* All Time button - positioned after Range button in bottom and top layouts */}
+          {(currentPosition === 'bottom' || currentPosition === 'top') && (
             <button
               onClick={(e) => {
                 console.log("All Time button clicked");
@@ -1200,9 +1205,9 @@ const YearSelector = ({
           )}
         </div>
         
-        {/* Content area - horizontal layout for bottom position */}
+        {/* Content area - horizontal layout for bottom and top positions */}
         <div className={`${
-          currentPosition === 'bottom' 
+          currentPosition === 'bottom' || currentPosition === 'top'
             ? 'flex flex-row items-center space-x-4 overflow-x-auto max-w-full px-4 flex-grow justify-center'
             : `overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
                 mode === 'range' ? 'px-2' : 'px-1'
@@ -1213,12 +1218,12 @@ const YearSelector = ({
             // Single mode - year picker and optional month/day
             <>
               {/* Year selection */}
-              <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : ''}`}>
-                <div className={`text-xs ${currentPosition === 'bottom' ? 'mb-1' : 'mb-1'} font-medium ${colors.text}`}>YEAR</div>
+              <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-col' : 'flex-col'} items-center ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-y-1' : ''}`}>
+                <div className={`text-xs ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'mb-1' : 'mb-1'} font-medium ${colors.text}`}>YEAR</div>
 
-                <div className={`flex ${currentPosition === 'bottom' ? 'flex-row space-x-2' : 'flex-col'} items-center`}>
+                <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-row space-x-2' : 'flex-col'} items-center`}>
                   {/* Add a quick "All Time" button with direct callback - only for vertical layouts */}
-                  {currentPosition !== 'bottom' && (
+                  {currentPosition !== 'bottom' && currentPosition !== 'top' && (
                     <button
                       onClick={(e) => {
                         console.log("All Time button clicked");
@@ -1264,9 +1269,9 @@ const YearSelector = ({
                 <>
                   {/* Month Selector */}
                   {showMonthSelector && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
+                    <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-col' : 'flex-col'} items-center ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-y-1' : 'w-full'}`}>
                       {/* Month toggle positioned above wheel */}
-                      <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2 mb-1' : 'justify-between w-full'}`}>
+                      <div className={`flex items-center ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-x-2 mb-1' : 'justify-between w-full'}`}>
                         <div className={`text-xs font-medium ${colors.text}`}>MONTH</div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -1321,9 +1326,9 @@ const YearSelector = ({
                   
                   {/* Day Toggle and Selector */}
                   {showMonthSelector && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col' : 'flex-col'} items-center ${currentPosition === 'bottom' ? 'space-y-1' : 'w-full'}`}>
+                    <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-col' : 'flex-col'} items-center ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-y-1' : 'w-full'}`}>
                       {/* Day toggle positioned above wheel */}
-                      <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2 mb-1' : 'justify-between w-full'}`}>
+                      <div className={`flex items-center ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-x-2 mb-1' : 'justify-between w-full'}`}>
                         <div className={`text-xs font-medium ${colors.text}`}>DAY</div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -1375,9 +1380,9 @@ const YearSelector = ({
                   
                   {/* Show month toggle separately if month selector is off */}
                   {!showMonthSelector && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-col space-y-2' : 'flex-col space-y-2'} ${currentPosition === 'bottom' ? '' : 'w-full mb-4'}`}>
+                    <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-col space-y-2' : 'flex-col space-y-2'} ${(currentPosition === 'bottom' || currentPosition === 'top') ? '' : 'w-full mb-4'}`}>
                       {/* Month toggle */}
-                      <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2' : 'justify-between w-full'}`}>
+                      <div className={`flex items-center ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-x-2' : 'justify-between w-full'}`}>
                         <div className={`text-xs font-medium ${colors.text}`}>MONTH</div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -1427,7 +1432,7 @@ const YearSelector = ({
             // Range mode - with year/month/day selectors for both start and end side by side
             <>
               {/* Start/End Year Section - horizontally aligned */}
-              <div className={`flex flex-row ${currentPosition === 'bottom' ? 'space-x-4' : 'justify-between gap-2 w-full'}`}>
+              <div className={`flex flex-row ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-x-4' : 'justify-between gap-2 w-full'}`}>
                 <div className="flex flex-col items-center">
                   <div className={`text-xs mb-1 font-medium ${colors.text}`}>START</div>
                   <WheelSelector
@@ -1469,8 +1474,8 @@ const YearSelector = ({
               {yearRange.startYear && yearRange.endYear && (
                 <>
                   {/* Month/Day toggle at top */}
-                  <div className={`flex ${currentPosition === 'bottom' ? 'flex-col space-y-2' : 'flex-col space-y-2'} ${currentPosition === 'bottom' ? '' : 'w-full mb-4'}`}>
-                    <div className={`flex items-center ${currentPosition === 'bottom' ? 'space-x-2' : 'justify-between w-full'}`}>
+                  <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-col space-y-2' : 'flex-col space-y-2'} ${(currentPosition === 'bottom' || currentPosition === 'top') ? '' : 'w-full mb-4'}`}>
+                    <div className={`flex items-center ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-x-2' : 'justify-between w-full'}`}>
                       <div className={`text-xs font-medium ${colors.text}`}>MONTH/DAY</div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -1516,9 +1521,9 @@ const YearSelector = ({
                   
                   {/* Month/Day selectors - only shown when toggle is on */}
                   {showRangeMonthDaySelectors && (
-                    <div className={`flex ${currentPosition === 'bottom' ? 'flex-row space-x-4' : 'flex-col space-y-2'} w-full`}>
+                    <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-row space-x-4' : 'flex-col space-y-2'} w-full`}>
                       {/* Month selectors */}
-                      <div className={`flex flex-row ${currentPosition === 'bottom' ? 'space-x-4' : 'justify-between gap-2 w-full'}`}>
+                      <div className={`flex flex-row ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-x-4' : 'justify-between gap-2 w-full'}`}>
                         <div className="flex flex-col items-center">
                           <div className={`text-xs mb-1 font-medium ${colors.text}`}>START M</div>
                           <WheelSelector
@@ -1545,7 +1550,7 @@ const YearSelector = ({
                       </div>
                       
                       {/* Day selectors */}
-                      <div className={`flex flex-row ${currentPosition === 'bottom' ? 'space-x-4' : 'justify-between gap-2 w-full'}`}>
+                      <div className={`flex flex-row ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'space-x-4' : 'justify-between gap-2 w-full'}`}>
                         <div className="flex flex-col items-center">
                           <div className={`text-xs mb-1 font-medium ${colors.text}`}>START D</div>
                           <WheelSelector
@@ -1576,12 +1581,12 @@ const YearSelector = ({
           )}
           </div>
         
-        {/* Position toggle button - different layout for bottom position */}
-        {currentPosition === 'bottom' ? (
+        {/* Position toggle button - different layout for bottom and top positions */}
+        {(currentPosition === 'bottom' || currentPosition === 'top') ? (
           asSidebar && (
             <button 
               onClick={togglePosition}
-              className={`absolute right-2 top-1/2 translate-y-6 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+              className={`absolute right-2 ${currentPosition === 'top' ? 'bottom-1/2 -translate-y-6' : 'top-1/2 translate-y-6'} p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
               aria-label="Toggle sidebar position"
             >
               <span className="text-sm">⇄</span>
