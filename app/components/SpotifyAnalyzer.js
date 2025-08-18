@@ -1098,7 +1098,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         classes = 'mr-8 ml-0';
       } else if (yearSelectorPosition === 'top') {
-        classes = 'mt-20 ml-0 mr-0'; // h-20 for collapsed top position
+        classes = 'mt-20 ml-0 mr-0'; // h-20 for collapsed top position (no baseline pt-4)
       } else {
         classes = 'mb-12 ml-0 mr-0';
       }
@@ -1114,7 +1114,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-48 sm:mr-64 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          classes = 'mt-40 sm:mt-48 ml-0 mr-0'; // Responsive top margin for range mode
+          classes = 'mt-36 sm:mt-44 ml-0 mr-0'; // Responsive top margin for range mode (no baseline pt-4)
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1125,7 +1125,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         } else if (yearSelectorPosition === 'right') {
           classes = 'mr-16 sm:mr-32 ml-0';
         } else if (yearSelectorPosition === 'top') {
-          classes = 'mt-32 sm:mt-40 ml-0 mr-0'; // Responsive top margin for single mode
+          classes = 'mt-28 sm:mt-36 ml-0 mr-0'; // Responsive top margin for single mode (no baseline pt-4)
         } else {
           classes = 'mb-12 ml-0 mr-0';
         }
@@ -1167,7 +1167,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
               <div className="w-full">
-                <div className="space-y-4 pb-4 pt-4">
+                <div className={`space-y-4 pb-4 ${yearSelectorPosition === 'top' && showYearSidebar ? '' : 'pt-4'}`}>
           
           {activeTab === 'upload' && (
             <div>
