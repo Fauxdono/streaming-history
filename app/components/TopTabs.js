@@ -40,6 +40,22 @@ const TopTabs = ({
     };
   }, []);
 
+  // Re-measure width on window resize
+  useEffect(() => {
+    if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
+      const handleResize = () => {
+        const topTabsElement = document.querySelector('.toptabs-container');
+        if (topTabsElement) {
+          const actualWidth = topTabsElement.offsetWidth;
+          onWidthChange(actualWidth);
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [currentPosition, onWidthChange]);
+
   // Communicate position changes to parent
   useEffect(() => {
     if (onPositionChange) {
@@ -65,9 +81,24 @@ const TopTabs = ({
   useEffect(() => {
     if (onWidthChange) {
       if (currentPosition === 'left' || currentPosition === 'right') {
-        // Approximate width based on content and orientation
-        const tabWidth = isMobile ? 160 : 192; // Responsive width for sidebar tabs
-        onWidthChange(tabWidth);
+        // Measure actual width dynamically
+        const measureWidth = () => {
+          const topTabsElement = document.querySelector('.toptabs-container');
+          if (topTabsElement) {
+            const actualWidth = topTabsElement.offsetWidth;
+            onWidthChange(actualWidth);
+          } else {
+            // Fallback to responsive approximation
+            const tabWidth = isMobile ? 160 : 192;
+            onWidthChange(tabWidth);
+          }
+        };
+        
+        // Measure immediately and after a brief delay to ensure rendering is complete
+        measureWidth();
+        const timer = setTimeout(measureWidth, 100);
+        
+        return () => clearTimeout(timer);
       } else {
         // Reset width to 0 when not on left/right sides
         onWidthChange(0);
@@ -215,7 +246,7 @@ const TopTabs = ({
   };
 
   return (
-    <div className={`${getPositionStyles()} ${getContainerStyles()}`}>
+    <div className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}>
       {/* Position toggle button */}
       <button 
         onClick={togglePosition}
