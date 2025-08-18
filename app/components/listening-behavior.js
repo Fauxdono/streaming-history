@@ -684,7 +684,9 @@ const filteredData = useMemo(() => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Shuffle vs. Normal Play (Theme: {theme}, Dark: {isDarkMode ? 'Yes' : 'No'})</h3>
-              <div className="h-48 sm:h-64">
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
+                isDarkMode ? 'bg-gray-800' : 'bg-white'
+              }`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart key={`pie-shuffle-${isDarkMode}-${colorTheme}`}>
                     <Pie
@@ -737,7 +739,9 @@ const filteredData = useMemo(() => {
             
             <div>
               <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Track Completion</h3>
-              <div className="h-48 sm:h-64">
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
+                isDarkMode ? 'bg-gray-800' : 'bg-white'
+              }`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart key={`pie-completion-${isDarkMode}-${colorTheme}`}>
                     <Pie
@@ -790,7 +794,9 @@ const filteredData = useMemo(() => {
           
           <div>
             <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">How You Start Tracks</h3>
-            <div className="h-48 sm:h-64 w-full">
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.startReasons}
@@ -818,7 +824,9 @@ const filteredData = useMemo(() => {
           
           <div>
             <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">How Tracks End</h3>
-            <div className="h-48 sm:h-64 w-full">
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.endReasons}
@@ -846,7 +854,9 @@ const filteredData = useMemo(() => {
           
           <div>
             <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Platforms Used</h3>
-            <div className="h-48 sm:h-64 w-full">
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.platformData}
@@ -895,7 +905,9 @@ const filteredData = useMemo(() => {
           
           <div>
             <h3 className="text-sm sm:text-lg font-bold text-indigo-700 mb-2">Session Duration Distribution</h3>
-            <div className="h-48 sm:h-64">
+            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart key={`pie-session-${isDarkMode}-${colorTheme}`}>
                   <Pie
