@@ -1093,7 +1093,7 @@ const YearSelector = ({
     
     return (
       <div 
-        className={`${positionConfig.className} max-h-screen z-40 transition-all duration-300 ${
+        className={`${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
           isBottom || isTop 
             ? 'w-full h-20 flex items-start justify-center' 
             : 'w-8'
@@ -1184,7 +1184,7 @@ const YearSelector = ({
   
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `${positionConfig.className} max-h-screen z-40 transition-all duration-300 ${
+    ? `${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
