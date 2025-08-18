@@ -18,7 +18,6 @@ import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 // Removed imports of exported variables that were conflicting with local state
-import DarkModeToggle from './darkmode.js';
 import { useTheme } from './themeprovider.js';
 
 // Cache for service colors to avoid recreating on each render
@@ -1162,10 +1161,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
               <div className="w-full">
-                <div className="flex justify-center mb-4 pt-4">
-                  <DarkModeToggle />
-                </div>
-                <div className="space-y-4 pb-4">
+                <div className="space-y-4 pb-4 pt-4">
           
           {activeTab === 'upload' && (
             <div>
