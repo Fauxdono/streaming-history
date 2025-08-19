@@ -1159,12 +1159,30 @@ const YearSelector = ({
           return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
       }
     } else {
-      // TopTabs are on a different side, use standard positioning
+      // TopTabs are on a different side, use standard positioning but account for TopTabs space
       switch (currentPosition) {
         case 'left':
-          return { className: `${baseClasses} left-0 top-0 h-full`, style: {} };
+          // Account for TopTabs when positioned at top or bottom
+          const leftTopSpacing = topTabsPosition === 'top' ? topTabsHeight : 0;
+          const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : 0;
+          return { 
+            className: `${baseClasses} left-0 h-full`, 
+            style: { 
+              top: leftTopSpacing > 0 ? `${leftTopSpacing}px` : '0',
+              bottom: leftBottomSpacing > 0 ? leftBottomSpacing : '0'
+            } 
+          };
         case 'right':
-          return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
+          // Account for TopTabs when positioned at top or bottom
+          const rightTopSpacing = topTabsPosition === 'top' ? topTabsHeight : 0;
+          const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : 0;
+          return { 
+            className: `${baseClasses} right-0 h-full`, 
+            style: { 
+              top: rightTopSpacing > 0 ? `${rightTopSpacing}px` : '0',
+              bottom: rightBottomSpacing > 0 ? rightBottomSpacing : '0'
+            } 
+          };
         case 'bottom':
           return { className: `${baseClasses} bottom-0 left-0 right-0 h-auto`, style: {} };
         case 'top':
