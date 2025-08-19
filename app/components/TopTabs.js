@@ -24,6 +24,9 @@ const TopTabs = ({
   // Position state - cycles through top, right, bottom, left
   const [currentPosition, setCurrentPosition] = useState(position);
   
+  // Collapsed state for mobile - shows icons instead of full text
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  
   // Check for mobile viewport
   const [isMobile, setIsMobile] = useState(false);
   
@@ -136,6 +139,45 @@ const TopTabs = ({
       return 'top'; // default fallback for 'left' and initial state
     });
   }, []);
+
+  // Toggle collapsed state - only available on mobile
+  const toggleCollapsed = useCallback(() => {
+    if (isMobile) {
+      setIsCollapsed(prev => !prev);
+    }
+  }, [isMobile]);
+
+  // Get icon for tab
+  const getTabIcon = useCallback((tabId) => {
+    switch (tabId) {
+      case 'updates':
+        return '🔔';
+      case 'upload':
+        return '📁';
+      case 'stats':
+        return '📊';
+      case 'artists':
+        return '🎤';
+      case 'albums':
+        return '💿';
+      case 'custom':
+        return '⚙️';
+      case 'tracks':
+        return '🎵';
+      case 'patterns':
+        return '📈';
+      case 'behavior':
+        return '🧠';
+      case 'discovery':
+        return '🔍';
+      case 'podcasts':
+        return '🎧';
+      case 'playlists':
+        return '📋';
+      default:
+        return '📄';
+    }
+  }, []);
   // Memoized TabButton component to prevent recreation
   const TabButton = useCallback(({ id, label }) => {
     // Helper function to get the color based on tab ID
@@ -197,12 +239,17 @@ const TopTabs = ({
     return (
       <button
         onClick={() => setActiveTab(id)}
-        className={`px-2 sm:px-4 py-2 font-medium text-sm sm:text-base ${getTabColor(id)}`}
+        className={`${
+          isCollapsed && isMobile 
+            ? 'p-2 text-base' 
+            : 'px-2 sm:px-4 py-2 text-sm sm:text-base'
+        } font-medium ${getTabColor(id)}`}
+        title={isCollapsed && isMobile ? label : undefined}
       >
-        {label}
+        {isCollapsed && isMobile ? getTabIcon(id) : label}
       </button>
     );
-  }, [activeTab, setActiveTab]);
+  }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon]);
 
   // Position styles for different placements
   const getPositionStyles = () => {
@@ -291,6 +338,22 @@ const TopTabs = ({
       >
         <span className="text-xs">⇄</span>
       </button>
+
+      {/* Collapse toggle button - only show on mobile */}
+      {isMobile && (
+        <button 
+          onClick={toggleCollapsed}
+          className={`absolute z-[110] p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg ${
+            currentPosition === 'top' ? 'top-1 right-12' :
+            currentPosition === 'bottom' ? 'bottom-1 right-12' :
+            currentPosition === 'left' ? 'top-12 right-1' :
+            'top-12 left-1'
+          }`}
+          title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
+        >
+          <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
+        </button>
+      )}
 
       <div className={getScrollContainerStyles()}>
         <div className={getTabsContainerStyles()}>
