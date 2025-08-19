@@ -270,8 +270,11 @@ const TopTabs = ({
     <div 
       className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
       style={{
-        ...(currentPosition === 'bottom' && {
+        ...(currentPosition === 'bottom' && isMobile && {
           bottom: 'max(1rem, env(safe-area-inset-bottom))'
+        }),
+        ...(currentPosition === 'bottom' && !isMobile && {
+          bottom: '0'
         })
       }}
     >
