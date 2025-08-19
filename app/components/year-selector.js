@@ -1187,9 +1187,19 @@ const YearSelector = ({
           // Account for TopTabs when positioned at left or right
           const bottomLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
           const bottomRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
+          
+          console.log('Year selector bottom positioning:', {
+            topTabsPosition,
+            topTabsWidth,
+            bottomLeftSpacing,
+            bottomRightSpacing,
+            isMobile
+          });
+          
           return { 
-            className: `${baseClasses} bottom-0 h-auto`, 
+            className: `${baseClasses} h-auto`, 
             style: { 
+              bottom: isMobile ? 'max(1rem, env(safe-area-inset-bottom))' : '0',
               left: bottomLeftSpacing > 0 ? `${bottomLeftSpacing}px` : '0',
               right: bottomRightSpacing > 0 ? `${bottomRightSpacing}px` : '0'
             } 
@@ -1198,6 +1208,14 @@ const YearSelector = ({
           // Account for TopTabs when positioned at left or right
           const topLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
           const topRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
+          
+          console.log('Year selector top positioning:', {
+            topTabsPosition,
+            topTabsWidth,
+            topLeftSpacing,
+            topRightSpacing
+          });
+          
           return { 
             className: `${baseClasses} top-0 h-auto`, 
             style: { 
