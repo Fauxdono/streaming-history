@@ -210,7 +210,7 @@ const TopTabs = ({
       case 'top':
         return 'fixed top-0 left-0 right-0 w-full z-[100]';
       case 'bottom':
-        return 'fixed bottom-0 left-0 right-0 w-full z-[100]';
+        return 'fixed left-0 right-0 w-full z-[100]';
       case 'left':
         return 'fixed left-0 top-0 bottom-0 h-full w-auto z-[100]';
       case 'right':
@@ -267,7 +267,14 @@ const TopTabs = ({
   };
 
   return (
-    <div className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}>
+    <div 
+      className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
+      style={{
+        ...(currentPosition === 'bottom' && {
+          bottom: 'max(1rem, env(safe-area-inset-bottom))'
+        })
+      }}
+    >
       {/* Position toggle button */}
       <button 
         onClick={togglePosition}
