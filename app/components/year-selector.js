@@ -1280,7 +1280,19 @@ const YearSelector = ({
   const containerStyle = asSidebar ? positionConfig.style : {};
 
   return (
-    <div className={`year-selector-sidebar ${containerClass}`} style={{ ...containerStyle, transition: 'width 0.3s ease-in-out' }}>
+    <div 
+      className={`year-selector-sidebar ${containerClass}`} 
+      style={{ 
+        ...containerStyle, 
+        transition: 'width 0.3s ease-in-out',
+        ...(currentPosition === 'bottom' && isMobile && asSidebar && {
+          bottom: 'max(1rem, env(safe-area-inset-bottom))'
+        }),
+        ...(currentPosition === 'bottom' && !isMobile && asSidebar && {
+          bottom: '0'
+        })
+      }}
+    >
       {/* Collapse button for sidebar */}
       {asSidebar && (
         <button 
