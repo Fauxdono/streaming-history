@@ -1184,9 +1184,27 @@ const YearSelector = ({
             } 
           };
         case 'bottom':
-          return { className: `${baseClasses} bottom-0 left-0 right-0 h-auto`, style: {} };
+          // Account for TopTabs when positioned at left or right
+          const bottomLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
+          const bottomRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
+          return { 
+            className: `${baseClasses} bottom-0 h-auto`, 
+            style: { 
+              left: bottomLeftSpacing > 0 ? `${bottomLeftSpacing}px` : '0',
+              right: bottomRightSpacing > 0 ? `${bottomRightSpacing}px` : '0'
+            } 
+          };
         case 'top':
-          return { className: `${baseClasses} top-0 left-0 right-0 h-auto`, style: {} };
+          // Account for TopTabs when positioned at left or right
+          const topLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
+          const topRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
+          return { 
+            className: `${baseClasses} top-0 h-auto`, 
+            style: { 
+              left: topLeftSpacing > 0 ? `${topLeftSpacing}px` : '0',
+              right: topRightSpacing > 0 ? `${topRightSpacing}px` : '0'
+            } 
+          };
         default:
           return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
       }
