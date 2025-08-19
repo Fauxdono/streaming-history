@@ -19,6 +19,7 @@ const TopTabs = ({
   onPositionChange, // New callback to communicate position changes to parent
   onHeightChange,   // New callback to communicate height changes to parent
   onWidthChange,    // New callback to communicate width changes to parent
+  onCollapseChange, // New callback to communicate collapse state changes to parent
   position = 'top'  // New prop for initial position
 }) => {
   // Position state - cycles through top, right, bottom, left
@@ -72,6 +73,13 @@ const TopTabs = ({
     }
   }, [currentPosition, onPositionChange]);
 
+  // Communicate collapse state changes to parent
+  useEffect(() => {
+    if (onCollapseChange) {
+      onCollapseChange(isCollapsed);
+    }
+  }, [isCollapsed, onCollapseChange]);
+
   // Communicate height changes to parent (for top/bottom positions)
   useEffect(() => {
     if (onHeightChange) {
@@ -99,7 +107,7 @@ const TopTabs = ({
         onHeightChange(0);
       }
     }
-  }, [currentPosition, onHeightChange, isMobile]);
+  }, [currentPosition, onHeightChange, isMobile, isCollapsed]);
 
   // Communicate width changes to parent (for left/right positions)
   useEffect(() => {
@@ -128,7 +136,7 @@ const TopTabs = ({
         onWidthChange(0);
       }
     }
-  }, [currentPosition, onWidthChange, isMobile]);
+  }, [currentPosition, onWidthChange, isMobile, isCollapsed]);
 
   // Toggle position - cycles through top, right, bottom, left
   const togglePosition = useCallback(() => {
