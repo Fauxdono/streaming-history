@@ -108,7 +108,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // TopTabs position state
   const [topTabsPosition, setTopTabsPosition] = useState('top');
   const [topTabsHeight, setTopTabsHeight] = useState(72);
-  const [topTabsWidth, setTopTabsWidth] = useState(192); // Default width for side positioning
+  const [topTabsWidth, setTopTabsWidth] = useState(192);
+  const [topTabsCollapsed, setTopTabsCollapsed] = useState(false); // Default width for side positioning
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
   const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
@@ -1100,6 +1101,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     
     console.log('=== MARGIN DEBUG ===');
     console.log('topTabsPosition:', topTabsPosition);
+    console.log('topTabsCollapsed:', topTabsCollapsed);
     console.log('yearSelectorPosition:', yearSelectorPosition);
     console.log('yearSelectorExpanded:', yearSelectorExpanded);
     console.log('topTabsHeight:', topTabsHeight);
@@ -1185,6 +1187,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           onPositionChange={setTopTabsPosition}
           onHeightChange={setTopTabsHeight}
           onWidthChange={setTopTabsWidth}
+          onCollapseChange={setTopTabsCollapsed}
           position={topTabsPosition}
         />
       )}
