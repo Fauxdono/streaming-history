@@ -1164,23 +1164,23 @@ const YearSelector = ({
         case 'left':
           // Account for TopTabs when positioned at top or bottom
           const leftTopSpacing = topTabsPosition === 'top' ? topTabsHeight : 0;
-          const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : 0;
+          const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
-            className: `${baseClasses} left-0 h-full`, 
+            className: `${baseClasses} left-0`, 
             style: { 
               top: leftTopSpacing > 0 ? `${leftTopSpacing}px` : '0',
-              bottom: leftBottomSpacing > 0 ? leftBottomSpacing : '0'
+              bottom: leftBottomSpacing
             } 
           };
         case 'right':
           // Account for TopTabs when positioned at top or bottom
           const rightTopSpacing = topTabsPosition === 'top' ? topTabsHeight : 0;
-          const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : 0;
+          const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
-            className: `${baseClasses} right-0 h-full`, 
+            className: `${baseClasses} right-0`, 
             style: { 
               top: rightTopSpacing > 0 ? `${rightTopSpacing}px` : '0',
-              bottom: rightBottomSpacing > 0 ? rightBottomSpacing : '0'
+              bottom: rightBottomSpacing
             } 
           };
         case 'bottom':
