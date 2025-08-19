@@ -209,7 +209,9 @@ const YearSelector = ({
               borderBottom: computedStyle.borderBottomWidth,
               position: currentPosition,
               expanded,
-              mode
+              mode,
+              topTabsPosition,
+              samePosition: topTabsPosition === currentPosition
             });
             
             onHeightChange(actualHeight);
@@ -1143,14 +1145,9 @@ const YearSelector = ({
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'bottom':
           // Account for TopTabs height + its safe area spacing on mobile
-          // Use the same safe area calculation as TopTabs: max(1rem, env(safe-area-inset-bottom))
-          inlineStyles = { 
-            bottom: isMobile 
-              ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))`
-              : `${topTabsHeight}px`, 
-            left: 0, 
-            right: 0 
-          };
+          const topTabsSafeAreaSpacing = isMobile ? 16 : 0; // 1rem = 16px on mobile for safe area
+          const totalBottomOffset = topTabsHeight + topTabsSafeAreaSpacing;
+          inlineStyles = { bottom: `${totalBottomOffset}px`, left: 0, right: 0 };
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'left':
           inlineStyles = { left: `${topTabsWidth}px`, top: 0 };
