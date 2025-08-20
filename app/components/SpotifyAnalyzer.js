@@ -1142,16 +1142,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           console.log('Year selector RIGHT margin skipped - positioned to avoid TopTabs on', topTabsPosition);
         }
       } else if (yearSelectorPosition === 'top') {
-        // Only add top margin if TopTabs is not on left/right AND not on top (avoid double margin when both at top)
-        if (topTabsPosition !== 'left' && topTabsPosition !== 'right' && topTabsPosition !== 'top') {
+        // Add top margin unless TopTabs is on left/right (year selector positions itself to avoid TopTabs)
+        if (topTabsPosition !== 'left' && topTabsPosition !== 'right') {
           yearSelectorTop = yearSelectorHeight || 0;
           console.log('Year selector TOP margin will be:', yearSelectorTop);
         } else {
           console.log('Year selector TOP margin skipped - positioned to avoid TopTabs on', topTabsPosition);
         }
       } else if (yearSelectorPosition === 'bottom') {
-        // Only add bottom margin if TopTabs is not on left/right AND not on bottom (avoid double margin when both at bottom)
-        if (topTabsPosition !== 'left' && topTabsPosition !== 'right' && topTabsPosition !== 'bottom') {
+        // Add bottom margin unless TopTabs is on left/right (year selector positions itself to avoid TopTabs)
+        if (topTabsPosition !== 'left' && topTabsPosition !== 'right') {
           yearSelectorBottom = yearSelectorHeight || 0;
           console.log('Year selector BOTTOM margin will be:', yearSelectorBottom);
         } else {
@@ -1160,7 +1160,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       }
     }
 
-    // Combine margins additively - both components need space (like the working left/right approach)
+    // Combine margins - when components are on same side, use both since they stack
+    // When on different sides, they position themselves to avoid collision
     topMargin = topTabsTop + yearSelectorTop;
     bottomMargin = topTabsBottom + yearSelectorBottom;
     leftMargin = topTabsLeft + yearSelectorLeft;
