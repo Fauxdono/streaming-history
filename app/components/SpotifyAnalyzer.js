@@ -1142,16 +1142,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           console.log('Year selector RIGHT margin skipped - positioned to avoid TopTabs on', topTabsPosition);
         }
       } else if (yearSelectorPosition === 'top') {
-        // Add top margin unless TopTabs is on left/right (year selector positions itself to avoid TopTabs)
-        if (topTabsPosition !== 'left' && topTabsPosition !== 'right') {
+        // Only add top margin when TopTabs is NOT also at top (to avoid double-counting when they stack)
+        if (topTabsPosition !== 'left' && topTabsPosition !== 'right' && topTabsPosition !== 'top') {
           yearSelectorTop = yearSelectorHeight || 0;
           console.log('Year selector TOP margin will be:', yearSelectorTop);
         } else {
           console.log('Year selector TOP margin skipped - positioned to avoid TopTabs on', topTabsPosition);
         }
       } else if (yearSelectorPosition === 'bottom') {
-        // Add bottom margin unless TopTabs is on left/right (year selector positions itself to avoid TopTabs)
-        if (topTabsPosition !== 'left' && topTabsPosition !== 'right') {
+        // Only add bottom margin when TopTabs is NOT also at bottom (to avoid double-counting when they stack)
+        if (topTabsPosition !== 'left' && topTabsPosition !== 'right' && topTabsPosition !== 'bottom') {
           yearSelectorBottom = yearSelectorHeight || 0;
           console.log('Year selector BOTTOM margin will be:', yearSelectorBottom);
         } else {
@@ -1160,17 +1160,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       }
     }
 
-    // When components are on the same side, they stack and we need the combined space
-    // When components are on different sides, we need space for both independently
+    // When components are on the same side, YearSelector positions itself after TopTabs
+    // When components are on different sides, they avoid each other
     if (topTabsPosition === yearSelectorPosition) {
-      // Same side - components stack, so add their dimensions
+      // Same side - YearSelector stacks after TopTabs, so main content needs space for:
+      // TopTabs height + YearSelector height (since YearSelector margin is 0 when stacked)
       if (topTabsPosition === 'top' || topTabsPosition === 'bottom') {
-        topMargin = topTabsTop + yearSelectorTop;
-        bottomMargin = topTabsBottom + yearSelectorBottom;
+        topMargin = topTabsTop + (topTabsTop > 0 ? yearSelectorHeight || 0 : 0);
+        bottomMargin = topTabsBottom + (topTabsBottom > 0 ? yearSelectorHeight || 0 : 0);
       }
       if (topTabsPosition === 'left' || topTabsPosition === 'right') {
-        leftMargin = topTabsLeft + yearSelectorLeft;
-        rightMargin = topTabsRight + yearSelectorRight;
+        leftMargin = topTabsLeft + (topTabsLeft > 0 ? yearSelectorWidth || 0 : 0);
+        rightMargin = topTabsRight + (topTabsRight > 0 ? yearSelectorWidth || 0 : 0);
       }
       // For the other dimension, use max since they don't conflict
       if (topTabsPosition === 'top' || topTabsPosition === 'bottom') {
