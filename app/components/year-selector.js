@@ -1388,10 +1388,11 @@ const YearSelector = ({
       style={{ 
         ...containerStyle, 
         transition: 'width 0.3s ease-in-out',
-        ...(currentPosition === 'bottom' && isMobile && asSidebar && {
+        // Only apply bottom positioning if not already positioned to avoid TopTabs
+        ...(currentPosition === 'bottom' && isMobile && asSidebar && topTabsPosition !== 'bottom' && {
           bottom: 'max(1rem, env(safe-area-inset-bottom))'
         }),
-        ...(currentPosition === 'bottom' && !isMobile && asSidebar && {
+        ...(currentPosition === 'bottom' && !isMobile && asSidebar && topTabsPosition !== 'bottom' && {
           bottom: '0'
         })
       }}
