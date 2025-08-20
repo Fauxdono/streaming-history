@@ -1160,12 +1160,33 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       }
     }
 
-    // Combine margins - when components are on same side, use both since they stack
-    // When on different sides, they position themselves to avoid collision
-    topMargin = topTabsTop + yearSelectorTop;
-    bottomMargin = topTabsBottom + yearSelectorBottom;
-    leftMargin = topTabsLeft + yearSelectorLeft;
-    rightMargin = topTabsRight + yearSelectorRight;
+    // When components are on the same side, they stack and we need the combined space
+    // When components are on different sides, we need space for both independently
+    if (topTabsPosition === yearSelectorPosition) {
+      // Same side - components stack, so add their dimensions
+      if (topTabsPosition === 'top' || topTabsPosition === 'bottom') {
+        topMargin = topTabsTop + yearSelectorTop;
+        bottomMargin = topTabsBottom + yearSelectorBottom;
+      }
+      if (topTabsPosition === 'left' || topTabsPosition === 'right') {
+        leftMargin = topTabsLeft + yearSelectorLeft;
+        rightMargin = topTabsRight + yearSelectorRight;
+      }
+      // For the other dimension, use max since they don't conflict
+      if (topTabsPosition === 'top' || topTabsPosition === 'bottom') {
+        leftMargin = Math.max(topTabsLeft, yearSelectorLeft);
+        rightMargin = Math.max(topTabsRight, yearSelectorRight);
+      } else {
+        topMargin = Math.max(topTabsTop, yearSelectorTop);
+        bottomMargin = Math.max(topTabsBottom, yearSelectorBottom);
+      }
+    } else {
+      // Different sides - use max for all dimensions since they position to avoid each other
+      topMargin = Math.max(topTabsTop, yearSelectorTop);
+      bottomMargin = Math.max(topTabsBottom, yearSelectorBottom);
+      leftMargin = Math.max(topTabsLeft, yearSelectorLeft);
+      rightMargin = Math.max(topTabsRight, yearSelectorRight);
+    }
     
     console.log('FINAL CALCULATED MARGINS:');
     console.log('  topTabsTop:', topTabsTop, '+ yearSelectorTop:', yearSelectorTop, '= topMargin:', topMargin);
