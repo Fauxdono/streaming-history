@@ -1338,6 +1338,33 @@ const YearSelector = ({
     
   const containerStyle = asSidebar ? positionConfig.style : {};
 
+  // Adjust width/height when positioned on different sides than TopTabs
+  if (asSidebar) {
+    // When year selector is horizontal and TopTabs is vertical, adjust width
+    if ((currentPosition === 'top' || currentPosition === 'bottom') && 
+        (topTabsPosition === 'left' || topTabsPosition === 'right')) {
+      if (topTabsPosition === 'left') {
+        containerStyle.left = `${topTabsWidth}px`;
+        containerStyle.right = '0';
+      } else if (topTabsPosition === 'right') {
+        containerStyle.left = '0';
+        containerStyle.right = `${topTabsWidth}px`;
+      }
+    }
+    
+    // When year selector is vertical and TopTabs is horizontal, adjust height
+    if ((currentPosition === 'left' || currentPosition === 'right') && 
+        (topTabsPosition === 'top' || topTabsPosition === 'bottom')) {
+      if (topTabsPosition === 'top') {
+        containerStyle.top = `${topTabsHeight}px`;
+        containerStyle.bottom = '0';
+      } else if (topTabsPosition === 'bottom') {
+        containerStyle.top = '0';
+        containerStyle.bottom = isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`;
+      }
+    }
+  }
+
   return (
     <div 
       className={`year-selector-sidebar ${containerClass}`} 
