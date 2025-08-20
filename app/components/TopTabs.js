@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
+import DarkModeToggle from './darkmode.js';
 
 const TopTabs = ({ 
   activeTab, 
@@ -338,6 +339,9 @@ const TopTabs = ({
         <div className="flex">
           {/* Fixed button area on the left */}
           <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
+            {/* Dark mode toggle */}
+            <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
+
             {/* Position toggle button */}
             <button 
               onClick={togglePosition}
@@ -382,6 +386,9 @@ const TopTabs = ({
         <div className="flex">
           {/* Fixed button area on the left */}
           <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
+            {/* Dark mode toggle */}
+            <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
+
             {/* Position toggle button */}
             <button 
               onClick={togglePosition}
@@ -426,6 +433,9 @@ const TopTabs = ({
         <div className="flex flex-col">
           {/* Fixed button area at the top */}
           <div className="flex-shrink-0 flex justify-center gap-1 py-2 bg-white dark:bg-gray-800 z-[110] border-b border-violet-200 dark:border-gray-600">
+            {/* Dark mode toggle */}
+            <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
+
             {/* Position toggle button */}
             <button 
               onClick={togglePosition}
