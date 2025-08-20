@@ -102,7 +102,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
   const [yearSelectorWidth, setYearSelectorWidth] = useState(32);
-  const [yearSelectorHeight, setYearSelectorHeight] = useState(80);
+  const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
   // TopTabs position state
