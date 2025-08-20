@@ -1122,21 +1122,41 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       topTabsRight = topTabsWidth;
     }
 
-    // Calculate year selector margins
+    // Calculate year selector margins - only when they don't conflict with TopTabs positioning
     let yearSelectorTop = 0, yearSelectorBottom = 0, yearSelectorLeft = 0, yearSelectorRight = 0;
     if (showYearSidebar) {
       if (yearSelectorPosition === 'left') {
-        yearSelectorLeft = yearSelectorWidth || 0;
-        console.log('Year selector LEFT margin will be:', yearSelectorLeft);
+        // Only add left margin if TopTabs is not on top/bottom (year selector positions itself to avoid TopTabs)
+        if (topTabsPosition !== 'top' && topTabsPosition !== 'bottom') {
+          yearSelectorLeft = yearSelectorWidth || 0;
+          console.log('Year selector LEFT margin will be:', yearSelectorLeft);
+        } else {
+          console.log('Year selector LEFT margin skipped - positioned to avoid TopTabs on', topTabsPosition);
+        }
       } else if (yearSelectorPosition === 'right') {
-        yearSelectorRight = yearSelectorWidth || 0;
-        console.log('Year selector RIGHT margin will be:', yearSelectorRight);
+        // Only add right margin if TopTabs is not on top/bottom (year selector positions itself to avoid TopTabs)
+        if (topTabsPosition !== 'top' && topTabsPosition !== 'bottom') {
+          yearSelectorRight = yearSelectorWidth || 0;
+          console.log('Year selector RIGHT margin will be:', yearSelectorRight);
+        } else {
+          console.log('Year selector RIGHT margin skipped - positioned to avoid TopTabs on', topTabsPosition);
+        }
       } else if (yearSelectorPosition === 'top') {
-        yearSelectorTop = yearSelectorHeight || 0;
-        console.log('Year selector TOP margin will be:', yearSelectorTop);
+        // Only add top margin if TopTabs is not on left/right (year selector positions itself to avoid TopTabs)
+        if (topTabsPosition !== 'left' && topTabsPosition !== 'right') {
+          yearSelectorTop = yearSelectorHeight || 0;
+          console.log('Year selector TOP margin will be:', yearSelectorTop);
+        } else {
+          console.log('Year selector TOP margin skipped - positioned to avoid TopTabs on', topTabsPosition);
+        }
       } else if (yearSelectorPosition === 'bottom') {
-        yearSelectorBottom = yearSelectorHeight || 0;
-        console.log('Year selector BOTTOM margin will be:', yearSelectorBottom);
+        // Only add bottom margin if TopTabs is not on left/right (year selector positions itself to avoid TopTabs)
+        if (topTabsPosition !== 'left' && topTabsPosition !== 'right') {
+          yearSelectorBottom = yearSelectorHeight || 0;
+          console.log('Year selector BOTTOM margin will be:', yearSelectorBottom);
+        } else {
+          console.log('Year selector BOTTOM margin skipped - positioned to avoid TopTabs on', topTabsPosition);
+        }
       }
     }
 
