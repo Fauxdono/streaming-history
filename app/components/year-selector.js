@@ -1254,7 +1254,7 @@ const YearSelector = ({
       <div 
         className={`${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
           isBottom || isTop 
-            ? 'w-full h-20 flex items-start justify-center' 
+            ? 'w-full h-auto flex items-center justify-center py-2' 
             : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
         style={collapsedStyle}
