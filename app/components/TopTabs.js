@@ -338,7 +338,9 @@ const TopTabs = ({
         // Layout for top position with buttons on left
         <div className="flex">
           {/* Fixed button area on the left */}
-          <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
+          <div className={`flex-shrink-0 flex gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110] ${
+            isCollapsed && isMobile ? 'flex-col items-center py-2' : 'items-center'
+          }`}>
             {/* Dark mode toggle */}
             <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
 
@@ -385,7 +387,9 @@ const TopTabs = ({
         // Layout for bottom position with buttons left of tabs
         <div className="flex">
           {/* Fixed button area on the left */}
-          <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
+          <div className={`flex-shrink-0 flex gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110] ${
+            isCollapsed && isMobile ? 'flex-col items-center py-2' : 'items-center'
+          }`}>
             {/* Dark mode toggle */}
             <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
 
@@ -432,7 +436,9 @@ const TopTabs = ({
         // Layout for left and right positions with buttons above tabs
         <div className="flex flex-col">
           {/* Fixed button area at the top */}
-          <div className="flex-shrink-0 flex justify-center gap-1 py-2 bg-white dark:bg-gray-800 z-[110] border-b border-violet-200 dark:border-gray-600">
+          <div className={`flex-shrink-0 flex gap-1 py-2 bg-white dark:bg-gray-800 z-[110] border-b border-violet-200 dark:border-gray-600 ${
+            isCollapsed && isMobile ? 'flex-col items-center' : 'justify-center'
+          }`}>
             {/* Dark mode toggle */}
             <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
 
