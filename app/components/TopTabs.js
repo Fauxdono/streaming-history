@@ -338,9 +338,7 @@ const TopTabs = ({
         // Layout for top position with buttons on left
         <div className="flex">
           {/* Fixed button area on the left */}
-          <div className={`flex-shrink-0 flex gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110] ${
-            isCollapsed && isMobile ? 'flex-col items-center py-2' : 'items-center'
-          }`}>
+          <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
             {/* Dark mode toggle */}
             <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
 
