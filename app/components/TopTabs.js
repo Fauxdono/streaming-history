@@ -333,52 +333,99 @@ const TopTabs = ({
         })
       }}
     >
-      {/* Position toggle button */}
-      <button 
-        onClick={togglePosition}
-        className={`absolute z-[110] p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg ${
-          currentPosition === 'top' ? 'top-1 right-1' :
-          currentPosition === 'bottom' ? 'bottom-1 right-1' :
-          currentPosition === 'left' ? 'top-1 right-1' :
-          'top-1 left-1'
-        }`}
-        title="Change tab position"
-      >
-        <span className="text-xs">⇄</span>
-      </button>
+      {currentPosition === 'top' ? (
+        // Special layout for top position with buttons on left
+        <div className="flex">
+          {/* Fixed button area on the left */}
+          <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
+            {/* Position toggle button */}
+            <button 
+              onClick={togglePosition}
+              className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
+              title="Change tab position"
+            >
+              <span className="text-xs">⇄</span>
+            </button>
 
-      {/* Collapse toggle button - only show on mobile */}
-      {isMobile && (
-        <button 
-          onClick={toggleCollapsed}
-          className={`absolute z-[110] p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg ${
-            currentPosition === 'top' ? 'top-1 right-12' :
-            currentPosition === 'bottom' ? 'bottom-1 right-12' :
-            currentPosition === 'left' ? 'top-12 right-1' :
-            'top-12 left-1'
-          }`}
-          title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-        >
-          <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
-        </button>
-      )}
+            {/* Collapse toggle button - only show on mobile */}
+            {isMobile && (
+              <button 
+                onClick={toggleCollapsed}
+                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
+                title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
+              >
+                <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
+              </button>
+            )}
+          </div>
 
-      <div className={getScrollContainerStyles()}>
-        <div className={getTabsContainerStyles()}>
-          {stats && <TabButton id="updates" label="Updates" />} 
-          <TabButton id="upload" label="Upload" />
-          {stats && <TabButton id="stats" label="Statistics" />}
-          {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
-          {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
-          {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
-          {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
-          {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-          {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+          {/* Scrolling tabs area */}
+          <div className="flex-1 overflow-x-auto main-tabs-scrollbar">
+            <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
+              {stats && <TabButton id="updates" label="Updates" />} 
+              <TabButton id="upload" label="Upload" />
+              {stats && <TabButton id="stats" label="Statistics" />}
+              {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
+              {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
+              {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
+              {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
+              {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        // Original layout for other positions
+        <>
+          {/* Position toggle button */}
+          <button 
+            onClick={togglePosition}
+            className={`absolute z-[110] p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg ${
+              currentPosition === 'bottom' ? 'bottom-1 right-1' :
+              currentPosition === 'left' ? 'top-1 right-1' :
+              'top-1 left-1'
+            }`}
+            title="Change tab position"
+          >
+            <span className="text-xs">⇄</span>
+          </button>
+
+          {/* Collapse toggle button - only show on mobile */}
+          {isMobile && (
+            <button 
+              onClick={toggleCollapsed}
+              className={`absolute z-[110] p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg ${
+                currentPosition === 'bottom' ? 'bottom-1 right-12' :
+                currentPosition === 'left' ? 'top-12 right-1' :
+                'top-12 left-1'
+              }`}
+              title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
+            >
+              <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
+            </button>
+          )}
+
+          <div className={getScrollContainerStyles()}>
+            <div className={getTabsContainerStyles()}>
+              {stats && <TabButton id="updates" label="Updates" />} 
+              <TabButton id="upload" label="Upload" />
+              {stats && <TabButton id="stats" label="Statistics" />}
+              {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
+              {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
+              {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
+              {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
+              {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
+              {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
