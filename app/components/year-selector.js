@@ -1236,9 +1236,14 @@ const YearSelector = ({
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
     
+    // Determine z-index based on potential collision with TopTabs
+    const zIndex = (topTabsPosition === 'left' || topTabsPosition === 'right') && 
+                   (currentPosition === 'top' || currentPosition === 'bottom') 
+                   ? 'z-[110]' : 'z-[90]';
+    
     return (
       <div 
-        className={`${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
+        className={`${positionConfig.className} max-h-screen ${zIndex} transition-all duration-300 ${
           isBottom || isTop 
             ? 'w-full h-20 flex items-start justify-center' 
             : 'w-8'
@@ -1327,9 +1332,14 @@ const YearSelector = ({
     );
   }
   
+  // Determine z-index based on potential collision with TopTabs
+  const zIndex = (topTabsPosition === 'left' || topTabsPosition === 'right') && 
+                 (currentPosition === 'top' || currentPosition === 'bottom') 
+                 ? 'z-[110]' : 'z-[90]';
+  
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
+    ? `${positionConfig.className} max-h-screen ${zIndex} transition-all duration-300 ${
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
