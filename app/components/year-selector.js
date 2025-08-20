@@ -1143,10 +1143,12 @@ const YearSelector = ({
           inlineStyles = { top: `${topTabsHeight}px`, left: 0, right: 0 };
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'bottom':
-          // Account for TopTabs height + its safe area spacing on mobile
-          const topTabsSafeAreaSpacing = isMobile ? 16 : 0; // 1rem = 16px on mobile for safe area
-          const totalBottomOffset = topTabsHeight + topTabsSafeAreaSpacing;
-          inlineStyles = { bottom: `${totalBottomOffset}px`, left: 0, right: 0 };
+          // Account for TopTabs height + its safe area spacing on mobile using CSS calc
+          if (isMobile) {
+            inlineStyles = { bottom: `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))`, left: 0, right: 0 };
+          } else {
+            inlineStyles = { bottom: `${topTabsHeight}px`, left: 0, right: 0 };
+          }
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'left':
           inlineStyles = { left: `${topTabsWidth}px`, top: 0 };
