@@ -1236,6 +1236,21 @@ const YearSelector = ({
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
     
+    // Apply width adjustments for collapsed state when TopTabs is on sides
+    const collapsedStyle = { ...positionConfig.style };
+    if ((currentPosition === 'top' || currentPosition === 'bottom') && 
+        (topTabsPosition === 'left' || topTabsPosition === 'right')) {
+      if (topTabsPosition === 'left') {
+        collapsedStyle.left = `${topTabsWidth}px`;
+        collapsedStyle.right = '0';
+        collapsedStyle.width = `calc(100% - ${topTabsWidth}px)`;
+      } else if (topTabsPosition === 'right') {
+        collapsedStyle.left = '0';
+        collapsedStyle.right = `${topTabsWidth}px`;
+        collapsedStyle.width = `calc(100% - ${topTabsWidth}px)`;
+      }
+    }
+    
     return (
       <div 
         className={`${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
@@ -1243,7 +1258,7 @@ const YearSelector = ({
             ? 'w-full h-20 flex items-start justify-center' 
             : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
-        style={positionConfig.style}
+        style={collapsedStyle}
       >
         {/* Horizontal layout container for bottom and top positions */}
         {isBottom || isTop ? (
