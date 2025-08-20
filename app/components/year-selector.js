@@ -216,7 +216,7 @@ const YearSelector = ({
             onHeightChange(actualHeight);
           } else {
             // Fallback to approximation based on state
-            const fallbackHeight = !expanded ? 80 : (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200));
+            const fallbackHeight = !expanded ? 48 : (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200));
             console.log('Year selector height fallback:', fallbackHeight, 'expanded:', expanded);
             onHeightChange(fallbackHeight);
           }
