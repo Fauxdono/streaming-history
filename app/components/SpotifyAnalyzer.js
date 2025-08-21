@@ -1123,8 +1123,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
 
     // Calculate year selector margins - avoid double-counting only when on same side
+    // Only consider year selector margins if it should actually be shown for the current tab
     let yearSelectorTop = 0, yearSelectorBottom = 0, yearSelectorLeft = 0, yearSelectorRight = 0;
-    if (showYearSidebar) {
+    if (showYearSidebar && shouldShowSidebar(activeTab)) {
       if (yearSelectorPosition === 'left') {
         // Add left margin unless TopTabs is also on left (to avoid double-counting when they stack)
         if (topTabsPosition !== 'left') {
@@ -2324,7 +2325,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         </div>
         
         {/* Year Selector - positioned outside the main content flow */}
-        {showYearSidebar && (
+        {showYearSidebar && shouldShowSidebar(activeTab) && (
           <YearSelector
             artistsByYear={artistsByYear}
             rawPlayData={rawPlayData}
