@@ -380,14 +380,8 @@ body {
   animation: rainbow 2s linear infinite;
 }
 
-/* Desktop scrollbar styling - targeting webkit browsers specifically */
-@media (hover: hover) and (pointer: fine) {
-  /* Only apply to desktop devices with mouse/trackpad */
-  
-  ::-webkit-scrollbar {
-    display: none; /* Hide scrollbars on desktop like mobile */
-  }
-}
+/* Override: Don't hide scrollbars on desktop - we want them styled */
+/* Removed the desktop scrollbar hiding rule to allow styled scrollbars */
 
 /* Specific styling for main tabs scrollbar */
 .main-tabs-scrollbar::-webkit-scrollbar {
@@ -428,6 +422,49 @@ body {
   ::-webkit-scrollbar {
     display: none; /* Let mobile use native overlay scrollbars */
   }
+}
+
+/* Global WebKit scrollbar styling for all browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.6);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.8);
+  border-radius: 6px;
+  border: 2px solid rgba(243, 244, 246, 0.6);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 51, 234, 0.9);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(243, 244, 246, 0.6);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.8);
+  border: 2px solid rgba(31, 41, 55, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(109, 40, 217, 0.9);
+}
+
+.dark ::-webkit-scrollbar-corner {
+  background: rgba(31, 41, 55, 0.6);
 }
 
 /* Firefox scrollbar styling */
