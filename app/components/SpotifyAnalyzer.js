@@ -531,42 +531,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       return null;
     };
 
-    // First pass: collect all artist name variations
-    const artistVariations = new Map();
-    dateFilteredEntries.forEach(entry => {
-      let rawArtistName = entry.master_metadata_album_artist_name;
-      
-      if (!rawArtistName && entry.episode_name) {
-        rawArtistName = extractArtistFromEpisode(entry.episode_name);
-      }
-      
-      if (!rawArtistName) return;
-      
-      const normalizedKey = normalizeArtistName(rawArtistName);
-      if (!normalizedKey) return;
-      
-      if (!artistVariations.has(normalizedKey)) {
-        artistVariations.set(normalizedKey, []);
-      }
-      artistVariations.get(normalizedKey).push(rawArtistName);
-    });
-    
-    // Create canonical name mapping (use most frequent variation)
-    const canonicalNames = new Map();
-    artistVariations.forEach((variations, normalizedKey) => {
-      const variationCounts = {};
-      variations.forEach(name => {
-        variationCounts[name] = (variationCounts[name] || 0) + 1;
-      });
-      
-      // Use the most frequent variation as canonical name
-      const canonicalName = Object.entries(variationCounts)
-        .sort((a, b) => b[1] - a[1])[0][0];
-      
-      canonicalNames.set(normalizedKey, canonicalName);
-    });
-
-    // Second pass: group by artists using canonical names
+    // Group by artists - use original names as keys for consistency
     const artistMap = new Map();
     dateFilteredEntries.forEach(entry => {
       // Get artist name from primary field or extract from episode name
@@ -579,12 +544,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       if (!rawArtistName) return;
       
-      const normalizedKey = normalizeArtistName(rawArtistName);
-      if (!normalizedKey) return;
-      
-      // Use canonical name for both key and display
-      const canonicalName = canonicalNames.get(normalizedKey);
-      const artistName = canonicalName;
+      // Use the raw artist name as key to maintain consistency with individual year logic
+      const artistName = rawArtistName;
       const trackName = entry.master_metadata_track_name || entry.episode_name || 'Unknown';
       const timestamp = new Date(entry.ts);
       
