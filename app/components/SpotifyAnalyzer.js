@@ -501,18 +501,62 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           }
         });
     
+    // Helper function to normalize artist names
+    const normalizeArtistName = (name) => {
+      if (!name) return null;
+      // Convert to lowercase, remove extra spaces, and normalize punctuation
+      return name.toLowerCase()
+        .replace(/,\s+the\s+/g, ' the ')  // "Tyler, The Creator" -> "tyler the creator"
+        .replace(/\s+/g, ' ')             // normalize spaces
+        .trim();
+    };
+
+    // Helper function to extract artist name from episode name
+    const extractArtistFromEpisode = (episodeName) => {
+      if (!episodeName) return null;
+      
+      // Look for patterns like "title - artist" where artist contains "tyler" and "creator"
+      const dashMatch = episodeName.match(/^.+?\s*-\s*(.+)$/);
+      if (dashMatch) {
+        const extractedName = dashMatch[1].trim();
+        const lowerName = extractedName.toLowerCase();
+        if (lowerName.includes('tyler') && lowerName.includes('creator')) {
+          // Convert to proper case: "tyler the creator" -> "Tyler, The Creator"
+          return extractedName.replace(/\b\w/g, l => l.toUpperCase())
+                             .replace(/\bThe\b/g, 'The')
+                             .replace(/^Tyler The Creator$/i, 'Tyler, The Creator');
+        }
+      }
+      
+      return null;
+    };
+
     // Group by artists
     const artistMap = new Map();
     dateFilteredEntries.forEach(entry => {
-      if (!entry.master_metadata_album_artist_name) return;
+      // Get artist name from primary field or extract from episode name
+      let rawArtistName = entry.master_metadata_album_artist_name;
       
-      const artistName = entry.master_metadata_album_artist_name;
-      const trackName = entry.master_metadata_track_name || 'Unknown';
+      // If no primary artist name, try to extract from episode name
+      if (!rawArtistName && entry.episode_name) {
+        rawArtistName = extractArtistFromEpisode(entry.episode_name);
+      }
+      
+      if (!rawArtistName) return;
+      
+      // Normalize the artist name for consistent grouping
+      const normalizedName = normalizeArtistName(rawArtistName);
+      if (!normalizedName) return;
+      
+      // Use the original (non-normalized) name for display, but group by normalized name
+      const displayName = rawArtistName;
+      const artistName = normalizedName;
+      const trackName = entry.master_metadata_track_name || entry.episode_name || 'Unknown';
       const timestamp = new Date(entry.ts);
       
       if (!artistMap.has(artistName)) {
         artistMap.set(artistName, {
-          name: artistName,
+          name: displayName,
           totalPlayed: 0,
           playCount: 0,
           firstListen: timestamp.getTime(),
