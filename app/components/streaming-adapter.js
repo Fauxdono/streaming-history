@@ -1871,22 +1871,33 @@ function calculatePlayStats(entries) {
       albums[albumKey].trackCount.add(normTrack);
       albums[albumKey].trackNames.add(trackName);
       
-      // Update track objects
-      const existingTrackIndex = albums[albumKey].trackObjects.findIndex(
-        t => t.trackName === trackName
-      );
+      // Update track objects using enhanced matching
+      const trackMatchKey = createMatchKey(trackName, artistName);
       
-      if (existingTrackIndex === -1) {
-        albums[albumKey].trackObjects.push({
+      // Use trackMap for better deduplication (convert to array later)
+      if (!albums[albumKey].trackMap) {
+        albums[albumKey].trackMap = new Map();
+      }
+      
+      if (albums[albumKey].trackMap.has(trackMatchKey)) {
+        // Update existing track
+        const track = albums[albumKey].trackMap.get(trackMatchKey);
+        track.totalPlayed += playTime;
+        track.playCount++;
+        
+        // Update display name if we get a better version (prefer "feat" over "with")
+        if (trackName.includes('feat') && track.trackName.includes('with')) {
+          track.trackName = trackName;
+        }
+      } else {
+        // Create new track
+        albums[albumKey].trackMap.set(trackMatchKey, {
           trackName,
           artist: artistName,
           totalPlayed: playTime,
           playCount: 1,
           albumName
         });
-      } else {
-        albums[albumKey].trackObjects[existingTrackIndex].totalPlayed += playTime;
-        albums[albumKey].trackObjects[existingTrackIndex].playCount++;
       }
       
       // Update expected track count if needed
@@ -2003,7 +2014,13 @@ function calculatePlayStats(entries) {
 
   // Process album stats
   Object.values(albums).forEach(album => {
-    album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+    // Convert trackMap to trackObjects array if it exists
+    if (album.trackMap) {
+      album.trackObjects = Array.from(album.trackMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      delete album.trackMap; // Clean up
+    } else {
+      album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
+    }
     album.trackCountValue = album.trackCount.size;
     album.yearsArray = Array.from(album.years).sort();
   });
