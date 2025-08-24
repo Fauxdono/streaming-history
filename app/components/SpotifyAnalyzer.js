@@ -955,6 +955,53 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     });
   }, []);
 
+  // Manual save function for testing/backup
+  const handleManualSave = useCallback(() => {
+    if (!stats || processedData.length === 0) {
+      alert('No processed data to save');
+      return;
+    }
+
+    try {
+      console.log('🔧 Manual save triggered from Data tab');
+      const dataToSave = {
+        stats: stats,
+        topArtists: topArtists,
+        topAlbums: topAlbums,
+        processedTracks: processedData,
+        songsByYear: songsByYear,
+        briefObsessions: briefObsessions,
+        artistsByYear: artistsByYear,
+        albumsByYear: albumsByYear,
+        rawPlayData: rawPlayData
+      };
+      
+      const saveResult = saveProcessedData(dataToSave);
+      console.log('✅ Manual save successful:', saveResult);
+      
+      setStorageNotification({
+        type: 'success',
+        title: 'Data Saved Successfully!',
+        message: `Your streaming analysis (${processedData.length.toLocaleString()} tracks) has been saved to device storage.`
+      });
+    } catch (error) {
+      console.error('❌ Manual save failed:', error);
+      setStorageNotification({
+        type: 'error',
+        title: 'Save Failed',
+        message: `Failed to save data: ${error.message}`
+      });
+    }
+  }, [stats, processedData, topArtists, topAlbums, songsByYear, briefObsessions, artistsByYear, albumsByYear, rawPlayData, saveProcessedData]);
+
+  // Expose manual save function globally for DataManager
+  useEffect(() => {
+    window.saveProcessedDataManually = handleManualSave;
+    return () => {
+      delete window.saveProcessedDataManually;
+    };
+  }, [handleManualSave]);
+
   // Reset data loaded flag when authentication state changes
   useEffect(() => {
     if (!isAuthenticated) {
@@ -965,16 +1012,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Load data when storage becomes ready and user is authenticated
   useEffect(() => {
-    console.log('Data loading effect triggered:', {
+    console.log('📊 Data loading effect triggered:', {
       storageReady,
       isAuthenticated, 
       deviceId: !!deviceId,
       dataLoadedRef: dataLoadedRef.current,
-      hasCurrentStats: !!stats
+      hasCurrentStats: !!stats,
+      hasProcessedData: processedData.length > 0,
+      statsDetails: stats ? `${stats.totalEntries} total entries` : 'no stats'
     });
     
     if (storageReady && isAuthenticated && deviceId && !dataLoadedRef.current) {
-      console.log('✅ All conditions met - loading data from storage...');
+      console.log('✅ All conditions met - checking for current data...');
       
       dataLoadedRef.current = true; // Mark as loaded to prevent re-runs
       
@@ -1049,7 +1098,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         console.error('Failed to load existing data:', loadError);
       }
     }
-  }, [storageReady, isAuthenticated, deviceId, getProcessedData, saveProcessedData]);
+  }, [storageReady, isAuthenticated, deviceId, getProcessedData, saveProcessedData, stats, processedData]);
 
   // Handle year range change with useCallback
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
