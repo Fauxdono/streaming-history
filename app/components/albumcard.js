@@ -47,11 +47,6 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
         Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
         <br/>
         Plays: <span className="font-bold">{album.playCount || 0}</span> 
-        <br/>
-        Tracks: <span className="font-bold">{albumTracks.length} / {actualTrackCount || '?'}</span>
-        {completenessPercentage > 0 && (
-          <span className="text-xs ml-1">({completenessPercentage}% complete)</span>
-        )}
         <br/> 
         First Listen: <span className="font-bold">{new Date(album.firstListen).toLocaleDateString()}</span>
       </div>

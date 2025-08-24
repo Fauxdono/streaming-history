@@ -85,6 +85,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [uploadedFileList, setUploadedFileList] = useState(null);
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   const [showServiceInfo, setShowServiceInfo] = useState({});
+  const [showCakeService, setShowCakeService] = useState(false);
   // Add date range states for artists (like CustomTrackRankings)
   const [artistStartDate, setArtistStartDate] = useState('');
   const [artistEndDate, setArtistEndDate] = useState('');
@@ -1346,10 +1347,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
           {activeTab === 'upload' && (
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
-                <div className="p-2 sm:p-4 border rounded bg-blue-50">
-                  <h3 className="font-semibold mb-2 text-blue-900">How to use:</h3>
-                  <ol className="list-decimal list-inside space-y-1 text-blue-700">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                <div className={`p-3 sm:p-4 border rounded ${isDarkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'}`}>
+                  <h3 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>How to use:</h3>
+                  <ol className={`list-decimal list-inside space-y-2 ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
                     <li>Select your streaming service below</li>
                     <li>Download your streaming history</li>
                     <li>Upload your file(s)</li>
@@ -1358,84 +1359,112 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       <button
                         onClick={handleLoadSampleData}
                         disabled={isProcessing}
-                        className="flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm bg-yellow-300 text-black rounded-lg hover:bg-yellow-500 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 text-sm bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm"
                       >
-                        <Download size={14} className="hidden sm:inline" />
-                        DEMO
+                        <Download size={16} />
+                        Try Demo
                       </button>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Want to test the app without uploading your own data? Click DEMO to load sample streaming history.
+                      <p className={`text-sm mt-2 ${isDarkMode ? 'text-blue-400' : 'text-gray-600'}`}>
+                        Want to test the app? Click to load sample streaming history.
                       </p>
                     </div>
                     <li>Click "Calculate Statistics"</li>
                   </ol>
                 </div>
                 
-                <div className="p-4 border rounded bg-green-50">
-                  <h3 className="font-semibold mb-2 text-green-900">Install as a Webapp:</h3>
-                  <div className="space-y-2 text-green-700">
+                <div className={`p-3 sm:p-4 border rounded ${isDarkMode ? 'bg-green-900/20 border-green-600/30' : 'bg-green-50 border-green-200'}`}>
+                  <h3 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-green-200' : 'text-green-900'}`}>Install as App:</h3>
+                  <div className={`space-y-3 ${isDarkMode ? 'text-green-300' : 'text-green-700'}`}>
                 
                     <div className="space-y-1">
-                      <h4 className="font-medium text-green-800">Desktop:</h4>
-                      <p>1. Open the site in Chrome/Edge</p>
-                      <p>2. Click the "+" or install icon in the address bar</p>
+                      <h4 className={`font-medium ${isDarkMode ? 'text-green-200' : 'text-green-800'}`}>Desktop:</h4>
+                      <p className="text-sm">1. Open in Chrome/Edge</p>
+                      <p className="text-sm">2. Click install icon in address bar</p>
 
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-medium text-green-800">Mobile:</h4>
-                      <p>1. Open in Safari (iOS) or Chrome (Android)</p>
-                      <p>2. Tap "Add to Home Screen"</p>
+                      <h4 className={`font-medium ${isDarkMode ? 'text-green-200' : 'text-green-800'}`}>Mobile:</h4>
+                      <p className="text-sm">1. Open in Safari/Chrome</p>
+                      <p className="text-sm">2. Add to Home Screen</p>
                 
                     </div>
-                    <p className="text-sm text-green-600">
-                      Enjoy offline access
+                    <p className={`text-sm ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                      Enjoy offline access & faster loading
                     </p>
                   </div>
                 </div>
               </div>
                 
-              <h3 className="font-bold text-orange-700 mb-3 mt-4">Select Streaming Services:</h3>
+              <div className="mt-6 mb-4">
+                <h3 className={`font-bold text-xl mb-4 ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Select Streaming Services:</h3>
+                
+                {/* Cake Service Toggle */}
+                <div className={`mb-4 p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-600/30' : 'bg-purple-50 border-purple-200'}`}>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showCakeService}
+                      onChange={(e) => setShowCakeService(e.target.checked)}
+                      className="mr-3 w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className={`text-sm font-medium ${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
+                      Show advanced option (Cake - website users only)
+                    </span>
+                  </label>
+                </div>
+              </div>
                          
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-6">
                 {/* Service Tiles */}
                 {Object.entries(STREAMING_SERVICES)
+                  .filter(([type, service]) => showCakeService || type !== 'cake')
                   .map(([type, service]) => (
-                  <div key={type} className="border rounded-lg overflow-hidden">
+                  <div key={type} className={`border rounded-lg overflow-hidden ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     <button
                       onClick={() => toggleServiceSelection(type)}
-                      className={`w-full aspect-square sm:aspect-auto sm:px-4 sm:py-2 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors ${
+                      className={`w-full h-20 sm:h-auto sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors font-medium ${
                         selectedServices.includes(type)
                           ? SERVICE_COLORS[type]?.selected || 'bg-gray-600 text-white'
                           : SERVICE_COLORS[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      <span className="text-center sm:text-left">{service.name}</span>
-                      {selectedServices.includes(type) && <Check size={18} className="mt-2 sm:mt-0" />}
+                      <span className="text-center sm:text-left text-sm sm:text-base">{service.name}</span>
+                      {selectedServices.includes(type) && <Check size={20} className="mt-1 sm:mt-0" />}
                     </button>
                     
-                    <div className="px-2 sm:px-4 py-2 border-t bg-white">
+                    <div className={`px-3 py-2 border-t ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}>
                       <button 
                         onClick={() => toggleServiceInfo(type)}
-                        className="flex items-center justify-center w-full text-xs sm:text-sm text-orange-600 hover:text-orange-800"
+                        className={`flex items-center justify-center w-full text-xs sm:text-sm transition-colors ${
+                          isDarkMode 
+                            ? 'text-orange-400 hover:text-orange-300' 
+                            : 'text-orange-600 hover:text-orange-800'
+                        }`}
                       >
                         {showServiceInfo[type] ? 
-                          <><ChevronUp size={14} className="mr-1" /> Hide Details</> : 
-                          <><ChevronDown size={14} className="mr-1" /> Show Details</>
+                          <><ChevronUp size={16} className="mr-1" /> Hide Details</> : 
+                          <><ChevronDown size={16} className="mr-1" /> Show Details</>
                         }
                       </button>
                       
                       {showServiceInfo[type] && (
-                        <div className="mt-2 text-xs sm:text-sm text-orange-700">
-                          <p className="mb-2">{service.instructions}</p>
+                        <div className={`mt-3 text-xs sm:text-sm ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
+                          <p className="mb-3 leading-relaxed">{service.instructions}</p>
                           <a
                             href={service.downloadUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-orange-600 hover:text-orange-800 underline"
+                            className={`inline-block mb-2 underline transition-colors ${
+                              isDarkMode 
+                                ? 'text-orange-400 hover:text-orange-300' 
+                                : 'text-orange-600 hover:text-orange-800'
+                            }`}
                           >
-                            Download your data here
+                            Download your data here →
                           </a>
-                          <p className="mt-1">Accepted formats: {service.acceptedFormats}</p>
+                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            Accepted formats: {service.acceptedFormats}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1444,8 +1473,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               </div>
                   
               {selectedServices.length > 0 ? (
-                <div>
-                  <p className="mb-2 text-orange-700 font-bold">
+                <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-orange-900/20 border-orange-600/30' : 'bg-orange-50 border-orange-200'}`}>
+                  <p className={`mb-3 font-bold text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
                     Upload your files from selected services:
                   </p>
                   <input
@@ -1453,15 +1482,20 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     multiple
                     accept={getAcceptedFormats()}
                     onChange={handleFileUpload}
-                    className="block w-full text-sm text-slate-600 
-                      file:mr-4 file:py-2 file:px-4 file:rounded-full 
+                    className={`block w-full text-sm transition-colors
+                      file:mr-4 file:py-2 file:px-4 file:rounded-lg 
                       file:border-2 file:border-yellow-400 file:text-sm 
                       file:font-semibold file:bg-yellow-300 
-                      file:text-yellow-800 hover:file:bg-yellow-400"
+                      file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
+                      ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
                   />
                 </div>
               ) : (
-                <p className="text-orange-700 font-semibold">
+                <p className={`font-semibold text-center py-4 px-6 rounded-lg ${
+                  isDarkMode 
+                    ? 'text-orange-300 bg-orange-900/20 border border-orange-600/30' 
+                    : 'text-orange-700 bg-orange-50 border border-orange-200'
+                }`}>
                   Please select at least one streaming service
                 </p>
               )}
@@ -1488,18 +1522,24 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               )}
                   
               {uploadedFiles.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-orange-700 font-semibold mb-2">Uploaded Files:</h4>
-                  <ul className="list-disc list-inside text-orange-600 space-y-1">
+                <div className={`mt-6 p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  <h4 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Uploaded Files:</h4>
+                  <ul className="space-y-2">
                     {uploadedFiles.map((fileName, index) => (
-                      <li key={index} className="flex items-center">
-                        <span className="mr-2">{fileName}</span>
+                      <li key={index} className={`flex items-center justify-between p-3 rounded-lg ${
+                        isDarkMode ? 'bg-gray-700' : 'bg-white'
+                      }`}>
+                        <span className={`text-sm font-medium truncate mr-3 ${
+                          isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                        }`}>
+                          {fileName}
+                        </span>
                         <button 
                           onClick={() => handleDeleteFile(index)}
-                          className="p-1 bg-gray-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0"
                           title="Remove file"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={16} />
                         </button>
                       </li>
                     ))}
@@ -1513,17 +1553,22 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   <button
                     onClick={handleProcessFiles}
                     disabled={isProcessing}
-                    className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg 
-                      hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
+                    className="mt-4 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg
+                      hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg"
                   >
-                    {isProcessing ? "Processing..." : "Calculate Statistics"}
+                    {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}
                   </button>
                 </div>
               )}
                   
               {error && (
-                <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700">
-                  {error}
+                <div className={`mt-6 p-4 rounded-lg border ${
+                  isDarkMode 
+                    ? 'bg-red-900/20 border-red-600/30 text-red-300' 
+                    : 'bg-red-100 border-red-300 text-red-700'
+                }`}>
+                  <h4 className="font-semibold mb-2">Error:</h4>
+                  <p className="text-sm">{error}</p>
                 </div>
               )}
             </div>
