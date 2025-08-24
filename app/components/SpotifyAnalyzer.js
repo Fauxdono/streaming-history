@@ -894,7 +894,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Authentication handlers
   const handleAuthSuccess = useCallback((newDeviceId) => {
-    console.log('Authentication successful for device:', newDeviceId);
+    console.log('🔐 Authentication successful for device:', newDeviceId);
+    console.log('Setting deviceId and isAuthenticated to true');
     setDeviceId(newDeviceId);
     setIsAuthenticated(true);
   }, []);
@@ -904,16 +905,26 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     setIsAuthenticated(false);
   }, []);
 
+  // Reset data loaded flag when authentication state changes
+  useEffect(() => {
+    if (!isAuthenticated) {
+      dataLoadedRef.current = false;
+      console.log('Authentication lost, resetting data loaded flag');
+    }
+  }, [isAuthenticated]);
+
   // Load data when storage becomes ready and user is authenticated
   useEffect(() => {
+    console.log('Data loading effect triggered:', {
+      storageReady,
+      isAuthenticated, 
+      deviceId: !!deviceId,
+      dataLoadedRef: dataLoadedRef.current,
+      hasCurrentStats: !!stats
+    });
+    
     if (storageReady && isAuthenticated && deviceId && !dataLoadedRef.current) {
-      console.log('Storage ready and authenticated, loading data...', { 
-        storageReady, 
-        isAuthenticated, 
-        deviceId,
-        currentDataExists: !!stats,
-        dataLoaded: dataLoadedRef.current
-      });
+      console.log('✅ All conditions met - loading data from storage...');
       
       dataLoadedRef.current = true; // Mark as loaded to prevent re-runs
       

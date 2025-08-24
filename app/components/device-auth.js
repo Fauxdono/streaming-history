@@ -195,13 +195,30 @@ const DeviceAuth = ({ onAuthSuccess, onAuthFailure }) => {
       // Check if device is already authenticated
       try {
         const lastAuth = localStorage.getItem(`auth_${existingDeviceId}`);
+        console.log('🔍 Checking existing authentication:', { 
+          deviceId: existingDeviceId,
+          hasAuthData: !!lastAuth 
+        });
+        
         if (lastAuth) {
           const authData = JSON.parse(lastAuth);
+          const hoursSinceAuth = (Date.now() - authData.timestamp) / (1000 * 60 * 60);
+          console.log('📅 Authentication data found:', { 
+            timestamp: new Date(authData.timestamp),
+            hoursSinceAuth: hoursSinceAuth.toFixed(1),
+            stillValid: hoursSinceAuth < 24
+          });
+          
           // Consider authenticated if within last 24 hours
           if (Date.now() - authData.timestamp < 24 * 60 * 60 * 1000) {
+            console.log('✅ Authentication still valid - calling onAuthSuccess');
             setIsAuthenticated(true);
             onAuthSuccess?.(existingDeviceId);
+          } else {
+            console.log('❌ Authentication expired');
           }
+        } else {
+          console.log('❌ No authentication data found');
         }
       } catch (parseError) {
         console.error('Failed to parse authentication data, clearing corrupted data:', parseError);
