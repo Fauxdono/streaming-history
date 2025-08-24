@@ -93,6 +93,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [deviceId, setDeviceId] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showDataManager, setShowDataManager] = useState(false);
+  const [storageNotification, setStorageNotification] = useState(null);
   
   // Persistent storage hook
   const {
@@ -855,15 +856,30 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             
             if (serializedData.length > 8 * 1024 * 1024) { // 8MB limit (conservative)
               console.warn('File data exceeds localStorage size limit, skipping file content storage');
-              console.log('Note: Processed data will still be saved, but files will need to be re-uploaded');
+              setStorageNotification({
+                type: 'warning',
+                title: 'Large File Set Detected',
+                message: `Your ${filesWithContent.length} files (${sizeInMB} MB) exceed storage limits. Your analysis results will be saved, but you'll need to re-upload files when returning.`,
+                action: 'For persistent file storage, consider processing fewer files at once.'
+              });
               return;
             }
             
             localStorage.setItem(`streaming_data_${deviceId}_file_contents`, serializedData);
             console.log('Files saved to persistent storage successfully');
+            setStorageNotification({
+              type: 'success',
+              title: 'Files Saved Successfully',
+              message: `${filesWithContent.length} files (${sizeInMB} MB) saved to device storage. Your files and analysis will persist between sessions.`
+            });
           } catch (storageError) {
             console.error('Failed to save files to localStorage:', storageError);
-            console.log('Note: Processed data will still be saved, but files will need to be re-uploaded');
+            setStorageNotification({
+              type: 'info',
+              title: 'File Storage Unavailable',
+              message: 'Files could not be saved to device storage (storage full or unavailable). Your analysis results will still be saved.',
+              action: 'You may need to re-upload files when returning to the app.'
+            });
           }
         }).catch(error => {
           console.error('Failed to process files for storage:', error);
@@ -1038,6 +1054,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           });
           console.log('Current data saved to persistent storage:', saveResult);
           
+          // Notify user about data persistence
+          setStorageNotification({
+            type: 'success',
+            title: 'Analysis Data Saved',
+            message: 'Your streaming analysis has been saved to device storage and will persist between sessions.'
+          });
+          
           // Don't change tabs - let user stay where they are
           console.log('Keeping current tab:', activeTab);
         } catch (saveError) {
@@ -1066,6 +1089,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           setArtistsByYear(existingData.artistsByYear || {});
           setAlbumsByYear(existingData.albumsByYear || {});
           setRawPlayData(existingData.rawPlayData || []);
+          
+          // Notify user about successful data loading
+          setStorageNotification({
+            type: 'success',  
+            title: 'Welcome Back!',
+            message: `Your streaming analysis has been restored from device storage. ${existingData.processedTracks?.length || 0} tracks loaded.`
+          });
+          
           setActiveTab('stats'); // Switch to stats if data exists
         } else {
           console.log('No existing data found in persistent storage');
@@ -1694,6 +1725,38 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   onAuthFailure={handleAuthFailure}
                 />
               </div>
+
+              {/* Storage Notification */}
+              {storageNotification && (
+                <div className={`mb-6 p-4 rounded-lg border ${
+                  storageNotification.type === 'success' 
+                    ? 'bg-green-50 border-green-200 text-green-800' 
+                    : storageNotification.type === 'warning'
+                    ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                    : 'bg-blue-50 border-blue-200 text-blue-800'
+                }`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium mb-1">
+                        {storageNotification.type === 'success' && '✅ '}
+                        {storageNotification.type === 'warning' && '⚠️ '}
+                        {storageNotification.type === 'info' && 'ℹ️ '}
+                        {storageNotification.title}
+                      </h4>
+                      <p className="text-sm mb-2">{storageNotification.message}</p>
+                      {storageNotification.action && (
+                        <p className="text-xs opacity-75">{storageNotification.action}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setStorageNotification(null)}
+                      className="ml-3 text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 <div className={`p-3 sm:p-4 border rounded ${isDarkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'}`}>
                   <h3 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>How to use:</h3>
