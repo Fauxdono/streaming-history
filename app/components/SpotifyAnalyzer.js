@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey } from './streaming-adapter.js';
-import ExportButton from './ExportButton.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import PodcastRankings from './podcast-rankings.js';
@@ -731,7 +730,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             songsByYear: results.songsByYear,
             briefObsessions: results.briefObsessions,
             artistsByYear: results.artistsByYear,
-            albumsByYear: results.albumsByYear
+            albumsByYear: results.albumsByYear,
+            rawPlayData: results.rawPlayData // Add missing rawPlayData
           });
           console.log('Data saved to persistent storage');
         } catch (saveError) {
@@ -933,6 +933,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             setBriefObsessions(existingData.briefObsessions || []);
             setArtistsByYear(existingData.artistsByYear || {});
             setAlbumsByYear(existingData.albumsByYear || {});
+            setRawPlayData(existingData.rawPlayData || []); // Add missing rawPlayData
             setActiveTab('stats'); // Switch to stats if data exists
           }
           
@@ -1784,6 +1785,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             <DataManager 
               deviceId={deviceId}
               isAuthenticated={isAuthenticated}
+              stats={stats}
+              topArtists={topArtists}
+              topAlbums={topAlbums}
+              processedData={processedData}
+              briefObsessions={briefObsessions}
+              songsByYear={songsByYear}
+              rawPlayData={rawPlayData}
+              formatDuration={formatDuration}
             />
           )}
                   
@@ -1825,17 +1834,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </div>
 
                 {stats && processedData.length > 0 && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <ExportButton
-                      stats={stats}
-                      topArtists={topArtists}
-                      topAlbums={topAlbums}
-                      processedData={processedData}
-                      briefObsessions={briefObsessions}
-                      formatDuration={formatDuration}
-                      songsByYear={songsByYear}
-                      rawPlayData={rawPlayData}
-                    />
+                  <div className="mt-4">
                     <SupportOptions className="h-full" />
                   </div>
                 )}
