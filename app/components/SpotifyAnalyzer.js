@@ -815,24 +815,58 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         
         // Also save the actual file contents as base64 for later restoration
         Promise.all(combinedFiles.map(file => 
-          new Promise((resolve) => {
+          new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (e) => resolve({
-              name: file.name,
-              type: file.type,
-              size: file.size,
-              lastModified: file.lastModified,
-              content: e.target.result
-            });
+            reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
+            reader.onload = (e) => {
+              try {
+                // Convert ArrayBuffer to Base64 for JSON serialization
+                const arrayBuffer = e.target.result;
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const binaryString = String.fromCharCode.apply(null, uint8Array);
+                const base64String = btoa(binaryString);
+                
+                resolve({
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+                  lastModified: file.lastModified,
+                  content: base64String
+                });
+              } catch (conversionError) {
+                console.error(`Failed to convert file ${file.name}:`, conversionError);
+                reject(conversionError);
+              }
+            };
             reader.readAsArrayBuffer(file);
           })
         )).then(filesWithContent => {
-          localStorage.setItem(`streaming_data_${deviceId}_file_contents`, JSON.stringify({
-            data: filesWithContent,
-            timestamp: Date.now(),
-            version: '1.0'
-          }));
-          console.log('Files saved to persistent storage');
+          try {
+            const dataToStore = {
+              data: filesWithContent,
+              timestamp: Date.now(),
+              version: '1.0'
+            };
+            
+            const serializedData = JSON.stringify(dataToStore);
+            const sizeInMB = (serializedData.length / (1024 * 1024)).toFixed(2);
+            
+            console.log(`Attempting to save ${filesWithContent.length} files (${sizeInMB} MB) to localStorage`);
+            
+            if (serializedData.length > 8 * 1024 * 1024) { // 8MB limit (conservative)
+              console.warn('File data exceeds localStorage size limit, skipping file content storage');
+              console.log('Note: Processed data will still be saved, but files will need to be re-uploaded');
+              return;
+            }
+            
+            localStorage.setItem(`streaming_data_${deviceId}_file_contents`, serializedData);
+            console.log('Files saved to persistent storage successfully');
+          } catch (storageError) {
+            console.error('Failed to save files to localStorage:', storageError);
+            console.log('Note: Processed data will still be saved, but files will need to be re-uploaded');
+          }
+        }).catch(error => {
+          console.error('Failed to process files for storage:', error);
         });
         
       } catch (saveError) {
@@ -876,23 +910,56 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             
             // Update file contents
             Promise.all(remainingFiles.map(file => 
-              new Promise((resolve) => {
+              new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = (e) => resolve({
-                  name: file.name,
-                  type: file.type,
-                  size: file.size,
-                  lastModified: file.lastModified,
-                  content: e.target.result
-                });
+                reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
+                reader.onload = (e) => {
+                  try {
+                    // Convert ArrayBuffer to Base64 for JSON serialization
+                    const arrayBuffer = e.target.result;
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    const binaryString = String.fromCharCode.apply(null, uint8Array);
+                    const base64String = btoa(binaryString);
+                    
+                    resolve({
+                      name: file.name,
+                      type: file.type,
+                      size: file.size,
+                      lastModified: file.lastModified,
+                      content: base64String
+                    });
+                  } catch (conversionError) {
+                    console.error(`Failed to convert file ${file.name}:`, conversionError);
+                    reject(conversionError);
+                  }
+                };
                 reader.readAsArrayBuffer(file);
               })
             )).then(filesWithContent => {
-              localStorage.setItem(`streaming_data_${deviceId}_file_contents`, JSON.stringify({
-                data: filesWithContent,
-                timestamp: Date.now(),
-                version: '1.0'
-              }));
+              try {
+                const dataToStore = {
+                  data: filesWithContent,
+                  timestamp: Date.now(),
+                  version: '1.0'
+                };
+                
+                const serializedData = JSON.stringify(dataToStore);
+                const sizeInMB = (serializedData.length / (1024 * 1024)).toFixed(2);
+                
+                console.log(`Updating file storage: ${filesWithContent.length} files (${sizeInMB} MB)`);
+                
+                if (serializedData.length > 8 * 1024 * 1024) {
+                  console.warn('Updated files exceed localStorage size limit');
+                  return;
+                }
+                
+                localStorage.setItem(`streaming_data_${deviceId}_file_contents`, serializedData);
+                console.log('Updated files saved successfully');
+              } catch (storageError) {
+                console.error('Failed to update file storage:', storageError);
+              }
+            }).catch(error => {
+              console.error('Failed to update files for storage:', error);
             });
           }
         } catch (saveError) {
@@ -1012,13 +1079,25 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
           // Convert back to File objects
           const restoredFiles = filesWithContent.map(fileData => {
-            const blob = new Blob([fileData.content], { type: fileData.type });
-            const file = new File([blob], fileData.name, {
-              type: fileData.type,
-              lastModified: fileData.lastModified
-            });
-            return file;
-          });
+            try {
+              // Convert base64 back to ArrayBuffer
+              const binaryString = atob(fileData.content);
+              const bytes = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              
+              const blob = new Blob([bytes.buffer], { type: fileData.type });
+              const file = new File([blob], fileData.name, {
+                type: fileData.type,
+                lastModified: fileData.lastModified
+              });
+              return file;
+            } catch (conversionError) {
+              console.error(`Failed to restore file ${fileData.name}:`, conversionError);
+              return null;
+            }
+          }).filter(file => file !== null); // Remove any failed conversions
           
           // Restore file state
           setUploadedFileList(restoredFiles);
