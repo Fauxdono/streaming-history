@@ -2075,7 +2075,7 @@ export const streamingProcessor = {
       let allProcessedData = [];
       
       // Process files in smaller batches to prevent memory issues
-      const batchSize = 5;
+      const batchSize = Math.min(3, files.length); // Reduce batch size for better memory management
       const fileBatches = [];
       
       // Split files into batches
@@ -2084,7 +2084,9 @@ export const streamingProcessor = {
       }
       
       // Process each batch
-      for (const batch of fileBatches) {
+      for (let batchIndex = 0; batchIndex < fileBatches.length; batchIndex++) {
+        const batch = fileBatches[batchIndex];
+        console.log(`Processing batch ${batchIndex + 1} of ${fileBatches.length} (${batch.length} files)`);
         const batchResults = await Promise.all(
           batch.map(async (file) => {
             try {
@@ -2186,12 +2188,15 @@ export const streamingProcessor = {
           })
         );
         
-        // Combine batch results
+        // Combine batch results more efficiently
         batchResults.forEach(dataArray => {
           if (dataArray && dataArray.length > 0) {
-            allProcessedData = [...allProcessedData, ...dataArray];
+            allProcessedData.push(...dataArray);
           }
         });
+        
+        // Yield between batches to prevent UI blocking
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
       // Process ISRC codes from Deezer data
       allProcessedData.forEach(item => {
@@ -2201,17 +2206,30 @@ export const streamingProcessor = {
       });
 
       console.log(`Calculating stats for ${allProcessedData.length} entries`);
+      
+      // Yield to allow UI updates
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       const stats = calculatePlayStats(allProcessedData);
 
-      // Process artist data
+      // Process artist data with better performance
+      console.log('Processing artist statistics...');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      // Pre-build a map of songs by normalized artist name for faster lookup
+      const songsByArtist = new Map();
+      stats.songs.forEach(song => {
+        const normalizedName = normalizeArtistName(song.fullArtist || song.artist);
+        if (!songsByArtist.has(normalizedName)) {
+          songsByArtist.set(normalizedName, []);
+        }
+        songsByArtist.get(normalizedName).push(song);
+      });
+
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
-          // Use normalized artist names for more flexible matching
           const normalizedArtistName = normalizeArtistName(artist.name);
-          const artistSongs = stats.songs.filter(song => 
-            normalizeArtistName(song.fullArtist || song.artist) === normalizedArtistName
-          );
-          
+          const artistSongs = songsByArtist.get(normalizedArtistName) || [];
           
           const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
           
@@ -2234,6 +2252,9 @@ export const streamingProcessor = {
         .sort((a, b) => b.totalPlayed - a.totalPlayed);
 
       // Process album data
+      console.log('Processing album statistics...');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       const sortedAlbums = _.orderBy(
         Object.values(stats.albums).map(album => ({
           ...album,
@@ -2244,7 +2265,31 @@ export const streamingProcessor = {
       );
 
       // Top songs
+      console.log('Processing song rankings...');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
+
+      // Calculate year-based data with progress updates
+      console.log('Calculating yearly breakdowns...');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
+      
+      console.log('Calculating brief obsessions...');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      const briefObsessions = calculateBriefObsessions(stats.songs, stats.playHistory);
+      
+      console.log('Processing artists by year...');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      const artistsByYear = calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData);
+      
+      console.log('Processing albums by year...');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      const albumsByYear = calculateAlbumsByYear(sortedAlbums, allProcessedData);
 
       console.timeEnd('processFiles');
       return {
@@ -2261,10 +2306,10 @@ export const streamingProcessor = {
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
         processedTracks: sortedSongs,
-        songsByYear: calculateSongsByYear(stats.songs, stats.playHistory),
-        briefObsessions: calculateBriefObsessions(stats.songs, stats.playHistory),
-        artistsByYear: calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData),
-        albumsByYear: calculateAlbumsByYear(sortedAlbums, allProcessedData),
+        songsByYear: songsByYear,
+        briefObsessions: briefObsessions,
+        artistsByYear: artistsByYear,
+        albumsByYear: albumsByYear,
         rawPlayData: allProcessedData
       };
     } catch (error) {
