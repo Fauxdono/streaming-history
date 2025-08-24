@@ -2093,8 +2093,10 @@ export const streamingProcessor = {
           // Use normalized artist names for more flexible matching
           const normalizedArtistName = normalizeArtistName(artist.name);
           const artistSongs = stats.songs.filter(song => 
-            normalizeArtistName(song.artist) === normalizedArtistName
+            normalizeArtistName(song.fullArtist || song.artist) === normalizedArtistName
           );
+          
+          
           const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
           
           // Get all play timestamps for this artist
