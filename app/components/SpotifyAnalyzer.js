@@ -94,6 +94,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showDataManager, setShowDataManager] = useState(false);
   const [storageNotification, setStorageNotification] = useState(null);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [pendingDataToSave, setPendingDataToSave] = useState(null);
   
   // Persistent storage hook
   const {
@@ -913,6 +915,46 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     setIsAuthenticated(false);
   }, []);
 
+  // Handle user choice to save processed data
+  const handleSaveData = useCallback(async () => {
+    if (!pendingDataToSave) return;
+    
+    try {
+      console.log('💾 User chose to save processed data');
+      const saveResult = saveProcessedData(pendingDataToSave);
+      console.log('✅ Data saved successfully:', saveResult);
+      
+      setStorageNotification({
+        type: 'success',
+        title: 'Analysis Data Saved!',
+        message: `Your streaming analysis (${pendingDataToSave.processedTracks.length} tracks) has been saved to device storage and will persist between sessions.`
+      });
+      
+      setShowSavePrompt(false);
+      setPendingDataToSave(null);
+    } catch (error) {
+      console.error('❌ Failed to save data:', error);
+      setStorageNotification({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Failed to save your analysis data. You can try again from the Data tab.'
+      });
+    }
+  }, [pendingDataToSave, saveProcessedData]);
+
+  // Handle user choice to skip saving
+  const handleSkipSave = useCallback(() => {
+    console.log('⏭️ User chose to skip saving data');
+    setShowSavePrompt(false);
+    setPendingDataToSave(null);
+    
+    setStorageNotification({
+      type: 'info',
+      title: 'Data Not Saved',
+      message: 'Your analysis will be lost when you close the app. You can save it later from the Data tab.'
+    });
+  }, []);
+
   // Reset data loaded flag when authentication state changes
   useEffect(() => {
     if (!isAuthenticated) {
@@ -936,10 +978,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       dataLoadedRef.current = true; // Mark as loaded to prevent re-runs
       
-      // If we already have data processed, save it to storage instead of loading
+      // If we already have data processed, prompt user to save it
       if (stats && processedData.length > 0) {
-        console.log('🔄 User authenticated after processing data - saving current data to storage');
-        console.log('Current data to save:', {
+        console.log('🔄 User authenticated after processing data - prompting to save');
+        console.log('Current data available:', {
           hasStats: !!stats,
           trackCount: processedData.length,
           hasTopArtists: topArtists.length,
@@ -947,38 +989,21 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           hasRawData: rawPlayData.length
         });
         
-        try {
-          const saveResult = saveProcessedData({
-            stats: stats,
-            topArtists: topArtists,
-            topAlbums: topAlbums,
-            processedTracks: processedData,
-            songsByYear: songsByYear,
-            briefObsessions: briefObsessions,
-            artistsByYear: artistsByYear,
-            albumsByYear: albumsByYear,
-            rawPlayData: rawPlayData
-          });
-          console.log('✅ Current data saved to persistent storage successfully:', saveResult);
-          
-          // Notify user about data persistence
-          setStorageNotification({
-            type: 'success',
-            title: 'Analysis Data Saved',
-            message: 'Your streaming analysis has been saved to device storage and will persist between sessions. Files are not stored due to size constraints.'
-          });
-          
-          // Don't change tabs - let user stay where they are
-          console.log('Keeping current tab:', activeTab);
-        } catch (saveError) {
-          console.error('❌ Failed to save current data:', saveError);
-          setStorageNotification({
-            type: 'error',
-            title: 'Save Failed',
-            message: 'Failed to save your analysis data. Please try authenticating again.'
-          });
-        }
-        return; // Don't load from storage if we have current data
+        // Store the data to save and show prompt
+        setPendingDataToSave({
+          stats: stats,
+          topArtists: topArtists,
+          topAlbums: topAlbums,
+          processedTracks: processedData,
+          songsByYear: songsByYear,
+          briefObsessions: briefObsessions,
+          artistsByYear: artistsByYear,
+          albumsByYear: albumsByYear,
+          rawPlayData: rawPlayData
+        });
+        setShowSavePrompt(true);
+        
+        return; // Don't load from storage, wait for user decision
       }
       
       try {
@@ -1610,6 +1635,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     ? 'bg-green-50 border-green-200 text-green-800' 
                     : storageNotification.type === 'warning'
                     ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                    : storageNotification.type === 'error'
+                    ? 'bg-red-50 border-red-200 text-red-800'
                     : 'bg-blue-50 border-blue-200 text-blue-800'
                 }`}>
                   <div className="flex items-start justify-between">
@@ -1617,6 +1644,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       <h4 className="font-medium mb-1">
                         {storageNotification.type === 'success' && '✅ '}
                         {storageNotification.type === 'warning' && '⚠️ '}
+                        {storageNotification.type === 'error' && '❌ '}
                         {storageNotification.type === 'info' && 'ℹ️ '}
                         {storageNotification.title}
                       </h4>
@@ -1631,6 +1659,42 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     >
                       ✕
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Save Data Prompt Modal */}
+              {showSavePrompt && pendingDataToSave && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
+                    <div className="text-center">
+                      <div className="text-4xl mb-4">💾</div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Processed Data Detected
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        We found your streaming analysis in memory 
+                        ({pendingDataToSave.processedTracks?.length?.toLocaleString()} tracks processed). 
+                        Would you like to save it to device storage so it persists between sessions?
+                      </p>
+                      <div className="flex gap-3 justify-center">
+                        <button
+                          onClick={handleSaveData}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                        >
+                          💾 Save Data
+                        </button>
+                        <button
+                          onClick={handleSkipSave}
+                          className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
+                        >
+                          Skip
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3">
+                        You can also save data later from the Data tab
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
