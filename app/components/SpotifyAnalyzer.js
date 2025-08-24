@@ -102,6 +102,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     getSettings,
     isReady: storageReady
   } = usePersistentStorage(deviceId);
+  
+  // Ref to track if initial data loading has completed
+  const dataLoadedRef = useRef(false);
   // Add date range states for artists (like CustomTrackRankings)
   const [artistStartDate, setArtistStartDate] = useState('');
   const [artistEndDate, setArtistEndDate] = useState('');
@@ -940,15 +943,44 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Load data when storage becomes ready and user is authenticated
   useEffect(() => {
-    if (storageReady && isAuthenticated && deviceId) {
+    if (storageReady && isAuthenticated && deviceId && !dataLoadedRef.current) {
       console.log('Storage ready and authenticated, loading data...', { 
         storageReady, 
         isAuthenticated, 
-        deviceId 
+        deviceId,
+        currentDataExists: !!stats,
+        dataLoaded: dataLoadedRef.current
       });
       
+      dataLoadedRef.current = true; // Mark as loaded to prevent re-runs
+      
+      // If we already have data processed, save it to storage instead of loading
+      if (stats && processedData.length > 0) {
+        console.log('User authenticated after processing data - saving current data to storage');
+        try {
+          const saveResult = saveProcessedData({
+            stats: stats,
+            topArtists: topArtists,
+            topAlbums: topAlbums,
+            processedTracks: processedData,
+            songsByYear: songsByYear,
+            briefObsessions: briefObsessions,
+            artistsByYear: artistsByYear,
+            albumsByYear: albumsByYear,
+            rawPlayData: rawPlayData
+          });
+          console.log('Current data saved to persistent storage:', saveResult);
+          
+          // Don't change tabs - let user stay where they are
+          console.log('Keeping current tab:', activeTab);
+        } catch (saveError) {
+          console.error('Failed to save current data:', saveError);
+        }
+        return; // Don't load from storage if we have current data
+      }
+      
       try {
-        // Load processed data
+        // Load processed data only if we don't have current data
         const existingData = getProcessedData();
         console.log('Retrieved data from storage:', { 
           hasData: !!existingData,
@@ -1003,7 +1035,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         console.error('Failed to load existing data:', loadError);
       }
     }
-  }, [storageReady, isAuthenticated, deviceId, getProcessedData]);
+  }, [storageReady, isAuthenticated, deviceId, getProcessedData, saveProcessedData]);
 
   // Handle year range change with useCallback
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
