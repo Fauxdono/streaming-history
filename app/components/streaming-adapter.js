@@ -1213,7 +1213,8 @@ function calculateAlbumsByYear(albums, rawPlayData) {
     }
     
     const trackName = entry.master_metadata_track_name;
-    const normalizedTrack = normalizeTrackName(trackName);
+    const artist = entry.master_metadata_album_artist_name;
+    const normalizedTrack = createMatchKey(trackName, artist);
     
     if (normalizedTrack) {
       if (!normalizedToOriginalTrack[normalizedTrack]) {
@@ -1232,7 +1233,7 @@ function calculateAlbumsByYear(albums, rawPlayData) {
     
     const artist = entry.master_metadata_album_artist_name;
     const trackName = entry.master_metadata_track_name;
-    const normalizedTrack = normalizeTrackName(trackName);
+    const normalizedTrack = createMatchKey(trackName, artist);
     const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
     
     // Skip unknown albums
@@ -1302,7 +1303,7 @@ function calculateAlbumsByYear(albums, rawPlayData) {
       if (!trackName) continue;
       
       // Check for better album match
-      const normalizedTrack = normalizeTrackName(trackName);
+      const normalizedTrack = createMatchKey(trackName, artist);
       const trackKey = `${artist}:::${normalizedTrack}`.toLowerCase();
       const mainAlbum = trackMainAlbum.get(trackKey);
       
@@ -1359,7 +1360,7 @@ function calculateAlbumsByYear(albums, rawPlayData) {
           playCount: 0,
           normalizedTracks: new Set(),
           tracks: new Set(),
-          trackObjects: {},
+          trackMap: new Map(),
           firstListen: timestamp.getTime(),
           allTimeReference: resolvedAlbumData?.allTimeReference || null
         };
@@ -1373,9 +1374,29 @@ function calculateAlbumsByYear(albums, rawPlayData) {
         yearData[resolvedAlbumKey].normalizedTracks.add(normalizedTrack);
         yearData[resolvedAlbumKey].tracks.add(trackName);
         
-        // Update track objects
-        if (!yearData[resolvedAlbumKey].trackObjects[normalizedTrack]) {
-          yearData[resolvedAlbumKey].trackObjects[normalizedTrack] = {
+        // Update track objects using Map-based deduplication like all-time processing
+        if (!yearData[resolvedAlbumKey].trackMap) {
+          yearData[resolvedAlbumKey].trackMap = new Map();
+        }
+        
+        if (yearData[resolvedAlbumKey].trackMap.has(normalizedTrack)) {
+          // Update existing track
+          const track = yearData[resolvedAlbumKey].trackMap.get(normalizedTrack);
+          track.totalPlayed += entry.ms_played;
+          track.playCount++;
+          
+          // Update display name if we get a better version (prefer "feat" over "with")
+          if (trackName.includes('feat') && track.trackName.includes('with')) {
+            track.trackName = trackName;
+          }
+          
+          // Add variation if new
+          if (!track.variations.includes(trackName)) {
+            track.variations.push(trackName);
+          }
+        } else {
+          // Create new track
+          yearData[resolvedAlbumKey].trackMap.set(normalizedTrack, {
             trackName: trackName,
             normalizedTrack: normalizedTrack,
             artist: artist,
@@ -1383,15 +1404,7 @@ function calculateAlbumsByYear(albums, rawPlayData) {
             playCount: 1,
             albumName: albumName,
             variations: normalizedToOriginalTrack[normalizedTrack] || [trackName]
-          };
-        } else {
-          yearData[resolvedAlbumKey].trackObjects[normalizedTrack].totalPlayed += entry.ms_played;
-          yearData[resolvedAlbumKey].trackObjects[normalizedTrack].playCount++;
-          
-          // Add variation if new
-          if (!yearData[resolvedAlbumKey].trackObjects[normalizedTrack].variations.includes(trackName)) {
-            yearData[resolvedAlbumKey].trackObjects[normalizedTrack].variations.push(trackName);
-          }
+          });
         }
       }
       
@@ -1409,9 +1422,10 @@ function calculateAlbumsByYear(albums, rawPlayData) {
   
   yearCache.forEach((albumData, year) => {
     result[year] = Object.values(albumData).map(album => {
-      // Convert track objects from object to array
-      const trackObjectsArray = Object.values(album.trackObjects || {})
-        .sort((a, b) => b.totalPlayed - a.totalPlayed);
+      // Convert track objects from Map to array
+      const trackObjectsArray = album.trackMap ? 
+        Array.from(album.trackMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed) :
+        [];
       
       // Create year-specific album
       let yearAlbum = {
