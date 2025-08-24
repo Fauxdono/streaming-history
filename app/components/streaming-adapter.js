@@ -73,13 +73,22 @@ function normalizeString(str) {
   
   // Extract feature artists and clean up the string
   let featureArtists = [];
-  let normalized = str.toLowerCase();
+  let normalized = str.toLowerCase()
+    // Clean up extra characters first
+    .replace(/\)\)+/g, ')') // Fix double parentheses like "))"
+    .replace(/\(\(+/g, '(')  // Fix double opening parentheses
+    .trim();
   
-  // Common feature artist patterns
+  // Common feature artist patterns - expanded to include "with"
   const patterns = [
-    /\(feat\.\s*(.*?)\)/i, /\[feat\.\s*(.*?)\]/i, /\(ft\.\s*(.*?)\)/i, /\[ft\.\s*(.*?)\]/i,
-    /\(with\s*(.*?)\)/i, /\[with\s*(.*?)\)/i, /\sfeat\.\s+(.*?)(?=\s*[-,]|$)/i, 
-    /\sft\.\s+(.*?)(?=\s*[-,]|$)/i, /\sfeaturing\s+(.*?)(?=\s*[-,]|$)/i
+    /\(feat\.?\s*(.*?)\)/i, /\[feat\.?\s*(.*?)\]/i, 
+    /\(ft\.?\s*(.*?)\)/i, /\[ft\.?\s*(.*?)\]/i,
+    /\(with\s+(.*?)\)/i, /\[with\s+(.*?)\]/i,
+    /\(featuring\s+(.*?)\)/i, /\[featuring\s+(.*?)\]/i,
+    /\sfeat\.?\s+(.*?)(?=\s*[-,]|$)/i, 
+    /\sft\.?\s+(.*?)(?=\s*[-,]|$)/i, 
+    /\swith\s+(.*?)(?=\s*[-,]|$)/i,
+    /\sfeaturing\s+(.*?)(?=\s*[-,]|$)/i
   ];
   
   // Extract all feature artists
@@ -171,49 +180,61 @@ function createMatchKey(trackName, artistName) {
     featureArtists.push(...trackResult.featureArtists);
   }
   
-  // Extract artists from the artist name
-  if (artistName.includes('&')) {
-    const artistParts = artistName.split(/\s*&\s*/);
-    primaryArtist = artistParts[0].trim();
-    artistParts.slice(1).forEach(part => {
-      const trimmed = part.trim();
-      if (!featureArtists.includes(trimmed)) {
-        featureArtists.push(trimmed);
-      }
-    });
-  } else if (artistName.includes(',')) {
-    const artistParts = artistName.split(/\s*,\s*/);
-    primaryArtist = artistParts[0].trim();
-    artistParts.slice(1).forEach(part => {
-      const trimmed = part.trim();
-      if (!featureArtists.includes(trimmed)) {
-        featureArtists.push(trimmed);
-      }
-    });
-  } else if (artistName.toLowerCase().includes(' feat')) {
-    const parts = artistName.split(/\s+feat\.?\s+/i);
-    primaryArtist = parts[0].trim();
-    if (parts[1]) {
+  // Clean up extra characters and normalize the artist name before processing
+  const cleanedArtistName = artistName
+    .replace(/\)\)+/g, ')') // Fix double parentheses like "))"
+    .replace(/\(\(+/g, '(')  // Fix double opening parentheses
+    .trim();
+  
+  // Extract artists from the artist name - handle all feature patterns
+  const featurePatterns = [
+    /^(.*?)\s+(feat\.?|featuring|ft\.?|with)\s+(.+)$/i,  // "Artist feat/ft/featuring/with Others"
+    /^(.*?)\s*\(\s*(feat\.?|featuring|ft\.?|with)\s*(.+?)\s*\)(.*)$/i,  // "Artist (feat Others)"
+    /^(.*?)\s*\[\s*(feat\.?|featuring|ft\.?|with)\s*(.+?)\s*\](.*)$/i   // "Artist [feat Others]"
+  ];
+  
+  let foundPattern = false;
+  for (const pattern of featurePatterns) {
+    const match = cleanedArtistName.match(pattern);
+    if (match) {
+      primaryArtist = match[1].trim();
+      const featuresString = match[3].trim();
+      
       // Split feature artists by common separators
-      const featParts = parts[1].split(/\s*[,&]\s*/);
+      const featParts = featuresString.split(/\s*[,&]\s*/);
       featParts.forEach(part => {
         const trimmed = part.trim();
         if (trimmed && !featureArtists.includes(trimmed)) {
           featureArtists.push(trimmed);
         }
       });
+      foundPattern = true;
+      break;
     }
-  } else if (artistName.toLowerCase().includes(' ft')) {
-    const parts = artistName.split(/\s+ft\.?\s+/i);
-    primaryArtist = parts[0].trim();
-    if (parts[1]) {
-      const featParts = parts[1].split(/\s*[,&]\s*/);
-      featParts.forEach(part => {
+  }
+  
+  // If no feature pattern found, check for & or , separators (collaborations)
+  if (!foundPattern) {
+    if (cleanedArtistName.includes('&')) {
+      const artistParts = cleanedArtistName.split(/\s*&\s*/);
+      primaryArtist = artistParts[0].trim();
+      artistParts.slice(1).forEach(part => {
         const trimmed = part.trim();
-        if (trimmed && !featureArtists.includes(trimmed)) {
+        if (!featureArtists.includes(trimmed)) {
           featureArtists.push(trimmed);
         }
       });
+    } else if (cleanedArtistName.includes(',')) {
+      const artistParts = cleanedArtistName.split(/\s*,\s*/);
+      primaryArtist = artistParts[0].trim();
+      artistParts.slice(1).forEach(part => {
+        const trimmed = part.trim();
+        if (!featureArtists.includes(trimmed)) {
+          featureArtists.push(trimmed);
+        }
+      });
+    } else {
+      primaryArtist = cleanedArtistName;
     }
   }
   
