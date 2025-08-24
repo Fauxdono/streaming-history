@@ -814,76 +814,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         };
         storage.saveUploadedFiles(fileMetadata);
         
-        // Also save the actual file contents as base64 for later restoration
-        Promise.all(combinedFiles.map(file => 
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
-            reader.onload = (e) => {
-              try {
-                // Convert ArrayBuffer to Base64 for JSON serialization
-                const arrayBuffer = e.target.result;
-                const uint8Array = new Uint8Array(arrayBuffer);
-                const binaryString = String.fromCharCode.apply(null, uint8Array);
-                const base64String = btoa(binaryString);
-                
-                resolve({
-                  name: file.name,
-                  type: file.type,
-                  size: file.size,
-                  lastModified: file.lastModified,
-                  content: base64String
-                });
-              } catch (conversionError) {
-                console.error(`Failed to convert file ${file.name}:`, conversionError);
-                reject(conversionError);
-              }
-            };
-            reader.readAsArrayBuffer(file);
-          })
-        )).then(filesWithContent => {
-          try {
-            const dataToStore = {
-              data: filesWithContent,
-              timestamp: Date.now(),
-              version: '1.0'
-            };
-            
-            const serializedData = JSON.stringify(dataToStore);
-            const sizeInMB = (serializedData.length / (1024 * 1024)).toFixed(2);
-            
-            console.log(`Attempting to save ${filesWithContent.length} files (${sizeInMB} MB) to localStorage`);
-            
-            if (serializedData.length > 8 * 1024 * 1024) { // 8MB limit (conservative)
-              console.warn('File data exceeds localStorage size limit, skipping file content storage');
-              setStorageNotification({
-                type: 'warning',
-                title: 'Large File Set Detected',
-                message: `Your ${filesWithContent.length} files (${sizeInMB} MB) exceed storage limits. Your analysis results will be saved, but you'll need to re-upload files when returning.`,
-                action: 'For persistent file storage, consider processing fewer files at once.'
-              });
-              return;
-            }
-            
-            localStorage.setItem(`streaming_data_${deviceId}_file_contents`, serializedData);
-            console.log('Files saved to persistent storage successfully');
-            setStorageNotification({
-              type: 'success',
-              title: 'Files Saved Successfully',
-              message: `${filesWithContent.length} files (${sizeInMB} MB) saved to device storage. Your files and analysis will persist between sessions.`
-            });
-          } catch (storageError) {
-            console.error('Failed to save files to localStorage:', storageError);
-            setStorageNotification({
-              type: 'info',
-              title: 'File Storage Unavailable',
-              message: 'Files could not be saved to device storage (storage full or unavailable). Your analysis results will still be saved.',
-              action: 'You may need to re-upload files when returning to the app.'
-            });
-          }
-        }).catch(error => {
-          console.error('Failed to process files for storage:', error);
-        });
+        // Note: We don't store file contents due to size limitations (files can be 12MB+ each)
+        // Only processed data is stored, which is much smaller and more valuable
+        console.log(`File upload detected: ${combinedFiles.length} files. Processed data will be saved after analysis.`);
         
       } catch (saveError) {
         console.error('Failed to save files to persistent storage:', saveError);
@@ -905,11 +838,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       if (isAuthenticated && storageReady && deviceId) {
         try {
           if (remainingFiles.length === 0) {
-            // Clear all files from storage
+            // Clear file metadata from storage
             localStorage.removeItem(`streaming_data_${deviceId}_uploaded_files`);
-            localStorage.removeItem(`streaming_data_${deviceId}_file_contents`);
+            console.log('Cleared all file metadata from storage');
           } else {
-            // Update stored files
+            // Update stored file metadata only (not content)
             const fileMetadata = remainingFiles.map(file => ({
               name: file.name,
               size: file.size,
@@ -923,60 +856,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               timestamp: Date.now(),
               version: '1.0'
             }));
-            
-            // Update file contents
-            Promise.all(remainingFiles.map(file => 
-              new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
-                reader.onload = (e) => {
-                  try {
-                    // Convert ArrayBuffer to Base64 for JSON serialization
-                    const arrayBuffer = e.target.result;
-                    const uint8Array = new Uint8Array(arrayBuffer);
-                    const binaryString = String.fromCharCode.apply(null, uint8Array);
-                    const base64String = btoa(binaryString);
-                    
-                    resolve({
-                      name: file.name,
-                      type: file.type,
-                      size: file.size,
-                      lastModified: file.lastModified,
-                      content: base64String
-                    });
-                  } catch (conversionError) {
-                    console.error(`Failed to convert file ${file.name}:`, conversionError);
-                    reject(conversionError);
-                  }
-                };
-                reader.readAsArrayBuffer(file);
-              })
-            )).then(filesWithContent => {
-              try {
-                const dataToStore = {
-                  data: filesWithContent,
-                  timestamp: Date.now(),
-                  version: '1.0'
-                };
-                
-                const serializedData = JSON.stringify(dataToStore);
-                const sizeInMB = (serializedData.length / (1024 * 1024)).toFixed(2);
-                
-                console.log(`Updating file storage: ${filesWithContent.length} files (${sizeInMB} MB)`);
-                
-                if (serializedData.length > 8 * 1024 * 1024) {
-                  console.warn('Updated files exceed localStorage size limit');
-                  return;
-                }
-                
-                localStorage.setItem(`streaming_data_${deviceId}_file_contents`, serializedData);
-                console.log('Updated files saved successfully');
-              } catch (storageError) {
-                console.error('Failed to update file storage:', storageError);
-              }
-            }).catch(error => {
-              console.error('Failed to update files for storage:', error);
-            });
+            console.log(`Updated file metadata for ${remainingFiles.length} files`);
           }
         } catch (saveError) {
           console.error('Failed to update files in persistent storage:', saveError);
@@ -1058,7 +938,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           setStorageNotification({
             type: 'success',
             title: 'Analysis Data Saved',
-            message: 'Your streaming analysis has been saved to device storage and will persist between sessions.'
+            message: 'Your streaming analysis has been saved to device storage and will persist between sessions. Files are not stored due to size constraints.'
           });
           
           // Don't change tabs - let user stay where they are
@@ -1094,7 +974,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           setStorageNotification({
             type: 'success',  
             title: 'Welcome Back!',
-            message: `Your streaming analysis has been restored from device storage. ${existingData.processedTracks?.length || 0} tracks loaded.`
+            message: `Your streaming analysis has been restored from device storage. ${existingData.processedTracks?.length || 0} tracks loaded. Your analysis is ready!`
           });
           
           setActiveTab('stats'); // Switch to stats if data exists
@@ -1102,44 +982,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           console.log('No existing data found in persistent storage');
         }
         
-        // Load uploaded files
-        const savedFileContents = localStorage.getItem(`streaming_data_${deviceId}_file_contents`);
-        if (savedFileContents) {
-          const parsed = JSON.parse(savedFileContents);
-          const filesWithContent = parsed.data;
-          
-          // Convert back to File objects
-          const restoredFiles = filesWithContent.map(fileData => {
-            try {
-              // Convert base64 back to ArrayBuffer
-              const binaryString = atob(fileData.content);
-              const bytes = new Uint8Array(binaryString.length);
-              for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
-              
-              const blob = new Blob([bytes.buffer], { type: fileData.type });
-              const file = new File([blob], fileData.name, {
-                type: fileData.type,
-                lastModified: fileData.lastModified
-              });
-              return file;
-            } catch (conversionError) {
-              console.error(`Failed to restore file ${fileData.name}:`, conversionError);
-              return null;
-            }
-          }).filter(file => file !== null); // Remove any failed conversions
-          
-          // Restore file state
-          setUploadedFileList(restoredFiles);
-          setUploadedFiles(restoredFiles.map(f => f.name));
-          console.log(`Restored ${restoredFiles.length} uploaded files from persistent storage`);
-          
-          // If no processed data but we have files, switch to upload tab
-          if (!existingData && restoredFiles.length > 0) {
-            setActiveTab('upload');
-          }
-        }
+        // Note: File contents are not stored due to size limitations
+        // Users will need to re-upload files, but processed data persists
+        console.log('File restoration skipped - only processed data is stored for efficiency');
         
       } catch (loadError) {
         console.error('Failed to load existing data:', loadError);

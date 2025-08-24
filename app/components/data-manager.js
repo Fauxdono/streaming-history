@@ -213,18 +213,25 @@ const DataManager = ({
               <h4 className="font-medium text-gray-900">Device Migration</h4>
             </div>
             <p className="text-sm text-gray-600 mb-4">
-              To transfer your data to a new device:
+              How data persistence works:
             </p>
-            <ol className="text-sm text-gray-600 mb-4 space-y-1">
-              <li>1. Export your data using the button above</li>
-              <li>2. On new device: Set up authentication</li>
-              <li>3. Re-upload your original streaming files</li>
-              <li>4. Process files to restore all analysis</li>
-            </ol>
-            <div className="bg-blue-50 p-3 rounded text-sm text-blue-700">
+            <div className="space-y-3 text-sm text-gray-600 mb-4">
+              <div className="flex items-start space-x-2">
+                <span className="text-green-600 font-bold">✓</span>
+                <span><strong>Analysis Data:</strong> All your statistics, top tracks, artists, and insights are saved automatically</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="text-blue-600 font-bold">ℹ️</span>
+                <span><strong>File Storage:</strong> Original files (12MB+ each) are not stored due to browser limitations</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="text-green-600 font-bold">✓</span>
+                <span><strong>Return Experience:</strong> Your complete analysis is instantly available without reprocessing</span>
+              </div>
+            </div>
+            <div className="bg-green-50 p-3 rounded text-sm text-green-700">
               <FileText className="w-4 h-4 inline mr-1" />
-              Your exported Excel file contains all processed data for reference and sharing.
-              To restore the interactive analysis, simply re-process your original files.
+              This approach is more efficient than storing large files - your valuable analysis persists while keeping storage minimal.
             </div>
           </div>
         </div>
