@@ -722,7 +722,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Save processed data to persistent storage if authenticated
       if (isAuthenticated && storageReady) {
         try {
-          saveProcessedData({
+          console.log('Saving data to persistent storage...', {
+            isAuthenticated, 
+            storageReady, 
+            deviceId,
+            statsExists: !!results.stats,
+            dataCount: sortedTracks?.length || 0
+          });
+          
+          const saveResult = saveProcessedData({
             stats: results.stats,
             topArtists: results.topArtists,
             topAlbums: results.topAlbums,
@@ -731,12 +739,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             briefObsessions: results.briefObsessions,
             artistsByYear: results.artistsByYear,
             albumsByYear: results.albumsByYear,
-            rawPlayData: results.rawPlayData // Add missing rawPlayData
+            rawPlayData: results.rawPlayData
           });
-          console.log('Data saved to persistent storage');
+          console.log('Data saved to persistent storage successfully:', saveResult);
         } catch (saveError) {
           console.error('Failed to save data to persistent storage:', saveError);
         }
+      } else {
+        console.log('Skipping data save - conditions not met:', {
+          isAuthenticated, 
+          storageReady, 
+          deviceId
+        });
       }
 
       // Switch to stats tab
@@ -914,67 +928,82 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Authentication handlers
   const handleAuthSuccess = useCallback((newDeviceId) => {
+    console.log('Authentication successful for device:', newDeviceId);
     setDeviceId(newDeviceId);
     setIsAuthenticated(true);
-    
-    // Try to load existing data and files
-    setTimeout(() => {
-      if (storageReady) {
-        try {
-          // Load processed data
-          const existingData = getProcessedData();
-          if (existingData) {
-            console.log('Loading existing processed data from persistent storage');
-            setStats({ ...existingData.stats });
-            setTopArtists(existingData.topArtists || []);
-            setTopAlbums(existingData.topAlbums || []);
-            setProcessedData(existingData.processedTracks || []);
-            setSongsByYear(existingData.songsByYear || {});
-            setBriefObsessions(existingData.briefObsessions || []);
-            setArtistsByYear(existingData.artistsByYear || {});
-            setAlbumsByYear(existingData.albumsByYear || {});
-            setRawPlayData(existingData.rawPlayData || []); // Add missing rawPlayData
-            setActiveTab('stats'); // Switch to stats if data exists
-          }
-          
-          // Load uploaded files
-          const savedFileContents = localStorage.getItem(`streaming_data_${newDeviceId}_file_contents`);
-          if (savedFileContents) {
-            const parsed = JSON.parse(savedFileContents);
-            const filesWithContent = parsed.data;
-            
-            // Convert back to File objects
-            const restoredFiles = filesWithContent.map(fileData => {
-              const blob = new Blob([fileData.content], { type: fileData.type });
-              const file = new File([blob], fileData.name, {
-                type: fileData.type,
-                lastModified: fileData.lastModified
-              });
-              return file;
-            });
-            
-            // Restore file state
-            setUploadedFileList(restoredFiles);
-            setUploadedFiles(restoredFiles.map(f => f.name));
-            console.log(`Restored ${restoredFiles.length} uploaded files from persistent storage`);
-            
-            // If no processed data but we have files, switch to upload tab
-            if (!existingData && restoredFiles.length > 0) {
-              setActiveTab('upload');
-            }
-          }
-          
-        } catch (loadError) {
-          console.error('Failed to load existing data:', loadError);
-        }
-      }
-    }, 100);
-  }, [storageReady, getProcessedData]);
+  }, []);
 
   const handleAuthFailure = useCallback((error) => {
     console.error('Authentication failed:', error);
     setIsAuthenticated(false);
   }, []);
+
+  // Load data when storage becomes ready and user is authenticated
+  useEffect(() => {
+    if (storageReady && isAuthenticated && deviceId) {
+      console.log('Storage ready and authenticated, loading data...', { 
+        storageReady, 
+        isAuthenticated, 
+        deviceId 
+      });
+      
+      try {
+        // Load processed data
+        const existingData = getProcessedData();
+        console.log('Retrieved data from storage:', { 
+          hasData: !!existingData,
+          dataKeys: existingData ? Object.keys(existingData) : [],
+          trackCount: existingData?.processedTracks?.length || 0
+        });
+        
+        if (existingData) {
+          console.log('Loading existing processed data from persistent storage');
+          setStats({ ...existingData.stats });
+          setTopArtists(existingData.topArtists || []);
+          setTopAlbums(existingData.topAlbums || []);
+          setProcessedData(existingData.processedTracks || []);
+          setSongsByYear(existingData.songsByYear || {});
+          setBriefObsessions(existingData.briefObsessions || []);
+          setArtistsByYear(existingData.artistsByYear || {});
+          setAlbumsByYear(existingData.albumsByYear || {});
+          setRawPlayData(existingData.rawPlayData || []);
+          setActiveTab('stats'); // Switch to stats if data exists
+        } else {
+          console.log('No existing data found in persistent storage');
+        }
+        
+        // Load uploaded files
+        const savedFileContents = localStorage.getItem(`streaming_data_${deviceId}_file_contents`);
+        if (savedFileContents) {
+          const parsed = JSON.parse(savedFileContents);
+          const filesWithContent = parsed.data;
+          
+          // Convert back to File objects
+          const restoredFiles = filesWithContent.map(fileData => {
+            const blob = new Blob([fileData.content], { type: fileData.type });
+            const file = new File([blob], fileData.name, {
+              type: fileData.type,
+              lastModified: fileData.lastModified
+            });
+            return file;
+          });
+          
+          // Restore file state
+          setUploadedFileList(restoredFiles);
+          setUploadedFiles(restoredFiles.map(f => f.name));
+          console.log(`Restored ${restoredFiles.length} uploaded files from persistent storage`);
+          
+          // If no processed data but we have files, switch to upload tab
+          if (!existingData && restoredFiles.length > 0) {
+            setActiveTab('upload');
+          }
+        }
+        
+      } catch (loadError) {
+        console.error('Failed to load existing data:', loadError);
+      }
+    }
+  }, [storageReady, isAuthenticated, deviceId, getProcessedData]);
 
   // Handle year range change with useCallback
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
