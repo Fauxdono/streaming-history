@@ -2227,4 +2227,4 @@ export const streamingProcessor = {
   }
 };
 
-export { normalizeString, createMatchKey, filterDataByDate };
+export { normalizeString, createMatchKey, filterDataByDate, normalizeArtistName };

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate } from './streaming-adapter.js';
+import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName } from './streaming-adapter.js';
 import ExportButton from './ExportButton.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
@@ -312,29 +312,39 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, [selectedAlbumYear]);
 
-  // Simplified albums filtering using date range approach (like CustomTrackRankings)  
+  // Albums filtering using same logic as streaming adapter
   const displayedAlbums = useMemo(() => {
     
-    // If all-time, use the existing topAlbums
+    // If all-time, use the existing topAlbums but apply artist filtering if needed
     if (selectedAlbumYear === 'all') {
-      return JSON.parse(JSON.stringify(topAlbums));
+      let filteredAlbums = [...topAlbums];
+      
+      // Apply artist filtering if any artists are selected
+      if (selectedArtists.length > 0) {
+        const normalizedSelectedArtists = selectedArtists.map(artist => 
+          normalizeArtistName(artist)
+        );
+        filteredAlbums = filteredAlbums.filter(album => 
+          normalizedSelectedArtists.includes(normalizeArtistName(album.artist))
+        );
+      }
+      
+      return filteredAlbums;
     }
     
-    // Use date range filtering approach
+    // Use date range filtering approach with streaming adapter logic
     const isAllTime = (!albumStartDate || albumStartDate === "") && (!albumEndDate || albumEndDate === "");
     const start = isAllTime ? new Date(0) : new Date(albumStartDate);
     start.setHours(0, 0, 0, 0);
     const end = isAllTime ? new Date() : new Date(albumEndDate);
     end.setHours(23, 59, 59, 999);
     
-    // Filter raw data by date range and 30-second minimum (like CustomTrackRankings)
+    // Filter raw data by date range and 30-second minimum
     const dateFilteredEntries = isAllTime 
-      ? rawPlayData.filter(entry => entry.ms_played >= 30000) // Apply 30-second filter
+      ? rawPlayData.filter(entry => entry.ms_played >= 30000)
       : rawPlayData.filter(entry => {
           try {
-            // Skip plays shorter than 30 seconds (like CustomTrackRankings)
             if (entry.ms_played < 30000) return false;
-            
             const timestamp = new Date(entry.ts);
             return timestamp >= start && timestamp <= end;
           } catch (err) {
@@ -342,19 +352,41 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           }
         });
     
-    // Group by albums
-    const albumMap = new Map();
+    // Initialize albums object (like streaming adapter)
+    const albums = {};
+    
+    // Process entries using streaming adapter logic
     dateFilteredEntries.forEach(entry => {
-      if (!entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) return;
+      const playTime = entry.ms_played;
+      if (!entry.master_metadata_track_name || playTime < 30000) return;
       
-      const artistName = entry.master_metadata_album_artist_name;
-      const albumName = entry.master_metadata_album_album_name;
-      const trackName = entry.master_metadata_track_name || 'Unknown Track';
-      const key = `${albumName}-${artistName}`;
-      const timestamp = new Date(entry.ts);
+      const trackName = entry.master_metadata_track_name;
+      const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
+      const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
+      const timestamp = entry._dateObj || new Date(entry.ts);
       
-      if (!albumMap.has(key)) {
-        albumMap.set(key, {
+      // Skip if no valid album info
+      if (!albumName || albumName === 'Unknown Album' || !artistName) return;
+      
+      // Use same normalization as streaming adapter
+      const normalizeAlbumName = (name) => {
+        if (!name) return '';
+        return name.toLowerCase()
+          .replace(/\s*\(.*?\)\s*/g, ' ')  // Remove parentheses
+          .replace(/\s*\[.*?\]\s*/g, ' ')  // Remove brackets
+          .replace(/\s+/g, ' ')
+          .trim();
+      };
+      
+      const normalizedAlbumName = normalizeAlbumName(albumName);
+      const normalizedArtistName = normalizeArtistName(artistName);
+      const albumKey = `${normalizedAlbumName}-${normalizedArtistName}`;
+      
+      // Get normalized track name (basic version)
+      const normTrack = trackName.toLowerCase().trim();
+      
+      if (!albums[albumKey]) {
+        albums[albumKey] = {
           name: albumName,
           artist: artistName,
           totalPlayed: 0,
@@ -362,53 +394,67 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           trackCount: new Set(),
           trackNames: new Set(),
           trackObjects: [],
-          firstListen: timestamp.getTime()
+          firstListen: timestamp.getTime(),
+          years: new Set()
+        };
+      }
+
+      // Add year to set
+      if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
+        albums[albumKey].years.add(timestamp.getFullYear());
+      }
+          
+      albums[albumKey].totalPlayed += playTime;
+      albums[albumKey].playCount++;
+      albums[albumKey].trackCount.add(normTrack);
+      albums[albumKey].trackNames.add(trackName);
+      
+      // Update track objects (same as streaming adapter)
+      const existingTrackIndex = albums[albumKey].trackObjects.findIndex(
+        t => t.trackName === trackName
+      );
+      
+      if (existingTrackIndex === -1) {
+        albums[albumKey].trackObjects.push({
+          trackName,
+          artist: artistName,
+          totalPlayed: playTime,
+          playCount: 1,
+          albumName
         });
+      } else {
+        albums[albumKey].trackObjects[existingTrackIndex].totalPlayed += playTime;
+        albums[albumKey].trackObjects[existingTrackIndex].playCount++;
       }
       
-      const album = albumMap.get(key);
-      album.totalPlayed += entry.ms_played || 0;
-      album.playCount++;
-      
-      // Track first listen date
-      if (timestamp < new Date(album.firstListen)) {
-        album.firstListen = timestamp.getTime();
-      }
-      
-      if (trackName) {
-        album.trackNames.add(trackName);
-        album.trackCount.add(trackName);
-        
-        // Find or create track object
-        let trackObj = album.trackObjects.find(t => t.trackName === trackName);
-        if (!trackObj) {
-          trackObj = {
-            trackName: trackName,
-            artist: artistName,
-            totalPlayed: 0,
-            playCount: 0,
-            albumName: albumName
-          };
-          album.trackObjects.push(trackObj);
-        }
-        
-        // Update track stats
-        trackObj.totalPlayed += entry.ms_played || 0;
-        trackObj.playCount++;
-      }
+      // Update first listen time if earlier
+      albums[albumKey].firstListen = Math.min(
+        albums[albumKey].firstListen, 
+        timestamp.getTime()
+      );
     });
     
-    // Process albums - convert Sets to values and sort tracks
-    albumMap.forEach(album => {
-      album.trackCountValue = album.trackCount.size;
+    // Process albums like streaming adapter
+    Object.values(albums).forEach(album => {
       album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
-      // Clean up Sets as they're not needed anymore
-      delete album.trackCount;
-      delete album.trackNames;
+      album.trackCountValue = album.trackCount.size;
+      album.yearsArray = Array.from(album.years).sort();
     });
     
-    return Array.from(albumMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
-  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData]);
+    let result = Object.values(albums).sort((a, b) => b.totalPlayed - a.totalPlayed);
+    
+    // Apply artist filtering if any artists are selected
+    if (selectedArtists.length > 0) {
+      const normalizedSelectedArtists = selectedArtists.map(artist => 
+        normalizeArtistName(artist)
+      );
+      result = result.filter(album => 
+        normalizedSelectedArtists.includes(normalizeArtistName(album.artist))
+      );
+    }
+    
+    return result;
+  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists]);
 
 
   // Toggle a service in the selection with useCallback
