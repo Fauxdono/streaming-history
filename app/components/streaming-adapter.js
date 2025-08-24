@@ -118,6 +118,35 @@ function normalizeString(str) {
   return result;
 }
 
+// Cache for normalized artist names to improve performance
+const artistNormalizationCache = new Map();
+
+function normalizeArtistName(str) {
+  if (!str) return '';
+  
+  // Check cache first
+  if (artistNormalizationCache.has(str)) {
+    return artistNormalizationCache.get(str);
+  }
+  
+  let normalized = str.toLowerCase()
+    // Handle common punctuation variations
+    .replace(/,\s*the\s+/g, ' the ') // "Artist, The" -> "artist the"
+    .replace(/\s*&\s*/g, ' and ')    // "&" -> " and "
+    .replace(/\s*\+\s*/g, ' and ')   // "+" -> " and "
+    .replace(/\s*\/\s*/g, ' and ')   // "/" -> " and "
+    // Remove special characters but keep spaces
+    .replace(/[^\w\s]/g, '')
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // Cache the result
+  artistNormalizationCache.set(str, normalized);
+  
+  return normalized;
+}
+
 // Cache for match keys
 const matchKeyCache = new Map();
 
@@ -2061,7 +2090,11 @@ export const streamingProcessor = {
       // Process artist data
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
-          const artistSongs = stats.songs.filter(song => song.artist === artist.name);
+          // Use normalized artist names for more flexible matching
+          const normalizedArtistName = normalizeArtistName(artist.name);
+          const artistSongs = stats.songs.filter(song => 
+            normalizeArtistName(song.artist) === normalizedArtistName
+          );
           const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
           
           // Get all play timestamps for this artist
