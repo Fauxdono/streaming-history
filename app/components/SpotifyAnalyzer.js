@@ -1001,6 +1001,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           albumsByYear: albumsByYear,
           rawPlayData: rawPlayData
         });
+        
+        console.log('📱 Setting showSavePrompt to true - modal should appear');
         setShowSavePrompt(true);
         
         return; // Don't load from storage, wait for user decision
@@ -1664,6 +1666,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               )}
 
               {/* Save Data Prompt Modal */}
+              {console.log('🎯 Modal render check:', { showSavePrompt, hasPendingData: !!pendingDataToSave })}
               {showSavePrompt && pendingDataToSave && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                   <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
