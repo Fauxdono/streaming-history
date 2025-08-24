@@ -83,7 +83,7 @@ async function registerBiometric(deviceId) {
 
     // Store credential info locally (not the actual credential)
     const credentialInfo = {
-      id: credential.id,
+      id: arrayBufferToBase64(credential.rawId), // Use rawId and encode it properly
       registered: Date.now(),
       deviceId: deviceId
     };
@@ -103,7 +103,15 @@ async function authenticateBiometric(deviceId) {
       throw new Error('No biometric registration found for this device');
     }
     
-    const credentialInfo = JSON.parse(storedInfo);
+    let credentialInfo;
+    try {
+      credentialInfo = JSON.parse(storedInfo);
+    } catch (parseError) {
+      console.error('Failed to parse credential info:', parseError);
+      // Clear corrupted biometric data
+      localStorage.removeItem(`biometric_${deviceId}`);
+      throw new Error('Corrupted biometric data. Please re-register.');
+    }
     const challenge = new Uint8Array(32);
     crypto.getRandomValues(challenge);
     
@@ -127,14 +135,28 @@ async function authenticateBiometric(deviceId) {
 }
 
 // Utility functions
-function base64ToArrayBuffer(base64) {
-  const binaryString = window.atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
-  return bytes.buffer;
+  return window.btoa(binary);
+}
+
+function base64ToArrayBuffer(base64) {
+  try {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  } catch (error) {
+    console.error('Failed to decode base64:', error);
+    throw new Error('Invalid credential data');
+  }
 }
 
 const DeviceAuth = ({ onAuthSuccess, onAuthFailure }) => {
@@ -171,14 +193,22 @@ const DeviceAuth = ({ onAuthSuccess, onAuthFailure }) => {
       setBiometricRegistered(!!biometricInfo);
       
       // Check if device is already authenticated
-      const lastAuth = localStorage.getItem(`auth_${existingDeviceId}`);
-      if (lastAuth) {
-        const authData = JSON.parse(lastAuth);
-        // Consider authenticated if within last 24 hours
-        if (Date.now() - authData.timestamp < 24 * 60 * 60 * 1000) {
-          setIsAuthenticated(true);
-          onAuthSuccess?.(existingDeviceId);
+      try {
+        const lastAuth = localStorage.getItem(`auth_${existingDeviceId}`);
+        if (lastAuth) {
+          const authData = JSON.parse(lastAuth);
+          // Consider authenticated if within last 24 hours
+          if (Date.now() - authData.timestamp < 24 * 60 * 60 * 1000) {
+            setIsAuthenticated(true);
+            onAuthSuccess?.(existingDeviceId);
+          }
         }
+      } catch (parseError) {
+        console.error('Failed to parse authentication data, clearing corrupted data:', parseError);
+        // Clear corrupted authentication data
+        localStorage.removeItem(`auth_${existingDeviceId}`);
+        localStorage.removeItem(`biometric_${existingDeviceId}`);
+        setBiometricRegistered(false);
       }
       
     } catch (error) {
@@ -241,6 +271,22 @@ const DeviceAuth = ({ onAuthSuccess, onAuthFailure }) => {
     setIsAuthenticated(false);
   };
 
+  const handleClearAuthData = () => {
+    if (!deviceId) return;
+    
+    // Clear all authentication and biometric data
+    localStorage.removeItem(`auth_${deviceId}`);
+    localStorage.removeItem(`biometric_${deviceId}`);
+    
+    // Reset states
+    setIsAuthenticated(false);
+    setBiometricRegistered(false);
+    setError(null);
+    
+    // Reinitialize
+    initializeDevice();
+  };
+
   if (isAuthenticated) {
     return (
       <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -279,7 +325,16 @@ const DeviceAuth = ({ onAuthSuccess, onAuthFailure }) => {
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-          {error}
+          <div className="flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={handleClearAuthData}
+              className="ml-2 px-2 py-1 text-xs bg-red-200 text-red-800 rounded hover:bg-red-300"
+              title="Clear all authentication data and restart"
+            >
+              Reset
+            </button>
+          </div>
         </div>
       )}
 
