@@ -162,27 +162,75 @@ function createMatchKey(trackName, artistName) {
   const trackResult = normalizeString(trackName);
   const cleanTrack = trackResult.normalized;
   
-  // Extract primary artist (before &, feat., etc.)
+  // Extract primary artist and feature artists
   let primaryArtist = artistName;
-  const ampIndex = artistName.indexOf('&');
-  const commaIndex = artistName.indexOf(',');
-  const featIndex = artistName.toLowerCase().indexOf(' feat');
-  const ftIndex = artistName.toLowerCase().indexOf(' ft');
+  let featureArtists = [];
   
-  if (ampIndex > 0) {
-    primaryArtist = artistName.substring(0, ampIndex).trim();
-  } else if (commaIndex > 0) {
-    primaryArtist = artistName.substring(0, commaIndex).trim();
-  } else if (featIndex > 0) {
-    primaryArtist = artistName.substring(0, featIndex).trim();
-  } else if (ftIndex > 0) {
-    primaryArtist = artistName.substring(0, ftIndex).trim();
+  // Extract feature artists from track name first
+  if (trackResult.featureArtists) {
+    featureArtists.push(...trackResult.featureArtists);
+  }
+  
+  // Extract artists from the artist name
+  if (artistName.includes('&')) {
+    const artistParts = artistName.split(/\s*&\s*/);
+    primaryArtist = artistParts[0].trim();
+    artistParts.slice(1).forEach(part => {
+      const trimmed = part.trim();
+      if (!featureArtists.includes(trimmed)) {
+        featureArtists.push(trimmed);
+      }
+    });
+  } else if (artistName.includes(',')) {
+    const artistParts = artistName.split(/\s*,\s*/);
+    primaryArtist = artistParts[0].trim();
+    artistParts.slice(1).forEach(part => {
+      const trimmed = part.trim();
+      if (!featureArtists.includes(trimmed)) {
+        featureArtists.push(trimmed);
+      }
+    });
+  } else if (artistName.toLowerCase().includes(' feat')) {
+    const parts = artistName.split(/\s+feat\.?\s+/i);
+    primaryArtist = parts[0].trim();
+    if (parts[1]) {
+      // Split feature artists by common separators
+      const featParts = parts[1].split(/\s*[,&]\s*/);
+      featParts.forEach(part => {
+        const trimmed = part.trim();
+        if (trimmed && !featureArtists.includes(trimmed)) {
+          featureArtists.push(trimmed);
+        }
+      });
+    }
+  } else if (artistName.toLowerCase().includes(' ft')) {
+    const parts = artistName.split(/\s+ft\.?\s+/i);
+    primaryArtist = parts[0].trim();
+    if (parts[1]) {
+      const featParts = parts[1].split(/\s*[,&]\s*/);
+      featParts.forEach(part => {
+        const trimmed = part.trim();
+        if (trimmed && !featureArtists.includes(trimmed)) {
+          featureArtists.push(trimmed);
+        }
+      });
+    }
   }
   
   const artistResult = normalizeString(primaryArtist);
   const cleanArtist = artistResult.normalized;
   
-  const result = `${cleanTrack}-${cleanArtist}`;
+  // Normalize and sort feature artists to ensure consistent ordering
+  const normalizedFeatures = featureArtists
+    .map(artist => normalizeString(artist).normalized)
+    .filter(artist => artist && artist !== cleanArtist) // Remove duplicates and primary artist
+    .sort(); // Alphabetical sort for consistent ordering
+  
+  // Create match key with primary artist and sorted feature artists
+  let result = `${cleanTrack}-${cleanArtist}`;
+  if (normalizedFeatures.length > 0) {
+    result += `-feat-${normalizedFeatures.join('-')}`;
+  }
   
   // Cache the result
   matchKeyCache.set(cacheKey, result);
