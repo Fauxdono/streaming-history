@@ -95,7 +95,17 @@ function normalizeString(str) {
   for (const pattern of patterns) {
     const matches = normalized.match(pattern);
     if (matches && matches[1]) {
-      featureArtists.push(matches[1].trim());
+      // Split feature artists by common separators and normalize "of [group]" suffixes
+      const featuresString = matches[1].trim();
+      const featParts = featuresString.split(/\s*[,&]\s*/);
+      featParts.forEach(part => {
+        let trimmed = part.trim();
+        // Normalize "Artist of Group" to just "Artist" for consistency
+        trimmed = trimmed.replace(/\s+of\s+[^,&]+$/i, '');
+        if (trimmed) {
+          featureArtists.push(trimmed);
+        }
+      });
       normalized = normalized.replace(matches[0], ' ');
     }
   }
@@ -203,7 +213,9 @@ function createMatchKey(trackName, artistName) {
       // Split feature artists by common separators
       const featParts = featuresString.split(/\s*[,&]\s*/);
       featParts.forEach(part => {
-        const trimmed = part.trim();
+        let trimmed = part.trim();
+        // Normalize "Artist of Group" to just "Artist" for consistency
+        trimmed = trimmed.replace(/\s+of\s+[^,&]+$/i, '');
         if (trimmed && !featureArtists.includes(trimmed)) {
           featureArtists.push(trimmed);
         }
@@ -219,8 +231,10 @@ function createMatchKey(trackName, artistName) {
       const artistParts = cleanedArtistName.split(/\s*&\s*/);
       primaryArtist = artistParts[0].trim();
       artistParts.slice(1).forEach(part => {
-        const trimmed = part.trim();
-        if (!featureArtists.includes(trimmed)) {
+        let trimmed = part.trim();
+        // Normalize "Artist of Group" to just "Artist" for consistency
+        trimmed = trimmed.replace(/\s+of\s+[^,&]+$/i, '');
+        if (trimmed && !featureArtists.includes(trimmed)) {
           featureArtists.push(trimmed);
         }
       });
@@ -228,8 +242,10 @@ function createMatchKey(trackName, artistName) {
       const artistParts = cleanedArtistName.split(/\s*,\s*/);
       primaryArtist = artistParts[0].trim();
       artistParts.slice(1).forEach(part => {
-        const trimmed = part.trim();
-        if (!featureArtists.includes(trimmed)) {
+        let trimmed = part.trim();
+        // Normalize "Artist of Group" to just "Artist" for consistency
+        trimmed = trimmed.replace(/\s+of\s+[^,&]+$/i, '');
+        if (trimmed && !featureArtists.includes(trimmed)) {
           featureArtists.push(trimmed);
         }
       });
