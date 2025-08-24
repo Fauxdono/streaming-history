@@ -771,6 +771,57 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     // Update state
     setUploadedFileList(combinedFiles);
     setUploadedFiles(updatedFileNames);
+    
+    // Save uploaded files to persistent storage if authenticated
+    if (isAuthenticated && storageReady) {
+      try {
+        // Convert files to serializable format for storage
+        const fileMetadata = combinedFiles.map(file => ({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified,
+          uploadedAt: Date.now()
+        }));
+        
+        // Save file metadata
+        const storage = {
+          saveUploadedFiles: (data) => {
+            localStorage.setItem(`streaming_data_${deviceId}_uploaded_files`, JSON.stringify({
+              data,
+              timestamp: Date.now(),
+              version: '1.0'
+            }));
+          }
+        };
+        storage.saveUploadedFiles(fileMetadata);
+        
+        // Also save the actual file contents as base64 for later restoration
+        Promise.all(combinedFiles.map(file => 
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              lastModified: file.lastModified,
+              content: e.target.result
+            });
+            reader.readAsArrayBuffer(file);
+          })
+        )).then(filesWithContent => {
+          localStorage.setItem(`streaming_data_${deviceId}_file_contents`, JSON.stringify({
+            data: filesWithContent,
+            timestamp: Date.now(),
+            version: '1.0'
+          }));
+          console.log('Files saved to persistent storage');
+        });
+        
+      } catch (saveError) {
+        console.error('Failed to save files to persistent storage:', saveError);
+      }
+    }
   }, [uploadedFileList]);
 
   // Handle file deletion with useCallback
@@ -782,10 +833,59 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Update both states at once
       setUploadedFileList(remainingFiles.length === 0 ? null : remainingFiles);
       setUploadedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
+      
+      // Update persistent storage if authenticated
+      if (isAuthenticated && storageReady && deviceId) {
+        try {
+          if (remainingFiles.length === 0) {
+            // Clear all files from storage
+            localStorage.removeItem(`streaming_data_${deviceId}_uploaded_files`);
+            localStorage.removeItem(`streaming_data_${deviceId}_file_contents`);
+          } else {
+            // Update stored files
+            const fileMetadata = remainingFiles.map(file => ({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              lastModified: file.lastModified,
+              uploadedAt: Date.now()
+            }));
+            
+            localStorage.setItem(`streaming_data_${deviceId}_uploaded_files`, JSON.stringify({
+              data: fileMetadata,
+              timestamp: Date.now(),
+              version: '1.0'
+            }));
+            
+            // Update file contents
+            Promise.all(remainingFiles.map(file => 
+              new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve({
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+                  lastModified: file.lastModified,
+                  content: e.target.result
+                });
+                reader.readAsArrayBuffer(file);
+              })
+            )).then(filesWithContent => {
+              localStorage.setItem(`streaming_data_${deviceId}_file_contents`, JSON.stringify({
+                data: filesWithContent,
+                timestamp: Date.now(),
+                version: '1.0'
+              }));
+            });
+          }
+        } catch (saveError) {
+          console.error('Failed to update files in persistent storage:', saveError);
+        }
+      }
     } else {
       setUploadedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
     }
-  }, [uploadedFileList]);
+  }, [uploadedFileList, isAuthenticated, storageReady, deviceId]);
 
   // Process uploaded files with useCallback
   const handleProcessFiles = useCallback(() => {
@@ -817,13 +917,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     setDeviceId(newDeviceId);
     setIsAuthenticated(true);
     
-    // Try to load existing data
+    // Try to load existing data and files
     setTimeout(() => {
       if (storageReady) {
         try {
+          // Load processed data
           const existingData = getProcessedData();
           if (existingData) {
-            console.log('Loading existing data from persistent storage');
+            console.log('Loading existing processed data from persistent storage');
             setStats({ ...existingData.stats });
             setTopArtists(existingData.topArtists || []);
             setTopAlbums(existingData.topAlbums || []);
@@ -834,6 +935,34 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             setAlbumsByYear(existingData.albumsByYear || {});
             setActiveTab('stats'); // Switch to stats if data exists
           }
+          
+          // Load uploaded files
+          const savedFileContents = localStorage.getItem(`streaming_data_${newDeviceId}_file_contents`);
+          if (savedFileContents) {
+            const parsed = JSON.parse(savedFileContents);
+            const filesWithContent = parsed.data;
+            
+            // Convert back to File objects
+            const restoredFiles = filesWithContent.map(fileData => {
+              const blob = new Blob([fileData.content], { type: fileData.type });
+              const file = new File([blob], fileData.name, {
+                type: fileData.type,
+                lastModified: fileData.lastModified
+              });
+              return file;
+            });
+            
+            // Restore file state
+            setUploadedFileList(restoredFiles);
+            setUploadedFiles(restoredFiles.map(f => f.name));
+            console.log(`Restored ${restoredFiles.length} uploaded files from persistent storage`);
+            
+            // If no processed data but we have files, switch to upload tab
+            if (!existingData && restoredFiles.length > 0) {
+              setActiveTab('upload');
+            }
+          }
+          
         } catch (loadError) {
           console.error('Failed to load existing data:', loadError);
         }
