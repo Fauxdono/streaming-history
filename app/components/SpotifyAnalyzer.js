@@ -19,6 +19,9 @@ import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
+import DeviceAuth from './device-auth.js';
+import DataManager from './data-manager.js';
+import { usePersistentStorage } from './persistent-storage.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -86,6 +89,20 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   const [showServiceInfo, setShowServiceInfo] = useState({});
   const [showCakeService, setShowCakeService] = useState(false);
+  
+  // Authentication and persistence states
+  const [deviceId, setDeviceId] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showDataManager, setShowDataManager] = useState(false);
+  
+  // Persistent storage hook
+  const {
+    saveProcessedData,
+    getProcessedData,
+    saveSettings,
+    getSettings,
+    isReady: storageReady
+  } = usePersistentStorage(deviceId);
   // Add date range states for artists (like CustomTrackRankings)
   const [artistStartDate, setArtistStartDate] = useState('');
   const [artistEndDate, setArtistEndDate] = useState('');
@@ -703,6 +720,25 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const fileNames = Array.from(fileList).map(file => file.name);
       setUploadedFiles(fileNames);
 
+      // Save processed data to persistent storage if authenticated
+      if (isAuthenticated && storageReady) {
+        try {
+          saveProcessedData({
+            stats: results.stats,
+            topArtists: results.topArtists,
+            topAlbums: results.topAlbums,
+            processedTracks: sortedTracks,
+            songsByYear: results.songsByYear,
+            briefObsessions: results.briefObsessions,
+            artistsByYear: results.artistsByYear,
+            albumsByYear: results.albumsByYear
+          });
+          console.log('Data saved to persistent storage');
+        } catch (saveError) {
+          console.error('Failed to save data to persistent storage:', saveError);
+        }
+      }
+
       // Switch to stats tab
       setActiveTab('stats');
       
@@ -775,6 +811,40 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         });
     }, 100);
   }, [uploadedFileList, processFiles]);
+
+  // Authentication handlers
+  const handleAuthSuccess = useCallback((newDeviceId) => {
+    setDeviceId(newDeviceId);
+    setIsAuthenticated(true);
+    
+    // Try to load existing data
+    setTimeout(() => {
+      if (storageReady) {
+        try {
+          const existingData = getProcessedData();
+          if (existingData) {
+            console.log('Loading existing data from persistent storage');
+            setStats({ ...existingData.stats });
+            setTopArtists(existingData.topArtists || []);
+            setTopAlbums(existingData.topAlbums || []);
+            setProcessedData(existingData.processedTracks || []);
+            setSongsByYear(existingData.songsByYear || {});
+            setBriefObsessions(existingData.briefObsessions || []);
+            setArtistsByYear(existingData.artistsByYear || {});
+            setAlbumsByYear(existingData.albumsByYear || {});
+            setActiveTab('stats'); // Switch to stats if data exists
+          }
+        } catch (loadError) {
+          console.error('Failed to load existing data:', loadError);
+        }
+      }
+    }, 100);
+  }, [storageReady, getProcessedData]);
+
+  const handleAuthFailure = useCallback((error) => {
+    console.error('Authentication failed:', error);
+    setIsAuthenticated(false);
+  }, []);
 
   // Handle year range change with useCallback
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
@@ -1347,6 +1417,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
           {activeTab === 'upload' && (
             <div>
+              {/* Device Authentication Section */}
+              <div className="mb-6">
+                <DeviceAuth 
+                  onAuthSuccess={handleAuthSuccess}
+                  onAuthFailure={handleAuthFailure}
+                />
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 <div className={`p-3 sm:p-4 border rounded ${isDarkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'}`}>
                   <h3 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>How to use:</h3>
@@ -1572,6 +1649,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'data' && (
+            <DataManager 
+              deviceId={deviceId}
+              isAuthenticated={isAuthenticated}
+            />
           )}
                   
           {activeTab === 'stats' && stats && (

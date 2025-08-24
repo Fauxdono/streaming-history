@@ -368,6 +368,7 @@ const TopTabs = ({
             <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
               {stats && <TabButton id="updates" label="Updates" />} 
               <TabButton id="upload" label="Upload" />
+              <TabButton id="data" label="Data" />
               {stats && <TabButton id="stats" label="Statistics" />}
               {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
               {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
@@ -415,6 +416,7 @@ const TopTabs = ({
             <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
               {stats && <TabButton id="updates" label="Updates" />} 
               <TabButton id="upload" label="Upload" />
+              <TabButton id="data" label="Data" />
               {stats && <TabButton id="stats" label="Statistics" />}
               {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
               {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
@@ -464,6 +466,7 @@ const TopTabs = ({
             <div className="flex flex-col gap-1 sm:gap-2 min-h-max text-sm sm:text-base py-4">
               {stats && <TabButton id="updates" label="Updates" />} 
               <TabButton id="upload" label="Upload" />
+              <TabButton id="data" label="Data" />
               {stats && <TabButton id="stats" label="Statistics" />}
               {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
               {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
