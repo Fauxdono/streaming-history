@@ -183,6 +183,33 @@ const DataManager = ({
         <h3 className="text-lg font-medium text-gray-900 mb-4">Data Actions</h3>
         
         <div className="grid grid-cols-1 gap-4">
+          {/* Manual Save Button for Testing */}
+          {stats && processedData && processedData.length > 0 && (
+            <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+              <div className="flex items-center space-x-2 mb-3">
+                <Database className="w-5 h-5 text-blue-600" />
+                <h4 className="font-medium text-gray-900">Save Current Analysis</h4>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Save your current streaming analysis ({processedData.length.toLocaleString()} tracks) to device storage.
+              </p>
+              <button
+                onClick={() => {
+                  // Trigger the same save logic as the automatic prompt
+                  console.log('🔧 Manual save triggered');
+                  if (window.saveProcessedDataManually) {
+                    window.saveProcessedDataManually();
+                  } else {
+                    alert('Save function not available. Please check console for errors.');
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              >
+                💾 Save Analysis Data Now
+              </button>
+            </div>
+          )}
+
           {/* Export Data using existing ExportButton */}
           {stats && processedData && processedData.length > 0 && (
             <div className="p-4 border border-gray-200 rounded-lg">
