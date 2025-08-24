@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName } from './streaming-adapter.js';
+import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey } from './streaming-adapter.js';
 import ExportButton from './ExportButton.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
@@ -382,8 +382,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const normalizedArtistName = normalizeArtistName(artistName);
       const albumKey = `${normalizedAlbumName}-${normalizedArtistName}`;
       
-      // Get normalized track name (basic version)
-      const normTrack = trackName.toLowerCase().trim();
+      // Use enhanced track matching like streaming adapter
+      const trackMatchKey = createMatchKey(trackName, artistName);
       
       if (!albums[albumKey]) {
         albums[albumKey] = {
@@ -391,8 +391,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           artist: artistName,
           totalPlayed: 0,
           playCount: 0,
-          trackCount: new Set(),
-          trackNames: new Set(),
+          trackMap: new Map(), // Use Map for better track deduplication
           trackObjects: [],
           firstListen: timestamp.getTime(),
           years: new Set()
@@ -406,25 +405,27 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
       albums[albumKey].totalPlayed += playTime;
       albums[albumKey].playCount++;
-      albums[albumKey].trackCount.add(normTrack);
-      albums[albumKey].trackNames.add(trackName);
       
-      // Update track objects (same as streaming adapter)
-      const existingTrackIndex = albums[albumKey].trackObjects.findIndex(
-        t => t.trackName === trackName
-      );
-      
-      if (existingTrackIndex === -1) {
-        albums[albumKey].trackObjects.push({
+      // Track handling with proper deduplication using match keys
+      if (albums[albumKey].trackMap.has(trackMatchKey)) {
+        // Update existing track
+        const track = albums[albumKey].trackMap.get(trackMatchKey);
+        track.totalPlayed += playTime;
+        track.playCount++;
+        
+        // Update display name if we get a better version (prefer non-"with" versions)
+        if (trackName.includes('feat') && track.trackName.includes('with')) {
+          track.trackName = trackName;
+        }
+      } else {
+        // Create new track
+        albums[albumKey].trackMap.set(trackMatchKey, {
           trackName,
           artist: artistName,
           totalPlayed: playTime,
           playCount: 1,
           albumName
         });
-      } else {
-        albums[albumKey].trackObjects[existingTrackIndex].totalPlayed += playTime;
-        albums[albumKey].trackObjects[existingTrackIndex].playCount++;
       }
       
       // Update first listen time if earlier
@@ -436,9 +437,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     
     // Process albums like streaming adapter
     Object.values(albums).forEach(album => {
-      album.trackObjects.sort((a, b) => b.totalPlayed - a.totalPlayed);
-      album.trackCountValue = album.trackCount.size;
+      // Convert trackMap to trackObjects array
+      album.trackObjects = Array.from(album.trackMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
+      album.trackCountValue = album.trackMap.size;
       album.yearsArray = Array.from(album.years).sort();
+      
+      // Clean up trackMap as it's not needed anymore
+      delete album.trackMap;
     });
     
     let result = Object.values(albums).sort((a, b) => b.totalPlayed - a.totalPlayed);
