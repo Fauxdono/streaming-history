@@ -726,7 +726,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Save processed data to persistent storage if authenticated
       if (isAuthenticated && storageReady) {
         try {
-          console.log('Saving data to persistent storage...', {
+          console.log('💾 Saving data to persistent storage...', {
             isAuthenticated, 
             storageReady, 
             deviceId,
@@ -745,15 +745,23 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             albumsByYear: results.albumsByYear,
             rawPlayData: results.rawPlayData
           });
-          console.log('Data saved to persistent storage successfully:', saveResult);
+          console.log('✅ Data saved to persistent storage successfully:', saveResult);
+          
+          // Notify user immediately
+          setStorageNotification({
+            type: 'success',
+            title: 'Analysis Data Saved',
+            message: 'Your streaming analysis has been saved to device storage and will persist between sessions.'
+          });
         } catch (saveError) {
-          console.error('Failed to save data to persistent storage:', saveError);
+          console.error('❌ Failed to save data to persistent storage:', saveError);
         }
       } else {
-        console.log('Skipping data save - conditions not met:', {
+        console.log('⚠️ Skipping data save - conditions not met:', {
           isAuthenticated, 
           storageReady, 
-          deviceId
+          deviceId,
+          message: 'Data will only be saved if you authenticate first!'
         });
       }
 
@@ -930,7 +938,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       // If we already have data processed, save it to storage instead of loading
       if (stats && processedData.length > 0) {
-        console.log('User authenticated after processing data - saving current data to storage');
+        console.log('🔄 User authenticated after processing data - saving current data to storage');
+        console.log('Current data to save:', {
+          hasStats: !!stats,
+          trackCount: processedData.length,
+          hasTopArtists: topArtists.length,
+          hasTopAlbums: topAlbums.length,
+          hasRawData: rawPlayData.length
+        });
+        
         try {
           const saveResult = saveProcessedData({
             stats: stats,
@@ -943,7 +959,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             albumsByYear: albumsByYear,
             rawPlayData: rawPlayData
           });
-          console.log('Current data saved to persistent storage:', saveResult);
+          console.log('✅ Current data saved to persistent storage successfully:', saveResult);
           
           // Notify user about data persistence
           setStorageNotification({
@@ -955,7 +971,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           // Don't change tabs - let user stay where they are
           console.log('Keeping current tab:', activeTab);
         } catch (saveError) {
-          console.error('Failed to save current data:', saveError);
+          console.error('❌ Failed to save current data:', saveError);
+          setStorageNotification({
+            type: 'error',
+            title: 'Save Failed',
+            message: 'Failed to save your analysis data. Please try authenticating again.'
+          });
         }
         return; // Don't load from storage if we have current data
       }
