@@ -19,7 +19,7 @@ import ExcelPreview from './excelpreview.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
 import DeviceAuth from './device-auth.js';
-import UnifiedAuth from './unified-auth.js';
+// import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import DataManager from './data-manager.js';
 import GoogleDriveManager from './google-drive-manager.js';
 import { usePersistentStorage } from './persistent-storage.js';
@@ -1708,12 +1708,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
           {activeTab === 'upload' && (
             <div>
-              {/* Unified Authentication Section */}
+              {/* Device Authentication Section (Temporary revert) */}
               <div className="mb-6">
-                <UnifiedAuth 
+                <DeviceAuth 
                   onAuthSuccess={handleAuthSuccess}
                   onAuthFailure={handleAuthFailure}
-                  onGoogleDriveReady={handleGoogleDriveReady}
                 />
               </div>
 
