@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import googleDriveStorage from './google-drive-storage';
 
-export const useGoogleDrive = () => {
+const useGoogleDrive = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
