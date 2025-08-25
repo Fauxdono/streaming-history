@@ -30,10 +30,22 @@ class GoogleDriveStorage {
         });
       });
 
+      // Check for required environment variables
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      
+      if (!apiKey || apiKey === 'your_google_api_key_here') {
+        throw new Error('Google API Key not configured. Please set NEXT_PUBLIC_GOOGLE_API_KEY in .env.local');
+      }
+      
+      if (!clientId || clientId === 'your_google_oauth_client_id_here') {
+        throw new Error('Google Client ID not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env.local');
+      }
+
       // Configure the client
       await window.gapi.client.init({
-        apiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
-        clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        apiKey: apiKey,
+        clientId: clientId,
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
         scope: 'https://www.googleapis.com/auth/drive.file'
       });
