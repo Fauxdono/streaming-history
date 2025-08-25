@@ -19,19 +19,22 @@ class GoogleDriveStorage {
     try {
       console.log('🔧 Initializing Google Drive API...');
       
-      // Load Google API with timeout
+      // Load Google API and Identity Services with timeout
       await Promise.race([
-        this.loadGoogleAPI(),
+        Promise.all([
+          this.loadGoogleAPI(),
+          this.loadGoogleIdentityServices()
+        ]),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Google API script load timeout')), 10000)
         )
       ]);
-      console.log('✅ Google API script loaded');
+      console.log('✅ Google API and Identity Services loaded');
       
       // Initialize the API with timeout
       await Promise.race([
         new Promise((resolve, reject) => {
-          window.gapi.load('client:auth2', {
+          window.gapi.load('client', {
             callback: resolve,
             onerror: reject
           });
@@ -70,9 +73,7 @@ class GoogleDriveStorage {
         await Promise.race([
           window.gapi.client.init({
             apiKey: apiKey,
-            clientId: clientId,
-            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            scope: 'https://www.googleapis.com/auth/drive.file'
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
           }),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Google API client init timeout')), 15000)
@@ -102,12 +103,21 @@ class GoogleDriveStorage {
         throw new Error(`Google API client initialization failed: ${errorMessage}`);
       }
 
+      // Initialize Google Identity Services
+      console.log('🔧 Initializing Google Identity Services...');
+      this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (tokenResponse) => {
+          console.log('✅ Token received:', tokenResponse);
+          this.accessToken = tokenResponse.access_token;
+        }
+      });
+
       this.gapi = window.gapi;
+      this.clientId = clientId;
       this.isInitialized = true;
-      
-      // Check if already signed in
-      const authInstance = this.gapi.auth2.getAuthInstance();
-      this.isSignedIn = authInstance.isSignedIn.get();
+      this.isSignedIn = false; // Will check during sign-in flow
       
       console.log('✅ Google Drive API initialized successfully');
       return true;
@@ -147,31 +157,77 @@ class GoogleDriveStorage {
     });
   }
 
+  // Load Google Identity Services script
+  loadGoogleIdentityServices() {
+    return new Promise((resolve, reject) => {
+      if (window.google?.accounts) {
+        console.log('✅ Google Identity Services already loaded');
+        resolve();
+        return;
+      }
+
+      console.log('📥 Loading Google Identity Services script...');
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.onload = () => {
+        console.log('✅ Google Identity Services script loaded successfully');
+        resolve();
+      };
+      script.onerror = (error) => {
+        console.error('❌ Failed to load Google Identity Services script:', error);
+        reject(new Error('Failed to load Google Identity Services script'));
+      };
+      script.onabort = () => {
+        console.error('❌ Google Identity Services script load aborted');
+        reject(new Error('Google Identity Services script load was aborted'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
   // Sign in to Google
   async signIn() {
     if (!this.isInitialized) {
       await this.initialize();
     }
 
-    try {
-      console.log('🔐 Signing in to Google Drive...');
-      const authInstance = this.gapi.auth2.getAuthInstance();
-      await authInstance.signIn();
-      this.isSignedIn = true;
-      
-      const user = authInstance.currentUser.get();
-      const profile = user.getBasicProfile();
-      console.log('✅ Signed in as:', profile.getEmail());
-      
-      return {
-        email: profile.getEmail(),
-        name: profile.getName(),
-        imageUrl: profile.getImageUrl()
-      };
-    } catch (error) {
-      console.error('❌ Google Drive sign-in failed:', error);
-      throw new Error(`Sign-in failed: ${error.message}`);
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        console.log('🔐 Signing in to Google Drive...');
+        
+        // Update the callback to handle successful authentication
+        this.tokenClient.callback = (tokenResponse) => {
+          if (tokenResponse.error) {
+            console.error('❌ Token error:', tokenResponse.error);
+            reject(new Error(`Token error: ${tokenResponse.error}`));
+            return;
+          }
+          
+          console.log('✅ Token received successfully');
+          this.accessToken = tokenResponse.access_token;
+          this.isSignedIn = true;
+          
+          // Set the token for API calls
+          this.gapi.client.setToken({
+            access_token: tokenResponse.access_token
+          });
+          
+          // For now, return basic user info (we'll get more detailed info from Google+ API if needed)
+          resolve({
+            email: 'user@example.com', // Placeholder - we'd need additional API call to get real email
+            name: 'Google User',
+            imageUrl: null
+          });
+        };
+        
+        // Request access token
+        this.tokenClient.requestAccessToken({ prompt: 'consent' });
+        
+      } catch (error) {
+        console.error('❌ Google Drive sign-in failed:', error);
+        reject(new Error(`Sign-in failed: ${error.message}`));
+      }
+    });
   }
 
   // Sign out
@@ -179,8 +235,15 @@ class GoogleDriveStorage {
     if (!this.isInitialized) return;
 
     try {
-      const authInstance = this.gapi.auth2.getAuthInstance();
-      await authInstance.signOut();
+      // Revoke the token
+      if (this.accessToken) {
+        window.google.accounts.oauth2.revoke(this.accessToken);
+      }
+      
+      // Clear token from gapi client
+      this.gapi.client.setToken(null);
+      
+      this.accessToken = null;
       this.isSignedIn = false;
       console.log('📤 Signed out of Google Drive');
     } catch (error) {
@@ -190,7 +253,7 @@ class GoogleDriveStorage {
 
   // Check if signed in
   isAuthenticated() {
-    return this.isSignedIn;
+    return this.isSignedIn && !!this.accessToken;
   }
 
   // Get or create app folder
