@@ -2040,19 +2040,17 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 )}
               </div>
 
-              {/* Google Drive Manager - Only show if connected */}
-              {googleDriveReady && (
-                <GoogleDriveManager 
-                  stats={stats}
-                  topArtists={topArtists}
-                  topAlbums={topAlbums}
-                  processedData={processedData}
-                  briefObsessions={briefObsessions}
-                  songsByYear={songsByYear}
-                  rawPlayData={rawPlayData}
-                  onDataLoaded={handleDataLoaded}
-                />
-              )}
+              {/* Google Drive Manager - Always show for connection and management */}
+              <GoogleDriveManager 
+                stats={stats}
+                topArtists={topArtists}
+                topAlbums={topAlbums}
+                processedData={processedData}
+                briefObsessions={briefObsessions}
+                songsByYear={songsByYear}
+                rawPlayData={rawPlayData}
+                onDataLoaded={handleDataLoaded}
+              />
               
               {/* Local Data Manager */}
               <DataManager 
