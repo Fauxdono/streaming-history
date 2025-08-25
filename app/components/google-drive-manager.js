@@ -166,6 +166,44 @@ const GoogleDriveManager = ({
     );
   }
 
+  // Show setup instructions if Google Drive credentials are missing
+  if (error && error.includes('not configured')) {
+    return (
+      <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+        <div className="flex items-center space-x-3 mb-4">
+          <AlertTriangle className="w-6 h-6 text-yellow-600" />
+          <div>
+            <h2 className="text-xl font-semibold text-yellow-900">Google Drive Setup Required</h2>
+            <p className="text-sm text-yellow-700">
+              Configure Google Drive API credentials to enable cloud storage
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded border border-yellow-300 mb-4">
+          <h3 className="font-medium text-gray-900 mb-3">Quick Setup Instructions:</h3>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+            <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Google Cloud Console</a></li>
+            <li>Create a new project or select existing one</li>
+            <li>Enable "Google Drive API" in APIs & Services → Library</li>
+            <li>Create credentials:
+              <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
+                <li>API Key for NEXT_PUBLIC_GOOGLE_API_KEY</li>
+                <li>OAuth 2.0 Client ID for NEXT_PUBLIC_GOOGLE_CLIENT_ID</li>
+              </ul>
+            </li>
+            <li>Update <code className="bg-gray-100 px-1 rounded">.env.local</code> with your credentials</li>
+            <li>Restart the development server</li>
+          </ol>
+        </div>
+
+        <div className="text-sm text-yellow-700">
+          <strong>Error:</strong> {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
