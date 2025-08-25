@@ -20,6 +20,7 @@ import ExcelPreview from './excelpreview.js';
 import { useTheme } from './themeprovider.js';
 import DeviceAuth from './device-auth.js';
 import DataManager from './data-manager.js';
+import GoogleDriveManager from './google-drive-manager.js';
 import { usePersistentStorage } from './persistent-storage.js';
 
 // Cache for service colors to avoid recreating on each render
@@ -993,6 +994,33 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       });
     }
   }, [stats, processedData, topArtists, topAlbums, songsByYear, briefObsessions, artistsByYear, albumsByYear, rawPlayData, saveProcessedData]);
+
+  // Handle loading data from Google Drive
+  const handleDataLoaded = useCallback((loadedData) => {
+    console.log('🔄 Loading data from Google Drive...', {
+      tracks: loadedData.processedTracks?.length || 0,
+      artists: loadedData.topArtists?.length || 0,
+      albums: loadedData.topAlbums?.length || 0
+    });
+
+    try {
+      // Set all the loaded data
+      if (loadedData.stats) setStats(loadedData.stats);
+      if (loadedData.processedTracks) setProcessedData(loadedData.processedTracks);
+      if (loadedData.topArtists) setTopArtists(loadedData.topArtists);
+      if (loadedData.topAlbums) setTopAlbums(loadedData.topAlbums);
+      if (loadedData.briefObsessions) setBriefObsessions(loadedData.briefObsessions);
+      if (loadedData.songsByYear) setSongsByYear(loadedData.songsByYear);
+      if (loadedData.rawPlayData) setRawPlayData(loadedData.rawPlayData);
+      
+      // Reset to main view after loading
+      setActiveTab('main');
+      
+      console.log('✅ Google Drive data loaded successfully');
+    } catch (error) {
+      console.error('❌ Failed to load Google Drive data:', error);
+    }
+  }, []);
 
   // Expose manual save function globally for DataManager
   useEffect(() => {
@@ -1978,18 +2006,31 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           )}
 
           {activeTab === 'data' && (
-            <DataManager 
-              deviceId={deviceId}
-              isAuthenticated={isAuthenticated}
-              stats={stats}
-              topArtists={topArtists}
-              topAlbums={topAlbums}
-              processedData={processedData}
-              briefObsessions={briefObsessions}
-              songsByYear={songsByYear}
-              rawPlayData={rawPlayData}
-              formatDuration={formatDuration}
-            />
+            <div className="space-y-8">
+              <GoogleDriveManager 
+                stats={stats}
+                topArtists={topArtists}
+                topAlbums={topAlbums}
+                processedData={processedData}
+                briefObsessions={briefObsessions}
+                songsByYear={songsByYear}
+                rawPlayData={rawPlayData}
+                onDataLoaded={handleDataLoaded}
+              />
+              
+              <DataManager 
+                deviceId={deviceId}
+                isAuthenticated={isAuthenticated}
+                stats={stats}
+                topArtists={topArtists}
+                topAlbums={topAlbums}
+                processedData={processedData}
+                briefObsessions={briefObsessions}
+                songsByYear={songsByYear}
+                rawPlayData={rawPlayData}
+                formatDuration={formatDuration}
+              />
+            </div>
           )}
                   
           {activeTab === 'stats' && stats && (
