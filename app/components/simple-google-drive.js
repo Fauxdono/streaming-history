@@ -26,6 +26,14 @@ const SimpleGoogleDrive = ({
     setError('');
     
     try {
+      // Check for popup blocker
+      const testPopup = window.open('', '_blank', 'width=1,height=1');
+      if (!testPopup || testPopup.closed || typeof testPopup.closed === 'undefined') {
+        setError('Popup blocked! Please allow popups for this site and try again. Look for a popup blocker icon in your address bar.');
+        setIsConnecting(false);
+        return;
+      }
+      testPopup.close();
       // Load Google API script if not already loaded
       if (!window.gapi) {
         await loadGoogleAPI();
@@ -218,7 +226,17 @@ const SimpleGoogleDrive = ({
           color: '#dc2626',
           marginBottom: '16px'
         }}>
-          {error}
+          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>❌ {error}</div>
+          {error.includes('Popup blocked') && (
+            <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
+              <strong>How to allow popups:</strong>
+              <ul style={{ marginTop: '8px', paddingLeft: '16px' }}>
+                <li><strong>Chrome/Edge:</strong> Click the popup blocker icon 🚫 in the address bar</li>
+                <li><strong>Firefox:</strong> Click "Options" → "Allow pop-ups for this site"</li>
+                <li><strong>Safari:</strong> Look for popup blocker icon in address bar</li>
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
@@ -231,22 +249,30 @@ const SimpleGoogleDrive = ({
           <p style={{ color: '#3730a3', marginBottom: '24px' }}>
             Connect your Google Drive to save your large streaming analysis and access it from any device.
           </p>
-          <button
-            onClick={handleConnect}
-            disabled={isConnecting}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: isConnecting ? '#9ca3af' : '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: isConnecting ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isConnecting ? 'Connecting...' : '🔗 Connect Google Drive'}
-          </button>
+          <div>
+            <button
+              onClick={handleConnect}
+              disabled={isConnecting}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: isConnecting ? '#9ca3af' : '#2563eb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: isConnecting ? 'not-allowed' : 'pointer',
+                marginBottom: '12px'
+              }}
+            >
+              {isConnecting ? 'Connecting...' : '🔗 Connect Google Drive'}
+            </button>
+            {error && error.includes('Popup blocked') && (
+              <div style={{ fontSize: '12px', color: '#3730a3' }}>
+                💡 Tip: Make sure to allow popups, then try again
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div>
