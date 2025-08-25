@@ -301,7 +301,7 @@ const GoogleDriveManager = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-medium">
-                  {userInfo?.name?.charAt(0) || <User className="w-4 h-4" />}
+                  {userInfo?.name?.charAt(0) ? userInfo.name.charAt(0) : <User className="w-4 h-4" />}
                 </div>
                 <div>
                   <p className="font-medium text-green-900">
