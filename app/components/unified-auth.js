@@ -13,7 +13,7 @@ import {
   Loader
 } from 'lucide-react';
 import DeviceAuth from './device-auth.js';
-import useGoogleDrive from './use-google-drive.js';
+import { useGoogleDrive } from './use-google-drive.js';
 
 const UnifiedAuth = ({ onAuthSuccess, onAuthFailure, onGoogleDriveReady }) => {
   const [deviceAuthComplete, setDeviceAuthComplete] = useState(false);
@@ -116,10 +116,12 @@ const UnifiedAuth = ({ onAuthSuccess, onAuthFailure, onGoogleDriveReady }) => {
         </div>
 
         {!deviceAuthComplete ? (
-          <DeviceAuth 
-            onAuthSuccess={handleDeviceAuthSuccess}
-            onAuthFailure={handleDeviceAuthFailure}
-          />
+          <div>
+            <DeviceAuth 
+              onAuthSuccess={handleDeviceAuthSuccess}
+              onAuthFailure={handleDeviceAuthFailure}
+            />
+          </div>
         ) : (
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
             <div className="flex items-center space-x-2">
