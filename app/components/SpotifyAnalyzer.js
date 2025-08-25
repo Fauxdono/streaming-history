@@ -21,7 +21,7 @@ import { useTheme } from './themeprovider.js';
 import DeviceAuth from './device-auth.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import DataManager from './data-manager.js';
-import GoogleDriveManager from './google-drive-manager.js';
+import SimpleGoogleDrive from './simple-google-drive.js';
 import { usePersistentStorage } from './persistent-storage.js';
 
 // Cache for service colors to avoid recreating on each render
@@ -2066,8 +2066,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 )}
               </div>
 
-              {/* Google Drive Manager */}
-              <GoogleDriveManager 
+              {/* Simple Google Drive */}
+              <SimpleGoogleDrive 
                 stats={stats}
                 topArtists={topArtists}
                 topAlbums={topAlbums}
