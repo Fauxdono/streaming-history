@@ -19,6 +19,7 @@ import ExcelPreview from './excelpreview.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
 import DeviceAuth from './device-auth.js';
+import UnifiedAuth from './unified-auth.js';
 import DataManager from './data-manager.js';
 import GoogleDriveManager from './google-drive-manager.js';
 import { usePersistentStorage } from './persistent-storage.js';
@@ -93,6 +94,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // Authentication and persistence states
   const [deviceId, setDeviceId] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [googleDriveReady, setGoogleDriveReady] = useState(false);
+  const [googleUserInfo, setGoogleUserInfo] = useState(null);
   const [showDataManager, setShowDataManager] = useState(false);
   const [storageNotification, setStorageNotification] = useState(null);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
@@ -916,6 +919,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     setIsAuthenticated(false);
   }, []);
 
+  const handleGoogleDriveReady = useCallback((userInfo) => {
+    console.log('🔐 Google Drive connected:', userInfo);
+    setGoogleDriveReady(true);
+    setGoogleUserInfo(userInfo);
+  }, []);
+
   // Handle user choice to save processed data
   const handleSaveData = useCallback(async () => {
     if (!pendingDataToSave) return;
@@ -1699,11 +1708,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
           {activeTab === 'upload' && (
             <div>
-              {/* Device Authentication Section */}
+              {/* Unified Authentication Section */}
               <div className="mb-6">
-                <DeviceAuth 
+                <UnifiedAuth 
                   onAuthSuccess={handleAuthSuccess}
                   onAuthFailure={handleAuthFailure}
+                  onGoogleDriveReady={handleGoogleDriveReady}
                 />
               </div>
 
@@ -2007,17 +2017,45 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
           {activeTab === 'data' && (
             <div className="space-y-8">
-              <GoogleDriveManager 
-                stats={stats}
-                topArtists={topArtists}
-                topAlbums={topAlbums}
-                processedData={processedData}
-                briefObsessions={briefObsessions}
-                songsByYear={songsByYear}
-                rawPlayData={rawPlayData}
-                onDataLoaded={handleDataLoaded}
-              />
+              {/* Authentication Status */}
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Authentication Status</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <span className="text-gray-700">
+                      Device Authentication: {isAuthenticated ? 'Connected' : 'Not Connected'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${googleDriveReady ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    <span className="text-gray-700">
+                      Google Drive: {googleDriveReady ? 'Connected' : 'Not Connected'}
+                    </span>
+                  </div>
+                </div>
+                {!isAuthenticated && (
+                  <p className="text-sm text-gray-600 mt-3">
+                    Please authenticate in the Upload tab to access your data management features.
+                  </p>
+                )}
+              </div>
+
+              {/* Google Drive Manager - Only show if connected */}
+              {googleDriveReady && (
+                <GoogleDriveManager 
+                  stats={stats}
+                  topArtists={topArtists}
+                  topAlbums={topAlbums}
+                  processedData={processedData}
+                  briefObsessions={briefObsessions}
+                  songsByYear={songsByYear}
+                  rawPlayData={rawPlayData}
+                  onDataLoaded={handleDataLoaded}
+                />
+              )}
               
+              {/* Local Data Manager */}
               <DataManager 
                 deviceId={deviceId}
                 isAuthenticated={isAuthenticated}
