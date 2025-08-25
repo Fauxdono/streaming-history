@@ -50,7 +50,9 @@ class GoogleDriveStorage {
         hasApiKey: !!apiKey, 
         hasClientId: !!clientId,
         apiKeyValue: apiKey?.substring(0, 10) + '...' || 'undefined',
-        clientIdValue: clientId?.substring(0, 10) + '...' || 'undefined'
+        clientIdValue: clientId?.substring(0, 10) + '...' || 'undefined',
+        processEnv: typeof process !== 'undefined' ? 'available' : 'missing',
+        allEnvVars: Object.keys(process?.env || {}).filter(key => key.startsWith('NEXT_PUBLIC_'))
       });
       
       if (!apiKey || apiKey === 'your_google_api_key_here') {
@@ -61,7 +63,8 @@ class GoogleDriveStorage {
         throw new Error('Google Client ID not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env.local');
       }
 
-      // Configure the client with timeout
+      // Log current domain for OAuth troubleshooting
+      console.log('🌐 Current domain:', window.location.origin);
       console.log('🔧 Configuring Google API client...');
       try {
         await Promise.race([
@@ -78,7 +81,25 @@ class GoogleDriveStorage {
         console.log('✅ Google API client configured');
       } catch (initError) {
         console.error('❌ Google API client init failed:', initError);
-        throw new Error(`Google API client initialization failed: ${initError.message || initError}`);
+        console.error('❌ Init error details:', {
+          message: initError?.message,
+          error: initError?.error,
+          details: initError?.details,
+          status: initError?.status,
+          result: initError?.result,
+          body: initError?.body
+        });
+        
+        let errorMessage = 'Unknown client initialization error';
+        if (initError?.error) {
+          errorMessage = `${initError.error}: ${initError.details || 'No details'}`;
+        } else if (initError?.message) {
+          errorMessage = initError.message;
+        } else if (initError?.result?.error) {
+          errorMessage = `${initError.result.error.message} (${initError.result.error.status})`;
+        }
+        
+        throw new Error(`Google API client initialization failed: ${errorMessage}`);
       }
 
       this.gapi = window.gapi;
