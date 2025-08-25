@@ -21,7 +21,7 @@ import { useTheme } from './themeprovider.js';
 import DeviceAuth from './device-auth.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import DataManager from './data-manager.js';
-// import GoogleDriveManager from './google-drive-manager.js'; // Temporarily disabled due to React error
+import GoogleDriveManager from './google-drive-manager.js';
 import { usePersistentStorage } from './persistent-storage.js';
 
 // Cache for service colors to avoid recreating on each render
@@ -1006,28 +1006,54 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Handle loading data from Google Drive
   const handleDataLoaded = useCallback((loadedData) => {
-    console.log('🔄 Loading data from Google Drive...', {
-      tracks: loadedData.processedTracks?.length || 0,
-      artists: loadedData.topArtists?.length || 0,
-      albums: loadedData.topAlbums?.length || 0
-    });
-
     try {
-      // Set all the loaded data
+      console.log('🔄 Loading data from Google Drive...', {
+        tracks: loadedData?.processedTracks?.length || 0,
+        artists: loadedData?.topArtists?.length || 0,
+        albums: loadedData?.topAlbums?.length || 0,
+        dataType: typeof loadedData,
+        hasData: !!loadedData
+      });
+
+      if (!loadedData) {
+        console.warn('⚠️ No data provided to handleDataLoaded');
+        return;
+      }
+
+      // Set all the loaded data with safety checks
+      console.log('🔧 Setting stats...');
       if (loadedData.stats) setStats(loadedData.stats);
+      
+      console.log('🔧 Setting processed data...');
       if (loadedData.processedTracks) setProcessedData(loadedData.processedTracks);
+      
+      console.log('🔧 Setting top artists...');
       if (loadedData.topArtists) setTopArtists(loadedData.topArtists);
+      
+      console.log('🔧 Setting top albums...');
       if (loadedData.topAlbums) setTopAlbums(loadedData.topAlbums);
+      
+      console.log('🔧 Setting brief obsessions...');
       if (loadedData.briefObsessions) setBriefObsessions(loadedData.briefObsessions);
+      
+      console.log('🔧 Setting songs by year...');
       if (loadedData.songsByYear) setSongsByYear(loadedData.songsByYear);
+      
+      console.log('🔧 Setting raw play data...');
       if (loadedData.rawPlayData) setRawPlayData(loadedData.rawPlayData);
       
       // Reset to main view after loading
+      console.log('🔧 Setting active tab to main...');
       setActiveTab('main');
       
       console.log('✅ Google Drive data loaded successfully');
     } catch (error) {
       console.error('❌ Failed to load Google Drive data:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        loadedData: loadedData
+      });
     }
   }, []);
 
@@ -2040,8 +2066,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 )}
               </div>
 
-              {/* Temporarily disabled GoogleDriveManager to debug React error */}
-              {/*
+              {/* Google Drive Manager */}
               <GoogleDriveManager 
                 stats={stats}
                 topArtists={topArtists}
@@ -2052,7 +2077,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 rawPlayData={rawPlayData}
                 onDataLoaded={handleDataLoaded}
               />
-              */}
               
               {/* Local Data Manager */}
               <DataManager 
