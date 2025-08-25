@@ -63,18 +63,23 @@ class GoogleDriveStorage {
 
       // Configure the client with timeout
       console.log('🔧 Configuring Google API client...');
-      await Promise.race([
-        window.gapi.client.init({
-          apiKey: apiKey,
-          clientId: clientId,
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-          scope: 'https://www.googleapis.com/auth/drive.file'
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Google API client init timeout')), 15000)
-        )
-      ]);
-      console.log('✅ Google API client configured');
+      try {
+        await Promise.race([
+          window.gapi.client.init({
+            apiKey: apiKey,
+            clientId: clientId,
+            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+            scope: 'https://www.googleapis.com/auth/drive.file'
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Google API client init timeout')), 15000)
+          )
+        ]);
+        console.log('✅ Google API client configured');
+      } catch (initError) {
+        console.error('❌ Google API client init failed:', initError);
+        throw new Error(`Google API client initialization failed: ${initError.message || initError}`);
+      }
 
       this.gapi = window.gapi;
       this.isInitialized = true;
@@ -87,7 +92,9 @@ class GoogleDriveStorage {
       return true;
     } catch (error) {
       console.error('❌ Failed to initialize Google Drive API:', error);
-      throw new Error(`Google Drive initialization failed: ${error.message}`);
+      console.error('❌ Full error object:', JSON.stringify(error, null, 2));
+      const errorMessage = error?.message || error?.toString() || 'Unknown initialization error';
+      throw new Error(`Google Drive initialization failed: ${errorMessage}`);
     }
   }
 
@@ -95,14 +102,26 @@ class GoogleDriveStorage {
   loadGoogleAPI() {
     return new Promise((resolve, reject) => {
       if (window.gapi) {
+        console.log('✅ Google API already loaded');
         resolve();
         return;
       }
 
+      console.log('📥 Loading Google API script...');
       const script = document.createElement('script');
       script.src = 'https://apis.google.com/js/api.js';
-      script.onload = resolve;
-      script.onerror = reject;
+      script.onload = () => {
+        console.log('✅ Google API script loaded successfully');
+        resolve();
+      };
+      script.onerror = (error) => {
+        console.error('❌ Failed to load Google API script:', error);
+        reject(new Error('Failed to load Google API script from https://apis.google.com/js/api.js'));
+      };
+      script.onabort = () => {
+        console.error('❌ Google API script load aborted');
+        reject(new Error('Google API script load was aborted'));
+      };
       document.head.appendChild(script);
     });
   }
