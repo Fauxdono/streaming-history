@@ -19,20 +19,39 @@ class GoogleDriveStorage {
     try {
       console.log('🔧 Initializing Google Drive API...');
       
-      // Load Google API
-      await this.loadGoogleAPI();
+      // Load Google API with timeout
+      await Promise.race([
+        this.loadGoogleAPI(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Google API script load timeout')), 10000)
+        )
+      ]);
+      console.log('✅ Google API script loaded');
       
-      // Initialize the API
-      await new Promise((resolve, reject) => {
-        window.gapi.load('client:auth2', {
-          callback: resolve,
-          onerror: reject
-        });
-      });
+      // Initialize the API with timeout
+      await Promise.race([
+        new Promise((resolve, reject) => {
+          window.gapi.load('client:auth2', {
+            callback: resolve,
+            onerror: reject
+          });
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Google API client load timeout')), 10000)
+        )
+      ]);
+      console.log('✅ Google API client loaded');
 
       // Check for required environment variables
       const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
       const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      
+      console.log('🔍 Checking environment variables...', { 
+        hasApiKey: !!apiKey, 
+        hasClientId: !!clientId,
+        apiKeyValue: apiKey?.substring(0, 10) + '...' || 'undefined',
+        clientIdValue: clientId?.substring(0, 10) + '...' || 'undefined'
+      });
       
       if (!apiKey || apiKey === 'your_google_api_key_here') {
         throw new Error('Google API Key not configured. Please set NEXT_PUBLIC_GOOGLE_API_KEY in .env.local');
@@ -42,13 +61,20 @@ class GoogleDriveStorage {
         throw new Error('Google Client ID not configured. Please set NEXT_PUBLIC_GOOGLE_CLIENT_ID in .env.local');
       }
 
-      // Configure the client
-      await window.gapi.client.init({
-        apiKey: apiKey,
-        clientId: clientId,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        scope: 'https://www.googleapis.com/auth/drive.file'
-      });
+      // Configure the client with timeout
+      console.log('🔧 Configuring Google API client...');
+      await Promise.race([
+        window.gapi.client.init({
+          apiKey: apiKey,
+          clientId: clientId,
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+          scope: 'https://www.googleapis.com/auth/drive.file'
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Google API client init timeout')), 15000)
+        )
+      ]);
+      console.log('✅ Google API client configured');
 
       this.gapi = window.gapi;
       this.isInitialized = true;

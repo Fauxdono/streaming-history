@@ -16,7 +16,12 @@ export const useGoogleDrive = () => {
     const initializeDrive = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        console.log('🔧 Starting Google Drive initialization...');
+        
         await googleDriveStorage.initialize();
+        console.log('✅ Google Drive initialization successful');
+        
         setIsInitialized(true);
         setIsSignedIn(googleDriveStorage.isAuthenticated());
         
@@ -24,8 +29,9 @@ export const useGoogleDrive = () => {
           await updateStorageInfo();
         }
       } catch (err) {
-        console.error('Failed to initialize Google Drive:', err);
+        console.error('❌ Failed to initialize Google Drive:', err);
         setError(err.message);
+        setIsInitialized(true); // Still set to true so we can show the error UI
       } finally {
         setIsLoading(false);
       }
