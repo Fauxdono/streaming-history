@@ -264,7 +264,7 @@ const GoogleDriveManager = ({
         </div>
       )}
 
-      {!isSignedIn ? (
+      {!isSignedIn || isSignedIn === undefined ? (
         /* Sign In Section */
         <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
           <div className="text-center">
@@ -301,7 +301,7 @@ const GoogleDriveManager = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-medium">
-                  {userInfo?.name?.charAt(0) ? userInfo.name.charAt(0) : <User className="w-4 h-4" />}
+                  {userInfo?.name?.charAt(0) || 'G'}
                 </div>
                 <div>
                   <p className="font-medium text-green-900">
