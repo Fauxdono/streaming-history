@@ -197,27 +197,41 @@ class GoogleDriveStorage {
         
         // Update the callback to handle successful authentication
         this.tokenClient.callback = (tokenResponse) => {
-          if (tokenResponse.error) {
-            console.error('❌ Token error:', tokenResponse.error);
-            reject(new Error(`Token error: ${tokenResponse.error}`));
-            return;
+          try {
+            if (tokenResponse.error) {
+              console.error('❌ Token error:', tokenResponse.error);
+              reject(new Error(`Token error: ${tokenResponse.error}`));
+              return;
+            }
+            
+            console.log('✅ Token received successfully', {
+              hasAccessToken: !!tokenResponse.access_token,
+              tokenType: tokenResponse.token_type,
+              expiresIn: tokenResponse.expires_in,
+              scope: tokenResponse.scope
+            });
+            
+            this.accessToken = tokenResponse.access_token;
+            this.isSignedIn = true;
+            
+            // Set the token for API calls
+            console.log('🔧 Setting token for gapi client...');
+            this.gapi.client.setToken({
+              access_token: tokenResponse.access_token
+            });
+            console.log('✅ Token set for gapi client');
+            
+            // For now, return basic user info (we'll get more detailed info from Google+ API if needed)
+            resolve({
+              email: 'user@example.com', // Placeholder - we'd need additional API call to get real email
+              name: 'Google User',
+              imageUrl: null
+            });
+            
+          } catch (callbackError) {
+            console.error('❌ Error in token callback:', callbackError);
+            reject(new Error(`Token callback error: ${callbackError.message}`));
           }
-          
-          console.log('✅ Token received successfully');
-          this.accessToken = tokenResponse.access_token;
-          this.isSignedIn = true;
-          
-          // Set the token for API calls
-          this.gapi.client.setToken({
-            access_token: tokenResponse.access_token
-          });
-          
-          // For now, return basic user info (we'll get more detailed info from Google+ API if needed)
-          resolve({
-            email: 'user@example.com', // Placeholder - we'd need additional API call to get real email
-            name: 'Google User',
-            imageUrl: null
-          });
         };
         
         // Request access token

@@ -55,9 +55,12 @@ const UnifiedAuth = ({ onAuthSuccess, onAuthFailure, onGoogleDriveReady }) => {
   const handleGoogleDriveSignIn = async () => {
     try {
       clearGoogleError();
-      const userInfo = await googleSignIn();
-      setGoogleDriveEnabled(true);
+      console.log('🔧 Starting Google Drive sign-in...');
       
+      const userInfo = await googleSignIn();
+      console.log('✅ Google Drive sign-in successful:', userInfo);
+      
+      setGoogleDriveEnabled(true);
       console.log('🔧 Google Drive connected for device:', deviceId);
       
       // Notify parent component that Google Drive is ready
@@ -67,6 +70,15 @@ const UnifiedAuth = ({ onAuthSuccess, onAuthFailure, onGoogleDriveReady }) => {
       
     } catch (error) {
       console.error('❌ Google Drive connection failed:', error);
+      console.error('❌ Full error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        toString: error?.toString()
+      });
+      
+      // Show error to user
+      alert(`Google Drive connection failed: ${error.message || error.toString()}`);
     }
   };
 
