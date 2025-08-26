@@ -351,63 +351,12 @@ const GoogleDriveManager = ({
           )}
           */}
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Save Data */}
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-2 mb-3">
-                <Upload className="w-5 h-5 text-blue-600" />
-                <h4 className="font-medium text-gray-900">Save to Google Drive</h4>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Save your current analysis to Google Drive. Perfect for large datasets (70MB+).
-              </p>
-              <button
-                onClick={handleSaveData}
-                disabled={isLoading || !stats || !processedData || processedData.length === 0}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader className="w-4 h-4 animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Save Analysis
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Load Data */}
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-2 mb-3">
-                <Download className="w-5 h-5 text-green-600" />
-                <h4 className="font-medium text-gray-900">Load from Google Drive</h4>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Restore your saved analysis from Google Drive instantly.
-              </p>
-              <button
-                onClick={handleLoadData}
-                disabled={isLoading}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader className="w-4 h-4 animate-spin mr-2" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Load Analysis
-                  </>
-                )}
-              </button>
-            </div>
+          {/* Action Buttons - Temporarily disabled for debugging */}
+          <div style={{ padding: '16px', textAlign: 'center', backgroundColor: '#f0fdf4', borderRadius: '8px' }}>
+            <p>🎉 Google Drive Connected Successfully!</p>
+            <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
+              Save/Load functionality temporarily disabled for debugging
+            </p>
           </div>
         </div>
       )}
