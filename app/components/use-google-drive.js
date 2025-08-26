@@ -25,9 +25,10 @@ const useGoogleDrive = () => {
         setIsInitialized(true);
         setIsSignedIn(googleDriveStorage.isAuthenticated());
         
-        if (googleDriveStorage.isAuthenticated()) {
-          await updateStorageInfo();
-        }
+        // Temporarily disabled updateStorageInfo for debugging
+        // if (googleDriveStorage.isAuthenticated()) {
+        //   await updateStorageInfo();
+        // }
       } catch (err) {
         console.error('❌ Failed to initialize Google Drive:', err);
         setError(err.message);
@@ -50,7 +51,8 @@ const useGoogleDrive = () => {
       setIsSignedIn(true);
       setUserInfo(userInfo);
       
-      await updateStorageInfo();
+      // Temporarily disabled updateStorageInfo for debugging
+      // await updateStorageInfo();
       return userInfo;
     } catch (err) {
       console.error('Google Drive sign-in failed:', err);
