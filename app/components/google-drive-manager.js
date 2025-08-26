@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Cloud, 
   CloudCheck, 
@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   Loader
 } from 'lucide-react';
-import useGoogleDrive from './use-google-drive';
+// import useGoogleDrive from './use-google-drive'; // Bypassing hook to fix React error
 
 const GoogleDriveManager = ({ 
   stats, 
@@ -27,22 +27,49 @@ const GoogleDriveManager = ({
   rawPlayData,
   onDataLoaded 
 }) => {
-  const {
-    isInitialized,
-    isSignedIn,
-    userInfo,
-    isLoading,
-    error,
-    storageInfo,
-    signIn,
-    signOut,
-    saveData,
-    loadData,
-    updateStorageInfo,
-    clearError
-  } = useGoogleDrive();
+  // Direct state management instead of hook
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [storageInfo, setStorageInfo] = useState(null);
+
+  // Simple functions instead of hook
+  const clearError = () => setError(null);
+  const signIn = async () => {
+    setError('Authentication temporarily disabled for debugging');
+  };
+  const signOut = async () => {
+    setIsSignedIn(false);
+    setUserInfo(null);
+  };
+  const saveData = async () => {
+    setError('Save temporarily disabled for debugging');
+  };
+  const loadData = async () => {
+    setError('Load temporarily disabled for debugging');
+  };
+  const updateStorageInfo = async () => {
+    // No-op for debugging
+  };
 
   const [notification, setNotification] = useState(null);
+
+  // Simple initialization
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
+
+  // Test function to trigger state change that was causing React error
+  const testSignIn = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsSignedIn(true);
+      setUserInfo({ name: 'Test User', email: 'test@example.com' });
+      setIsLoading(false);
+    }, 1000);
+  };
 
   // Handle sign in
   const handleSignIn = async () => {
@@ -277,7 +304,7 @@ const GoogleDriveManager = ({
               and access it from any device.
             </p>
             <button
-              onClick={handleSignIn}
+              onClick={testSignIn}
               disabled={isLoading}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center mx-auto"
             >
@@ -286,7 +313,7 @@ const GoogleDriveManager = ({
               ) : (
                 <Cloud className="w-5 h-5 mr-2" />
               )}
-              {isLoading ? 'Connecting...' : 'Connect Google Drive'}
+              {isLoading ? 'Testing...' : 'Test State Change (Debug)'}
             </button>
             <p className="text-xs text-blue-600 mt-4">
               Your data stays private - saved to YOUR Google Drive, not our servers
