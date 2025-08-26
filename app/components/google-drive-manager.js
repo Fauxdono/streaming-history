@@ -321,7 +321,8 @@ const GoogleDriveManager = ({
             </div>
           </div>
 
-          {/* Storage Info */}
+          {/* Storage Info - Temporarily disabled for debugging */}
+          {/*
           {storageInfo && (
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between mb-2">
@@ -348,6 +349,7 @@ const GoogleDriveManager = ({
               </div>
             </div>
           )}
+          */}
 
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
