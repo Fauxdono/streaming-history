@@ -391,10 +391,15 @@ const GoogleDriveSync = ({
       console.error('❌ Streaming download failed:', error);
       // Fallback to standard gapi download for smaller files
       console.log('🔄 Falling back to standard download...');
-      return await window.gapi.client.drive.files.get({
+      const fallbackResponse = await window.gapi.client.drive.files.get({
         fileId: fileId,
         alt: 'media'
       });
+      
+      // Ensure consistent response structure
+      return {
+        body: fallbackResponse.body || fallbackResponse.result?.body || fallbackResponse
+      };
     }
   };
 
@@ -782,7 +787,22 @@ const GoogleDriveSync = ({
       setLoadProgress({ step: 5, total: 6, message: 'Parsing analysis data...' });
       setLoadingStep('Parsing analysis data...');
       console.log('📊 Step 5: Parsing JSON data...');
-      const data = JSON.parse(fileContent.body);
+      console.log('🔍 File content structure:', {
+        hasBody: !!fileContent.body,
+        hasResult: !!fileContent.result,
+        hasResultBody: !!fileContent.result?.body,
+        contentType: typeof fileContent,
+        keys: Object.keys(fileContent || {})
+      });
+      
+      // Handle different response structures
+      let jsonContent = fileContent.body || fileContent.result?.body || fileContent;
+      if (typeof jsonContent !== 'string') {
+        console.warn('⚠️ Unexpected content type, attempting to stringify');
+        jsonContent = JSON.stringify(jsonContent);
+      }
+      
+      const data = JSON.parse(jsonContent);
       console.log('✅ Data parsed successfully:', {
         tracks: data.processedTracks?.length || 0,
         artists: data.topArtists?.length || 0,
