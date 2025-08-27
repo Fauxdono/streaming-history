@@ -156,6 +156,78 @@ const GoogleDriveSync = ({
     });
   };
 
+  // Download file with progress tracking for large files
+  const downloadFileWithProgress = async (fileId, fileSizeBytes) => {
+    console.log('📥 Starting streaming download...');
+    
+    try {
+      // Use fetch API for better streaming control
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${window.gapi.client.getToken().access_token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+
+      const reader = response.body.getReader();
+      const chunks = [];
+      let downloadedBytes = 0;
+      let lastProgressUpdate = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        chunks.push(value);
+        downloadedBytes += value.length;
+
+        // Update progress every 5MB or every 10% to avoid too frequent updates
+        const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
+        const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
+        const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
+        
+        if (downloadedBytes - lastProgressUpdate > 5 * 1024 * 1024 || progressPercent % 10 === 0) {
+          setLoadProgress({ 
+            step: 4, 
+            total: 6, 
+            message: `Downloading... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
+          });
+          console.log(`📥 Downloaded: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
+          lastProgressUpdate = downloadedBytes;
+        }
+      }
+
+      // Convert chunks to text
+      console.log('🔄 Converting downloaded data to text...');
+      const uint8Array = new Uint8Array(downloadedBytes);
+      let position = 0;
+      for (const chunk of chunks) {
+        uint8Array.set(chunk, position);
+        position += chunk.length;
+      }
+
+      const textDecoder = new TextDecoder();
+      const text = textDecoder.decode(uint8Array);
+      
+      console.log('✅ Download and conversion complete');
+      return { body: text };
+
+    } catch (error) {
+      console.error('❌ Streaming download failed:', error);
+      // Fallback to standard gapi download for smaller files
+      console.log('🔄 Falling back to standard download...');
+      return await window.gapi.client.drive.files.get({
+        fileId: fileId,
+        alt: 'media'
+      });
+    }
+  };
+
   const handleConnect = async () => {
     setIsConnecting(true);
     clearMessage();
@@ -364,15 +436,16 @@ const GoogleDriveSync = ({
       setShowCancelButton(true);
     }, 5000);
 
-    // Reduce timeout to 20 seconds total
+    // Dynamic timeout based on if we find large files
+    let overallTimeout = 30000; // Start with 30 seconds, will extend if large file detected
     const timeout = setTimeout(() => {
-      console.error('⏰ Load operation timed out after 20 seconds');
-      showMessage('Load timed out. Please try again or check your internet connection.', true);
+      console.error(`⏰ Load operation timed out after ${overallTimeout/1000} seconds`);
+      showMessage('Load timed out. Large files may need more time. Please try again.', true);
       setIsLoading(false);
       setShowCancelButton(false);
       setLoadingStep('');
       setLoadProgress({ step: 0, total: 0, message: '' });
-    }, 20000);
+    }, overallTimeout);
 
     try {
       // Step 1: Look for cakeculator folder
@@ -430,17 +503,55 @@ const GoogleDriveSync = ({
       const file = response.result.files[0];
       console.log('📄 Step 3: Found file to load:', file.name, 'ID:', file.id);
 
-      // Step 4: Download file content
+      // Step 4: Download file content (with streaming for large files)
       setLoadProgress({ step: 4, total: 6, message: `Downloading ${file.name}...` });
       setLoadingStep('Downloading file content...');
       console.log('⬇️ Step 4: Downloading file content...');
+      
+      // Get file metadata first to check size
+      const fileMetadata = await window.gapi.client.drive.files.get({
+        fileId: file.id,
+        fields: 'size,name'
+      });
+      
+      const fileSizeBytes = parseInt(fileMetadata.result.size);
+      const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
+      console.log(`📊 File size: ${fileSizeMB}MB`);
+      
+      // Warn about very large files
+      if (fileSizeBytes > 200 * 1024 * 1024) { // Over 200MB
+        showMessage(`⚠️ Large file detected (${fileSizeMB}MB). Download may take several minutes.`, false);
+      }
+      
+      // Update progress with file size info
+      setLoadProgress({ step: 4, total: 6, message: `Downloading ${file.name} (${fileSizeMB}MB)...` });
+      
+      // For files over 50MB, use streaming download with longer timeout
+      const isLargeFile = fileSizeBytes > 50 * 1024 * 1024;
+      const downloadTimeout = isLargeFile ? 180000 : 15000; // 3 minutes for large files, 15s for small
+      
+      if (isLargeFile) {
+        // Extend overall timeout for large files
+        clearTimeout(timeout);
+        overallTimeout = 240000; // 4 minutes total for large files
+        setTimeout(() => {
+          console.error(`⏰ Load operation timed out after ${overallTimeout/1000} seconds`);
+          showMessage(`Large file download timed out after ${overallTimeout/60000} minutes. File size: ${fileSizeMB}MB. Consider processing smaller data sets.`, true);
+          setIsLoading(false);
+          setShowCancelButton(false);
+          setLoadingStep('');
+          setLoadProgress({ step: 0, total: 0, message: '' });
+        }, overallTimeout);
+        
+        console.log(`🐘 Large file detected (${fileSizeMB}MB) - extended timeout to ${overallTimeout/60000} minutes`);
+      } else {
+        console.log(`📁 Standard file (${fileSizeMB}MB) - using ${downloadTimeout/1000}s timeout`);
+      }
+      
       const fileContent = await Promise.race([
-        window.gapi.client.drive.files.get({
-          fileId: file.id,
-          alt: 'media'
-        }),
+        downloadFileWithProgress(file.id, fileSizeBytes),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Download timeout - file may be too large or connection slow')), 10000)
+          setTimeout(() => reject(new Error(`Download timeout after ${downloadTimeout/1000}s - file size: ${fileSizeMB}MB. Try a smaller analysis file or check your internet connection.`)), downloadTimeout)
         )
       ]);
 
