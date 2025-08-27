@@ -166,6 +166,16 @@ const GoogleDriveSync = ({
     const isUltraLarge = fileSizeBytes > 200 * 1024 * 1024;
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     
+    console.log(`🔍 Download path decision:`, {
+      fileSizeMB: (fileSizeBytes/1024/1024).toFixed(1),
+      isUltraLarge,
+      isMobile,
+      userAgent: navigator.userAgent.substring(0, 100),
+      windowWidth: window.innerWidth,
+      willUseBrowserNative: isUltraLarge && isMobile,
+      willUseStreaming: !isUltraLarge || !isMobile
+    });
+    
     if (isUltraLarge && isMobile) {
       console.log('📱 Ultra-large file on mobile - using memory-efficient streaming...');
     }
@@ -776,12 +786,14 @@ const GoogleDriveSync = ({
         console.log(`📁 Standard file (${fileSizeMB}MB) - using ${downloadTimeout/1000}s timeout`);
       }
       
+      console.log('⬇️ Starting file download...');
       const fileContent = await Promise.race([
         downloadFileWithProgress(file.id, fileSizeBytes),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error(`Download timeout after ${downloadTimeout/1000}s - file size: ${fileSizeMB}MB. Try a smaller analysis file or check your internet connection.`)), downloadTimeout)
         )
       ]);
+      console.log('✅ File download completed');
 
       // Step 5: Parse analysis data
       setLoadProgress({ step: 5, total: 6, message: 'Parsing analysis data...' });
