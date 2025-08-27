@@ -321,71 +321,8 @@ const GoogleDriveManager = ({
           </div>
         </div>
       ) : (
-        /* Connected Section */
-        <div className="space-y-4">
-          {/* User Info */}
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-medium">
-                  {userInfo?.name?.charAt(0) || 'G'}
-                </div>
-                <div>
-                  <p className="font-medium text-green-900">
-                    Connected to Google Drive
-                  </p>
-                  <p className="text-sm text-green-700">
-                    {userInfo?.email || 'Signed in'}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="text-sm text-green-700 hover:text-green-900 underline"
-              >
-                Disconnect
-              </button>
-            </div>
-          </div>
-
-          {/* Storage Info - Temporarily disabled for debugging */}
-          {/*
-          {storageInfo && (
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-gray-900 flex items-center">
-                  <HardDrive className="w-4 h-4 mr-2" />
-                  Google Drive Storage
-                </h4>
-                <button
-                  onClick={updateStorageInfo}
-                  className="text-xs text-gray-600 hover:text-gray-800 underline"
-                >
-                  Refresh
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Files:</span>
-                  <span className="font-medium ml-2">{storageInfo.fileCount}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Total Size:</span>
-                  <span className="font-medium ml-2">{storageInfo.totalSizeFormatted}</span>
-                </div>
-              </div>
-            </div>
-          )}
-          */}
-
-          {/* Action Buttons - Temporarily disabled for debugging */}
-          <div style={{ padding: '16px', textAlign: 'center', backgroundColor: '#f0fdf4', borderRadius: '8px' }}>
-            <p>🎉 Google Drive Connected Successfully!</p>
-            <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
-              Save/Load functionality temporarily disabled for debugging
-            </p>
-          </div>
-        </div>
+        /* Ultra Minimal Connected Section */
+        <div>Connected!</div>
       )}
     </div>
   );
