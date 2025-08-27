@@ -10,6 +10,8 @@ const GoogleDriveSync = ({
   briefObsessions = [], 
   songsByYear = {}, 
   rawPlayData = [], 
+  artistsByYear = {},
+  albumsByYear = {},
   uploadedFiles = [],
   uploadedFileList = null,
   onDataLoaded 
@@ -362,12 +364,15 @@ const GoogleDriveSync = ({
         briefObsessions,
         songsByYear,
         rawPlayData,
+        artistsByYear,
+        albumsByYear,
         metadata: {
           savedAt: new Date().toISOString(),
           totalTracks: processedData.length,
-          version: '1.0',
+          version: '1.1', // Increment version since we're adding year data
           originalFiles: originalFiles.map(f => ({ name: f.name, size: f.size })),
-          folderStructure: 'cakeculator'
+          folderStructure: 'cakeculator',
+          includesYearData: true
         }
       };
 

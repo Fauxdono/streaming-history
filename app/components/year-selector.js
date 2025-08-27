@@ -61,11 +61,19 @@ const YearSelector = ({
   const years = useMemo(() => {
     // Check if artistsByYear is available
     if (!artistsByYear || typeof artistsByYear !== 'object') {
-      console.warn('artistsByYear is not available or not an object', artistsByYear);
+      console.warn('🔍 YearSelector: artistsByYear is not available or not an object', {
+        artistsByYear: artistsByYear,
+        type: typeof artistsByYear,
+        isNull: artistsByYear === null,
+        isUndefined: artistsByYear === undefined
+      });
       return [];
     }
     
-    return Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+    const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
+    console.log('🔍 YearSelector: Available years from artistsByYear:', availableYears);
+    console.log('🔍 YearSelector: Sample year data:', availableYears[0] ? Object.keys(artistsByYear[availableYears[0]]).slice(0, 3) : 'no data');
+    return availableYears;
   }, [artistsByYear]);
   
   // Generate all months (1-12) - back to simple approach

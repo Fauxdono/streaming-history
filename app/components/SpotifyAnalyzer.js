@@ -890,27 +890,37 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Set artistsByYear for YearSelector functionality
       console.log('🔧 Setting artists by year...');
       if (loadedData.artistsByYear) {
+        console.log('📊 Using existing artistsByYear:', Object.keys(loadedData.artistsByYear));
         setArtistsByYear(loadedData.artistsByYear);
       } else {
         // If artistsByYear is missing from loaded data, calculate it from songsByYear
         console.log('⚙️ Calculating artistsByYear from songsByYear...');
+        console.log('📊 songsByYear available:', !!loadedData.songsByYear, loadedData.songsByYear ? Object.keys(loadedData.songsByYear) : 'none');
         const calculatedArtistsByYear = {};
-        if (loadedData.songsByYear) {
+        if (loadedData.songsByYear && Object.keys(loadedData.songsByYear).length > 0) {
           Object.keys(loadedData.songsByYear).forEach(year => {
             calculatedArtistsByYear[year] = {};
-            loadedData.songsByYear[year].forEach(song => {
-              const artistName = song.artistName || song.artist;
-              if (artistName) {
-                if (!calculatedArtistsByYear[year][artistName]) {
-                  calculatedArtistsByYear[year][artistName] = 0;
+            const yearSongs = loadedData.songsByYear[year];
+            if (Array.isArray(yearSongs)) {
+              yearSongs.forEach(song => {
+                const artistName = song.artistName || song.artist;
+                if (artistName) {
+                  if (!calculatedArtistsByYear[year][artistName]) {
+                    calculatedArtistsByYear[year][artistName] = 0;
+                  }
+                  calculatedArtistsByYear[year][artistName] += song.totalPlayed || song.playCount || 1;
                 }
-                calculatedArtistsByYear[year][artistName] += song.totalPlayed || song.playCount || 1;
-              }
-            });
+              });
+            } else {
+              console.warn('⚠️ songsByYear[' + year + '] is not an array:', typeof yearSongs);
+            }
           });
+          console.log('✅ Calculated artistsByYear with years:', Object.keys(calculatedArtistsByYear));
+          console.log('📊 Sample year data:', calculatedArtistsByYear[Object.keys(calculatedArtistsByYear)[0]] ? Object.keys(calculatedArtistsByYear[Object.keys(calculatedArtistsByYear)[0]]).slice(0, 5) : 'no data');
+        } else {
+          console.warn('⚠️ No songsByYear data available for artistsByYear calculation');
         }
         setArtistsByYear(calculatedArtistsByYear);
-        console.log('✅ Calculated artistsByYear:', Object.keys(calculatedArtistsByYear));
       }
       
       // Set albumsByYear for album year filtering functionality  
@@ -1540,6 +1550,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   briefObsessions={briefObsessions}
                   songsByYear={songsByYear}
                   rawPlayData={rawPlayData}
+                  artistsByYear={artistsByYear}
+                  albumsByYear={albumsByYear}
                   uploadedFiles={uploadedFiles}
                   uploadedFileList={uploadedFileList}
                   onDataLoaded={handleDataLoaded}
