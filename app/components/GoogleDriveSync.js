@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const GoogleDriveSync = ({ 
   stats, 
@@ -17,6 +17,8 @@ const GoogleDriveSync = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const clearMessage = () => setMessage('');
 
@@ -24,6 +26,27 @@ const GoogleDriveSync = ({
     setMessage(isError ? `❌ ${msg}` : `✅ ${msg}`);
     setTimeout(clearMessage, 5000);
   };
+
+  // Initialize Google APIs when component mounts
+  useEffect(() => {
+    const initializeAPIs = async () => {
+      if (isInitialized || isInitializing) return;
+      
+      setIsInitializing(true);
+      try {
+        await initializeGoogleAPIs();
+        setIsInitialized(true);
+        console.log('✅ Google APIs pre-loaded successfully');
+      } catch (error) {
+        console.error('❌ Failed to pre-load Google APIs:', error);
+        // Don't show error message on mount - user hasn't tried to connect yet
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeAPIs();
+  }, []);
 
   const initializeGoogleAPIs = async () => {
     // Load Google API script
@@ -64,7 +87,11 @@ const GoogleDriveSync = ({
     clearMessage();
 
     try {
-      await initializeGoogleAPIs();
+      // Initialize APIs if not already done
+      if (!isInitialized) {
+        await initializeGoogleAPIs();
+        setIsInitialized(true);
+      }
 
       const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
@@ -233,14 +260,24 @@ const GoogleDriveSync = ({
           </p>
           <button
             onClick={handleConnect}
-            disabled={isConnecting}
+            disabled={isConnecting || isInitializing}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
-            {isConnecting ? 'Connecting...' : 'Connect Google Drive'}
+            {isInitializing ? 'Initializing...' : isConnecting ? 'Connecting...' : 'Connect Google Drive'}
           </button>
           <p className="text-xs text-blue-600 mt-3">
             Your data stays private - saved to YOUR Google Drive, not our servers
           </p>
+          {!isInitialized && !isInitializing && (
+            <p className="text-xs text-orange-600 mt-2">
+              ⚡ APIs will load when you first connect
+            </p>
+          )}
+          {isInitialized && (
+            <p className="text-xs text-green-600 mt-2">
+              ✅ Ready to connect
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
