@@ -189,9 +189,38 @@ const GoogleDriveSync = ({
       let textResult = '';
       const textDecoder = new TextDecoder();
 
-      // For ultra-large files, process chunks immediately to avoid memory accumulation
+      // For ultra-large files, use more aggressive memory management
       if (isUltraLarge) {
-        console.log('🚀 Processing ultra-large file with streaming text conversion...');
+        console.log('🚀 Processing ultra-large file with aggressive memory management...');
+        
+        // For mobile, implement even more aggressive memory management
+        if (isMobile) {
+          console.log('📱 Mobile ultra-large file: Using maximum memory optimization...');
+          
+          // Check available memory before starting (if supported)
+          if ('memory' in performance) {
+            const memInfo = performance.memory;
+            console.log('📱 Memory before download:', {
+              used: Math.round(memInfo.usedJSHeapSize / 1024 / 1024) + 'MB',
+              total: Math.round(memInfo.totalJSHeapSize / 1024 / 1024) + 'MB',
+              limit: Math.round(memInfo.jsHeapSizeLimit / 1024 / 1024) + 'MB'
+            });
+            
+            // If memory usage is already high, warn user
+            const memoryUsagePercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
+            if (memoryUsagePercent > 60) {
+              console.warn('📱 High memory usage detected before download:', memoryUsagePercent.toFixed(1) + '%');
+              setLoadProgress({ 
+                step: 4, 
+                total: 6, 
+                message: `⚠️ High memory usage - processing may be slow...` 
+              });
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
+        }
+        
+        let memoryCheckCounter = 0;
         
         while (true) {
           const { done, value } = await reader.read();
@@ -202,6 +231,7 @@ const GoogleDriveSync = ({
           const chunkText = textDecoder.decode(value, { stream: true });
           textResult += chunkText;
           downloadedBytes += value.length;
+          memoryCheckCounter++;
 
           // Update progress every 5MB and yield for mobile
           const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
@@ -217,9 +247,41 @@ const GoogleDriveSync = ({
             console.log(`📥 Processed: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
             lastProgressUpdate = downloadedBytes;
             
-            // Yield to prevent UI freezing on mobile for ultra-large files
-            if (isMobile && progressPercent % 5 === 0) {
-              await new Promise(resolve => setTimeout(resolve, 10));
+            // More aggressive yielding for mobile with memory checks
+            if (isMobile) {
+              // Check memory every 10MB on mobile
+              if (memoryCheckCounter % 10 === 0 && 'memory' in performance) {
+                const memInfo = performance.memory;
+                const currentMemoryPercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
+                
+                if (currentMemoryPercent > 80) {
+                  console.warn('📱 Memory usage high:', currentMemoryPercent.toFixed(1) + '% - increasing delays');
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
+                  // Try to trigger garbage collection
+                  if (window.gc) {
+                    try {
+                      window.gc();
+                      console.log('📱 Garbage collection triggered');
+                    } catch (e) {}
+                  }
+                } else {
+                  await new Promise(resolve => setTimeout(resolve, 25));
+                }
+              } else {
+                await new Promise(resolve => setTimeout(resolve, progressPercent % 5 === 0 ? 50 : 15));
+              }
+            }
+          }
+          
+          // Emergency memory check - abort if getting too high
+          if (isMobile && memoryCheckCounter % 20 === 0 && 'memory' in performance) {
+            const memInfo = performance.memory;
+            const criticalMemoryPercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
+            
+            if (criticalMemoryPercent > 90) {
+              console.error('📱 CRITICAL: Memory usage too high:', criticalMemoryPercent.toFixed(1) + '% - aborting download');
+              throw new Error(`Mobile memory limit reached (${criticalMemoryPercent.toFixed(1)}%). File too large for mobile device.`);
             }
           }
         }
@@ -487,6 +549,20 @@ const GoogleDriveSync = ({
     setShowCancelButton(false);
     clearMessage();
     console.log('🔄 Starting Google Drive load process...');
+    
+    // Check if we're on mobile and warn about memory limitations
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    if (isMobile && 'memory' in performance) {
+      const memInfo = performance.memory;
+      const availableMemory = memInfo.jsHeapSizeLimit / 1024 / 1024;
+      console.log('📱 Mobile detected - available memory:', Math.round(availableMemory) + 'MB');
+      
+      if (availableMemory < 300) {
+        console.warn('📱 Low memory device detected - large file downloads may fail');
+        setLoadProgress({ step: 1, total: 6, message: '⚠️ Low memory device - large files may fail...' });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
 
     // Initialize progress - 6 total steps
     setLoadProgress({ step: 0, total: 6, message: 'Initializing load...' });
@@ -578,9 +654,34 @@ const GoogleDriveSync = ({
       const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
       console.log(`📊 File size: ${fileSizeMB}MB`);
       
-      // Warn about very large files
+      // Check for very large files and mobile limitations
       if (fileSizeBytes > 200 * 1024 * 1024) { // Over 200MB
-        showMessage(`⚠️ Large file detected (${fileSizeMB}MB). Download may take several minutes.`, false);
+        if (isMobile) {
+          // Check if file is too large for mobile device
+          const memoryLimitMB = 'memory' in performance ? Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024) : 100;
+          const fileToMemoryRatio = fileSizeBytes / (memoryLimitMB * 1024 * 1024);
+          
+          console.log('📱 Mobile large file check:', {
+            fileSize: `${fileSizeMB}MB`,
+            memoryLimit: `${memoryLimitMB}MB`,
+            ratio: fileToMemoryRatio.toFixed(2)
+          });
+          
+          if (fileToMemoryRatio > 0.6) { // File is more than 60% of available memory
+            clearTimeout(timeout);
+            clearTimeout(cancelTimeout);
+            setIsLoading(false);
+            setLoadingStep('');
+            setLoadProgress({ step: 0, total: 0, message: '' });
+            showMessage(`❌ File too large for mobile device (${fileSizeMB}MB). Try downloading on desktop or reduce file size.`, true);
+            return;
+          }
+          
+          showMessage(`⚠️ Very large file (${fileSizeMB}MB) on mobile. This may take several minutes and could fail.`, false);
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Give user time to read warning
+        } else {
+          showMessage(`⚠️ Large file detected (${fileSizeMB}MB). Download may take several minutes.`, false);
+        }
       }
       
       // Update progress with file size info
