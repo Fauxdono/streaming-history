@@ -158,9 +158,17 @@ const GoogleDriveSync = ({
     });
   };
 
-  // Download file with progress tracking for large files
+  // Download file with progress tracking for large files - optimized for ultra-large files
   const downloadFileWithProgress = async (fileId, fileSizeBytes) => {
     console.log('📥 Starting streaming download...');
+    
+    // Check if this is an ultra-large file (>200MB)
+    const isUltraLarge = fileSizeBytes > 200 * 1024 * 1024;
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    
+    if (isUltraLarge && isMobile) {
+      console.log('📱 Ultra-large file on mobile - using memory-efficient streaming...');
+    }
     
     try {
       // Use fetch API for better streaming control
@@ -176,48 +184,95 @@ const GoogleDriveSync = ({
       }
 
       const reader = response.body.getReader();
-      const chunks = [];
       let downloadedBytes = 0;
       let lastProgressUpdate = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        chunks.push(value);
-        downloadedBytes += value.length;
-
-        // Update progress every 5MB or every 10% to avoid too frequent updates
-        const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
-        const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
-        const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
-        
-        if (downloadedBytes - lastProgressUpdate > 5 * 1024 * 1024 || progressPercent % 10 === 0) {
-          setLoadProgress({ 
-            step: 4, 
-            total: 6, 
-            message: `Downloading... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
-          });
-          console.log(`📥 Downloaded: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
-          lastProgressUpdate = downloadedBytes;
-        }
-      }
-
-      // Convert chunks to text
-      console.log('🔄 Converting downloaded data to text...');
-      const uint8Array = new Uint8Array(downloadedBytes);
-      let position = 0;
-      for (const chunk of chunks) {
-        uint8Array.set(chunk, position);
-        position += chunk.length;
-      }
-
+      let textResult = '';
       const textDecoder = new TextDecoder();
-      const text = textDecoder.decode(uint8Array);
-      
-      console.log('✅ Download and conversion complete');
-      return { body: text };
+
+      // For ultra-large files, process chunks immediately to avoid memory accumulation
+      if (isUltraLarge) {
+        console.log('🚀 Processing ultra-large file with streaming text conversion...');
+        
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) break;
+
+          // Convert each chunk to text immediately instead of storing in memory
+          const chunkText = textDecoder.decode(value, { stream: true });
+          textResult += chunkText;
+          downloadedBytes += value.length;
+
+          // Update progress every 5MB and yield for mobile
+          const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
+          const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
+          const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
+          
+          if (downloadedBytes - lastProgressUpdate > 5 * 1024 * 1024) {
+            setLoadProgress({ 
+              step: 4, 
+              total: 6, 
+              message: `Processing... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
+            });
+            console.log(`📥 Processed: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
+            lastProgressUpdate = downloadedBytes;
+            
+            // Yield to prevent UI freezing on mobile for ultra-large files
+            if (isMobile && progressPercent % 5 === 0) {
+              await new Promise(resolve => setTimeout(resolve, 10));
+            }
+          }
+        }
+        
+        // Finalize any remaining bytes
+        const finalChunk = textDecoder.decode();
+        if (finalChunk) textResult += finalChunk;
+        
+        console.log('✅ Ultra-large file streaming conversion complete');
+        return { body: textResult };
+        
+      } else {
+        // Standard approach for smaller files
+        const chunks = [];
+        
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) break;
+
+          chunks.push(value);
+          downloadedBytes += value.length;
+
+          // Update progress every 5MB or every 10% to avoid too frequent updates
+          const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
+          const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
+          const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
+          
+          if (downloadedBytes - lastProgressUpdate > 5 * 1024 * 1024 || progressPercent % 10 === 0) {
+            setLoadProgress({ 
+              step: 4, 
+              total: 6, 
+              message: `Downloading... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
+            });
+            console.log(`📥 Downloaded: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
+            lastProgressUpdate = downloadedBytes;
+          }
+        }
+
+        // Convert chunks to text - standard approach
+        console.log('🔄 Converting downloaded data to text...');
+        const uint8Array = new Uint8Array(downloadedBytes);
+        let position = 0;
+        for (const chunk of chunks) {
+          uint8Array.set(chunk, position);
+          position += chunk.length;
+        }
+
+        const text = textDecoder.decode(uint8Array);
+        
+        console.log('✅ Standard download and conversion complete');
+        return { body: text };
+      }
 
     } catch (error) {
       console.error('❌ Streaming download failed:', error);

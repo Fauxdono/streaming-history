@@ -869,11 +869,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
       const isLargeDataset = (loadedData?.processedTracks?.length || 0) > 15000;
       const isVeryLargeDataset = (loadedData?.processedTracks?.length || 0) > 30000;
+      const isUltraLargeDataset = (loadedData?.processedTracks?.length || 0) > 50000;
       
       if (isMobile && isLargeDataset) {
         console.log('📱 Mobile device with large dataset - using optimized loading...', {
           tracks: loadedData?.processedTracks?.length,
-          isVeryLarge: isVeryLargeDataset
+          isVeryLarge: isVeryLargeDataset,
+          isUltraLarge: isUltraLargeDataset
         });
       }
 
@@ -883,7 +885,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       // Add yield point for mobile to prevent freezing
       if (isMobile && isLargeDataset) {
-        const delay = isVeryLargeDataset ? 100 : 50;
+        const delay = isUltraLargeDataset ? 150 : isVeryLargeDataset ? 100 : 50;
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
@@ -891,7 +893,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       if (loadedData.processedTracks) setProcessedData(loadedData.processedTracks);
       
       if (isMobile && isLargeDataset) {
-        const delay = isVeryLargeDataset ? 100 : 50;
+        const delay = isUltraLargeDataset ? 150 : isVeryLargeDataset ? 100 : 50;
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
@@ -905,7 +907,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       if (loadedData.briefObsessions) setBriefObsessions(loadedData.briefObsessions);
       
       if (isMobile && isLargeDataset) {
-        const delay = isVeryLargeDataset ? 100 : 50;
+        const delay = isUltraLargeDataset ? 150 : isVeryLargeDataset ? 100 : 50;
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
@@ -1024,7 +1026,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         }
         
         // Give React more time to process all the state updates before switching tabs
-        const finalDelay = isVeryLargeDataset ? 1200 : 600;
+        const finalDelay = isUltraLargeDataset ? 2000 : isVeryLargeDataset ? 1200 : 600;
         await new Promise(resolve => setTimeout(resolve, finalDelay));
       }
       
@@ -1040,7 +1042,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           console.log('📱 Mobile: Switching to stats tab...');
           setActiveTab('stats');
           console.log('✅ Google Drive data loaded successfully - tab switched');
-        }, isVeryLargeDataset ? 800 : 400);
+        }, isUltraLargeDataset ? 1200 : isVeryLargeDataset ? 800 : 400);
       } else {
         setActiveTab('stats');
         console.log('✅ Google Drive data loaded successfully');
