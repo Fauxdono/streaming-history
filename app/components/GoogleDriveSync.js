@@ -281,12 +281,8 @@ const GoogleDriveSync = ({
 
           if (done) break;
 
-          // For ultra-large mobile files, we need to avoid accumulating ANY text in memory
-          if (isMobile && fileSizeBytes > 250 * 1024 * 1024) {
-            console.warn('📱 ULTRA-LARGE mobile file detected - switching to emergency mode');
-            // This file is too large for mobile - abort early with specific message
-            throw new Error(`File too large for mobile browser (${(fileSizeBytes/1024/1024).toFixed(1)}MB). Mobile browsers cannot process files over 250MB. Please use a desktop computer or reduce the file size.`);
-          }
+          // For ultra-large mobile files, check against memory limits instead of hard cutoff
+          // (Memory limits are checked earlier in handleLoad, so if we get here, user has sufficient memory)
           
           // Convert each chunk to text immediately instead of storing in memory
           const chunkText = textDecoder.decode(value, { stream: true });
