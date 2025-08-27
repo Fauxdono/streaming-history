@@ -725,13 +725,23 @@ const GoogleDriveSync = ({
       if (fileSizeBytes > 200 * 1024 * 1024) { // Over 200MB
         if (isMobile) {
           // Check if file is too large for mobile device
-          const memoryLimitMB = 'memory' in performance ? Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024) : 100;
+          const hasMemoryAPI = 'memory' in performance;
+          const detectedMemoryMB = hasMemoryAPI ? Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024) : null;
+          
+          // Allow manual override via localStorage for advanced users
+          const manualMemoryOverride = localStorage.getItem('streaming_manual_memory_limit');
+          const memoryLimitMB = manualMemoryOverride ? parseInt(manualMemoryOverride) : (detectedMemoryMB || 100);
+          
           const fileToMemoryRatio = fileSizeBytes / (memoryLimitMB * 1024 * 1024);
           
           console.log('📱 Mobile large file check:', {
             fileSize: `${fileSizeMB}MB`,
-            memoryLimit: `${memoryLimitMB}MB`,
-            ratio: fileToMemoryRatio.toFixed(2)
+            hasMemoryAPI,
+            detectedMemory: detectedMemoryMB ? `${detectedMemoryMB}MB` : 'Not available',
+            manualOverride: manualMemoryOverride || 'None',
+            finalMemoryLimit: `${memoryLimitMB}MB`,
+            ratio: fileToMemoryRatio.toFixed(2),
+            browserInfo: navigator.userAgent.substring(0, 50) + '...'
           });
           
           // Smart memory-based limit instead of hard 200MB cutoff
@@ -741,7 +751,16 @@ const GoogleDriveSync = ({
             setIsLoading(false);
             setLoadingStep('');
             setLoadProgress({ step: 0, total: 0, message: '' });
-            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Available memory: ${memoryLimitMB}MB. Try downloading on a device with more memory or reduce file size.`, true);
+            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Available memory: ${memoryLimitMB}MB${!hasMemoryAPI ? ' (estimated - memory detection not supported)' : ''}. Try downloading on a device with more memory or reduce file size.`, true);
+            
+            // Show memory override tip for advanced users
+            if (!hasMemoryAPI && !manualMemoryOverride) {
+              setTimeout(() => {
+                console.log('💡 Advanced tip: If you believe your device has more memory, you can override the detection by running:');
+                console.log('localStorage.setItem("streaming_manual_memory_limit", "500"); // Replace 500 with your estimated memory in MB');
+                console.log('Then refresh and try again.');
+              }, 1000);
+            }
             return;
           }
           
