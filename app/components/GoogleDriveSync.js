@@ -760,7 +760,16 @@ const GoogleDriveSync = ({
                 console.log('💡 Advanced tip: If you believe your device has more memory, you can override the detection by running:');
                 console.log('localStorage.setItem("streaming_manual_memory_limit", "500"); // Replace 500 with your estimated memory in MB');
                 console.log('Then refresh and try again.');
-              }, 1000);
+                
+                // Add UI button for mobile users
+                if (confirm('Memory detection failed (defaulting to 100MB). Would you like to override this limit? Most modern phones can handle 400-600MB.')) {
+                  const newLimit = prompt('Enter memory limit in MB (try 400 for most phones, 600 for newer phones):', '400');
+                  if (newLimit && !isNaN(newLimit)) {
+                    localStorage.setItem("streaming_manual_memory_limit", newLimit);
+                    alert(`Memory limit set to ${newLimit}MB. Please refresh the page and try again.`);
+                  }
+                }
+              }, 2000);
             }
             return;
           }
