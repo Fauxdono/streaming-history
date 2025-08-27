@@ -23,12 +23,36 @@ const GoogleDriveSync = ({
   const [isInitializing, setIsInitializing] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
   const [showCancelButton, setShowCancelButton] = useState(false);
+  const [saveProgress, setSaveProgress] = useState({ step: 0, total: 0, message: '' });
+  const [loadProgress, setLoadProgress] = useState({ step: 0, total: 0, message: '' });
 
   const clearMessage = () => setMessage('');
 
   const showMessage = (msg, isError = false) => {
     setMessage(isError ? `❌ ${msg}` : `✅ ${msg}`);
     setTimeout(clearMessage, 5000);
+  };
+
+  // Progress bar component
+  const ProgressBar = ({ progress, isActive }) => {
+    if (!isActive || progress.total === 0) return null;
+    
+    const percentage = Math.round((progress.step / progress.total) * 100);
+    
+    return (
+      <div className="mb-3">
+        <div className="flex justify-between text-sm text-gray-600 mb-1">
+          <span>{progress.message}</span>
+          <span>{progress.step}/{progress.total}</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+            style={{ width: `${percentage}%` }}
+          ></div>
+        </div>
+      </div>
+    );
   };
 
   // Initialize Google APIs when component mounts
@@ -121,65 +145,6 @@ const GoogleDriveSync = ({
     }
   };
 
-  // Upload original files to Google Drive
-  const uploadOriginalFiles = async (folderId) => {
-    if (!uploadedFileList || uploadedFileList.length === 0) {
-      console.log('ℹ️ No original files to upload');
-      return [];
-    }
-
-    const uploadResults = [];
-    console.log('📤 Uploading original files to Google Drive...');
-
-    for (const file of uploadedFileList) {
-      try {
-        console.log(`📤 Uploading ${file.name}...`);
-        
-        // Read file content
-        const fileContent = await readFileAsText(file);
-        
-        const boundary = 'boundary123';
-        const multipartBody = [
-          `--${boundary}`,
-          'Content-Type: application/json',
-          '',
-          JSON.stringify({
-            name: `original_${file.name}`,
-            parents: [folderId],
-            mimeType: file.type || 'text/plain'
-          }),
-          `--${boundary}`,
-          'Content-Type: ' + (file.type || 'text/plain'),
-          '',
-          fileContent,
-          `--${boundary}--`
-        ].join('\r\n');
-
-        const response = await window.gapi.client.request({
-          path: 'https://www.googleapis.com/upload/drive/v3/files',
-          method: 'POST',
-          params: { uploadType: 'multipart' },
-          headers: {
-            'Content-Type': `multipart/related; boundary="${boundary}"`
-          },
-          body: multipartBody
-        });
-
-        uploadResults.push({
-          name: file.name,
-          driveId: response.result.id,
-          size: file.size
-        });
-        
-        console.log(`✅ Uploaded ${file.name}`);
-      } catch (error) {
-        console.error(`❌ Failed to upload ${file.name}:`, error);
-        // Continue with other files even if one fails
-      }
-    }
-
-    return uploadResults;
-  };
 
   // Helper function to read file as text
   const readFileAsText = (file) => {
@@ -247,12 +212,74 @@ const GoogleDriveSync = ({
     setIsSaving(true);
     clearMessage();
 
+    // Calculate total steps
+    const hasOriginalFiles = uploadedFileList && uploadedFileList.length > 0;
+    const totalSteps = hasOriginalFiles ? 2 + uploadedFileList.length : 2; // folder + original files + analysis
+    setSaveProgress({ step: 0, total: totalSteps, message: 'Starting save process...' });
+
     try {
-      // Get or create the cakeculator folder
+      // Step 1: Get or create the cakeculator folder
+      setSaveProgress({ step: 1, total: totalSteps, message: 'Creating cakeculator folder...' });
       const folderId = await getCakeCulatorFolder();
       
-      // Upload original files first (if any)
-      const originalFiles = await uploadOriginalFiles(folderId);
+      // Step 2+: Upload original files first (if any)
+      let originalFiles = [];
+      if (hasOriginalFiles) {
+        for (let i = 0; i < uploadedFileList.length; i++) {
+          const file = uploadedFileList[i];
+          setSaveProgress({ 
+            step: 2 + i, 
+            total: totalSteps, 
+            message: `Uploading ${file.name}...` 
+          });
+          
+          try {
+            console.log(`📤 Uploading ${file.name}...`);
+            const fileContent = await readFileAsText(file);
+            
+            const boundary = 'boundary123';
+            const multipartBody = [
+              `--${boundary}`,
+              'Content-Type: application/json',
+              '',
+              JSON.stringify({
+                name: `original_${file.name}`,
+                parents: [folderId],
+                mimeType: file.type || 'text/plain'
+              }),
+              `--${boundary}`,
+              'Content-Type: ' + (file.type || 'text/plain'),
+              '',
+              fileContent,
+              `--${boundary}--`
+            ].join('\r\n');
+
+            const response = await window.gapi.client.request({
+              path: 'https://www.googleapis.com/upload/drive/v3/files',
+              method: 'POST',
+              params: { uploadType: 'multipart' },
+              headers: {
+                'Content-Type': `multipart/related; boundary="${boundary}"`
+              },
+              body: multipartBody
+            });
+
+            originalFiles.push({
+              name: file.name,
+              driveId: response.result.id,
+              size: file.size
+            });
+            
+            console.log(`✅ Uploaded ${file.name}`);
+          } catch (error) {
+            console.error(`❌ Failed to upload ${file.name}:`, error);
+            // Continue with other files even if one fails
+          }
+        }
+      }
+      
+      // Final Step: Upload the analysis file
+      setSaveProgress({ step: totalSteps, total: totalSteps, message: 'Uploading analysis file...' });
       
       // Prepare the analysis data with additional metadata
       const saveData = {
@@ -312,12 +339,14 @@ const GoogleDriveSync = ({
     }
 
     setIsSaving(false);
+    setSaveProgress({ step: 0, total: 0, message: '' });
   };
 
   const cancelLoad = () => {
     setIsLoading(false);
     setShowCancelButton(false);
     setLoadingStep('');
+    setLoadProgress({ step: 0, total: 0, message: '' });
     showMessage('Load cancelled by user', true);
   };
 
@@ -327,20 +356,27 @@ const GoogleDriveSync = ({
     clearMessage();
     console.log('🔄 Starting Google Drive load process...');
 
-    // Show cancel button after 10 seconds
+    // Initialize progress - 6 total steps
+    setLoadProgress({ step: 0, total: 6, message: 'Initializing load...' });
+
+    // Show cancel button after 5 seconds instead of 10
     const cancelTimeout = setTimeout(() => {
       setShowCancelButton(true);
-    }, 10000);
+    }, 5000);
 
+    // Reduce timeout to 20 seconds total
     const timeout = setTimeout(() => {
-      console.error('⏰ Load operation timed out after 30 seconds');
-      showMessage('Load timed out. Please try again.', true);
+      console.error('⏰ Load operation timed out after 20 seconds');
+      showMessage('Load timed out. Please try again or check your internet connection.', true);
       setIsLoading(false);
       setShowCancelButton(false);
       setLoadingStep('');
-    }, 30000);
+      setLoadProgress({ step: 0, total: 0, message: '' });
+    }, 20000);
 
     try {
+      // Step 1: Look for cakeculator folder
+      setLoadProgress({ step: 1, total: 6, message: 'Looking for cakeculator folder...' });
       setLoadingStep('Looking for cakeculator folder...');
       console.log('📁 Step 1: Looking for cakeculator folder...');
       let folderId = null;
@@ -348,7 +384,7 @@ const GoogleDriveSync = ({
         folderId = await Promise.race([
           getCakeCulatorFolder(),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Folder search timeout')), 10000)
+            setTimeout(() => reject(new Error('Folder search timeout')), 5000)
           )
         ]);
         console.log('✅ Found cakeculator folder:', folderId);
@@ -356,6 +392,8 @@ const GoogleDriveSync = ({
         console.log('ℹ️ Cakeculator folder not found or timeout, searching in root');
       }
 
+      // Step 2: Search for analysis files
+      setLoadProgress({ step: 2, total: 6, message: 'Searching for analysis files...' });
       setLoadingStep('Searching for analysis files...');
       console.log('🔍 Step 2: Searching for analysis files...');
       let query = "(name contains 'analysis' or name contains 'streaming-analysis') and trashed=false";
@@ -371,24 +409,29 @@ const GoogleDriveSync = ({
           pageSize: 1
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('File list timeout')), 15000)
+          setTimeout(() => reject(new Error('File search timeout - check your Google Drive permissions')), 8000)
         )
       ]);
 
       console.log('📋 Search results:', response.result.files.length, 'files found');
 
+      // Step 3: Validate search results
+      setLoadProgress({ step: 3, total: 6, message: 'Validating search results...' });
       if (response.result.files.length === 0) {
         clearTimeout(timeout);
         clearTimeout(cancelTimeout);
         showMessage('No saved analysis found on Google Drive', true);
         setIsLoading(false);
         setLoadingStep('');
+        setLoadProgress({ step: 0, total: 0, message: '' });
         return;
       }
 
       const file = response.result.files[0];
       console.log('📄 Step 3: Found file to load:', file.name, 'ID:', file.id);
 
+      // Step 4: Download file content
+      setLoadProgress({ step: 4, total: 6, message: `Downloading ${file.name}...` });
       setLoadingStep('Downloading file content...');
       console.log('⬇️ Step 4: Downloading file content...');
       const fileContent = await Promise.race([
@@ -397,10 +440,12 @@ const GoogleDriveSync = ({
           alt: 'media'
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('File download timeout')), 20000)
+          setTimeout(() => reject(new Error('Download timeout - file may be too large or connection slow')), 10000)
         )
       ]);
 
+      // Step 5: Parse analysis data
+      setLoadProgress({ step: 5, total: 6, message: 'Parsing analysis data...' });
       setLoadingStep('Parsing analysis data...');
       console.log('📊 Step 5: Parsing JSON data...');
       const data = JSON.parse(fileContent.body);
@@ -410,6 +455,8 @@ const GoogleDriveSync = ({
         hasStats: !!data.stats
       });
       
+      // Step 6: Load data into app
+      setLoadProgress({ step: 6, total: 6, message: 'Loading data into app...' });
       setLoadingStep('Loading data into app...');
       console.log('🔄 Step 6: Loading data into app...');
       if (onDataLoaded) {
@@ -433,6 +480,7 @@ const GoogleDriveSync = ({
     setIsLoading(false);
     setShowCancelButton(false);
     setLoadingStep('');
+    setLoadProgress({ step: 0, total: 0, message: '' });
   };
 
   return (
@@ -507,6 +555,7 @@ const GoogleDriveSync = ({
               <p className="text-sm text-gray-600 mb-3">
                 Save analysis + original files to "cakeculator" folder
               </p>
+              <ProgressBar progress={saveProgress} isActive={isSaving} />
               <button
                 onClick={handleSave}
                 disabled={isSaving || !stats || !processedData || processedData.length === 0}
@@ -521,6 +570,7 @@ const GoogleDriveSync = ({
               <p className="text-sm text-gray-600 mb-3">
                 Restore saved analysis from Google Drive
               </p>
+              <ProgressBar progress={loadProgress} isActive={isLoading} />
               {isLoading && loadingStep && (
                 <div className="mb-3 p-2 bg-blue-50 rounded text-sm text-blue-700">
                   🔄 {loadingStep}
