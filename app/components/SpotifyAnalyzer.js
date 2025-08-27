@@ -1042,6 +1042,58 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       console.log('🔧 Setting raw play data...');
       if (loadedData.rawPlayData) setRawPlayData(loadedData.rawPlayData);
       
+      // Set artistsByYear for YearSelector functionality
+      console.log('🔧 Setting artists by year...');
+      if (loadedData.artistsByYear) {
+        setArtistsByYear(loadedData.artistsByYear);
+      } else {
+        // If artistsByYear is missing from loaded data, calculate it from songsByYear
+        console.log('⚙️ Calculating artistsByYear from songsByYear...');
+        const calculatedArtistsByYear = {};
+        if (loadedData.songsByYear) {
+          Object.keys(loadedData.songsByYear).forEach(year => {
+            calculatedArtistsByYear[year] = {};
+            loadedData.songsByYear[year].forEach(song => {
+              const artistName = song.artistName || song.artist;
+              if (artistName) {
+                if (!calculatedArtistsByYear[year][artistName]) {
+                  calculatedArtistsByYear[year][artistName] = 0;
+                }
+                calculatedArtistsByYear[year][artistName] += song.totalPlayed || song.playCount || 1;
+              }
+            });
+          });
+        }
+        setArtistsByYear(calculatedArtistsByYear);
+        console.log('✅ Calculated artistsByYear:', Object.keys(calculatedArtistsByYear));
+      }
+      
+      // Set albumsByYear for album year filtering functionality  
+      console.log('🔧 Setting albums by year...');
+      if (loadedData.albumsByYear) {
+        setAlbumsByYear(loadedData.albumsByYear);
+      } else {
+        // Calculate albumsByYear from songsByYear if missing
+        console.log('⚙️ Calculating albumsByYear from songsByYear...');
+        const calculatedAlbumsByYear = {};
+        if (loadedData.songsByYear) {
+          Object.keys(loadedData.songsByYear).forEach(year => {
+            calculatedAlbumsByYear[year] = {};
+            loadedData.songsByYear[year].forEach(song => {
+              const albumName = song.albumName || song.album;
+              if (albumName) {
+                if (!calculatedAlbumsByYear[year][albumName]) {
+                  calculatedAlbumsByYear[year][albumName] = 0;
+                }
+                calculatedAlbumsByYear[year][albumName] += song.totalPlayed || song.playCount || 1;
+              }
+            });
+          });
+        }
+        setAlbumsByYear(calculatedAlbumsByYear);
+        console.log('✅ Calculated albumsByYear:', Object.keys(calculatedAlbumsByYear));
+      }
+      
       // Reset to main view after loading
       console.log('🔧 Setting active tab to main...');
       setActiveTab('main');
