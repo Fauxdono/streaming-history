@@ -2075,7 +2075,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 briefObsessions={briefObsessions}
                 songsByYear={songsByYear}
                 rawPlayData={rawPlayData}
-                onDataLoaded={handleDataLoaded}
+                onDataLoaded={() => {}} 
               />
               
               {/* Local Data Manager */}
