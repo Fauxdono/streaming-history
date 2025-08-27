@@ -868,9 +868,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Check if we're on a mobile device and have a large dataset
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
       const isLargeDataset = (loadedData?.processedTracks?.length || 0) > 15000;
+      const isVeryLargeDataset = (loadedData?.processedTracks?.length || 0) > 30000;
       
       if (isMobile && isLargeDataset) {
-        console.log('📱 Mobile device with large dataset - using optimized loading...');
+        console.log('📱 Mobile device with large dataset - using optimized loading...', {
+          tracks: loadedData?.processedTracks?.length,
+          isVeryLarge: isVeryLargeDataset
+        });
       }
 
       // Set all the loaded data with safety checks and mobile optimization
@@ -879,14 +883,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       // Add yield point for mobile to prevent freezing
       if (isMobile && isLargeDataset) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        const delay = isVeryLargeDataset ? 100 : 50;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
       
       console.log('🔧 Setting processed data...');
       if (loadedData.processedTracks) setProcessedData(loadedData.processedTracks);
       
       if (isMobile && isLargeDataset) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        const delay = isVeryLargeDataset ? 100 : 50;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
       
       console.log('🔧 Setting top artists...');
@@ -899,7 +905,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       if (loadedData.briefObsessions) setBriefObsessions(loadedData.briefObsessions);
       
       if (isMobile && isLargeDataset) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        const delay = isVeryLargeDataset ? 100 : 50;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
       
       console.log('🔧 Setting songs by year...');
@@ -1002,16 +1009,42 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         console.log('✅ Calculated albumsByYear:', Object.keys(calculatedAlbumsByYear));
       }
       
-      // Final yield for mobile before switching tabs
+      // Final yield for mobile before switching tabs - be more aggressive
       if (isMobile && isLargeDataset) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('📱 Mobile: Allowing extra time for React to process large dataset...');
+        
+        // Suggest garbage collection if available (Chrome DevTools)
+        if (window.gc && isVeryLargeDataset) {
+          console.log('📱 Mobile: Triggering garbage collection for very large dataset...');
+          try {
+            window.gc();
+          } catch (e) {
+            // Ignore - gc not available in production
+          }
+        }
+        
+        // Give React more time to process all the state updates before switching tabs
+        const finalDelay = isVeryLargeDataset ? 1200 : 600;
+        await new Promise(resolve => setTimeout(resolve, finalDelay));
       }
       
       // Switch to stats view after loading
       console.log('🔧 Setting active tab to stats...');
-      setActiveTab('stats');
       
-      console.log('✅ Google Drive data loaded successfully');
+      if (isMobile && isLargeDataset) {
+        // For mobile with large datasets, use a two-step tab switch to reduce render load
+        console.log('📱 Mobile: Using staged tab switching to prevent render overload...');
+        
+        // First, briefly stay on upload tab to let data settle
+        setTimeout(() => {
+          console.log('📱 Mobile: Switching to stats tab...');
+          setActiveTab('stats');
+          console.log('✅ Google Drive data loaded successfully - tab switched');
+        }, isVeryLargeDataset ? 800 : 400);
+      } else {
+        setActiveTab('stats');
+        console.log('✅ Google Drive data loaded successfully');
+      }
     } catch (error) {
       console.error('❌ Failed to load Google Drive data:', error);
       console.error('❌ Error details:', {
