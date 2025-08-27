@@ -802,7 +802,16 @@ const GoogleDriveSync = ({
         jsonContent = JSON.stringify(jsonContent);
       }
       
-      const data = JSON.parse(jsonContent);
+      let data;
+      try {
+        data = JSON.parse(jsonContent);
+      } catch (parseError) {
+        console.error('❌ JSON parsing failed:', parseError);
+        console.log('📝 Content preview (first 500 chars):', jsonContent?.toString().substring(0, 500));
+        console.log('📝 Content type:', typeof jsonContent);
+        console.log('📝 Content length:', jsonContent?.length || 'unknown');
+        throw new Error(`Failed to parse JSON data: ${parseError.message}. Content type: ${typeof jsonContent}, Length: ${jsonContent?.length || 'unknown'}`);
+      }
       console.log('✅ Data parsed successfully:', {
         tracks: data.processedTracks?.length || 0,
         artists: data.topArtists?.length || 0,
