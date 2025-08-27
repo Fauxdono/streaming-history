@@ -939,9 +939,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         console.log('✅ Calculated albumsByYear:', Object.keys(calculatedAlbumsByYear));
       }
       
-      // Reset to main view after loading
-      console.log('🔧 Setting active tab to main...');
-      setActiveTab('main');
+      // Switch to stats view after loading
+      console.log('🔧 Setting active tab to stats...');
+      setActiveTab('stats');
       
       console.log('✅ Google Drive data loaded successfully');
     } catch (error) {
