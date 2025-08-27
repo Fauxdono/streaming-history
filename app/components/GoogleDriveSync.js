@@ -751,7 +751,8 @@ const GoogleDriveSync = ({
             setIsLoading(false);
             setLoadingStep('');
             setLoadProgress({ step: 0, total: 0, message: '' });
-            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Available memory: ${memoryLimitMB}MB${!hasMemoryAPI ? ' (estimated - memory detection not supported)' : ''}. Try downloading on a device with more memory or reduce file size.`, true);
+            const debugInfo = `Debug: hasMemoryAPI=${hasMemoryAPI}, detected=${detectedMemoryMB || 'none'}, override=${manualMemoryOverride || 'none'}`;
+            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Available memory: ${memoryLimitMB}MB${!hasMemoryAPI ? ' (estimated - memory detection not supported)' : ''}. ${debugInfo}. Try downloading on a device with more memory or reduce file size.`, true);
             
             // Show memory override tip for advanced users
             if (!hasMemoryAPI && !manualMemoryOverride) {
