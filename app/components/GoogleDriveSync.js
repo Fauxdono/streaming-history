@@ -734,28 +734,29 @@ const GoogleDriveSync = ({
             ratio: fileToMemoryRatio.toFixed(2)
           });
           
-          // Hard cutoff for mobile devices - prevent ANY file over 200MB from starting
-          if (fileSizeBytes > 200 * 1024 * 1024) {
+          // Smart memory-based limit instead of hard 200MB cutoff
+          if (fileToMemoryRatio > 0.8) { // File is more than 80% of available memory - very risky
             clearTimeout(timeout);
             clearTimeout(cancelTimeout);
             setIsLoading(false);
             setLoadingStep('');
             setLoadProgress({ step: 0, total: 0, message: '' });
-            showMessage(`❌ File too large for mobile browsers (${fileSizeMB}MB). Mobile browsers crash with files over 200MB. Please use a desktop computer or reduce file size to under 200MB.`, true);
+            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Available memory: ${memoryLimitMB}MB. Try downloading on a device with more memory or reduce file size.`, true);
             return;
           }
           
-          if (fileToMemoryRatio > 0.6) { // File is more than 60% of available memory
+          if (fileToMemoryRatio > 0.65) { // File is more than 65% of available memory - risky but might work
             clearTimeout(timeout);
             clearTimeout(cancelTimeout);
             setIsLoading(false);
             setLoadingStep('');
             setLoadProgress({ step: 0, total: 0, message: '' });
-            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Device memory insufficient. Try downloading on desktop or reduce file size.`, true);
+            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Device memory: ${memoryLimitMB}MB (${(fileToMemoryRatio*100).toFixed(1)}% usage). Try downloading on desktop or reduce file size.`, true);
             return;
           }
           
-          showMessage(`⚠️ Very large file (${fileSizeMB}MB) on mobile. This may take several minutes and could fail.`, false);
+          const memoryUsagePercent = (fileToMemoryRatio * 100).toFixed(1);
+          showMessage(`⚠️ Large file (${fileSizeMB}MB) on mobile. Using ${memoryUsagePercent}% of available memory (${memoryLimitMB}MB). This may take several minutes.`, false);
           await new Promise(resolve => setTimeout(resolve, 2000)); // Give user time to read warning
         } else {
           showMessage(`⚠️ Large file detected (${fileSizeMB}MB). Download may take several minutes.`, false);
