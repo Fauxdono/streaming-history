@@ -21,6 +21,8 @@ const GoogleDriveSync = ({
   const [message, setMessage] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [loadingStep, setLoadingStep] = useState('');
+  const [showCancelButton, setShowCancelButton] = useState(false);
 
   const clearMessage = () => setMessage('');
 
@@ -312,59 +314,125 @@ const GoogleDriveSync = ({
     setIsSaving(false);
   };
 
+  const cancelLoad = () => {
+    setIsLoading(false);
+    setShowCancelButton(false);
+    setLoadingStep('');
+    showMessage('Load cancelled by user', true);
+  };
+
   const handleLoad = async () => {
     setIsLoading(true);
+    setShowCancelButton(false);
     clearMessage();
+    console.log('🔄 Starting Google Drive load process...');
+
+    // Show cancel button after 10 seconds
+    const cancelTimeout = setTimeout(() => {
+      setShowCancelButton(true);
+    }, 10000);
+
+    const timeout = setTimeout(() => {
+      console.error('⏰ Load operation timed out after 30 seconds');
+      showMessage('Load timed out. Please try again.', true);
+      setIsLoading(false);
+      setShowCancelButton(false);
+      setLoadingStep('');
+    }, 30000);
 
     try {
-      // Try to find files in cakeculator folder first
+      setLoadingStep('Looking for cakeculator folder...');
+      console.log('📁 Step 1: Looking for cakeculator folder...');
       let folderId = null;
       try {
-        folderId = await getCakeCulatorFolder();
+        folderId = await Promise.race([
+          getCakeCulatorFolder(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Folder search timeout')), 10000)
+          )
+        ]);
+        console.log('✅ Found cakeculator folder:', folderId);
       } catch (folderError) {
-        console.log('ℹ️ Cakeculator folder not found, searching in root');
+        console.log('ℹ️ Cakeculator folder not found or timeout, searching in root');
       }
 
-      // Search for analysis files - prioritize cakeculator folder if it exists
+      setLoadingStep('Searching for analysis files...');
+      console.log('🔍 Step 2: Searching for analysis files...');
       let query = "(name contains 'analysis' or name contains 'streaming-analysis') and trashed=false";
       if (folderId) {
         query = `parents in '${folderId}' and (name contains 'analysis' or name contains 'streaming-analysis') and trashed=false`;
       }
+      console.log('🔍 Search query:', query);
 
-      const response = await window.gapi.client.drive.files.list({
-        q: query,
-        orderBy: 'modifiedTime desc',
-        pageSize: 1
-      });
+      const response = await Promise.race([
+        window.gapi.client.drive.files.list({
+          q: query,
+          orderBy: 'modifiedTime desc',
+          pageSize: 1
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('File list timeout')), 15000)
+        )
+      ]);
+
+      console.log('📋 Search results:', response.result.files.length, 'files found');
 
       if (response.result.files.length === 0) {
+        clearTimeout(timeout);
+        clearTimeout(cancelTimeout);
         showMessage('No saved analysis found on Google Drive', true);
         setIsLoading(false);
+        setLoadingStep('');
         return;
       }
 
       const file = response.result.files[0];
-      const fileContent = await window.gapi.client.drive.files.get({
-        fileId: file.id,
-        alt: 'media'
-      });
+      console.log('📄 Step 3: Found file to load:', file.name, 'ID:', file.id);
 
+      setLoadingStep('Downloading file content...');
+      console.log('⬇️ Step 4: Downloading file content...');
+      const fileContent = await Promise.race([
+        window.gapi.client.drive.files.get({
+          fileId: file.id,
+          alt: 'media'
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('File download timeout')), 20000)
+        )
+      ]);
+
+      setLoadingStep('Parsing analysis data...');
+      console.log('📊 Step 5: Parsing JSON data...');
       const data = JSON.parse(fileContent.body);
+      console.log('✅ Data parsed successfully:', {
+        tracks: data.processedTracks?.length || 0,
+        artists: data.topArtists?.length || 0,
+        hasStats: !!data.stats
+      });
       
+      setLoadingStep('Loading data into app...');
+      console.log('🔄 Step 6: Loading data into app...');
       if (onDataLoaded) {
         onDataLoaded(data);
       }
 
+      clearTimeout(timeout);
+      clearTimeout(cancelTimeout);
       const originalFilesText = data.metadata?.originalFiles?.length > 0 
         ? ` + ${data.metadata.originalFiles.length} original files` 
         : '';
       showMessage(`✅ Analysis loaded from ${folderId ? 'cakeculator folder' : 'Google Drive'}! (${data.processedTracks?.length || 0} tracks)${originalFilesText}`);
       
     } catch (error) {
+      clearTimeout(timeout);
+      clearTimeout(cancelTimeout);
+      console.error('❌ Load failed:', error);
       showMessage(`Load failed: ${error.message}`, true);
     }
 
     setIsLoading(false);
+    setShowCancelButton(false);
+    setLoadingStep('');
   };
 
   return (
@@ -453,13 +521,28 @@ const GoogleDriveSync = ({
               <p className="text-sm text-gray-600 mb-3">
                 Restore saved analysis from Google Drive
               </p>
-              <button
-                onClick={handleLoad}
-                disabled={isLoading}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Loading...' : 'Load from Drive'}
-              </button>
+              {isLoading && loadingStep && (
+                <div className="mb-3 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                  🔄 {loadingStep}
+                </div>
+              )}
+              <div className="space-y-2">
+                <button
+                  onClick={handleLoad}
+                  disabled={isLoading}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Loading...' : 'Load from Drive'}
+                </button>
+                {showCancelButton && (
+                  <button
+                    onClick={cancelLoad}
+                    className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                  >
+                    Cancel Loading
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
