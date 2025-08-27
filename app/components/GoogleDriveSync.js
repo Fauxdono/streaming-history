@@ -189,8 +189,50 @@ const GoogleDriveSync = ({
       let textResult = '';
       const textDecoder = new TextDecoder();
 
-      // For ultra-large files, use more aggressive memory management
-      if (isUltraLarge) {
+      // For ultra-large files, try a completely different approach
+      if (isUltraLarge && isMobile) {
+        console.log('🚀 Ultra-large mobile file: Attempting memory-safe approach...');
+        
+        // Show indeterminate progress since we can't track with response.text()
+        setLoadProgress({ 
+          step: 4, 
+          total: 6, 
+          message: `Processing large file (${(fileSizeBytes/1024/1024).toFixed(1)}MB) - this may take several minutes...` 
+        });
+        
+        // Add periodic memory checks while waiting
+        const memoryCheckInterval = setInterval(() => {
+          if ('memory' in performance) {
+            const memInfo = performance.memory;
+            const memoryUsage = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
+            console.log(`📱 Memory usage during processing: ${memoryUsage.toFixed(1)}%`);
+            
+            if (memoryUsage > 85) {
+              console.warn('📱 High memory usage detected during processing');
+              if (window.gc) {
+                try {
+                  window.gc();
+                  console.log('📱 Garbage collection triggered during processing');
+                } catch (e) {}
+              }
+            }
+          }
+        }, 2000);
+        
+        try {
+          // Let browser handle the entire response - this might be more memory efficient
+          console.log('📱 Starting browser-native text extraction...');
+          const text = await response.text();
+          clearInterval(memoryCheckInterval);
+          console.log('✅ Browser-native streaming complete');
+          return { body: text };
+        } catch (error) {
+          clearInterval(memoryCheckInterval);
+          console.error('❌ Browser-native streaming failed:', error);
+          throw new Error(`Mobile browser ran out of memory processing ${(fileSizeBytes/1024/1024).toFixed(1)}MB file. Try using a desktop computer or reducing file size.`);
+        }
+        
+      } else if (isUltraLarge) {
         console.log('🚀 Processing ultra-large file with aggressive memory management...');
         
         // For mobile, implement even more aggressive memory management
@@ -227,6 +269,13 @@ const GoogleDriveSync = ({
 
           if (done) break;
 
+          // For ultra-large mobile files, we need to avoid accumulating ANY text in memory
+          if (isMobile && fileSizeBytes > 250 * 1024 * 1024) {
+            console.warn('📱 ULTRA-LARGE mobile file detected - switching to emergency mode');
+            // This file is too large for mobile - abort early with specific message
+            throw new Error(`File too large for mobile browser (${(fileSizeBytes/1024/1024).toFixed(1)}MB). Mobile browsers cannot process files over 250MB. Please use a desktop computer or reduce the file size.`);
+          }
+          
           // Convert each chunk to text immediately instead of storing in memory
           const chunkText = textDecoder.decode(value, { stream: true });
           textResult += chunkText;
@@ -667,13 +716,24 @@ const GoogleDriveSync = ({
             ratio: fileToMemoryRatio.toFixed(2)
           });
           
+          // Hard cutoff for mobile devices - prevent ANY file over 200MB from starting
+          if (fileSizeBytes > 200 * 1024 * 1024) {
+            clearTimeout(timeout);
+            clearTimeout(cancelTimeout);
+            setIsLoading(false);
+            setLoadingStep('');
+            setLoadProgress({ step: 0, total: 0, message: '' });
+            showMessage(`❌ File too large for mobile browsers (${fileSizeMB}MB). Mobile browsers crash with files over 200MB. Please use a desktop computer or reduce file size to under 200MB.`, true);
+            return;
+          }
+          
           if (fileToMemoryRatio > 0.6) { // File is more than 60% of available memory
             clearTimeout(timeout);
             clearTimeout(cancelTimeout);
             setIsLoading(false);
             setLoadingStep('');
             setLoadProgress({ step: 0, total: 0, message: '' });
-            showMessage(`❌ File too large for mobile device (${fileSizeMB}MB). Try downloading on desktop or reduce file size.`, true);
+            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Device memory insufficient. Try downloading on desktop or reduce file size.`, true);
             return;
           }
           
