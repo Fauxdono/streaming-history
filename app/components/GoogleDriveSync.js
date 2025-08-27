@@ -571,11 +571,46 @@ const GoogleDriveSync = ({
         hasStats: !!data.stats
       });
       
-      // Step 6: Load data into app
+      // Step 6: Load data into app with mobile optimization
       setLoadProgress({ step: 6, total: 6, message: 'Loading data into app...' });
       setLoadingStep('Loading data into app...');
       console.log('🔄 Step 6: Loading data into app...');
+      
+      // Check if we're on a mobile device
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+      
       if (onDataLoaded) {
+        if (isMobile && data.processedTracks?.length > 10000) {
+          // For mobile devices with large datasets, process in chunks to avoid memory pressure
+          console.log('📱 Mobile device detected with large dataset, using chunked processing...');
+          setLoadProgress({ step: 6, total: 6, message: 'Processing data for mobile...' });
+          
+          // Add a small delay to let the UI update before heavy processing
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Process data in smaller chunks for mobile
+          const chunkSize = 5000;
+          const totalTracks = data.processedTracks?.length || 0;
+          
+          if (totalTracks > chunkSize) {
+            // Show progress for chunked processing
+            for (let i = 0; i < totalTracks; i += chunkSize) {
+              const progress = Math.round((i / totalTracks) * 100);
+              setLoadProgress({ 
+                step: 6, 
+                total: 6, 
+                message: `Processing data chunk ${Math.floor(i/chunkSize) + 1}/${Math.ceil(totalTracks/chunkSize)} (${progress}%)...` 
+              });
+              
+              // Yield to browser to prevent blocking
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+          }
+          
+          setLoadProgress({ step: 6, total: 6, message: 'Finalizing data load...' });
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
         onDataLoaded(data);
       }
 

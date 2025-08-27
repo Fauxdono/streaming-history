@@ -849,8 +849,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
 
 
-  // Handle loading data from Google Drive
-  const handleDataLoaded = useCallback((loadedData) => {
+  // Handle loading data from Google Drive with mobile optimizations
+  const handleDataLoaded = useCallback(async (loadedData) => {
     try {
       console.log('🔄 Loading data from Google Drive...', {
         tracks: loadedData?.processedTracks?.length || 0,
@@ -865,12 +865,29 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         return;
       }
 
-      // Set all the loaded data with safety checks
+      // Check if we're on a mobile device and have a large dataset
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+      const isLargeDataset = (loadedData?.processedTracks?.length || 0) > 15000;
+      
+      if (isMobile && isLargeDataset) {
+        console.log('📱 Mobile device with large dataset - using optimized loading...');
+      }
+
+      // Set all the loaded data with safety checks and mobile optimization
       console.log('🔧 Setting stats...');
       if (loadedData.stats) setStats(loadedData.stats);
       
+      // Add yield point for mobile to prevent freezing
+      if (isMobile && isLargeDataset) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      
       console.log('🔧 Setting processed data...');
       if (loadedData.processedTracks) setProcessedData(loadedData.processedTracks);
+      
+      if (isMobile && isLargeDataset) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
       
       console.log('🔧 Setting top artists...');
       if (loadedData.topArtists) setTopArtists(loadedData.topArtists);
@@ -880,6 +897,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       console.log('🔧 Setting brief obsessions...');
       if (loadedData.briefObsessions) setBriefObsessions(loadedData.briefObsessions);
+      
+      if (isMobile && isLargeDataset) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
       
       console.log('🔧 Setting songs by year...');
       if (loadedData.songsByYear) setSongsByYear(loadedData.songsByYear);
@@ -896,11 +917,20 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         // If artistsByYear is missing from loaded data, calculate it from songsByYear
         console.log('⚙️ Calculating artistsByYear from songsByYear...');
         console.log('📊 songsByYear available:', !!loadedData.songsByYear, loadedData.songsByYear ? Object.keys(loadedData.songsByYear) : 'none');
+        
+        if (isMobile && isLargeDataset) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
         const calculatedArtistsByYear = {};
         if (loadedData.songsByYear && Object.keys(loadedData.songsByYear).length > 0) {
-          Object.keys(loadedData.songsByYear).forEach(year => {
+          const yearKeys = Object.keys(loadedData.songsByYear);
+          
+          for (let yearIndex = 0; yearIndex < yearKeys.length; yearIndex++) {
+            const year = yearKeys[yearIndex];
             calculatedArtistsByYear[year] = {};
             const yearSongs = loadedData.songsByYear[year];
+            
             if (Array.isArray(yearSongs)) {
               yearSongs.forEach(song => {
                 const artistName = song.artistName || song.artist;
@@ -914,7 +944,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             } else {
               console.warn('⚠️ songsByYear[' + year + '] is not an array:', typeof yearSongs);
             }
-          });
+            
+            // Yield every few years on mobile to prevent freezing
+            if (isMobile && yearIndex % 2 === 0 && yearIndex > 0) {
+              await new Promise(resolve => setTimeout(resolve, 25));
+            }
+          }
+          
           console.log('✅ Calculated artistsByYear with years:', Object.keys(calculatedArtistsByYear));
           console.log('📊 Sample year data:', calculatedArtistsByYear[Object.keys(calculatedArtistsByYear)[0]] ? Object.keys(calculatedArtistsByYear[Object.keys(calculatedArtistsByYear)[0]]).slice(0, 5) : 'no data');
         } else {
@@ -930,23 +966,45 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else {
         // Calculate albumsByYear from songsByYear if missing
         console.log('⚙️ Calculating albumsByYear from songsByYear...');
+        
+        if (isMobile && isLargeDataset) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
         const calculatedAlbumsByYear = {};
         if (loadedData.songsByYear) {
-          Object.keys(loadedData.songsByYear).forEach(year => {
+          const yearKeys = Object.keys(loadedData.songsByYear);
+          
+          for (let yearIndex = 0; yearIndex < yearKeys.length; yearIndex++) {
+            const year = yearKeys[yearIndex];
             calculatedAlbumsByYear[year] = {};
-            loadedData.songsByYear[year].forEach(song => {
-              const albumName = song.albumName || song.album;
-              if (albumName) {
-                if (!calculatedAlbumsByYear[year][albumName]) {
-                  calculatedAlbumsByYear[year][albumName] = 0;
+            const yearSongs = loadedData.songsByYear[year];
+            
+            if (Array.isArray(yearSongs)) {
+              yearSongs.forEach(song => {
+                const albumName = song.albumName || song.album;
+                if (albumName) {
+                  if (!calculatedAlbumsByYear[year][albumName]) {
+                    calculatedAlbumsByYear[year][albumName] = 0;
+                  }
+                  calculatedAlbumsByYear[year][albumName] += song.totalPlayed || song.playCount || 1;
                 }
-                calculatedAlbumsByYear[year][albumName] += song.totalPlayed || song.playCount || 1;
-              }
-            });
-          });
+              });
+            }
+            
+            // Yield every few years on mobile to prevent freezing
+            if (isMobile && yearIndex % 2 === 0 && yearIndex > 0) {
+              await new Promise(resolve => setTimeout(resolve, 25));
+            }
+          }
         }
         setAlbumsByYear(calculatedAlbumsByYear);
         console.log('✅ Calculated albumsByYear:', Object.keys(calculatedAlbumsByYear));
+      }
+      
+      // Final yield for mobile before switching tabs
+      if (isMobile && isLargeDataset) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
       
       // Switch to stats view after loading
