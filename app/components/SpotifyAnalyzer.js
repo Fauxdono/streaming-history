@@ -18,11 +18,8 @@ import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
-import DeviceAuth from './device-auth.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
-import DataManager from './data-manager.js';
 import GoogleDriveSync from './GoogleDriveSync.js';
-import { usePersistentStorage } from './persistent-storage.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -91,24 +88,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [showServiceInfo, setShowServiceInfo] = useState({});
   const [showCakeService, setShowCakeService] = useState(false);
   
-  // Authentication and persistence states
-  const [deviceId, setDeviceId] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [googleDriveReady, setGoogleDriveReady] = useState(false);
-  const [googleUserInfo, setGoogleUserInfo] = useState(null);
-  const [showDataManager, setShowDataManager] = useState(false);
+  // Simplified state - removed authentication
   const [storageNotification, setStorageNotification] = useState(null);
-  const [showSavePrompt, setShowSavePrompt] = useState(false);
-  const [pendingDataToSave, setPendingDataToSave] = useState(null);
-  
-  // Persistent storage hook
-  const {
-    saveProcessedData,
-    getProcessedData,
-    saveSettings,
-    getSettings,
-    isReady: storageReady
-  } = usePersistentStorage(deviceId);
   
   // Ref to track if initial data loading has completed
   const dataLoadedRef = useRef(false);
@@ -729,47 +710,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const fileNames = Array.from(fileList).map(file => file.name);
       setUploadedFiles(fileNames);
 
-      // Save processed data to persistent storage if authenticated
-      if (isAuthenticated && storageReady) {
-        try {
-          console.log('💾 Saving data to persistent storage...', {
-            isAuthenticated, 
-            storageReady, 
-            deviceId,
-            statsExists: !!results.stats,
-            dataCount: sortedTracks?.length || 0
-          });
-          
-          const saveResult = saveProcessedData({
-            stats: results.stats,
-            topArtists: results.topArtists,
-            topAlbums: results.topAlbums,
-            processedTracks: sortedTracks,
-            songsByYear: results.songsByYear,
-            briefObsessions: results.briefObsessions,
-            artistsByYear: results.artistsByYear,
-            albumsByYear: results.albumsByYear,
-            rawPlayData: results.rawPlayData
-          });
-          console.log('✅ Data saved to persistent storage successfully:', saveResult);
-          
-          // Notify user immediately
-          setStorageNotification({
-            type: 'success',
-            title: 'Analysis Data Saved',
-            message: 'Your streaming analysis has been saved to device storage and will persist between sessions.'
-          });
-        } catch (saveError) {
-          console.error('❌ Failed to save data to persistent storage:', saveError);
-        }
-      } else {
-        console.log('⚠️ Skipping data save - conditions not met:', {
-          isAuthenticated, 
-          storageReady, 
-          deviceId,
-          message: 'Data will only be saved if you authenticate first!'
-        });
-      }
+      // Data is processed and ready - you can save it to Google Drive from the upload page
 
       // Switch to stats tab
       setActiveTab('stats');
@@ -879,7 +820,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     } else {
       setUploadedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
     }
-  }, [uploadedFileList, isAuthenticated, storageReady, deviceId]);
+  }, [uploadedFileList]);
 
   // Process uploaded files with useCallback
   const handleProcessFiles = useCallback(() => {
@@ -906,24 +847,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }, 100);
   }, [uploadedFileList, processFiles]);
 
-  // Authentication handlers
-  const handleAuthSuccess = useCallback((newDeviceId) => {
-    console.log('🔐 Authentication successful for device:', newDeviceId);
-    console.log('Setting deviceId and isAuthenticated to true');
-    setDeviceId(newDeviceId);
-    setIsAuthenticated(true);
-  }, []);
-
-  const handleAuthFailure = useCallback((error) => {
-    console.error('Authentication failed:', error);
-    setIsAuthenticated(false);
-  }, []);
-
-  const handleGoogleDriveReady = useCallback((userInfo) => {
-    console.log('🔐 Google Drive connected:', userInfo);
-    setGoogleDriveReady(true);
-    setGoogleUserInfo(userInfo);
-  }, []);
 
   // Handle user choice to save processed data
   const handleSaveData = useCallback(async () => {
@@ -1787,10 +1710,19 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           {activeTab === 'upload' && (
             <div>
               {/* Device Authentication Section (Temporary revert) */}
+              {/* Google Drive Storage */}
               <div className="mb-6">
-                <DeviceAuth 
-                  onAuthSuccess={handleAuthSuccess}
-                  onAuthFailure={handleAuthFailure}
+                <GoogleDriveSync
+                  stats={stats}
+                  processedData={processedData}
+                  topArtists={topArtists}
+                  topAlbums={topAlbums}
+                  briefObsessions={briefObsessions}
+                  songsByYear={songsByYear}
+                  rawPlayData={rawPlayData}
+                  uploadedFiles={uploadedFiles}
+                  uploadedFileList={uploadedFileList}
+                  onDataLoaded={handleDataLoaded}
                 />
               </div>
 
@@ -2092,61 +2024,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             </div>
           )}
 
-          {activeTab === 'data' && (
-            <div className="space-y-8">
-              {/* Authentication Status */}
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Authentication Status</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${isAuthenticated ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <span className="text-gray-700">
-                      Device Authentication: {isAuthenticated ? 'Connected' : 'Not Connected'}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${googleDriveReady ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                    <span className="text-gray-700">
-                      Google Drive: {googleDriveReady ? 'Connected' : 'Not Connected'}
-                    </span>
-                  </div>
-                </div>
-                {!isAuthenticated && (
-                  <p className="text-sm text-gray-600 mt-3">
-                    Please authenticate in the Upload tab to access your data management features.
-                  </p>
-                )}
-              </div>
-
-              {/* Google Drive Storage */}
-              <GoogleDriveSync
-                stats={stats}
-                processedData={processedData}
-                topArtists={topArtists}
-                topAlbums={topAlbums}
-                briefObsessions={briefObsessions}
-                songsByYear={songsByYear}
-                rawPlayData={rawPlayData}
-                uploadedFiles={uploadedFiles}
-                uploadedFileList={uploadedFileList}
-                onDataLoaded={handleDataLoaded}
-              />
-              
-              {/* Local Data Manager */}
-              <DataManager 
-                deviceId={deviceId}
-                isAuthenticated={isAuthenticated}
-                stats={stats}
-                topArtists={topArtists}
-                topAlbums={topAlbums}
-                processedData={processedData}
-                briefObsessions={briefObsessions}
-                songsByYear={songsByYear}
-                rawPlayData={rawPlayData}
-                formatDuration={formatDuration}
-              />
-            </div>
-          )}
                   
           {activeTab === 'stats' && stats && (
             <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
