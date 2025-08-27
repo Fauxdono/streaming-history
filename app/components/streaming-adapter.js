@@ -1650,7 +1650,7 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
   return artistsByYear;
 }
 
-function calculatePlayStats(entries) {
+async function calculatePlayStats(entries) {
   if (!entries || entries.length === 0) {
     return { songs: [], artists: {}, albums: {}, playHistory: {}, totalListeningTime: 0, 
              serviceListeningTime: {}, processedSongs: 0, shortPlays: 0 };
@@ -1740,8 +1740,19 @@ function calculatePlayStats(entries) {
     }
   }
 
-  // Main processing pass - process everything in a single loop
-  for (let i = 0; i < entries.length; i++) {
+  // Main processing pass - process in chunks to avoid blocking UI
+  const chunkSize = 5000; // Process 5000 entries at a time
+  const totalChunks = Math.ceil(entries.length / chunkSize);
+  console.log(`Processing ${entries.length} entries in ${totalChunks} chunks of ${chunkSize}`);
+  
+  for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+    const startIndex = chunkIndex * chunkSize;
+    const endIndex = Math.min(startIndex + chunkSize, entries.length);
+    
+    console.log(`Processing chunk ${chunkIndex + 1}/${totalChunks} (${startIndex}-${endIndex})`);
+    
+    // Process chunk
+    for (let i = startIndex; i < endIndex; i++) {
     const entry = entries[i];
     const playTime = entry.ms_played;
     
@@ -2002,6 +2013,12 @@ function calculatePlayStats(entries) {
         isrc: entry.master_metadata_external_ids?.isrc || entry.isrc
       });
     }
+    } // End of chunk processing
+    
+    // Yield to prevent UI blocking after each chunk
+    if (chunkIndex < totalChunks - 1) {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
   }
   
   // Process tracks for display - convert map to array
@@ -2210,7 +2227,7 @@ export const streamingProcessor = {
       // Yield to allow UI updates
       await new Promise(resolve => setTimeout(resolve, 0));
       
-      const stats = calculatePlayStats(allProcessedData);
+      const stats = await calculatePlayStats(allProcessedData);
 
       // Process artist data with better performance
       console.log('Processing artist statistics...');
