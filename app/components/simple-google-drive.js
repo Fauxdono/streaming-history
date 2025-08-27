@@ -58,8 +58,8 @@ const SimpleGoogleDrive = ({
         discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
       });
 
-      // Set up OAuth
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+      // Set up OAuth - store tokenClient to call it from user interaction
+      window.currentTokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/drive.file',
         callback: (tokenResponse) => {
@@ -80,8 +80,10 @@ const SimpleGoogleDrive = ({
         }
       });
 
-      // Request access token
-      tokenClient.requestAccessToken({ prompt: 'consent' });
+      // Small delay to ensure everything is ready, then request token
+      setTimeout(() => {
+        window.currentTokenClient.requestAccessToken({ prompt: 'consent' });
+      }, 100);
 
     } catch (err) {
       console.error('Google Drive connection failed:', err);
