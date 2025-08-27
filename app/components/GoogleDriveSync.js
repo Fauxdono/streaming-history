@@ -616,8 +616,9 @@ const GoogleDriveSync = ({
     clearMessage();
     console.log('🔄 Starting Google Drive load process...');
     
-    // Check if we're on mobile and warn about memory limitations
+    // Check if we're on mobile device (used throughout the function)
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    
     if (isMobile && 'memory' in performance) {
       const memInfo = performance.memory;
       const availableMemory = memInfo.jsHeapSizeLimit / 1024 / 1024;
@@ -835,8 +836,6 @@ const GoogleDriveSync = ({
       setLoadingStep('Loading data into app...');
       console.log('🔄 Step 6: Loading data into app...');
       
-      // Check if we're on a mobile device
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
       
       if (onDataLoaded) {
         if (isMobile && data.processedTracks?.length > 10000) {
