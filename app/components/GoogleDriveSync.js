@@ -10,6 +10,8 @@ const GoogleDriveSync = ({
   briefObsessions = [], 
   songsByYear = {}, 
   rawPlayData = [], 
+  uploadedFiles = [],
+  uploadedFileList = null,
   onDataLoaded 
 }) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -82,6 +84,111 @@ const GoogleDriveSync = ({
     });
   };
 
+  // Create or get the cakeculator folder
+  const getCakeCulatorFolder = async () => {
+    try {
+      console.log('📁 Looking for cakeculator folder...');
+      
+      // Search for existing folder
+      const response = await window.gapi.client.drive.files.list({
+        q: "name='cakeculator' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+        spaces: 'drive'
+      });
+
+      if (response.result.files.length > 0) {
+        const folderId = response.result.files[0].id;
+        console.log('📁 Found existing cakeculator folder:', folderId);
+        return folderId;
+      }
+
+      // Create new folder
+      console.log('📁 Creating new cakeculator folder...');
+      const createResponse = await window.gapi.client.drive.files.create({
+        resource: {
+          name: 'cakeculator',
+          mimeType: 'application/vnd.google-apps.folder'
+        }
+      });
+
+      const folderId = createResponse.result.id;
+      console.log('✅ Created cakeculator folder:', folderId);
+      return folderId;
+    } catch (error) {
+      console.error('❌ Failed to get/create cakeculator folder:', error);
+      throw error;
+    }
+  };
+
+  // Upload original files to Google Drive
+  const uploadOriginalFiles = async (folderId) => {
+    if (!uploadedFileList || uploadedFileList.length === 0) {
+      console.log('ℹ️ No original files to upload');
+      return [];
+    }
+
+    const uploadResults = [];
+    console.log('📤 Uploading original files to Google Drive...');
+
+    for (const file of uploadedFileList) {
+      try {
+        console.log(`📤 Uploading ${file.name}...`);
+        
+        // Read file content
+        const fileContent = await readFileAsText(file);
+        
+        const boundary = 'boundary123';
+        const multipartBody = [
+          `--${boundary}`,
+          'Content-Type: application/json',
+          '',
+          JSON.stringify({
+            name: `original_${file.name}`,
+            parents: [folderId],
+            mimeType: file.type || 'text/plain'
+          }),
+          `--${boundary}`,
+          'Content-Type: ' + (file.type || 'text/plain'),
+          '',
+          fileContent,
+          `--${boundary}--`
+        ].join('\r\n');
+
+        const response = await window.gapi.client.request({
+          path: 'https://www.googleapis.com/upload/drive/v3/files',
+          method: 'POST',
+          params: { uploadType: 'multipart' },
+          headers: {
+            'Content-Type': `multipart/related; boundary="${boundary}"`
+          },
+          body: multipartBody
+        });
+
+        uploadResults.push({
+          name: file.name,
+          driveId: response.result.id,
+          size: file.size
+        });
+        
+        console.log(`✅ Uploaded ${file.name}`);
+      } catch (error) {
+        console.error(`❌ Failed to upload ${file.name}:`, error);
+        // Continue with other files even if one fails
+      }
+    }
+
+    return uploadResults;
+  };
+
+  // Helper function to read file as text
+  const readFileAsText = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
+    });
+  };
+
   const handleConnect = async () => {
     setIsConnecting(true);
     clearMessage();
@@ -139,6 +246,13 @@ const GoogleDriveSync = ({
     clearMessage();
 
     try {
+      // Get or create the cakeculator folder
+      const folderId = await getCakeCulatorFolder();
+      
+      // Upload original files first (if any)
+      const originalFiles = await uploadOriginalFiles(folderId);
+      
+      // Prepare the analysis data with additional metadata
       const saveData = {
         stats,
         processedTracks: processedData,
@@ -150,14 +264,17 @@ const GoogleDriveSync = ({
         metadata: {
           savedAt: new Date().toISOString(),
           totalTracks: processedData.length,
-          version: '1.0'
+          version: '1.0',
+          originalFiles: originalFiles.map(f => ({ name: f.name, size: f.size })),
+          folderStructure: 'cakeculator'
         }
       };
 
       const jsonString = JSON.stringify(saveData, null, 2);
-      const fileName = `streaming-analysis-${new Date().toISOString().split('T')[0]}.json`;
+      const fileName = `analysis-${new Date().toISOString().split('T')[0]}.json`;
       const sizeInMB = (jsonString.length / (1024 * 1024)).toFixed(2);
 
+      // Upload the analysis file to the cakeculator folder
       const boundary = 'boundary123';
       const multipartBody = [
         `--${boundary}`,
@@ -165,6 +282,7 @@ const GoogleDriveSync = ({
         '',
         JSON.stringify({
           name: fileName,
+          parents: [folderId],
           mimeType: 'application/json'
         }),
         `--${boundary}`,
@@ -184,7 +302,8 @@ const GoogleDriveSync = ({
         body: multipartBody
       });
 
-      showMessage(`Analysis saved successfully! (${sizeInMB}MB, ${processedData.length.toLocaleString()} tracks)`);
+      const totalFiles = originalFiles.length > 0 ? ` + ${originalFiles.length} original files` : '';
+      showMessage(`✅ Saved to cakeculator folder! Analysis: ${sizeInMB}MB (${processedData.length.toLocaleString()} tracks)${totalFiles}`);
       
     } catch (error) {
       showMessage(`Save failed: ${error.message}`, true);
@@ -198,8 +317,22 @@ const GoogleDriveSync = ({
     clearMessage();
 
     try {
+      // Try to find files in cakeculator folder first
+      let folderId = null;
+      try {
+        folderId = await getCakeCulatorFolder();
+      } catch (folderError) {
+        console.log('ℹ️ Cakeculator folder not found, searching in root');
+      }
+
+      // Search for analysis files - prioritize cakeculator folder if it exists
+      let query = "(name contains 'analysis' or name contains 'streaming-analysis') and trashed=false";
+      if (folderId) {
+        query = `parents in '${folderId}' and (name contains 'analysis' or name contains 'streaming-analysis') and trashed=false`;
+      }
+
       const response = await window.gapi.client.drive.files.list({
-        q: "name contains 'streaming-analysis' and trashed=false",
+        q: query,
         orderBy: 'modifiedTime desc',
         pageSize: 1
       });
@@ -222,7 +355,10 @@ const GoogleDriveSync = ({
         onDataLoaded(data);
       }
 
-      showMessage(`Analysis loaded successfully! (${data.processedTracks?.length || 0} tracks)`);
+      const originalFilesText = data.metadata?.originalFiles?.length > 0 
+        ? ` + ${data.metadata.originalFiles.length} original files` 
+        : '';
+      showMessage(`✅ Analysis loaded from ${folderId ? 'cakeculator folder' : 'Google Drive'}! (${data.processedTracks?.length || 0} tracks)${originalFilesText}`);
       
     } catch (error) {
       showMessage(`Load failed: ${error.message}`, true);
@@ -237,7 +373,7 @@ const GoogleDriveSync = ({
         <div className="text-2xl">☁️</div>
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Google Drive Storage</h2>
-          <p className="text-sm text-gray-600">Save large datasets (70MB+) to Google Drive</p>
+          <p className="text-sm text-gray-600">Save to organized "cakeculator" folder with original files</p>
         </div>
         {isConnected && <div className="text-green-600 text-xl">✅</div>}
       </div>
@@ -301,7 +437,7 @@ const GoogleDriveSync = ({
             <div className="p-4 border border-gray-200 rounded-lg">
               <h4 className="font-semibold mb-2">💾 Save Analysis</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Save your current analysis to Google Drive
+                Save analysis + original files to "cakeculator" folder
               </p>
               <button
                 onClick={handleSave}

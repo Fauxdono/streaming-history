@@ -2075,6 +2075,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 briefObsessions={briefObsessions}
                 songsByYear={songsByYear}
                 rawPlayData={rawPlayData}
+                uploadedFiles={uploadedFiles}
+                uploadedFileList={uploadedFileList}
                 onDataLoaded={handleDataLoaded}
               />
               
