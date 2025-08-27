@@ -183,13 +183,7 @@ const GoogleDriveSync = ({
         throw new Error(`Download failed: ${response.status} ${response.statusText}`);
       }
 
-      const reader = response.body.getReader();
-      let downloadedBytes = 0;
-      let lastProgressUpdate = 0;
-      let textResult = '';
-      const textDecoder = new TextDecoder();
-
-      // For ultra-large files, try a completely different approach
+      // For ultra-large files on mobile, try browser-native approach first
       if (isUltraLarge && isMobile) {
         console.log('🚀 Ultra-large mobile file: Attempting memory-safe approach...');
         
@@ -231,8 +225,16 @@ const GoogleDriveSync = ({
           console.error('❌ Browser-native streaming failed:', error);
           throw new Error(`Mobile browser ran out of memory processing ${(fileSizeBytes/1024/1024).toFixed(1)}MB file. Try using a desktop computer or reducing file size.`);
         }
-        
-      } else if (isUltraLarge) {
+      }
+
+      // For all other cases, use streaming approach
+      const reader = response.body.getReader();
+      let downloadedBytes = 0;
+      let lastProgressUpdate = 0;
+      let textResult = '';
+      const textDecoder = new TextDecoder();
+
+      if (isUltraLarge) {
         console.log('🚀 Processing ultra-large file with aggressive memory management...');
         
         // For mobile, implement even more aggressive memory management
