@@ -848,84 +848,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   }, [uploadedFileList, processFiles]);
 
 
-  // Handle user choice to save processed data
-  const handleSaveData = useCallback(async () => {
-    if (!pendingDataToSave) return;
-    
-    try {
-      console.log('💾 User chose to save processed data');
-      const saveResult = saveProcessedData(pendingDataToSave);
-      console.log('✅ Data saved successfully:', saveResult);
-      
-      setStorageNotification({
-        type: 'success',
-        title: 'Analysis Data Saved!',
-        message: `Your streaming analysis (${pendingDataToSave.processedTracks.length} tracks) has been saved to device storage and will persist between sessions.`
-      });
-      
-      setShowSavePrompt(false);
-      setPendingDataToSave(null);
-    } catch (error) {
-      console.error('❌ Failed to save data:', error);
-      setStorageNotification({
-        type: 'error',
-        title: 'Save Failed',
-        message: 'Failed to save your analysis data. You can try again from the Data tab.'
-      });
-    }
-  }, [pendingDataToSave, saveProcessedData]);
-
-  // Handle user choice to skip saving
-  const handleSkipSave = useCallback(() => {
-    console.log('⏭️ User chose to skip saving data');
-    setShowSavePrompt(false);
-    setPendingDataToSave(null);
-    
-    setStorageNotification({
-      type: 'info',
-      title: 'Data Not Saved',
-      message: 'Your analysis will be lost when you close the app. You can save it later from the Data tab.'
-    });
-  }, []);
-
-  // Manual save function for testing/backup
-  const handleManualSave = useCallback(() => {
-    if (!stats || processedData.length === 0) {
-      alert('No processed data to save');
-      return;
-    }
-
-    try {
-      console.log('🔧 Manual save triggered from Data tab');
-      const dataToSave = {
-        stats: stats,
-        topArtists: topArtists,
-        topAlbums: topAlbums,
-        processedTracks: processedData,
-        songsByYear: songsByYear,
-        briefObsessions: briefObsessions,
-        artistsByYear: artistsByYear,
-        albumsByYear: albumsByYear,
-        rawPlayData: rawPlayData
-      };
-      
-      const saveResult = saveProcessedData(dataToSave);
-      console.log('✅ Manual save successful:', saveResult);
-      
-      setStorageNotification({
-        type: 'success',
-        title: 'Data Saved Successfully!',
-        message: `Your streaming analysis (${processedData.length.toLocaleString()} tracks) has been saved to device storage.`
-      });
-    } catch (error) {
-      console.error('❌ Manual save failed:', error);
-      setStorageNotification({
-        type: 'error',
-        title: 'Save Failed',
-        message: `Failed to save data: ${error.message}`
-      });
-    }
-  }, [stats, processedData, topArtists, topAlbums, songsByYear, briefObsessions, artistsByYear, albumsByYear, rawPlayData, saveProcessedData]);
 
   // Handle loading data from Google Drive
   const handleDataLoaded = useCallback((loadedData) => {
@@ -1032,111 +954,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, []);
 
-  // Expose manual save function globally for DataManager
-  useEffect(() => {
-    window.saveProcessedDataManually = handleManualSave;
-    return () => {
-      delete window.saveProcessedDataManually;
-    };
-  }, [handleManualSave]);
 
   // Reset data loaded flag when authentication state changes
-  useEffect(() => {
-    if (!isAuthenticated) {
-      dataLoadedRef.current = false;
-      console.log('Authentication lost, resetting data loaded flag');
-    }
-  }, [isAuthenticated]);
 
-  // Load data when storage becomes ready and user is authenticated
-  useEffect(() => {
-    console.log('📊 Data loading effect triggered:', {
-      storageReady,
-      isAuthenticated, 
-      deviceId: !!deviceId,
-      dataLoadedRef: dataLoadedRef.current,
-      hasCurrentStats: !!stats,
-      hasProcessedData: processedData.length > 0,
-      statsDetails: stats ? `${stats.totalEntries} total entries` : 'no stats'
-    });
-    
-    if (storageReady && isAuthenticated && deviceId && !dataLoadedRef.current) {
-      console.log('✅ All conditions met - checking for current data...');
-      
-      dataLoadedRef.current = true; // Mark as loaded to prevent re-runs
-      
-      // If we already have data processed, prompt user to save it
-      if (stats && processedData.length > 0) {
-        console.log('🔄 User authenticated after processing data - prompting to save');
-        console.log('Current data available:', {
-          hasStats: !!stats,
-          trackCount: processedData.length,
-          hasTopArtists: topArtists.length,
-          hasTopAlbums: topAlbums.length,
-          hasRawData: rawPlayData.length
-        });
-        
-        // Store the data to save and show prompt
-        setPendingDataToSave({
-          stats: stats,
-          topArtists: topArtists,
-          topAlbums: topAlbums,
-          processedTracks: processedData,
-          songsByYear: songsByYear,
-          briefObsessions: briefObsessions,
-          artistsByYear: artistsByYear,
-          albumsByYear: albumsByYear,
-          rawPlayData: rawPlayData
-        });
-        
-        console.log('📱 Setting showSavePrompt to true - modal should appear');
-        setShowSavePrompt(true);
-        
-        return; // Don't load from storage, wait for user decision
-      }
-      
-      try {
-        // Load processed data only if we don't have current data
-        const existingData = getProcessedData();
-        console.log('Retrieved data from storage:', { 
-          hasData: !!existingData,
-          dataKeys: existingData ? Object.keys(existingData) : [],
-          trackCount: existingData?.processedTracks?.length || 0
-        });
-        
-        if (existingData) {
-          console.log('Loading existing processed data from persistent storage');
-          setStats({ ...existingData.stats });
-          setTopArtists(existingData.topArtists || []);
-          setTopAlbums(existingData.topAlbums || []);
-          setProcessedData(existingData.processedTracks || []);
-          setSongsByYear(existingData.songsByYear || {});
-          setBriefObsessions(existingData.briefObsessions || []);
-          setArtistsByYear(existingData.artistsByYear || {});
-          setAlbumsByYear(existingData.albumsByYear || {});
-          setRawPlayData(existingData.rawPlayData || []);
-          
-          // Notify user about successful data loading
-          setStorageNotification({
-            type: 'success',  
-            title: 'Welcome Back!',
-            message: `Your streaming analysis has been restored from device storage. ${existingData.processedTracks?.length || 0} tracks loaded. Your analysis is ready!`
-          });
-          
-          setActiveTab('stats'); // Switch to stats if data exists
-        } else {
-          console.log('No existing data found in persistent storage');
-        }
-        
-        // Note: File contents are not stored due to size limitations
-        // Users will need to re-upload files, but processed data persists
-        console.log('File restoration skipped - only processed data is stored for efficiency');
-        
-      } catch (loadError) {
-        console.error('Failed to load existing data:', loadError);
-      }
-    }
-  }, [storageReady, isAuthenticated, deviceId, getProcessedData, saveProcessedData, stats, processedData]);
 
   // Handle year range change with useCallback
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
@@ -1761,42 +1581,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </div>
               )}
 
-              {/* Save Data Prompt Modal */}
-              {console.log('🎯 Modal render check:', { showSavePrompt, hasPendingData: !!pendingDataToSave })}
-              {showSavePrompt && pendingDataToSave && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl">
-                    <div className="text-center">
-                      <div className="text-4xl mb-4">💾</div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Processed Data Detected
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        We found your streaming analysis in memory 
-                        ({pendingDataToSave.processedTracks?.length?.toLocaleString()} tracks processed). 
-                        Would you like to save it to device storage so it persists between sessions?
-                      </p>
-                      <div className="flex gap-3 justify-center">
-                        <button
-                          onClick={handleSaveData}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-                        >
-                          💾 Save Data
-                        </button>
-                        <button
-                          onClick={handleSkipSave}
-                          className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
-                        >
-                          Skip
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-3">
-                        You can also save data later from the Data tab
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                 <div className={`p-3 sm:p-4 border rounded ${isDarkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'}`}>
                   <h3 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>How to use:</h3>
