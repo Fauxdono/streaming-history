@@ -21,7 +21,7 @@ import { useTheme } from './themeprovider.js';
 import DeviceAuth from './device-auth.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import DataManager from './data-manager.js';
-import GoogleDriveManager from './google-drive-manager.js';
+// import GoogleDriveManager from './google-drive-manager.js'; // Temporarily disabled - causes app crash
 import { usePersistentStorage } from './persistent-storage.js';
 
 // Cache for service colors to avoid recreating on each render
@@ -2066,17 +2066,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 )}
               </div>
 
-              {/* Google Drive Manager */}
-              <GoogleDriveManager 
-                stats={stats}
-                topArtists={topArtists}
-                topAlbums={topAlbums}
-                processedData={processedData}
-                briefObsessions={briefObsessions}
-                songsByYear={songsByYear}
-                rawPlayData={rawPlayData}
-                onDataLoaded={() => {}} 
-              />
+              {/* Google Drive Manager - Temporarily disabled */}
+              <div style={{ padding: '16px', backgroundColor: '#f0f0f0', borderRadius: '8px', textAlign: 'center' }}>
+                <p>⚠️ Google Drive Manager temporarily disabled</p>
+                <p style={{ fontSize: '14px', color: '#666' }}>
+                  Component causes app crash - investigating React error #130
+                </p>
+              </div>
               
               {/* Local Data Manager */}
               <DataManager 
