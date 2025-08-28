@@ -102,7 +102,9 @@ const GoogleDriveSync = ({
     initializeAPIs();
   }, []);
 
-  // Check for stored connection once when APIs are initialized
+  // DISABLED: Check for stored connection once when APIs are initialized
+  // This was causing refreshes, so we rely only on the initial useState restoration
+  /*
   useEffect(() => {
     const restoreConnection = async () => {
       // Only run once when initialized and haven't tried restore yet
@@ -122,28 +124,13 @@ const GoogleDriveSync = ({
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
       const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
       
-      console.log('📱 Storage check:', {
-        hasToken: !!storedToken,
-        hasExpiry: !!storedExpiry,
-        tokenPreview: storedToken ? storedToken.substring(0, 10) + '...' : null,
-        expiryTime: storedExpiry ? new Date(parseInt(storedExpiry)).toLocaleString() : null,
-        currentConnectionState: isConnected
-      });
-      
       if (storedToken && storedExpiry) {
         const now = Date.now();
         const expiry = parseInt(storedExpiry);
         
-        console.log('⏰ Token expiry check:', {
-          now: new Date(now).toLocaleString(),
-          expiry: new Date(expiry).toLocaleString(),
-          isValid: now < expiry
-        });
-        
         if (now < expiry) {
-          console.log('🔄 Ensuring Google Drive connection is active...');
+          console.log('🔄 Setting stored token in Google API client...');
           
-          // Always set the token in gapi client (even if already connected)
           try {
             window.gapi.client.setToken({
               access_token: storedToken
@@ -158,7 +145,6 @@ const GoogleDriveSync = ({
             if (!isConnected) {
               setIsConnected(true);
               console.log('✅ Google Drive connection restored successfully');
-              showMessage('Google Drive connection restored!');
             } else {
               console.log('✅ Google Drive connection confirmed active');
             }
@@ -171,26 +157,17 @@ const GoogleDriveSync = ({
             }
             setIsConnected(false);
           }
-        } else {
-          console.log('🔄 Stored token expired, removing...');
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('google_drive_token');
-            localStorage.removeItem('google_drive_token_expiry');
-          }
-          setIsConnected(false);
         }
-      } else if (isConnected) {
-        console.log('ℹ️ No stored token found, but UI shows connected - resetting state');
-        setIsConnected(false);
-      } else {
-        console.log('ℹ️ No stored token found and not connected');
       }
     };
 
     restoreConnection();
-  }, [isInitialized, isInitializing, hasTriedRestore]); // Only run when these specific conditions change
+  }, [isInitialized, isInitializing, hasTriedRestore]);
+  */
 
-  // Simplified window focus handler - only restore if there's a clear need
+  // DISABLED: Window focus handler was causing refreshes after tab navigation
+  // Connection persistence will rely solely on initial state restoration
+  /*
   useEffect(() => {
     let focusTimeout;
     
@@ -236,6 +213,38 @@ const GoogleDriveSync = ({
       window.removeEventListener('focus', handleWindowFocus);
     };
   }, [isInitialized, isInitializing, isConnected]);
+  */
+
+  // Simple manual token restoration for save/load operations
+  const ensureConnection = async () => {
+    if (!isInitialized || isConnected) return true;
+    
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
+    const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
+    
+    if (storedToken && storedExpiry) {
+      const now = Date.now();
+      const expiry = parseInt(storedExpiry);
+      
+      if (now < expiry) {
+        try {
+          window.gapi.client.setToken({ access_token: storedToken });
+          await window.gapi.client.drive.about.get();
+          setIsConnected(true);
+          console.log('✅ Connection restored for operation');
+          return true;
+        } catch (error) {
+          console.log('🔄 Stored token invalid - clearing');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('google_drive_token');
+            localStorage.removeItem('google_drive_token_expiry');
+          }
+        }
+      }
+    }
+    
+    return false;
+  };
 
   const initializeGoogleAPIs = async () => {
     // Load Google API script
@@ -621,6 +630,13 @@ const GoogleDriveSync = ({
       return;
     }
 
+    // Try to restore connection if needed
+    const connectionOk = await ensureConnection();
+    if (!connectionOk && !isConnected) {
+      showMessage('Please connect to Google Drive first.', true);
+      return;
+    }
+
     setIsSaving(true);
     clearMessage();
 
@@ -774,6 +790,13 @@ const GoogleDriveSync = ({
   };
 
   const handleLoad = async () => {
+    // Try to restore connection if needed
+    const connectionOk = await ensureConnection();
+    if (!connectionOk && !isConnected) {
+      showMessage('Please connect to Google Drive first.', true);
+      return;
+    }
+
     setIsLoading(true);
     setShowCancelButton(false);
     clearMessage();
