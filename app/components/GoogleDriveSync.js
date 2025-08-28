@@ -635,75 +635,10 @@ const GoogleDriveSync = ({
       const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
       console.log(`📊 File size: ${fileSizeMB}MB`);
       
-      // Check for very large files and mobile limitations
-      if (fileSizeBytes > 200 * 1024 * 1024) { // Over 200MB
-        if (isMobile) {
-          // Check if file is too large for mobile device
-          const hasMemoryAPI = 'memory' in performance;
-          const detectedMemoryMB = hasMemoryAPI ? Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024) : null;
-          
-          // Allow manual override via localStorage for advanced users
-          const manualMemoryOverride = localStorage.getItem('streaming_manual_memory_limit');
-          const memoryLimitMB = manualMemoryOverride ? parseInt(manualMemoryOverride) : (detectedMemoryMB || 100);
-          
-          const fileToMemoryRatio = fileSizeBytes / (memoryLimitMB * 1024 * 1024);
-          
-          console.log('📱 Mobile large file check:', {
-            fileSize: `${fileSizeMB}MB`,
-            hasMemoryAPI,
-            detectedMemory: detectedMemoryMB ? `${detectedMemoryMB}MB` : 'Not available',
-            manualOverride: manualMemoryOverride || 'None',
-            finalMemoryLimit: `${memoryLimitMB}MB`,
-            ratio: fileToMemoryRatio.toFixed(2),
-            browserInfo: navigator.userAgent.substring(0, 50) + '...'
-          });
-          
-          // Smart memory-based limit instead of hard 200MB cutoff
-          if (fileToMemoryRatio > 0.8) { // File is more than 80% of available memory - very risky
-            clearTimeout(timeout);
-            clearTimeout(cancelTimeout);
-            setIsLoading(false);
-            setLoadingStep('');
-            setLoadProgress({ step: 0, total: 0, message: '' });
-            const debugInfo = `Debug: hasMemoryAPI=${hasMemoryAPI}, detected=${detectedMemoryMB || 'none'}, override=${manualMemoryOverride || 'none'}`;
-            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Available memory: ${memoryLimitMB}MB${!hasMemoryAPI ? ' (estimated - memory detection not supported)' : ''}. ${debugInfo}. Try downloading on a device with more memory or reduce file size.`, true);
-            
-            // Show memory override tip for advanced users
-            if (!hasMemoryAPI && !manualMemoryOverride) {
-              setTimeout(() => {
-                console.log('💡 Advanced tip: If you believe your device has more memory, you can override the detection by running:');
-                console.log('localStorage.setItem("streaming_manual_memory_limit", "500"); // Replace 500 with your estimated memory in MB');
-                console.log('Then refresh and try again.');
-                
-                // Add UI button for mobile users
-                if (confirm('Memory detection failed (defaulting to 100MB). Would you like to override this limit? Most modern phones can handle 400-600MB.')) {
-                  const newLimit = prompt('Enter memory limit in MB (try 400 for most phones, 600 for newer phones):', '400');
-                  if (newLimit && !isNaN(newLimit)) {
-                    localStorage.setItem("streaming_manual_memory_limit", newLimit);
-                    alert(`Memory limit set to ${newLimit}MB. Please refresh the page and try again.`);
-                  }
-                }
-              }, 2000);
-            }
-            return;
-          }
-          
-          if (fileToMemoryRatio > 0.65) { // File is more than 65% of available memory - risky but might work
-            clearTimeout(timeout);
-            clearTimeout(cancelTimeout);
-            setIsLoading(false);
-            setLoadingStep('');
-            setLoadProgress({ step: 0, total: 0, message: '' });
-            showMessage(`❌ File too large for this mobile device (${fileSizeMB}MB). Device memory: ${memoryLimitMB}MB (${(fileToMemoryRatio*100).toFixed(1)}% usage). Try downloading on desktop or reduce file size.`, true);
-            return;
-          }
-          
-          const memoryUsagePercent = (fileToMemoryRatio * 100).toFixed(1);
-          showMessage(`⚠️ Large file (${fileSizeMB}MB) on mobile. Using ${memoryUsagePercent}% of available memory (${memoryLimitMB}MB). This may take several minutes.`, false);
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Give user time to read warning
-        } else {
-          showMessage(`⚠️ Large file detected (${fileSizeMB}MB). Download may take several minutes.`, false);
-        }
+      // Show warning for large files but let chunked download handle them
+      if (fileSizeBytes > 100 * 1024 * 1024) { // Over 100MB
+        const downloadMethod = isMobile ? `${Math.ceil(fileSizeBytes / (5 * 1024 * 1024))} chunks of 5MB each` : `${Math.ceil(fileSizeBytes / (10 * 1024 * 1024))} chunks of 10MB each`;
+        showMessage(`⚠️ Large file (${fileSizeMB}MB) will be downloaded using ${downloadMethod}. This may take a few minutes.`, false);
       }
       
       // Update progress with file size info
