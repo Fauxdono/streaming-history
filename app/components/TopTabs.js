@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
+import FontSizeDropdown from './FontSizeDropdown.js';
 
 const TopTabs = ({ 
   activeTab, 
@@ -21,7 +22,6 @@ const TopTabs = ({
   onHeightChange,   // New callback to communicate height changes to parent
   onWidthChange,    // New callback to communicate width changes to parent
   onCollapseChange, // New callback to communicate collapse state changes to parent
-  onSettingsClick,  // New callback for settings button
   position = 'top'  // New prop for initial position
 }) => {
   // Position state - cycles through top, right, bottom, left
@@ -29,6 +29,10 @@ const TopTabs = ({
   
   // Collapsed state for mobile - shows icons instead of full text
   const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  // Font size dropdown state
+  const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
+  const settingsButtonRef = useRef(null);
   
   // Check for mobile viewport
   const [isMobile, setIsMobile] = useState(false);
@@ -353,15 +357,14 @@ const TopTabs = ({
             </button>
 
             {/* Settings button */}
-            {onSettingsClick && (
-              <button 
-                onClick={onSettingsClick}
-                className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-                title="Settings"
-              >
-                <span className="text-xs">⚙️</span>
-              </button>
-            )}
+            <button 
+              ref={settingsButtonRef}
+              onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
+              className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
+              title="Font Size Settings"
+            >
+              <span className="text-xs">🔤</span>
+            </button>
 
             {/* Collapse toggle button - only show on mobile */}
             {isMobile && (
@@ -411,15 +414,14 @@ const TopTabs = ({
             </button>
 
             {/* Settings button */}
-            {onSettingsClick && (
-              <button 
-                onClick={onSettingsClick}
-                className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-                title="Settings"
-              >
-                <span className="text-xs">⚙️</span>
-              </button>
-            )}
+            <button 
+              ref={settingsButtonRef}
+              onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
+              className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
+              title="Font Size Settings"
+            >
+              <span className="text-xs">🔤</span>
+            </button>
 
             {/* Collapse toggle button - only show on mobile */}
             {isMobile && (
@@ -471,15 +473,14 @@ const TopTabs = ({
             </button>
 
             {/* Settings button */}
-            {onSettingsClick && (
-              <button 
-                onClick={onSettingsClick}
-                className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-                title="Settings"
-              >
-                <span className="text-xs">⚙️</span>
-              </button>
-            )}
+            <button 
+              ref={settingsButtonRef}
+              onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
+              className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
+              title="Font Size Settings"
+            >
+              <span className="text-xs">🔤</span>
+            </button>
 
             {/* Collapse toggle button - only show on mobile */}
             {isMobile && (
@@ -512,6 +513,13 @@ const TopTabs = ({
           </div>
         </div>
       )}
+      
+      {/* Font Size Dropdown */}
+      <FontSizeDropdown 
+        isOpen={showFontSizeDropdown}
+        onClose={() => setShowFontSizeDropdown(false)}
+        buttonRef={settingsButtonRef}
+      />
     </div>
   );
 };
