@@ -16,6 +16,7 @@ import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
+import Settings from './Settings.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
@@ -83,6 +84,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [selectedTrackYear, setSelectedTrackYear] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadedFileList, setUploadedFileList] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   
   // Simplified state - removed authentication
@@ -1574,6 +1576,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           onHeightChange={setTopTabsHeight}
           onWidthChange={setTopTabsWidth}
           onCollapseChange={setTopTabsCollapsed}
+          onSettingsClick={() => setShowSettings(true)}
           position={topTabsPosition}
         />
       )}
@@ -2736,6 +2739,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           />
         )}
       </div>
+      
+      {/* Settings Modal */}
+      <Settings 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
     </div>
   );
 };
