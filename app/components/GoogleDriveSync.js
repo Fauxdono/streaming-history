@@ -1061,7 +1061,14 @@ const GoogleDriveSync = ({
           <p className={`text-xs sm:text-sm hidden sm:block ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to organized "cakeculator" folder with original files</p>
           <p className={`text-xs sm:hidden ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to Google Drive</p>
         </div>
-        {isConnected && <div className="text-green-600 text-lg sm:text-xl">✅</div>}
+        {isConnected && (
+          <button
+            onClick={handleDisconnect}
+            className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            Disconnect
+          </button>
+        )}
       </div>
 
       {message && (
@@ -1101,22 +1108,6 @@ const GoogleDriveSync = ({
         </div>
       ) : (
         <div className="space-y-3 sm:space-y-4">
-          <div className="bg-green-50 p-3 sm:p-4 rounded-lg border border-green-200 flex justify-between items-center">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">G</div>
-              <div>
-                <p className="font-medium text-green-900 text-sm sm:text-base">Connected to Google Drive</p>
-                <p className="text-xs sm:text-sm text-green-700 hidden sm:block">Ready for large dataset storage</p>
-              </div>
-            </div>
-            <button
-              onClick={handleDisconnect}
-              className="text-xs sm:text-sm text-green-700 hover:text-green-900 underline"
-            >
-              Disconnect
-            </button>
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="p-3 sm:p-4 border border-gray-200 rounded-lg">
               <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">💾 Save Analysis</h4>
