@@ -1670,27 +1670,27 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
               {/* Full-width How to Use section with two columns */}
               <div className="mb-6">
-                <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/20 border-purple-600/30' : 'bg-purple-50 border-purple-200'}`}>
-                  <h3 className={`font-semibold mb-4 text-xl ${isDarkMode ? 'text-purple-200' : 'text-purple-900'}`}>How to use:</h3>
+                <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
+                  <h3 className={`font-semibold mb-4 text-xl ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left Column */}
                     <div className="space-y-4">
-                      <div className={`${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+                      <div className={`${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
                         <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
                           <span>Select your streaming service below</span>
                         </div>
                         <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
                           <span>Download your streaming history from your service</span>
                         </div>
                         <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
                           <span>Upload your file(s) or connect Google Drive for large files</span>
                         </div>
                         <div className="flex items-start gap-3 mb-4">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
                           <span>Click "Calculate Statistics" and explore your data</span>
                         </div>
                       </div>
@@ -1702,9 +1702,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         <button
                           onClick={handleLoadSampleData}
                           disabled={isProcessing}
-                          className="flex items-center gap-2 px-4 py-3 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm"
+                          className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
                         >
-                          <Download size={18} />
+                          <Download size={16} />
                           Try Demo
                         </button>
                         <p className={`text-sm mt-2 ${isDarkMode ? 'text-blue-400' : 'text-gray-600'}`}>
@@ -1712,9 +1712,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         </p>
                       </div>
                       
-                      <div className="mt-4 p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white">
-                        <p className="font-bold text-sm">📱 Download as Web App!</p>
-                        <p className="text-xs mt-1">Install directly to your device for offline access and faster loading. Look for the install icon in your browser!</p>
+                      <div className="mt-3 p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded text-white">
+                        <p className="font-bold text-xs">📱 Download as Web App!</p>
+                        <p className="text-xs mt-0.5">Install to your device for offline access. Look for the install icon!</p>
                       </div>
                     </div>
                   </div>
