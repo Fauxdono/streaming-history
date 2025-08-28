@@ -1671,7 +1671,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               {/* Full-width How to Use section with two columns */}
               <div className="mb-6">
                 <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
-                  <h3 className={`font-semibold mb-4 text-xl ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
+                  <h3 className={`font-semibold mb-4 text-base ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left Column */}
