@@ -1055,10 +1055,9 @@ const GoogleDriveSync = ({
   return (
     <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${isDarkMode ? 'bg-blue-900/20 border-blue-500/40' : 'bg-blue-50 border-blue-200'}`}>
       <div className="flex items-center space-x-2 sm:space-x-3">
-        <div className="text-lg sm:text-2xl">☁️</div>
         <div className="flex-1">
-          <h2 className={`text-lg sm:text-xl font-semibold ${isDarkMode ? 'text-blue-100' : 'text-blue-800'}`}>Google Drive Storage</h2>
-          <p className={`text-xs sm:text-sm hidden sm:block ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to organized "cakeculator" folder with original files</p>
+          <h2 className={`text-sm font-semibold ${isDarkMode ? 'text-blue-100' : 'text-blue-800'}`}>Google Drive Storage</h2>
+          <p className={`text-xs hidden sm:block ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to organized "cakeculator" folder with original files</p>
           <p className={`text-xs sm:hidden ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to Google Drive</p>
         </div>
         {isConnected && (
