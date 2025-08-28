@@ -16,17 +16,25 @@ const GoogleDriveSync = ({
   uploadedFileList = null,
   onDataLoaded 
 }) => {
-  // Check localStorage for initial connection state
+  // Check localStorage for initial connection state (only in browser)
   const [isConnected, setIsConnected] = useState(() => {
-    // Initialize with stored connection state if available
-    const storedToken = localStorage.getItem('google_drive_token');
-    const storedExpiry = localStorage.getItem('google_drive_token_expiry');
+    // Only access localStorage in the browser (not during SSR)
+    if (typeof window === 'undefined') return false;
     
-    if (storedToken && storedExpiry) {
-      const now = Date.now();
-      const expiry = parseInt(storedExpiry);
-      return now < expiry; // Start as connected if we have a valid token
+    try {
+      // Initialize with stored connection state if available
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
+      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
+      
+      if (storedToken && storedExpiry) {
+        const now = Date.now();
+        const expiry = parseInt(storedExpiry);
+        return now < expiry; // Start as connected if we have a valid token
+      }
+    } catch (error) {
+      console.warn('Failed to access localStorage:', error);
     }
+    
     return false;
   });
   const [isConnecting, setIsConnecting] = useState(false);
@@ -106,8 +114,8 @@ const GoogleDriveSync = ({
       });
       
       // Check if we have a stored access token that's still valid
-      const storedToken = localStorage.getItem('google_drive_token');
-      const storedExpiry = localStorage.getItem('google_drive_token_expiry');
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
+      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
       
       console.log('📱 Storage check:', {
         hasToken: !!storedToken,
@@ -152,14 +160,18 @@ const GoogleDriveSync = ({
           } catch (testError) {
             console.error('❌ Connection test failed:', testError);
             console.log('🔄 Stored token expired or invalid, need to reconnect');
-            localStorage.removeItem('google_drive_token');
-            localStorage.removeItem('google_drive_token_expiry');
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('google_drive_token');
+              localStorage.removeItem('google_drive_token_expiry');
+            }
             setIsConnected(false);
           }
         } else {
           console.log('🔄 Stored token expired, removing...');
-          localStorage.removeItem('google_drive_token');
-          localStorage.removeItem('google_drive_token_expiry');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('google_drive_token');
+            localStorage.removeItem('google_drive_token_expiry');
+          }
           setIsConnected(false);
         }
       } else if (isConnected) {
@@ -181,8 +193,8 @@ const GoogleDriveSync = ({
       
       console.log('👁️ Window focused - ensuring Google Drive connection...');
       
-      const storedToken = localStorage.getItem('google_drive_token');
-      const storedExpiry = localStorage.getItem('google_drive_token_expiry');
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
+      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
       
       if (storedToken && storedExpiry) {
         const now = Date.now();
@@ -208,14 +220,18 @@ const GoogleDriveSync = ({
             }
           } catch (testError) {
             console.log('🔄 Window focus: Stored token invalid, removing...');
-            localStorage.removeItem('google_drive_token');
-            localStorage.removeItem('google_drive_token_expiry');
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('google_drive_token');
+              localStorage.removeItem('google_drive_token_expiry');
+            }
             setIsConnected(false);
           }
         } else {
           console.log('👁️ Window focus: Token expired');
-          localStorage.removeItem('google_drive_token');
-          localStorage.removeItem('google_drive_token_expiry');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('google_drive_token');
+            localStorage.removeItem('google_drive_token_expiry');
+          }
           setIsConnected(false);
         }
       } else if (isConnected) {
@@ -572,8 +588,10 @@ const GoogleDriveSync = ({
           
           // Store token and expiry time for persistence
           const expiryTime = Date.now() + (tokenResponse.expires_in * 1000); // expires_in is in seconds
-          localStorage.setItem('google_drive_token', tokenResponse.access_token);
-          localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('google_drive_token', tokenResponse.access_token);
+            localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
+          }
           
           setIsConnected(true);
           setIsConnecting(false);
@@ -595,8 +613,10 @@ const GoogleDriveSync = ({
     }
     
     // Clear stored tokens
-    localStorage.removeItem('google_drive_token');
-    localStorage.removeItem('google_drive_token_expiry');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('google_drive_token');
+      localStorage.removeItem('google_drive_token_expiry');
+    }
     
     setIsConnected(false);
     showMessage('Disconnected from Google Drive');
