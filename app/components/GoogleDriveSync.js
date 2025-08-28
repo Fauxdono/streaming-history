@@ -115,6 +115,10 @@ const GoogleDriveSync = ({
   // Validate stored token when APIs are initialized (only on app startup)
   useEffect(() => {
     const validateStoredToken = async () => {
+      // TEMPORARILY DISABLE VALIDATION TO TEST CONNECTION STABILITY
+      console.log('🔍 Token validation temporarily disabled for testing');
+      return;
+      
       // Only validate on initial load, not when user just connected
       if (!isInitialized || isInitializing || isConnecting) return;
       
