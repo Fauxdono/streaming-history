@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useContext } from 'react';
-import { ThemeContext } from './themeprovider';
+import React, { useState, useEffect } from 'react';
+import { useTheme } from './themeprovider';
 
 const Settings = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
-  const { isDarkMode } = useContext(ThemeContext);
+  
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   const [fontSize, setFontSize] = useState('medium');
 
   // Load saved font size on component mount
