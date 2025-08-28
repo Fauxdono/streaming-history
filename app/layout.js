@@ -58,6 +58,22 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
+        
+        {/* Font Size Initialization */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              try {
+                const savedFontSize = localStorage.getItem('app-font-size') || 'medium';
+                document.documentElement.classList.remove('font-small', 'font-medium', 'font-large', 'font-xlarge');
+                document.documentElement.classList.add('font-' + savedFontSize);
+              } catch (e) {
+                // Fallback if localStorage is not available
+                document.documentElement.classList.add('font-medium');
+              }
+            })();
+          `
+        }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} antialiased`}

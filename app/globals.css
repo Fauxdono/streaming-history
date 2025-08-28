@@ -477,6 +477,66 @@ body {
   scrollbar-color: rgba(124, 58, 237, 0.8) rgba(31, 41, 55, 0.3);
 }
 
+/* Font Size Settings */
+:root {
+  --font-scale-small: 0.875;
+  --font-scale-medium: 1;
+  --font-scale-large: 1.125;
+  --font-scale-xlarge: 1.25;
+}
+
+/* Small font size (like upload page) */
+.font-small {
+  --tw-text-opacity: 1;
+}
+.font-small * {
+  font-size: calc(var(--tw-text-base) * var(--font-scale-small)) !important;
+}
+.font-small .text-xs { font-size: 0.625rem !important; }
+.font-small .text-sm { font-size: 0.75rem !important; }
+.font-small .text-base { font-size: 0.875rem !important; }
+.font-small .text-lg { font-size: 1rem !important; }
+.font-small .text-xl { font-size: 1.125rem !important; }
+.font-small .text-2xl { font-size: 1.25rem !important; }
+.font-small .text-3xl { font-size: 1.5rem !important; }
+.font-small .text-4xl { font-size: 1.875rem !important; }
+
+/* Medium font size (default) */
+.font-medium {
+  /* Uses default Tailwind sizes */
+}
+
+/* Large font size */
+.font-large .text-xs { font-size: 0.875rem !important; }
+.font-large .text-sm { font-size: 1rem !important; }
+.font-large .text-base { font-size: 1.125rem !important; }
+.font-large .text-lg { font-size: 1.25rem !important; }
+.font-large .text-xl { font-size: 1.375rem !important; }
+.font-large .text-2xl { font-size: 1.625rem !important; }
+.font-large .text-3xl { font-size: 1.875rem !important; }
+.font-large .text-4xl { font-size: 2.25rem !important; }
+
+/* Extra Large font size */
+.font-xlarge .text-xs { font-size: 1rem !important; }
+.font-xlarge .text-sm { font-size: 1.125rem !important; }
+.font-xlarge .text-base { font-size: 1.25rem !important; }
+.font-xlarge .text-lg { font-size: 1.375rem !important; }
+.font-xlarge .text-xl { font-size: 1.5rem !important; }
+.font-xlarge .text-2xl { font-size: 1.875rem !important; }
+.font-xlarge .text-3xl { font-size: 2.25rem !important; }
+.font-xlarge .text-4xl { font-size: 2.75rem !important; }
+
+/* Apply font scaling to common elements */
+.font-small p, .font-small span, .font-small div, .font-small button, .font-small input, .font-small label { 
+  font-size: 0.875rem !important; 
+}
+.font-large p, .font-large span, .font-large div, .font-large button, .font-large input, .font-large label { 
+  font-size: 1.125rem !important; 
+}
+.font-xlarge p, .font-xlarge span, .font-xlarge div, .font-xlarge button, .font-xlarge input, .font-xlarge label { 
+  font-size: 1.25rem !important; 
+}
+
 /* Loading animation */
 .loading-cake-image {
   mix-blend-mode: multiply;
