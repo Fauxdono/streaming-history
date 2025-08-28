@@ -103,6 +103,54 @@ const GoogleDriveSync = ({
     initializeAPIs();
   }, []);
 
+  // Validate stored token when APIs are initialized
+  useEffect(() => {
+    const validateStoredToken = async () => {
+      // Only validate if we think we're connected and APIs are ready
+      if (!isConnected || !isInitialized || isInitializing) return;
+      
+      console.log('🔍 Validating stored Google Drive token...');
+      
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
+      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
+      
+      if (!storedToken || !storedExpiry) {
+        console.log('❌ No stored token found, disconnecting');
+        setIsConnected(false);
+        return;
+      }
+      
+      const now = Date.now();
+      const expiry = parseInt(storedExpiry);
+      
+      if (now >= expiry) {
+        console.log('⏰ Stored token expired, disconnecting');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('google_drive_token');
+          localStorage.removeItem('google_drive_token_expiry');
+        }
+        setIsConnected(false);
+        return;
+      }
+      
+      try {
+        // Test the token by making a simple API call
+        window.gapi.client.setToken({ access_token: storedToken });
+        await window.gapi.client.drive.about.get();
+        console.log('✅ Stored token is valid and working');
+      } catch (error) {
+        console.log('❌ Stored token is invalid, disconnecting:', error.message);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('google_drive_token');
+          localStorage.removeItem('google_drive_token_expiry');
+        }
+        setIsConnected(false);
+      }
+    };
+
+    validateStoredToken();
+  }, [isInitialized, isConnected, isInitializing]);
+
   // DISABLED: Check for stored connection once when APIs are initialized
   // This was causing refreshes, so we rely only on the initial useState restoration
   /*
