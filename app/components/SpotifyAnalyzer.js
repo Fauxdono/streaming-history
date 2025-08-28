@@ -1711,7 +1711,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               </div>
                 
               <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-orange-900/20 border-orange-600/30' : 'bg-orange-50 border-orange-200'}`}>
-                <p className={`mb-3 font-bold text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
+                <p className={`mb-3 font-bold text-sm ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`} style={{ textShadow: '1px 1px 0px #000000, -1px -1px 0px #000000, 1px -1px 0px #000000, -1px 1px 0px #000000' }}>
                   Upload your streaming history files:
                 </p>
                 <p className={`mb-3 text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-600'}`}>
