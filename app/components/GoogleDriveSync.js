@@ -193,129 +193,83 @@ const GoogleDriveSync = ({
         throw new Error(`Download failed: ${response.status} ${response.statusText}`);
       }
 
-      // For ultra-large files on mobile, try browser-native approach first
-      if (isUltraLarge && isMobile) {
-        console.log('🚀 Ultra-large mobile file: Attempting memory-safe approach...');
-        
-        // Show indeterminate progress since we can't track with response.text()
-        setLoadProgress({ 
-          step: 4, 
-          total: 6, 
-          message: `Processing large file (${(fileSizeBytes/1024/1024).toFixed(1)}MB) - this may take several minutes...` 
-        });
-        
-        // Add periodic memory checks while waiting
-        const memoryCheckInterval = setInterval(() => {
-          if ('memory' in performance) {
-            const memInfo = performance.memory;
-            const memoryUsage = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
-            console.log(`📱 Memory usage during processing: ${memoryUsage.toFixed(1)}%`);
-            
-            if (memoryUsage > 85) {
-              console.warn('📱 High memory usage detected during processing');
-              if (window.gc) {
-                try {
-                  window.gc();
-                  console.log('📱 Garbage collection triggered during processing');
-                } catch (e) {}
-              }
-            }
-          }
-        }, 2000);
-        
-        try {
-          // Let browser handle the entire response - this might be more memory efficient
-          console.log('📱 Starting browser-native text extraction...');
-          const text = await response.text();
-          clearInterval(memoryCheckInterval);
-          console.log('✅ Browser-native streaming complete');
-          return { body: text };
-        } catch (error) {
-          clearInterval(memoryCheckInterval);
-          console.error('❌ Browser-native streaming failed:', error);
-          throw new Error(`Mobile browser ran out of memory processing ${(fileSizeBytes/1024/1024).toFixed(1)}MB file. Try using a desktop computer or reducing file size.`);
-        }
-      }
-
-      // For all other cases, use streaming approach
+      // Always use streaming approach - process in chunks to prevent memory overload
       const reader = response.body.getReader();
       let downloadedBytes = 0;
       let lastProgressUpdate = 0;
       let textResult = '';
       const textDecoder = new TextDecoder();
-
-      if (isUltraLarge) {
-        console.log('🚀 Processing ultra-large file with aggressive memory management...');
+      
+      // Mobile-specific memory management for large files
+      if (isUltraLarge && isMobile) {
+        console.log('📱 Mobile ultra-large file: Using chunked streaming with memory optimization...');
         
-        // For mobile, implement even more aggressive memory management
-        if (isMobile) {
-          console.log('📱 Mobile ultra-large file: Using maximum memory optimization...');
+        // Check available memory before starting (if supported)
+        if ('memory' in performance) {
+          const memInfo = performance.memory;
+          console.log('📱 Memory before download:', {
+            used: Math.round(memInfo.usedJSHeapSize / 1024 / 1024) + 'MB',
+            total: Math.round(memInfo.totalJSHeapSize / 1024 / 1024) + 'MB',
+            limit: Math.round(memInfo.jsHeapSizeLimit / 1024 / 1024) + 'MB'
+          });
           
-          // Check available memory before starting (if supported)
-          if ('memory' in performance) {
-            const memInfo = performance.memory;
-            console.log('📱 Memory before download:', {
-              used: Math.round(memInfo.usedJSHeapSize / 1024 / 1024) + 'MB',
-              total: Math.round(memInfo.totalJSHeapSize / 1024 / 1024) + 'MB',
-              limit: Math.round(memInfo.jsHeapSizeLimit / 1024 / 1024) + 'MB'
-            });
-            
-            // If memory usage is already high, warn user
-            const memoryUsagePercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
-            if (memoryUsagePercent > 60) {
-              console.warn('📱 High memory usage detected before download:', memoryUsagePercent.toFixed(1) + '%');
-              setLoadProgress({ 
-                step: 4, 
-                total: 6, 
-                message: `⚠️ High memory usage - processing may be slow...` 
-              });
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-        }
-        
-        let memoryCheckCounter = 0;
-        
-        while (true) {
-          const { done, value } = await reader.read();
-
-          if (done) break;
-
-          // For ultra-large mobile files, check against memory limits instead of hard cutoff
-          // (Memory limits are checked earlier in handleLoad, so if we get here, user has sufficient memory)
-          
-          // Convert each chunk to text immediately instead of storing in memory
-          const chunkText = textDecoder.decode(value, { stream: true });
-          textResult += chunkText;
-          downloadedBytes += value.length;
-          memoryCheckCounter++;
-
-          // Update progress every 5MB and yield for mobile
-          const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
-          const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
-          const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
-          
-          if (downloadedBytes - lastProgressUpdate > 5 * 1024 * 1024) {
+          // If memory usage is already high, warn user
+          const memoryUsagePercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
+          if (memoryUsagePercent > 60) {
+            console.warn('📱 High memory usage detected before download:', memoryUsagePercent.toFixed(1) + '%');
             setLoadProgress({ 
               step: 4, 
               total: 6, 
-              message: `Processing... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
+              message: `⚠️ High memory usage - processing may be slow...` 
             });
-            console.log(`📥 Processed: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
-            lastProgressUpdate = downloadedBytes;
-            
-            // More aggressive yielding for mobile with memory checks
-            if (isMobile) {
-              // Check memory every 10MB on mobile
-              if (memoryCheckCounter % 10 === 0 && 'memory' in performance) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+      }
+      
+      let memoryCheckCounter = 0;
+      
+      // Stream processing - always process chunks immediately to avoid memory buildup
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Convert chunk to text immediately to avoid storing raw bytes in memory
+        const chunkText = textDecoder.decode(value, { stream: true });
+        textResult += chunkText;
+        downloadedBytes += value.length;
+        memoryCheckCounter++;
+
+        // Update progress and check memory more frequently on mobile
+        const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
+        const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
+        const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
+        
+        // Update progress every 2MB for ultra-large mobile files, 5MB for others
+        const progressUpdateInterval = (isUltraLarge && isMobile) ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
+        
+        if (downloadedBytes - lastProgressUpdate > progressUpdateInterval) {
+          setLoadProgress({ 
+            step: 4, 
+            total: 6, 
+            message: `Processing... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
+          });
+          console.log(`📥 Processed: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
+          lastProgressUpdate = downloadedBytes;
+          
+          // Mobile-specific memory management and yielding
+          if (isMobile) {
+            // Check memory more frequently for ultra-large files
+            if ((isUltraLarge && memoryCheckCounter % 5 === 0) || memoryCheckCounter % 10 === 0) {
+              if ('memory' in performance) {
                 const memInfo = performance.memory;
                 const currentMemoryPercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
                 
                 if (currentMemoryPercent > 80) {
-                  console.warn('📱 Memory usage high:', currentMemoryPercent.toFixed(1) + '% - increasing delays');
-                  await new Promise(resolve => setTimeout(resolve, 100));
+                  console.warn('📱 Memory usage high:', currentMemoryPercent.toFixed(1) + '% - slowing down processing');
+                  await new Promise(resolve => setTimeout(resolve, isUltraLarge ? 150 : 100));
                   
-                  // Try to trigger garbage collection
+                  // Trigger garbage collection if available
                   if (window.gc) {
                     try {
                       window.gc();
@@ -323,75 +277,35 @@ const GoogleDriveSync = ({
                     } catch (e) {}
                   }
                 } else {
-                  await new Promise(resolve => setTimeout(resolve, 25));
+                  // Normal yielding - longer for ultra-large files
+                  await new Promise(resolve => setTimeout(resolve, isUltraLarge ? 50 : 25));
                 }
               } else {
-                await new Promise(resolve => setTimeout(resolve, progressPercent % 5 === 0 ? 50 : 15));
+                // No memory API - use conservative delays
+                await new Promise(resolve => setTimeout(resolve, isUltraLarge ? 100 : 50));
               }
             }
           }
+        }
+        
+        // Emergency memory check - abort if critical
+        if (isMobile && memoryCheckCounter % (isUltraLarge ? 10 : 20) === 0 && 'memory' in performance) {
+          const memInfo = performance.memory;
+          const criticalMemoryPercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
           
-          // Emergency memory check - abort if getting too high
-          if (isMobile && memoryCheckCounter % 20 === 0 && 'memory' in performance) {
-            const memInfo = performance.memory;
-            const criticalMemoryPercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
-            
-            if (criticalMemoryPercent > 90) {
-              console.error('📱 CRITICAL: Memory usage too high:', criticalMemoryPercent.toFixed(1) + '% - aborting download');
-              throw new Error(`Mobile memory limit reached (${criticalMemoryPercent.toFixed(1)}%). File too large for mobile device.`);
-            }
+          if (criticalMemoryPercent > 90) {
+            console.error('📱 CRITICAL: Memory usage too high:', criticalMemoryPercent.toFixed(1) + '% - aborting');
+            throw new Error(`Mobile memory critical (${criticalMemoryPercent.toFixed(1)}%). File too large for device.`);
           }
         }
-        
-        // Finalize any remaining bytes
-        const finalChunk = textDecoder.decode();
-        if (finalChunk) textResult += finalChunk;
-        
-        console.log('✅ Ultra-large file streaming conversion complete');
-        return { body: textResult };
-        
-      } else {
-        // Standard approach for smaller files
-        const chunks = [];
-        
-        while (true) {
-          const { done, value } = await reader.read();
-
-          if (done) break;
-
-          chunks.push(value);
-          downloadedBytes += value.length;
-
-          // Update progress every 5MB or every 10% to avoid too frequent updates
-          const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
-          const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
-          const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
-          
-          if (downloadedBytes - lastProgressUpdate > 5 * 1024 * 1024 || progressPercent % 10 === 0) {
-            setLoadProgress({ 
-              step: 4, 
-              total: 6, 
-              message: `Downloading... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
-            });
-            console.log(`📥 Downloaded: ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)`);
-            lastProgressUpdate = downloadedBytes;
-          }
-        }
-
-        // Convert chunks to text - standard approach
-        console.log('🔄 Converting downloaded data to text...');
-        const uint8Array = new Uint8Array(downloadedBytes);
-        let position = 0;
-        for (const chunk of chunks) {
-          uint8Array.set(chunk, position);
-          position += chunk.length;
-        }
-
-        const text = textDecoder.decode(uint8Array);
-        
-        console.log('✅ Standard download and conversion complete');
-        return { body: text };
       }
+      
+      // Finalize any remaining bytes
+      const finalChunk = textDecoder.decode();
+      if (finalChunk) textResult += finalChunk;
+      
+      console.log('✅ Streaming download and conversion complete');
+      return { body: textResult };
 
     } catch (error) {
       console.error('❌ Streaming download failed:', error);
