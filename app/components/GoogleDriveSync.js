@@ -1074,18 +1074,14 @@ const GoogleDriveSync = ({
       )}
 
       {!isConnected ? (
-        <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200 text-center">
-          <h3 className="text-base sm:text-lg font-semibold text-blue-900 mb-2">Connect Google Drive</h3>
-          <p className="text-blue-700 mb-3 sm:mb-4 text-sm sm:text-base hidden sm:block">
-            Save your streaming analysis to Google Drive for secure cloud storage and access from any device.
-          </p>
-          <p className="text-blue-700 mb-3 text-xs sm:hidden">
+        <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200 text-center">
+          <p className="text-blue-700 mb-3 text-xs sm:text-sm">
             Save analysis to Google Drive for cloud access
           </p>
           <button
             onClick={handleConnect}
             disabled={isConnecting || isInitializing}
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base"
+            className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm"
           >
             {isInitializing ? 'Initializing...' : isConnecting ? 'Connecting...' : 'Connect Google Drive'}
           </button>
