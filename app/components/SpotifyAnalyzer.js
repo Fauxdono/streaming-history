@@ -1632,24 +1632,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           
           {activeTab === 'upload' && (
             <div>
-              {/* Device Authentication Section (Temporary revert) */}
-              {/* Google Drive Storage */}
-              <div className="mb-6">
-                <GoogleDriveSync
-                  stats={stats}
-                  processedData={processedData}
-                  topArtists={topArtists}
-                  topAlbums={topAlbums}
-                  briefObsessions={briefObsessions}
-                  songsByYear={songsByYear}
-                  rawPlayData={rawPlayData}
-                  artistsByYear={artistsByYear}
-                  albumsByYear={albumsByYear}
-                  uploadedFiles={uploadedFiles}
-                  uploadedFileList={uploadedFileList}
-                  onDataLoaded={handleDataLoaded}
-                />
-              </div>
 
               {/* Storage Notification */}
               {storageNotification && (
@@ -1686,52 +1668,88 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-                <div className={`p-3 sm:p-4 border rounded ${isDarkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'}`}>
-                  <h3 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>How to use:</h3>
-                  <ol className={`list-decimal list-inside space-y-2 ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-                    <li>Select your streaming service below</li>
-                    <li>Download your streaming history</li>
-                    <li>Upload your file(s)</li>
-
-                    <div className="mt-4">
-                      <button
-                        onClick={handleLoadSampleData}
-                        disabled={isProcessing}
-                        className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 text-sm bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm"
-                      >
-                        <Download size={16} />
-                        Try Demo
-                      </button>
-                      <p className={`text-sm mt-2 ${isDarkMode ? 'text-blue-400' : 'text-gray-600'}`}>
-                        Want to test the app? Click to load sample streaming history.
-                      </p>
+              {/* Full-width How to Use section with two columns */}
+              <div className="mb-6">
+                <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'}`}>
+                  <h3 className={`font-semibold mb-4 text-xl ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>How to use:</h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Left Column */}
+                    <div className="space-y-4">
+                      <div className={`${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                        <div className="flex items-start gap-3 mb-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                          <span>Select your streaming service below</span>
+                        </div>
+                        <div className="flex items-start gap-3 mb-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                          <span>Download your streaming history from your service</span>
+                        </div>
+                        <div className="flex items-start gap-3 mb-3">
+                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                          <span>Upload your file(s) or connect Google Drive for large files</span>
+                        </div>
+                        <div className="flex items-start gap-3 mb-4">
+                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                          <span>Click "Calculate Statistics" and explore your data</span>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <button
+                          onClick={handleLoadSampleData}
+                          disabled={isProcessing}
+                          className="flex items-center gap-2 px-4 py-3 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm"
+                        >
+                          <Download size={18} />
+                          Try Demo
+                        </button>
+                        <p className={`text-sm mt-2 ${isDarkMode ? 'text-blue-400' : 'text-gray-600'}`}>
+                          Want to test the app? Click to load sample streaming history.
+                        </p>
+                      </div>
                     </div>
-                    <li>Click "Calculate Statistics"</li>
-                  </ol>
-                </div>
-                
-                <div className={`p-3 sm:p-4 border rounded ${isDarkMode ? 'bg-green-900/20 border-green-600/30' : 'bg-green-50 border-green-200'}`}>
-                  <h3 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-green-200' : 'text-green-900'}`}>Install as App:</h3>
-                  <div className={`space-y-3 ${isDarkMode ? 'text-green-300' : 'text-green-700'}`}>
-                
-                    <div className="space-y-1">
-                      <h4 className={`font-medium ${isDarkMode ? 'text-green-200' : 'text-green-800'}`}>Desktop:</h4>
-                      <p className="text-sm">1. Open in Chrome/Edge</p>
-                      <p className="text-sm">2. Click install icon in address bar</p>
-
+                    
+                    {/* Right Column */}
+                    <div className={`${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                      <div className="space-y-3">
+                        <p className="font-medium">✨ Features:</p>
+                        <ul className="space-y-2 text-sm">
+                          <li>• Detailed listening statistics and patterns</li>
+                          <li>• Top artists, albums, and tracks analysis</li>
+                          <li>• Listening behavior insights by time</li>
+                          <li>• Discovery patterns and music exploration</li>
+                          <li>• Year-by-year comparisons and trends</li>
+                          <li>• Export results to Excel for sharing</li>
+                          <li>• Google Drive sync for large datasets</li>
+                        </ul>
+                        
+                        <div className="mt-4 p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white">
+                          <p className="font-bold text-sm">📱 Download as Web App!</p>
+                          <p className="text-xs mt-1">Install directly to your device for offline access and faster loading. Look for the install icon in your browser!</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <h4 className={`font-medium ${isDarkMode ? 'text-green-200' : 'text-green-800'}`}>Mobile:</h4>
-                      <p className="text-sm">1. Open in Safari/Chrome</p>
-                      <p className="text-sm">2. Add to Home Screen</p>
-                
-                    </div>
-                    <p className={`text-sm ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
-                      Enjoy offline access & faster loading
-                    </p>
                   </div>
                 </div>
+              </div>
+              
+              {/* Google Drive Storage */}
+              <div className="mb-6">
+                <GoogleDriveSync
+                  stats={stats}
+                  processedData={processedData}
+                  topArtists={topArtists}
+                  topAlbums={topAlbums}
+                  briefObsessions={briefObsessions}
+                  songsByYear={songsByYear}
+                  rawPlayData={rawPlayData}
+                  artistsByYear={artistsByYear}
+                  albumsByYear={albumsByYear}
+                  uploadedFiles={uploadedFiles}
+                  uploadedFileList={uploadedFileList}
+                  onDataLoaded={handleDataLoaded}
+                />
               </div>
                 
               <div className="mt-6 mb-4">
