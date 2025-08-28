@@ -103,22 +103,26 @@ const GoogleDriveSync = ({
     initializeAPIs();
   }, []);
 
-  // Validate stored token when APIs are initialized
+  // Validate stored token when APIs are initialized (only on app startup)
   useEffect(() => {
     const validateStoredToken = async () => {
-      // Only validate if we think we're connected and APIs are ready
-      if (!isConnected || !isInitialized || isInitializing) return;
+      // Only validate on initial load, not when user just connected
+      if (!isInitialized || isInitializing || isConnecting) return;
       
-      console.log('🔍 Validating stored Google Drive token...');
-      
+      // Only validate if we restored connection state from localStorage on startup
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
       const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
       
-      if (!storedToken || !storedExpiry) {
-        console.log('❌ No stored token found, disconnecting');
-        setIsConnected(false);
+      // If we're connected but have no stored token, this was a fresh connection - skip validation
+      if (isConnected && (!storedToken || !storedExpiry)) {
+        console.log('✅ Fresh connection, skipping validation');
         return;
       }
+      
+      // Only validate if we're supposedly connected AND we have stored credentials
+      if (!isConnected || !storedToken || !storedExpiry) return;
+      
+      console.log('🔍 Validating stored Google Drive token on startup...');
       
       const now = Date.now();
       const expiry = parseInt(storedExpiry);
@@ -148,8 +152,11 @@ const GoogleDriveSync = ({
       }
     };
 
-    validateStoredToken();
-  }, [isInitialized, isConnected, isInitializing]);
+    // Add a small delay to avoid validating immediately after connection
+    const timeoutId = setTimeout(validateStoredToken, 1000);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isInitialized]);
 
   // DISABLED: Check for stored connection once when APIs are initialized
   // This was causing refreshes, so we rely only on the initial useState restoration
