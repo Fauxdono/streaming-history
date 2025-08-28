@@ -1740,6 +1740,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   uploadedFiles={uploadedFiles}
                   uploadedFileList={uploadedFileList}
                   onDataLoaded={handleDataLoaded}
+                  isDarkMode={isDarkMode}
                 />
               </div>
                 

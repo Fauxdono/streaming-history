@@ -14,7 +14,8 @@ const GoogleDriveSync = ({
   albumsByYear = {},
   uploadedFiles = [],
   uploadedFileList = null,
-  onDataLoaded 
+  onDataLoaded,
+  isDarkMode = false 
 }) => {
   // Check localStorage for initial connection state (only in browser)
   const [isConnected, setIsConnected] = useState(() => {
@@ -1052,13 +1053,13 @@ const GoogleDriveSync = ({
   };
 
   return (
-    <div className="bg-white p-3 sm:p-6 rounded-lg border border-gray-200 space-y-3 sm:space-y-4">
+    <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${isDarkMode ? 'bg-blue-900/20 border-blue-500/40' : 'bg-blue-50 border-blue-200'}`}>
       <div className="flex items-center space-x-2 sm:space-x-3">
         <div className="text-lg sm:text-2xl">☁️</div>
         <div className="flex-1">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Google Drive Storage</h2>
-          <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Save to organized "cakeculator" folder with original files</p>
-          <p className="text-xs text-gray-600 sm:hidden">Save to Google Drive</p>
+          <h2 className={`text-lg sm:text-xl font-semibold ${isDarkMode ? 'text-blue-100' : 'text-blue-800'}`}>Google Drive Storage</h2>
+          <p className={`text-xs sm:text-sm hidden sm:block ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to organized "cakeculator" folder with original files</p>
+          <p className={`text-xs sm:hidden ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to Google Drive</p>
         </div>
         {isConnected && <div className="text-green-600 text-lg sm:text-xl">✅</div>}
       </div>
@@ -1074,7 +1075,6 @@ const GoogleDriveSync = ({
 
       {!isConnected ? (
         <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200 text-center">
-          <div className="text-2xl sm:text-4xl mb-2 sm:mb-4">🔗</div>
           <h3 className="text-base sm:text-lg font-semibold text-blue-900 mb-2">Connect Google Drive</h3>
           <p className="text-blue-700 mb-3 sm:mb-4 text-sm sm:text-base hidden sm:block">
             Save your streaming analysis to Google Drive for secure cloud storage and access from any device.
