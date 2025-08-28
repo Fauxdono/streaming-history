@@ -18,7 +18,7 @@ const GoogleDriveSync = ({
   isDarkMode = false 
 }) => {
   // Check localStorage for initial connection state (only in browser)
-  const [isConnected, setIsConnected] = useState(() => {
+  const [isConnected, setIsConnectedState] = useState(() => {
     // Only access localStorage in the browser (not during SSR)
     if (typeof window === 'undefined') return false;
     
@@ -38,6 +38,15 @@ const GoogleDriveSync = ({
     
     return false;
   });
+  
+  // Logging wrapper for setIsConnected to track all disconnections
+  const setIsConnected = (newState) => {
+    if (newState === false && isConnected === true) {
+      console.log('🚨 DISCONNECTION DETECTED:', new Error().stack);
+    }
+    setIsConnectedState(newState);
+  };
+  
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,7 +137,7 @@ const GoogleDriveSync = ({
       const expiry = parseInt(storedExpiry);
       
       if (now >= expiry) {
-        console.log('⏰ Stored token expired, disconnecting');
+        console.log('🔍 TOKEN VALIDATION: ⏰ Stored token expired, disconnecting');
         if (typeof window !== 'undefined') {
           localStorage.removeItem('google_drive_token');
           localStorage.removeItem('google_drive_token_expiry');
@@ -143,7 +152,7 @@ const GoogleDriveSync = ({
         await window.gapi.client.drive.about.get();
         console.log('✅ Stored token is valid and working');
       } catch (error) {
-        console.log('❌ Stored token is invalid, disconnecting:', error.message);
+        console.log('🔍 TOKEN VALIDATION: ❌ Stored token is invalid, disconnecting:', error.message);
         if (typeof window !== 'undefined') {
           localStorage.removeItem('google_drive_token');
           localStorage.removeItem('google_drive_token_expiry');
@@ -206,7 +215,7 @@ const GoogleDriveSync = ({
             }
           } catch (testError) {
             console.error('❌ Connection test failed:', testError);
-            console.log('🔄 Stored token expired or invalid, need to reconnect');
+            console.log('🔍 RESTORE CONNECTION: 🔄 Stored token expired or invalid, need to reconnect');
             if (typeof window !== 'undefined') {
               localStorage.removeItem('google_drive_token');
               localStorage.removeItem('google_drive_token_expiry');
@@ -252,7 +261,7 @@ const GoogleDriveSync = ({
               setIsConnected(true);
               console.log('✅ Connection restored on window focus');
             } catch (error) {
-              console.log('🔄 Focus restore failed - token invalid');
+              console.log('🔍 FOCUS RESTORE: 🔄 Focus restore failed - token invalid');
               if (typeof window !== 'undefined') {
                 localStorage.removeItem('google_drive_token');
                 localStorage.removeItem('google_drive_token_expiry');
@@ -290,7 +299,7 @@ const GoogleDriveSync = ({
           console.log('✅ Connection restored for operation');
           return true;
         } catch (error) {
-          console.log('🔄 Stored token invalid - clearing');
+          console.log('🔍 ENSURE CONNECTION: 🔄 Stored token invalid - clearing');
           if (typeof window !== 'undefined') {
             localStorage.removeItem('google_drive_token');
             localStorage.removeItem('google_drive_token_expiry');
@@ -677,6 +686,7 @@ const GoogleDriveSync = ({
     }
     
     setIsConnected(false);
+    console.log('🔍 MANUAL DISCONNECT: User clicked disconnect button');
     showMessage('Disconnected from Google Drive');
   };
 
