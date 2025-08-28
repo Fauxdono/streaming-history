@@ -166,14 +166,14 @@ const GoogleDriveSync = ({
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const isLargeFile = fileSizeBytes > 50 * 1024 * 1024; // 50MB+
     
-    // Mobile devices get smaller chunks to reduce memory pressure
+    // Use larger chunks for better download speed
     let chunkSize;
     if (isMobile && isLargeFile) {
-      chunkSize = 5 * 1024 * 1024; // 5MB chunks for mobile large files
+      chunkSize = 10 * 1024 * 1024; // 10MB chunks for mobile large files (increased for speed)
     } else if (isLargeFile) {
-      chunkSize = 10 * 1024 * 1024; // 10MB chunks for desktop large files
+      chunkSize = 15 * 1024 * 1024; // 15MB chunks for desktop large files
     } else {
-      chunkSize = 2 * 1024 * 1024; // 2MB chunks for smaller files
+      chunkSize = 5 * 1024 * 1024; // 5MB chunks for smaller files
     }
     
     const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
@@ -637,7 +637,7 @@ const GoogleDriveSync = ({
       
       // Show warning for large files but let chunked download handle them
       if (fileSizeBytes > 100 * 1024 * 1024) { // Over 100MB
-        const downloadMethod = isMobile ? `${Math.ceil(fileSizeBytes / (5 * 1024 * 1024))} chunks of 5MB each` : `${Math.ceil(fileSizeBytes / (10 * 1024 * 1024))} chunks of 10MB each`;
+        const downloadMethod = isMobile ? `${Math.ceil(fileSizeBytes / (10 * 1024 * 1024))} chunks of 10MB each` : `${Math.ceil(fileSizeBytes / (15 * 1024 * 1024))} chunks of 15MB each`;
         showMessage(`⚠️ Large file (${fileSizeMB}MB) will be downloaded using ${downloadMethod}. This may take a few minutes.`, false);
       }
       
