@@ -149,20 +149,35 @@ const GoogleDriveSync = ({
       try {
         // Test the token by making a simple API call
         window.gapi.client.setToken({ access_token: storedToken });
-        await window.gapi.client.drive.about.get();
+        const response = await window.gapi.client.drive.about.get();
         console.log('✅ Stored token is valid and working');
       } catch (error) {
-        console.log('🔍 TOKEN VALIDATION: ❌ Stored token is invalid, disconnecting:', error.message);
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('google_drive_token');
-          localStorage.removeItem('google_drive_token_expiry');
+        console.log('🔍 TOKEN VALIDATION: ❌ Token validation failed:', {
+          error: error.message || error,
+          status: error.status,
+          result: error.result,
+          storedTokenLength: storedToken ? storedToken.length : 0,
+          tokenExpiry: new Date(parseInt(storedExpiry)).toISOString()
+        });
+        
+        // Only disconnect on certain error types (401, 403 = auth issues, 400 might be recoverable)
+        if (error.status === 401 || error.status === 403 || error.status === 400) {
+          console.log('🔍 TOKEN VALIDATION: Authentication error, clearing token');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('google_drive_token');
+            localStorage.removeItem('google_drive_token_expiry');
+          }
+          setIsConnected(false);
+        } else {
+          console.log('🔍 TOKEN VALIDATION: Network or other error, keeping token for retry');
+          // Don't disconnect on network errors - might be temporary
         }
-        setIsConnected(false);
       }
     };
 
-    // Add a small delay to avoid validating immediately after connection
-    const timeoutId = setTimeout(validateStoredToken, 1000);
+    // Add a longer delay to avoid validating immediately after connection
+    // and give time for any fresh connections to complete
+    const timeoutId = setTimeout(validateStoredToken, 3000);
     
     return () => clearTimeout(timeoutId);
   }, [isInitialized]);
