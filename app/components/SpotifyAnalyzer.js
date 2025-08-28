@@ -1698,23 +1698,27 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     
                     {/* Right Column */}
                     <div className="space-y-4">
-                      <div className="mt-4">
-                        <button
-                          onClick={handleLoadSampleData}
-                          disabled={isProcessing}
-                          className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
-                        >
-                          <Download size={16} />
-                          Try Demo
-                        </button>
-                        <p className={`text-sm mt-2 ${isDarkMode ? 'text-blue-400' : 'text-gray-600'}`}>
-                          Want to test the app? Click to load sample streaming history.
-                        </p>
-                      </div>
-                      
-                      <div className="mt-3 p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded text-white">
-                        <p className="font-bold text-xs">📱 Download as Web App!</p>
-                        <p className="text-xs mt-0.5">Install to your device for offline access. Look for the install icon!</p>
+                      <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                          <button
+                            onClick={handleLoadSampleData}
+                            disabled={isProcessing}
+                            className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
+                          >
+                            <Download size={16} />
+                            Try Demo
+                          </button>
+                          <p className={`text-sm mt-2 ${isDarkMode ? 'text-blue-400' : 'text-gray-600'}`}>
+                            Want to test the app? Click to load sample streaming history.
+                          </p>
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded text-white">
+                            <p className="font-bold text-xs">📱 Download as Web App!</p>
+                            <p className="text-xs mt-0.5">Install to your device for offline access.</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
