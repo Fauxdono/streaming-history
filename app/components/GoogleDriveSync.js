@@ -17,27 +17,8 @@ const GoogleDriveSync = ({
   onDataLoaded,
   isDarkMode = false 
 }) => {
-  // Check localStorage for initial connection state (only in browser)
-  const [isConnected, setIsConnectedState] = useState(() => {
-    // Only access localStorage in the browser (not during SSR)
-    if (typeof window === 'undefined') return false;
-    
-    try {
-      // Initialize with stored connection state if available
-      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
-      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
-      
-      if (storedToken && storedExpiry) {
-        const now = Date.now();
-        const expiry = parseInt(storedExpiry);
-        return now < expiry; // Start as connected if we have a valid token
-      }
-    } catch (error) {
-      console.warn('Failed to access localStorage:', error);
-    }
-    
-    return false;
-  });
+  // Always start disconnected and let validation determine connection state
+  const [isConnected, setIsConnectedState] = useState(false);
   
   // Logging wrapper for setIsConnected to track all disconnections
   const setIsConnected = (newState) => {
@@ -112,21 +93,17 @@ const GoogleDriveSync = ({
     initializeAPIs();
   }, []);
 
-  // Validate stored token when APIs are initialized (only on app startup)
+  // Check for stored token when APIs are initialized (on app startup)
   useEffect(() => {
     const validateStoredToken = async () => {
-      // Only validate if we think we're connected from localStorage
-      if (!isConnected) return;
-      
-      console.log('🔍 Testing stored Google Drive token on app restart...');
+      console.log('🔍 Checking for stored Google Drive token on app startup...');
       
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
       const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
       
-      // If no stored token but we think we're connected, reset
+      // If no stored token, remain disconnected
       if (!storedToken || !storedExpiry) {
-        console.log('🔍 No stored token found, resetting connection state');
-        setIsConnected(false);
+        console.log('🔍 No stored token found, staying disconnected');
         return;
       }
       
@@ -135,30 +112,31 @@ const GoogleDriveSync = ({
       const expiry = parseInt(storedExpiry);
       
       if (now >= expiry) {
-        console.log('🔍 Token expired, resetting connection state');
+        console.log('🔍 Token expired, removing stored credentials');
         if (typeof window !== 'undefined') {
           localStorage.removeItem('google_drive_token');
           localStorage.removeItem('google_drive_token_expiry');
         }
-        setIsConnected(false);
         return;
       }
       
-      // Simple token test - just try to set it, don't make API calls
+      // Valid token found, restore connection
       try {
         if (window.gapi && window.gapi.client) {
           window.gapi.client.setToken({ access_token: storedToken });
-          console.log('✅ Token set successfully, connection maintained');
+          console.log('✅ Valid token found, restoring connection');
+          setIsConnected(true);
         } else {
-          console.log('🔍 APIs not ready, will test later');
+          console.log('🔍 APIs not ready, will restore connection when available');
+          setIsConnected(true); // Set connected state, token will be set when APIs load
         }
       } catch (error) {
-        console.log('🔍 Token appears invalid, resetting connection state');
+        console.log('🔍 Token appears invalid, removing stored credentials');
         if (typeof window !== 'undefined') {
           localStorage.removeItem('google_drive_token');
           localStorage.removeItem('google_drive_token_expiry');
         }
-        setIsConnected(false);
+        // Stay disconnected (don't call setIsConnected(false) since we start disconnected)
       }
     };
 
