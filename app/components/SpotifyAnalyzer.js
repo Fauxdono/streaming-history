@@ -9,7 +9,7 @@ import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
-import { X, Trash2, Check, ChevronUp, ChevronDown, Download } from 'lucide-react';
+import { X, Trash2, Download } from 'lucide-react';
 import YearSelector from './year-selector.js';
 import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
@@ -63,7 +63,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [songsByMonth, setSongsByMonth] = useState({});
   const [songsByYear, setSongsByYear] = useState({});
   const [processedData, setProcessedData] = useState([]);
-  const [selectedServices, setSelectedServices] = useState(['spotify']);
   const [topArtists, setTopArtists] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(10);
@@ -85,8 +84,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadedFileList, setUploadedFileList] = useState(null);
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
-  const [showServiceInfo, setShowServiceInfo] = useState({});
-  const [showCakeService, setShowCakeService] = useState(false);
   
   // Simplified state - removed authentication
   const [storageNotification, setStorageNotification] = useState(null);
@@ -470,37 +467,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists]);
 
 
-  // Toggle a service in the selection with useCallback
-  const toggleServiceSelection = useCallback((serviceType) => {
-    setSelectedServices(prev => {
-      if (prev.includes(serviceType)) {
-        return prev.filter(s => s !== serviceType);
-      } else {
-        return [...prev, serviceType];
-      }
-    });
-  }, []);
-
-  // Toggle service info visibility with useCallback
-  const toggleServiceInfo = useCallback((serviceType) => {
-    setShowServiceInfo(prev => ({
-      ...prev,
-      [serviceType]: !prev[serviceType]
-    }));
-  }, []);
-
-  // Get accepted file formats for all selected services with useMemo
-  const getAcceptedFormats = useCallback(() => {
-    // Use a Set to eliminate duplicates
-    const formatSet = new Set();
-    
-    selectedServices.forEach(service => {
-      const formats = STREAMING_SERVICES[service].acceptedFormats.split(',');
-      formats.forEach(format => formatSet.add(format));
-    });
-    
-    return Array.from(formatSet).join(',');
-  }, [selectedServices]);
 
   // useEffect to set artist date ranges when year changes (like CustomTrackRankings)
   useEffect(() => {
@@ -1744,110 +1710,26 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 />
               </div>
                 
-              <div className="mt-6 mb-4">
-                <h3 className={`font-bold text-xl mb-4 ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Select Streaming Services:</h3>
-                
-                {/* Cake Service Toggle */}
-                <div className={`mb-4 p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-600/30' : 'bg-purple-50 border-purple-200'}`}>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={showCakeService}
-                      onChange={(e) => setShowCakeService(e.target.checked)}
-                      className="mr-3 w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                    />
-                    <span className={`text-sm font-medium ${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                      Show advanced option (Cake - website users only)
-                    </span>
-                  </label>
-                </div>
-              </div>
-                         
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-6">
-                {/* Service Tiles */}
-                {Object.entries(STREAMING_SERVICES)
-                  .filter(([type, service]) => showCakeService || type !== 'cake')
-                  .map(([type, service]) => (
-                  <div key={type} className={`border rounded-lg overflow-hidden ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                    <button
-                      onClick={() => toggleServiceSelection(type)}
-                      className={`w-full h-20 sm:h-auto sm:px-4 sm:py-3 flex flex-col sm:flex-row justify-center sm:justify-between items-center transition-colors font-medium ${
-                        selectedServices.includes(type)
-                          ? SERVICE_COLORS[type]?.selected || 'bg-gray-600 text-white'
-                          : SERVICE_COLORS[type]?.unselected || 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <span className="text-center sm:text-left text-sm sm:text-base">{service.name}</span>
-                      {selectedServices.includes(type) && <Check size={20} className="mt-1 sm:mt-0" />}
-                    </button>
-                    
-                    <div className={`px-3 py-2 border-t ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}>
-                      <button 
-                        onClick={() => toggleServiceInfo(type)}
-                        className={`flex items-center justify-center w-full text-xs sm:text-sm transition-colors ${
-                          isDarkMode 
-                            ? 'text-orange-400 hover:text-orange-300' 
-                            : 'text-orange-600 hover:text-orange-800'
-                        }`}
-                      >
-                        {showServiceInfo[type] ? 
-                          <><ChevronUp size={16} className="mr-1" /> Hide Details</> : 
-                          <><ChevronDown size={16} className="mr-1" /> Show Details</>
-                        }
-                      </button>
-                      
-                      {showServiceInfo[type] && (
-                        <div className={`mt-3 text-xs sm:text-sm ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
-                          <p className="mb-3 leading-relaxed">{service.instructions}</p>
-                          <a
-                            href={service.downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`inline-block mb-2 underline transition-colors ${
-                              isDarkMode 
-                                ? 'text-orange-400 hover:text-orange-300' 
-                                : 'text-orange-600 hover:text-orange-800'
-                            }`}
-                          >
-                            Download your data here →
-                          </a>
-                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Accepted formats: {service.acceptedFormats}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-                  
-              {selectedServices.length > 0 ? (
-                <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-orange-900/20 border-orange-600/30' : 'bg-orange-50 border-orange-200'}`}>
-                  <p className={`mb-3 font-bold text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
-                    Upload your files from selected services:
-                  </p>
-                  <input
-                    type="file"
-                    multiple
-                    accept={getAcceptedFormats()}
-                    onChange={handleFileUpload}
-                    className={`block w-full text-sm transition-colors
-                      file:mr-4 file:py-2 file:px-4 file:rounded-lg 
-                      file:border-2 file:border-yellow-400 file:text-sm 
-                      file:font-semibold file:bg-yellow-300 
-                      file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
-                      ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
-                  />
-                </div>
-              ) : (
-                <p className={`font-semibold text-center py-4 px-6 rounded-lg ${
-                  isDarkMode 
-                    ? 'text-orange-300 bg-orange-900/20 border border-orange-600/30' 
-                    : 'text-orange-700 bg-orange-50 border border-orange-200'
-                }`}>
-                  Please select at least one streaming service
+              <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-orange-900/20 border-orange-600/30' : 'bg-orange-50 border-orange-200'}`}>
+                <p className={`mb-3 font-bold text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>
+                  Upload your streaming history files:
                 </p>
-              )}
+                <p className={`mb-3 text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-600'}`}>
+                  Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), Cake (.xlsx/.json)
+                </p>
+                <input
+                  type="file"
+                  multiple
+                  accept=".json,.csv,.xlsx"
+                  onChange={handleFileUpload}
+                  className={`block w-full text-sm transition-colors
+                    file:mr-4 file:py-2 file:px-4 file:rounded-lg 
+                    file:border-2 file:border-yellow-400 file:text-sm 
+                    file:font-semibold file:bg-yellow-300 
+                    file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
+                    ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
+                />
+              </div>
                   
               {isProcessing && (
                 <div className="flex flex-col items-center justify-center p-8 space-y-4">
