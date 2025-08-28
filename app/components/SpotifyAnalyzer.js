@@ -1636,34 +1636,34 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
               {/* Full-width How to Use section with two columns */}
               <div className="mb-6">
-                <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
-                  <h3 className={`font-semibold mb-4 text-base ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
+                <div className={`p-3 sm:p-4 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
+                  <h3 className={`font-semibold mb-3 text-sm ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Left Column */}
-                    <div className="space-y-4">
-                      <div className={`${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                        <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                          <span>Select your streaming service below</span>
+                    <div className="space-y-3">
+                      <div className={`text-sm ${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
+                        <div className="flex items-start gap-2 mb-2">
+                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                          <span>Upload your streaming history files</span>
                         </div>
-                        <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                          <span>Download your streaming history from your service</span>
+                        <div className="flex items-start gap-2 mb-2">
+                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                          <span>Files are automatically detected and processed</span>
                         </div>
-                        <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                          <span>Upload your file(s) or connect Google Drive for large files</span>
+                        <div className="flex items-start gap-2 mb-2">
+                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                          <span>Click "Calculate Statistics" to analyze</span>
                         </div>
-                        <div className="flex items-start gap-3 mb-4">
-                          <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
-                          <span>Click "Calculate Statistics" and explore your data</span>
+                        <div className="flex items-start gap-2">
+                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                          <span>Explore your music listening data</span>
                         </div>
                       </div>
                     </div>
                     
                     {/* Right Column */}
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div className="mt-4 flex flex-col sm:flex-row gap-3">
                         <div className="flex-1">
                           <button
