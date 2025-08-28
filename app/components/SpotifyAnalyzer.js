@@ -1694,7 +1694,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           <span>Click "Calculate Statistics" and explore your data</span>
                         </div>
                       </div>
-                      
+                    </div>
+                    
+                    {/* Right Column */}
+                    <div className="space-y-4">
                       <div className="mt-4">
                         <button
                           onClick={handleLoadSampleData}
@@ -1708,26 +1711,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           Want to test the app? Click to load sample streaming history.
                         </p>
                       </div>
-                    </div>
-                    
-                    {/* Right Column */}
-                    <div className={`${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-                      <div className="space-y-3">
-                        <p className="font-medium">✨ Features:</p>
-                        <ul className="space-y-2 text-sm">
-                          <li>• Detailed listening statistics and patterns</li>
-                          <li>• Top artists, albums, and tracks analysis</li>
-                          <li>• Listening behavior insights by time</li>
-                          <li>• Discovery patterns and music exploration</li>
-                          <li>• Year-by-year comparisons and trends</li>
-                          <li>• Export results to Excel for sharing</li>
-                          <li>• Google Drive sync for large datasets</li>
-                        </ul>
-                        
-                        <div className="mt-4 p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white">
-                          <p className="font-bold text-sm">📱 Download as Web App!</p>
-                          <p className="text-xs mt-1">Install directly to your device for offline access and faster loading. Look for the install icon in your browser!</p>
-                        </div>
+                      
+                      <div className="mt-4 p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white">
+                        <p className="font-bold text-sm">📱 Download as Web App!</p>
+                        <p className="text-xs mt-1">Install directly to your device for offline access and faster loading. Look for the install icon in your browser!</p>
                       </div>
                     </div>
                   </div>
