@@ -772,18 +772,19 @@ const GoogleDriveSync = ({
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-4">
-      <div className="flex items-center space-x-3">
-        <div className="text-2xl">☁️</div>
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Google Drive Storage</h2>
-          <p className="text-sm text-gray-600">Save to organized "cakeculator" folder with original files</p>
+    <div className="bg-white p-3 sm:p-6 rounded-lg border border-gray-200 space-y-3 sm:space-y-4">
+      <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="text-lg sm:text-2xl">☁️</div>
+        <div className="flex-1">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Google Drive Storage</h2>
+          <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Save to organized "cakeculator" folder with original files</p>
+          <p className="text-xs text-gray-600 sm:hidden">Save to Google Drive</p>
         </div>
-        {isConnected && <div className="text-green-600 text-xl">✅</div>}
+        {isConnected && <div className="text-green-600 text-lg sm:text-xl">✅</div>}
       </div>
 
       {message && (
-        <div className={`p-3 rounded ${message.startsWith('❌') 
+        <div className={`p-2 sm:p-3 rounded text-sm ${message.startsWith('❌') 
           ? 'bg-red-50 border border-red-200 text-red-800' 
           : 'bg-green-50 border border-green-200 text-green-800'
         }`}>
@@ -792,75 +793,84 @@ const GoogleDriveSync = ({
       )}
 
       {!isConnected ? (
-        <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 text-center">
-          <div className="text-4xl mb-4">🔗</div>
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">Connect Google Drive</h3>
-          <p className="text-blue-700 mb-4">
+        <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200 text-center">
+          <div className="text-2xl sm:text-4xl mb-2 sm:mb-4">🔗</div>
+          <h3 className="text-base sm:text-lg font-semibold text-blue-900 mb-2">Connect Google Drive</h3>
+          <p className="text-blue-700 mb-3 sm:mb-4 text-sm sm:text-base hidden sm:block">
             Save your streaming analysis to Google Drive for secure cloud storage and access from any device.
+          </p>
+          <p className="text-blue-700 mb-3 text-xs sm:hidden">
+            Save analysis to Google Drive for cloud access
           </p>
           <button
             onClick={handleConnect}
             disabled={isConnecting || isInitializing}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm sm:text-base"
           >
             {isInitializing ? 'Initializing...' : isConnecting ? 'Connecting...' : 'Connect Google Drive'}
           </button>
-          <p className="text-xs text-blue-600 mt-3">
-            Your data stays private - saved to YOUR Google Drive, not our servers
+          <p className="text-xs text-blue-600 mt-2 sm:mt-3">
+            Your data stays private - saved to YOUR Google Drive
           </p>
           {!isInitialized && !isInitializing && (
-            <p className="text-xs text-orange-600 mt-2">
+            <p className="text-xs text-orange-600 mt-1 sm:mt-2">
               ⚡ APIs will load when you first connect
             </p>
           )}
           {isInitialized && (
-            <p className="text-xs text-green-600 mt-2">
+            <p className="text-xs text-green-600 mt-1 sm:mt-2">
               ✅ Ready to connect
             </p>
           )}
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">G</div>
+        <div className="space-y-3 sm:space-y-4">
+          <div className="bg-green-50 p-3 sm:p-4 rounded-lg border border-green-200 flex justify-between items-center">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">G</div>
               <div>
-                <p className="font-medium text-green-900">Connected to Google Drive</p>
-                <p className="text-sm text-green-700">Ready for large dataset storage</p>
+                <p className="font-medium text-green-900 text-sm sm:text-base">Connected to Google Drive</p>
+                <p className="text-xs sm:text-sm text-green-700 hidden sm:block">Ready for large dataset storage</p>
               </div>
             </div>
             <button
               onClick={handleDisconnect}
-              className="text-sm text-green-700 hover:text-green-900 underline"
+              className="text-xs sm:text-sm text-green-700 hover:text-green-900 underline"
             >
               Disconnect
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-semibold mb-2">💾 Save Analysis</h4>
-              <p className="text-sm text-gray-600 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="p-3 sm:p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">💾 Save Analysis</h4>
+              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 hidden sm:block">
                 Save analysis + original files to "cakeculator" folder
+              </p>
+              <p className="text-xs text-gray-600 mb-2 sm:hidden">
+                Save to Drive
               </p>
               <ProgressBar progress={saveProgress} isActive={isSaving} />
               <button
                 onClick={handleSave}
                 disabled={isSaving || !stats || !processedData || processedData.length === 0}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
                 {isSaving ? 'Saving...' : 'Save to Drive'}
               </button>
             </div>
 
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-semibold mb-2">📥 Load Analysis</h4>
-              <p className="text-sm text-gray-600 mb-3">
+            <div className="p-3 sm:p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">📥 Load Analysis</h4>
+              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 hidden sm:block">
                 Restore saved analysis from Google Drive
+              </p>
+              <p className="text-xs text-gray-600 mb-2 sm:hidden">
+                Load from Drive
               </p>
               <ProgressBar progress={loadProgress} isActive={isLoading} />
               {isLoading && loadingStep && (
-                <div className="mb-3 p-2 bg-blue-50 rounded text-sm text-blue-700">
+                <div className="mb-2 sm:mb-3 p-2 bg-blue-50 rounded text-xs sm:text-sm text-blue-700">
                   🔄 {loadingStep}
                 </div>
               )}
@@ -868,14 +878,14 @@ const GoogleDriveSync = ({
                 <button
                   onClick={handleLoad}
                   disabled={isLoading}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   {isLoading ? 'Loading...' : 'Load from Drive'}
                 </button>
                 {showCancelButton && (
                   <button
                     onClick={cancelLoad}
-                    className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                    className="w-full px-3 sm:px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm"
                   >
                     Cancel Loading
                   </button>
