@@ -1670,27 +1670,27 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
               {/* Full-width How to Use section with two columns */}
               <div className="mb-6">
-                <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'}`}>
-                  <h3 className={`font-semibold mb-4 text-xl ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>How to use:</h3>
+                <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/20 border-purple-600/30' : 'bg-purple-50 border-purple-200'}`}>
+                  <h3 className={`font-semibold mb-4 text-xl ${isDarkMode ? 'text-purple-200' : 'text-purple-900'}`}>How to use:</h3>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left Column */}
                     <div className="space-y-4">
-                      <div className={`${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                      <div className={`${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
                         <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
                           <span>Select your streaming service below</span>
                         </div>
                         <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
                           <span>Download your streaming history from your service</span>
                         </div>
                         <div className="flex items-start gap-3 mb-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
                           <span>Upload your file(s) or connect Google Drive for large files</span>
                         </div>
                         <div className="flex items-start gap-3 mb-4">
-                          <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                          <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
                           <span>Click "Calculate Statistics" and explore your data</span>
                         </div>
                       </div>
