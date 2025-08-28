@@ -359,6 +359,74 @@ function parseDateSafely(input) {
   }
 }
 
+// Content-based detection functions
+function detectFileType(filename, content) {
+  // For JSON files, check the content structure
+  if (filename.endsWith('.json')) {
+    try {
+      const data = typeof content === 'string' ? JSON.parse(content) : content;
+      
+      // Spotify format detection
+      if (Array.isArray(data) && data.length > 0) {
+        const sample = data[0];
+        if (sample.ts && sample.master_metadata_track_name && sample.ms_played !== undefined) {
+          return 'spotify';
+        }
+      }
+      
+      // Cake-dreamin export format
+      if (data.streamingHistory && Array.isArray(data.streamingHistory)) {
+        return 'cake-export';
+      }
+      
+      // YouTube Music JSON (has different structure)
+      if (Array.isArray(data) && data.length > 0) {
+        const sample = data[0];
+        if (sample.title && sample.time && (sample.subtitles || sample.products)) {
+          return 'youtube_music';
+        }
+      }
+    } catch (e) {
+      // Not valid JSON or parsing failed
+    }
+  }
+  
+  // For CSV files, check headers
+  if (filename.endsWith('.csv')) {
+    const firstLine = content.split('\n')[0]?.toLowerCase() || '';
+    
+    // SoundCloud detection
+    if (firstLine.includes('play_time') && firstLine.includes('track_title') && firstLine.includes('track_url')) {
+      return 'soundcloud';
+    }
+    
+    // Tidal detection
+    if (['artist_name', 'track_title', 'entry_date', 'stream_duration_ms']
+        .every(header => firstLine.includes(header))) {
+      return 'tidal';
+    }
+    
+    // Apple Music detection (various formats)
+    if (firstLine.includes('track description') || 
+        firstLine.includes('track name') || 
+        (firstLine.includes('date played') && firstLine.includes('track')) ||
+        firstLine.includes('apple music') ||
+        (firstLine.includes('last played date') && firstLine.includes('is user initiated'))) {
+      return 'apple_music';
+    }
+    
+    // Generic CSV fallback - try Apple Music first
+    return 'apple_music';
+  }
+  
+  // For XLSX files, we'll need to check content after opening
+  if (filename.endsWith('.xlsx')) {
+    return 'excel'; // Will be further detected in processing
+  }
+  
+  return 'unknown';
+}
+
 // File processor functions
 async function processAppleMusicCSV(content) {
   return new Promise((resolve) => {
@@ -2107,94 +2175,74 @@ export const streamingProcessor = {
         const batchResults = await Promise.all(
           batch.map(async (file) => {
             try {
-              // Spotify JSON files
-              if (file.name.includes('Streaming_History') && file.name.endsWith('.json')) {
-                const content = await file.text();
-                const data = JSON.parse(content);
-                return data.map(entry => ({
-                  ...entry,
-                  source: 'spotify'
-                }));
-              }
+              // Get file content first for detection
+              let content;
+              let fileType;
               
-              // Our custom cake-dreamin JSON export format
-              else if (file.name.includes('cake-dreamin') && file.name.endsWith('.json')) {
-                const content = await file.text();
-                try {
-                  const parsedData = JSON.parse(content);
-                  // Check if it has the streaming history property
-                  if (parsedData.streamingHistory && Array.isArray(parsedData.streamingHistory)) {
-                    console.log(`Processing ${parsedData.streamingHistory.length} entries from cake-dreamin export`);
-                    return parsedData.streamingHistory.map(entry => {
-                      // Transform from our simplified format back to the expected format
-                      return {
-                        ts: entry.ts,
-                        master_metadata_track_name: entry.track,
-                        master_metadata_album_artist_name: entry.artist,
-                        master_metadata_album_album_name: entry.album,
-                        ms_played: entry.ms_played,
-                        platform: entry.platform,
-                        source: entry.source || 'cake-export',
-                        reason_end: entry.reason_end,
-                        reason_start: entry.reason_start,
-                        shuffle: entry.shuffle
-                      };
-                    });
-                  } else {
-                    console.log("File doesn't contain streaming history data in the expected format");
-                    return [];
-                  }
-                } catch (error) {
-                  console.error(`Error parsing JSON file ${file.name}:`, error);
-                  return [];
-                }
-              }
-              
-              // Apple Music CSV files
-              else if (file.name.toLowerCase().includes('apple') && file.name.endsWith('.csv')) {
-                const content = await file.text();
-                return await processAppleMusicCSV(content);
-              }
-              else if (file.name.endsWith('.xlsx')) {
-                // Try to process as cake file first
+              if (file.name.endsWith('.xlsx')) {
+                // For Excel files, we need to detect after opening
+                // Try Cake first, then Deezer
                 const cakeData = await processCakeExcelFile(file);
                 if (cakeData && cakeData.length > 0) {
-                  console.log(`Processed ${cakeData.length} entries from Cake Excel file`);
+                  console.log(`Auto-detected and processed ${cakeData.length} entries from Cake Excel file: ${file.name}`);
                   return cakeData;
                 }
                 
-                // Fallback to Deezer processing if no cake data found
+                // Fallback to Deezer
+                console.log(`Auto-detected as Deezer Excel file: ${file.name}`);
                 return await processDeezerXLSX(file);
+              } else {
+                // For text files, read content and detect type
+                content = await file.text();
+                fileType = detectFileType(file.name, content);
               }
               
-              // Deezer XLSX files
-              else if (file.name.endsWith('.xlsx')) {
-                return await processDeezerXLSX(file);
-              }
+              console.log(`Auto-detected file type: ${fileType} for file: ${file.name}`);
               
-              // Tidal CSV files
-              else if (file.name.toLowerCase().includes('tidal') && file.name.endsWith('.csv')) {
-                const content = await file.text();
-                return await processTidalCSV(content);
-              }
-              
-              // Generic CSV files - detect format
-              else if (file.name.endsWith('.csv')) {
-                const content = await file.text();
-                
-                // Check for SoundCloud format
-                if (content.includes('play_time') && content.includes('track_title')) {
-                  console.log(`Processing ${file.name} as a Soundcloud CSV file`);
+              switch (fileType) {
+                case 'spotify':
+                  const data = JSON.parse(content);
+                  return data.map(entry => ({
+                    ...entry,
+                    source: 'spotify'
+                  }));
+                  
+                case 'cake-export':
+                  const parsedData = JSON.parse(content);
+                  console.log(`Processing ${parsedData.streamingHistory.length} entries from cake-dreamin export`);
+                  return parsedData.streamingHistory.map(entry => ({
+                    ts: entry.ts,
+                    master_metadata_track_name: entry.track,
+                    master_metadata_album_artist_name: entry.artist,
+                    master_metadata_album_album_name: entry.album,
+                    ms_played: entry.ms_played,
+                    platform: entry.platform,
+                    source: entry.source || 'cake-export',
+                    reason_end: entry.reason_end,
+                    reason_start: entry.reason_start,
+                    shuffle: entry.shuffle
+                  }));
+                  
+                case 'apple_music':
+                  return await processAppleMusicCSV(content);
+                  
+                case 'soundcloud':
                   return await processSoundcloudCSV(content);
-                }
-                
-                // Check for Tidal format
-                if (isTidalCSV(content)) {
-                  console.log(`Processing ${file.name} as a Tidal CSV file`);
+                  
+                case 'tidal':
                   return await processTidalCSV(content);
-                }
-                
-                console.log(`File ${file.name} doesn't match any known format`);
+                  
+                case 'youtube_music':
+                  // TODO: Add YouTube Music processing
+                  console.log(`YouTube Music format detected but not yet supported: ${file.name}`);
+                  return [];
+                  
+                default:
+                  console.log(`Unknown file format for ${file.name}, trying Apple Music as fallback`);
+                  if (content && file.name.endsWith('.csv')) {
+                    return await processAppleMusicCSV(content);
+                  }
+                  return [];
               }
               
               return [];
