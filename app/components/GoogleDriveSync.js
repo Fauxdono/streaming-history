@@ -27,6 +27,8 @@ const GoogleDriveSync = ({
   const [showCancelButton, setShowCancelButton] = useState(false);
   const [saveProgress, setSaveProgress] = useState({ step: 0, total: 0, message: '' });
   const [loadProgress, setLoadProgress] = useState({ step: 0, total: 0, message: '' });
+  const [saveCompleted, setSaveCompleted] = useState(false);
+  const [loadCompleted, setLoadCompleted] = useState(false);
 
   const clearMessage = () => setMessage('');
 
@@ -36,20 +38,21 @@ const GoogleDriveSync = ({
   };
 
   // Progress bar component
-  const ProgressBar = ({ progress, isActive }) => {
-    if (!isActive || progress.total === 0) return null;
+  const ProgressBar = ({ progress, isActive, isCompleted = false }) => {
+    if ((!isActive && !isCompleted) || progress.total === 0) return null;
     
-    const percentage = Math.round((progress.step / progress.total) * 100);
+    // Always show 100% when completed, otherwise calculate normally
+    const percentage = isCompleted ? 100 : Math.round((progress.step / progress.total) * 100);
     
     return (
       <div className="mb-3">
         <div className="flex justify-between text-sm text-gray-600 mb-1">
-          <span>{progress.message}</span>
-          <span>{progress.step}/{progress.total}</span>
+          <span>{isCompleted ? 'Completed!' : progress.message}</span>
+          <span>{isCompleted ? `${progress.total}/${progress.total}` : `${progress.step}/${progress.total}`}</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div 
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+            className={`h-2 rounded-full transition-all duration-300 ease-out ${isCompleted ? 'bg-green-600' : 'bg-blue-600'}`}
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
@@ -57,9 +60,9 @@ const GoogleDriveSync = ({
     );
   };
 
-  // Initialize Google APIs when component mounts
+  // Check for existing connection on component mount
   useEffect(() => {
-    const initializeAPIs = async () => {
+    const checkExistingConnection = async () => {
       if (isInitialized || isInitializing) return;
       
       setIsInitializing(true);
@@ -67,6 +70,40 @@ const GoogleDriveSync = ({
         await initializeGoogleAPIs();
         setIsInitialized(true);
         console.log('✅ Google APIs pre-loaded successfully');
+        
+        // Check if we have a stored access token that's still valid
+        const storedToken = localStorage.getItem('google_drive_token');
+        const storedExpiry = localStorage.getItem('google_drive_token_expiry');
+        
+        if (storedToken && storedExpiry) {
+          const now = Date.now();
+          const expiry = parseInt(storedExpiry);
+          
+          if (now < expiry) {
+            console.log('🔄 Restoring previous Google Drive connection...');
+            
+            // Set the token and test if it's still valid
+            window.gapi.client.setToken({
+              access_token: storedToken
+            });
+            
+            // Test the connection by making a simple API call
+            try {
+              await window.gapi.client.drive.about.get();
+              setIsConnected(true);
+              console.log('✅ Google Drive connection restored successfully');
+            } catch (testError) {
+              console.log('🔄 Stored token expired, need to reconnect');
+              localStorage.removeItem('google_drive_token');
+              localStorage.removeItem('google_drive_token_expiry');
+            }
+          } else {
+            console.log('🔄 Stored token expired, removing...');
+            localStorage.removeItem('google_drive_token');
+            localStorage.removeItem('google_drive_token_expiry');
+          }
+        }
+        
       } catch (error) {
         console.error('❌ Failed to pre-load Google APIs:', error);
         // Don't show error message on mount - user hasn't tried to connect yet
@@ -75,7 +112,7 @@ const GoogleDriveSync = ({
       }
     };
 
-    initializeAPIs();
+    checkExistingConnection();
   }, []);
 
   const initializeGoogleAPIs = async () => {
@@ -420,6 +457,11 @@ const GoogleDriveSync = ({
             access_token: tokenResponse.access_token
           });
           
+          // Store token and expiry time for persistence
+          const expiryTime = Date.now() + (tokenResponse.expires_in * 1000); // expires_in is in seconds
+          localStorage.setItem('google_drive_token', tokenResponse.access_token);
+          localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
+          
           setIsConnected(true);
           setIsConnecting(false);
           showMessage('Connected to Google Drive successfully!');
@@ -438,6 +480,11 @@ const GoogleDriveSync = ({
     if (window.gapi?.client) {
       window.gapi.client.setToken(null);
     }
+    
+    // Clear stored tokens
+    localStorage.removeItem('google_drive_token');
+    localStorage.removeItem('google_drive_token_expiry');
+    
     setIsConnected(false);
     showMessage('Disconnected from Google Drive');
   };
@@ -574,14 +621,22 @@ const GoogleDriveSync = ({
       });
 
       const totalFiles = originalFiles.length > 0 ? ` + ${originalFiles.length} original files` : '';
-      showMessage(`✅ Saved to cakeculator folder! Analysis: ${sizeInMB}MB (${processedData.length.toLocaleString()} tracks)${totalFiles}`);
+      
+      // Show 100% completion before finishing
+      setSaveCompleted(true);
+      setTimeout(() => {
+        showMessage(`✅ Saved to cakeculator folder! Analysis: ${sizeInMB}MB (${processedData.length.toLocaleString()} tracks)${totalFiles}`);
+        setSaveCompleted(false);
+        setSaveProgress({ step: 0, total: 0, message: '' });
+      }, 1000);
       
     } catch (error) {
       showMessage(`Save failed: ${error.message}`, true);
+      setSaveCompleted(false);
+      setSaveProgress({ step: 0, total: 0, message: '' });
     }
 
     setIsSaving(false);
-    setSaveProgress({ step: 0, total: 0, message: '' });
   };
 
   const cancelLoad = () => {
@@ -824,19 +879,27 @@ const GoogleDriveSync = ({
       const originalFilesText = data.metadata?.originalFiles?.length > 0 
         ? ` + ${data.metadata.originalFiles.length} original files` 
         : '';
-      showMessage(`✅ Analysis loaded from ${folderId ? 'cakeculator folder' : 'Google Drive'}! (${data.processedTracks?.length || 0} tracks)${originalFilesText}`);
+      
+      // Show 100% completion before finishing
+      setLoadCompleted(true);
+      setTimeout(() => {
+        showMessage(`✅ Analysis loaded from ${folderId ? 'cakeculator folder' : 'Google Drive'}! (${data.processedTracks?.length || 0} tracks)${originalFilesText}`);
+        setLoadCompleted(false);
+        setLoadProgress({ step: 0, total: 0, message: '' });
+      }, 1000);
       
     } catch (error) {
       clearTimeout(timeout);
       clearTimeout(cancelTimeout);
       console.error('❌ Load failed:', error);
       showMessage(`Load failed: ${error.message}`, true);
+      setLoadCompleted(false);
+      setLoadProgress({ step: 0, total: 0, message: '' });
     }
 
     setIsLoading(false);
     setShowCancelButton(false);
     setLoadingStep('');
-    setLoadProgress({ step: 0, total: 0, message: '' });
   };
 
   return (
@@ -918,7 +981,7 @@ const GoogleDriveSync = ({
               <p className="text-xs text-gray-600 mb-2 sm:hidden">
                 Save to Drive
               </p>
-              <ProgressBar progress={saveProgress} isActive={isSaving} />
+              <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
               <button
                 onClick={handleSave}
                 disabled={isSaving || !stats || !processedData || processedData.length === 0}
@@ -936,7 +999,7 @@ const GoogleDriveSync = ({
               <p className="text-xs text-gray-600 mb-2 sm:hidden">
                 Load from Drive
               </p>
-              <ProgressBar progress={loadProgress} isActive={isLoading} />
+              <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
               {isLoading && loadingStep && (
                 <div className="mb-2 sm:mb-3 p-2 bg-blue-50 rounded text-xs sm:text-sm text-blue-700">
                   🔄 {loadingStep}
