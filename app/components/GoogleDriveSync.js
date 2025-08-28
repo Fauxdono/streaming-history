@@ -159,6 +159,7 @@ const GoogleDriveSync = ({
           localStorage.removeItem('google_drive_token_expiry');
         }
         setIsConnected(false);
+      }
     };
 
     // Add a longer delay to avoid validating immediately after connection
