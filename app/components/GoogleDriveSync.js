@@ -115,33 +115,27 @@ const GoogleDriveSync = ({
   // Validate stored token when APIs are initialized (only on app startup)
   useEffect(() => {
     const validateStoredToken = async () => {
-      // TEMPORARILY DISABLE VALIDATION TO TEST CONNECTION STABILITY
-      console.log('🔍 Token validation temporarily disabled for testing');
-      return;
+      // Only validate if we think we're connected from localStorage
+      if (!isConnected) return;
       
-      // Only validate on initial load, not when user just connected
-      if (!isInitialized || isInitializing || isConnecting) return;
+      console.log('🔍 Testing stored Google Drive token on app restart...');
       
-      // Only validate if we restored connection state from localStorage on startup
       const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
       const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
       
-      // If we're connected but have no stored token, this was a fresh connection - skip validation
-      if (isConnected && (!storedToken || !storedExpiry)) {
-        console.log('✅ Fresh connection, skipping validation');
+      // If no stored token but we think we're connected, reset
+      if (!storedToken || !storedExpiry) {
+        console.log('🔍 No stored token found, resetting connection state');
+        setIsConnected(false);
         return;
       }
       
-      // Only validate if we're supposedly connected AND we have stored credentials
-      if (!isConnected || !storedToken || !storedExpiry) return;
-      
-      console.log('🔍 Validating stored Google Drive token on startup...');
-      
+      // Check expiry time without being too strict
       const now = Date.now();
       const expiry = parseInt(storedExpiry);
       
       if (now >= expiry) {
-        console.log('🔍 TOKEN VALIDATION: ⏰ Stored token expired, disconnecting');
+        console.log('🔍 Token expired, resetting connection state');
         if (typeof window !== 'undefined') {
           localStorage.removeItem('google_drive_token');
           localStorage.removeItem('google_drive_token_expiry');
@@ -150,33 +144,21 @@ const GoogleDriveSync = ({
         return;
       }
       
+      // Simple token test - just try to set it, don't make API calls
       try {
-        // Test the token by making a simple API call
-        window.gapi.client.setToken({ access_token: storedToken });
-        const response = await window.gapi.client.drive.about.get();
-        console.log('✅ Stored token is valid and working');
-      } catch (error) {
-        console.log('🔍 TOKEN VALIDATION: ❌ Token validation failed:', {
-          error: error.message || error,
-          status: error.status,
-          result: error.result,
-          storedTokenLength: storedToken ? storedToken.length : 0,
-          tokenExpiry: new Date(parseInt(storedExpiry)).toISOString()
-        });
-        
-        // Only disconnect on certain error types (401, 403 = auth issues, 400 might be recoverable)
-        if (error.status === 401 || error.status === 403 || error.status === 400) {
-          console.log('🔍 TOKEN VALIDATION: Authentication error, clearing token');
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('google_drive_token');
-            localStorage.removeItem('google_drive_token_expiry');
-          }
-          setIsConnected(false);
+        if (window.gapi && window.gapi.client) {
+          window.gapi.client.setToken({ access_token: storedToken });
+          console.log('✅ Token set successfully, connection maintained');
         } else {
-          console.log('🔍 TOKEN VALIDATION: Network or other error, keeping token for retry');
-          // Don't disconnect on network errors - might be temporary
+          console.log('🔍 APIs not ready, will test later');
         }
-      }
+      } catch (error) {
+        console.log('🔍 Token appears invalid, resetting connection state');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('google_drive_token');
+          localStorage.removeItem('google_drive_token_expiry');
+        }
+        setIsConnected(false);
     };
 
     // Add a longer delay to avoid validating immediately after connection
