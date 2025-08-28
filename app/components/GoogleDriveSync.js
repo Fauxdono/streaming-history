@@ -158,22 +158,90 @@ const GoogleDriveSync = ({
     });
   };
 
-  // Download file using chunked approach for large files - prevents memory overload
-  const downloadFileWithProgress = async (fileId, fileSizeBytes) => {
-    console.log('📥 Starting chunked download...');
+  // Download entire file at once for desktop (maximum speed)
+  const downloadWholeFile = async (fileId, fileSizeBytes) => {
+    const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
+    console.log(`💻 Downloading entire ${totalMB}MB file in one request...`);
     
-    // Determine optimal chunk size based on file size and device
+    try {
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${window.gapi.client.getToken().access_token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Use streaming reader to show progress
+      const reader = response.body.getReader();
+      let downloadedBytes = 0;
+      let textResult = '';
+      const textDecoder = new TextDecoder();
+      let lastProgressUpdate = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Convert chunk to text immediately
+        const chunkText = textDecoder.decode(value, { stream: true });
+        textResult += chunkText;
+        downloadedBytes += value.length;
+
+        // Update progress every 10MB for desktop
+        if (downloadedBytes - lastProgressUpdate > 10 * 1024 * 1024) {
+          const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
+          const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
+          
+          setLoadProgress({ 
+            step: 4, 
+            total: 6, 
+            message: `Downloading... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
+          });
+          
+          lastProgressUpdate = downloadedBytes;
+          
+          // Small yield for UI updates
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+      }
+
+      // Finalize any remaining bytes
+      const finalChunk = textDecoder.decode();
+      if (finalChunk) textResult += finalChunk;
+      
+      console.log(`✅ Desktop whole file download complete: ${totalMB}MB`);
+      return { body: textResult };
+
+    } catch (error) {
+      console.error('❌ Desktop whole file download failed:', error);
+      throw error;
+    }
+  };
+
+  // Download file - chunked for mobile safety, whole file for desktop speed
+  const downloadFileWithProgress = async (fileId, fileSizeBytes) => {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const isLargeFile = fileSizeBytes > 50 * 1024 * 1024; // 50MB+
     
-    // Use larger chunks for better download speed
+    // Desktop: download whole file for maximum speed
+    // Mobile: use chunks to prevent crashes
+    if (!isMobile) {
+      console.log('💻 Desktop detected - downloading entire file at once for maximum speed...');
+      return await downloadWholeFile(fileId, fileSizeBytes);
+    }
+    
+    console.log('📱 Mobile detected - using chunked download for safety...');
+    
+    // Mobile chunk size optimization
     let chunkSize;
-    if (isMobile && isLargeFile) {
-      chunkSize = 10 * 1024 * 1024; // 10MB chunks for mobile large files (increased for speed)
-    } else if (isLargeFile) {
-      chunkSize = 15 * 1024 * 1024; // 15MB chunks for desktop large files
+    if (isLargeFile) {
+      chunkSize = 25 * 1024 * 1024; // 25MB chunks for mobile large files
     } else {
-      chunkSize = 5 * 1024 * 1024; // 5MB chunks for smaller files
+      chunkSize = 10 * 1024 * 1024; // 10MB chunks for smaller files on mobile
     }
     
     const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
@@ -635,9 +703,9 @@ const GoogleDriveSync = ({
       const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
       console.log(`📊 File size: ${fileSizeMB}MB`);
       
-      // Show warning for large files but let chunked download handle them
+      // Show warning for large files
       if (fileSizeBytes > 100 * 1024 * 1024) { // Over 100MB
-        const downloadMethod = isMobile ? `${Math.ceil(fileSizeBytes / (10 * 1024 * 1024))} chunks of 10MB each` : `${Math.ceil(fileSizeBytes / (15 * 1024 * 1024))} chunks of 15MB each`;
+        const downloadMethod = isMobile ? `${Math.ceil(fileSizeBytes / (25 * 1024 * 1024))} chunks of 25MB each` : 'single download (fastest)';
         showMessage(`⚠️ Large file (${fileSizeMB}MB) will be downloaded using ${downloadMethod}. This may take a few minutes.`, false);
       }
       
