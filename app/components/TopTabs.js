@@ -363,7 +363,7 @@ const TopTabs = ({
               className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
               title="Font Size Settings"
             >
-              <span className="text-xs">🔤</span>
+              <span className="text-xs">aA</span>
             </button>
 
             {/* Collapse toggle button - only show on mobile */}
@@ -420,7 +420,7 @@ const TopTabs = ({
               className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
               title="Font Size Settings"
             >
-              <span className="text-xs">🔤</span>
+              <span className="text-xs">aA</span>
             </button>
 
             {/* Collapse toggle button - only show on mobile */}
@@ -479,7 +479,7 @@ const TopTabs = ({
               className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
               title="Font Size Settings"
             >
-              <span className="text-xs">🔤</span>
+              <span className="text-xs">aA</span>
             </button>
 
             {/* Collapse toggle button - only show on mobile */}
