@@ -139,7 +139,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
               fontWeight: fontSize === 'small' ? 'bold' : 'normal'
             }}
           >
-            Aa
+            A
           </button>
           <button
             onClick={() => handleFontSizeChange('medium')}
@@ -152,7 +152,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
               fontWeight: fontSize === 'medium' ? 'bold' : 'normal'
             }}
           >
-            Aa
+            A
           </button>
           <button
             onClick={() => handleFontSizeChange('large')}
@@ -165,7 +165,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
               fontWeight: fontSize === 'large' ? 'bold' : 'normal'
             }}
           >
-            Aa
+            A
           </button>
           <button
             onClick={() => handleFontSizeChange('xlarge')}
@@ -178,7 +178,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
               fontWeight: fontSize === 'xlarge' ? 'bold' : 'normal'
             }}
           >
-            Aa
+            A
           </button>
         </div>
       </div>
