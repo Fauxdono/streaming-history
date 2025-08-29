@@ -580,15 +580,50 @@ body {
 }
 
 /* Font size dropdown letters should not be affected by global font scaling */
-.font-size-indicator {
-  font-size: inherit !important;
+/* Make this extremely specific to override all global font scaling */
+.font-size-indicator-small {
+  font-size: 12px !important;
 }
 
-.font-small .font-size-indicator,
-.font-medium .font-size-indicator,
-.font-large .font-size-indicator,
-.font-xlarge .font-size-indicator {
-  font-size: inherit !important;
+.font-size-indicator-medium {
+  font-size: 16px !important;
+}
+
+.font-size-indicator-large {
+  font-size: 20px !important;
+}
+
+.font-size-indicator-xlarge {
+  font-size: 24px !important;
+}
+
+/* Override global font classes for these specific indicators */
+.font-small .font-size-indicator-small,
+.font-medium .font-size-indicator-small,
+.font-large .font-size-indicator-small,
+.font-xlarge .font-size-indicator-small {
+  font-size: 12px !important;
+}
+
+.font-small .font-size-indicator-medium,
+.font-medium .font-size-indicator-medium,
+.font-large .font-size-indicator-medium,
+.font-xlarge .font-size-indicator-medium {
+  font-size: 16px !important;
+}
+
+.font-small .font-size-indicator-large,
+.font-medium .font-size-indicator-large,
+.font-large .font-size-indicator-large,
+.font-xlarge .font-size-indicator-large {
+  font-size: 20px !important;
+}
+
+.font-small .font-size-indicator-xlarge,
+.font-medium .font-size-indicator-xlarge,
+.font-large .font-size-indicator-xlarge,
+.font-xlarge .font-size-indicator-xlarge {
+  font-size: 24px !important;
 }
 
 /* Loading animation */
