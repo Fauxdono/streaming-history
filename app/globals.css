@@ -581,11 +581,13 @@ body {
 
 /* Font size dropdown letters should not be affected by global font scaling */
 /* Make this extremely specific to override all global font scaling */
-.font-size-indicator-small {
-  font-size: 12px !important;
+/* Base styles that apply to all indicators */
+[class*="font-size-indicator-"] {
   width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -594,6 +596,55 @@ body {
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+}
+
+/* Universal override for all global font scaling */
+.font-small [class*="font-size-indicator-"],
+.font-medium [class*="font-size-indicator-"],
+.font-large [class*="font-size-indicator-"],
+.font-xlarge [class*="font-size-indicator-"] {
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+}
+.font-size-indicator-small {
+  font-size: 12px !important;
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
+  text-align: center !important;
 }
 
 .font-size-indicator-medium {
@@ -601,6 +652,8 @@ body {
   width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -609,6 +662,9 @@ body {
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
+  text-align: center !important;
 }
 
 .font-size-indicator-large {
@@ -616,6 +672,8 @@ body {
   width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -624,6 +682,9 @@ body {
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
+  text-align: center !important;
 }
 
 .font-size-indicator-xlarge {
@@ -631,6 +692,8 @@ body {
   width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -639,6 +702,9 @@ body {
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
+  line-height: 1 !important;
+  vertical-align: baseline !important;
+  text-align: center !important;
 }
 
 /* Override global font classes for these specific indicators */
