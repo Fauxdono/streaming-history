@@ -86,7 +86,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
     { value: 'xlarge', label: 'Extra Large', sliderValue: 3 }
   ];
 
-  const currentSliderValue = fontSizeOptions.find(opt => opt.value === fontSize)?.sliderValue || 1;
+  const currentSliderValue = fontSizeOptions.find(opt => opt.value === fontSize)?.sliderValue ?? 1;
 
   const handleSliderChange = (event) => {
     const value = parseInt(event.target.value);
@@ -128,23 +128,62 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
         
         {/* Letter size indicators under each notch */}
         <div className="flex justify-between mt-3 px-1">
-          {fontSizeOptions.map((option, index) => (
-            <button
-              key={option.value}
-              onClick={() => handleFontSizeChange(option.value)}
-              className={`transition-colors ${
-                fontSize === option.value
-                  ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-                  : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
-              }`}
-              style={{
-                fontSize: index === 0 ? '12px' : index === 1 ? '16px' : index === 2 ? '20px' : '24px',
-                fontWeight: fontSize === option.value ? 'bold' : 'normal'
-              }}
-            >
-              A
-            </button>
-          ))}
+          <button
+            onClick={() => handleFontSizeChange('small')}
+            className={`transition-colors ${
+              fontSize === 'small'
+                ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}
+            style={{
+              fontSize: '12px',
+              fontWeight: fontSize === 'small' ? 'bold' : 'normal'
+            }}
+          >
+            A
+          </button>
+          <button
+            onClick={() => handleFontSizeChange('medium')}
+            className={`transition-colors ${
+              fontSize === 'medium'
+                ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}
+            style={{
+              fontSize: '16px',
+              fontWeight: fontSize === 'medium' ? 'bold' : 'normal'
+            }}
+          >
+            A
+          </button>
+          <button
+            onClick={() => handleFontSizeChange('large')}
+            className={`transition-colors ${
+              fontSize === 'large'
+                ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}
+            style={{
+              fontSize: '20px',
+              fontWeight: fontSize === 'large' ? 'bold' : 'normal'
+            }}
+          >
+            A
+          </button>
+          <button
+            onClick={() => handleFontSizeChange('xlarge')}
+            className={`transition-colors ${
+              fontSize === 'xlarge'
+                ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}
+            style={{
+              fontSize: '24px',
+              fontWeight: fontSize === 'xlarge' ? 'bold' : 'normal'
+            }}
+          >
+            A
+          </button>
         </div>
       </div>
     </div>
