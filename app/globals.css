@@ -583,7 +583,7 @@ body {
 /* Make this extremely specific to override all global font scaling */
 /* Base styles that apply to all indicators */
 [class*="font-size-indicator-"] {
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -591,8 +591,8 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -608,7 +608,7 @@ body {
 .font-medium [class*="font-size-indicator-"],
 .font-large [class*="font-size-indicator-"],
 .font-xlarge [class*="font-size-indicator-"] {
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -616,8 +616,8 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -629,7 +629,7 @@ body {
 }
 .font-size-indicator-small {
   font-size: 12px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -637,8 +637,8 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -649,7 +649,7 @@ body {
 
 .font-size-indicator-medium {
   font-size: 16px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -657,8 +657,8 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -669,7 +669,7 @@ body {
 
 .font-size-indicator-large {
   font-size: 20px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -677,8 +677,8 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -689,7 +689,7 @@ body {
 
 .font-size-indicator-xlarge {
   font-size: 24px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -697,8 +697,8 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -713,14 +713,14 @@ body {
 .font-large .font-size-indicator-small,
 .font-xlarge .font-size-indicator-small {
   font-size: 12px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -731,14 +731,14 @@ body {
 .font-large .font-size-indicator-medium,
 .font-xlarge .font-size-indicator-medium {
   font-size: 16px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -749,14 +749,14 @@ body {
 .font-large .font-size-indicator-large,
 .font-xlarge .font-size-indicator-large {
   font-size: 20px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
@@ -767,14 +767,14 @@ body {
 .font-large .font-size-indicator-xlarge,
 .font-xlarge .font-size-indicator-xlarge {
   font-size: 24px !important;
-  width: 32px !important;
+  width: 24px !important;
   height: 24px !important;
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
   min-height: 24px !important;
   max-height: 24px !important;
   box-sizing: border-box !important;
