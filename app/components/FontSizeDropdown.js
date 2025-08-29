@@ -101,53 +101,16 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
   return (
     <div 
       ref={dropdownRef}
-      className={`fixed z-[300] w-70 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} 
+      className={`fixed z-[300] ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} 
         border rounded-lg shadow-xl p-4`}
       style={{
         top: position.top,
         left: position.left,
-        minWidth: '280px'
+        minWidth: '200px'
       }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🔤</span>
-          <h3 className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-            Font Size
-          </h3>
-        </div>
-        <button
-          onClick={onClose}
-          className={`p-1 rounded-full hover:bg-opacity-20 transition-colors ${
-            isDarkMode ? 'hover:bg-white text-gray-400' : 'hover:bg-black text-gray-600'
-          }`}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Current size display */}
-      <div className={`text-center mb-4 p-3 rounded-lg ${
-        isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
-      }`}>
-        <div className={`text-sm mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Current Size
-        </div>
-        <div className={`font-semibold ${
-          fontSize === 'small' ? 'text-sm' :
-          fontSize === 'medium' ? 'text-base' :
-          fontSize === 'large' ? 'text-lg' :
-          'text-xl'
-        } ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-          {fontSizeOptions.find(opt => opt.value === fontSize)?.label}
-        </div>
-      </div>
-
       {/* Slider */}
-      <div className="mb-4">
+      <div>
         <input
           type="range"
           min="0"
@@ -163,42 +126,25 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
           }}
         />
         
-        {/* Slider labels */}
-        <div className="flex justify-between mt-2 px-1">
+        {/* Letter size indicators under each notch */}
+        <div className="flex justify-between mt-3 px-1">
           {fontSizeOptions.map((option, index) => (
             <button
               key={option.value}
               onClick={() => handleFontSizeChange(option.value)}
-              className={`text-xs transition-colors px-1 py-0.5 rounded ${
+              className={`transition-colors ${
                 fontSize === option.value
-                  ? isDarkMode 
-                    ? 'text-indigo-400 font-medium' 
-                    : 'text-indigo-600 font-medium'
-                  : isDarkMode 
-                    ? 'text-gray-400 hover:text-gray-300' 
-                    : 'text-gray-500 hover:text-gray-700'
+                  ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+                  : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
               }`}
+              style={{
+                fontSize: index === 0 ? '12px' : index === 1 ? '16px' : index === 2 ? '20px' : '24px',
+                fontWeight: fontSize === option.value ? 'bold' : 'normal'
+              }}
             >
-              {option.label}
+              A
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Preview text */}
-      <div className={`p-3 rounded-lg border ${
-        isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
-      }`}>
-        <div className={`text-xs mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          Preview:
-        </div>
-        <div className={`${
-          fontSize === 'small' ? 'text-sm' :
-          fontSize === 'medium' ? 'text-base' :
-          fontSize === 'large' ? 'text-lg' :
-          'text-xl'
-        } ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-          Sample streaming text
         </div>
       </div>
     </div>
