@@ -583,18 +583,42 @@ body {
 /* Make this extremely specific to override all global font scaling */
 .font-size-indicator-small {
   font-size: 12px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .font-size-indicator-medium {
   font-size: 16px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .font-size-indicator-large {
   font-size: 20px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .font-size-indicator-xlarge {
   font-size: 24px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Override global font classes for these specific indicators */
@@ -603,6 +627,12 @@ body {
 .font-large .font-size-indicator-small,
 .font-xlarge .font-size-indicator-small {
   font-size: 12px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .font-small .font-size-indicator-medium,
@@ -610,6 +640,12 @@ body {
 .font-large .font-size-indicator-medium,
 .font-xlarge .font-size-indicator-medium {
   font-size: 16px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .font-small .font-size-indicator-large,
@@ -617,6 +653,12 @@ body {
 .font-large .font-size-indicator-large,
 .font-xlarge .font-size-indicator-large {
   font-size: 20px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .font-small .font-size-indicator-xlarge,
@@ -624,6 +666,12 @@ body {
 .font-large .font-size-indicator-xlarge,
 .font-xlarge .font-size-indicator-xlarge {
   font-size: 24px !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Loading animation */
