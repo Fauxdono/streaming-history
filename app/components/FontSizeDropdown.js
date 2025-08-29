@@ -130,13 +130,12 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
         <div className="flex justify-between mt-3 px-1">
           <button
             onClick={() => handleFontSizeChange('small')}
-            className={`transition-colors font-size-indicator ${
+            className={`transition-colors font-size-indicator-small ${
               fontSize === 'small'
                 ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontSize: '12px !important',
               fontWeight: fontSize === 'small' ? 'bold' : 'normal'
             }}
           >
@@ -144,13 +143,12 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
           </button>
           <button
             onClick={() => handleFontSizeChange('medium')}
-            className={`transition-colors font-size-indicator ${
+            className={`transition-colors font-size-indicator-medium ${
               fontSize === 'medium'
                 ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontSize: '16px !important',
               fontWeight: fontSize === 'medium' ? 'bold' : 'normal'
             }}
           >
@@ -158,13 +156,12 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
           </button>
           <button
             onClick={() => handleFontSizeChange('large')}
-            className={`transition-colors font-size-indicator ${
+            className={`transition-colors font-size-indicator-large ${
               fontSize === 'large'
                 ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontSize: '20px !important',
               fontWeight: fontSize === 'large' ? 'bold' : 'normal'
             }}
           >
@@ -172,13 +169,12 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
           </button>
           <button
             onClick={() => handleFontSizeChange('xlarge')}
-            className={`transition-colors font-size-indicator ${
+            className={`transition-colors font-size-indicator-xlarge ${
               fontSize === 'xlarge'
                 ? isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontSize: '24px !important',
               fontWeight: fontSize === 'xlarge' ? 'bold' : 'normal'
             }}
           >
