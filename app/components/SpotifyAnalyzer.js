@@ -1938,24 +1938,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   <div className="flex items-center gap-2">
                     <label className="text-teal-700">Sort by</label>
                     <button
-                      onClick={() => setArtistsSortBy('totalPlayed')}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        artistsSortBy === 'totalPlayed'
-                          ? 'bg-teal-600 text-white'
-                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                      }`}
+                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
                     >
-                      Time
-                    </button>
-                    <button
-                      onClick={() => setArtistsSortBy('playCount')}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        artistsSortBy === 'playCount'
-                          ? 'bg-teal-600 text-white'
-                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                      }`}
-                    >
-                      Plays
+                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
                   </div>
                 </div>
@@ -1995,24 +1981,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   <div className="flex items-center gap-1">
                     <label className="text-teal-700 text-sm">Sort</label>
                     <button
-                      onClick={() => setArtistsSortBy('totalPlayed')}
-                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                        artistsSortBy === 'totalPlayed'
-                          ? 'bg-teal-600 text-white'
-                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                      }`}
+                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
                     >
-                      Time
-                    </button>
-                    <button
-                      onClick={() => setArtistsSortBy('playCount')}
-                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                        artistsSortBy === 'playCount'
-                          ? 'bg-teal-600 text-white'
-                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
-                      }`}
-                    >
-                      Plays
+                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
                   </div>
                 </div>
@@ -2383,24 +2355,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   <div className="flex items-center gap-2">
                     <label className="text-pink-700">Sort by</label>
                     <button
-                      onClick={() => setAlbumsSortBy('totalPlayed')}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        albumsSortBy === 'totalPlayed'
-                          ? 'bg-pink-600 text-white'
-                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
-                      }`}
+                      onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
                     >
-                      Time
-                    </button>
-                    <button
-                      onClick={() => setAlbumsSortBy('playCount')}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        albumsSortBy === 'playCount'
-                          ? 'bg-pink-600 text-white'
-                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
-                      }`}
-                    >
-                      Plays
+                      {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
                   </div>
                 </div>
@@ -2440,24 +2398,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   <div className="flex items-center gap-1">
                     <label className="text-pink-700 text-sm">Sort</label>
                     <button
-                      onClick={() => setAlbumsSortBy('totalPlayed')}
-                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                        albumsSortBy === 'totalPlayed'
-                          ? 'bg-pink-600 text-white'
-                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
-                      }`}
+                      onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
                     >
-                      Time
-                    </button>
-                    <button
-                      onClick={() => setAlbumsSortBy('playCount')}
-                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                        albumsSortBy === 'playCount'
-                          ? 'bg-pink-600 text-white'
-                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
-                      }`}
-                    >
-                      Plays
+                      {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
                   </div>
                 </div>
