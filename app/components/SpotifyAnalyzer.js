@@ -2054,7 +2054,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                               <td className="p-2 text-teal-700">
                                 <div className="flex items-center justify-between">
                                   <div>
-                                    <div className="font-medium">#{originalIndex + 1} {artist.name}</div>
+                                    <div className="font-medium"><span className="text-base">#{originalIndex + 1}</span> {artist.name}</div>
                                     <div className="text-sm text-teal-500">
                                       Most Played: {artist.mostPlayedSong?.trackName || "N/A"}
                                       {artist.mostPlayedSong?.playCount && (
@@ -2133,7 +2133,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                       }
                                     }}
                                   >
-                                    <td className="p-1 sm:p-2 text-teal-700 font-medium text-xs sm:text-sm">{originalIndex + 1}</td>
+                                    <td className="p-1 sm:p-2 text-teal-700 font-medium text-base">{originalIndex + 1}</td>
                                     <td className="p-1 sm:p-2 text-teal-700">
                                       <div className="flex items-center justify-between">
                                         <span className="font-medium text-xs sm:text-sm truncate">{artist.name}</span>
