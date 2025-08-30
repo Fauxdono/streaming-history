@@ -1423,7 +1423,7 @@ return (
                   </div>
                   
                   <div className="mb-2">
-                    <div className="font-medium text-orange-900 text-sm leading-tight mb-1 flex items-center justify-between">
+                    <div className="font-medium text-orange-700 text-sm leading-tight mb-1 flex items-center justify-between">
                       <span>{song.displayName || song.trackName}</span>
                       <span className="font-bold text-sm text-orange-800">{index + 1}</span>
                     </div>
@@ -1460,11 +1460,18 @@ return (
                         {song.playCount} plays
                       </div>
                     </div>
-                    <div className="flex justify-center">
+                    <div className="flex justify-center gap-2">
                       <button
                         onClick={() => omitSong(song)}
                         className="p-1 text-orange-600 hover:text-orange-800 rounded"
                         title="Omit this song"
+                      >
+                        <XCircle size={12} />
+                      </button>
+                      <button
+                        onClick={() => omitArtist(song.artist)}
+                        className="p-1 text-orange-600 hover:text-orange-800 rounded"
+                        title="Omit this artist"
                       >
                         <XCircle size={12} />
                       </button>
