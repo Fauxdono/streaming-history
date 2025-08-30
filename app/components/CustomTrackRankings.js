@@ -1494,7 +1494,7 @@ return (
             <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b">
+                  <tr className="border-b border-orange-200 dark:border-orange-700">
                     <th className="p-2 text-left text-orange-700">Track Info</th>
                     <th className="p-2 text-right text-orange-700">Stats</th>
                   </tr>
@@ -1510,7 +1510,7 @@ return (
                 <div className="min-w-full">
                   <table className="w-full border-collapse text-sm sm:text-base">
                     <thead>
-                      <tr className="border-b">
+                      <tr className="border-b border-orange-200 dark:border-orange-700">
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Rank</th>
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Track</th>
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Artist</th>
