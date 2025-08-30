@@ -1060,9 +1060,9 @@ const CustomTrackRankings = ({
             </div>
           </td>
           <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm">{song.displayArtist || song.artist}</td>
+          <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm hidden sm:table-cell">{song.albumName}</td>
           <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{formatDuration(song.totalPlayed)}</td>
           <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{song.playCount}</td>
-          <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm hidden sm:table-cell">{song.albumName}</td>
         </tr>
       );
     }
@@ -1514,9 +1514,9 @@ return (
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Rank</th>
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Track</th>
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm">Artist</th>
+                        <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm hidden sm:table-cell">Album</th>
                         <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Time</th>
                         <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Plays</th>
-                        <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm hidden sm:table-cell">Album</th>
                       </tr>
                     </thead>
                     <tbody>
