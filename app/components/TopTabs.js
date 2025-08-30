@@ -331,8 +331,16 @@ const TopTabs = ({
 
   // Fixed settings bar at top of screen
   const FixedSettingsBar = () => (
-    <div className="fixed top-0 left-0 right-0 w-full z-[100] bg-white dark:bg-gray-800 border-b border-violet-200 dark:border-gray-600">
-      <div className="flex justify-center py-2">
+    <div 
+      className="fixed top-0 left-0 right-0 w-full z-[100] border-b border-violet-200 dark:border-gray-600"
+      style={{
+        backgroundImage: 'url(/apple-touch-icon.png)',
+        backgroundRepeat: 'repeat-x',
+        backgroundSize: 'auto 100%',
+        backgroundPosition: 'left center'
+      }}
+    >
+      <div className="flex justify-center py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
         <div className="flex items-center gap-1 px-2">
           {/* Dark mode toggle */}
           <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
