@@ -1148,7 +1148,7 @@ const YearSelector = ({
       // TopTabs are on the same side, so position year selector NEXT to TopTabs (between TopTabs and content)
       switch (currentPosition) {
         case 'top':
-          inlineStyles = { top: `${topTabsHeight}px`, left: 0, right: 0 };
+          inlineStyles = { top: `${56 + topTabsHeight}px`, left: 0, right: 0 }; // Fixed settings bar + tabs
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'bottom':
           // Account for TopTabs height + its safe area spacing on mobile using CSS calc
@@ -1159,10 +1159,10 @@ const YearSelector = ({
           }
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'left':
-          inlineStyles = { left: `${topTabsWidth}px`, top: 0 };
+          inlineStyles = { left: `${topTabsWidth}px`, top: '56px' }; // Below fixed settings bar
           return { className: `${baseClasses} h-full`, style: inlineStyles };
         case 'right':
-          inlineStyles = { right: `${topTabsWidth}px`, top: 0 };
+          inlineStyles = { right: `${topTabsWidth}px`, top: '56px' }; // Below fixed settings bar
           return { className: `${baseClasses} h-full`, style: inlineStyles };
         default:
           return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
@@ -1171,24 +1171,25 @@ const YearSelector = ({
       // TopTabs are on a different side, use standard positioning but account for TopTabs space
       switch (currentPosition) {
         case 'left':
-          // Account for TopTabs when positioned at top or bottom
-          const leftTopSpacing = topTabsPosition === 'top' ? topTabsHeight : 0;
+          // Account for fixed settings bar (56px) + TopTabs when positioned at top or bottom
+          const settingsBarHeight = 56;
+          const leftTopSpacing = settingsBarHeight + (topTabsPosition === 'top' ? topTabsHeight : 0);
           const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} left-0`, 
             style: { 
-              top: leftTopSpacing > 0 ? `${leftTopSpacing}px` : '0',
+              top: `${leftTopSpacing}px`,
               bottom: leftBottomSpacing
             } 
           };
         case 'right':
-          // Account for TopTabs when positioned at top or bottom
-          const rightTopSpacing = topTabsPosition === 'top' ? topTabsHeight : 0;
+          // Account for fixed settings bar (56px) + TopTabs when positioned at top or bottom
+          const rightTopSpacing = settingsBarHeight + (topTabsPosition === 'top' ? topTabsHeight : 0);
           const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} right-0`, 
             style: { 
-              top: rightTopSpacing > 0 ? `${rightTopSpacing}px` : '0',
+              top: `${rightTopSpacing}px`,
               bottom: rightBottomSpacing
             } 
           };
@@ -1214,7 +1215,7 @@ const YearSelector = ({
             } 
           };
         case 'top':
-          // Account for TopTabs when positioned at left or right
+          // Account for fixed settings bar (56px) + TopTabs when positioned at left or right
           const topLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
           const topRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
           
@@ -1222,12 +1223,14 @@ const YearSelector = ({
             topTabsPosition,
             topTabsWidth,
             topLeftSpacing,
-            topRightSpacing
+            topRightSpacing,
+            settingsBarHeight: 56
           });
           
           return { 
-            className: `${baseClasses} top-0 h-auto`, 
+            className: `${baseClasses} h-auto`, 
             style: { 
+              top: '56px', // Always below fixed settings bar
               left: topLeftSpacing > 0 ? `${topLeftSpacing}px` : '0',
               right: topRightSpacing > 0 ? `${topRightSpacing}px` : '0'
             } 
