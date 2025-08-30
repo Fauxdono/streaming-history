@@ -1073,7 +1073,7 @@ const CustomTrackRankings = ({
             </button>
             
             {showOmitDropdown === song.key && (
-              <div className="absolute bottom-full mb-1 right-0 bg-white border border-orange-200 rounded shadow-lg z-50 min-w-max">
+              <div className="absolute bottom-full mb-1 right-full mr-1 bg-white border border-orange-200 rounded shadow-lg z-50 min-w-max">
                 <button
                   onClick={() => {
                     omitSong(song);
