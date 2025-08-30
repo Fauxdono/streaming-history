@@ -265,19 +265,21 @@ const TopTabs = ({
     );
   }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon]);
 
-  // Position styles for different placements
+  // Position styles for different placements - now accounts for fixed settings bar
   const getPositionStyles = () => {
+    const settingsBarHeight = 'calc(2rem + 2 * 0.5rem)'; // py-2 = 0.5rem top + 0.5rem bottom + 2rem content height
+    
     switch (currentPosition) {
       case 'top':
-        return 'fixed top-0 left-0 right-0 w-full z-[100]';
+        return `fixed left-0 right-0 w-full z-[99]`;
       case 'bottom':
-        return 'fixed left-0 right-0 w-full z-[100]';
+        return 'fixed left-0 right-0 w-full bottom-0 z-[99]';
       case 'left':
-        return 'fixed left-0 top-0 bottom-0 h-full w-auto z-[100]';
+        return `fixed left-0 w-auto z-[99] h-full`;
       case 'right':
-        return 'fixed right-0 top-0 bottom-0 h-full w-auto z-[100]';
+        return `fixed right-0 w-auto z-[99] h-full`;
       default:
-        return 'fixed top-0 left-0 right-0 w-full z-[100]';
+        return `fixed left-0 right-0 w-full z-[99]`;
     }
   };
 
@@ -327,41 +329,45 @@ const TopTabs = ({
     }
   };
 
-  // Settings buttons component for reuse
-  const SettingsButtons = () => (
-    <div className="flex items-center gap-1 px-2 bg-white dark:bg-gray-800 z-[110]">
-      {/* Dark mode toggle */}
-      <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
+  // Fixed settings bar at top of screen
+  const FixedSettingsBar = () => (
+    <div className="fixed top-0 left-0 right-0 w-full z-[100] bg-white dark:bg-gray-800 border-b border-violet-200 dark:border-gray-600">
+      <div className="flex justify-center py-2">
+        <div className="flex items-center gap-1 px-2">
+          {/* Dark mode toggle */}
+          <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
 
-      {/* Position toggle button */}
-      <button 
-        onClick={togglePosition}
-        className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
-        title="Change tab position"
-      >
-        <span className="text-xs">⇄</span>
-      </button>
+          {/* Position toggle button */}
+          <button 
+            onClick={togglePosition}
+            className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
+            title="Change tab position"
+          >
+            <span className="text-xs">⇄</span>
+          </button>
 
-      {/* Settings button */}
-      <button 
-        ref={settingsButtonRef}
-        onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-        className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-        title="Font Size Settings"
-      >
-        <span className="text-xs">aA</span>
-      </button>
+          {/* Settings button */}
+          <button 
+            ref={settingsButtonRef}
+            onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
+            className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
+            title="Font Size Settings"
+          >
+            <span className="text-xs">aA</span>
+          </button>
 
-      {/* Collapse toggle button - only show on mobile */}
-      {isMobile && (
-        <button 
-          onClick={toggleCollapsed}
-          className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
-          title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-        >
-          <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
-        </button>
-      )}
+          {/* Collapse toggle button - only show on mobile */}
+          {isMobile && (
+            <button 
+              onClick={toggleCollapsed}
+              className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
+              title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
+            >
+              <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 
@@ -384,90 +390,34 @@ const TopTabs = ({
   );
 
   return (
-    <div 
-      className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
-      style={{
-        ...(currentPosition === 'bottom' && isMobile && {
-          bottom: 'max(1rem, env(safe-area-inset-bottom))'
-        }),
-        ...(currentPosition === 'bottom' && !isMobile && {
-          bottom: '0'
-        })
-      }}
-    >
-      {currentPosition === 'top' ? (
-        isMobile ? (
-          // Mobile layout for top position - settings bar above tabs
-          <div className="flex flex-col">
-            {/* Settings bar at top on mobile */}
-            <div className="flex-shrink-0 border-b border-violet-200 dark:border-gray-600 py-2">
-              <div className="flex justify-center">
-                <SettingsButtons />
-              </div>
-            </div>
-            
-            {/* Tabs area below settings */}
-            <div className="flex-1 overflow-x-auto main-tabs-scrollbar py-2">
-              <TabsContainer />
-            </div>
+    <>
+      {/* Fixed settings bar at top */}
+      <FixedSettingsBar />
+      
+      {/* Positioned tabs container */}
+      <div 
+        className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
+        style={{
+          ...(currentPosition === 'top' && { top: 'calc(2rem + 2 * 0.5rem)' }), // Below fixed settings bar
+          ...(currentPosition === 'bottom' && isMobile && {
+            bottom: 'max(1rem, env(safe-area-inset-bottom))'
+          }),
+          ...(currentPosition === 'bottom' && !isMobile && {
+            bottom: '0'
+          }),
+          ...(currentPosition === 'left' && { top: 'calc(2rem + 2 * 0.5rem)' }), // Below fixed settings bar
+          ...(currentPosition === 'right' && { top: 'calc(2rem + 2 * 0.5rem)' }) // Below fixed settings bar
+        }}
+      >
+        {currentPosition === 'top' || currentPosition === 'bottom' ? (
+          // Horizontal layout for top and bottom positions
+          <div className="overflow-x-auto main-tabs-scrollbar py-2">
+            <TabsContainer />
           </div>
         ) : (
-          // Desktop layout for top position - buttons on left
-          <div className="flex">
-            {/* Fixed button area on the left */}
-            <div className="flex-shrink-0">
-              <SettingsButtons />
-            </div>
-
-            {/* Scrolling tabs area */}
-            <div className="flex-1 overflow-x-auto main-tabs-scrollbar">
-              <TabsContainer />
-            </div>
-          </div>
-        )
-      ) : currentPosition === 'bottom' ? (
-        isMobile ? (
-          // Mobile layout for bottom position - settings bar above tabs
-          <div className="flex flex-col">
-            {/* Tabs area at top on mobile */}
-            <div className="flex-1 overflow-x-auto main-tabs-scrollbar py-2">
-              <TabsContainer />
-            </div>
-            
-            {/* Settings bar at bottom on mobile */}
-            <div className="flex-shrink-0 border-t border-violet-200 dark:border-gray-600 py-2">
-              <div className="flex justify-center">
-                <SettingsButtons />
-              </div>
-            </div>
-          </div>
-        ) : (
-          // Desktop layout for bottom position - buttons on left
-          <div className="flex">
-            {/* Fixed button area on the left */}
-            <div className="flex-shrink-0">
-              <SettingsButtons />
-            </div>
-
-            {/* Scrolling tabs area */}
-            <div className="flex-1 overflow-x-auto main-tabs-scrollbar">
-              <TabsContainer />
-            </div>
-          </div>
-        )
-      ) : (
-        // Layout for left and right positions with buttons above tabs
-        <div className="flex flex-col">
-          {/* Fixed button area at the top */}
-          <div className={`flex-shrink-0 border-b border-violet-200 dark:border-gray-600 py-2 ${
-            isCollapsed && isMobile ? 'flex flex-col items-center gap-1' : 'flex justify-center gap-1'
-          }`}>
-            <SettingsButtons />
-          </div>
-
-          {/* Scrolling tabs area */}
-          <div className="flex-1 overflow-y-auto main-tabs-scrollbar max-h-full">
-            <div className="flex flex-col gap-1 sm:gap-2 min-h-max text-sm sm:text-base py-4">
+          // Vertical layout for left and right positions
+          <div className="overflow-y-auto main-tabs-scrollbar max-h-full py-4">
+            <div className="flex flex-col gap-1 sm:gap-2 min-h-max text-sm sm:text-base">
               {stats && <TabButton id="updates" label="Updates" />} 
               <TabButton id="upload" label="Upload" />
               {stats && <TabButton id="stats" label="Statistics" />}
@@ -482,8 +432,8 @@ const TopTabs = ({
               {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       
       {/* Font Size Dropdown */}
       <FontSizeDropdown 
@@ -491,7 +441,7 @@ const TopTabs = ({
         onClose={() => setShowFontSizeDropdown(false)}
         buttonRef={settingsButtonRef}
       />
-    </div>
+    </>
   );
 };
 
