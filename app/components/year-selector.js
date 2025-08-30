@@ -1158,9 +1158,9 @@ const YearSelector = ({
       switch (currentPosition) {
         case 'top':
           // When both at top: YearSelector goes below settings bar + TopTabs
-          // Use CSS calc to ensure dynamic positioning that works with expanded state
+          // Use CSS calc like TopTabs for consistent positioning
           inlineStyles = { 
-            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px)`,
+            top: `calc(calc(2rem + 2 * 0.5rem) + ${topTabsHeight}px)`, // Settings bar calc + TopTabs height
             left: 0, 
             right: 0,
             zIndex: 89 // Slightly lower than TopTabs but above content
@@ -1187,24 +1187,24 @@ const YearSelector = ({
       // TopTabs are on a different side, use standard positioning but account for TopTabs space
       switch (currentPosition) {
         case 'left':
-          // Dynamic spacing: settings bar + TopTabs if they're at top, otherwise just settings bar
+          // Use same logic as TopTabs: always below settings bar, plus TopTabs if they're also at top
           const leftTopSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
           const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} left-0`, 
             style: { 
-              top: `${leftTopSpacing}px`,
+              top: topTabsPosition === 'top' ? `${leftTopSpacing}px` : 'calc(2rem + 2 * 0.5rem)', // Use same calc as TopTabs
               bottom: leftBottomSpacing
             } 
           };
         case 'right':
-          // Dynamic spacing: settings bar + TopTabs if they're at top, otherwise just settings bar
+          // Use same logic as TopTabs: always below settings bar, plus TopTabs if they're also at top
           const rightTopSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
           const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} right-0`, 
             style: { 
-              top: `${rightTopSpacing}px`,
+              top: topTabsPosition === 'top' ? `${rightTopSpacing}px` : 'calc(2rem + 2 * 0.5rem)', // Use same calc as TopTabs
               bottom: rightBottomSpacing
             } 
           };
@@ -1249,7 +1249,7 @@ const YearSelector = ({
           return { 
             className: `${baseClasses} h-auto`, 
             style: { 
-              top: `${topSpacing}px`,
+              top: topTabsPosition === 'top' ? `${topSpacing}px` : 'calc(2rem + 2 * 0.5rem)', // Use same calc as TopTabs
               left: topLeftSpacing > 0 ? `${topLeftSpacing}px` : '0',
               right: topRightSpacing > 0 ? `${topRightSpacing}px` : '0'
             } 
