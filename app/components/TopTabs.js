@@ -327,6 +327,62 @@ const TopTabs = ({
     }
   };
 
+  // Settings buttons component for reuse
+  const SettingsButtons = () => (
+    <div className="flex items-center gap-1 px-2 bg-white dark:bg-gray-800 z-[110]">
+      {/* Dark mode toggle */}
+      <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
+
+      {/* Position toggle button */}
+      <button 
+        onClick={togglePosition}
+        className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
+        title="Change tab position"
+      >
+        <span className="text-xs">⇄</span>
+      </button>
+
+      {/* Settings button */}
+      <button 
+        ref={settingsButtonRef}
+        onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
+        className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
+        title="Font Size Settings"
+      >
+        <span className="text-xs">aA</span>
+      </button>
+
+      {/* Collapse toggle button - only show on mobile */}
+      {isMobile && (
+        <button 
+          onClick={toggleCollapsed}
+          className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
+          title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
+        >
+          <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
+        </button>
+      )}
+    </div>
+  );
+
+  // Tabs component for reuse
+  const TabsContainer = () => (
+    <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
+      {stats && <TabButton id="updates" label="Updates" />} 
+      <TabButton id="upload" label="Upload" />
+      {stats && <TabButton id="stats" label="Statistics" />}
+      {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
+      {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
+      {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
+      {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
+      {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
+      {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
+      {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
+      {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
+      {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+    </div>
+  );
+
   return (
     <div 
       className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
@@ -340,158 +396,73 @@ const TopTabs = ({
       }}
     >
       {currentPosition === 'top' ? (
-        // Layout for top position with buttons on left
-        <div className="flex">
-          {/* Fixed button area on the left */}
-          <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
-            {/* Dark mode toggle */}
-            <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
-
-            {/* Position toggle button */}
-            <button 
-              onClick={togglePosition}
-              className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
-              title="Change tab position"
-            >
-              <span className="text-xs">⇄</span>
-            </button>
-
-            {/* Settings button */}
-            <button 
-              ref={settingsButtonRef}
-              onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-              className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-              title="Font Size Settings"
-            >
-              <span className="text-xs">aA</span>
-            </button>
-
-            {/* Collapse toggle button - only show on mobile */}
-            {isMobile && (
-              <button 
-                onClick={toggleCollapsed}
-                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
-                title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-              >
-                <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Scrolling tabs area */}
-          <div className="flex-1 overflow-x-auto main-tabs-scrollbar">
-            <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
-              {stats && <TabButton id="updates" label="Updates" />} 
-              <TabButton id="upload" label="Upload" />
-              {stats && <TabButton id="stats" label="Statistics" />}
-              {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
-              {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
-              {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
-              {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-              {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+        isMobile ? (
+          // Mobile layout for top position - settings bar above tabs
+          <div className="flex flex-col">
+            {/* Settings bar at top on mobile */}
+            <div className="flex-shrink-0 border-b border-violet-200 dark:border-gray-600 py-2">
+              <div className="flex justify-center">
+                <SettingsButtons />
+              </div>
+            </div>
+            
+            {/* Tabs area below settings */}
+            <div className="flex-1 overflow-x-auto main-tabs-scrollbar py-2">
+              <TabsContainer />
             </div>
           </div>
-        </div>
+        ) : (
+          // Desktop layout for top position - buttons on left
+          <div className="flex">
+            {/* Fixed button area on the left */}
+            <div className="flex-shrink-0">
+              <SettingsButtons />
+            </div>
+
+            {/* Scrolling tabs area */}
+            <div className="flex-1 overflow-x-auto main-tabs-scrollbar">
+              <TabsContainer />
+            </div>
+          </div>
+        )
       ) : currentPosition === 'bottom' ? (
-        // Layout for bottom position with buttons left of tabs
-        <div className="flex">
-          {/* Fixed button area on the left */}
-          <div className="flex-shrink-0 flex items-center gap-1 pl-2 pr-2 bg-white dark:bg-gray-800 z-[110]">
-            {/* Dark mode toggle */}
-            <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
-
-            {/* Position toggle button */}
-            <button 
-              onClick={togglePosition}
-              className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
-              title="Change tab position"
-            >
-              <span className="text-xs">⇄</span>
-            </button>
-
-            {/* Settings button */}
-            <button 
-              ref={settingsButtonRef}
-              onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-              className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-              title="Font Size Settings"
-            >
-              <span className="text-xs">aA</span>
-            </button>
-
-            {/* Collapse toggle button - only show on mobile */}
-            {isMobile && (
-              <button 
-                onClick={toggleCollapsed}
-                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
-                title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-              >
-                <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
-              </button>
-            )}
-          </div>
-
-          {/* Scrolling tabs area */}
-          <div className="flex-1 overflow-x-auto main-tabs-scrollbar">
-            <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
-              {stats && <TabButton id="updates" label="Updates" />} 
-              <TabButton id="upload" label="Upload" />
-              {stats && <TabButton id="stats" label="Statistics" />}
-              {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
-              {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
-              {processedData.length > 0 && <TabButton id="tracks" label={getTracksTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
-              {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
-              {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
-              {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+        isMobile ? (
+          // Mobile layout for bottom position - settings bar above tabs
+          <div className="flex flex-col">
+            {/* Tabs area at top on mobile */}
+            <div className="flex-1 overflow-x-auto main-tabs-scrollbar py-2">
+              <TabsContainer />
+            </div>
+            
+            {/* Settings bar at bottom on mobile */}
+            <div className="flex-shrink-0 border-t border-violet-200 dark:border-gray-600 py-2">
+              <div className="flex justify-center">
+                <SettingsButtons />
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          // Desktop layout for bottom position - buttons on left
+          <div className="flex">
+            {/* Fixed button area on the left */}
+            <div className="flex-shrink-0">
+              <SettingsButtons />
+            </div>
+
+            {/* Scrolling tabs area */}
+            <div className="flex-1 overflow-x-auto main-tabs-scrollbar">
+              <TabsContainer />
+            </div>
+          </div>
+        )
       ) : (
         // Layout for left and right positions with buttons above tabs
         <div className="flex flex-col">
           {/* Fixed button area at the top */}
-          <div className={`flex-shrink-0 flex gap-1 py-2 bg-white dark:bg-gray-800 z-[110] border-b border-violet-200 dark:border-gray-600 ${
-            isCollapsed && isMobile ? 'flex-col items-center' : 'justify-center'
+          <div className={`flex-shrink-0 border-b border-violet-200 dark:border-gray-600 py-2 ${
+            isCollapsed && isMobile ? 'flex flex-col items-center gap-1' : 'flex justify-center gap-1'
           }`}>
-            {/* Dark mode toggle */}
-            <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
-
-            {/* Position toggle button */}
-            <button 
-              onClick={togglePosition}
-              className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
-              title="Change tab position"
-            >
-              <span className="text-xs">⇄</span>
-            </button>
-
-            {/* Settings button */}
-            <button 
-              ref={settingsButtonRef}
-              onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-              className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-              title="Font Size Settings"
-            >
-              <span className="text-xs">aA</span>
-            </button>
-
-            {/* Collapse toggle button - only show on mobile */}
-            {isMobile && (
-              <button 
-                onClick={toggleCollapsed}
-                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
-                title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-              >
-                <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
-              </button>
-            )}
+            <SettingsButtons />
           </div>
 
           {/* Scrolling tabs area */}
