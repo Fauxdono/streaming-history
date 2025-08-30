@@ -1423,9 +1423,9 @@ return (
                   </div>
                   
                   <div className="mb-2">
-                    <div className="font-medium text-orange-900 text-sm leading-tight mb-1 flex items-center">
-                      <span className="font-bold text-sm mr-2 text-orange-800">#{index + 1}</span>
-                      {song.displayName || song.trackName}
+                    <div className="font-medium text-orange-900 text-sm leading-tight mb-1 flex items-center justify-between">
+                      <span>{song.displayName || song.trackName}</span>
+                      <span className="font-bold text-sm text-orange-800">{index + 1}</span>
                     </div>
                     <div 
                       className="text-sm text-orange-600 cursor-pointer hover:underline flex items-center"
@@ -1451,17 +1451,19 @@ return (
                     </div>
                   </div>
                   
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm font-medium text-orange-700">
-                      {formatDuration(song.totalPlayed)}
-                    </div>
-                    <div className="flex flex-col items-end">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="text-sm font-medium text-orange-700">
+                        {formatDuration(song.totalPlayed)}
+                      </div>
                       <div className="text-xs text-orange-600">
                         {song.playCount} plays
                       </div>
+                    </div>
+                    <div className="flex justify-center">
                       <button
                         onClick={() => omitSong(song)}
-                        className="p-1 text-orange-600 hover:text-orange-800 rounded mt-1"
+                        className="p-1 text-orange-600 hover:text-orange-800 rounded"
                         title="Omit this song"
                       >
                         <XCircle size={12} />
