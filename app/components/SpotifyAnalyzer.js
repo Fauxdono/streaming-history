@@ -2054,7 +2054,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                               <td className="p-2 text-teal-700">
                                 <div className="flex items-center justify-between">
                                   <div>
-                                    <div className="font-medium"><span className="text-base">#{originalIndex + 1}</span> {artist.name}</div>
+                                    <div className="font-medium"><span className="ranking-number">#{originalIndex + 1}</span> {artist.name}</div>
                                     <div className="text-sm text-teal-500">
                                       Most Played: {artist.mostPlayedSong?.trackName || "N/A"}
                                       {artist.mostPlayedSong?.playCount && (
@@ -2133,7 +2133,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                                       }
                                     }}
                                   >
-                                    <td className="p-1 sm:p-2 text-teal-700 font-medium text-base">{originalIndex + 1}</td>
+                                    <td className="p-1 sm:p-2 text-teal-700 font-medium"><span className="ranking-number">{originalIndex + 1}</span></td>
                                     <td className="p-1 sm:p-2 text-teal-700">
                                       <div className="flex items-center justify-between">
                                         <span className="font-medium text-xs sm:text-sm truncate">{artist.name}</span>
@@ -2242,7 +2242,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   )}
 </div>
 
-                          <div className="absolute top-1 right-3 text-teal-600" style={{ fontSize: '32px' }}>{originalIndex + 1}</div>
+                          <div className="absolute top-1 right-3 text-teal-600 ranking-number-large">{originalIndex + 1}</div>
                           {selectedArtists.includes(artist.name) && (
                             <div className="absolute top-2 right-2 w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
                               ✓
