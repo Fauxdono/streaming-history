@@ -1088,7 +1088,7 @@ const CustomTrackRankings = ({
                     omitArtist(song.artist);
                     setShowOmitDropdown(null);
                   }}
-                  className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-200"
+                  className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-900"
                 >
                   Omit artist
                 </button>
@@ -1510,7 +1510,7 @@ return (
                               omitArtist(song.artist);
                               setShowOmitDropdown(null);
                             }}
-                            className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-200"
+                            className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-900"
                           >
                             Omit artist
                           </button>
@@ -1549,7 +1549,7 @@ return (
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm hidden sm:table-cell">Album</th>
                         <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Time</th>
                         <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Plays</th>
-                        <th className="p-1 sm:p-2 text-center text-orange-700 text-xs sm:text-sm">Actions</th>
+                        <th className="p-1 sm:p-2 text-center text-orange-700 text-xs sm:text-sm"></th>
                       </tr>
                     </thead>
                     <tbody>
