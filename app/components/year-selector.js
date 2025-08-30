@@ -1172,8 +1172,8 @@ const YearSelector = ({
       // TopTabs are on a different side, use standard positioning but account for TopTabs space
       switch (currentPosition) {
         case 'left':
-          // Account for fixed settings bar only if TopTabs don't already handle it
-          const leftTopSpacing = topTabsPosition === 'top' ? 0 : settingsBarHeight;
+          // Dynamic spacing: settings bar + TopTabs if they're at top, otherwise just settings bar
+          const leftTopSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
           const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} left-0`, 
@@ -1183,8 +1183,8 @@ const YearSelector = ({
             } 
           };
         case 'right':
-          // Account for fixed settings bar only if TopTabs don't already handle it
-          const rightTopSpacing = topTabsPosition === 'top' ? 0 : settingsBarHeight;
+          // Dynamic spacing: settings bar + TopTabs if they're at top, otherwise just settings bar
+          const rightTopSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
           const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} right-0`, 
@@ -1215,22 +1215,26 @@ const YearSelector = ({
             } 
           };
         case 'top':
-          // Account for fixed settings bar (56px) + TopTabs when positioned at left or right
+          // Account for TopTabs when positioned at left or right, plus settings bar
           const topLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
           const topRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
+          // If TopTabs are also at top, we need to be below both settings bar AND TopTabs
+          const topSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
           
           console.log('Year selector top positioning:', {
             topTabsPosition,
             topTabsWidth,
+            topTabsHeight,
             topLeftSpacing,
             topRightSpacing,
-            settingsBarHeight: 56
+            settingsBarHeight,
+            finalTopSpacing: topSpacing
           });
           
           return { 
             className: `${baseClasses} h-auto`, 
             style: { 
-              top: `${settingsBarHeight}px`, // Always below fixed settings bar
+              top: `${topSpacing}px`,
               left: topLeftSpacing > 0 ? `${topLeftSpacing}px` : '0',
               right: topRightSpacing > 0 ? `${topRightSpacing}px` : '0'
             } 
