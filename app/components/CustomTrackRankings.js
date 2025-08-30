@@ -1414,24 +1414,17 @@ return (
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
-                      <span className="font-bold text-sm mr-2 text-orange-800">#{index + 1}</span>
                       {song.isFeatured && (
                         <span className="inline-block px-1 py-0.5 mr-2 bg-orange-200 text-orange-700 rounded text-xs">
                           FEAT
                         </span>
                       )}
                     </div>
-                    <button
-                      onClick={() => omitSong(song)}
-                      className="p-1 text-orange-600 hover:text-orange-800 rounded"
-                      title="Omit this song"
-                    >
-                      <XCircle size={14} />
-                    </button>
                   </div>
                   
                   <div className="mb-2">
-                    <div className="font-medium text-orange-900 text-sm leading-tight mb-1">
+                    <div className="font-medium text-orange-900 text-sm leading-tight mb-1 flex items-center">
+                      <span className="font-bold text-sm mr-2 text-orange-800">#{index + 1}</span>
                       {song.displayName || song.trackName}
                     </div>
                     <div 
@@ -1462,8 +1455,17 @@ return (
                     <div className="text-sm font-medium text-orange-700">
                       {formatDuration(song.totalPlayed)}
                     </div>
-                    <div className="text-xs text-orange-600">
-                      {song.playCount} plays
+                    <div className="flex flex-col items-end">
+                      <div className="text-xs text-orange-600">
+                        {song.playCount} plays
+                      </div>
+                      <button
+                        onClick={() => omitSong(song)}
+                        className="p-1 text-orange-600 hover:text-orange-800 rounded mt-1"
+                        title="Omit this song"
+                      >
+                        <XCircle size={12} />
+                      </button>
                     </div>
                   </div>
                 </div>
