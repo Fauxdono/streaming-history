@@ -1109,6 +1109,16 @@ return (
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
           </button>
         </div>
+        
+        <div className="flex items-center gap-2">
+          <label className="text-orange-700">Sort by</label>
+          <button
+            onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+            className="px-3 py-1 rounded text-sm font-medium transition-colors bg-orange-600 text-white hover:bg-orange-700"
+          >
+            {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+          </button>
+        </div>
       </div>
     </div>
     
@@ -1140,6 +1150,16 @@ return (
           >
             {viewMode === 'grid' ? 'Grid' : 
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-1">
+          <label className="text-orange-700 text-sm">Sort</label>
+          <button
+            onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+            className="px-2 py-1 rounded text-xs font-medium transition-colors bg-orange-600 text-white hover:bg-orange-700"
+          >
+            {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
         </div>
       </div>
@@ -1265,31 +1285,6 @@ return (
           <Download size={14} className="hidden sm:inline" />
           Export M3u
         </button>
-        
-        {/* Sort Controls */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          <span className="text-orange-700 text-sm">Sort:</span>
-          <button
-            onClick={() => setSortBy('totalPlayed')}
-            className={`px-2 py-1 rounded text-xs ${
-              sortBy === 'totalPlayed'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Time
-          </button>
-          <button
-            onClick={() => setSortBy('playCount')}
-            className={`px-2 py-1 rounded text-xs ${
-              sortBy === 'playCount'
-                ? 'bg-orange-600 text-white'
-                : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            }`}
-          >
-            Plays
-          </button>
-        </div>
       </div>
     </div>
 
