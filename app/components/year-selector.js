@@ -1149,7 +1149,7 @@ const YearSelector = ({
       // TopTabs are on the same side, so position year selector NEXT to TopTabs (between TopTabs and content)
       switch (currentPosition) {
         case 'top':
-          inlineStyles = { top: `${settingsBarHeight + topTabsHeight}px`, left: 0, right: 0 }; // Fixed settings bar + tabs
+          inlineStyles = { top: `${topTabsHeight}px`, left: 0, right: 0 }; // Just below TopTabs (TopTabs already accounts for settings bar)
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'bottom':
           // Account for TopTabs height + its safe area spacing on mobile using CSS calc
@@ -1160,10 +1160,10 @@ const YearSelector = ({
           }
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'left':
-          inlineStyles = { left: `${topTabsWidth}px`, top: `${settingsBarHeight}px` }; // Below fixed settings bar
+          inlineStyles = { left: `${topTabsWidth}px`, top: 0 }; // TopTabs handle settings bar spacing
           return { className: `${baseClasses} h-full`, style: inlineStyles };
         case 'right':
-          inlineStyles = { right: `${topTabsWidth}px`, top: `${settingsBarHeight}px` }; // Below fixed settings bar
+          inlineStyles = { right: `${topTabsWidth}px`, top: 0 }; // TopTabs handle settings bar spacing
           return { className: `${baseClasses} h-full`, style: inlineStyles };
         default:
           return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
@@ -1172,8 +1172,8 @@ const YearSelector = ({
       // TopTabs are on a different side, use standard positioning but account for TopTabs space
       switch (currentPosition) {
         case 'left':
-          // Account for fixed settings bar + TopTabs when positioned at top or bottom
-          const leftTopSpacing = settingsBarHeight + (topTabsPosition === 'top' ? topTabsHeight : 0);
+          // Account for fixed settings bar only if TopTabs don't already handle it
+          const leftTopSpacing = topTabsPosition === 'top' ? 0 : settingsBarHeight;
           const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} left-0`, 
@@ -1183,8 +1183,8 @@ const YearSelector = ({
             } 
           };
         case 'right':
-          // Account for fixed settings bar + TopTabs when positioned at top or bottom
-          const rightTopSpacing = settingsBarHeight + (topTabsPosition === 'top' ? topTabsHeight : 0);
+          // Account for fixed settings bar only if TopTabs don't already handle it
+          const rightTopSpacing = topTabsPosition === 'top' ? 0 : settingsBarHeight;
           const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
           return { 
             className: `${baseClasses} right-0`, 
