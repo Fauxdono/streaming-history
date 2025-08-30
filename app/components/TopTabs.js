@@ -340,7 +340,7 @@ const TopTabs = ({
         backgroundPosition: 'left center'
       }}
     >
-      <div className="flex justify-center py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+      <div className="flex justify-center py-2">
         <div className="flex items-center gap-1 px-2">
           {/* Dark mode toggle */}
           <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
