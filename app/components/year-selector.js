@@ -112,6 +112,14 @@ const YearSelector = ({
     };
   }, []);
 
+  // Force re-render when positioning needs to update
+  const [positionKey, setPositionKey] = useState(0);
+  
+  // Trigger positioning recalculation when expanded state changes
+  useEffect(() => {
+    setPositionKey(prev => prev + 1);
+  }, [expanded, currentPosition, topTabsPosition, topTabsHeight, asSidebar]);
+
   // Communicate expanded state changes to parent
   useEffect(() => {
     if (onExpandChange && asSidebar) {
@@ -1149,7 +1157,14 @@ const YearSelector = ({
       // TopTabs are on the same side, so position year selector NEXT to TopTabs (between TopTabs and content)
       switch (currentPosition) {
         case 'top':
-          inlineStyles = { top: `${topTabsHeight}px`, left: 0, right: 0 }; // Just below TopTabs (TopTabs already accounts for settings bar)
+          // When both at top: YearSelector goes below settings bar + TopTabs
+          // Use CSS calc to ensure dynamic positioning that works with expanded state
+          inlineStyles = { 
+            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px)`,
+            left: 0, 
+            right: 0,
+            zIndex: 89 // Slightly lower than TopTabs but above content
+          };
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'bottom':
           // Account for TopTabs height + its safe area spacing on mobile using CSS calc
