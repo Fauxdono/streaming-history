@@ -537,6 +537,15 @@ body {
   font-size: 1.25rem !important; 
 }
 
+/* Ranking numbers should maintain consistent size regardless of font size setting */
+.ranking-number {
+  font-size: 1rem !important;
+}
+
+.ranking-number-large {
+  font-size: 2rem !important;
+}
+
 /* Font Size Slider Styling */
 .slider {
   -webkit-appearance: none;
