@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 import { useTheme } from './themeprovider.js';
@@ -14,6 +14,10 @@ const ListeningBehavior = ({
   colorTheme = 'indigo'
 }) => {
   const [activeTab, setActiveTab] = useState('behavior');
+  
+  // Defer heavy computations to prevent blocking during tab switch
+  const deferredRawPlayData = useDeferredValue(rawPlayData);
+  const deferredActiveTab = useDeferredValue(activeTab);
   // Use selectedYear if it's a specific date (YYYY-MM-DD), otherwise use today
   const [selectedDate, setSelectedDate] = useState(() => {
     if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) {
@@ -123,6 +127,9 @@ const ListeningBehavior = ({
   
 // Update the filteredData useMemo in ListeningBehavior.js
 const filteredData = useMemo(() => {
+  // Use deferred data for non-blocking computation
+  const dataToUse = deferredRawPlayData;
+  
   if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
     // Year range mode
     
@@ -173,7 +180,7 @@ const filteredData = useMemo(() => {
         }
         
         // Filter data for this date range
-        return rawPlayData.filter(entry => {
+        return dataToUse.filter(entry => {
           try {
             const date = new Date(entry.ts);
             if (isNaN(date.getTime())) return false;
@@ -190,7 +197,7 @@ const filteredData = useMemo(() => {
         const startYear = parseInt(yearRange.startYear);
         const endYear = parseInt(yearRange.endYear);
         
-        return rawPlayData.filter(entry => {
+        return dataToUse.filter(entry => {
           try {
             const date = new Date(entry.ts);
             if (isNaN(date.getTime())) return false;
@@ -207,7 +214,7 @@ const filteredData = useMemo(() => {
       const startYear = parseInt(yearRange.startYear);
       const endYear = parseInt(yearRange.endYear);
       
-      return rawPlayData.filter(entry => {
+      return dataToUse.filter(entry => {
         try {
           const date = new Date(entry.ts);
           if (isNaN(date.getTime())) return false;
@@ -222,7 +229,7 @@ const filteredData = useMemo(() => {
   } else if (selectedYear !== 'all') {
     if (selectedYear.includes('-')) {
       // Handle YYYY-MM or YYYY-MM-DD format
-      return rawPlayData.filter(entry => {
+      return dataToUse.filter(entry => {
         try {
           const date = new Date(entry.ts);
           if (isNaN(date.getTime())) return false;
@@ -242,7 +249,7 @@ const filteredData = useMemo(() => {
       });
     } else {
       // Regular single year
-      return rawPlayData.filter(entry => {
+      return dataToUse.filter(entry => {
         try {
           const date = new Date(entry.ts);
           if (isNaN(date.getTime())) return false;
@@ -254,12 +261,18 @@ const filteredData = useMemo(() => {
       });
     }
   } else {
-    return rawPlayData;
+    return dataToUse;
   }
-}, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
+}, [deferredRawPlayData, selectedYear, yearRangeMode, yearRange]);
   
-  // Analyze user behavior (skips, shuffle, etc.)
+  // Add loading state for heavy computations
+  const [isComputing, setIsComputing] = useState(false);
+  
+  // Analyze user behavior (skips, shuffle, etc.) - only compute for active behavior tab
   const behaviorData = useMemo(() => {
+    if (deferredActiveTab !== 'behavior' && activeTab !== 'behavior') {
+      return { shuffleData: [], skipData: [], endReasons: [], startReasons: [], platformData: [] };
+    }
     let totalTracks = 0;
     let skippedTracks = 0;
     let shufflePlays = 0;
@@ -350,10 +363,13 @@ const filteredData = useMemo(() => {
       skipData,
       platformData
     };
-  }, [filteredData]);
+  }, [filteredData, deferredActiveTab, activeTab, isDarkMode]);
   
-  // Analyze listening sessions
+  // Analyze listening sessions - only compute for active sessions tab
   const sessionData = useMemo(() => {
+    if (deferredActiveTab !== 'sessions' && activeTab !== 'sessions') {
+      return { sessions: [], sessionLengths: [], totalSessions: 0, durationGroups: [] };
+    }
     // Define a session as listening activity with gaps less than 30 minutes
     const SESSION_GAP_MS = 30 * 60 * 1000; // 30 minutes
     const sessions = [];
@@ -524,7 +540,7 @@ const filteredData = useMemo(() => {
       longestListeningDay,
       mostActiveMonth
     };
-  }, [filteredData, isDarkMode]);
+  }, [filteredData, isDarkMode, deferredActiveTab, activeTab]);
 
   // Update selectedDate when selectedYear changes to a specific date
   React.useEffect(() => {
@@ -533,8 +549,11 @@ const filteredData = useMemo(() => {
     }
   }, [selectedYear]);
 
-  // Analyze listening history for selected date
+  // Analyze listening history for selected date - only compute for active history tab
   const historyData = useMemo(() => {
+    if (deferredActiveTab !== 'history' && activeTab !== 'history') {
+      return { tracks: [], totalTracks: 0, totalListeningTime: 0, uniqueTracks: 0, uniqueArtists: 0, sessions: 0, formattedDate: 'No date selected' };
+    }
     // Use selectedYear if it's a specific date, otherwise use selectedDate
     // Only show data when a specific date is selected
     if (!selectedYear || !selectedYear.includes('-') || selectedYear.split('-').length !== 3) {
@@ -611,10 +630,10 @@ const filteredData = useMemo(() => {
         day: 'numeric'
       })
     };
-  }, [filteredData, selectedDate, selectedYear, formatDuration]);
+  }, [filteredData, selectedDate, selectedYear, formatDuration, deferredActiveTab, activeTab]);
 
   // Custom pie chart label renderer - just show the percentage inside
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+  const renderCustomizedLabel = useCallback(({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
     const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
     const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
@@ -635,7 +654,100 @@ const filteredData = useMemo(() => {
         {`${(percent * 100).toFixed(0)}%`}
       </text>
     );
-  };
+  }, [getTextColor]);
+
+  // Memoized chart components to prevent unnecessary re-renders
+  const ShuffleChart = React.memo(({ data, isDarkMode, colorTheme }) => (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart key={`pie-shuffle-${isDarkMode}-${colorTheme}`}>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius={80}
+          labelLine={false}
+          label={renderCustomizedLabel}
+          stroke={getStrokeColor}
+          strokeWidth={2}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip 
+          formatter={(value) => value}
+          contentStyle={{
+            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+            border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+            color: isDarkMode ? '#ffffff' : '#000000'
+          }}
+        />
+        <Legend 
+          wrapperStyle={{ 
+            color: getLegendTextColor,
+            fontSize: '12px'
+          }}
+          contentStyle={{
+            color: getLegendTextColor
+          }}
+          iconType="rect"
+          formatter={(value) => (
+            <span style={{ color: getLegendTextColor }}>
+              {value}
+            </span>
+          )}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  ));
+
+  const CompletionChart = React.memo(({ data, isDarkMode, colorTheme }) => (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart key={`pie-completion-${isDarkMode}-${colorTheme}`}>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius={80}
+          labelLine={false}
+          label={renderCustomizedLabel}
+          stroke={getStrokeColor}
+          strokeWidth={2}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip 
+          formatter={(value) => value}
+          contentStyle={{
+            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+            border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+            color: isDarkMode ? '#ffffff' : '#000000'
+          }}
+        />
+        <Legend 
+          wrapperStyle={{ 
+            color: getLegendTextColor,
+            fontSize: '12px'
+          }}
+          contentStyle={{
+            color: getLegendTextColor
+          }}
+          iconType="rect"
+          formatter={(value) => (
+            <span style={{ color: getLegendTextColor }}>
+              {value}
+            </span>
+          )}
+        />
+      </PieChart>
+    </ResponsiveContainer>
+  ));
 
   const TabButton = ({ id, label }) => (
     <button
@@ -689,49 +801,11 @@ const filteredData = useMemo(() => {
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
               }`}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart key={`pie-shuffle-${isDarkMode}-${colorTheme}`}>
-                    <Pie
-                      data={behaviorData.shuffleData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      labelLine={false}
-                      label={renderCustomizedLabel}
-                      stroke={getStrokeColor}
-                      strokeWidth={2}
-                    >
-                      {behaviorData.shuffleData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => value}
-                      contentStyle={{
-                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                        border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                        color: isDarkMode ? '#ffffff' : '#000000'
-                      }}
-                    />
-                    <Legend 
-                      wrapperStyle={{ 
-                        color: getLegendTextColor,
-                        fontSize: '12px'
-                      }}
-                      contentStyle={{
-                        color: getLegendTextColor
-                      }}
-                      iconType="rect"
-                      formatter={(value) => (
-                        <span style={{ color: getLegendTextColor }}>
-                          {value}
-                        </span>
-                      )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <ShuffleChart 
+                  data={behaviorData.shuffleData}
+                  isDarkMode={isDarkMode}
+                  colorTheme={colorTheme}
+                />
               </div>
     
               <div className={`text-sm text-center mt-2 ${
@@ -748,49 +822,11 @@ const filteredData = useMemo(() => {
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
               }`}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart key={`pie-completion-${isDarkMode}-${colorTheme}`}>
-                    <Pie
-                      data={behaviorData.skipData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      labelLine={false}
-                      label={renderCustomizedLabel}
-                      stroke={getStrokeColor}
-                      strokeWidth={2}
-                    >
-                      {behaviorData.skipData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value) => value}
-                      contentStyle={{
-                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                        border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                        color: isDarkMode ? '#ffffff' : '#000000'
-                      }}
-                    />
-                    <Legend 
-                      wrapperStyle={{ 
-                        color: getLegendTextColor,
-                        fontSize: '12px'
-                      }}
-                      contentStyle={{
-                        color: getLegendTextColor
-                      }}
-                      iconType="rect"
-                      formatter={(value) => (
-                        <span style={{ color: getLegendTextColor }}>
-                          {value}
-                        </span>
-                      )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <CompletionChart 
+                  data={behaviorData.skipData}
+                  isDarkMode={isDarkMode}
+                  colorTheme={colorTheme}
+                />
               </div>
               <div className={`text-sm text-center mt-2 ${
                 isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
