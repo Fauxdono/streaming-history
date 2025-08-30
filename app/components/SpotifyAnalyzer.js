@@ -2242,7 +2242,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       
                       return (
                         <div key={artist.name} 
-                          className="p-3 bg-white rounded shadow-sm border-2 border-teal-200 hover:border-teal-400 transition-all duration-300 cursor-pointer relative"
+                          className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm border border-teal-200 dark:border-teal-700 hover:border-teal-400 dark:hover:border-teal-500 transition-all duration-300 cursor-pointer relative"
                           onClick={() => {
                             // Toggle artist selection
                             if (selectedArtists.includes(artist.name)) {
