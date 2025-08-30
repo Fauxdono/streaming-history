@@ -1429,20 +1429,10 @@ return (
                       <span className="font-bold text-sm text-orange-800">{index + 1}</span>
                     </div>
                     <div 
-                      className="text-sm text-orange-600 cursor-pointer hover:underline flex items-center"
+                      className="text-sm text-orange-600 cursor-pointer hover:underline"
                       onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
                     >
                       {song.displayArtist || song.artist}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          omitArtist(song.artist);
-                        }}
-                        className="ml-1 text-orange-600 hover:text-orange-800"
-                        title="Omit this artist"
-                      >
-                        <XCircle size={12} />
-                      </button>
                     </div>
                     <div 
                       className="text-xs text-orange-500 cursor-pointer hover:underline mt-1"
