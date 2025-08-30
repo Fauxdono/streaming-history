@@ -90,15 +90,15 @@ const TopTabs = ({
   useEffect(() => {
     if (onHeightChange) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
-        // Measure actual height dynamically
+        // Measure actual height dynamically - only for the tabs container, not settings bar
         const measureHeight = () => {
           const topTabsElement = document.querySelector('.toptabs-container');
           if (topTabsElement) {
             const actualHeight = topTabsElement.offsetHeight;
             onHeightChange(actualHeight);
           } else {
-            // Fallback to responsive approximation
-            const tabHeight = isMobile ? 60 : 72;
+            // Fallback to responsive approximation - just for tabs
+            const tabHeight = isMobile ? 44 : 56; // Reduced since settings are separate
             onHeightChange(tabHeight);
           }
         };
