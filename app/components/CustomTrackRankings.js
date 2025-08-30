@@ -1486,16 +1486,7 @@ return (
             </div>
           ) : viewMode === 'compact' ? (
             // Compact view - like artists tab compact
-            <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
-              <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
-                <div className="text-orange-700 font-medium text-sm">
-                  Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
-                </div>
-                <div className="text-orange-700 text-sm">
-                  Found <span className="font-bold">{filteredTracks.length}</span> tracks
-                </div>
-              </div>
-              <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+            <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
                 <div className="min-w-full">
                   <table className="w-full border-collapse text-sm sm:text-base">
                     <thead>
@@ -1514,7 +1505,6 @@ return (
                   </table>
                 </div>
               </div>
-            </div>
           ) : (
             // Default view - should not happen
             <div>Unknown view mode</div>
