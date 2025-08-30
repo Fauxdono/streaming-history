@@ -67,8 +67,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(10);
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
+  const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
+  const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
@@ -334,7 +336,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         );
       }
       
-      return filteredAlbums;
+      return filteredAlbums.sort((a, b) => {
+        if (albumsSortBy === 'playCount') {
+          return b.playCount - a.playCount;
+        } else {
+          return b.totalPlayed - a.totalPlayed;
+        }
+      });
     }
     
     // Use date range filtering approach with streaming adapter logic
@@ -463,8 +471,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       );
     }
     
-    return result;
-  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists]);
+    return result.sort((a, b) => {
+      if (albumsSortBy === 'playCount') {
+        return b.playCount - a.playCount;
+      } else {
+        return b.totalPlayed - a.totalPlayed;
+      }
+    });
+  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists, albumsSortBy]);
 
 
 
@@ -499,9 +513,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // Simple displayedArtists logic using CustomTrackRankings pattern
   const displayedArtists = useMemo(() => {
     
-    // If all-time, use the existing topArtists
+    // If all-time, use the existing topArtists but sort according to artistsSortBy
     if (selectedArtistYear === 'all') {
-      return topArtists;
+      return [...topArtists].sort((a, b) => {
+        if (artistsSortBy === 'playCount') {
+          return b.playCount - a.playCount;
+        } else {
+          return b.totalPlayed - a.totalPlayed;
+        }
+      });
     }
     
     // Use date range filtering approach
@@ -623,8 +643,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       delete artist.tracks;
     });
     
-    return Array.from(artistMap.values()).sort((a, b) => b.totalPlayed - a.totalPlayed);
-  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData]);
+    return Array.from(artistMap.values()).sort((a, b) => {
+      if (artistsSortBy === 'playCount') {
+        return b.playCount - a.playCount;
+      } else {
+        return b.totalPlayed - a.totalPlayed;
+      }
+    });
+  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData, artistsSortBy]);
 
   // Filtered displayed artists - memoized to prevent recalculation
   const filteredDisplayedArtists = useMemo(() => {
@@ -1908,6 +1934,30 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
                     </button>
                   </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-teal-700">Sort by</label>
+                    <button
+                      onClick={() => setArtistsSortBy('totalPlayed')}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        artistsSortBy === 'totalPlayed'
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                      }`}
+                    >
+                      Time
+                    </button>
+                    <button
+                      onClick={() => setArtistsSortBy('playCount')}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        artistsSortBy === 'playCount'
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                      }`}
+                    >
+                      Plays
+                    </button>
+                  </div>
                 </div>
               </div>
               
@@ -1939,6 +1989,30 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <label className="text-teal-700 text-sm">Sort</label>
+                    <button
+                      onClick={() => setArtistsSortBy('totalPlayed')}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        artistsSortBy === 'totalPlayed'
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                      }`}
+                    >
+                      Time
+                    </button>
+                    <button
+                      onClick={() => setArtistsSortBy('playCount')}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        artistsSortBy === 'playCount'
+                          ? 'bg-teal-600 text-white'
+                          : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                      }`}
+                    >
+                      Plays
                     </button>
                   </div>
                 </div>
@@ -2305,6 +2379,30 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
                     </button>
                   </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-pink-700">Sort by</label>
+                    <button
+                      onClick={() => setAlbumsSortBy('totalPlayed')}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        albumsSortBy === 'totalPlayed'
+                          ? 'bg-pink-600 text-white'
+                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
+                      }`}
+                    >
+                      Time
+                    </button>
+                    <button
+                      onClick={() => setAlbumsSortBy('playCount')}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        albumsSortBy === 'playCount'
+                          ? 'bg-pink-600 text-white'
+                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
+                      }`}
+                    >
+                      Plays
+                    </button>
+                  </div>
                 </div>
               </div>
               
@@ -2336,6 +2434,30 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     >
                       {albumsViewMode === 'grid' ? 'Grid' : 
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <label className="text-pink-700 text-sm">Sort</label>
+                    <button
+                      onClick={() => setAlbumsSortBy('totalPlayed')}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        albumsSortBy === 'totalPlayed'
+                          ? 'bg-pink-600 text-white'
+                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
+                      }`}
+                    >
+                      Time
+                    </button>
+                    <button
+                      onClick={() => setAlbumsSortBy('playCount')}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        albumsSortBy === 'playCount'
+                          ? 'bg-pink-600 text-white'
+                          : 'bg-pink-100 text-pink-700 hover:bg-pink-200'
+                      }`}
+                    >
+                      Plays
                     </button>
                   </div>
                 </div>
