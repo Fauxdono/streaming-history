@@ -37,6 +37,7 @@ const CustomTrackRankings = ({
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
+  const [showOmitDropdown, setShowOmitDropdown] = useState(null); // Track which card's dropdown is open
 
   // Create a ref to hold our normalization cache that persists across renders
   const normalizationCache = useRef(new Map());
@@ -1423,7 +1424,7 @@ return (
                   </div>
                   
                   <div className="mb-2">
-                    <div className="font-medium text-orange-700 text-sm leading-tight mb-1 flex items-center justify-between">
+                    <div className="font-medium text-orange-800 text-sm leading-tight mb-1 flex items-center justify-between">
                       <span>{song.displayName || song.trackName}</span>
                       <span className="font-bold text-sm text-orange-800">{index + 1}</span>
                     </div>
@@ -1460,21 +1461,37 @@ return (
                         {song.playCount} plays
                       </div>
                     </div>
-                    <div className="flex justify-center gap-2">
+                    <div className="flex justify-center relative">
                       <button
-                        onClick={() => omitSong(song)}
+                        onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
                         className="p-1 text-orange-600 hover:text-orange-800 rounded"
-                        title="Omit this song"
+                        title="Omit options"
                       >
                         <XCircle size={12} />
                       </button>
-                      <button
-                        onClick={() => omitArtist(song.artist)}
-                        className="p-1 text-orange-600 hover:text-orange-800 rounded"
-                        title="Omit this artist"
-                      >
-                        <XCircle size={12} />
-                      </button>
+                      
+                      {showOmitDropdown === song.key && (
+                        <div className="absolute bottom-full mb-1 bg-white border border-orange-200 rounded shadow-lg z-10 min-w-max">
+                          <button
+                            onClick={() => {
+                              omitSong(song);
+                              setShowOmitDropdown(null);
+                            }}
+                            className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50"
+                          >
+                            Omit song
+                          </button>
+                          <button
+                            onClick={() => {
+                              omitArtist(song.artist);
+                              setShowOmitDropdown(null);
+                            }}
+                            className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-100"
+                          >
+                            Omit artist
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
