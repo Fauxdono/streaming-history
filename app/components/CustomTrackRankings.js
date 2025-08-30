@@ -1008,7 +1008,7 @@ const CustomTrackRankings = ({
       return (
         <tr 
           key={song.key} 
-          className={`border-b hover:bg-orange-50 ${song.isFeatured ? 'bg-orange-50' : ''}`}
+          className={`border-b border-orange-200 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900 ${song.isFeatured ? 'bg-orange-50 dark:bg-orange-900' : ''}`}
         >
           <td className="p-2 text-orange-700">
             <div className="flex items-center justify-between">
@@ -1046,7 +1046,7 @@ const CustomTrackRankings = ({
       return (
         <tr 
           key={song.key} 
-          className={`border-b hover:bg-orange-100 ${song.isFeatured ? 'bg-orange-100' : ''}`}
+          className={`border-b border-orange-200 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900 ${song.isFeatured ? 'bg-orange-100 dark:bg-orange-900' : ''}`}
         >
           <td className="p-1 sm:p-2 text-orange-700 font-medium text-xs sm:text-sm">{index + 1}</td>
           <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm">
@@ -1279,13 +1279,6 @@ return (
           </label>
         )}
 
-  <button
-          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className="flex items-center gap-1 px-2 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs"
-        >
-          <Download size={14} className="hidden sm:inline" />
-          Export M3u
-        </button>
       </div>
     </div>
 
@@ -1396,12 +1389,21 @@ return (
       /* Results section with date range info */
       <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
         <div className="flex justify-between items-center flex-wrap gap-2">
-          <div className="text-orange-700 font-medium text-sm">
-            Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+          <div className="flex items-center gap-4">
+            <div className="text-orange-700 font-medium text-sm">
+              Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
+            </div>
+            <div className="text-orange-700 text-sm">
+              Found <span className="font-bold">{filteredTracks.length}</span> tracks
+            </div>
           </div>
-          <div className="text-orange-700 text-sm">
-            Found <span className="font-bold">{filteredTracks.length}</span> tracks
-          </div>
+          <button
+            onClick={() => setShowPlaylistExporter(true)}
+            className="flex items-center gap-1 px-3 py-1 bg-orange-600 text-white rounded text-sm hover:bg-orange-700 transition-colors"
+          >
+            <Download size={14} className="hidden sm:inline" />
+            Export M3u
+          </button>
         </div>
 
         {filteredTracks.length > 0 ? (
