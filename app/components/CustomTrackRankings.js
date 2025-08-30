@@ -1063,6 +1063,38 @@ const CustomTrackRankings = ({
           <td className="p-1 sm:p-2 text-orange-700 text-xs sm:text-sm hidden sm:table-cell">{song.albumName}</td>
           <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{formatDuration(song.totalPlayed)}</td>
           <td className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">{song.playCount}</td>
+          <td className="p-1 sm:p-2 text-center relative">
+            <button
+              onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
+              className="p-1 text-orange-600 hover:text-orange-800 rounded"
+              title="Omit options"
+            >
+              <XCircle size={12} />
+            </button>
+            
+            {showOmitDropdown === song.key && (
+              <div className="absolute bottom-full mb-1 right-0 bg-white border border-orange-200 rounded shadow-lg z-10 min-w-max">
+                <button
+                  onClick={() => {
+                    omitSong(song);
+                    setShowOmitDropdown(null);
+                  }}
+                  className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50"
+                >
+                  Omit song
+                </button>
+                <button
+                  onClick={() => {
+                    omitArtist(song.artist);
+                    setShowOmitDropdown(null);
+                  }}
+                  className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-200"
+                >
+                  Omit artist
+                </button>
+              </div>
+            )}
+          </td>
         </tr>
       );
     }
@@ -1478,7 +1510,7 @@ return (
                               omitArtist(song.artist);
                               setShowOmitDropdown(null);
                             }}
-                            className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-100"
+                            className="block w-full px-3 py-2 text-left text-xs text-orange-700 hover:bg-orange-50 border-t border-orange-200"
                           >
                             Omit artist
                           </button>
@@ -1517,6 +1549,7 @@ return (
                         <th className="p-1 sm:p-2 text-left text-orange-700 text-xs sm:text-sm hidden sm:table-cell">Album</th>
                         <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Time</th>
                         <th className="p-1 sm:p-2 text-right text-orange-700 text-xs sm:text-sm">Plays</th>
+                        <th className="p-1 sm:p-2 text-center text-orange-700 text-xs sm:text-sm">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
