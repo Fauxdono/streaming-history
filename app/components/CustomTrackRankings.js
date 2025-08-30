@@ -1293,27 +1293,36 @@ return (
     )}
 
     {/* Tabs for switching between main content and omitted content */}
-    <div className="flex gap-2 mb-4">
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowOmittedTab(false)}
+          className={`px-4 py-2 rounded-t text-sm ${
+            !showOmittedTab
+              ? 'bg-orange-600 text-white'
+              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+          }`}
+        >
+          Track Results
+        </button>
+        <button
+          onClick={() => setShowOmittedTab(true)}
+          className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
+            showOmittedTab
+              ? 'bg-orange-600 text-white'
+              : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+          }`}
+        >
+          <Eye size={14} />
+          Omitted Content ({omittedSongs.length + omittedArtists.length})
+        </button>
+      </div>
       <button
-        onClick={() => setShowOmittedTab(false)}
-        className={`px-4 py-2 rounded-t text-sm ${
-          !showOmittedTab
-            ? 'bg-orange-600 text-white'
-            : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-        }`}
+        onClick={() => setShowPlaylistExporter(true)}
+        className="flex items-center gap-1 px-3 py-1 bg-orange-600 text-white rounded text-sm hover:bg-orange-700 transition-colors"
       >
-        Track Results
-      </button>
-      <button
-        onClick={() => setShowOmittedTab(true)}
-        className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
-          showOmittedTab
-            ? 'bg-orange-600 text-white'
-            : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-        }`}
-      >
-        <Eye size={14} />
-        Omitted Content ({omittedSongs.length + omittedArtists.length})
+        <Download size={14} className="hidden sm:inline" />
+        Export M3u
       </button>
     </div>
 
@@ -1389,21 +1398,12 @@ return (
       /* Results section with date range info */
       <div className="border rounded-lg p-3 sm:p-4 bg-orange-50">
         <div className="flex justify-between items-center flex-wrap gap-2">
-          <div className="flex items-center gap-4">
-            <div className="text-orange-700 font-medium text-sm">
-              Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
-            </div>
-            <div className="text-orange-700 text-sm">
-              Found <span className="font-bold">{filteredTracks.length}</span> tracks
-            </div>
+          <div className="text-orange-700 font-medium text-sm">
+            Date Range: <span className="text-orange-800">{getFormattedDateRange()}</span>
           </div>
-          <button
-            onClick={() => setShowPlaylistExporter(true)}
-            className="flex items-center gap-1 px-3 py-1 bg-orange-600 text-white rounded text-sm hover:bg-orange-700 transition-colors"
-          >
-            <Download size={14} className="hidden sm:inline" />
-            Export M3u
-          </button>
+          <div className="text-orange-700 text-sm">
+            Found <span className="font-bold">{filteredTracks.length}</span> tracks
+          </div>
         </div>
 
         {filteredTracks.length > 0 ? (
