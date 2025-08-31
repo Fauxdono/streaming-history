@@ -1379,7 +1379,10 @@ const YearSelector = ({
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
-      } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+      } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border} ${
+        // Remove top border when stacked below TopTabs at top
+        topTabsPosition === 'top' && currentPosition === 'top' ? 'border-t-0' : ''
+      }`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
     
   const containerStyle = asSidebar ? positionConfig.style : {};
