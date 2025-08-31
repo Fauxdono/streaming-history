@@ -1402,10 +1402,10 @@ const YearSelector = ({
     if ((currentPosition === 'left' || currentPosition === 'right') && 
         (topTabsPosition === 'top' || topTabsPosition === 'bottom')) {
       if (topTabsPosition === 'top') {
-        containerStyle.top = `${topTabsHeight}px`;
+        containerStyle.top = `${settingsBarHeight + topTabsHeight}px`; // Account for settings bar + TopTabs
         containerStyle.bottom = '0';
       } else if (topTabsPosition === 'bottom') {
-        containerStyle.top = '0';
+        containerStyle.top = `${settingsBarHeight}px`; // Account for settings bar at top
         containerStyle.bottom = isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`;
       }
     }
