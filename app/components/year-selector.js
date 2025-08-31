@@ -14,6 +14,7 @@ const YearSelector = ({
   onPositionChange, // New callback to communicate position changes to parent
   onWidthChange, // New callback to communicate width changes to parent
   onHeightChange, // New callback to communicate height changes to parent
+  onTransitionChange, // New callback to communicate transition state to parent
   initialYear, 
   initialYearRange, 
   isRangeMode, 
@@ -681,6 +682,9 @@ const YearSelector = ({
   // Toggle sidebar position - cycles through right, bottom, left, top
   const togglePosition = useCallback(() => {
     setIsPositionTransitioning(true);
+    if (onTransitionChange) {
+      onTransitionChange(true);
+    }
     setCurrentPosition(prev => {
       const newPosition = prev === 'right' ? 'bottom' : 
                          prev === 'bottom' ? 'left' : 
@@ -689,11 +693,14 @@ const YearSelector = ({
       // Clear transitioning state after position and animations settle
       setTimeout(() => {
         setIsPositionTransitioning(false);
+        if (onTransitionChange) {
+          onTransitionChange(false);
+        }
       }, 500); // Allow time for CSS transitions to complete
       
       return newPosition;
     });
-  }, []);
+  }, [onTransitionChange]);
 
   // Handle mode changes efficiently
   const handleModeChange = useCallback((newMode) => {

@@ -111,6 +111,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
   const [yearSelectorWidth, setYearSelectorWidth] = useState(32);
   const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
+  const [yearSelectorTransitioning, setYearSelectorTransitioning] = useState(false);
 
   // Reset dimensions when year selector position changes to prevent stale values
   useEffect(() => {
@@ -1487,6 +1488,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Calculate margin based on component positions - smart overlapping logic
   const yearSelectorMargins = useMemo(() => {
+    // Don't update margins during YearSelector position transitions to prevent jumping
+    if (yearSelectorTransitioning) {
+      return {}; // Keep previous margins during transition
+    }
     let classes = '';
     let topMargin = 0;
     let bottomMargin = 0;
@@ -1626,7 +1631,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     console.log('==================');
     
     return marginStyles;
-  }, [topTabsPosition, topTabsCollapsed, yearSelectorPosition, yearSelectorExpanded, topTabsHeight, topTabsWidth, yearSelectorWidth, yearSelectorHeight, showYearSidebar]);
+  }, [topTabsPosition, topTabsCollapsed, yearSelectorPosition, yearSelectorExpanded, topTabsHeight, topTabsWidth, yearSelectorWidth, yearSelectorHeight, showYearSidebar, yearSelectorTransitioning, isMobile]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
@@ -2838,6 +2843,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             onPositionChange={setYearSelectorPosition}
             onWidthChange={setYearSelectorWidth}
             onHeightChange={setYearSelectorHeight}
+            onTransitionChange={setYearSelectorTransitioning}
             topTabsPosition={topTabsPosition}
             topTabsHeight={topTabsHeight}
             topTabsWidth={topTabsWidth}
