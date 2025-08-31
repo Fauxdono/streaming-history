@@ -35,6 +35,7 @@ const TopTabs = ({
   
   // Collapsed state for mobile - shows icons instead of full text
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   
   // Check for mobile viewport
@@ -53,9 +54,11 @@ const TopTabs = ({
     };
   }, []);
 
-  // Re-measure dimensions on window resize
+  // Re-measure dimensions on window resize, but block during transitions
   useEffect(() => {
     const handleResize = () => {
+      if (isTransitioning) return; // Block updates during transitions
+      
       const topTabsElement = document.querySelector('.toptabs-container');
       if (topTabsElement) {
         // Re-measure width for left/right positions
@@ -73,7 +76,7 @@ const TopTabs = ({
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [currentPosition, onWidthChange, onHeightChange]);
+  }, [currentPosition, onWidthChange, onHeightChange, isTransitioning]);
 
   // Communicate position changes to parent
   useEffect(() => {
@@ -89,9 +92,9 @@ const TopTabs = ({
     }
   }, [isCollapsed, onCollapseChange]);
 
-  // Communicate height changes to parent (for top/bottom positions)
+  // Communicate height changes to parent (for top/bottom positions), but block during transitions
   useEffect(() => {
-    if (onHeightChange) {
+    if (onHeightChange && !isTransitioning) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
         // Measure actual height dynamically - only for the tabs container, not settings bar
         const measureHeight = () => {
@@ -116,11 +119,11 @@ const TopTabs = ({
         onHeightChange(0);
       }
     }
-  }, [currentPosition, onHeightChange, isMobile, isCollapsed]);
+  }, [currentPosition, onHeightChange, isMobile, isCollapsed, isTransitioning]);
 
-  // Communicate width changes to parent (for left/right positions)
+  // Communicate width changes to parent (for left/right positions), but block during transitions
   useEffect(() => {
-    if (onWidthChange) {
+    if (onWidthChange && !isTransitioning) {
       if (currentPosition === 'left' || currentPosition === 'right') {
         // Measure actual width dynamically
         const measureWidth = () => {
@@ -145,15 +148,22 @@ const TopTabs = ({
         onWidthChange(0);
       }
     }
-  }, [currentPosition, onWidthChange, isMobile, isCollapsed]);
+  }, [currentPosition, onWidthChange, isMobile, isCollapsed, isTransitioning]);
 
   // Toggle position - cycles through top, right, bottom, left
   const togglePosition = useCallback(() => {
+    setIsTransitioning(true);
     setCurrentPosition(prev => {
-      if (prev === 'top') return 'right';
-      if (prev === 'right') return 'bottom';
-      if (prev === 'bottom') return 'left';
-      return 'top'; // default fallback for 'left' and initial state
+      const newPosition = prev === 'top' ? 'right' : 
+                         prev === 'right' ? 'bottom' : 
+                         prev === 'bottom' ? 'left' : 'top';
+      
+      // Clear transitioning state after position and animations settle
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 500); // Allow time for CSS transitions to complete
+      
+      return newPosition;
     });
   }, []);
 
