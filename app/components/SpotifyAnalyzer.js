@@ -1487,13 +1487,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       topTabsTop = settingsBarHeight + topTabsHeight;
     } else if (topTabsPosition === 'bottom') {
       topTabsBottom = topTabsHeight;
-      topTabsTop = settingsBarHeight; // Still need top margin for fixed settings bar
+      topTabsTop = 0; // No extra top margin needed - FixedSettingsBar handles its own spacing
     } else if (topTabsPosition === 'left') {
       topTabsLeft = topTabsWidth;
-      topTabsTop = settingsBarHeight; // Still need top margin for fixed settings bar
+      topTabsTop = 0; // No extra top margin needed - FixedSettingsBar handles its own spacing
     } else if (topTabsPosition === 'right') {
       topTabsRight = topTabsWidth;
-      topTabsTop = settingsBarHeight; // Still need top margin for fixed settings bar
+      topTabsTop = 0; // No extra top margin needed - FixedSettingsBar handles its own spacing
     }
 
     // Calculate year selector margins - avoid double-counting only when on same side
