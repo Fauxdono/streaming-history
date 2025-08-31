@@ -676,7 +676,15 @@ const YearSelector = ({
   
   // Toggle sidebar expand/collapse
   const toggleExpanded = useCallback(() => {
-    setExpanded(prev => !prev);
+    setIsTransitioning(true);
+    setExpanded(prev => {
+      // Clear transitioning state after expansion animation settles
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 400); // Slightly shorter than position changes since expansion is faster
+      
+      return !prev;
+    });
   }, []);
   
   // Toggle sidebar position - cycles through right, bottom, left, top
