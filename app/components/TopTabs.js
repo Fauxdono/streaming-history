@@ -339,7 +339,9 @@ const TopTabs = ({
         backgroundImage: 'url(/apple-touch-icon.png)',
         backgroundRepeat: 'repeat-x',
         backgroundSize: 'auto 100%',
-        backgroundPosition: 'left center'
+        backgroundPosition: 'left center',
+        backgroundColor: '#ffffff', // Fallback color
+        backgroundAttachment: 'fixed' // Prevents image shifting during re-renders
       }}
     >
       <div className="flex justify-center py-2">
