@@ -112,15 +112,36 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [yearSelectorWidth, setYearSelectorWidth] = useState(32);
   const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
   const [yearSelectorTransitioning, setYearSelectorTransitioning] = useState(false);
+  
+  // Cache dimensions for each position
+  const [yearSelectorDimensionCache, setYearSelectorDimensionCache] = useState({
+    right: { width: 32, height: 48 },
+    left: { width: 32, height: 48 },
+    top: { width: 32, height: 48 },
+    bottom: { width: 32, height: 48 }
+  });
 
-  // Reset dimensions when year selector position changes to prevent stale values
+  // Update cached dimensions when they change
   useEffect(() => {
-    if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
-      setYearSelectorHeight(0); // Reset height for horizontal positions
-    } else {
-      setYearSelectorWidth(0); // Reset width for vertical positions
+    if (yearSelectorWidth || yearSelectorHeight) {
+      setYearSelectorDimensionCache(prev => ({
+        ...prev,
+        [yearSelectorPosition]: {
+          width: yearSelectorWidth,
+          height: yearSelectorHeight
+        }
+      }));
     }
-  }, [yearSelectorPosition]);
+  }, [yearSelectorWidth, yearSelectorHeight, yearSelectorPosition]);
+
+  // Use cached dimensions when position changes
+  useEffect(() => {
+    const cached = yearSelectorDimensionCache[yearSelectorPosition];
+    if (cached) {
+      setYearSelectorWidth(cached.width);
+      setYearSelectorHeight(cached.height);
+    }
+  }, [yearSelectorPosition, yearSelectorDimensionCache]);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
   // TopTabs position state
@@ -1488,21 +1509,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Calculate margin based on component positions - smart overlapping logic
   const yearSelectorMargins = useMemo(() => {
-    // During transitions, immediately read new position dimensions
-    if (yearSelectorTransitioning) {
-      const yearSelectorElement = document.querySelector('.year-selector-sidebar');
-      if (yearSelectorElement) {
-        // Get actual current dimensions from the DOM
-        const actualWidth = yearSelectorElement.offsetWidth;
-        const actualHeight = yearSelectorElement.offsetHeight;
-        
-        // Use actual dimensions if they're reasonable, otherwise use current state
-        const currentWidth = actualWidth > 0 ? actualWidth : yearSelectorWidth;
-        const currentHeight = actualHeight > 0 ? actualHeight : yearSelectorHeight;
-        
-        console.log('Reading dimensions during transition:', { actualWidth, actualHeight, currentWidth, currentHeight });
-      }
-    }
     let classes = '';
     let topMargin = 0;
     let bottomMargin = 0;
