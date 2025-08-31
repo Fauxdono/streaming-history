@@ -49,7 +49,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-title" content="Cake" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#000000" />
-        <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover" />
+        <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no" />
         
         {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
