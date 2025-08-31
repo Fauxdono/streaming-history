@@ -126,7 +126,23 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topTabsPosition, setTopTabsPosition] = useState('top');
   const [topTabsHeight, setTopTabsHeight] = useState(72);
   const [topTabsWidth, setTopTabsWidth] = useState(192);
-  const [topTabsCollapsed, setTopTabsCollapsed] = useState(false); // Default width for side positioning
+  const [topTabsCollapsed, setTopTabsCollapsed] = useState(false);
+  
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []); // Default width for side positioning
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
   const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
@@ -1488,8 +1504,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     console.log('yearSelectorHeight:', yearSelectorHeight);
     console.log('showYearSidebar:', showYearSidebar);
     
-    // Fixed settings bar height (always at top)
-    const settingsBarHeight = 56; // 2rem + 2 * 0.5rem padding = 32px + 24px = 56px
+    // Fixed settings bar height (always at top) - mobile is 85px, desktop is 56px
+    const settingsBarHeight = isMobile ? 85 : 56;
     
     // Calculate TopTabs margins for content area
     // Since TopTabs are fixed positioned, they create their own space
