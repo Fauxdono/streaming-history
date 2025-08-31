@@ -1488,9 +1488,20 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Calculate margin based on component positions - smart overlapping logic
   const yearSelectorMargins = useMemo(() => {
-    // Don't update margins during YearSelector position transitions to prevent jumping
+    // During transitions, immediately read new position dimensions
     if (yearSelectorTransitioning) {
-      return {}; // Keep previous margins during transition
+      const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+      if (yearSelectorElement) {
+        // Get actual current dimensions from the DOM
+        const actualWidth = yearSelectorElement.offsetWidth;
+        const actualHeight = yearSelectorElement.offsetHeight;
+        
+        // Use actual dimensions if they're reasonable, otherwise use current state
+        const currentWidth = actualWidth > 0 ? actualWidth : yearSelectorWidth;
+        const currentHeight = actualHeight > 0 ? actualHeight : yearSelectorHeight;
+        
+        console.log('Reading dimensions during transition:', { actualWidth, actualHeight, currentWidth, currentHeight });
+      }
     }
     let classes = '';
     let topMargin = 0;
