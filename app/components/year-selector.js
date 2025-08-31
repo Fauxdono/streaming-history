@@ -136,9 +136,9 @@ const YearSelector = ({
     }
   }, [currentPosition, onPositionChange, asSidebar]);
 
-  // Communicate width changes to parent, but block updates during position transitions
+  // Communicate width changes to parent
   useEffect(() => {
-    if (onWidthChange && asSidebar && !isPositionTransitioning) {
+    if (onWidthChange && asSidebar) {
       if (currentPosition === 'left' || currentPosition === 'right') {
         // Use ResizeObserver for dynamic width measurement
         const measureWidth = () => {
@@ -177,7 +177,6 @@ const YearSelector = ({
         if (yearSelectorElement && window.ResizeObserver) {
           let lastWidth = 0;
           resizeObserver = new ResizeObserver((entries) => {
-            if (isPositionTransitioning) return; // Block updates during position transitions
             
             for (const entry of entries) {
               const width = entry.contentRect.width;
@@ -192,7 +191,7 @@ const YearSelector = ({
           resizeObserver.observe(yearSelectorElement);
         }
         
-        // Initial measurement as fallback (only if not transitioning)
+        // Initial measurement as fallback
         measureWidth();
         
         return () => {
@@ -205,11 +204,11 @@ const YearSelector = ({
         onWidthChange(0);
       }
     }
-  }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile, isPositionTransitioning]);
+  }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile]);
 
-  // Communicate height changes to parent, but block updates during position transitions
+  // Communicate height changes to parent
   useEffect(() => {
-    if (onHeightChange && asSidebar && !isPositionTransitioning) {
+    if (onHeightChange && asSidebar) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
         // Measure actual height dynamically
         const measureHeight = () => {
@@ -252,7 +251,6 @@ const YearSelector = ({
         if (yearSelectorElement && window.ResizeObserver) {
           let lastHeight = 0;
           resizeObserver = new ResizeObserver((entries) => {
-            if (isPositionTransitioning) return; // Block updates during position transitions
             
             for (const entry of entries) {
               const height = entry.contentRect.height;
@@ -280,7 +278,7 @@ const YearSelector = ({
         onHeightChange(0);
       }
     }
-  }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile, isPositionTransitioning]);
+  }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile]);
 
   // Re-measure dimensions on window resize with debouncing
   useEffect(() => {
@@ -289,7 +287,6 @@ const YearSelector = ({
       // Debounce resize events to prevent rapid updates
       if (resizeTimeoutId) clearTimeout(resizeTimeoutId);
       resizeTimeoutId = setTimeout(() => {
-        if (isPositionTransitioning) return; // Block updates during position transitions
         
         const yearSelectorElement = document.querySelector('.year-selector-sidebar');
         if (yearSelectorElement) {
@@ -314,7 +311,7 @@ const YearSelector = ({
         clearTimeout(resizeTimeoutId);
       }
     };
-  }, [currentPosition, onWidthChange, onHeightChange, asSidebar, isPositionTransitioning]);
+  }, [currentPosition, onWidthChange, onHeightChange, asSidebar]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
