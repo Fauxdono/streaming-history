@@ -1379,7 +1379,7 @@ const YearSelector = ({
               {currentPosition === 'left' ? '→' : '←'}
             </button>
             
-            <div className={`h-full pt-16 pb-16 flex flex-col items-center justify-center ${colors.text}`}>
+            <div className={`h-full ${isMobile ? 'pt-4' : 'pt-16'} pb-16 flex flex-col items-center justify-center ${colors.text}`}>
               <div className="writing-mode-vertical text-xs opacity-70">
                 {mode === 'single' ? 'Year' : 'Year Range'}
               </div>
