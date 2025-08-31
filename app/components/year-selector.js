@@ -1162,7 +1162,7 @@ const YearSelector = ({
           // When both at top: YearSelector goes below FixedSettingsBar + TopTabs
           // Need to account for BOTH the settings bar height AND the TopTabs height
           inlineStyles = { 
-            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px - 1px)`, // Overlap by 1px to eliminate gap
+            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px)`, // Position directly after TopTabs
             left: 0, 
             right: 0,
             zIndex: 89 // Slightly lower than TopTabs but above content
@@ -1450,7 +1450,7 @@ const YearSelector = ({
       
       <div className={`${
         currentPosition === 'bottom' || currentPosition === 'top'
-          ? 'flex flex-row items-center p-4' 
+          ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-4 pb-4 pt-2' : 'p-4'}` 
           : 'h-full flex flex-col justify-between pt-4 pb-8'
       }`}>
         
