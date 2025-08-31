@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import DarkModeToggle from './darkmode.js';
-import FontSizeDropdown from './FontSizeDropdown.js';
 
 const TopTabs = ({ 
   activeTab, 
@@ -31,9 +29,6 @@ const TopTabs = ({
   // Collapsed state for mobile - shows icons instead of full text
   const [isCollapsed, setIsCollapsed] = useState(false);
   
-  // Font size dropdown state
-  const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
-  const settingsButtonRef = useRef(null);
   
   // Check for mobile viewport
   const [isMobile, setIsMobile] = useState(false);
@@ -331,57 +326,6 @@ const TopTabs = ({
     }
   };
 
-  // Fixed settings bar at top of screen - memoized to prevent re-renders
-  const FixedSettingsBar = React.memo(() => (
-    <div 
-      className="fixed top-0 left-0 right-0 w-full z-[100] border-b border-violet-200 dark:border-gray-600"
-      style={{
-        backgroundImage: 'url(/apple-touch-icon.png)',
-        backgroundRepeat: 'repeat-x',
-        backgroundSize: 'auto 100%',
-        backgroundPosition: 'left center',
-        transform: 'translateZ(0)', // Force GPU layer to prevent repaints
-        willChange: 'auto' // Optimize rendering performance
-      }}
-    >
-      <div className="flex justify-center py-2">
-        <div className="flex items-center gap-1 px-2">
-          {/* Dark mode toggle */}
-          <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
-
-          {/* Position toggle button */}
-          <button 
-            onClick={togglePosition}
-            className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
-            title="Change tab position"
-          >
-            <span className="text-xs">⇄</span>
-          </button>
-
-          {/* Settings button */}
-          <button 
-            ref={settingsButtonRef}
-            onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-            className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
-            title="Font Size Settings"
-          >
-            <span className="text-xs">aA</span>
-          </button>
-
-          {/* Collapse toggle button - only show on mobile */}
-          {isMobile && (
-            <button 
-              onClick={toggleCollapsed}
-              className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
-              title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-            >
-              <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  ));
 
   // Tabs component for reuse
   const TabsContainer = () => (
@@ -403,8 +347,6 @@ const TopTabs = ({
 
   return (
     <>
-      {/* Fixed settings bar at top */}
-      <FixedSettingsBar />
       
       {/* Positioned tabs container */}
       <div 
@@ -447,12 +389,6 @@ const TopTabs = ({
         )}
       </div>
       
-      {/* Font Size Dropdown */}
-      <FontSizeDropdown 
-        isOpen={showFontSizeDropdown}
-        onClose={() => setShowFontSizeDropdown(false)}
-        buttonRef={settingsButtonRef}
-      />
     </>
   );
 };

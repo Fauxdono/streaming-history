@@ -20,6 +20,7 @@ import ExcelPreview from './excelpreview.js';
 import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import GoogleDriveSync from './GoogleDriveSync.js';
+import FixedSettingsBar from './FixedSettingsBar.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -1602,8 +1603,32 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     return marginStyles;
   };
 
+  // Toggle position function for settings bar
+  const togglePosition = useCallback(() => {
+    setTopTabsPosition(prev => {
+      if (prev === 'top') return 'right';
+      if (prev === 'right') return 'bottom';
+      if (prev === 'bottom') return 'left';
+      return 'top';
+    });
+  }, []);
+
+  // Toggle collapsed function for settings bar
+  const toggleCollapsed = useCallback(() => {
+    const isMobile = window.innerWidth < 640;
+    if (isMobile) {
+      setTopTabsCollapsed(prev => !prev);
+    }
+  }, []);
+
   return (
     <div className="w-full h-full">
+      <FixedSettingsBar 
+        togglePosition={togglePosition}
+        toggleCollapsed={toggleCollapsed}
+        isMobile={window.innerWidth < 640}
+        isCollapsed={topTabsCollapsed}
+      />
       {TopTabsComponent && (
         <TopTabsComponent
           activeTab={activeTab}
