@@ -1485,7 +1485,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     // Since TopTabs are fixed positioned, they create their own space
     let topTabsTop = 0, topTabsBottom = 0, topTabsLeft = 0, topTabsRight = 0;
     if (topTabsPosition === 'top') {
-      topTabsTop = 0; // TopTabs handle their own spacing - no additional margin needed
+      // Dynamic calculation: if YearSelector is shown AND at top, let it handle spacing
+      topTabsTop = (yearSelectorPosition === 'top' && showYearSidebar && yearSelectorExpanded) 
+        ? 0  // YearSelector will handle the spacing when both at top and expanded
+        : settingsBarHeight + topTabsHeight; // Full margin when TopTabs alone at top
     } else if (topTabsPosition === 'bottom') {
       topTabsBottom = topTabsHeight;
       topTabsTop = settingsBarHeight; // Only icon bar height for top margin
@@ -1542,8 +1545,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Same side - YearSelector stacks after TopTabs, so main content needs space for:
       // TopTabs height + YearSelector height (since YearSelector margin is 0 when stacked)
       if (topTabsPosition === 'top') {
-        // Both at top: TopTabs handle their own spacing, just add YearSelector height
-        topMargin = yearSelectorHeight || 0;
+        // Both at top: YearSelector handles the full spacing, content comes after YearSelector
+        topMargin = settingsBarHeight + topTabsHeight + (yearSelectorHeight || 0);
         bottomMargin = topTabsBottom;
       } else if (topTabsPosition === 'bottom') {
         // Both at bottom: only icon bar space at top, tabs + YearSelector space at bottom
