@@ -23,7 +23,8 @@ const FixedSettingsBar = ({
           backgroundSize: 'auto 100%',
           backgroundPosition: 'left center',
           transform: 'translateZ(0)',
-          willChange: 'auto'
+          willChange: 'auto',
+          paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined
         }}
       >
         <div className={`flex ${isMobile ? 'justify-between items-end px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto', paddingBottom: isMobile ? '9px' : undefined}}>
