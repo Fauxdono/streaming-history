@@ -26,7 +26,7 @@ const FixedSettingsBar = ({
           willChange: 'auto'
         }}
       >
-        <div className="flex justify-center py-2">
+        <div className={`flex justify-center ${isMobile ? 'py-4 h-16 items-end' : 'py-2'}`}>
           <div className="flex items-center gap-1 px-2">
             {/* Dark mode toggle */}
             <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
