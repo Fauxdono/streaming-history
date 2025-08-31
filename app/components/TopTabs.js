@@ -340,8 +340,8 @@ const TopTabs = ({
         backgroundRepeat: 'repeat-x',
         backgroundSize: 'auto 100%',
         backgroundPosition: 'left center',
-        backgroundColor: '#ffffff', // Fallback color
-        backgroundAttachment: 'fixed' // Prevents image shifting during re-renders
+        transform: 'translateZ(0)', // Force GPU layer to prevent repaints
+        willChange: 'auto' // Optimize rendering performance
       }}
     >
       <div className="flex justify-center py-2">
