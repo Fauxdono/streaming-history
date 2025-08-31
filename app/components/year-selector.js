@@ -173,14 +173,19 @@ const YearSelector = ({
         let resizeObserver;
         const yearSelectorElement = document.querySelector('.year-selector-sidebar');
         if (yearSelectorElement && window.ResizeObserver) {
+          let timeoutId;
           resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-              const width = entry.contentRect.width;
-              console.log('ResizeObserver detected width change:', width);
-              if (width > 0 && width < 500) { // Sanity check
-                onWidthChange(width);
+            // Debounce the resize callback to prevent rapid firing
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              for (const entry of entries) {
+                const width = entry.contentRect.width;
+                console.log('ResizeObserver detected width change:', width);
+                if (width > 0 && width < 500) { // Sanity check
+                  onWidthChange(width);
+                }
               }
-            }
+            }, 100); // 100ms debounce
           });
           resizeObserver.observe(yearSelectorElement);
         }
@@ -242,14 +247,19 @@ const YearSelector = ({
         let resizeObserver;
         const yearSelectorElement = document.querySelector('.year-selector-sidebar');
         if (yearSelectorElement && window.ResizeObserver) {
+          let timeoutId;
           resizeObserver = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-              const height = entry.contentRect.height;
-              console.log('ResizeObserver detected height change:', height);
-              if (height > 0) { // Basic sanity check for height
-                onHeightChange(height);
+            // Debounce the resize callback to prevent rapid firing
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              for (const entry of entries) {
+                const height = entry.contentRect.height;
+                console.log('ResizeObserver detected height change:', height);
+                if (height > 0) { // Basic sanity check for height
+                  onHeightChange(height);
+                }
               }
-            }
+            }, 100); // 100ms debounce
           });
           resizeObserver.observe(yearSelectorElement);
         }
