@@ -1675,7 +1675,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       <FixedSettingsBar 
         togglePosition={togglePosition}
         toggleCollapsed={toggleCollapsed}
-        isMobile={typeof window !== 'undefined' ? window.innerWidth < 640 : false}
+        isMobile={isMobile}
         isCollapsed={topTabsCollapsed}
       />
       {TopTabsComponent && (
