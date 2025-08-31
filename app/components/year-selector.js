@@ -1162,7 +1162,7 @@ const YearSelector = ({
           // When both at top: YearSelector goes below FixedSettingsBar + TopTabs
           // Need to account for BOTH the settings bar height AND the TopTabs height
           inlineStyles = { 
-            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px)`, // FixedSettingsBar height + TopTabs height
+            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px - 1px)`, // Overlap by 1px to eliminate gap
             left: 0, 
             right: 0,
             zIndex: 89 // Slightly lower than TopTabs but above content
