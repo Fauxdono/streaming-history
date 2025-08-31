@@ -173,19 +173,17 @@ const YearSelector = ({
         let resizeObserver;
         const yearSelectorElement = document.querySelector('.year-selector-sidebar');
         if (yearSelectorElement && window.ResizeObserver) {
-          let timeoutId;
+          let lastWidth = 0;
           resizeObserver = new ResizeObserver((entries) => {
-            // Debounce the resize callback to prevent rapid firing
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-              for (const entry of entries) {
-                const width = entry.contentRect.width;
+            for (const entry of entries) {
+              const width = entry.contentRect.width;
+              // Only trigger callback if width actually changed
+              if (width > 0 && width < 500 && width !== lastWidth) {
                 console.log('ResizeObserver detected width change:', width);
-                if (width > 0 && width < 500) { // Sanity check
-                  onWidthChange(width);
-                }
+                lastWidth = width;
+                onWidthChange(width);
               }
-            }, 100); // 100ms debounce
+            }
           });
           resizeObserver.observe(yearSelectorElement);
         }
@@ -247,19 +245,17 @@ const YearSelector = ({
         let resizeObserver;
         const yearSelectorElement = document.querySelector('.year-selector-sidebar');
         if (yearSelectorElement && window.ResizeObserver) {
-          let timeoutId;
+          let lastHeight = 0;
           resizeObserver = new ResizeObserver((entries) => {
-            // Debounce the resize callback to prevent rapid firing
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-              for (const entry of entries) {
-                const height = entry.contentRect.height;
+            for (const entry of entries) {
+              const height = entry.contentRect.height;
+              // Only trigger callback if height actually changed
+              if (height > 0 && height !== lastHeight) {
                 console.log('ResizeObserver detected height change:', height);
-                if (height > 0) { // Basic sanity check for height
-                  onHeightChange(height);
-                }
+                lastHeight = height;
+                onHeightChange(height);
               }
-            }, 100); // 100ms debounce
+            }
           });
           resizeObserver.observe(yearSelectorElement);
         }
