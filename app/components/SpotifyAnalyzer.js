@@ -1593,8 +1593,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Same side - YearSelector stacks after TopTabs, so main content needs space for:
       // TopTabs height + YearSelector height (since YearSelector margin is 0 when stacked)
       if (topTabsPosition === 'top') {
-        // Both at top: YearSelector handles the full spacing, content comes after YearSelector
-        topMargin = settingsBarHeight + topTabsHeight + (yearSelectorHeight || 0);
+        // Both at top: TopTabs already positioned below settings bar, just add component heights
+        topMargin = topTabsHeight + (yearSelectorHeight || 0);
         bottomMargin = topTabsBottom;
       } else if (topTabsPosition === 'bottom') {
         // Both at bottom: only icon bar space at top, tabs + YearSelector space at bottom
