@@ -1508,7 +1508,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       if (yearSelectorPosition === 'left') {
         // Add left margin unless TopTabs is also on left (to avoid double-counting when they stack)
         if (topTabsPosition !== 'left') {
-          yearSelectorLeft = yearSelectorWidth || 0;
+          yearSelectorLeft = yearSelectorWidth || 160; // Default width during transition
           console.log('Year selector LEFT margin will be:', yearSelectorLeft);
         } else {
           console.log('Year selector LEFT margin skipped - will stack with TopTabs on', topTabsPosition);
@@ -1516,7 +1516,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'right') {
         // Add right margin unless TopTabs is also on right (to avoid double-counting when they stack)
         if (topTabsPosition !== 'right') {
-          yearSelectorRight = yearSelectorWidth || 0;
+          yearSelectorRight = yearSelectorWidth || 160; // Default width during transition
           console.log('Year selector RIGHT margin will be:', yearSelectorRight);
         } else {
           console.log('Year selector RIGHT margin skipped - will stack with TopTabs on', topTabsPosition);
@@ -1524,7 +1524,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'top') {
         // Add top margin unless TopTabs is also at top (to avoid double-counting when they stack)
         if (topTabsPosition !== 'top') {
-          yearSelectorTop = yearSelectorHeight || 0;
+          yearSelectorTop = yearSelectorHeight || 60; // Default height during transition
           console.log('Year selector TOP margin will be:', yearSelectorTop);
         } else {
           console.log('Year selector TOP margin skipped - will stack with TopTabs on', topTabsPosition);
@@ -1532,7 +1532,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       } else if (yearSelectorPosition === 'bottom') {
         // Add bottom margin unless TopTabs is also at bottom (to avoid double-counting when they stack)
         if (topTabsPosition !== 'bottom') {
-          yearSelectorBottom = yearSelectorHeight || 0;
+          yearSelectorBottom = yearSelectorHeight || 60; // Default height during transition
           console.log('Year selector BOTTOM margin will be:', yearSelectorBottom);
         } else {
           console.log('Year selector BOTTOM margin skipped - will stack with TopTabs on', topTabsPosition);
