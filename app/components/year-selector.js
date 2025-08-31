@@ -1177,7 +1177,7 @@ const YearSelector = ({
   };
 
   // Fixed settings bar height - this matches the FixedSettingsBar height
-  const settingsBarHeight = 56;
+  const settingsBarHeight = isMobile ? 85 : 56;
 
   // Position styles for the sidebar - accounts for TopTabs position to avoid overlap
   const getPositionStyles = () => {
