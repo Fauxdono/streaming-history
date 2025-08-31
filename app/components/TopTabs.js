@@ -371,7 +371,7 @@ const TopTabs = ({
       <div 
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
-          ...(currentPosition === 'top' && { top: settingsBarHeight }), // Below fixed settings bar
+          ...(currentPosition === 'top' && { top: settingsBarHeight, marginTop: '-1px' }), // Below fixed settings bar, overlap by 1px
           ...(currentPosition === 'bottom' && isMobile && {
             bottom: 'max(1rem, env(safe-area-inset-bottom))'
           }),
