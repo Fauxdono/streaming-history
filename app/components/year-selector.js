@@ -1150,17 +1150,17 @@ const YearSelector = ({
   // Position styles for the sidebar - accounts for TopTabs position to avoid overlap
   const getPositionStyles = () => {
     const baseClasses = 'fixed';
-    const settingsBarHeight = 56; // Fixed settings bar height
+    const settingsBarHeight = 56; // Fixed settings bar height - this matches the FixedSettingsBar height
     let inlineStyles = {};
     
     if (topTabsPosition === currentPosition) {
       // TopTabs are on the same side, so position year selector NEXT to TopTabs (between TopTabs and content)
       switch (currentPosition) {
         case 'top':
-          // When both at top: YearSelector goes below settings bar + TopTabs
-          // Use CSS calc like TopTabs for consistent positioning
+          // When both at top: YearSelector goes below FixedSettingsBar + TopTabs
+          // Need to account for BOTH the settings bar height AND the TopTabs height
           inlineStyles = { 
-            top: `calc(calc(2rem + 2 * 0.5rem) + ${topTabsHeight}px)`, // Settings bar calc + TopTabs height
+            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px)`, // FixedSettingsBar height + TopTabs height
             left: 0, 
             right: 0,
             zIndex: 89 // Slightly lower than TopTabs but above content
@@ -1175,11 +1175,19 @@ const YearSelector = ({
           }
           return { className: `${baseClasses} h-auto`, style: inlineStyles };
         case 'left':
-          inlineStyles = { left: `${topTabsWidth}px`, top: 0 }; // TopTabs handle settings bar spacing
-          return { className: `${baseClasses} h-full`, style: inlineStyles };
+          inlineStyles = { 
+            left: `${topTabsWidth}px`, 
+            top: `${settingsBarHeight}px`,
+            height: `calc(100vh - ${settingsBarHeight}px)` // Full height minus settings bar
+          };
+          return { className: `${baseClasses}`, style: inlineStyles };
         case 'right':
-          inlineStyles = { right: `${topTabsWidth}px`, top: 0 }; // TopTabs handle settings bar spacing
-          return { className: `${baseClasses} h-full`, style: inlineStyles };
+          inlineStyles = { 
+            right: `${topTabsWidth}px`, 
+            top: `${settingsBarHeight}px`,
+            height: `calc(100vh - ${settingsBarHeight}px)` // Full height minus settings bar
+          };
+          return { className: `${baseClasses}`, style: inlineStyles };
         default:
           return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
       }
@@ -1193,7 +1201,7 @@ const YearSelector = ({
           return { 
             className: `${baseClasses} left-0`, 
             style: { 
-              top: topTabsPosition === 'top' ? `${leftTopSpacing}px` : 'calc(2rem + 2 * 0.5rem)', // Use same calc as TopTabs
+              top: `${leftTopSpacing}px`, // Always use pixel values for consistency
               bottom: leftBottomSpacing
             } 
           };
@@ -1204,7 +1212,7 @@ const YearSelector = ({
           return { 
             className: `${baseClasses} right-0`, 
             style: { 
-              top: topTabsPosition === 'top' ? `${rightTopSpacing}px` : 'calc(2rem + 2 * 0.5rem)', // Use same calc as TopTabs
+              top: `${rightTopSpacing}px`, // Always use pixel values for consistency
               bottom: rightBottomSpacing
             } 
           };
@@ -1249,7 +1257,7 @@ const YearSelector = ({
           return { 
             className: `${baseClasses} h-auto`, 
             style: { 
-              top: topTabsPosition === 'top' ? `${topSpacing}px` : 'calc(2rem + 2 * 0.5rem)', // Use same calc as TopTabs
+              top: `${topSpacing}px`, // Always use pixel values for consistency
               left: topLeftSpacing > 0 ? `${topLeftSpacing}px` : '0',
               right: topRightSpacing > 0 ? `${topRightSpacing}px` : '0'
             } 
