@@ -34,7 +34,7 @@ const FixedSettingsBar = ({
             {/* Position toggle button */}
             <button 
               onClick={togglePosition}
-              className="p-2 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg"
+              className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8"
               title="Change tab position"
             >
               <span className="text-xs">⇄</span>
@@ -44,7 +44,7 @@ const FixedSettingsBar = ({
             <button 
               ref={settingsButtonRef}
               onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-              className="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg"
+              className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8"
               title="Font Size Settings"
             >
               <span className="text-xs">aA</span>
@@ -54,7 +54,7 @@ const FixedSettingsBar = ({
             {isMobile && (
               <button 
                 onClick={toggleCollapsed}
-                className="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg"
+                className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-8 h-8"
                 title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
               >
                 <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
