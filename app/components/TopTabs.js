@@ -290,8 +290,8 @@ const TopTabs = ({
     
     switch (currentPosition) {
       case 'top':
-        // Remove bottom border to connect seamlessly with content
-        return `${baseStyles} border-b-0`;
+        // Keep bottom border to separate from content, remove only when YearSelector stacked below
+        return `${baseStyles} border-b ${yearSelectorPosition === 'top' ? 'border-b-0' : ''}`;
       case 'bottom':
         return `${baseStyles} border-t`;
       case 'left':

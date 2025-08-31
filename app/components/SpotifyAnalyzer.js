@@ -1488,7 +1488,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Dynamic calculation: if YearSelector is shown AND at top, let it handle spacing
       topTabsTop = (yearSelectorPosition === 'top' && showYearSidebar && yearSelectorExpanded) 
         ? 0  // YearSelector will handle the spacing when both at top and expanded
-        : settingsBarHeight + topTabsHeight; // Full margin when TopTabs alone at top
+        : settingsBarHeight + topTabsHeight - 1; // Overlap TopTabs by 1px to eliminate gap
     } else if (topTabsPosition === 'bottom') {
       topTabsBottom = topTabsHeight;
       topTabsTop = settingsBarHeight; // Only icon bar height for top margin
