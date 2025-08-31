@@ -1540,13 +1540,26 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     if (topTabsPosition === yearSelectorPosition) {
       // Same side - YearSelector stacks after TopTabs, so main content needs space for:
       // TopTabs height + YearSelector height (since YearSelector margin is 0 when stacked)
-      if (topTabsPosition === 'top' || topTabsPosition === 'bottom') {
-        topMargin = topTabsTop + (topTabsTop > 0 ? yearSelectorHeight || 0 : 0);
-        bottomMargin = topTabsBottom + (topTabsBottom > 0 ? yearSelectorHeight || 0 : 0);
-      }
-      if (topTabsPosition === 'left' || topTabsPosition === 'right') {
-        leftMargin = topTabsLeft + (topTabsLeft > 0 ? yearSelectorWidth || 0 : 0);
-        rightMargin = topTabsRight + (topTabsRight > 0 ? yearSelectorWidth || 0 : 0);
+      if (topTabsPosition === 'top') {
+        // Both at top: need space for icon bar + TopTabs + YearSelector
+        topMargin = topTabsTop + (yearSelectorHeight || 0);
+        bottomMargin = topTabsBottom;
+      } else if (topTabsPosition === 'bottom') {
+        // Both at bottom: only icon bar space at top, tabs + YearSelector space at bottom
+        topMargin = settingsBarHeight; // Only icon bar height
+        bottomMargin = topTabsBottom + (yearSelectorHeight || 0);
+      } else if (topTabsPosition === 'left') {
+        // Both at left: only icon bar space at top, TopTabs + YearSelector space at left
+        topMargin = settingsBarHeight; // Only icon bar height
+        leftMargin = topTabsLeft + (yearSelectorWidth || 0);
+        bottomMargin = topTabsBottom;
+        rightMargin = topTabsRight;
+      } else if (topTabsPosition === 'right') {
+        // Both at right: only icon bar space at top, TopTabs + YearSelector space at right
+        topMargin = settingsBarHeight; // Only icon bar height
+        rightMargin = topTabsRight + (yearSelectorWidth || 0);
+        bottomMargin = topTabsBottom;
+        leftMargin = topTabsLeft;
       }
       // For the other dimension, use max since they don't conflict
       if (topTabsPosition === 'top' || topTabsPosition === 'bottom') {
