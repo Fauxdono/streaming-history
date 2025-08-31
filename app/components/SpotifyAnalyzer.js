@@ -1615,9 +1615,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Toggle collapsed function for settings bar
   const toggleCollapsed = useCallback(() => {
-    const isMobile = window.innerWidth < 640;
-    if (isMobile) {
-      setTopTabsCollapsed(prev => !prev);
+    if (typeof window !== 'undefined') {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile) {
+        setTopTabsCollapsed(prev => !prev);
+      }
     }
   }, []);
 
@@ -1626,7 +1628,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       <FixedSettingsBar 
         togglePosition={togglePosition}
         toggleCollapsed={toggleCollapsed}
-        isMobile={window.innerWidth < 640}
+        isMobile={typeof window !== 'undefined' ? window.innerWidth < 640 : false}
         isCollapsed={topTabsCollapsed}
       />
       {TopTabsComponent && (
