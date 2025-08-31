@@ -25,6 +25,13 @@ const TopTabs = ({
 }) => {
   // Position state - cycles through top, right, bottom, left
   const [currentPosition, setCurrentPosition] = useState(position);
+
+  // Sync internal position state with prop changes
+  useEffect(() => {
+    if (position !== currentPosition) {
+      setCurrentPosition(position);
+    }
+  }, [position, currentPosition]);
   
   // Collapsed state for mobile - shows icons instead of full text
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -352,7 +359,7 @@ const TopTabs = ({
       <div 
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
-          ...(currentPosition === 'top' && { top: 'calc(2rem + 2 * 0.5rem + 1px)' }), // Below fixed settings bar with 1px gap
+          ...(currentPosition === 'top' && { top: 'calc(2rem + 2 * 0.5rem)' }), // Below fixed settings bar
           ...(currentPosition === 'bottom' && isMobile && {
             bottom: 'max(1rem, env(safe-area-inset-bottom))'
           }),
