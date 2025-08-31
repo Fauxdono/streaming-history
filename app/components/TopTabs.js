@@ -352,7 +352,7 @@ const TopTabs = ({
       <div 
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
-          ...(currentPosition === 'top' && { top: 'calc(2rem + 2 * 0.5rem)' }), // Below fixed settings bar
+          ...(currentPosition === 'top' && { top: 'calc(2rem + 2 * 0.5rem + 1px)' }), // Below fixed settings bar with 1px gap
           ...(currentPosition === 'bottom' && isMobile && {
             bottom: 'max(1rem, env(safe-area-inset-bottom))'
           }),
