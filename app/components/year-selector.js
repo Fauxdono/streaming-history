@@ -135,11 +135,12 @@ const YearSelector = ({
     }
   }, [currentPosition, onPositionChange, asSidebar]);
 
-  // Communicate width changes to parent
+  // Communicate width changes to parent with debouncing to prevent layout thrashing
   useEffect(() => {
     if (onWidthChange && asSidebar) {
       if (currentPosition === 'left' || currentPosition === 'right') {
         // Use ResizeObserver for dynamic width measurement
+        let timeoutId;
         const measureWidth = () => {
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
@@ -160,12 +161,22 @@ const YearSelector = ({
             
             // Use the computed CSS width if it's reasonable, otherwise fall back to a safer measurement
             const finalWidth = (cssWidth > 0 && cssWidth < 500) ? cssWidth : yearSelectorElement.clientWidth;
-            onWidthChange(finalWidth);
+            
+            // Debounce the callback to prevent rapid updates during position changes
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              onWidthChange(finalWidth);
+            }, 150); // Wait 150ms for position changes to settle
           } else {
             // Fallback to responsive approximation
             const fallbackWidth = !expanded ? 32 : (mode === 'range' ? (isMobile ? 192 : 256) : (isMobile ? 64 : 128));
             console.log('Year selector width fallback:', fallbackWidth);
-            onWidthChange(fallbackWidth);
+            
+            // Debounce fallback as well
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              onWidthChange(fallbackWidth);
+            }, 150);
           }
         };
         
@@ -181,7 +192,12 @@ const YearSelector = ({
               if (width > 0 && width < 500 && width !== lastWidth) {
                 console.log('ResizeObserver detected width change:', width);
                 lastWidth = width;
-                onWidthChange(width);
+                
+                // Debounce ResizeObserver callbacks as well
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                  onWidthChange(width);
+                }, 100); // Shorter debounce for ResizeObserver since it's already batched
               }
             }
           });
@@ -195,19 +211,31 @@ const YearSelector = ({
           if (resizeObserver) {
             resizeObserver.disconnect();
           }
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
         };
       } else {
-        // Reset width to 0 when not on left/right sides
-        onWidthChange(0);
+        // Reset width to 0 when not on left/right sides (with slight delay to prevent flashing)
+        const timeoutId = setTimeout(() => {
+          onWidthChange(0);
+        }, 50);
+        
+        return () => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        };
       }
     }
   }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile]);
 
-  // Communicate height changes to parent (for top/bottom positions)
+  // Communicate height changes to parent with debouncing to prevent layout thrashing
   useEffect(() => {
     if (onHeightChange && asSidebar) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
         // Measure actual height dynamically
+        let timeoutId;
         const measureHeight = () => {
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
@@ -232,12 +260,21 @@ const YearSelector = ({
               samePosition: topTabsPosition === currentPosition
             });
             
-            onHeightChange(actualHeight);
+            // Debounce the callback to prevent rapid updates during position changes
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              onHeightChange(actualHeight);
+            }, 150); // Wait 150ms for position changes to settle
           } else {
             // Fallback to approximation based on state
             const fallbackHeight = !expanded ? 48 : (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200));
             console.log('Year selector height fallback:', fallbackHeight, 'expanded:', expanded);
-            onHeightChange(fallbackHeight);
+            
+            // Debounce fallback as well
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              onHeightChange(fallbackHeight);
+            }, 150);
           }
         };
         
@@ -253,7 +290,12 @@ const YearSelector = ({
               if (height > 0 && height !== lastHeight) {
                 console.log('ResizeObserver detected height change:', height);
                 lastHeight = height;
-                onHeightChange(height);
+                
+                // Debounce ResizeObserver callbacks as well
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                  onHeightChange(height);
+                }, 100); // Shorter debounce for ResizeObserver since it's already batched
               }
             }
           });
@@ -267,34 +309,55 @@ const YearSelector = ({
           if (resizeObserver) {
             resizeObserver.disconnect();
           }
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
         };
       } else {
-        // Reset height to 0 when not on top/bottom sides
-        onHeightChange(0);
+        // Reset height to 0 when not on top/bottom sides (with slight delay to prevent flashing)
+        const timeoutId = setTimeout(() => {
+          onHeightChange(0);
+        }, 50);
+        
+        return () => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        };
       }
     }
   }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile]);
 
-  // Re-measure dimensions on window resize
+  // Re-measure dimensions on window resize with debouncing
   useEffect(() => {
+    let resizeTimeoutId;
     const handleResize = () => {
-      const yearSelectorElement = document.querySelector('.year-selector-sidebar');
-      if (yearSelectorElement) {
-        // Re-measure width for left/right positions
-        if (onWidthChange && asSidebar && (currentPosition === 'left' || currentPosition === 'right')) {
-          const actualWidth = yearSelectorElement.offsetWidth;
-          onWidthChange(actualWidth);
+      // Debounce resize events to prevent rapid updates
+      if (resizeTimeoutId) clearTimeout(resizeTimeoutId);
+      resizeTimeoutId = setTimeout(() => {
+        const yearSelectorElement = document.querySelector('.year-selector-sidebar');
+        if (yearSelectorElement) {
+          // Re-measure width for left/right positions
+          if (onWidthChange && asSidebar && (currentPosition === 'left' || currentPosition === 'right')) {
+            const actualWidth = yearSelectorElement.offsetWidth;
+            onWidthChange(actualWidth);
+          }
+          // Re-measure height for top/bottom positions
+          if (onHeightChange && asSidebar && (currentPosition === 'top' || currentPosition === 'bottom')) {
+            const actualHeight = yearSelectorElement.offsetHeight;
+            onHeightChange(actualHeight);
+          }
         }
-        // Re-measure height for top/bottom positions
-        if (onHeightChange && asSidebar && (currentPosition === 'top' || currentPosition === 'bottom')) {
-          const actualHeight = yearSelectorElement.offsetHeight;
-          onHeightChange(actualHeight);
-        }
-      }
+      }, 200); // Debounce window resize events
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutId) {
+        clearTimeout(resizeTimeoutId);
+      }
+    };
   }, [currentPosition, onWidthChange, onHeightChange, asSidebar]);
   
   // When isRangeMode prop changes, update our internal mode state
@@ -1427,7 +1490,7 @@ const YearSelector = ({
       className={`year-selector-sidebar ${containerClass}`} 
       style={{ 
         ...containerStyle, 
-        transition: 'width 0.3s ease-in-out',
+        transition: 'width 0.3s ease-in-out, height 0.3s ease-in-out',
         // Only apply bottom positioning if not already positioned to avoid TopTabs
         ...(currentPosition === 'bottom' && isMobile && asSidebar && topTabsPosition !== 'bottom' && {
           bottom: 'max(1rem, env(safe-area-inset-bottom))'
