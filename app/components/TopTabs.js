@@ -22,7 +22,8 @@ const TopTabs = ({
   onHeightChange,   // New callback to communicate height changes to parent
   onWidthChange,    // New callback to communicate width changes to parent
   onCollapseChange, // New callback to communicate collapse state changes to parent
-  position = 'top'  // New prop for initial position
+  position = 'top',  // New prop for initial position
+  yearSelectorPosition = null // YearSelector position to adjust borders when stacked
 }) => {
   // Position state - cycles through top, right, bottom, left
   const [currentPosition, setCurrentPosition] = useState(position);
@@ -289,7 +290,8 @@ const TopTabs = ({
     
     switch (currentPosition) {
       case 'top':
-        return `${baseStyles} border-b`;
+        // Remove bottom border when YearSelector is stacked below at top
+        return `${baseStyles} border-b ${yearSelectorPosition === 'top' ? 'border-b-0' : ''}`;
       case 'bottom':
         return `${baseStyles} border-t`;
       case 'left':

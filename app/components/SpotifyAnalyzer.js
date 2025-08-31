@@ -1619,6 +1619,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           onHeightChange={setTopTabsHeight}
           onWidthChange={setTopTabsWidth}
           onCollapseChange={setTopTabsCollapsed}
+          yearSelectorPosition={yearSelectorPosition}
           position={topTabsPosition}
         />
       )}
