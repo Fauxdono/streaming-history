@@ -278,9 +278,11 @@ const TopTabs = ({
     );
   }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon]);
 
+  // Settings bar height calculation
+  const settingsBarHeight = isMobile ? '85px' : 'calc(2rem + 2 * 0.5rem)'; // Mobile: 85px, Desktop: py-2 calculation
+
   // Position styles for different placements - now accounts for fixed settings bar
   const getPositionStyles = () => {
-    const settingsBarHeight = 'calc(2rem + 2 * 0.5rem)'; // py-2 = 0.5rem top + 0.5rem bottom + 2rem content height
     
     switch (currentPosition) {
       case 'top':
@@ -369,15 +371,15 @@ const TopTabs = ({
       <div 
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
-          ...(currentPosition === 'top' && { top: 'calc(2rem + 2 * 0.5rem)' }), // Below fixed settings bar
+          ...(currentPosition === 'top' && { top: settingsBarHeight }), // Below fixed settings bar
           ...(currentPosition === 'bottom' && isMobile && {
             bottom: 'max(1rem, env(safe-area-inset-bottom))'
           }),
           ...(currentPosition === 'bottom' && !isMobile && {
             bottom: '0'
           }),
-          ...(currentPosition === 'left' && { top: 'calc(2rem + 2 * 0.5rem)' }), // Below fixed settings bar
-          ...(currentPosition === 'right' && { top: 'calc(2rem + 2 * 0.5rem)' }) // Below fixed settings bar
+          ...(currentPosition === 'left' && { top: settingsBarHeight }), // Below fixed settings bar
+          ...(currentPosition === 'right' && { top: settingsBarHeight }) // Below fixed settings bar
         }}
       >
         {currentPosition === 'top' || currentPosition === 'bottom' ? (
