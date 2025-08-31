@@ -1481,10 +1481,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     // Fixed settings bar height (always at top)
     const settingsBarHeight = 56; // 2rem + 2 * 0.5rem padding = 32px + 24px = 56px
     
-    // Calculate TopTabs margins
-    let topTabsTop = settingsBarHeight, topTabsBottom = 0, topTabsLeft = 0, topTabsRight = 0;
+    // Calculate TopTabs margins for content area
+    // Since TopTabs are fixed positioned, they create their own space
+    let topTabsTop = 0, topTabsBottom = 0, topTabsLeft = 0, topTabsRight = 0;
     if (topTabsPosition === 'top') {
-      topTabsTop = settingsBarHeight + topTabsHeight; // Icon bar + TopTabs
+      topTabsTop = 0; // TopTabs handle their own spacing - no additional margin needed
     } else if (topTabsPosition === 'bottom') {
       topTabsBottom = topTabsHeight;
       topTabsTop = settingsBarHeight; // Only icon bar height for top margin
@@ -1541,8 +1542,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       // Same side - YearSelector stacks after TopTabs, so main content needs space for:
       // TopTabs height + YearSelector height (since YearSelector margin is 0 when stacked)
       if (topTabsPosition === 'top') {
-        // Both at top: need space for icon bar + TopTabs + YearSelector
-        topMargin = topTabsTop + (yearSelectorHeight || 0);
+        // Both at top: TopTabs handle their own spacing, just add YearSelector height
+        topMargin = yearSelectorHeight || 0;
         bottomMargin = topTabsBottom;
       } else if (topTabsPosition === 'bottom') {
         // Both at bottom: only icon bar space at top, tabs + YearSelector space at bottom
