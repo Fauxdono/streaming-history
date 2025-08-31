@@ -331,8 +331,8 @@ const TopTabs = ({
     }
   };
 
-  // Fixed settings bar at top of screen
-  const FixedSettingsBar = () => (
+  // Fixed settings bar at top of screen - memoized to prevent re-renders
+  const FixedSettingsBar = React.memo(() => (
     <div 
       className="fixed top-0 left-0 right-0 w-full z-[100] border-b border-violet-200 dark:border-gray-600"
       style={{
@@ -381,7 +381,7 @@ const TopTabs = ({
         </div>
       </div>
     </div>
-  );
+  ));
 
   // Tabs component for reuse
   const TabsContainer = () => (
