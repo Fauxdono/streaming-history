@@ -1461,7 +1461,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
   // Calculate margin based on component positions - smart overlapping logic
-  const getYearSelectorMargin = () => {
+  const yearSelectorMargins = useMemo(() => {
     let classes = '';
     let topMargin = 0;
     let bottomMargin = 0;
@@ -1601,7 +1601,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     console.log('==================');
     
     return marginStyles;
-  };
+  }, [topTabsPosition, topTabsCollapsed, yearSelectorPosition, yearSelectorExpanded, topTabsHeight, topTabsWidth, yearSelectorWidth, yearSelectorHeight, showYearSidebar]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
@@ -1659,7 +1659,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         {/* Main content area that adjusts based on year selector state */}
         <div className="flex-1 transition-all duration-300" 
              style={{
-               ...getYearSelectorMargin(),
+               ...yearSelectorMargins,
                // Debug info
                '--year-selector-width': JSON.stringify(yearSelectorWidth),
                '--year-selector-height': JSON.stringify(yearSelectorHeight),
