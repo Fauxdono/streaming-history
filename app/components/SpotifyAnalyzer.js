@@ -111,6 +111,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
   const [yearSelectorWidth, setYearSelectorWidth] = useState(32);
   const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
+
+  // Reset dimensions when year selector position changes to prevent stale values
+  useEffect(() => {
+    if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
+      setYearSelectorHeight(0); // Reset height for horizontal positions
+    } else {
+      setYearSelectorWidth(0); // Reset width for vertical positions
+    }
+  }, [yearSelectorPosition]);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
   // TopTabs position state
