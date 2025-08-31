@@ -41,6 +41,7 @@ const YearSelector = ({
   const [isMobile, setIsMobile] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   // Month and Day Selection - for single year mode
   const [showMonthSelector, setShowMonthSelector] = useState(false);
@@ -135,12 +136,11 @@ const YearSelector = ({
     }
   }, [currentPosition, onPositionChange, asSidebar]);
 
-  // Communicate width changes to parent with debouncing to prevent layout thrashing
+  // Communicate width changes to parent, but block updates during position transitions
   useEffect(() => {
-    if (onWidthChange && asSidebar) {
+    if (onWidthChange && asSidebar && !isTransitioning) {
       if (currentPosition === 'left' || currentPosition === 'right') {
         // Use ResizeObserver for dynamic width measurement
-        let timeoutId;
         const measureWidth = () => {
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
@@ -156,27 +156,18 @@ const YearSelector = ({
               scrollWidth: yearSelectorElement.scrollWidth,
               position: currentPosition,
               expanded,
-              mode
+              mode,
+              isTransitioning
             });
             
             // Use the computed CSS width if it's reasonable, otherwise fall back to a safer measurement
             const finalWidth = (cssWidth > 0 && cssWidth < 500) ? cssWidth : yearSelectorElement.clientWidth;
-            
-            // Debounce the callback to prevent rapid updates during position changes
-            if (timeoutId) clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-              onWidthChange(finalWidth);
-            }, 150); // Wait 150ms for position changes to settle
+            onWidthChange(finalWidth);
           } else {
             // Fallback to responsive approximation
             const fallbackWidth = !expanded ? 32 : (mode === 'range' ? (isMobile ? 192 : 256) : (isMobile ? 64 : 128));
             console.log('Year selector width fallback:', fallbackWidth);
-            
-            // Debounce fallback as well
-            if (timeoutId) clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-              onWidthChange(fallbackWidth);
-            }, 150);
+            onWidthChange(fallbackWidth);
           }
         };
         
@@ -186,56 +177,41 @@ const YearSelector = ({
         if (yearSelectorElement && window.ResizeObserver) {
           let lastWidth = 0;
           resizeObserver = new ResizeObserver((entries) => {
+            if (isTransitioning) return; // Block updates during transitions
+            
             for (const entry of entries) {
               const width = entry.contentRect.width;
               // Only trigger callback if width actually changed
               if (width > 0 && width < 500 && width !== lastWidth) {
                 console.log('ResizeObserver detected width change:', width);
                 lastWidth = width;
-                
-                // Debounce ResizeObserver callbacks as well
-                if (timeoutId) clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => {
-                  onWidthChange(width);
-                }, 100); // Shorter debounce for ResizeObserver since it's already batched
+                onWidthChange(width);
               }
             }
           });
           resizeObserver.observe(yearSelectorElement);
         }
         
-        // Initial measurement as fallback
+        // Initial measurement as fallback (only if not transitioning)
         measureWidth();
         
         return () => {
           if (resizeObserver) {
             resizeObserver.disconnect();
           }
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
         };
       } else {
-        // Reset width to 0 when not on left/right sides (with slight delay to prevent flashing)
-        const timeoutId = setTimeout(() => {
-          onWidthChange(0);
-        }, 50);
-        
-        return () => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-        };
+        // Reset width to 0 when not on left/right sides
+        onWidthChange(0);
       }
     }
-  }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile]);
+  }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile, isTransitioning]);
 
-  // Communicate height changes to parent with debouncing to prevent layout thrashing
+  // Communicate height changes to parent, but block updates during position transitions
   useEffect(() => {
-    if (onHeightChange && asSidebar) {
+    if (onHeightChange && asSidebar && !isTransitioning) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
         // Measure actual height dynamically
-        let timeoutId;
         const measureHeight = () => {
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
@@ -257,24 +233,16 @@ const YearSelector = ({
               expanded,
               mode,
               topTabsPosition,
-              samePosition: topTabsPosition === currentPosition
+              samePosition: topTabsPosition === currentPosition,
+              isTransitioning
             });
             
-            // Debounce the callback to prevent rapid updates during position changes
-            if (timeoutId) clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-              onHeightChange(actualHeight);
-            }, 150); // Wait 150ms for position changes to settle
+            onHeightChange(actualHeight);
           } else {
             // Fallback to approximation based on state
             const fallbackHeight = !expanded ? 48 : (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200));
             console.log('Year selector height fallback:', fallbackHeight, 'expanded:', expanded);
-            
-            // Debounce fallback as well
-            if (timeoutId) clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-              onHeightChange(fallbackHeight);
-            }, 150);
+            onHeightChange(fallbackHeight);
           }
         };
         
@@ -284,18 +252,15 @@ const YearSelector = ({
         if (yearSelectorElement && window.ResizeObserver) {
           let lastHeight = 0;
           resizeObserver = new ResizeObserver((entries) => {
+            if (isTransitioning) return; // Block updates during transitions
+            
             for (const entry of entries) {
               const height = entry.contentRect.height;
               // Only trigger callback if height actually changed
               if (height > 0 && height !== lastHeight) {
                 console.log('ResizeObserver detected height change:', height);
                 lastHeight = height;
-                
-                // Debounce ResizeObserver callbacks as well
-                if (timeoutId) clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => {
-                  onHeightChange(height);
-                }, 100); // Shorter debounce for ResizeObserver since it's already batched
+                onHeightChange(height);
               }
             }
           });
@@ -309,24 +274,13 @@ const YearSelector = ({
           if (resizeObserver) {
             resizeObserver.disconnect();
           }
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
         };
       } else {
-        // Reset height to 0 when not on top/bottom sides (with slight delay to prevent flashing)
-        const timeoutId = setTimeout(() => {
-          onHeightChange(0);
-        }, 50);
-        
-        return () => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-        };
+        // Reset height to 0 when not on top/bottom sides
+        onHeightChange(0);
       }
     }
-  }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile]);
+  }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile, isTransitioning]);
 
   // Re-measure dimensions on window resize with debouncing
   useEffect(() => {
@@ -727,11 +681,18 @@ const YearSelector = ({
   
   // Toggle sidebar position - cycles through right, bottom, left, top
   const togglePosition = useCallback(() => {
+    setIsTransitioning(true);
     setCurrentPosition(prev => {
-      if (prev === 'right') return 'bottom';
-      if (prev === 'bottom') return 'left';
-      if (prev === 'left') return 'top';
-      return 'right'; // default fallback for 'top' and initial state
+      const newPosition = prev === 'right' ? 'bottom' : 
+                         prev === 'bottom' ? 'left' : 
+                         prev === 'left' ? 'top' : 'right';
+      
+      // Clear transitioning state after position and animations settle
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 500); // Allow time for CSS transitions to complete
+      
+      return newPosition;
     });
   }, []);
 
