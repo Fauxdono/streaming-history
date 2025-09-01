@@ -1094,8 +1094,8 @@ const YearSelector = ({
     const safeTopTabsHeight = isMobile ? 56 : topTabsHeight;
     const safeTopTabsWidth = isMobile ? 160 : topTabsWidth;
     
-    if (topTabsPosition === currentPosition) {
-      // Same side - position after TopTabs
+    if (topTabsPosition === currentPosition && !isMobile) {
+      // Same side - position after TopTabs (desktop only)
       switch (currentPosition) {
         case 'top':
           return {
