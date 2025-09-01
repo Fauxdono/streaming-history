@@ -1025,156 +1025,34 @@ const YearSelector = ({
   // Fixed settings bar height - this matches the FixedSettingsBar height
   const settingsBarHeight = isMobile ? 85 : 56;
 
-  // Position styles for the sidebar - accounts for TopTabs position to avoid overlap
-  const getPositionStyles = () => {
-    const baseClasses = 'fixed';
-    let inlineStyles = {};
-    
-    if (topTabsPosition === currentPosition) {
-      // TopTabs are on the same side, so position year selector NEXT to TopTabs (between TopTabs and content)
-      switch (currentPosition) {
-        case 'top':
-          // When both at top: YearSelector goes below FixedSettingsBar + TopTabs
-          // Need to account for BOTH the settings bar height AND the TopTabs height
-          inlineStyles = { 
-            top: `calc(${settingsBarHeight}px + ${topTabsHeight}px)`, // Position directly after TopTabs
-            left: 0, 
-            right: 0,
-            zIndex: 89 // Slightly lower than TopTabs but above content
-          };
-          return { className: `${baseClasses} h-auto`, style: inlineStyles };
-        case 'bottom':
-          // Account for TopTabs height + its safe area spacing on mobile using CSS calc
-          if (isMobile) {
-            inlineStyles = { bottom: `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))`, left: 0, right: 0 };
-          } else {
-            inlineStyles = { bottom: `${topTabsHeight}px`, left: 0, right: 0 };
-          }
-          return { className: `${baseClasses} h-auto`, style: inlineStyles };
-        case 'left':
-          inlineStyles = { 
-            left: `${topTabsWidth}px`, 
-            top: `${settingsBarHeight}px`,
-            height: `calc(100vh - ${settingsBarHeight}px)` // Full height minus settings bar
-          };
-          return { className: `${baseClasses}`, style: inlineStyles };
-        case 'right':
-          inlineStyles = { 
-            right: `${topTabsWidth}px`, 
-            top: `${settingsBarHeight}px`,
-            height: `calc(100vh - ${settingsBarHeight}px)` // Full height minus settings bar
-          };
-          return { className: `${baseClasses}`, style: inlineStyles };
-        default:
-          return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
-      }
-    } else {
-      // TopTabs are on a different side, use standard positioning but account for TopTabs space
-      switch (currentPosition) {
-        case 'left':
-          // Use same logic as TopTabs: always below settings bar, plus TopTabs if they're also at top
-          const leftTopSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
-          const leftBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
-          return { 
-            className: `${baseClasses} left-0`, 
-            style: { 
-              top: `${leftTopSpacing}px`, // Always use pixel values for consistency
-              bottom: leftBottomSpacing
-            } 
-          };
-        case 'right':
-          // Use same logic as TopTabs: always below settings bar, plus TopTabs if they're also at top
-          const rightTopSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
-          const rightBottomSpacing = topTabsPosition === 'bottom' ? (isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`) : '0';
-          return { 
-            className: `${baseClasses} right-0`, 
-            style: { 
-              top: `${rightTopSpacing}px`, // Always use pixel values for consistency
-              bottom: rightBottomSpacing
-            } 
-          };
-        case 'bottom':
-          // Account for TopTabs when positioned at left or right
-          const bottomLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
-          const bottomRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
-          
-          console.log('Year selector bottom positioning:', {
-            topTabsPosition,
-            topTabsWidth,
-            bottomLeftSpacing,
-            bottomRightSpacing,
-            isMobile
-          });
-          
-          return { 
-            className: `${baseClasses} h-auto`, 
-            style: { 
-              bottom: isMobile ? 'max(1rem, env(safe-area-inset-bottom))' : '0',
-              left: bottomLeftSpacing > 0 ? `${bottomLeftSpacing}px` : '0',
-              right: bottomRightSpacing > 0 ? `${bottomRightSpacing}px` : '0'
-            } 
-          };
-        case 'top':
-          // Account for TopTabs when positioned at left or right, plus settings bar
-          const topLeftSpacing = topTabsPosition === 'left' ? topTabsWidth : 0;
-          const topRightSpacing = topTabsPosition === 'right' ? topTabsWidth : 0;
-          // If TopTabs are also at top, we need to be below both settings bar AND TopTabs
-          const topSpacing = topTabsPosition === 'top' ? settingsBarHeight + topTabsHeight : settingsBarHeight;
-          
-          console.log('Year selector top positioning:', {
-            topTabsPosition,
-            topTabsWidth,
-            topTabsHeight,
-            topLeftSpacing,
-            topRightSpacing,
-            settingsBarHeight,
-            finalTopSpacing: topSpacing
-          });
-          
-          return { 
-            className: `${baseClasses} h-auto`, 
-            style: { 
-              top: `${topSpacing}px`, // Always use pixel values for consistency
-              left: topLeftSpacing > 0 ? `${topLeftSpacing}px` : '0',
-              right: topRightSpacing > 0 ? `${topRightSpacing}px` : '0'
-            } 
-          };
-        default:
-          return { className: `${baseClasses} right-0 top-0 h-full`, style: {} };
-      }
+  // Simple position styles - no complex calculations
+  const getPositionClass = () => {
+    switch (currentPosition) {
+      case 'top':
+        return 'fixed top-20 left-0 right-0 z-[90]';
+      case 'bottom':
+        return 'fixed bottom-0 left-0 right-0 z-[90]';
+      case 'left':
+        return 'fixed left-0 top-20 bottom-0 z-[90]';
+      case 'right':
+        return 'fixed right-0 top-20 bottom-0 z-[90]';
+      default:
+        return 'fixed right-0 top-20 bottom-0 z-[90]';
     }
   };
-
-  const positionConfig = getPositionStyles();
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
     
-    // Apply width adjustments for collapsed state when TopTabs is on sides
-    const collapsedStyle = { ...positionConfig.style };
-    if ((currentPosition === 'top' || currentPosition === 'bottom') && 
-        (topTabsPosition === 'left' || topTabsPosition === 'right')) {
-      if (topTabsPosition === 'left') {
-        collapsedStyle.left = `${topTabsWidth}px`;
-        collapsedStyle.right = '0';
-        collapsedStyle.width = `calc(100% - ${topTabsWidth}px)`;
-      } else if (topTabsPosition === 'right') {
-        collapsedStyle.left = '0';
-        collapsedStyle.right = `${topTabsWidth}px`;
-        collapsedStyle.width = `calc(100% - ${topTabsWidth}px)`;
-      }
-    }
-    
     return (
       <div 
-        className={`${positionConfig.className} max-h-screen z-[90] ${
+        className={`${getPositionClass()} max-h-screen ${
           isBottom || isTop 
             ? 'w-full h-auto flex items-center justify-center py-2' 
             : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
-        style={collapsedStyle}
       >
         {/* Horizontal layout container for bottom and top positions */}
         {isBottom || isTop ? (
@@ -1248,62 +1126,18 @@ const YearSelector = ({
     );
   }
   
-  // Determine container class - responsive for sidebar vs. inline
+  // Simple container class - no complex calculations
   const containerClass = asSidebar 
-    ? `${positionConfig.className} max-h-screen z-[90] ${
+    ? `${getPositionClass()} max-h-screen ${
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
-      } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border} ${
-        // Remove top border when stacked below TopTabs at top
-        topTabsPosition === 'top' && currentPosition === 'top' ? 'border-t-0' : ''
-      }`
+      } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
-    
-  const containerStyle = asSidebar ? positionConfig.style : {};
-
-  // Adjust width/height when positioned on different sides than TopTabs
-  if (asSidebar) {
-    // When year selector is horizontal and TopTabs is vertical, adjust width
-    if ((currentPosition === 'top' || currentPosition === 'bottom') && 
-        (topTabsPosition === 'left' || topTabsPosition === 'right')) {
-      if (topTabsPosition === 'left') {
-        containerStyle.left = `${topTabsWidth}px`;
-        containerStyle.right = '0';
-        containerStyle.width = `calc(100% - ${topTabsWidth}px)`;
-      } else if (topTabsPosition === 'right') {
-        containerStyle.left = '0';
-        containerStyle.right = `${topTabsWidth}px`;
-        containerStyle.width = `calc(100% - ${topTabsWidth}px)`;
-      }
-    }
-    
-    // When year selector is vertical and TopTabs is horizontal, adjust height
-    if ((currentPosition === 'left' || currentPosition === 'right') && 
-        (topTabsPosition === 'top' || topTabsPosition === 'bottom')) {
-      if (topTabsPosition === 'top') {
-        containerStyle.top = `${settingsBarHeight + topTabsHeight}px`; // Account for settings bar + TopTabs
-        containerStyle.bottom = '0';
-      } else if (topTabsPosition === 'bottom') {
-        containerStyle.top = `${settingsBarHeight}px`; // Account for settings bar at top
-        containerStyle.bottom = isMobile ? `calc(${topTabsHeight}px + max(1rem, env(safe-area-inset-bottom)))` : `${topTabsHeight}px`;
-      }
-    }
-  }
 
   return (
     <div 
-      className={`year-selector-sidebar ${containerClass}`} 
-      style={{ 
-        ...containerStyle, 
-        // Only apply bottom positioning if not already positioned to avoid TopTabs
-        ...(currentPosition === 'bottom' && isMobile && asSidebar && topTabsPosition !== 'bottom' && {
-          bottom: 'max(1rem, env(safe-area-inset-bottom))'
-        }),
-        ...(currentPosition === 'bottom' && !isMobile && asSidebar && topTabsPosition !== 'bottom' && {
-          bottom: '0'
-        })
-      }}
+      className={`year-selector-sidebar ${containerClass}`}
     >
       {/* Collapse button for sidebar */}
       {asSidebar && (
