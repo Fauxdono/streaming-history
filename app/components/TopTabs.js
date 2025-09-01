@@ -152,20 +152,29 @@ const TopTabs = ({
 
   // Toggle position - cycles through top, right, bottom, left
   const togglePosition = useCallback(() => {
-    setIsTransitioning(true);
+    if (!isMobile) {
+      setIsTransitioning(true);
+    }
+    
     setCurrentPosition(prev => {
       const newPosition = prev === 'top' ? 'right' : 
                          prev === 'right' ? 'bottom' : 
                          prev === 'bottom' ? 'left' : 'top';
       
       // Clear transitioning state after position and animations settle
-      setTimeout(() => {
+      if (isMobile) {
+        // Mobile: no transition blocking
         setIsTransitioning(false);
-      }, 500); // Allow time for CSS transitions to complete
+      } else {
+        // Desktop: standard transition delay
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 500);
+      }
       
       return newPosition;
     });
-  }, []);
+  }, [isMobile]);
 
   // Toggle collapsed state - only available on mobile
   const toggleCollapsed = useCallback(() => {
