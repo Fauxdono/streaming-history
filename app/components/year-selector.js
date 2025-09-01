@@ -586,13 +586,20 @@ const YearSelector = ({
     // Update position immediately for instant main page response
     setCurrentPosition(newPosition);
     
-    // Clear transitioning state after animations settle
-    setTimeout(() => {
+    // Clear transitioning state - immediate on mobile, delayed on desktop
+    if (isMobile) {
       setIsPositionTransitioning(false);
       if (onTransitionChange) {
         onTransitionChange(false);
       }
-    }, 300); // Reduced from 500ms for faster feel
+    } else {
+      setTimeout(() => {
+        setIsPositionTransitioning(false);
+        if (onTransitionChange) {
+          onTransitionChange(false);
+        }
+      }, 300);
+    }
   }, [currentPosition, onTransitionChange]);
 
   // Handle mode changes efficiently
