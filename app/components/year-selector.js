@@ -1156,18 +1156,20 @@ const YearSelector = ({
           };
         case 'left':
           return {
-            className: 'fixed bottom-0 z-[90]',
+            className: 'fixed z-[90]',
             style: { 
               left: '0px',
-              top: topTabsPosition === 'top' ? `${settingsBarHeight + topTabsHeight}px` : `${settingsBarHeight}px`
+              top: topTabsPosition === 'top' ? `${settingsBarHeight + topTabsHeight}px` : `${settingsBarHeight}px`,
+              bottom: topTabsPosition === 'bottom' ? `${topTabsHeight}px` : '0px'
             }
           };
         case 'right':
           return {
-            className: 'fixed bottom-0 z-[90]',
+            className: 'fixed z-[90]',
             style: { 
               right: '0px',
-              top: topTabsPosition === 'top' ? `${settingsBarHeight + topTabsHeight}px` : `${settingsBarHeight}px`
+              top: topTabsPosition === 'top' ? `${settingsBarHeight + topTabsHeight}px` : `${settingsBarHeight}px`,
+              bottom: topTabsPosition === 'bottom' ? `${topTabsHeight}px` : '0px'
             }
           };
       }
