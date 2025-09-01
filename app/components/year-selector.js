@@ -1083,13 +1083,21 @@ const YearSelector = ({
       switch (currentPosition) {
         case 'top':
           return {
-            className: 'fixed left-0 right-0 z-[89]',
-            style: { top: `${settingsBarHeight + topTabsHeight}px` }
+            className: 'fixed z-[89]',
+            style: { 
+              top: `${settingsBarHeight + topTabsHeight}px`,
+              left: '0px',
+              right: '0px'
+            }
           };
         case 'bottom':
           return {
-            className: 'fixed left-0 right-0 z-[89]',
-            style: { bottom: `${topTabsHeight}px` }
+            className: 'fixed z-[89]',
+            style: { 
+              bottom: `${topTabsHeight}px`,
+              left: '0px',
+              right: '0px'
+            }
           };
         case 'left':
           return {
