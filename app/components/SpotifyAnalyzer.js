@@ -1509,6 +1509,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Simple content area calculation: screen size minus component widths/heights
   const contentAreaStyles = useMemo(() => {
+    // Check if window is available (SSR safety)
+    if (typeof window === 'undefined') {
+      return {
+        paddingTop: '56px',
+        paddingBottom: '0px', 
+        paddingLeft: '0px',
+        paddingRight: '192px', // Default for right-positioned YearSelector
+      };
+    }
+    
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     const settingsBarHeight = isMobile ? 85 : 56;
