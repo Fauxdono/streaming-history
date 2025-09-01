@@ -568,9 +568,14 @@ const YearSelector = ({
       onTransitionChange(true);
     }
     
-    const newPosition = currentPosition === 'right' ? 'bottom' : 
-                       currentPosition === 'bottom' ? 'left' : 
-                       currentPosition === 'left' ? 'top' : 'right';
+    let newPosition = currentPosition === 'right' ? 'bottom' : 
+                     currentPosition === 'bottom' ? 'left' : 
+                     currentPosition === 'left' ? 'top' : 'right';
+    
+    // Skip top/bottom positions on mobile when TopTabs is horizontal to prevent freeze
+    if (isMobile && (newPosition === 'bottom' || newPosition === 'top') && (topTabsPosition === 'top' || topTabsPosition === 'bottom')) {
+      newPosition = newPosition === 'bottom' ? 'left' : 'right'; // Skip to next position
+    }
     
     // Update position memory
     setPositionMemory(prev => ({
