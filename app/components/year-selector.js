@@ -172,6 +172,10 @@ const YearSelector = ({
           }
         };
         
+        // Measure immediately and after a brief delay to ensure rendering is complete
+        measureWidth();
+        const timer = setTimeout(measureWidth, 100);
+        
         // Set up ResizeObserver for dynamic measurement
         let resizeObserver;
         const yearSelectorElement = document.querySelector('.year-selector-sidebar');
@@ -192,10 +196,8 @@ const YearSelector = ({
           resizeObserver.observe(yearSelectorElement);
         }
         
-        // Initial measurement as fallback
-        measureWidth();
-        
         return () => {
+          clearTimeout(timer);
           if (resizeObserver) {
             resizeObserver.disconnect();
           }
@@ -246,6 +248,10 @@ const YearSelector = ({
           }
         };
         
+        // Measure immediately and after a brief delay to ensure rendering is complete
+        measureHeight();
+        const timer = setTimeout(measureHeight, 100);
+        
         // Set up ResizeObserver for dynamic height measurement
         let resizeObserver;
         const yearSelectorElement = document.querySelector('.year-selector-sidebar');
@@ -266,10 +272,8 @@ const YearSelector = ({
           resizeObserver.observe(yearSelectorElement);
         }
         
-        // Initial measurement as fallback
-        measureHeight();
-        
         return () => {
+          clearTimeout(timer);
           if (resizeObserver) {
             resizeObserver.disconnect();
           }
