@@ -122,13 +122,26 @@ const YearSelector = ({
     setPositionKey(prev => prev + 1);
   }, [expanded, currentPosition, topTabsPosition, topTabsHeight, asSidebar]);
 
-  // Communicate expanded state changes to parent
+  // Communicate expanded state changes to parent with immediate dimension updates
   useEffect(() => {
     if (onExpandChange && asSidebar) {
       console.log('YearSelector: Reporting expansion state change to parent:', expanded);
       onExpandChange(expanded);
+      
+      // Immediately update dimensions when expansion state changes
+      if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
+        const effectiveWidth = expanded ? (mode === 'range' ? (isMobile ? 192 : 256) : (isMobile ? 64 : 128)) : 32;
+        console.log('YearSelector: Immediate width update on expand change:', effectiveWidth);
+        onWidthChange(effectiveWidth);
+      }
+      
+      if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
+        const effectiveHeight = expanded ? (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200)) : 48;
+        console.log('YearSelector: Immediate height update on expand change:', effectiveHeight);
+        onHeightChange(effectiveHeight);
+      }
     }
-  }, [expanded, onExpandChange, asSidebar]);
+  }, [expanded, onExpandChange, asSidebar, currentPosition, mode, isMobile, onWidthChange, onHeightChange]);
 
   // Communicate position changes to parent
   useEffect(() => {
