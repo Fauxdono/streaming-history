@@ -1507,156 +1507,60 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
-  // Calculate margin based on component positions - smart overlapping logic
-  const yearSelectorMargins = useMemo(() => {
-    let classes = '';
-    let topMargin = 0;
-    let bottomMargin = 0;
-    let leftMargin = 0;
-    let rightMargin = 0;
-    
-    console.log('=== MARGIN DEBUG ===');
-    console.log('topTabsPosition:', topTabsPosition);
-    console.log('topTabsCollapsed:', topTabsCollapsed);
-    console.log('yearSelectorPosition:', yearSelectorPosition);
-    console.log('yearSelectorExpanded:', yearSelectorExpanded);
-    console.log('topTabsHeight:', topTabsHeight);
-    console.log('topTabsWidth:', topTabsWidth);
-    console.log('yearSelectorWidth:', yearSelectorWidth);
-    console.log('yearSelectorHeight:', yearSelectorHeight);
-    console.log('showYearSidebar:', showYearSidebar);
-    
-    // Fixed settings bar height (always at top) - mobile is 85px, desktop is 56px
+  // Simple content area calculation: screen size minus component widths/heights
+  const contentAreaStyles = useMemo(() => {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
     const settingsBarHeight = isMobile ? 85 : 56;
     
-    // Calculate TopTabs margins for content area
-    // Since TopTabs are fixed positioned, they create their own space
-    let topTabsTop = 0, topTabsBottom = 0, topTabsLeft = 0, topTabsRight = 0;
-    if (topTabsPosition === 'top') {
-      // Dynamic calculation: if YearSelector is shown AND at top, let it handle spacing
-      topTabsTop = (yearSelectorPosition === 'top' && showYearSidebar && yearSelectorExpanded) 
-        ? 0  // YearSelector will handle the spacing when both at top and expanded
-        : settingsBarHeight + topTabsHeight - 1; // Overlap TopTabs by 1px to eliminate gap
-    } else if (topTabsPosition === 'bottom') {
-      topTabsBottom = topTabsHeight;
-      topTabsTop = settingsBarHeight; // Only icon bar height for top margin
-    } else if (topTabsPosition === 'left') {
-      topTabsLeft = topTabsWidth;
-      topTabsTop = settingsBarHeight; // Only icon bar height for top margin
-    } else if (topTabsPosition === 'right') {
-      topTabsRight = topTabsWidth;
-      topTabsTop = settingsBarHeight; // Only icon bar height for top margin
+    let leftSpace = 0;
+    let rightSpace = 0;
+    let topSpace = settingsBarHeight;
+    let bottomSpace = 0;
+    
+    // Calculate space taken by components on left/right
+    if (topTabsPosition === 'left') {
+      leftSpace += topTabsWidth;
     }
-
-    // Calculate year selector margins - avoid double-counting only when on same side
-    // Only consider year selector margins if it should actually be shown for the current tab
-    let yearSelectorTop = 0, yearSelectorBottom = 0, yearSelectorLeft = 0, yearSelectorRight = 0;
+    if (topTabsPosition === 'right') {
+      rightSpace += topTabsWidth;
+    }
+    
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
-      // Use actual dimensions when expanded, minimal when collapsed
-      const effectiveWidth = yearSelectorExpanded ? (yearSelectorWidth || 160) : 32; // 32px for collapsed width
-      const effectiveHeight = yearSelectorExpanded ? (yearSelectorHeight || 60) : 48; // 48px for collapsed height
+      const effectiveWidth = yearSelectorExpanded ? (yearSelectorWidth || 160) : 32;
       
       if (yearSelectorPosition === 'left') {
-        // Add left margin unless TopTabs is also on left (to avoid double-counting when they stack)
-        if (topTabsPosition !== 'left') {
-          yearSelectorLeft = effectiveWidth;
-          console.log('Year selector LEFT margin will be:', yearSelectorLeft, '(expanded:', yearSelectorExpanded, ')');
-        } else {
-          console.log('Year selector LEFT margin skipped - will stack with TopTabs on', topTabsPosition);
-        }
+        leftSpace += effectiveWidth; // Add to left space (stacked or alone)
       } else if (yearSelectorPosition === 'right') {
-        // Add right margin unless TopTabs is also on right (to avoid double-counting when they stack)
-        if (topTabsPosition !== 'right') {
-          yearSelectorRight = effectiveWidth;
-          console.log('Year selector RIGHT margin will be:', yearSelectorRight, '(expanded:', yearSelectorExpanded, ')');
-        } else {
-          console.log('Year selector RIGHT margin skipped - will stack with TopTabs on', topTabsPosition);
-        }
-      } else if (yearSelectorPosition === 'top') {
-        // Add top margin unless TopTabs is also at top (to avoid double-counting when they stack)
-        if (topTabsPosition !== 'top') {
-          yearSelectorTop = effectiveHeight;
-          console.log('Year selector TOP margin will be:', yearSelectorTop, '(expanded:', yearSelectorExpanded, ')');
-        } else {
-          console.log('Year selector TOP margin skipped - will stack with TopTabs on', topTabsPosition);
-        }
-      } else if (yearSelectorPosition === 'bottom') {
-        // Add bottom margin unless TopTabs is also at bottom (to avoid double-counting when they stack)
-        if (topTabsPosition !== 'bottom') {
-          yearSelectorBottom = effectiveHeight;
-          console.log('Year selector BOTTOM margin will be:', yearSelectorBottom, '(expanded:', yearSelectorExpanded, ')');
-        } else {
-          console.log('Year selector BOTTOM margin skipped - will stack with TopTabs on', topTabsPosition);
-        }
+        rightSpace += effectiveWidth; // Add to right space (stacked or alone)
       }
     }
-
-    // When components are on the same side, YearSelector positions itself after TopTabs
-    // When components are on different sides, they avoid each other
-    if (topTabsPosition === yearSelectorPosition) {
-      // Same side - YearSelector stacks after TopTabs, so main content needs space for:
-      // TopTabs height + YearSelector height (since YearSelector margin is 0 when stacked)
-      // Use effective dimensions based on expansion state
-      const effectiveWidth = yearSelectorExpanded ? (yearSelectorWidth || 160) : 32;
+    
+    // Calculate space taken by components on top/bottom
+    if (topTabsPosition === 'top') {
+      topSpace += topTabsHeight;
+    }
+    if (topTabsPosition === 'bottom') {
+      bottomSpace += topTabsHeight;
+    }
+    
+    if (showYearSidebar && shouldShowSidebar(activeTab)) {
       const effectiveHeight = yearSelectorExpanded ? (yearSelectorHeight || 60) : 48;
       
-      if (topTabsPosition === 'top') {
-        // Both at top: TopTabs already positioned below settings bar, just add component heights
-        topMargin = topTabsHeight + effectiveHeight;
-        bottomMargin = topTabsBottom;
-      } else if (topTabsPosition === 'bottom') {
-        // Both at bottom: only icon bar space at top, tabs + YearSelector space at bottom
-        topMargin = settingsBarHeight; // Only icon bar height
-        bottomMargin = topTabsBottom + effectiveHeight;
-      } else if (topTabsPosition === 'left') {
-        // Both at left: only icon bar space at top, TopTabs + YearSelector space at left
-        topMargin = settingsBarHeight; // Only icon bar height
-        leftMargin = topTabsLeft + effectiveWidth;
-        bottomMargin = topTabsBottom;
-        rightMargin = topTabsRight;
-      } else if (topTabsPosition === 'right') {
-        // Both at right: only icon bar space at top, TopTabs + YearSelector space at right
-        topMargin = settingsBarHeight; // Only icon bar height
-        rightMargin = topTabsRight + effectiveWidth;
-        bottomMargin = topTabsBottom;
-        leftMargin = topTabsLeft;
+      if (yearSelectorPosition === 'top') {
+        topSpace += effectiveHeight; // Add to top space (stacked or alone)
+      } else if (yearSelectorPosition === 'bottom') {
+        bottomSpace += effectiveHeight; // Add to bottom space (stacked or alone)
       }
-      // For the other dimension, use max since they don't conflict
-      if (topTabsPosition === 'top' || topTabsPosition === 'bottom') {
-        leftMargin = Math.max(topTabsLeft, yearSelectorLeft);
-        rightMargin = Math.max(topTabsRight, yearSelectorRight);
-      } else {
-        topMargin = Math.max(topTabsTop, yearSelectorTop);
-        bottomMargin = Math.max(topTabsBottom, yearSelectorBottom);
-      }
-    } else {
-      // Different sides - use max for all dimensions since they position to avoid each other
-      topMargin = Math.max(topTabsTop, yearSelectorTop);
-      bottomMargin = Math.max(topTabsBottom, yearSelectorBottom);
-      leftMargin = Math.max(topTabsLeft, yearSelectorLeft);
-      rightMargin = Math.max(topTabsRight, yearSelectorRight);
     }
     
-    console.log('FINAL CALCULATED MARGINS:');
-    console.log('  topTabsTop:', topTabsTop, '+ yearSelectorTop:', yearSelectorTop, '= topMargin:', topMargin);
-    console.log('  topTabsBottom:', topTabsBottom, '+ yearSelectorBottom:', yearSelectorBottom, '= bottomMargin:', bottomMargin);
-    console.log('  topTabsLeft:', topTabsLeft, '+ yearSelectorLeft:', yearSelectorLeft, '= leftMargin:', leftMargin);
-    console.log('  topTabsRight:', topTabsRight, '+ yearSelectorRight:', yearSelectorRight, '= rightMargin:', rightMargin);
-    
-    // Return as an object for inline styles instead of Tailwind classes
-    const marginStyles = {
-      paddingTop: topMargin > 0 ? `${topMargin}px` : undefined,
-      paddingBottom: bottomMargin > 0 ? `${bottomMargin}px` : undefined,
-      paddingLeft: leftMargin > 0 ? `${leftMargin}px` : undefined,
-      paddingRight: rightMargin > 0 ? `${rightMargin}px` : undefined,
+    return {
+      paddingTop: `${topSpace}px`,
+      paddingBottom: `${bottomSpace}px`,
+      paddingLeft: `${leftSpace}px`,
+      paddingRight: `${rightSpace}px`,
     };
-    
-    console.log('Final margins:', { topMargin, bottomMargin, leftMargin, rightMargin });
-    console.log('Generated inline styles:', marginStyles);
-    console.log('==================');
-    
-    return marginStyles;
-  }, [topTabsPosition, topTabsCollapsed, yearSelectorPosition, yearSelectorExpanded, topTabsHeight, topTabsWidth, yearSelectorWidth, yearSelectorHeight, showYearSidebar, yearSelectorTransitioning, isMobile]);
+  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorExpanded, yearSelectorWidth, yearSelectorHeight, showYearSidebar, isMobile]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
@@ -1714,7 +1618,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         {/* Main content area that adjusts based on year selector state */}
         <div className="flex-1 transition-all duration-300" 
              style={{
-               ...yearSelectorMargins,
+               ...contentAreaStyles,
                // Debug info
                '--year-selector-width': JSON.stringify(yearSelectorWidth),
                '--year-selector-height': JSON.stringify(yearSelectorHeight),
