@@ -1138,13 +1138,21 @@ const YearSelector = ({
       switch (currentPosition) {
         case 'top':
           return {
-            className: 'fixed left-0 right-0 z-[90]',
-            style: { top: `${settingsBarHeight}px` }
+            className: 'fixed z-[90]',
+            style: { 
+              top: `${settingsBarHeight}px`,
+              left: topTabsPosition === 'left' ? `${topTabsWidth}px` : '0px',
+              right: topTabsPosition === 'right' ? `${topTabsWidth}px` : '0px'
+            }
           };
         case 'bottom':
           return {
-            className: 'fixed left-0 right-0 z-[90]',
-            style: { bottom: '0px' }
+            className: 'fixed z-[90]',
+            style: { 
+              bottom: '0px',
+              left: topTabsPosition === 'left' ? `${topTabsWidth}px` : '0px',
+              right: topTabsPosition === 'right' ? `${topTabsWidth}px` : '0px'
+            }
           };
         case 'left':
           return {
