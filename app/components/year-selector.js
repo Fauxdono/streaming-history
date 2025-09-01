@@ -170,10 +170,12 @@ const YearSelector = ({
   // Force re-render when positioning needs to update
   const [positionKey, setPositionKey] = useState(0);
   
-  // Trigger positioning recalculation when expanded state changes
+  // Trigger positioning recalculation when expanded state changes (skip on mobile)
   useEffect(() => {
-    setPositionKey(prev => prev + 1);
-  }, [expanded, currentPosition, topTabsPosition, topTabsHeight, asSidebar]);
+    if (!isMobile) {
+      setPositionKey(prev => prev + 1);
+    }
+  }, [expanded, currentPosition, topTabsPosition, topTabsHeight, asSidebar, isMobile]);
 
   // Communicate all state changes to parent using preset dimensions
   useEffect(() => {
