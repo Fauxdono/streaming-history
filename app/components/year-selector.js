@@ -1384,7 +1384,9 @@ const YearSelector = ({
         {/* Content area - horizontal layout for bottom and top positions */}
         <div className={`${
           currentPosition === 'bottom' || currentPosition === 'top'
-            ? 'flex flex-row items-center space-x-4 overflow-x-auto max-w-full px-4 flex-grow justify-center'
+            ? isMobile 
+              ? 'flex flex-row items-center space-x-2 px-2 flex-grow justify-center' 
+              : 'flex flex-row items-center space-x-4 overflow-x-auto max-w-full px-4 flex-grow justify-center'
             : `overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
                 mode === 'range' ? 'px-2' : 'px-1'
               } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`
