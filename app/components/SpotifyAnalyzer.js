@@ -1519,40 +1519,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       };
     }
     
-    // On mobile, use simple fixed calculations to prevent freeze
-    if (isMobile) {
-      const settingsBarHeight = 85;
-      let leftSpace = 0;
-      let rightSpace = 0;
-      let topSpace = settingsBarHeight;
-      let bottomSpace = 0;
-      
-      // Simple mobile calculations without window.innerWidth
-      if (topTabsPosition === 'left') leftSpace = 192;
-      if (topTabsPosition === 'right') rightSpace = 192;
-      if (topTabsPosition === 'top') topSpace += 72;
-      if (topTabsPosition === 'bottom') bottomSpace = 72;
-      
-      if (showYearSidebar && shouldShowSidebar(activeTab)) {
-        const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
-        if (yearSelectorPosition === 'left') leftSpace += effectiveWidth;
-        if (yearSelectorPosition === 'right') rightSpace += effectiveWidth;
-        if (yearSelectorPosition === 'top') topSpace += 48;
-        if (yearSelectorPosition === 'bottom') bottomSpace += 48;
-      }
-      
-      return {
-        paddingTop: `${topSpace}px`,
-        paddingBottom: `${bottomSpace}px`,
-        paddingLeft: `${leftSpace}px`,
-        paddingRight: `${rightSpace}px`,
-      };
-    }
-    
-    // Desktop: full calculation with window.innerWidth
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    const settingsBarHeight = 56;
+    const settingsBarHeight = isMobile ? 85 : 56;
     
     let leftSpace = 0;
     let rightSpace = 0;
