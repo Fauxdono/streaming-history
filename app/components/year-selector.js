@@ -141,34 +141,21 @@ const YearSelector = ({
   useEffect(() => {
     if (onWidthChange && asSidebar && !isPositionTransitioning) {
       if (currentPosition === 'left' || currentPosition === 'right') {
-        // Use ResizeObserver for dynamic width measurement
+        // Use effective dimensions immediately for instant response
+        const effectiveWidth = expanded ? (mode === 'range' ? (isMobile ? 192 : 256) : (isMobile ? 64 : 128)) : 32;
+        console.log('Year selector width (immediate):', effectiveWidth, 'expanded:', expanded, 'mode:', mode);
+        onWidthChange(effectiveWidth);
+        
+        // Still measure actual width for accuracy, but don't block instant response
         const measureWidth = () => {
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
-            // Get the computed style to check what the CSS actually resolves to
-            const computedStyle = window.getComputedStyle(yearSelectorElement);
-            const cssWidth = parseFloat(computedStyle.width);
-            
-            // For debugging, let's see what we're getting
-            console.log('Year selector width measurement:', {
-              offsetWidth: yearSelectorElement.offsetWidth,
-              computedWidth: cssWidth,
-              clientWidth: yearSelectorElement.clientWidth,
-              scrollWidth: yearSelectorElement.scrollWidth,
-              position: currentPosition,
-              expanded,
-              mode,
-              isPositionTransitioning
-            });
-            
-            // Use the computed CSS width if it's reasonable, otherwise fall back to a safer measurement
-            const finalWidth = (cssWidth > 0 && cssWidth < 500) ? cssWidth : yearSelectorElement.clientWidth;
-            onWidthChange(finalWidth);
-          } else {
-            // Fallback to responsive approximation
-            const fallbackWidth = !expanded ? 32 : (mode === 'range' ? (isMobile ? 192 : 256) : (isMobile ? 64 : 128));
-            console.log('Year selector width fallback:', fallbackWidth);
-            onWidthChange(fallbackWidth);
+            const actualWidth = yearSelectorElement.offsetWidth;
+            // Only update if significantly different from our estimate
+            if (Math.abs(actualWidth - effectiveWidth) > 10) {
+              console.log('Year selector width correction:', actualWidth, 'vs estimate:', effectiveWidth);
+              onWidthChange(actualWidth);
+            }
           }
         };
         
@@ -213,38 +200,21 @@ const YearSelector = ({
   useEffect(() => {
     if (onHeightChange && asSidebar && !isPositionTransitioning) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
-        // Measure actual height dynamically
+        // Use effective dimensions immediately for instant response
+        const effectiveHeight = expanded ? (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200)) : 48;
+        console.log('Year selector height (immediate):', effectiveHeight, 'expanded:', expanded, 'mode:', mode);
+        onHeightChange(effectiveHeight);
+        
+        // Still measure actual height for accuracy, but don't block instant response
         const measureHeight = () => {
           const yearSelectorElement = document.querySelector('.year-selector-sidebar');
           if (yearSelectorElement) {
             const actualHeight = yearSelectorElement.offsetHeight;
-            const computedStyle = window.getComputedStyle(yearSelectorElement);
-            
-            console.log('Year selector height measurement:', {
-              offsetHeight: actualHeight,
-              clientHeight: yearSelectorElement.clientHeight,
-              scrollHeight: yearSelectorElement.scrollHeight,
-              computedHeight: computedStyle.height,
-              marginTop: computedStyle.marginTop,
-              marginBottom: computedStyle.marginBottom,
-              paddingTop: computedStyle.paddingTop,
-              paddingBottom: computedStyle.paddingBottom,
-              borderTop: computedStyle.borderTopWidth,
-              borderBottom: computedStyle.borderBottomWidth,
-              position: currentPosition,
-              expanded,
-              mode,
-              topTabsPosition,
-              samePosition: topTabsPosition === currentPosition,
-              isPositionTransitioning
-            });
-            
-            onHeightChange(actualHeight);
-          } else {
-            // Fallback to approximation based on state
-            const fallbackHeight = !expanded ? 48 : (mode === 'range' ? (isMobile ? 200 : 280) : (isMobile ? 160 : 200));
-            console.log('Year selector height fallback:', fallbackHeight, 'expanded:', expanded);
-            onHeightChange(fallbackHeight);
+            // Only update if significantly different from our estimate
+            if (Math.abs(actualHeight - effectiveHeight) > 10) {
+              console.log('Year selector height correction:', actualHeight, 'vs estimate:', effectiveHeight);
+              onHeightChange(actualHeight);
+            }
           }
         };
         
