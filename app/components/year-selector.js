@@ -569,19 +569,7 @@ const YearSelector = ({
                        currentPosition === 'bottom' ? 'left' : 
                        currentPosition === 'left' ? 'top' : 'right';
     
-    // On mobile, minimize state updates to prevent freeze
-    if (isMobile) {
-      setCurrentPosition(newPosition);
-      return;
-    }
-    
-    // Desktop: full transition handling
-    setIsPositionTransitioning(true);
-    if (onTransitionChange) {
-      onTransitionChange(true);
-    }
-    
-    // Update position memory
+    // Update position memory for all devices
     setPositionMemory(prev => ({
       last: newPosition,
       history: [...prev.history.slice(-3), newPosition] // Keep last 4 positions
@@ -590,13 +578,20 @@ const YearSelector = ({
     // Update position immediately for instant main page response
     setCurrentPosition(newPosition);
     
-    // Clear transitioning state - immediate on mobile, delayed on desktop
+    // Handle transition state - simplified for mobile
     if (isMobile) {
+      // Mobile: minimal transition handling to prevent freeze
       setIsPositionTransitioning(false);
       if (onTransitionChange) {
         onTransitionChange(false);
       }
     } else {
+      // Desktop: full transition handling
+      setIsPositionTransitioning(true);
+      if (onTransitionChange) {
+        onTransitionChange(true);
+      }
+      
       setTimeout(() => {
         setIsPositionTransitioning(false);
         if (onTransitionChange) {
@@ -604,7 +599,7 @@ const YearSelector = ({
         }
       }, 300);
     }
-  }, [currentPosition, onTransitionChange]);
+  }, [currentPosition, isMobile, onTransitionChange]);
 
   // Handle mode changes efficiently
   const handleModeChange = useCallback((newMode) => {
