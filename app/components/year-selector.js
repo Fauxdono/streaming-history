@@ -1330,7 +1330,7 @@ const YearSelector = ({
     
     return (
       <div 
-        className={`${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
+        className={`${positionConfig.className} max-h-screen z-[90] ${
           isBottom || isTop 
             ? 'w-full h-auto flex items-center justify-center py-2' 
             : 'w-8'
@@ -1411,7 +1411,7 @@ const YearSelector = ({
   
   // Determine container class - responsive for sidebar vs. inline
   const containerClass = asSidebar 
-    ? `${positionConfig.className} max-h-screen z-[90] transition-all duration-300 ${
+    ? `${positionConfig.className} max-h-screen z-[90] ${
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
@@ -1457,7 +1457,6 @@ const YearSelector = ({
       className={`year-selector-sidebar ${containerClass}`} 
       style={{ 
         ...containerStyle, 
-        transition: 'width 0.3s ease-in-out, height 0.3s ease-in-out',
         // Only apply bottom positioning if not already positioned to avoid TopTabs
         ...(currentPosition === 'bottom' && isMobile && asSidebar && topTabsPosition !== 'bottom' && {
           bottom: 'max(1rem, env(safe-area-inset-bottom))'
