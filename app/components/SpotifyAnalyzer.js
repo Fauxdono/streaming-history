@@ -1537,19 +1537,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
     
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
-      // Use same preset calculation as YearSelector
-      let effectiveWidth;
-      if (!yearSelectorExpanded) {
-        effectiveWidth = 32; // Collapsed width
-      } else {
-        // Expanded width based on range mode (use customYearRangeMode state)
-        const scaleFactor = isMobile ? 0.8 : 1.0;
-        if (customYearRangeMode) {
-          effectiveWidth = Math.max(180, Math.min(280, screenWidth * 0.18)) * scaleFactor;
-        } else {
-          effectiveWidth = Math.max(100, Math.min(140, screenWidth * 0.12)) * scaleFactor;
-        }
-      }
+      // Simple fixed dimensions for instant calculation
+      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
       
       if (yearSelectorPosition === 'left') {
         leftSpace += effectiveWidth; // Add to left space (stacked or alone)
@@ -1567,19 +1556,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
     
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
-      // Use same preset calculation as YearSelector
-      let effectiveHeight;
-      if (!yearSelectorExpanded) {
-        effectiveHeight = Math.max(40, Math.min(48, screenHeight * 0.05)); // Collapsed height
-      } else {
-        // Expanded height based on range mode
-        const scaleFactor = isMobile ? 0.8 : 1.0;
-        if (customYearRangeMode) {
-          effectiveHeight = Math.max(200, Math.min(280, screenHeight * 0.35)) * scaleFactor;
-        } else {
-          effectiveHeight = Math.max(160, Math.min(200, screenHeight * 0.25)) * scaleFactor;
-        }
-      }
+      // Simple fixed dimensions for instant calculation
+      const effectiveHeight = yearSelectorExpanded ? (customYearRangeMode ? 220 : 180) : 48;
       
       if (yearSelectorPosition === 'top') {
         topSpace += effectiveHeight; // Add to top space (stacked or alone)
