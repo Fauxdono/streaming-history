@@ -1087,8 +1087,8 @@ const YearSelector = ({
   // Fixed settings bar height - this matches the FixedSettingsBar height
   const settingsBarHeight = isMobile ? 85 : 56;
 
-  // Dynamic position styles that account for TopTabs
-  const getPositionStyles = () => {
+  // Dynamic position styles that account for TopTabs (memoized for mobile performance)
+  const getPositionStyles = useMemo(() => {
     const settingsBarHeight = isMobile ? 85 : 56;
     
     if (topTabsPosition === currentPosition) {
@@ -1176,14 +1176,14 @@ const YearSelector = ({
       className: 'fixed right-0 top-20 bottom-0 z-[90]',
       style: {}
     };
-  };
+  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile]);
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
     
-    const positionConfig = getPositionStyles();
+    const positionConfig = getPositionStyles;
     const collapsedDimensions = getCurrentDimensions(); // This should be collapsed dimensions
     
     return (
@@ -1272,7 +1272,7 @@ const YearSelector = ({
   }
   
   // Container with dynamic positioning and fixed dimensions
-  const positionConfig = asSidebar ? getPositionStyles() : null;
+  const positionConfig = asSidebar ? getPositionStyles : null;
   const dimensions = getCurrentDimensions();
   
   const containerClass = asSidebar 
