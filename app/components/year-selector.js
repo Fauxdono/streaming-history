@@ -38,40 +38,15 @@ const YearSelector = ({
     category: 'desktop'
   });
   
-  // Dynamic dimension presets based on actual screen size
-  const getDimensionPresets = () => {
-    const { width, height, category } = screenInfo;
-    
-    // Base dimensions that scale with screen size
-    const scaleFactor = category === 'mobile' ? 0.8 : category === 'tablet' ? 0.9 : 1.0;
-    
-    return {
-      collapsed: {
-        width: 32,
-        height: Math.max(40, Math.min(48, height * 0.05)) // 5% of screen height, min 40px, max 48px
-      },
-      expanded: {
-        single: {
-          width: Math.max(100, Math.min(140, width * 0.12)) * scaleFactor, // 12% of screen width
-          height: Math.max(160, Math.min(200, height * 0.25)) * scaleFactor // 25% of screen height
-        },
-        range: {
-          width: Math.max(180, Math.min(280, width * 0.18)) * scaleFactor, // 18% of screen width  
-          height: Math.max(200, Math.min(280, height * 0.35)) * scaleFactor // 35% of screen height
-        }
-      }
-    };
-  };
-  
-  // Get current dimensions based on state
+  // Simple fixed dimensions for instant calculation  
   const getCurrentDimensions = () => {
-    const presets = getDimensionPresets();
-    
     if (!expanded) {
-      return presets.collapsed;
+      return { width: 32, height: 48 };
     }
     
-    return mode === 'range' ? presets.expanded.range : presets.expanded.single;
+    return mode === 'range' 
+      ? { width: 240, height: 220 }
+      : { width: 120, height: 180 };
   };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -218,7 +193,7 @@ const YearSelector = ({
         if (onWidthChange) onWidthChange(0);
       }
     }
-  }, [expanded, currentPosition, mode, screenInfo, asSidebar]);
+  }, [expanded, currentPosition, mode, asSidebar]);
 
   
   // When isRangeMode prop changes, update our internal mode state
