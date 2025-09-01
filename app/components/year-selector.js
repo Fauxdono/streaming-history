@@ -1287,7 +1287,7 @@ const YearSelector = ({
     ...positionConfig.style,
     width: currentPosition === 'bottom' || currentPosition === 'top' ? 'auto' : `${dimensions.width}px`,
     height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
-    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
+    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? (isMobile ? '200px' : '50vh') : 'none'
   } : {};
 
   return (
