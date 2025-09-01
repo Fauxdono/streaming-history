@@ -685,22 +685,22 @@ const YearSelector = ({
     if (onTransitionChange) {
       onTransitionChange(true);
     }
-    setCurrentPosition(prev => {
-      const newPosition = prev === 'right' ? 'bottom' : 
-                         prev === 'bottom' ? 'left' : 
-                         prev === 'left' ? 'top' : 'right';
-      
-      // Clear transitioning state after position and animations settle
-      setTimeout(() => {
-        setIsPositionTransitioning(false);
-        if (onTransitionChange) {
-          onTransitionChange(false);
-        }
-      }, 500); // Allow time for CSS transitions to complete
-      
-      return newPosition;
-    });
-  }, [onTransitionChange]);
+    
+    const newPosition = currentPosition === 'right' ? 'bottom' : 
+                       currentPosition === 'bottom' ? 'left' : 
+                       currentPosition === 'left' ? 'top' : 'right';
+    
+    // Update position immediately for instant main page response
+    setCurrentPosition(newPosition);
+    
+    // Clear transitioning state after animations settle
+    setTimeout(() => {
+      setIsPositionTransitioning(false);
+      if (onTransitionChange) {
+        onTransitionChange(false);
+      }
+    }, 500); // Allow time for CSS transitions to complete
+  }, [currentPosition, onTransitionChange]);
 
   // Handle mode changes efficiently
   const handleModeChange = useCallback((newMode) => {
