@@ -1084,12 +1084,12 @@ const YearSelector = ({
     }
   };
 
-  // Fixed settings bar height - this matches the FixedSettingsBar height
-  const settingsBarHeight = isMobile ? 85 : 56;
+  // Fixed settings bar height - account for safe area on mobile
+  const settingsBarHeight = isMobile ? 100 : 56; // Extra 15px buffer for mobile safe area
 
-  // Dynamic position styles that account for TopTabs (memoized for mobile performance)
+  // Dynamic position styles that account for TopTabs (memoized for mobile performance)  
   const getPositionStyles = useMemo(() => {
-    const settingsBarHeight = isMobile ? 85 : 56;
+    const settingsBarHeight = isMobile ? 100 : 56; // Match outer calculation
     // Use fixed fallback values on mobile when dimensions aren't tracked
     const safeTopTabsHeight = isMobile ? 56 : topTabsHeight;
     const safeTopTabsWidth = isMobile ? 160 : topTabsWidth;
