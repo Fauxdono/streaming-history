@@ -1552,35 +1552,39 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     // Only consider year selector margins if it should actually be shown for the current tab
     let yearSelectorTop = 0, yearSelectorBottom = 0, yearSelectorLeft = 0, yearSelectorRight = 0;
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
+      // Use actual dimensions when expanded, minimal when collapsed
+      const effectiveWidth = yearSelectorExpanded ? (yearSelectorWidth || 160) : 32; // 32px for collapsed width
+      const effectiveHeight = yearSelectorExpanded ? (yearSelectorHeight || 60) : 48; // 48px for collapsed height
+      
       if (yearSelectorPosition === 'left') {
         // Add left margin unless TopTabs is also on left (to avoid double-counting when they stack)
         if (topTabsPosition !== 'left') {
-          yearSelectorLeft = yearSelectorWidth || 160; // Default width during transition
-          console.log('Year selector LEFT margin will be:', yearSelectorLeft);
+          yearSelectorLeft = effectiveWidth;
+          console.log('Year selector LEFT margin will be:', yearSelectorLeft, '(expanded:', yearSelectorExpanded, ')');
         } else {
           console.log('Year selector LEFT margin skipped - will stack with TopTabs on', topTabsPosition);
         }
       } else if (yearSelectorPosition === 'right') {
         // Add right margin unless TopTabs is also on right (to avoid double-counting when they stack)
         if (topTabsPosition !== 'right') {
-          yearSelectorRight = yearSelectorWidth || 160; // Default width during transition
-          console.log('Year selector RIGHT margin will be:', yearSelectorRight);
+          yearSelectorRight = effectiveWidth;
+          console.log('Year selector RIGHT margin will be:', yearSelectorRight, '(expanded:', yearSelectorExpanded, ')');
         } else {
           console.log('Year selector RIGHT margin skipped - will stack with TopTabs on', topTabsPosition);
         }
       } else if (yearSelectorPosition === 'top') {
         // Add top margin unless TopTabs is also at top (to avoid double-counting when they stack)
         if (topTabsPosition !== 'top') {
-          yearSelectorTop = yearSelectorHeight || 60; // Default height during transition
-          console.log('Year selector TOP margin will be:', yearSelectorTop);
+          yearSelectorTop = effectiveHeight;
+          console.log('Year selector TOP margin will be:', yearSelectorTop, '(expanded:', yearSelectorExpanded, ')');
         } else {
           console.log('Year selector TOP margin skipped - will stack with TopTabs on', topTabsPosition);
         }
       } else if (yearSelectorPosition === 'bottom') {
         // Add bottom margin unless TopTabs is also at bottom (to avoid double-counting when they stack)
         if (topTabsPosition !== 'bottom') {
-          yearSelectorBottom = yearSelectorHeight || 60; // Default height during transition
-          console.log('Year selector BOTTOM margin will be:', yearSelectorBottom);
+          yearSelectorBottom = effectiveHeight;
+          console.log('Year selector BOTTOM margin will be:', yearSelectorBottom, '(expanded:', yearSelectorExpanded, ')');
         } else {
           console.log('Year selector BOTTOM margin skipped - will stack with TopTabs on', topTabsPosition);
         }
@@ -1592,24 +1596,28 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     if (topTabsPosition === yearSelectorPosition) {
       // Same side - YearSelector stacks after TopTabs, so main content needs space for:
       // TopTabs height + YearSelector height (since YearSelector margin is 0 when stacked)
+      // Use effective dimensions based on expansion state
+      const effectiveWidth = yearSelectorExpanded ? (yearSelectorWidth || 160) : 32;
+      const effectiveHeight = yearSelectorExpanded ? (yearSelectorHeight || 60) : 48;
+      
       if (topTabsPosition === 'top') {
         // Both at top: TopTabs already positioned below settings bar, just add component heights
-        topMargin = topTabsHeight + (yearSelectorHeight || 0);
+        topMargin = topTabsHeight + effectiveHeight;
         bottomMargin = topTabsBottom;
       } else if (topTabsPosition === 'bottom') {
         // Both at bottom: only icon bar space at top, tabs + YearSelector space at bottom
         topMargin = settingsBarHeight; // Only icon bar height
-        bottomMargin = topTabsBottom + (yearSelectorHeight || 0);
+        bottomMargin = topTabsBottom + effectiveHeight;
       } else if (topTabsPosition === 'left') {
         // Both at left: only icon bar space at top, TopTabs + YearSelector space at left
         topMargin = settingsBarHeight; // Only icon bar height
-        leftMargin = topTabsLeft + (yearSelectorWidth || 0);
+        leftMargin = topTabsLeft + effectiveWidth;
         bottomMargin = topTabsBottom;
         rightMargin = topTabsRight;
       } else if (topTabsPosition === 'right') {
         // Both at right: only icon bar space at top, TopTabs + YearSelector space at right
         topMargin = settingsBarHeight; // Only icon bar height
-        rightMargin = topTabsRight + (yearSelectorWidth || 0);
+        rightMargin = topTabsRight + effectiveWidth;
         bottomMargin = topTabsBottom;
         leftMargin = topTabsLeft;
       }
