@@ -28,6 +28,39 @@ const YearSelector = ({
   topTabsHeight = 72, // Add topTabsHeight for proper spacing
   topTabsWidth = 192 // Add topTabsWidth for proper spacing
 }) => {
+  // Preset dimensions for different states
+  const DIMENSION_PRESETS = {
+    collapsed: {
+      desktop: { width: 32, height: 48 },
+      mobile: { width: 32, height: 48 }
+    },
+    expanded: {
+      single: {
+        desktop: { width: 120, height: 180 },
+        mobile: { width: 100, height: 160 }
+      },
+      range: {
+        desktop: { width: 240, height: 220 },
+        mobile: { width: 200, height: 200 }
+      }
+    }
+  };
+  
+  // Get current dimensions based on state
+  const getCurrentDimensions = () => {
+    if (!expanded) {
+      return isMobile ? DIMENSION_PRESETS.collapsed.mobile : DIMENSION_PRESETS.collapsed.desktop;
+    }
+    
+    const expandedPreset = mode === 'range' ? 'range' : 'single';
+    return isMobile ? DIMENSION_PRESETS.expanded[expandedPreset].mobile : DIMENSION_PRESETS.expanded[expandedPreset].desktop;
+  };
+  // Position memory - remember last position for each component
+  const [positionMemory, setPositionMemory] = useState({
+    last: position,
+    history: [position]
+  });
+  
   // Core state
   const [mode, setMode] = useState(isRangeMode ? 'range' : 'single');
   const [expanded, setExpanded] = useState(!startMinimized);
@@ -122,35 +155,25 @@ const YearSelector = ({
     setPositionKey(prev => prev + 1);
   }, [expanded, currentPosition, topTabsPosition, topTabsHeight, asSidebar]);
 
-  // Communicate all state changes to parent with simple fixed dimensions
+  // Communicate all state changes to parent using preset dimensions
   useEffect(() => {
     if (asSidebar) {
-      // Report expansion state
-      if (onExpandChange) {
-        onExpandChange(expanded);
-      }
+      const dimensions = getCurrentDimensions();
       
-      // Report position
-      if (onPositionChange) {
-        onPositionChange(currentPosition);
-      }
+      // Report all states atomically
+      if (onExpandChange) onExpandChange(expanded);
+      if (onPositionChange) onPositionChange(currentPosition);
       
-      // Use simple fixed dimensions - no DOM measurement complexity
-      if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
-        const width = expanded ? (mode === 'range' ? 240 : 120) : 32;
-        onWidthChange(width);
-      } else if (onWidthChange) {
-        onWidthChange(0);
-      }
-      
-      if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
-        const height = expanded ? (mode === 'range' ? 200 : 160) : 48;
-        onHeightChange(height);
-      } else if (onHeightChange) {
-        onHeightChange(0);
+      // Report dimensions based on current position
+      if (currentPosition === 'left' || currentPosition === 'right') {
+        if (onWidthChange) onWidthChange(dimensions.width);
+        if (onHeightChange) onHeightChange(0);
+      } else if (currentPosition === 'top' || currentPosition === 'bottom') {
+        if (onHeightChange) onHeightChange(dimensions.height);
+        if (onWidthChange) onWidthChange(0);
       }
     }
-  }, [expanded, currentPosition, mode, asSidebar, onExpandChange, onPositionChange, onWidthChange, onHeightChange]);
+  }, [expanded, currentPosition, mode, isMobile, asSidebar]);
 
   
   // When isRangeMode prop changes, update our internal mode state
@@ -518,7 +541,7 @@ const YearSelector = ({
     setExpanded(prev => !prev);
   }, []);
   
-  // Toggle sidebar position - cycles through right, bottom, left, top
+  // Toggle sidebar position - cycles through right, bottom, left, top with memory
   const togglePosition = useCallback(() => {
     setIsPositionTransitioning(true);
     if (onTransitionChange) {
@@ -529,6 +552,12 @@ const YearSelector = ({
                        currentPosition === 'bottom' ? 'left' : 
                        currentPosition === 'left' ? 'top' : 'right';
     
+    // Update position memory
+    setPositionMemory(prev => ({
+      last: newPosition,
+      history: [...prev.history.slice(-3), newPosition] // Keep last 4 positions
+    }));
+    
     // Update position immediately for instant main page response
     setCurrentPosition(newPosition);
     
@@ -538,7 +567,7 @@ const YearSelector = ({
       if (onTransitionChange) {
         onTransitionChange(false);
       }
-    }, 500); // Allow time for CSS transitions to complete
+    }, 300); // Reduced from 500ms for faster feel
   }, [currentPosition, onTransitionChange]);
 
   // Handle mode changes efficiently
