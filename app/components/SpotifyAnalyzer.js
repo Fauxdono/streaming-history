@@ -1541,9 +1541,19 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
       
       if (yearSelectorPosition === 'left') {
-        leftSpace += effectiveWidth; // Add to left space (stacked or alone)
+        // Mobile fix: use max when both components on same side to prevent overlap
+        if (isMobile && topTabsPosition === 'left') {
+          leftSpace = Math.max(leftSpace, Math.max(topTabsWidth, effectiveWidth));
+        } else {
+          leftSpace += effectiveWidth;
+        }
       } else if (yearSelectorPosition === 'right') {
-        rightSpace += effectiveWidth; // Add to right space (stacked or alone)
+        // Mobile fix: use max when both components on same side to prevent overlap
+        if (isMobile && topTabsPosition === 'right') {
+          rightSpace = Math.max(rightSpace, Math.max(topTabsWidth, effectiveWidth));
+        } else {
+          rightSpace += effectiveWidth;
+        }
       }
     }
     
