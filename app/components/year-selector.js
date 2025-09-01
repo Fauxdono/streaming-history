@@ -139,7 +139,7 @@ const YearSelector = ({
 
   // Communicate width changes to parent
   useEffect(() => {
-    if (onWidthChange && asSidebar) {
+    if (onWidthChange && asSidebar && !isPositionTransitioning) {
       if (currentPosition === 'left' || currentPosition === 'right') {
         // Use ResizeObserver for dynamic width measurement
         const measureWidth = () => {
@@ -205,11 +205,11 @@ const YearSelector = ({
         onWidthChange(0);
       }
     }
-  }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile]);
+  }, [expanded, mode, onWidthChange, asSidebar, currentPosition, isMobile, isPositionTransitioning]);
 
   // Communicate height changes to parent
   useEffect(() => {
-    if (onHeightChange && asSidebar) {
+    if (onHeightChange && asSidebar && !isPositionTransitioning) {
       if (currentPosition === 'top' || currentPosition === 'bottom') {
         // Measure actual height dynamically
         const measureHeight = () => {
@@ -279,12 +279,14 @@ const YearSelector = ({
         onHeightChange(0);
       }
     }
-  }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile]);
+  }, [expanded, mode, onHeightChange, asSidebar, currentPosition, isMobile, isPositionTransitioning]);
 
   // Re-measure dimensions on window resize with debouncing
   useEffect(() => {
     let resizeTimeoutId;
     const handleResize = () => {
+      if (isPositionTransitioning) return; // Block updates during transitions
+      
       // Debounce resize events to prevent rapid updates
       if (resizeTimeoutId) clearTimeout(resizeTimeoutId);
       resizeTimeoutId = setTimeout(() => {
@@ -312,7 +314,7 @@ const YearSelector = ({
         clearTimeout(resizeTimeoutId);
       }
     };
-  }, [currentPosition, onWidthChange, onHeightChange, asSidebar]);
+  }, [currentPosition, onWidthChange, onHeightChange, asSidebar, isPositionTransitioning]);
   
   // When isRangeMode prop changes, update our internal mode state
   useEffect(() => {
