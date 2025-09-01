@@ -1618,8 +1618,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           getPatternsTabLabel={getPatternsTabLabel}
           getBehaviorTabLabel={getBehaviorTabLabel}
           onPositionChange={setTopTabsPosition}
-          onHeightChange={setTopTabsHeight}
-          onWidthChange={setTopTabsWidth}
+          onHeightChange={isMobile ? null : setTopTabsHeight}
+          onWidthChange={isMobile ? null : setTopTabsWidth}
           onCollapseChange={setTopTabsCollapsed}
           yearSelectorPosition={yearSelectorPosition}
           position={topTabsPosition}
