@@ -1083,13 +1083,21 @@ const YearSelector = ({
       switch (currentPosition) {
         case 'top':
           return {
-            className: 'fixed left-0 right-0 z-[89]',
-            style: { top: `${settingsBarHeight + topTabsHeight}px` }
+            className: 'fixed z-[89]',
+            style: { 
+              top: `${settingsBarHeight + topTabsHeight}px`,
+              left: '50%',
+              transform: 'translateX(-50%)'
+            }
           };
         case 'bottom':
           return {
-            className: 'fixed left-0 right-0 z-[89]',
-            style: { bottom: `${topTabsHeight}px` }
+            className: 'fixed z-[89]',
+            style: { 
+              bottom: `${topTabsHeight}px`,
+              left: '50%',
+              transform: 'translateX(-50%)'
+            }
           };
         case 'left':
           return {
@@ -1125,8 +1133,8 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               bottom: '0px',
-              left: topTabsPosition === 'left' ? `${topTabsWidth}px` : '0px',
-              right: topTabsPosition === 'right' ? `${topTabsWidth}px` : '0px'
+              left: '50%',
+              transform: 'translateX(-50%)'
             }
           };
         case 'left':
@@ -1174,7 +1182,7 @@ const YearSelector = ({
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
         style={{
           ...positionConfig.style,
-          width: isBottom || isTop ? '100%' : `${collapsedDimensions.width}px`,
+          width: `${collapsedDimensions.width}px`,
           height: isBottom || isTop ? `${collapsedDimensions.height}px` : 'auto'
         }}
       >
@@ -1261,9 +1269,7 @@ const YearSelector = ({
   // Use fixed dimensions instead of responsive classes
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
-    width: currentPosition === 'bottom' || currentPosition === 'top' ? 
-      'auto' : // Let the positioning handle the width for top/bottom
-      `${dimensions.width}px`,
+    width: `${dimensions.width}px`,
     height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
     maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
   } : {};
