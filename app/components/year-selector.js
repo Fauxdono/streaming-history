@@ -184,13 +184,15 @@ const YearSelector = ({
       if (onExpandChange) onExpandChange(expanded);
       if (onPositionChange) onPositionChange(currentPosition);
       
-      // Report dimensions based on current position
-      if (currentPosition === 'left' || currentPosition === 'right') {
-        if (onWidthChange) onWidthChange(dimensions.width);
-        if (onHeightChange) onHeightChange(0);
-      } else if (currentPosition === 'top' || currentPosition === 'bottom') {
-        if (onHeightChange) onHeightChange(dimensions.height);
-        if (onWidthChange) onWidthChange(0);
+      // Report dimensions based on current position (skip on mobile to prevent freeze)
+      if (!isMobile) {
+        if (currentPosition === 'left' || currentPosition === 'right') {
+          if (onWidthChange) onWidthChange(dimensions.width);
+          if (onHeightChange) onHeightChange(0);
+        } else if (currentPosition === 'top' || currentPosition === 'bottom') {
+          if (onHeightChange) onHeightChange(dimensions.height);
+          if (onWidthChange) onWidthChange(0);
+        }
       }
     }
   }, [expanded, currentPosition, mode, asSidebar]);
