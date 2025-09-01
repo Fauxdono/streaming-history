@@ -1090,6 +1090,9 @@ const YearSelector = ({
   // Dynamic position styles that account for TopTabs (memoized for mobile performance)
   const getPositionStyles = useMemo(() => {
     const settingsBarHeight = isMobile ? 85 : 56;
+    // Use fixed fallback values on mobile when dimensions aren't tracked
+    const safeTopTabsHeight = isMobile ? 56 : topTabsHeight;
+    const safeTopTabsWidth = isMobile ? 160 : topTabsWidth;
     
     if (topTabsPosition === currentPosition) {
       // Same side - position after TopTabs
@@ -1098,7 +1101,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[89]',
             style: { 
-              top: `${settingsBarHeight + topTabsHeight}px`,
+              top: `${settingsBarHeight + safeTopTabsHeight}px`,
               left: '0px',
               right: '0px'
             }
@@ -1107,7 +1110,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[89]',
             style: { 
-              bottom: `${topTabsHeight}px`,
+              bottom: `${safeTopTabsHeight}px`,
               left: '0px',
               right: '0px'
             }
@@ -1116,7 +1119,7 @@ const YearSelector = ({
           return {
             className: 'fixed bottom-0 z-[89]',
             style: { 
-              left: `${topTabsWidth}px`,
+              left: `${safeTopTabsWidth}px`,
               top: `${settingsBarHeight}px`
             }
           };
@@ -1124,7 +1127,7 @@ const YearSelector = ({
           return {
             className: 'fixed bottom-0 z-[89]',
             style: { 
-              right: `${topTabsWidth}px`,
+              right: `${safeTopTabsWidth}px`,
               top: `${settingsBarHeight}px`
             }
           };
@@ -1137,8 +1140,8 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               top: `${settingsBarHeight}px`,
-              left: topTabsPosition === 'left' ? `${topTabsWidth}px` : '0px',
-              right: topTabsPosition === 'right' ? `${topTabsWidth}px` : '0px'
+              left: topTabsPosition === 'left' ? `${safeTopTabsWidth}px` : '0px',
+              right: topTabsPosition === 'right' ? `${safeTopTabsWidth}px` : '0px'
             }
           };
         case 'bottom':
@@ -1146,8 +1149,8 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               bottom: '0px',
-              left: topTabsPosition === 'left' ? `${topTabsWidth}px` : '0px',
-              right: topTabsPosition === 'right' ? `${topTabsWidth}px` : '0px'
+              left: topTabsPosition === 'left' ? `${safeTopTabsWidth}px` : '0px',
+              right: topTabsPosition === 'right' ? `${safeTopTabsWidth}px` : '0px'
             }
           };
         case 'left':
@@ -1155,8 +1158,8 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               left: '0px',
-              top: topTabsPosition === 'top' ? `${settingsBarHeight + topTabsHeight}px` : `${settingsBarHeight}px`,
-              bottom: topTabsPosition === 'bottom' ? `${topTabsHeight}px` : '0px'
+              top: topTabsPosition === 'top' ? `${settingsBarHeight + safeTopTabsHeight}px` : `${settingsBarHeight}px`,
+              bottom: topTabsPosition === 'bottom' ? `${safeTopTabsHeight}px` : '0px'
             }
           };
         case 'right':
@@ -1164,8 +1167,8 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               right: '0px',
-              top: topTabsPosition === 'top' ? `${settingsBarHeight + topTabsHeight}px` : `${settingsBarHeight}px`,
-              bottom: topTabsPosition === 'bottom' ? `${topTabsHeight}px` : '0px'
+              top: topTabsPosition === 'top' ? `${settingsBarHeight + safeTopTabsHeight}px` : `${settingsBarHeight}px`,
+              bottom: topTabsPosition === 'bottom' ? `${safeTopTabsHeight}px` : '0px'
             }
           };
       }
