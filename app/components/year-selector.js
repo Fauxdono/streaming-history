@@ -1188,15 +1188,20 @@ const YearSelector = ({
     const isTop = currentPosition === 'top';
     
     const positionConfig = getPositionStyles();
+    const collapsedDimensions = getCurrentDimensions(); // This should be collapsed dimensions
     
     return (
       <div 
         className={`${positionConfig.className} max-h-screen ${
           isBottom || isTop 
-            ? 'w-full h-auto flex items-center justify-center py-2' 
-            : 'w-8'
+            ? 'flex items-center justify-center py-2' 
+            : ''
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
-        style={positionConfig.style}
+        style={{
+          ...positionConfig.style,
+          width: isBottom || isTop ? '100%' : `${collapsedDimensions.width}px`,
+          height: isBottom || isTop ? `${collapsedDimensions.height}px` : 'auto'
+        }}
       >
         {/* Horizontal layout container for bottom and top positions */}
         {isBottom || isTop ? (
