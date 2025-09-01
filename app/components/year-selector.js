@@ -1182,11 +1182,7 @@ const YearSelector = ({
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
         style={{
           ...positionConfig.style,
-          width: isBottom || isTop ? 
-            (typeof window !== 'undefined' ? 
-              `${window.innerWidth - (topTabsPosition === 'left' ? topTabsWidth : 0) - (topTabsPosition === 'right' ? topTabsWidth : 0)}px` :
-              '100%') : 
-            `${collapsedDimensions.width}px`,
+          width: isBottom || isTop ? 'auto' : `${collapsedDimensions.width}px`,
           height: isBottom || isTop ? `${collapsedDimensions.height}px` : 'auto'
         }}
       >
@@ -1273,11 +1269,7 @@ const YearSelector = ({
   // Use fixed dimensions instead of responsive classes
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
-    width: currentPosition === 'bottom' || currentPosition === 'top' ? 
-      (typeof window !== 'undefined' ? 
-        `${window.innerWidth - (topTabsPosition === 'left' ? topTabsWidth : 0) - (topTabsPosition === 'right' ? topTabsWidth : 0)}px` :
-        '100%') : 
-      `${dimensions.width}px`,
+    width: currentPosition === 'bottom' || currentPosition === 'top' ? 'auto' : `${dimensions.width}px`,
     height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
     maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
   } : {};
