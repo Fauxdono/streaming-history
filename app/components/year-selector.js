@@ -1099,20 +1099,65 @@ const YearSelector = ({
   // Fixed settings bar height - this matches the FixedSettingsBar height
   const settingsBarHeight = isMobile ? 85 : 56;
 
-  // Simple position styles - no complex calculations
-  const getPositionClass = () => {
-    switch (currentPosition) {
-      case 'top':
-        return 'fixed top-20 left-0 right-0 z-[90]';
-      case 'bottom':
-        return 'fixed bottom-0 left-0 right-0 z-[90]';
-      case 'left':
-        return 'fixed left-0 top-20 bottom-0 z-[90]';
-      case 'right':
-        return 'fixed right-0 top-20 bottom-0 z-[90]';
-      default:
-        return 'fixed right-0 top-20 bottom-0 z-[90]';
+  // Dynamic position styles that account for TopTabs
+  const getPositionStyles = () => {
+    const settingsBarHeight = isMobile ? 85 : 56;
+    
+    if (topTabsPosition === currentPosition) {
+      // Same side - position after TopTabs
+      switch (currentPosition) {
+        case 'top':
+          return {
+            className: 'fixed left-0 right-0 z-[89]',
+            style: { top: `${settingsBarHeight + topTabsHeight}px` }
+          };
+        case 'bottom':
+          return {
+            className: 'fixed left-0 right-0 z-[89]',
+            style: { bottom: `${topTabsHeight}px` }
+          };
+        case 'left':
+          return {
+            className: 'fixed top-20 bottom-0 z-[89]',
+            style: { left: `${topTabsWidth}px` }
+          };
+        case 'right':
+          return {
+            className: 'fixed top-20 bottom-0 z-[89]',
+            style: { right: `${topTabsWidth}px` }
+          };
+      }
+    } else {
+      // Different sides - use standard positioning
+      switch (currentPosition) {
+        case 'top':
+          return {
+            className: 'fixed left-0 right-0 z-[90]',
+            style: { top: `${settingsBarHeight}px` }
+          };
+        case 'bottom':
+          return {
+            className: 'fixed left-0 right-0 z-[90]',
+            style: { bottom: '0px' }
+          };
+        case 'left':
+          return {
+            className: 'fixed top-20 bottom-0 z-[90]',
+            style: { left: '0px' }
+          };
+        case 'right':
+          return {
+            className: 'fixed top-20 bottom-0 z-[90]',
+            style: { right: '0px' }
+          };
+      }
     }
+    
+    // Fallback
+    return {
+      className: 'fixed right-0 top-20 bottom-0 z-[90]',
+      style: {}
+    };
   };
 
   // If not expanded, show a mini sidebar
@@ -1120,13 +1165,16 @@ const YearSelector = ({
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
     
+    const positionConfig = getPositionStyles();
+    
     return (
       <div 
-        className={`${getPositionClass()} max-h-screen ${
+        className={`${positionConfig.className} max-h-screen ${
           isBottom || isTop 
             ? 'w-full h-auto flex items-center justify-center py-2' 
             : 'w-8'
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
+        style={positionConfig.style}
       >
         {/* Horizontal layout container for bottom and top positions */}
         {isBottom || isTop ? (
@@ -1200,9 +1248,10 @@ const YearSelector = ({
     );
   }
   
-  // Simple container class - no complex calculations
+  // Container with dynamic positioning
+  const positionConfig = asSidebar ? getPositionStyles() : null;
   const containerClass = asSidebar 
-    ? `${getPositionClass()} max-h-screen ${
+    ? `${positionConfig.className} max-h-screen ${
         currentPosition === 'bottom' || currentPosition === 'top'
           ? 'w-full h-auto max-h-[50vh]'
           : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
@@ -1212,6 +1261,7 @@ const YearSelector = ({
   return (
     <div 
       className={`year-selector-sidebar ${containerClass}`}
+      style={asSidebar ? positionConfig.style : {}}
     >
       {/* Collapse button for sidebar */}
       {asSidebar && (
