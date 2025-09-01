@@ -28,32 +28,50 @@ const YearSelector = ({
   topTabsHeight = 72, // Add topTabsHeight for proper spacing
   topTabsWidth = 192 // Add topTabsWidth for proper spacing
 }) => {
-  // Preset dimensions for different states
-  const DIMENSION_PRESETS = {
-    collapsed: {
-      desktop: { width: 32, height: 48 },
-      mobile: { width: 32, height: 48 }
-    },
-    expanded: {
-      single: {
-        desktop: { width: 120, height: 180 },
-        mobile: { width: 100, height: 160 }
+  // Enhanced screen size detection
+  const [screenInfo, setScreenInfo] = useState({
+    width: 0,
+    height: 0,
+    isMobile: false,
+    isTablet: false,
+    isLandscape: false,
+    category: 'desktop'
+  });
+  
+  // Dynamic dimension presets based on actual screen size
+  const getDimensionPresets = () => {
+    const { width, height, category } = screenInfo;
+    
+    // Base dimensions that scale with screen size
+    const scaleFactor = category === 'mobile' ? 0.8 : category === 'tablet' ? 0.9 : 1.0;
+    
+    return {
+      collapsed: {
+        width: 32,
+        height: Math.max(40, Math.min(48, height * 0.05)) // 5% of screen height, min 40px, max 48px
       },
-      range: {
-        desktop: { width: 240, height: 220 },
-        mobile: { width: 200, height: 200 }
+      expanded: {
+        single: {
+          width: Math.max(100, Math.min(140, width * 0.12)) * scaleFactor, // 12% of screen width
+          height: Math.max(160, Math.min(200, height * 0.25)) * scaleFactor // 25% of screen height
+        },
+        range: {
+          width: Math.max(180, Math.min(280, width * 0.18)) * scaleFactor, // 18% of screen width  
+          height: Math.max(200, Math.min(280, height * 0.35)) * scaleFactor // 35% of screen height
+        }
       }
-    }
+    };
   };
   
   // Get current dimensions based on state
   const getCurrentDimensions = () => {
+    const presets = getDimensionPresets();
+    
     if (!expanded) {
-      return isMobile ? DIMENSION_PRESETS.collapsed.mobile : DIMENSION_PRESETS.collapsed.desktop;
+      return presets.collapsed;
     }
     
-    const expandedPreset = mode === 'range' ? 'range' : 'single';
-    return isMobile ? DIMENSION_PRESETS.expanded[expandedPreset].mobile : DIMENSION_PRESETS.expanded[expandedPreset].desktop;
+    return mode === 'range' ? presets.expanded.range : presets.expanded.single;
   };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -126,24 +144,51 @@ const YearSelector = ({
   const startDays = Array.from({ length: getDaysInMonth(yearRange.startYear, startMonth) }, (_, i) => i + 1);
   const endDays = Array.from({ length: getDaysInMonth(yearRange.endYear, endMonth) }, (_, i) => i + 1);
   
-  // Check for mobile viewport
+  // Enhanced screen size detection
   useEffect(() => {
-    const checkOrientation = () => {
-      setIsMobile(window.innerWidth < 640);
-      setIsLandscape(window.innerWidth > window.innerHeight);
+    const updateScreenInfo = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const isLandscape = width > height;
+      
+      // Categorize screen size
+      let category = 'desktop';
+      let isMobile = false;
+      let isTablet = false;
+      
+      if (width < 640) {
+        category = 'mobile';
+        isMobile = true;
+      } else if (width < 1024) {
+        category = 'tablet';
+        isTablet = true;
+      }
+      
+      setScreenInfo({
+        width,
+        height,
+        isMobile,
+        isTablet,
+        isLandscape,
+        category
+      });
+      
+      // Update legacy state for compatibility
+      setIsMobile(isMobile);
+      setIsLandscape(isLandscape);
     };
     
     // Initial check
-    checkOrientation();
+    updateScreenInfo();
     
-    // Add resize listener
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
+    // Add listeners
+    window.addEventListener('resize', updateScreenInfo);
+    window.addEventListener('orientationchange', updateScreenInfo);
     
     // Cleanup
     return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
+      window.removeEventListener('resize', updateScreenInfo);
+      window.removeEventListener('orientationchange', updateScreenInfo);
     };
   }, []);
 
@@ -173,7 +218,7 @@ const YearSelector = ({
         if (onWidthChange) onWidthChange(0);
       }
     }
-  }, [expanded, currentPosition, mode, isMobile, asSidebar]);
+  }, [expanded, currentPosition, mode, screenInfo, asSidebar]);
 
   
   // When isRangeMode prop changes, update our internal mode state
