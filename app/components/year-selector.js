@@ -1261,7 +1261,9 @@ const YearSelector = ({
   // Use fixed dimensions instead of responsive classes
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
-    width: currentPosition === 'bottom' || currentPosition === 'top' ? '100%' : `${dimensions.width}px`,
+    width: currentPosition === 'bottom' || currentPosition === 'top' ? 
+      'auto' : // Let the positioning handle the width for top/bottom
+      `${dimensions.width}px`,
     height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
     maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
   } : {};
