@@ -565,14 +565,21 @@ const YearSelector = ({
   
   // Toggle sidebar position - cycles through right, bottom, left, top with memory
   const togglePosition = useCallback(() => {
+    const newPosition = currentPosition === 'right' ? 'bottom' : 
+                       currentPosition === 'bottom' ? 'left' : 
+                       currentPosition === 'left' ? 'top' : 'right';
+    
+    // On mobile, minimize state updates to prevent freeze
+    if (isMobile) {
+      setCurrentPosition(newPosition);
+      return;
+    }
+    
+    // Desktop: full transition handling
     setIsPositionTransitioning(true);
     if (onTransitionChange) {
       onTransitionChange(true);
     }
-    
-    const newPosition = currentPosition === 'right' ? 'bottom' : 
-                       currentPosition === 'bottom' ? 'left' : 
-                       currentPosition === 'left' ? 'top' : 'right';
     
     // Update position memory
     setPositionMemory(prev => ({
