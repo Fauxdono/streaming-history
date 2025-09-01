@@ -1270,20 +1270,26 @@ const YearSelector = ({
     );
   }
   
-  // Container with dynamic positioning
+  // Container with dynamic positioning and fixed dimensions
   const positionConfig = asSidebar ? getPositionStyles() : null;
+  const dimensions = getCurrentDimensions();
+  
   const containerClass = asSidebar 
-    ? `${positionConfig.className} max-h-screen ${
-        currentPosition === 'bottom' || currentPosition === 'top'
-          ? 'w-full h-auto max-h-[50vh]'
-          : mode === 'range' ? 'w-48 sm:w-64' : 'w-16 sm:w-32'
-      } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
+    ? `${positionConfig.className} max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
+  
+  // Use fixed dimensions instead of responsive classes
+  const containerStyle = asSidebar ? {
+    ...positionConfig.style,
+    width: currentPosition === 'bottom' || currentPosition === 'top' ? '100%' : `${dimensions.width}px`,
+    height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
+    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
+  } : {};
 
   return (
     <div 
       className={`year-selector-sidebar ${containerClass}`}
-      style={asSidebar ? positionConfig.style : {}}
+      style={containerStyle}
     >
       {/* Collapse button for sidebar */}
       {asSidebar && (
