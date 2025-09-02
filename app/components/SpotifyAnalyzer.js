@@ -126,8 +126,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
-  // TopTabs position state
-  const [topTabsPosition, setTopTabsPosition] = useState('top');
+  // TopTabs position state - initialize based on screen size
+  const [topTabsPosition, setTopTabsPosition] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 640 ? 'bottom' : 'top';
+    }
+    return 'top'; // SSR fallback
+  });
   const [topTabsHeight, setTopTabsHeight] = useState(72);
   const [topTabsWidth, setTopTabsWidth] = useState(192);
   const [topTabsCollapsed, setTopTabsCollapsed] = useState(false);
@@ -151,7 +156,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const isMobileNow = window.innerWidth < 640;
       setIsMobile(isMobileNow);
       
-      // Set initial TopTabs position based on mobile detection
+      // Only adjust position if user resizes between mobile/desktop 
+      // (initial position is already set correctly)
       if (isMobileNow && topTabsPosition === 'top') {
         setTopTabsPosition('bottom');
       } else if (!isMobileNow && topTabsPosition === 'bottom') {
