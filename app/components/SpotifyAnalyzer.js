@@ -121,9 +121,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     bottom: { width: 32, height: 48 }
   });
 
-  // Update cached dimensions when they change
+  // Update cached dimensions when they change (skip on mobile to prevent loops)
   useEffect(() => {
-    if (yearSelectorWidth || yearSelectorHeight) {
+    if (!isMobile && (yearSelectorWidth || yearSelectorHeight)) {
       setYearSelectorDimensionCache(prev => ({
         ...prev,
         [yearSelectorPosition]: {
@@ -132,16 +132,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         }
       }));
     }
-  }, [yearSelectorWidth, yearSelectorHeight, yearSelectorPosition]);
+  }, [yearSelectorWidth, yearSelectorHeight, yearSelectorPosition, isMobile]);
 
-  // Use cached dimensions when position changes
+  // Use cached dimensions when position changes (skip on mobile to prevent loops)
   useEffect(() => {
-    const cached = yearSelectorDimensionCache[yearSelectorPosition];
-    if (cached) {
-      setYearSelectorWidth(cached.width);
-      setYearSelectorHeight(cached.height);
+    if (!isMobile) {
+      const cached = yearSelectorDimensionCache[yearSelectorPosition];
+      if (cached) {
+        setYearSelectorWidth(cached.width);
+        setYearSelectorHeight(cached.height);
+      }
     }
-  }, [yearSelectorPosition, yearSelectorDimensionCache]);
+  }, [yearSelectorPosition, yearSelectorDimensionCache, isMobile]);
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
   // TopTabs position state
