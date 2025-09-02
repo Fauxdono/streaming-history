@@ -1099,7 +1099,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[89]',
             style: { 
-              top: `${settingsBarHeight + safeTopTabsHeight + 4}px`,
+              top: `${settingsBarHeight + safeTopTabsHeight}px`,
               left: '0px',
               right: '0px'
             }
@@ -1108,7 +1108,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[89]',
             style: { 
-              bottom: `${safeTopTabsHeight + 4}px`,
+              bottom: `${safeTopTabsHeight}px`,
               left: '0px',
               right: '0px'
             }
@@ -1117,7 +1117,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[100]',
             style: { 
-              left: `${safeTopTabsWidth + 8}px`,
+              left: `${safeTopTabsWidth}px`,
               top: `${settingsBarHeight}px`,
               bottom: '0px'
             }
@@ -1126,7 +1126,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[100]',
             style: { 
-              right: `${safeTopTabsWidth + 8}px`,
+              right: `${safeTopTabsWidth}px`,
               top: `${settingsBarHeight}px`,
               bottom: '0px'
             }
