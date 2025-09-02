@@ -121,6 +121,17 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     bottom: { width: 32, height: 48 }
   });
 
+  const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
+
+  // TopTabs position state
+  const [topTabsPosition, setTopTabsPosition] = useState('top');
+  const [topTabsHeight, setTopTabsHeight] = useState(72);
+  const [topTabsWidth, setTopTabsWidth] = useState(192);
+  const [topTabsCollapsed, setTopTabsCollapsed] = useState(false);
+  
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
   // Update cached dimensions when they change (skip on mobile to prevent loops)
   useEffect(() => {
     if (!isMobile && (yearSelectorWidth || yearSelectorHeight)) {
@@ -144,16 +155,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       }
     }
   }, [yearSelectorPosition, yearSelectorDimensionCache, isMobile]);
-  const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
-
-  // TopTabs position state
-  const [topTabsPosition, setTopTabsPosition] = useState('top');
-  const [topTabsHeight, setTopTabsHeight] = useState(72);
-  const [topTabsWidth, setTopTabsWidth] = useState(192);
-  const [topTabsCollapsed, setTopTabsCollapsed] = useState(false);
-  
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
     const checkMobile = () => {
