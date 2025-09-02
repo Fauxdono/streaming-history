@@ -1545,19 +1545,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
       
       if (yearSelectorPosition === 'left') {
-        // Mobile fix: use max when both components on same side to prevent overlap
-        if (isMobile && topTabsPosition === 'left') {
-          leftSpace = Math.max(leftSpace, Math.max(topTabsWidth, effectiveWidth));
-        } else {
-          leftSpace += effectiveWidth;
-        }
+        leftSpace += effectiveWidth;
       } else if (yearSelectorPosition === 'right') {
-        // Mobile fix: use max when both components on same side to prevent overlap
-        if (isMobile && topTabsPosition === 'right') {
-          rightSpace = Math.max(rightSpace, Math.max(topTabsWidth, effectiveWidth));
-        } else {
-          rightSpace += effectiveWidth;
-        }
+        rightSpace += effectiveWidth;
       }
     }
     
@@ -1574,19 +1564,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const effectiveHeight = yearSelectorExpanded ? (customYearRangeMode ? 220 : 180) : 48;
       
       if (yearSelectorPosition === 'top') {
-        // Mobile fix: use max when both components vertical to prevent layout conflicts
-        if (isMobile && topTabsPosition === 'top') {
-          topSpace = Math.max(topSpace, settingsBarHeight + Math.max(topTabsHeight, effectiveHeight));
-        } else {
-          topSpace += effectiveHeight;
-        }
+        topSpace += effectiveHeight;
       } else if (yearSelectorPosition === 'bottom') {
-        // Mobile fix: use max when both components vertical to prevent layout conflicts  
-        if (isMobile && topTabsPosition === 'bottom') {
-          bottomSpace = Math.max(bottomSpace, Math.max(topTabsHeight, effectiveHeight));
-        } else {
-          bottomSpace += effectiveHeight;
-        }
+        bottomSpace += effectiveHeight;
       }
     }
     
