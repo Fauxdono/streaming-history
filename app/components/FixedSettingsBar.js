@@ -16,7 +16,7 @@ const FixedSettingsBar = ({
   return (
     <>
       <div 
-        className="fixed left-0 right-0 w-full z-[100] border-b border-violet-200 dark:border-gray-600"
+        className={`fixed left-0 right-0 w-full z-[100] ${isMobile ? 'border-t' : 'border-b'} border-violet-200 dark:border-gray-600`}
         style={{
           backgroundImage: 'url(/apple-touch-icon.png)',
           backgroundRepeat: 'repeat-x',
@@ -24,11 +24,16 @@ const FixedSettingsBar = ({
           backgroundPosition: 'left center',
           transform: 'translateZ(0)',
           willChange: 'auto',
-          top: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
-          height: isMobile ? 'calc(42px + env(safe-area-inset-top, 0px))' : 'auto'
+          ...(isMobile ? {
+            bottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))',
+            height: 'calc(85px + env(safe-area-inset-bottom, 0px))'
+          } : {
+            top: '0',
+            height: 'auto'
+          })
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-between items-center px-4 py-2' : 'justify-center py-2'}`} style={{height: isMobile ? '42px' : 'auto'}}>
+        <div className={`flex ${isMobile ? 'justify-between items-end px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto', paddingBottom: isMobile ? '9px' : undefined}}>
           {isMobile ? (
             <>
               {/* Left side buttons - brightness and text size */}

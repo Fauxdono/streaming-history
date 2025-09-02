@@ -380,15 +380,15 @@ const TopTabs = ({
       <div 
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
-          ...(currentPosition === 'top' && { top: settingsBarHeight, marginTop: '-1px' }), // Below fixed settings bar, overlap by 1px
+          ...(currentPosition === 'top' && { top: isMobile ? '0px' : settingsBarHeight, marginTop: isMobile ? '0px' : '-1px' }), // Below fixed settings bar on desktop, at top on mobile
           ...(currentPosition === 'bottom' && isMobile && {
-            bottom: 'max(1rem, env(safe-area-inset-bottom))'
+            bottom: `calc(85px + env(safe-area-inset-bottom, 0px))`
           }),
           ...(currentPosition === 'bottom' && !isMobile && {
             bottom: '0'
           }),
-          ...(currentPosition === 'left' && { top: settingsBarHeight }), // Below fixed settings bar
-          ...(currentPosition === 'right' && { top: settingsBarHeight }) // Below fixed settings bar
+          ...(currentPosition === 'left' && { top: isMobile ? '0px' : settingsBarHeight }), // Below fixed settings bar on desktop, at top on mobile
+          ...(currentPosition === 'right' && { top: isMobile ? '0px' : settingsBarHeight }) // Below fixed settings bar on desktop, at top on mobile
         }}
       >
         {currentPosition === 'top' || currentPosition === 'bottom' ? (
