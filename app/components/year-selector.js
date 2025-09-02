@@ -1139,7 +1139,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[90]',
             style: { 
-              top: `${settingsBarHeight}px`,
+              top: isMobile ? '0px' : `${settingsBarHeight}px`,
               left: topTabsPosition === 'left' ? `${safeTopTabsWidth}px` : '0px',
               right: topTabsPosition === 'right' ? `${safeTopTabsWidth}px` : '0px'
             }
