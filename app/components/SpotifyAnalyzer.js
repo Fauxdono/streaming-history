@@ -1635,8 +1635,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         <div className="flex-1 transition-all duration-300" 
              style={{
                ...contentAreaStyles,
-               // Ensure content starts below settings bar including safe area
-               paddingTop: isMobile ? `calc(85px + env(safe-area-inset-top, 0px))` : contentAreaStyles.paddingTop,
+               // Add safe area support on mobile
+               paddingTop: isMobile ? `calc(${contentAreaStyles.paddingTop} + env(safe-area-inset-top, 0px))` : contentAreaStyles.paddingTop,
                // Debug info
                '--year-selector-width': JSON.stringify(yearSelectorWidth),
                '--year-selector-height': JSON.stringify(yearSelectorHeight),
