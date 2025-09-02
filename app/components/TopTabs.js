@@ -20,6 +20,7 @@ const TopTabs = ({
   onHeightChange,   // New callback to communicate height changes to parent
   onWidthChange,    // New callback to communicate width changes to parent
   onCollapseChange, // New callback to communicate collapse state changes to parent
+  isCollapsed: externalIsCollapsed, // External collapsed state from parent
   position = 'top',  // New prop for initial position
   yearSelectorPosition = null // YearSelector position to adjust borders when stacked
 }) => {
@@ -35,6 +36,13 @@ const TopTabs = ({
   
   // Collapsed state for mobile - shows icons instead of full text
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Sync internal collapsed state with external prop
+  useEffect(() => {
+    if (externalIsCollapsed !== undefined && externalIsCollapsed !== isCollapsed) {
+      setIsCollapsed(externalIsCollapsed);
+    }
+  }, [externalIsCollapsed, isCollapsed]);
   const [isTransitioning, setIsTransitioning] = useState(false);
   
   
