@@ -25,19 +25,19 @@ const FixedSettingsBar = ({
           transform: 'translateZ(0)',
           willChange: 'auto',
           top: isMobile ? 'calc(-1 * env(safe-area-inset-top, 0px))' : '0',
-          height: isMobile ? 'calc(85px + env(safe-area-inset-top, 0px))' : 'auto'
+          height: isMobile ? 'calc(42px + env(safe-area-inset-top, 0px))' : 'auto'
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-between items-end px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto', paddingBottom: isMobile ? '9px' : undefined}}>
+        <div className={`flex ${isMobile ? 'justify-between items-center px-4 py-2' : 'justify-center py-2'}`} style={{height: isMobile ? '42px' : 'auto'}}>
           {isMobile ? (
             <>
               {/* Left side buttons - brightness and text size */}
               <div className="flex items-center gap-4">
-                <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
+                <DarkModeToggle className="!p-1.5 !rounded-full !w-[33px] !h-[33px]" />
                 <button 
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8"
+                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title="Font Size Settings"
                 >
                   <span className="text-xs">aA</span>
@@ -48,14 +48,14 @@ const FixedSettingsBar = ({
               <div className="flex items-center gap-4">
                 <button 
                   onClick={togglePosition}
-                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8"
+                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title="Change tab position"
                 >
                   <span className="text-xs">⇄</span>
                 </button>
                 <button 
                   onClick={toggleCollapsed}
-                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-8 h-8"
+                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
                 >
                   <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>

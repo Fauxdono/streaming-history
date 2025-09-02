@@ -1083,11 +1083,11 @@ const YearSelector = ({
   };
 
   // Fixed settings bar height - this matches the FixedSettingsBar height
-  const settingsBarHeight = isMobile ? 85 : 56;
+  const settingsBarHeight = isMobile ? 42 : 56;
 
   // Dynamic position styles that account for TopTabs (memoized for mobile performance)  
   const getPositionStyles = useMemo(() => {
-    const settingsBarHeight = isMobile ? 85 : 56;
+    const settingsBarHeight = isMobile ? 42 : 56;
     // Use actual TopTabs dimensions, with fallbacks for mobile
     const safeTopTabsHeight = topTabsHeight || (isMobile ? 56 : 72);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
