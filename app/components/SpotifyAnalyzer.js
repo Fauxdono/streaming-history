@@ -158,7 +158,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+      const isMobileNow = window.innerWidth < 640;
+      setIsMobile(isMobileNow);
+      
+      // Set initial TopTabs position based on mobile detection
+      if (isMobileNow && topTabsPosition === 'top') {
+        setTopTabsPosition('bottom');
+      } else if (!isMobileNow && topTabsPosition === 'bottom') {
+        setTopTabsPosition('top');
+      }
     };
     
     checkMobile();
@@ -167,7 +175,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
-  }, []); // Default width for side positioning
+  }, [topTabsPosition]); // Default width for side positioning
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');
   const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
   const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
