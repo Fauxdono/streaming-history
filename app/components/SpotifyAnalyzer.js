@@ -113,13 +113,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
   const [yearSelectorTransitioning, setYearSelectorTransitioning] = useState(false);
   
-  // Cache dimensions for each position
-  const [yearSelectorDimensionCache, setYearSelectorDimensionCache] = useState({
-    right: { width: 32, height: 48 },
-    left: { width: 32, height: 48 },
-    top: { width: 32, height: 48 },
-    bottom: { width: 32, height: 48 }
-  });
+  // Fixed dimensions for YearSelector (no caching needed)
+  const getYearSelectorDimensions = (expanded, isRangeMode) => {
+    if (!expanded) {
+      return { width: 32, height: 48 };
+    }
+    return isRangeMode 
+      ? { width: 240, height: 220 }
+      : { width: 120, height: 180 };
+  };
+
 
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
 
@@ -132,31 +135,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
 
-  // Update cached dimensions when they change (skip on touch devices to prevent loops)
+  // Update dimensions when YearSelector expands/collapses (simplified - no loops)
   useEffect(() => {
-    const isTouchDevice = window.innerWidth < 1024 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isTouchDevice && (yearSelectorWidth || yearSelectorHeight)) {
-      setYearSelectorDimensionCache(prev => ({
-        ...prev,
-        [yearSelectorPosition]: {
-          width: yearSelectorWidth,
-          height: yearSelectorHeight
-        }
-      }));
-    }
-  }, [yearSelectorWidth, yearSelectorHeight, yearSelectorPosition]);
-
-  // Use cached dimensions when position changes (skip on touch devices to prevent loops)
-  useEffect(() => {
-    const isTouchDevice = window.innerWidth < 1024 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isTouchDevice) {
-      const cached = yearSelectorDimensionCache[yearSelectorPosition];
-      if (cached) {
-        setYearSelectorWidth(cached.width);
-        setYearSelectorHeight(cached.height);
-      }
-    }
-  }, [yearSelectorPosition, yearSelectorDimensionCache]);
+    // Use simple static dimensions - no need for complex caching
+    const dimensions = yearSelectorExpanded 
+      ? { width: 240, height: 220 }  // Conservative max size (range mode)
+      : { width: 32, height: 48 };   // Collapsed size
+    
+    setYearSelectorWidth(dimensions.width);
+    setYearSelectorHeight(dimensions.height);
+  }, [yearSelectorExpanded]);
   
   useEffect(() => {
     const checkMobile = () => {
@@ -221,6 +209,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     
     return result;
   }, []);
+
 
   // Effect to add "All-Time" text to year display
   useEffect(() => {
