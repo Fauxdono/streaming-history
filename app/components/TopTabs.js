@@ -158,32 +158,19 @@ const TopTabs = ({
     }
   }, [currentPosition, onWidthChange, isMobile, isCollapsed, isTransitioning]);
 
-  // Toggle position - cycles through top, right, bottom, left
-  const togglePosition = useCallback(() => {
-    // Enable transition blocking for all devices to smooth positioning
+  // Toggle position is now handled by parent - this component is controlled
+  // Set transitioning state when position changes externally
+  useEffect(() => {
     setIsTransitioning(true);
     
-    setCurrentPosition(prev => {
-      const newPosition = prev === 'top' ? 'right' : 
-                         prev === 'right' ? 'bottom' : 
-                         prev === 'bottom' ? 'left' : 'top';
-      
-      // Clear transitioning state after position and animations settle
-      if (isMobile) {
-        // Mobile: brief transition delay to smooth positioning changes
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 150);
-      } else {
-        // Desktop: standard transition delay
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 500);
-      }
-      
-      return newPosition;
-    });
-  }, [isMobile]);
+    // Clear transitioning state after animations settle
+    const delay = isMobile ? 150 : 500;
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+    }, delay);
+    
+    return () => clearTimeout(timer);
+  }, [currentPosition, isMobile]);
 
   // Toggle collapsed state - only available on mobile
   const toggleCollapsed = useCallback(() => {
