@@ -1115,7 +1115,7 @@ const YearSelector = ({
           };
         case 'left':
           return {
-            className: 'fixed z-[89]',
+            className: 'fixed z-[100]',
             style: { 
               left: `${safeTopTabsWidth + 4}px`,
               top: `${settingsBarHeight}px`,
@@ -1124,7 +1124,7 @@ const YearSelector = ({
           };
         case 'right':
           return {
-            className: 'fixed z-[89]',
+            className: 'fixed z-[100]',
             style: { 
               right: `${safeTopTabsWidth + 4}px`,
               top: `${settingsBarHeight}px`,
