@@ -160,9 +160,8 @@ const TopTabs = ({
 
   // Toggle position - cycles through top, right, bottom, left
   const togglePosition = useCallback(() => {
-    if (!isMobile) {
-      setIsTransitioning(true);
-    }
+    // Enable transition blocking for all devices to smooth positioning
+    setIsTransitioning(true);
     
     setCurrentPosition(prev => {
       const newPosition = prev === 'top' ? 'right' : 
@@ -171,8 +170,10 @@ const TopTabs = ({
       
       // Clear transitioning state after position and animations settle
       if (isMobile) {
-        // Mobile: no transition blocking
-        setIsTransitioning(false);
+        // Mobile: brief transition delay to smooth positioning changes
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 150);
       } else {
         // Desktop: standard transition delay
         setTimeout(() => {
@@ -317,7 +318,9 @@ const TopTabs = ({
 
   // Container styles for different orientations
   const getContainerStyles = () => {
-    const baseStyles = 'bg-white dark:bg-gray-800 border-violet-200 dark:border-gray-600 transition-all duration-300';
+    // Faster transitions on mobile to reduce lag
+    const transitionClass = isMobile ? 'transition-all duration-150' : 'transition-all duration-300';
+    const baseStyles = `bg-white dark:bg-gray-800 border-violet-200 dark:border-gray-600 ${transitionClass}`;
     
     switch (currentPosition) {
       case 'top':
@@ -388,15 +391,27 @@ const TopTabs = ({
       <div 
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
-          ...(currentPosition === 'top' && { top: isMobile ? '0px' : settingsBarHeight, marginTop: isMobile ? '0px' : '-1px' }), // Below fixed settings bar on desktop, at top on mobile
+          // Pre-calculate positions to avoid layout shifts
+          ...(currentPosition === 'top' && { 
+            top: isMobile ? '0px' : settingsBarHeight, 
+            marginTop: isMobile ? '0px' : '-1px',
+            transform: isMobile ? 'translateZ(0)' : undefined // Hardware acceleration on mobile
+          }),
           ...(currentPosition === 'bottom' && isMobile && {
-            bottom: `calc(85px + env(safe-area-inset-bottom, 0px))`
+            bottom: `calc(85px + env(safe-area-inset-bottom, 0px))`,
+            transform: 'translateZ(0)' // Hardware acceleration
           }),
           ...(currentPosition === 'bottom' && !isMobile && {
             bottom: '0'
           }),
-          ...(currentPosition === 'left' && { top: isMobile ? '0px' : settingsBarHeight }), // Below fixed settings bar on desktop, at top on mobile
-          ...(currentPosition === 'right' && { top: isMobile ? '0px' : settingsBarHeight }) // Below fixed settings bar on desktop, at top on mobile
+          ...(currentPosition === 'left' && { 
+            top: isMobile ? '0px' : settingsBarHeight,
+            transform: isMobile ? 'translateZ(0)' : undefined
+          }),
+          ...(currentPosition === 'right' && { 
+            top: isMobile ? '0px' : settingsBarHeight,
+            transform: isMobile ? 'translateZ(0)' : undefined
+          })
         }}
       >
         {currentPosition === 'top' || currentPosition === 'bottom' ? (
