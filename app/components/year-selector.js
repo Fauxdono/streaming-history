@@ -1083,11 +1083,11 @@ const YearSelector = ({
   };
 
   // Fixed settings bar height - this matches the FixedSettingsBar height
-  const settingsBarHeight = isMobile ? 42 : 56;
+  const settingsBarHeight = isMobile ? 85 : 56;
 
   // Dynamic position styles that account for TopTabs (memoized for mobile performance)  
   const getPositionStyles = useMemo(() => {
-    const settingsBarHeight = isMobile ? 42 : 56;
+    const settingsBarHeight = isMobile ? 85 : 56;
     // Use actual TopTabs dimensions, with fallbacks for mobile
     const safeTopTabsHeight = topTabsHeight || (isMobile ? 56 : 72);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
@@ -1118,8 +1118,8 @@ const YearSelector = ({
             className: 'fixed z-[100]',
             style: { 
               left: `${safeTopTabsWidth}px`,
-              top: `${settingsBarHeight}px`,
-              bottom: '0px'
+              top: isMobile ? '0px' : `${settingsBarHeight}px`,
+              bottom: isMobile ? `${settingsBarHeight}px` : '0px'
             }
           };
         case 'right':
@@ -1127,8 +1127,8 @@ const YearSelector = ({
             className: 'fixed z-[100]',
             style: { 
               right: `${safeTopTabsWidth}px`,
-              top: `${settingsBarHeight}px`,
-              bottom: '0px'
+              top: isMobile ? '0px' : `${settingsBarHeight}px`,
+              bottom: isMobile ? `${settingsBarHeight}px` : '0px'
             }
           };
       }

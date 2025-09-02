@@ -1525,12 +1525,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    const settingsBarHeight = isMobile ? 42 : 56;
+    const settingsBarHeight = isMobile ? 85 : 56;
     
     let leftSpace = 0;
     let rightSpace = 0;
-    let topSpace = settingsBarHeight;
-    let bottomSpace = 0;
+    let topSpace = isMobile ? 0 : settingsBarHeight;
+    let bottomSpace = isMobile ? settingsBarHeight : 0;
     
     // Calculate space taken by components on left/right
     if (topTabsPosition === 'left') {
@@ -1636,7 +1636,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
              style={{
                ...contentAreaStyles,
                // Add safe area support on mobile
-               paddingTop: isMobile ? `calc(${contentAreaStyles.paddingTop} + env(safe-area-inset-top, 0px))` : contentAreaStyles.paddingTop,
+               paddingBottom: isMobile ? `calc(${contentAreaStyles.paddingBottom} + env(safe-area-inset-bottom, 0px))` : contentAreaStyles.paddingBottom,
                // Debug info
                '--year-selector-width': JSON.stringify(yearSelectorWidth),
                '--year-selector-height': JSON.stringify(yearSelectorHeight),
