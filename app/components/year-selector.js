@@ -1108,7 +1108,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[89]',
             style: { 
-              bottom: `${safeTopTabsHeight}px`,
+              bottom: isMobile ? `${settingsBarHeight + safeTopTabsHeight}px` : `${safeTopTabsHeight}px`,
               left: '0px',
               right: '0px'
             }
@@ -1148,7 +1148,7 @@ const YearSelector = ({
           return {
             className: 'fixed z-[90]',
             style: { 
-              bottom: '0px',
+              bottom: isMobile ? `${settingsBarHeight}px` : '0px',
               left: topTabsPosition === 'left' ? `${safeTopTabsWidth}px` : '0px',
               right: topTabsPosition === 'right' ? `${safeTopTabsWidth}px` : '0px'
             }
@@ -1158,8 +1158,8 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               left: '0px',
-              top: topTabsPosition === 'top' ? `${settingsBarHeight + safeTopTabsHeight}px` : `${settingsBarHeight}px`,
-              bottom: topTabsPosition === 'bottom' ? `${safeTopTabsHeight}px` : '0px'
+              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight}px` : `${settingsBarHeight + safeTopTabsHeight}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
+              bottom: topTabsPosition === 'bottom' ? (isMobile ? `${settingsBarHeight + safeTopTabsHeight}px` : `${safeTopTabsHeight}px`) : (isMobile ? `${settingsBarHeight}px` : '0px')
             }
           };
         case 'right':
@@ -1167,8 +1167,8 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               right: '0px',
-              top: topTabsPosition === 'top' ? `${settingsBarHeight + safeTopTabsHeight}px` : `${settingsBarHeight}px`,
-              bottom: topTabsPosition === 'bottom' ? `${safeTopTabsHeight}px` : '0px'
+              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight}px` : `${settingsBarHeight + safeTopTabsHeight}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
+              bottom: topTabsPosition === 'bottom' ? (isMobile ? `${settingsBarHeight + safeTopTabsHeight}px` : `${safeTopTabsHeight}px`) : (isMobile ? `${settingsBarHeight}px` : '0px')
             }
           };
       }
