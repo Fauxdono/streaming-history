@@ -132,9 +132,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
 
-  // Update cached dimensions when they change (skip on mobile to prevent loops)
+  // Update cached dimensions when they change (skip on touch devices to prevent loops)
   useEffect(() => {
-    if (!isMobile && (yearSelectorWidth || yearSelectorHeight)) {
+    const isTouchDevice = window.innerWidth < 1024 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isTouchDevice && (yearSelectorWidth || yearSelectorHeight)) {
       setYearSelectorDimensionCache(prev => ({
         ...prev,
         [yearSelectorPosition]: {
@@ -143,18 +144,19 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         }
       }));
     }
-  }, [yearSelectorWidth, yearSelectorHeight, yearSelectorPosition, isMobile]);
+  }, [yearSelectorWidth, yearSelectorHeight, yearSelectorPosition]);
 
-  // Use cached dimensions when position changes (skip on mobile to prevent loops)
+  // Use cached dimensions when position changes (skip on touch devices to prevent loops)
   useEffect(() => {
-    if (!isMobile) {
+    const isTouchDevice = window.innerWidth < 1024 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isTouchDevice) {
       const cached = yearSelectorDimensionCache[yearSelectorPosition];
       if (cached) {
         setYearSelectorWidth(cached.width);
         setYearSelectorHeight(cached.height);
       }
     }
-  }, [yearSelectorPosition, yearSelectorDimensionCache, isMobile]);
+  }, [yearSelectorPosition, yearSelectorDimensionCache]);
   
   useEffect(() => {
     const checkMobile = () => {
