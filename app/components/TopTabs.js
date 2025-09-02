@@ -393,7 +393,7 @@ const TopTabs = ({
       >
         {currentPosition === 'top' || currentPosition === 'bottom' ? (
           // Horizontal layout for top and bottom positions
-          <div className="overflow-x-auto main-tabs-scrollbar py-2">
+          <div className={`overflow-x-auto main-tabs-scrollbar ${currentPosition === 'top' ? 'pt-2' : 'py-2'}`}>
             <TabsContainer />
           </div>
         ) : (
