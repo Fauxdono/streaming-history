@@ -1088,9 +1088,9 @@ const YearSelector = ({
   // Dynamic position styles that account for TopTabs (memoized for mobile performance)  
   const getPositionStyles = useMemo(() => {
     const settingsBarHeight = isMobile ? 85 : 56;
-    // Use fixed fallback values on mobile when dimensions aren't tracked
-    const safeTopTabsHeight = isMobile ? 56 : topTabsHeight;
-    const safeTopTabsWidth = isMobile ? 160 : topTabsWidth;
+    // Use actual TopTabs dimensions, with fallbacks for mobile
+    const safeTopTabsHeight = topTabsHeight || (isMobile ? 56 : 72);
+    const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
     
     if (topTabsPosition === currentPosition) {
       // Same side - position after TopTabs
