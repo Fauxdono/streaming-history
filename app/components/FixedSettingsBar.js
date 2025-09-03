@@ -45,7 +45,7 @@ const FixedSettingsBar = ({
                   className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title="Font Size Settings"
                 >
-                  <span className="text-xs" style={{fontSize: '14px !important'}}>aA</span>
+                  <span className="text-xs" style={{fontSize: '14px', fontFamily: 'ui-sans-serif, system-ui'}}>aA</span>
                 </button>
               </div>
 
@@ -56,14 +56,14 @@ const FixedSettingsBar = ({
                   className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
                 >
-                  <span className="text-xs" style={{fontSize: '14px !important'}}>{isCollapsed ? '📄' : '📋'}</span>
+                  <span style={{fontSize: '14px', lineHeight: '1'}}>{isCollapsed ? '📄' : '📋'}</span>
                 </button>
                 <button 
                   onClick={togglePosition}
                   className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title="Change tab position"
                 >
-                  <span className="text-xs" style={{fontSize: '14px !important'}}>⇄</span>
+                  <span style={{fontSize: '14px', lineHeight: '1'}}>⇄</span>
                 </button>
               </div>
             </>
