@@ -2044,6 +2044,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               </div>
             </div>
           </div>
+        </div>
         
         {/* Year Selector - positioned outside the main content flow */}
         {showYearSidebar && shouldShowSidebar(activeTab) && (
