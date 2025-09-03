@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
-import { ArrowLeftRight, FileText, Files } from 'lucide-react';
+import { ArrowLeftRight, FileText, Files, Type } from 'lucide-react';
 
 const FixedSettingsBar = ({ 
   togglePosition, 
@@ -43,10 +43,10 @@ const FixedSettingsBar = ({
                 <button 
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[33px] h-[33px]"
+                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
                   title="Font Size Settings"
                 >
-                  <span style={{fontSize: '14px', fontFamily: 'ui-sans-serif, system-ui', fontWeight: 'bold'}}>aA</span>
+                  <Type size={16} />
                 </button>
               </div>
 
@@ -54,14 +54,14 @@ const FixedSettingsBar = ({
               <div className="flex items-center gap-4">
                 <button 
                   onClick={toggleCollapsed}
-                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px]"
+                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
                   title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
                 >
                   {isCollapsed ? <FileText size={16} /> : <Files size={16} />}
                 </button>
                 <button 
                   onClick={togglePosition}
-                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px]"
+                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
                   title="Change tab position"
                 >
                   <ArrowLeftRight size={16} />
