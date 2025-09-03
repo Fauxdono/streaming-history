@@ -1846,8 +1846,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               processedData={processedData} 
               formatDuration={formatDuration}
               selectedYear={selectedTrackYear}
-              yearRangeMode={trackYearRangeMode}
-              yearRange={trackYearRange}
               colorTheme="red"
             />
           </div>
@@ -1951,8 +1949,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     processedData,
     rawPlayData,
     selectedTrackYear,
-    trackYearRangeMode,
-    trackYearRange,
     customTrackYear,
     customYearRangeMode,
     customYearRange,
