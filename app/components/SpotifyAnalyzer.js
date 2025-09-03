@@ -1584,12 +1584,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
     setTopTabsPosition(prev => {
-      // Mobile cycle: bottom → right → top → left → bottom (treats bottom as primary)
+      // Mobile cycle: bottom → left → top → right → bottom (matches YearSelector)
       // Desktop cycle: top → right → bottom → left → top (treats top as primary)
       if (isMobile) {
-        if (prev === 'bottom') return 'right';
-        if (prev === 'right') return 'top';
-        if (prev === 'top') return 'left';
+        if (prev === 'bottom') return 'left';
+        if (prev === 'left') return 'top';
+        if (prev === 'top') return 'right';
         return 'bottom';
       } else {
         if (prev === 'top') return 'right';
