@@ -33,11 +33,9 @@ const FixedSettingsBar = ({
           })
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-between items-end px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto', paddingBottom: isMobile ? '9px' : undefined}}>
+        <div className={`flex ${isMobile ? 'justify-center items-end px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto', paddingBottom: isMobile ? '9px' : undefined}}>
           {isMobile ? (
             <>
-              {/* Left side buttons - brightness and text size */}
-              <div className="flex items-center gap-4">
                 <DarkModeToggle className="!p-1.5 !rounded-full !w-[33px] !h-[33px]" />
                 <button 
                   ref={settingsButtonRef}
@@ -47,23 +45,22 @@ const FixedSettingsBar = ({
                 >
                   <span className="text-xs">aA</span>
                 </button>
-              </div>
 
-              {/* Right side buttons */}
+              {/* Centered buttons */}
               <div className="flex items-center gap-4">
-                <button 
-                  onClick={togglePosition}
-                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px]"
-                  title="Change tab position"
-                >
-                  <span className="text-xs">⇄</span>
-                </button>
                 <button 
                   onClick={toggleCollapsed}
                   className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
                 >
                   <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
+                </button>
+                <button 
+                  onClick={togglePosition}
+                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px]"
+                  title="Change tab position"
+                >
+                  <span className="text-xs">⇄</span>
                 </button>
               </div>
             </>
