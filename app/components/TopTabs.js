@@ -385,7 +385,7 @@ const TopTabs = ({
             transform: isMobile ? 'translateZ(0)' : undefined // Hardware acceleration on mobile
           }),
           ...(currentPosition === 'bottom' && isMobile && {
-            bottom: `calc(85px + env(safe-area-inset-bottom, 0px))`,
+            bottom: '85px',
             transform: 'translateZ(0)' // Hardware acceleration
           }),
           ...(currentPosition === 'bottom' && !isMobile && {
