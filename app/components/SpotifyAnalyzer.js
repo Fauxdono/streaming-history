@@ -1610,6 +1610,383 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
   }, []);
 
+  // Memoized tab content renderer for performance optimization
+  const renderTabContent = useMemo(() => {
+    switch (activeTab) {
+      case 'upload':
+        return (
+          <div>
+            {/* Storage Notification */}
+            {storageNotification && (
+              <div className={`mb-6 p-4 rounded-lg border ${
+                storageNotification.type === 'success' 
+                  ? 'bg-green-50 border-green-200 text-green-800' 
+                  : storageNotification.type === 'warning'
+                  ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                  : storageNotification.type === 'error'
+                  ? 'bg-red-50 border-red-200 text-red-800'
+                  : 'bg-blue-50 border-blue-200 text-blue-800'
+              }`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="font-medium mb-1">
+                      {storageNotification.type === 'success' && '✅ '}
+                      {storageNotification.type === 'warning' && '⚠️ '}
+                      {storageNotification.type === 'error' && '❌ '}
+                      {storageNotification.type === 'info' && 'ℹ️ '}
+                      {storageNotification.title}
+                    </h4>
+                    <p className="text-sm mb-2">{storageNotification.message}</p>
+                    {storageNotification.action && (
+                      <p className="text-xs opacity-75">{storageNotification.action}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setStorageNotification(null)}
+                    className="ml-3 text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Full-width How to Use section with two columns */}
+            <div className="mb-6">
+              <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
+                <h3 className={`font-semibold mb-4 text-base ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    <div className={`${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
+                      <div className="flex items-start gap-3 mb-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                        <span>Download your streaming history from your service</span>
+                      </div>
+                      <div className="flex items-start gap-3 mb-3">
+                        <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                        <span>Upload your file(s) or connect Google Drive for large files</span>
+                      </div>
+                      <div className="flex items-start gap-3 mb-4">
+                        <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                        <span>Click "Calculate Statistics" and explore your data</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Right Column */}
+                  <div className="space-y-4">
+                    <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1">
+                        <button
+                          onClick={handleLoadSampleData}
+                          disabled={isProcessing}
+                          className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
+                        >
+                          <Download size={16} />
+                          Try Demo
+                        </button>
+                        <p className={`text-sm mt-2 ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`}>
+                          Want to test the app? Click to load sample streaming history.
+                        </p>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded text-white">
+                          <p className="font-bold text-xs">📱 Download as Web App!</p>
+                          <p className="text-xs mt-0.5">Install to your device for offline access.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Google Drive Storage */}
+            <div className="mb-6">
+              <GoogleDriveSync
+                stats={stats}
+                processedData={processedData}
+                topArtists={topArtists}
+                topAlbums={topAlbums}
+                briefObsessions={briefObsessions}
+                songsByYear={songsByYear}
+                rawPlayData={rawPlayData}
+                artistsByYear={artistsByYear}
+                albumsByYear={albumsByYear}
+                uploadedFiles={uploadedFiles}
+                uploadedFileList={uploadedFileList}
+                onDataLoaded={handleDataLoaded}
+              />
+            </div>
+              
+            <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-orange-900/20 border-orange-600/30' : 'bg-orange-50 border-orange-200'}`}>
+              <p className={`mb-3 font-semibold text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-700'}`}>
+                Upload your streaming history files:
+              </p>
+              <p className={`mb-3 text-xs sm:text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-600'}`}>
+                Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), Cake (.xlsx/.json)
+              </p>
+              <input
+                type="file"
+                multiple
+                accept=".json,.csv,.xlsx"
+                onChange={handleFileUpload}
+                className={`block w-full text-sm transition-colors
+                  file:mr-4 file:py-2 file:px-4 file:rounded-lg 
+                  file:border-2 file:border-yellow-400 file:text-sm 
+                  file:font-semibold file:bg-yellow-300 
+                  file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
+                  ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
+              />
+            </div>
+                
+            {isProcessing && (
+              <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                <div className="flex flex-col items-center">
+                  <img 
+                    src="/loading.png" 
+                    alt="Cake is cakeculating..." 
+                    className="w-48 h-48 object-contain animate-rock bg-transparent loading-cake-image"
+                  />
+                  <p 
+                    className="text-xl text-blue-600 mt-2 animate-rainbow cakeculating-text" 
+                    style={{ 
+                      fontFamily: 'var(--font-comic-neue)',
+                      textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
+                    }}
+                  >
+                    Cakeculating...
+                  </p>
+                </div>
+              </div>
+            )}
+                
+            {uploadedFiles.length > 0 && (
+              <div className={`mt-6 p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <h4 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Uploaded Files:</h4>
+                <ul className="space-y-2">
+                  {uploadedFiles.map((fileName, index) => (
+                    <li key={index} className={`flex items-center justify-between p-3 rounded-lg ${
+                      isDarkMode ? 'bg-gray-700' : 'bg-white'
+                    }`}>
+                      <span className={`text-sm font-medium truncate mr-3 ${
+                        isDarkMode ? 'text-gray-200' : 'text-gray-700'
+                      }`}>
+                        {fileName}
+                      </span>
+                      <button 
+                        onClick={() => handleDeleteFile(index)}
+                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0"
+                        title="Remove file"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                
+                {uploadedFileList && uploadedFileList.length === 1 && 
+                 uploadedFileList[0].name.endsWith('.xlsx') && (
+                  <ExcelPreview file={uploadedFileList[0]} />
+                )}
+                
+                <button
+                  onClick={handleProcessFiles}
+                  disabled={isProcessing}
+                  className="mt-4 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg
+                    hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg"
+                >
+                  {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}
+                </button>
+              </div>
+            )}
+                
+            {error && (
+              <div className={`mt-6 p-4 rounded-lg border ${
+                isDarkMode 
+                  ? 'bg-red-900/20 border-red-600/30 text-red-300' 
+                  : 'bg-red-100 border-red-300 text-red-700'
+              }`}>
+                <h4 className="font-semibold mb-2">Error:</h4>
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+          </div>
+        );
+      
+      case 'stats':
+        return stats ? (
+          <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
+            <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
+            {/* Stats content would go here */}
+          </div>
+        ) : null;
+      
+      case 'artists':
+        return (
+          <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
+            {/* Artists content would go here */}
+          </div>
+        );
+      
+      case 'albums':
+        return (
+          <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300 transition-all duration-300">
+            {/* Albums content would go here */}
+          </div>
+        );
+      
+      case 'tracks':
+        return (
+          <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
+            <TrackRankings 
+              processedData={processedData} 
+              formatDuration={formatDuration}
+              selectedYear={selectedTrackYear}
+              yearRangeMode={trackYearRangeMode}
+              yearRange={trackYearRange}
+              colorTheme="red"
+            />
+          </div>
+        );
+      
+      case 'custom':
+        return (
+          <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
+            <CustomTrackRankings 
+              rawPlayData={rawPlayData}
+              formatDuration={formatDuration}
+              selectedYear={customTrackYear}
+              yearRangeMode={customYearRangeMode}
+              yearRange={customYearRange}
+              colorTheme="yellow"
+            />
+          </div>
+        );
+      
+      case 'patterns':
+        return (
+          <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
+            <ListeningPatterns 
+              rawPlayData={rawPlayData} 
+              formatDuration={formatDuration}
+              selectedYear={selectedPatternYear}
+              yearRange={patternYearRange}
+              yearRangeMode={patternYearRangeMode}
+              colorTheme="purple"
+            />
+          </div>
+        );
+      
+      case 'behavior':
+        return (
+          <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+            <ListeningBehavior 
+              rawPlayData={rawPlayData} 
+              formatDuration={formatDuration}
+              selectedYear={selectedBehaviorYear}
+              yearRange={behaviorYearRange}
+              yearRangeMode={behaviorYearRangeMode}
+              colorTheme="indigo"
+            />
+          </div>
+        );
+      
+      case 'discovery':
+        return (
+          <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
+            <DiscoveryAnalysis 
+              rawPlayData={rawPlayData} 
+              formatDuration={formatDuration}
+              selectedYear={selectedDiscoveryYear}
+              yearRange={discoveryYearRange}
+              yearRangeMode={discoveryYearRangeMode}
+              colorTheme="green"
+            />
+          </div>
+        );
+      
+      case 'podcasts':
+        return (
+          <div id="podcast-rankings" className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+            <PodcastRankings 
+              rawPlayData={rawPlayData} 
+              formatDuration={formatDuration}
+              selectedYear={selectedPodcastYear}
+              yearRange={podcastYearRange}
+              yearRangeMode={podcastYearRangeMode}
+              colorTheme="slate"
+            />
+          </div>
+        );
+      
+      case 'playlists':
+        return (
+          <div className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-red-700">Custom Playlists</h3>
+            </div>
+            <CustomPlaylist processedData={processedData} formatDuration={formatDuration} />
+          </div>
+        );
+      
+      case 'updates':
+        return (
+          <div className="p-2 sm:p-4 bg-cyan-200 rounded border-2 border-cyan-400">
+            <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
+            <UpdatesSection />
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  }, [
+    activeTab,
+    storageNotification,
+    stats,
+    processedData,
+    rawPlayData,
+    selectedTrackYear,
+    trackYearRangeMode,
+    trackYearRange,
+    customTrackYear,
+    customYearRangeMode,
+    customYearRange,
+    selectedPatternYear,
+    patternYearRange,
+    patternYearRangeMode,
+    selectedBehaviorYear,
+    behaviorYearRange,
+    behaviorYearRangeMode,
+    selectedDiscoveryYear,
+    discoveryYearRange,
+    discoveryYearRangeMode,
+    selectedPodcastYear,
+    podcastYearRange,
+    podcastYearRangeMode,
+    formatDuration,
+    isDarkMode,
+    isProcessing,
+    uploadedFiles,
+    uploadedFileList,
+    error,
+    handleLoadSampleData,
+    handleFileUpload,
+    handleDeleteFile,
+    handleProcessFiles,
+    topArtists,
+    topAlbums,
+    briefObsessions,
+    songsByYear,
+    artistsByYear,
+    albumsByYear,
+    handleDataLoaded
+  ]);
+
   return (
     <div className="w-full h-full">
       <FixedSettingsBar 
@@ -1662,1131 +2039,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             <div className="w-full h-full">
               <div className="w-full">
                 <div>
-          
-          {activeTab === 'upload' && (
-            <div>
-
-              {/* Storage Notification */}
-              {storageNotification && (
-                <div className={`mb-6 p-4 rounded-lg border ${
-                  storageNotification.type === 'success' 
-                    ? 'bg-green-50 border-green-200 text-green-800' 
-                    : storageNotification.type === 'warning'
-                    ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                    : storageNotification.type === 'error'
-                    ? 'bg-red-50 border-red-200 text-red-800'
-                    : 'bg-blue-50 border-blue-200 text-blue-800'
-                }`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium mb-1">
-                        {storageNotification.type === 'success' && '✅ '}
-                        {storageNotification.type === 'warning' && '⚠️ '}
-                        {storageNotification.type === 'error' && '❌ '}
-                        {storageNotification.type === 'info' && 'ℹ️ '}
-                        {storageNotification.title}
-                      </h4>
-                      <p className="text-sm mb-2">{storageNotification.message}</p>
-                      {storageNotification.action && (
-                        <p className="text-xs opacity-75">{storageNotification.action}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setStorageNotification(null)}
-                      className="ml-3 text-gray-400 hover:text-gray-600"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Full-width How to Use section with two columns */}
-              <div className="mb-6">
-                <div className={`p-3 sm:p-4 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
-                  <h3 className={`font-semibold mb-3 text-sm ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Left Column */}
-                    <div className="space-y-3">
-                      <div className={`text-sm ${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
-                        <div className="flex items-start gap-2 mb-2">
-                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                          <span>Upload your streaming history files</span>
-                        </div>
-                        <div className="flex items-start gap-2 mb-2">
-                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                          <span>Files are automatically detected and processed</span>
-                        </div>
-                        <div className="flex items-start gap-2 mb-2">
-                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                          <span>Click "Calculate Statistics" to analyze</span>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <span className="flex-shrink-0 w-5 h-5 bg-purple-700 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
-                          <span>Explore your music listening data</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Right Column */}
-                    <div className="space-y-3">
-                      <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                        <div className="flex-1">
-                          <button
-                            onClick={handleLoadSampleData}
-                            disabled={isProcessing}
-                            className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
-                          >
-                            <Download size={16} />
-                            Try Demo
-                          </button>
-                          <p className={`text-sm mt-2 ${isDarkMode ? 'text-blue-400' : 'text-gray-600'}`}>
-                            Want to test the app? Click to load sample streaming history.
-                          </p>
-                        </div>
-                        
-                        <div className="flex-1">
-                          <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded text-white">
-                            <p className="font-bold text-xs">📱 Download as Web App!</p>
-                            <p className="text-xs mt-0.5">Install to your device for offline access.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Google Drive Storage */}
-              <div className="mb-6">
-                <GoogleDriveSync
-                  stats={stats}
-                  processedData={processedData}
-                  topArtists={topArtists}
-                  topAlbums={topAlbums}
-                  briefObsessions={briefObsessions}
-                  songsByYear={songsByYear}
-                  rawPlayData={rawPlayData}
-                  artistsByYear={artistsByYear}
-                  albumsByYear={albumsByYear}
-                  uploadedFiles={uploadedFiles}
-                  uploadedFileList={uploadedFileList}
-                  onDataLoaded={handleDataLoaded}
-                  isDarkMode={isDarkMode}
-                />
-              </div>
-                
-              <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-orange-900/20 border-orange-600/30' : 'bg-orange-50 border-orange-200'}`}>
-                <p className={`mb-3 font-semibold text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-700'}`}>
-                  Upload your streaming history files:
-                </p>
-                <p className={`mb-3 text-xs sm:text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-600'}`}>
-                  Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), Cake (.xlsx/.json)
-                </p>
-                <input
-                  type="file"
-                  multiple
-                  accept=".json,.csv,.xlsx"
-                  onChange={handleFileUpload}
-                  className={`block w-full text-sm transition-colors
-                    file:mr-4 file:py-2 file:px-4 file:rounded-lg 
-                    file:border-2 file:border-yellow-400 file:text-sm 
-                    file:font-semibold file:bg-yellow-300 
-                    file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
-                    ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
-                />
-              </div>
-                  
-              {isProcessing && (
-                <div className="flex flex-col items-center justify-center p-8 space-y-4">
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src="/loading.png" 
-                      alt="Cake is cakeculating..." 
-                      className="w-48 h-48 object-contain animate-rock bg-transparent loading-cake-image"
-                    />
-                    <p 
-                      className="text-xl text-blue-600 mt-2 animate-rainbow cakeculating-text" 
-                      style={{ 
-                        fontFamily: 'var(--font-comic-neue)',
-                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
-                      }}
-                    >
-                      Cakeculating...
-                    </p>
-                  </div>
-                </div>
-              )}
-                  
-              {uploadedFiles.length > 0 && (
-                <div className={`mt-6 p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                  <h4 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Uploaded Files:</h4>
-                  <ul className="space-y-2">
-                    {uploadedFiles.map((fileName, index) => (
-                      <li key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-                        isDarkMode ? 'bg-gray-700' : 'bg-white'
-                      }`}>
-                        <span className={`text-sm font-medium truncate mr-3 ${
-                          isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                        }`}>
-                          {fileName}
-                        </span>
-                        <button 
-                          onClick={() => handleDeleteFile(index)}
-                          className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0"
-                          title="Remove file"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  {uploadedFileList && uploadedFileList.length === 1 && 
-                   uploadedFileList[0].name.endsWith('.xlsx') && (
-                    <ExcelPreview file={uploadedFileList[0]} />
-                  )}
-                  
-                  <button
-                    onClick={handleProcessFiles}
-                    disabled={isProcessing}
-                    className="mt-4 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg
-                      hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg"
-                  >
-                    {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}
-                  </button>
-                </div>
-              )}
-                  
-              {error && (
-                <div className={`mt-6 p-4 rounded-lg border ${
-                  isDarkMode 
-                    ? 'bg-red-900/20 border-red-600/30 text-red-300' 
-                    : 'bg-red-100 border-red-300 text-red-700'
-                }`}>
-                  <h4 className="font-semibold mb-2">Error:</h4>
-                  <p className="text-sm">{error}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-                  
-          {activeTab === 'stats' && stats && (
-            <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
-              <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <ul className="space-y-1 text-purple-700">
-                      <li>Files processed: {stats.totalFiles}</li>
-                      <li>Total entries: {stats.totalEntries}</li>
-                      <li>Processed songs: {stats.processedSongs}</li>
-                      <li>Unique songs: {stats.uniqueSongs || 0}</li>
-                      <li>Entries with no track name: {stats.nullTrackNames}</li>
-                      <li>Plays under 30s: {stats.shortPlays}</li>
-                    </ul>
-                  </div>
-                  <div className="bg-purple-50 p-3 rounded space-y-2">
-                    <div className="font-semibold mb-1 text-purple-700">Total Listening Time:</div>
-                    <div className="text-2xl text-purple-700">{formatDuration(stats.totalListeningTime)}</div>
-                    <div className="text-sm text-purple-600">(only counting plays over 30 seconds)</div>
-                    
-                    {/* Service breakdown */}
-                    {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
-                      <div className="mt-4 pt-3 border-t border-purple-200">
-                        <div className="font-semibold text-purple-700 mb-2">Listening Time by Service:</div>
-                        <ul className="space-y-1">
-                          {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
-                            <li key={service} className="flex justify-between items-center">
-                              <span className="text-purple-600">{service}:</span>
-                              <span className="font-medium text-purple-700">{formatDuration(time)}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {stats && processedData.length > 0 && (
-                  <div className="mt-4">
-                    <SupportOptions className="h-full" />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'updates' && (
-            <div className="p-2 sm:p-4 bg-cyan-200 rounded border-2 border-cyan-400">
-              <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
-              <UpdatesSection />
-            </div>
-          )}
-                          
-          {activeTab === 'artists' && (
-            <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
-              {/* Title - mobile gets its own row */}
-              <div className="block sm:hidden mb-3">
-                <h3 className="font-bold text-teal-700">
-                  {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
-                    yearRangeMode && yearRange.startYear && yearRange.endYear ? 
-                    `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
-                    `Most Played Artists (${selectedArtistYear})`}
-                </h3>
-              </div>
-              
-              {/* Desktop layout - title and controls on same row */}
-              <div className="hidden sm:flex justify-between items-center mb-4">
-                <h3 className="font-bold text-teal-700">
-                  {selectedArtistYear === 'all' ? 'Most Played Artists (All Time)' : 
-                    yearRangeMode && yearRange.startYear && yearRange.endYear ? 
-                    `Most Played Artists (${yearRange.startYear}-${yearRange.endYear})` : 
-                    `Most Played Artists (${selectedArtistYear})`}
-                </h3>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <label className="text-teal-700">Show Top</label>
-                    <input
-                      type="number" 
-                      min="1" 
-                      max="999" 
-                      value={topArtistsCount} 
-                      onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
-                      className="w-16 border rounded px-2 py-1 text-teal-700"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-teal-700">View Mode</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(artistsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setArtistsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
-                    >
-                      {artistsViewMode === 'grid' ? 'Grid' : 
-                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-teal-700">Sort by</label>
-                    <button
-                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
-                    >
-                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Mobile controls - separate row */}
-              <div className="block sm:hidden mb-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    <label className="text-teal-700 text-sm">Top</label>
-                    <input
-                      type="number" 
-                      min="1" 
-                      max="999" 
-                      value={topArtistsCount} 
-                      onChange={(e) => setTopArtistsCount(parseInt(e.target.value))}
-                      className="w-12 border rounded px-1 py-1 text-teal-700 text-sm"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <label className="text-teal-700 text-sm">View</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(artistsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setArtistsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
-                    >
-                      {artistsViewMode === 'grid' ? 'Grid' : 
-                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <label className="text-teal-700 text-sm">Sort</label>
-                    <button
-                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
-                    >
-                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Artist Selection */}
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedArtists.map(artist => (
-                    <div 
-                      key={artist} 
-                      className="flex items-center bg-teal-600 text-white px-2 py-1 rounded text-sm"
-                    >
-                      {artist}
-                      <button 
-                        onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                        className="ml-2 text-white hover:text-teal-200"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={artistSearch}
-                    onChange={(e) => setArtistSearch(e.target.value)}
-                    placeholder="Search artists..."
-                    className="w-full border border-teal-300 rounded px-2 py-1 text-teal-700 focus:border-teal-400 focus:ring-teal-400 focus:outline-none"
-                  />
-                  {artistSearch && (
-                    <button
-                      onClick={() => setArtistSearch('')}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-teal-500 hover:text-teal-700"
-                    >
-                      ×
-                    </button>
-                  )}
-                  {artistSearch && filteredArtists.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white border border-teal-200 rounded shadow-lg mt-1">
-                      {filteredArtists.map(artist => (
-                        <div
-                          key={artist}
-                          onClick={() => {
-                            setSelectedArtists(prev => [...prev, artist]);
-                            setArtistSearch('');
-                          }}
-                          className="px-2 py-1 hover:bg-teal-100 text-teal-700 cursor-pointer"
-                        >
-                          {artist}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {displayedArtists.length === 0 ? (
-                <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
-                  <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
-                  <p className="text-teal-600 mt-2">
-                    {yearRangeMode 
-                      ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
-                      : selectedArtistYear !== 'all' 
-                        ? `No artists found for the year ${selectedArtistYear}.`
-                        : "No artist data available."}
-                  </p>
-                  <button
-                    onClick={() => {
-                      setYearRangeMode(false);
-                      setSelectedArtistYear('all');
-                      setSelectedArtists([]);
-                    }}
-                    className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
-                  >
-                    Show All Artists
-                  </button>
-                </div>
-              ) : artistsViewMode === 'mobile' ? (
-                <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-2 text-left text-teal-700">Artist Info</th>
-                        <th className="p-2 text-right text-teal-700">Stats</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredDisplayedArtists
-                        .slice(0, topArtistsCount)
-                        .map((artist, index) => {
-                          // Find original index to preserve ranking
-                          const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
-                          const isSelected = selectedArtists.includes(artist.name);
-                          
-                          return (
-                            <tr 
-                              key={artist.name} 
-                              className={`border-b hover:bg-teal-50 cursor-pointer ${
-                                isSelected ? 'bg-teal-100' : ''
-                              }`}
-                              onClick={() => {
-                                // Toggle artist selection
-                                if (selectedArtists.includes(artist.name)) {
-                                  setSelectedArtists(prev => prev.filter(a => a !== artist.name));
-                                } else {
-                                  setSelectedArtists(prev => [...prev, artist.name]);
-                                }
-                              }}
-                            >
-                              <td className="p-2 text-teal-700">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <div className="font-medium"><span className="ranking-number">#{originalIndex + 1}</span> {artist.name}</div>
-                                    <div className="text-sm text-teal-500">
-                                      Most Played: {artist.mostPlayedSong?.trackName || "N/A"}
-                                      {artist.mostPlayedSong?.playCount && (
-                                        <span> ({artist.mostPlayedSong.playCount}x)</span>
-                                      )}
-                                    </div>
-                                    <div className="text-xs text-teal-400">
-                                      First Listen: {new Date(artist.firstListen).toLocaleDateString()}
-                                    </div>
-                                  </div>
-                                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                    isSelected 
-                                      ? 'bg-teal-600 border-teal-600 text-white' 
-                                      : 'border-teal-400 hover:border-teal-600'
-                                  }`}>
-                                    {isSelected && '✓'}
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="p-2 text-right text-teal-700">
-                                <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
-                                <div className="text-sm text-teal-500">{artist.playCount} plays</div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : artistsViewMode === 'compact' ? (
-                <div className="border rounded-lg p-3 sm:p-4 bg-teal-50">
-                  <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
-                    <div className="text-teal-700 font-medium text-sm">
-                      {selectedArtistYear === 'all' ? 'All-time artists' : 
-                        yearRangeMode && yearRange.startYear && yearRange.endYear ? 
-                        `Artists for ${yearRange.startYear}-${yearRange.endYear}` : 
-                        `Artists for ${selectedArtistYear}`}
-                    </div>
-                    <div className="text-teal-700 text-sm">
-                      Found <span className="font-bold">{filteredDisplayedArtists.length}</span> artists
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-                    <div className="min-w-full">
-                      <table className="w-full border-collapse text-sm sm:text-base">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="p-1 sm:p-2 text-left text-teal-700 text-xs sm:text-sm">Rank</th>
-                            <th className="p-1 sm:p-2 text-left text-teal-700 text-xs sm:text-sm">Artist</th>
-                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm">Time</th>
-                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm">Plays</th>
-                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm hidden sm:table-cell">Most Played Song</th>
-                            <th className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm hidden sm:table-cell">First Listen</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredDisplayedArtists.length > 0 ? (
-                            filteredDisplayedArtists
-                              .slice(0, topArtistsCount)
-                              .map((artist, index) => {
-                                const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
-                                const isSelected = selectedArtists.includes(artist.name);
-                                
-                                return (
-                                  <tr 
-                                    key={artist.name} 
-                                    className={`border-b hover:bg-teal-100 cursor-pointer ${
-                                      isSelected ? 'bg-teal-100' : ''
-                                    }`}
-                                    onClick={() => {
-                                      if (selectedArtists.includes(artist.name)) {
-                                        setSelectedArtists(prev => prev.filter(a => a !== artist.name));
-                                      } else {
-                                        setSelectedArtists(prev => [...prev, artist.name]);
-                                      }
-                                    }}
-                                  >
-                                    <td className="p-1 sm:p-2 text-teal-700 font-medium"><span className="ranking-number">{originalIndex + 1}</span></td>
-                                    <td className="p-1 sm:p-2 text-teal-700">
-                                      <div className="flex items-center justify-between">
-                                        <span className="font-medium text-xs sm:text-sm truncate">{artist.name}</span>
-                                        <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex items-center justify-center ml-1 sm:ml-2 hidden sm:flex ${
-                                          isSelected 
-                                            ? 'bg-teal-600 border-teal-600 text-white text-xs' 
-                                            : 'border-teal-400 hover:border-teal-600'
-                                        }`}>
-                                          {isSelected && '✓'}
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="p-1 sm:p-2 text-right text-teal-700 font-medium text-xs sm:text-sm">
-                                      {formatDuration(artist.totalPlayed)}
-                                    </td>
-                                    <td className="p-1 sm:p-2 text-right text-teal-700 text-xs sm:text-sm">
-                                      {artist.playCount}
-                                    </td>
-                                    <td className="p-1 sm:p-2 text-right text-teal-700 hidden sm:table-cell">
-                                      <div className="text-sm">
-                                        <div className="truncate max-w-[120px]">
-                                          {artist.mostPlayedSong?.trackName || "N/A"}
-                                        </div>
-                                        {artist.mostPlayedSong?.playCount && (
-                                          <div className="text-xs text-teal-500">
-                                            ({artist.mostPlayedSong.playCount}x)
-                                          </div>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="p-1 sm:p-2 text-right text-teal-700 text-sm hidden sm:table-cell">
-                                      {new Date(artist.firstListen).toLocaleDateString()}
-                                    </td>
-                                  </tr>
-                                );
-                              })
-                          ) : (
-                            <tr>
-                              <td colSpan="6" className="p-4 text-center text-teal-500">
-                                {yearRangeMode && yearRange.startYear && yearRange.endYear
-                                  ? `No artists found for ${yearRange.startYear}-${yearRange.endYear}`
-                                  : selectedArtistYear !== 'all' 
-                                    ? `No artists found for ${selectedArtistYear}`
-                                    : "No artist data available"}
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 transition-all duration-300">
-                  {filteredDisplayedArtists
-                    .slice(0, topArtistsCount)
-                    .map((artist, index) => {
-                      // Find original index to preserve ranking
-                      const originalIndex = displayedArtists.findIndex(a => a.name === artist.name);
-                      
-                      return (
-                        <div key={artist.name} 
-                          className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm border border-teal-200 dark:border-teal-700 hover:border-teal-400 dark:hover:border-teal-500 transition-all duration-300 cursor-pointer relative"
-                          onClick={() => {
-                            // Toggle artist selection
-                            if (selectedArtists.includes(artist.name)) {
-                              setSelectedArtists(prev => prev.filter(a => a !== artist.name));
-                            } else {
-                              setSelectedArtists(prev => [...prev, artist.name]);
-                            }
-                          }}
-                        >
-                          <div className="font-bold text-teal-600">{artist.name}</div>
-                    <div className="text-sm text-teal-400">
-  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-  <br/>
-  Plays: <span className="font-bold"> {artist.playCount}</span>
-  <br/>
-  Most Played Song: <span className="font-bold">{artist.mostPlayedSong?.trackName || "N/A"}</span> 
-  <br/>
-  Plays: <span className="font-bold">{artist.mostPlayedSong?.playCount || 0}</span>
-  <br/>
-  First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span>
-  <br/>
-  First Song: <span className="font-bold">
-    {artist.firstSong || "Unknown"} 
-    {artist.firstSongPlayCount 
-      ? ` (${artist.firstSongPlayCount}x)` 
-      : ""}
-  </span>
-  {artist.longestStreak > 1 && (
-    <>
-      <br/>
-      Longest Streak: <span className="font-bold">{artist.longestStreak} days</span>
-      <br/>
-      <span className="text-xs">
-        ({new Date(artist.streakStart).toLocaleDateString()} - {new Date(artist.streakEnd).toLocaleDateString()})
-      </span>
-    </>
-  )}
-  {artist.currentStreak > 1 && (
-    <>
-      <br/>
-      Current Streak: <span className="font-bold text-teal-800">{artist.currentStreak} days</span>
-    </>
-  )}
-</div>
-
-                          <div className="absolute top-1 right-3 text-teal-600 ranking-number-large">{originalIndex + 1}</div>
-                          {selectedArtists.includes(artist.name) && (
-                            <div className="absolute top-2 right-2 w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
-                              ✓
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-          )}
-          
-          {activeTab === 'albums' && (
-            <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300 transition-all duration-300">
-              {/* Title - mobile gets its own row */}
-              <div className="block sm:hidden mb-3">
-                <h3 className="font-bold text-pink-700">
-                  {selectedAlbumYear === 'all' ? 'Most Played Albums (All Time)' : 
-                    albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
-                    `Most Played Albums (${albumYearRange.startYear}-${albumYearRange.endYear})` : 
-                    `Most Played Albums (${selectedAlbumYear})`}
-                </h3>
-              </div>
-              
-              {/* Desktop layout - title and controls on same row */}
-              <div className="hidden sm:flex justify-between items-center mb-4">
-                <h3 className="font-bold text-pink-700">
-                  {selectedAlbumYear === 'all' ? 'Most Played Albums (All Time)' : 
-                    albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
-                    `Most Played Albums (${albumYearRange.startYear}-${albumYearRange.endYear})` : 
-                    `Most Played Albums (${selectedAlbumYear})`}
-                </h3>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <label className="text-pink-700">Show Top</label>
-                    <input
-                      type="number" 
-                      min="1" 
-                      max="999" 
-                      value={topAlbumsCount} 
-                      onChange={(e) => setTopAlbumsCount(parseInt(e.target.value))}
-                      className="w-16 border rounded px-2 py-1 text-pink-700"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-pink-700">View Mode</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(albumsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setAlbumsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
-                    >
-                      {albumsViewMode === 'grid' ? 'Grid' : 
-                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-pink-700">Sort by</label>
-                    <button
-                      onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
-                    >
-                      {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Mobile controls - separate row */}
-              <div className="block sm:hidden mb-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    <label className="text-pink-700 text-sm">Top</label>
-                    <input
-                      type="number" 
-                      min="1" 
-                      max="999" 
-                      value={topAlbumsCount} 
-                      onChange={(e) => setTopAlbumsCount(parseInt(e.target.value))}
-                      className="w-12 border rounded px-1 py-1 text-pink-700 text-sm"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <label className="text-pink-700 text-sm">View</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(albumsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setAlbumsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
-                    >
-                      {albumsViewMode === 'grid' ? 'Grid' : 
-                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <label className="text-pink-700 text-sm">Sort</label>
-                    <button
-                      onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-2 py-1 rounded text-xs font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
-                    >
-                      {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-             
-              {/* Artist Selection */}
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedArtists.map(artist => (
-                    <div 
-                      key={artist} 
-                      className="flex items-center bg-pink-600 text-white px-2 py-1 rounded text-sm"
-                    >
-                      {artist}
-                      <button 
-                        onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                        className="ml-2 text-white hover:text-pink-200"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={artistSearch}
-                    onChange={(e) => setArtistSearch(e.target.value)}
-                    placeholder="Search artists..."
-                    className="w-full border border-pink-300 rounded px-2 py-1 text-pink-700 focus:border-pink-400 focus:ring-pink-400 focus:outline-none"
-                  />
-                  {artistSearch && filteredArtists.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white border border-pink-200 rounded shadow-lg mt-1">
-                      {filteredArtists.map(artist => (
-                        <div
-                          key={artist}
-                          onClick={() => {
-                            setSelectedArtists(prev => [...prev, artist]);
-                            setArtistSearch('');
-                          }}
-                          className="px-2 py-1 hover:bg-pink-100 text-pink-700 cursor-pointer"
-                        >
-                          {artist}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Albums Display */}
-              {displayedAlbums.length === 0 ? (
-                <div className="p-6 text-center bg-pink-50 rounded border-2 border-pink-300">
-                  <h4 className="text-lg font-bold text-pink-700">No albums found</h4>
-                  <p className="text-pink-600 mt-2">
-                    {albumYearRangeMode 
-                      ? `No albums found for the year range ${albumYearRange.startYear} - ${albumYearRange.endYear}.` 
-                      : selectedAlbumYear !== 'all' 
-                        ? `No albums found for the year ${selectedAlbumYear}.`
-                        : "No album data available."}
-                  </p>
-                  <button
-                    onClick={() => {
-                      setAlbumYearRangeMode(false);
-                      setSelectedAlbumYear('all');
-                      setSelectedArtists([]);
-                    }}
-                    className="mt-4 px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700"
-                  >
-                    Show All Albums
-                  </button>
-                </div>
-              ) : albumsViewMode === 'mobile' ? (
-                <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 transition-all duration-300">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-2 text-left text-pink-700">Album Info</th>
-                        <th className="p-2 text-right text-pink-700">Stats</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-                        <tr 
-                          key={`${album.name}-${album.artist}`}
-                          className="border-b hover:bg-pink-50"
-                        >
-                          <td className="p-2 text-pink-700">
-                            <div className="font-medium">#{index + 1} {album.name}</div>
-                            <div className="text-sm text-pink-500">by {album.artist}</div>
-                            <div className="text-xs text-pink-400">
-                              {album.trackCountValue || album.trackObjects?.length || 0} tracks
-                            </div>
-                          </td>
-                          <td className="p-2 text-right text-pink-700">
-                            <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
-                            <div className="text-sm text-pink-500">{album.playCount || 0} plays</div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : albumsViewMode === 'compact' ? (
-                <div className="border rounded-lg p-3 sm:p-4 bg-pink-50 transition-all duration-300">
-                  <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
-                    <div className="text-pink-700 font-medium text-sm">
-                      {selectedAlbumYear === 'all' ? 'All-time albums' : 
-                        albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear ? 
-                        `Albums for ${albumYearRange.startYear}-${albumYearRange.endYear}` : 
-                        `Albums for ${selectedAlbumYear}`}
-                    </div>
-                    <div className="text-pink-700 text-sm">
-                      Found <span className="font-bold">{displayedAlbums.length}</span> albums
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-                    <div className="min-w-full">
-                      <table className="w-full border-collapse text-sm sm:text-base">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="p-1 sm:p-2 text-left text-pink-700 text-xs sm:text-sm">Rank</th>
-                            <th className="p-1 sm:p-2 text-left text-pink-700 text-xs sm:text-sm">Album</th>
-                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm">Time</th>
-                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm">Plays</th>
-                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">Artist</th>
-                            <th className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">Tracks</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {displayedAlbums.length > 0 ? (
-                            displayedAlbums
-                              .slice(0, topAlbumsCount)
-                              .map((album, index) => (
-                                <tr 
-                                  key={`${album.name}-${album.artist}`} 
-                                  className="border-b hover:bg-pink-100"
-                                >
-                                  <td className="p-1 sm:p-2 text-pink-700 font-medium text-xs sm:text-sm">{index + 1}</td>
-                                  <td className="p-1 sm:p-2 text-pink-700">
-                                    <span className="font-medium text-xs sm:text-sm">
-                                      <span className="sm:hidden">
-                                        {album.name.length > 20 ? (
-                                          <span 
-                                            className="cursor-pointer underline decoration-dotted"
-                                            onClick={(e) => {
-                                              e.target.textContent = album.name;
-                                              e.target.className = e.target.className.replace('underline decoration-dotted cursor-pointer', '');
-                                            }}
-                                          >
-                                            {`${album.name.substring(0, 20)}...`}
-                                          </span>
-                                        ) : album.name}
-                                      </span>
-                                      <span className="hidden sm:inline">
-                                        {album.name}
-                                      </span>
-                                    </span>
-                                  </td>
-                                  <td className="p-1 sm:p-2 text-right text-pink-700 font-medium text-xs sm:text-sm">
-                                    {formatDuration(album.totalPlayed)}
-                                  </td>
-                                  <td className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm">
-                                    {album.playCount || 0}
-                                  </td>
-                                  <td className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">
-                                    {album.artist}
-                                  </td>
-                                  <td className="p-1 sm:p-2 text-right text-pink-700 text-xs sm:text-sm hidden sm:table-cell">
-                                    {album.trackCountValue || album.trackObjects?.length || 0}
-                                  </td>
-                                </tr>
-                              ))
-                          ) : (
-                            <tr>
-                              <td colSpan="6" className="p-4 text-center text-pink-500">
-                                {albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear
-                                  ? `No albums found for ${albumYearRange.startYear}-${albumYearRange.endYear}`
-                                  : selectedAlbumYear !== 'all' 
-                                    ? `No albums found for ${selectedAlbumYear}`
-                                    : "No album data available"}
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-               <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 transition-all duration-300`}>
-                  {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-                    <AlbumCard 
-                      key={`${album.name}-${album.artist}`}
-                      album={album}
-                      index={index}
-                      processedData={processedData}
-                      formatDuration={formatDuration}
-                      selectedYear={selectedAlbumYear}
-                      yearRange={albumYearRange}
-                      isYearRangeMode={albumYearRangeMode}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          
-          {activeTab === 'tracks' && (
-            <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
-              <TrackRankings 
-                processedData={processedData} 
-                briefObsessions={briefObsessions} 
-                formatDuration={formatDuration} 
-                songsByYear={songsByYear}
-                songsByMonth={songsByMonth}
-                initialYear={selectedTrackYear}
-                onYearChange={setSelectedTrackYear}
-                yearRange={yearRange}
-                yearRangeMode={yearRangeMode}
-                onYearRangeChange={handleYearRangeChange}
-                onToggleYearRangeMode={toggleYearRangeMode}
-              />
-            </div>
-          )}
-          
-          {activeTab === 'custom' && (
-            <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
-              <CustomTrackRankings 
-                rawPlayData={rawPlayData}
-                formatDuration={formatDuration}
-                initialArtists={selectedArtists}
-                selectedYear={customTrackYear}
-                yearRange={customYearRange}
-                yearRangeMode={customYearRangeMode}
-                onYearChange={handleCustomTrackYearChange}
-                onYearRangeChange={handleCustomTrackYearRangeChange}
-                onToggleYearRangeMode={handleCustomTrackYearRangeModeToggle}
-              />
-            </div>
-          )}
-
-          {activeTab === 'playlists' && (
-            <div className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold text-red-700">Custom Playlists</h3>
-              </div>
-              
-              <CustomPlaylistCreator
-                processedData={processedData}
-                formatDuration={formatDuration}
-                rawPlayData={rawPlayData}
-              />
-            </div>
-          )}
-
-          {activeTab === 'podcasts' && (
-            <div 
-              id="podcast-rankings"
-              className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300"
-            >
-              <PodcastRankings 
-                rawPlayData={rawPlayData}
-                formatDuration={formatDuration}
-                selectedYear={selectedPodcastYear}
-                yearRange={podcastYearRange}
-                yearRangeMode={podcastYearRangeMode}
-              />
-            </div>
-          )}
-
-          {activeTab === 'patterns' && (
-            <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-purple-700">
-                  {selectedPatternYear === 'all' ? 'Listening Patterns (All Time)' : 
-                    patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear ? 
-                    `Listening Patterns (${patternYearRange.startYear}-${patternYearRange.endYear})` : 
-                    `Listening Patterns (${selectedPatternYear})`}
-                </h3>
-              </div>
-              
-              <ListeningPatterns 
-                rawPlayData={rawPlayData} 
-                formatDuration={formatDuration}
-                selectedYear={selectedPatternYear}
-                yearRange={patternYearRange}
-                yearRangeMode={patternYearRangeMode}
-                colorTheme="purple"
-              />
-            </div>
-          )}
-
-          {activeTab === 'behavior' && (
-            <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold text-indigo-700">
-                  {selectedBehaviorYear === 'all' ? 'Listening Behavior (All Time)' : 
-                    behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear ? 
-                    `Listening Behavior (${behaviorYearRange.startYear}-${behaviorYearRange.endYear})` : 
-                    `Listening Behavior (${selectedBehaviorYear})`}
-                </h3>
-              </div>
-              
-              <ListeningBehavior 
-                rawPlayData={rawPlayData} 
-                formatDuration={formatDuration}
-                selectedYear={selectedBehaviorYear}
-                yearRange={behaviorYearRange}
-                yearRangeMode={behaviorYearRangeMode}
-                colorTheme="indigo"
-              />
-            </div>
-          )}
-
-          {activeTab === 'discovery' && (
-            <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-bold text-green-700">
-                  {selectedDiscoveryYear === 'all' ? 'Music Discovery (All Time)' : 
-                    discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear ? 
-                    `Music Discovery (${discoveryYearRange.startYear}-${discoveryYearRange.endYear})` : 
-                    `Music Discovery (${selectedDiscoveryYear})`}
-                </h3>
-              </div>
-              
-              <DiscoveryAnalysis 
-                rawPlayData={rawPlayData} 
-                formatDuration={formatDuration}
-                selectedYear={selectedDiscoveryYear}
-                yearRange={discoveryYearRange}
-                yearRangeMode={discoveryYearRangeMode}
-                colorTheme="green"
-              />
-            </div>
-          )}
-          
+                  {renderTabContent}
                 </div>
               </div>
             </div>
           </div>
-        </div>
         
         {/* Year Selector - positioned outside the main content flow */}
         {showYearSidebar && shouldShowSidebar(activeTab) && (
@@ -2849,3 +2106,4 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 };
 
 export default SpotifyAnalyzer;
+
