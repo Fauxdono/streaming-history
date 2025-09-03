@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
+import { ArrowLeftRight, FileText, Files } from 'lucide-react';
 
 const FixedSettingsBar = ({ 
   togglePosition, 
@@ -45,7 +46,7 @@ const FixedSettingsBar = ({
                   className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title="Font Size Settings"
                 >
-                  <span className="text-xs" style={{fontSize: '14px', fontFamily: 'ui-sans-serif, system-ui'}}>aA</span>
+                  <span style={{fontSize: '14px', fontFamily: 'ui-sans-serif, system-ui', fontWeight: 'bold'}}>aA</span>
                 </button>
               </div>
 
@@ -56,14 +57,14 @@ const FixedSettingsBar = ({
                   className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
                 >
-                  <span style={{fontSize: '14px', lineHeight: '1'}}>{isCollapsed ? '📄' : '📋'}</span>
+                  {isCollapsed ? <FileText size={16} /> : <Files size={16} />}
                 </button>
                 <button 
                   onClick={togglePosition}
                   className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px]"
                   title="Change tab position"
                 >
-                  <span style={{fontSize: '14px', lineHeight: '1'}}>⇄</span>
+                  <ArrowLeftRight size={16} />
                 </button>
               </div>
             </>
