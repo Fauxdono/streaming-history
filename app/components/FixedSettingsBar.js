@@ -33,7 +33,7 @@ const FixedSettingsBar = ({
           })
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-center items-end px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto', paddingBottom: isMobile ? '9px' : undefined}}>
+        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto'}}>
           {isMobile ? (
             <>
                 <DarkModeToggle className="!p-1.5 !rounded-full !w-[33px] !h-[33px]" />
