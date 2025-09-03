@@ -1586,12 +1586,21 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
     setTopTabsPosition(prev => {
-      if (prev === 'top') return 'right';
-      if (prev === 'right') return 'bottom';
-      if (prev === 'bottom') return 'left';
-      return 'top';
+      // Mobile cycle: bottom → right → top → left → bottom (treats bottom as primary)
+      // Desktop cycle: top → right → bottom → left → top (treats top as primary)
+      if (isMobile) {
+        if (prev === 'bottom') return 'right';
+        if (prev === 'right') return 'top';
+        if (prev === 'top') return 'left';
+        return 'bottom';
+      } else {
+        if (prev === 'top') return 'right';
+        if (prev === 'right') return 'bottom';
+        if (prev === 'bottom') return 'left';
+        return 'top';
+      }
     });
-  }, []);
+  }, [isMobile]);
 
   // Toggle collapsed function for settings bar
   const toggleCollapsed = useCallback(() => {
