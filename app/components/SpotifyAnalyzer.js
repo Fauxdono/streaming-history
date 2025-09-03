@@ -1822,91 +1822,44 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
             <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-200">
-                  <h4 className="font-semibold text-purple-700 mb-2">File Processing</h4>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-purple-600">Total Files:</span>
-                      <span className="font-medium">{stats.totalFiles || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-600">Total Entries:</span>
-                      <span className="font-medium">{(stats.totalEntries || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-600">Processed Songs:</span>
-                      <span className="font-medium">{(stats.processedSongs || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-600">Unique Songs:</span>
-                      <span className="font-medium">{(stats.uniqueSongs || 0).toLocaleString()}</span>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <ul className="space-y-1 text-purple-700">
+                    <li>Files processed: {stats.totalFiles}</li>
+                    <li>Total entries: {stats.totalEntries}</li>
+                    <li>Processed songs: {stats.processedSongs}</li>
+                    <li>Unique songs: {stats.uniqueSongs || 0}</li>
+                    <li>Entries with no track name: {stats.nullTrackNames}</li>
+                    <li>Plays under 30s: {stats.shortPlays}</li>
+                  </ul>
                 </div>
-                
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-200">
-                  <h4 className="font-semibold text-purple-700 mb-2">Play Statistics</h4>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-purple-600">Short Plays:</span>
-                      <span className="font-medium">{(stats.shortPlays || 0).toLocaleString()}</span>
+                <div className="bg-purple-50 p-3 rounded space-y-2">
+                  <div className="font-semibold mb-1 text-purple-700">Total Listening Time:</div>
+                  <div className="text-2xl text-purple-700">{formatDuration(stats.totalListeningTime)}</div>
+                  <div className="text-sm text-purple-600">(only counting plays over 30 seconds)</div>
+                  
+                  {/* Service breakdown */}
+                  {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-purple-200">
+                      <div className="font-semibold text-purple-700 mb-2">Listening Time by Service:</div>
+                      <ul className="space-y-1">
+                        {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
+                          <li key={service} className="flex justify-between items-center">
+                            <span className="text-purple-600">{service}:</span>
+                            <span className="font-medium text-purple-700">{formatDuration(time)}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-600">Null Tracks:</span>
-                      <span className="font-medium">{(stats.nullTrackNames || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-purple-600">Total Time:</span>
-                      <span className="font-medium">{formatDuration(stats.totalListeningTime || 0)}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
-                  <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-200">
-                    <h4 className="font-semibold text-purple-700 mb-2">By Service</h4>
-                    <div className="space-y-1">
-                      {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
-                        <div key={service} className="flex justify-between">
-                          <span className="text-purple-600 capitalize">{service}:</span>
-                          <span className="font-medium">{formatDuration(time)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-200">
-                <h4 className="font-semibold text-purple-700 mb-2">Data Quality</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {stats.totalEntries && stats.processedSongs ? Math.round((stats.processedSongs / stats.totalEntries) * 100) : 0}%
-                    </div>
-                    <div className="text-purple-500">Valid Tracks</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {topArtists?.length || 0}
-                    </div>
-                    <div className="text-purple-500">Artists</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {topAlbums?.length || 0}
-                    </div>
-                    <div className="text-purple-500">Albums</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
-                      {Object.keys(artistsByYear).length || 0}
-                    </div>
-                    <div className="text-purple-500">Years</div>
-                  </div>
+                  )}
                 </div>
               </div>
+
+              {stats && processedData.length > 0 && (
+                <div className="mt-4">
+                  <SupportOptions className="h-full" />
+                </div>
+              )}
             </div>
           </div>
         ) : null;
