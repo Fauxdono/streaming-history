@@ -1102,14 +1102,14 @@ const CustomTrackRankings = ({
 return (
   <div className="space-y-4">
     {/* Title - mobile gets its own row */}
-    <div className="block sm:hidden mb-3">
+    <div className="block sm:hidden mb-1">
       <h3 className="font-bold text-orange-700">
         {getPageTitle()}
       </h3>
     </div>
     
     {/* Desktop layout - title and controls on same row */}
-    <div className="hidden sm:flex justify-between items-center mb-4">
+    <div className="hidden sm:flex justify-between items-center mb-2">
       <h3 className="font-bold text-orange-700">
         {getPageTitle()}
       </h3>
