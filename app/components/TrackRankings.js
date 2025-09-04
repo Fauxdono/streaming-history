@@ -296,7 +296,7 @@ const filteredObsessions = useMemo(() => {
 return (
   <div className="w-full">
 
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex justify-between items-center mb-2">
       <h3 className="font-bold text-blue-700">
         {yearRangeMode && yearRange.startYear && yearRange.endYear
           ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
