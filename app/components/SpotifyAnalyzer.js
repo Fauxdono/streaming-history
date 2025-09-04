@@ -2115,16 +2115,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       case 'albums':
         return (
           <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300 transition-all duration-300">
-            <div className="space-y-4">
-              {/* Title - mobile gets its own row */}
-              <div className="block sm:hidden mb-1">
-                <h3 className="font-bold text-pink-700">
-                  {getAlbumsTabLabel()}
-                </h3>
-              </div>
-              
-              {/* Desktop layout - title and controls on same row */}
-              <div className="hidden sm:flex justify-between items-center mb-2">
+            {/* Title - mobile gets its own row */}
+            <div className="block sm:hidden mb-1">
+              <h3 className="font-bold text-pink-700">
+                {getAlbumsTabLabel()}
+              </h3>
+            </div>
+            
+            {/* Desktop layout - title and controls on same row */}
+            <div className="hidden sm:flex justify-between items-center mb-2">
                 <h3 className="font-bold text-pink-700">
                   {getAlbumsTabLabel()}
                 </h3>
@@ -2209,6 +2208,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </div>
               </div>
               
+            <div className="space-y-4">
               {/* Artist Filter */}
               {selectedArtists.length > 0 && (
                 <div className="bg-white p-3 rounded-lg border border-pink-200">
