@@ -381,7 +381,6 @@ const TopTabs = ({
           // Pre-calculate positions to avoid layout shifts
           ...(currentPosition === 'top' && { 
             top: isMobile ? '0px' : settingsBarHeight, 
-            marginTop: isMobile ? '0px' : '-1px',
             transform: isMobile ? 'translateZ(0)' : undefined // Hardware acceleration on mobile
           }),
           ...(currentPosition === 'bottom' && isMobile && {
