@@ -2068,7 +2068,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                               <div>Top Song: <span className="font-medium">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)</div>
                             )}
                             {artist.firstSong && (
-                              <div>First Song: <span className="font-medium">{artist.firstSong.trackName}</span></div>
+                              <div>First Song: <span className="font-medium">{artist.firstSong.trackName}</span> ({artist.firstSong.playCount} plays)</div>
                             )}
                             {artist.firstListen && (
                               <div>First Listen: <span className="font-medium">{new Date(artist.firstListen).toLocaleDateString()}</span></div>
