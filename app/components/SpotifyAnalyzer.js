@@ -1961,36 +1961,59 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </div>
               </div>
               
-              {/* Artist Filter */}
-              {selectedArtists.length > 0 && (
-                <div className="bg-white p-3 rounded-lg border border-teal-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-teal-700 font-medium">Filtered Artists ({selectedArtists.length}):</span>
-                    <button
-                      onClick={() => setSelectedArtists([])}
-                      className="text-teal-600 hover:text-teal-800 text-sm"
+              {/* Artist Selection */}
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedArtists.map(artist => (
+                    <div 
+                      key={artist} 
+                      className="flex items-center bg-teal-600 text-white px-2 py-1 rounded text-sm"
                     >
-                      Clear All
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedArtists.map(artist => (
-                      <span
-                        key={artist}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-teal-100 text-teal-700 rounded-full text-xs"
+                      {artist}
+                      <button 
+                        onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
+                        className="ml-2 text-white hover:text-teal-200"
                       >
-                        {artist}
-                        <button
-                          onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                          className="ml-1 text-teal-500 hover:text-teal-700"
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    ))}
-                  </div>
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              )}
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={artistSearch}
+                    onChange={(e) => setArtistSearch(e.target.value)}
+                    placeholder="Search artists..."
+                    className="w-full border border-teal-300 rounded px-2 py-1 text-teal-700 focus:border-teal-400 focus:ring-teal-400 focus:outline-none"
+                  />
+                  {artistSearch && (
+                    <button
+                      onClick={() => setArtistSearch('')}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-teal-500 hover:text-teal-700"
+                    >
+                      ×
+                    </button>
+                  )}
+                  {artistSearch && filteredArtists.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white border border-teal-200 rounded shadow-lg mt-1">
+                      {filteredArtists.map(artist => (
+                        <div
+                          key={artist}
+                          onClick={() => {
+                            setSelectedArtists(prev => [...prev, artist]);
+                            setArtistSearch('');
+                          }}
+                          className="px-2 py-1 hover:bg-teal-100 text-teal-700 cursor-pointer"
+                        >
+                          {artist}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
               
               {/* Artists Display */}
               {displayedArtists && displayedArtists.length > 0 ? (
@@ -2050,11 +2073,25 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-teal-600">
-                  {selectedArtistYear === 'all' ? 
-                    'No artist data available' : 
-                    `No artist data for ${selectedArtistYear}`
-                  }
+                <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
+                  <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
+                  <p className="text-teal-600 mt-2">
+                    {yearRangeMode 
+                      ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
+                      : selectedArtistYear !== 'all' 
+                        ? `No artists found for the year ${selectedArtistYear}.`
+                        : "No artist data available."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setYearRangeMode(false);
+                      setSelectedArtistYear('all');
+                      setSelectedArtists([]);
+                    }}
+                    className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                  >
+                    Show All Artists
+                  </button>
                 </div>
               )}
             </div>
@@ -2411,7 +2448,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     albumsViewMode,
     albumsSortBy,
     getAlbumsTabLabel,
-    selectedAlbumYear
+    selectedAlbumYear,
+    // Artist search functionality
+    filteredArtists,
+    artistSearch,
+    yearRangeMode,
+    yearRange,
+    setSelectedArtists,
+    setArtistSearch,
+    setYearRangeMode,
+    setSelectedArtistYear
   ]);
 
   return (
