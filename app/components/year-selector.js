@@ -206,7 +206,7 @@ const YearSelector = ({
   // Communicate height changes to parent (for top/bottom positions)
   useEffect(() => {
     if (onHeightChange) {
-      if (position === 'top' || position === 'bottom') {
+      if (currentPosition === 'top' || currentPosition === 'bottom') {
         // Measure actual height dynamically
         const measureHeight = () => {
           const yearSelectorElement = document.querySelector('.year-selector-container');
@@ -226,7 +226,7 @@ const YearSelector = ({
         onHeightChange(0);
       }
     }
-  }, [position, onHeightChange, expanded, mode, customYearRangeMode]);
+  }, [currentPosition, onHeightChange, expanded, mode, customYearRangeMode]);
   
   // Update yearRange when initialYearRange changes - improved
   useEffect(() => {
