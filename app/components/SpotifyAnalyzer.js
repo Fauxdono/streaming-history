@@ -2040,27 +2040,37 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           artistsViewMode === 'compact' ? 'flex justify-between items-center' :
                           'flex justify-between items-center text-sm'}
                       `}>
-                        <div className={artistsViewMode === 'grid' ? '' : 'flex-1'}>
+                        <div className={artistsViewMode === 'grid' ? 'flex justify-between items-start' : 'flex-1'}>
                           <div className={`font-bold text-teal-600 ${
                             artistsViewMode === 'grid' ? 'text-lg' : 
                             artistsViewMode === 'compact' ? 'text-base' : 'text-sm'
                           }`}>
-                            #{index + 1} {artist.name}
+                            {artistsViewMode === 'grid' ? artist.name : `${artist.name}`}
                           </div>
                           
                           {artistsViewMode === 'grid' && (
-                            <div className="space-y-1 text-sm text-teal-500">
-                              <div>Total Time: <span className="font-medium">{formatDuration(artist.totalPlayed)}</span></div>
-                              <div>Plays: <span className="font-medium">{artist.playCount?.toLocaleString() || 0}</span></div>
-                              {artist.mostPlayedSong && (
-                                <div>Top Song: <span className="font-medium">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)</div>
-                              )}
-                              {artist.firstListen && (
-                                <div>First Listen: <span className="font-medium">{new Date(artist.firstListen).toLocaleDateString()}</span></div>
-                              )}
+                            <div className="text-sm font-bold text-teal-500 bg-teal-100 rounded-full w-6 h-6 flex items-center justify-center">
+                              {index + 1}
                             </div>
                           )}
+                          
+                          {artistsViewMode !== 'grid' && (
+                            <span className="text-teal-500 font-medium">#{index + 1}</span>
+                          )}
                         </div>
+                        
+                        {artistsViewMode === 'grid' && (
+                          <div className="space-y-1 text-sm text-teal-500">
+                            <div>Total Time: <span className="font-medium">{formatDuration(artist.totalPlayed)}</span></div>
+                            <div>Plays: <span className="font-medium">{artist.playCount?.toLocaleString() || 0}</span></div>
+                            {artist.mostPlayedSong && (
+                              <div>Top Song: <span className="font-medium">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)</div>
+                            )}
+                            {artist.firstListen && (
+                              <div>First Listen: <span className="font-medium">{new Date(artist.firstListen).toLocaleDateString()}</span></div>
+                            )}
+                          </div>
+                        )}
                         
                         {artistsViewMode !== 'grid' && (
                           <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-teal-500`}>
