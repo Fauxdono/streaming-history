@@ -2547,7 +2547,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             topTabsPosition={topTabsPosition}
             topTabsHeight={topTabsHeight}
             topTabsWidth={topTabsWidth}
-            onHeightChange={setYearSelectorHeight}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :
