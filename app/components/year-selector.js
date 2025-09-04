@@ -1314,7 +1314,7 @@ const YearSelector = ({
       
       <div className={`${
         currentPosition === 'bottom' || currentPosition === 'top'
-          ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-4 pb-4 pt-2' : 'p-4'}` 
+          ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-4 pb-4' : 'p-4'}` 
           : 'h-full flex flex-col justify-between pt-4 pb-8'
       }`}>
         
