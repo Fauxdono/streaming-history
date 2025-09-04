@@ -156,11 +156,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       const isMobileNow = window.innerWidth < 640;
       setIsMobile(isMobileNow);
       
-      // Allow user to manually control position on mobile
-      // Only auto-adjust when switching from mobile to desktop
-      if (!isMobileNow && topTabsPosition === 'bottom' && window.innerWidth >= 640) {
-        setTopTabsPosition('top');
-      }
+      // Allow user to manually control position on both mobile and desktop
+      // Remove auto-positioning to prevent oscillation between bottom and top on desktop
     };
     
     checkMobile();
