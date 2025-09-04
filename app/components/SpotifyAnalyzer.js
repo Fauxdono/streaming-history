@@ -2049,7 +2049,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           </div>
                           
                           {artistsViewMode === 'grid' && (
-                            <div className="text-sm font-bold text-teal-500 bg-teal-100 rounded-full w-6 h-6 flex items-center justify-center">
+                            <div className="text-lg font-bold text-teal-500">
                               {index + 1}
                             </div>
                           )}
