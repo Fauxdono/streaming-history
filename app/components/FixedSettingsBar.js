@@ -76,20 +76,20 @@ const FixedSettingsBar = ({
               {/* Position toggle button */}
               <button 
                 onClick={togglePosition}
-                className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8"
+                className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
                 title="Change tab position"
               >
-                <span className="text-xs">⇄</span>
+                <ArrowLeftRight size={14} />
               </button>
 
               {/* Settings button */}
               <button 
                 ref={settingsButtonRef}
                 onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8"
+                className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
                 title="Font Size Settings"
               >
-                <span className="text-xs">aA</span>
+                <Type size={14} />
               </button>
 
               {/* Collapse toggle button - only show on mobile */}
