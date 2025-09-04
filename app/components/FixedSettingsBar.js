@@ -34,7 +34,7 @@ const FixedSettingsBar = ({
           })
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center py-2'}`} style={{height: isMobile ? '85px' : 'auto'}}>
+        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center pt-2'}`} style={{height: isMobile ? '85px' : 'auto'}}>
           {isMobile ? (
             <>
               {/* Left side buttons */}
