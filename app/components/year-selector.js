@@ -226,7 +226,7 @@ const YearSelector = ({
         onHeightChange(0);
       }
     }
-  }, [currentPosition, onHeightChange, expanded, mode, customYearRangeMode]);
+  }, [currentPosition, onHeightChange, expanded, mode]);
   
   // Update yearRange when initialYearRange changes - improved
   useEffect(() => {
