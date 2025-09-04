@@ -1183,7 +1183,7 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               left: '0px',
-              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight}px` : `${settingsBarHeight + safeTopTabsHeight}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
+              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight - 1}px` : `${settingsBarHeight + safeTopTabsHeight - 1}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
               bottom: topTabsPosition === 'bottom' ? (isMobile ? `${settingsBarHeight + safeTopTabsHeight}px` : `${safeTopTabsHeight}px`) : (isMobile ? `${settingsBarHeight}px` : '0px')
             }
           };
@@ -1192,7 +1192,7 @@ const YearSelector = ({
             className: 'fixed z-[90]',
             style: { 
               right: '0px',
-              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight}px` : `${settingsBarHeight + safeTopTabsHeight}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
+              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight - 1}px` : `${settingsBarHeight + safeTopTabsHeight - 1}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
               bottom: topTabsPosition === 'bottom' ? (isMobile ? `${settingsBarHeight + safeTopTabsHeight}px` : `${safeTopTabsHeight}px`) : (isMobile ? `${settingsBarHeight}px` : '0px')
             }
           };
