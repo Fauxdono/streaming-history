@@ -200,7 +200,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     let result;
     if (days > 0) {
       const remainingHours = hours % 24;
-      result = `${days}d ${remainingHours}h`;
+      const remainingMinutes = minutes % 60;
+      result = `${days}d ${remainingHours}h (${minutes.toLocaleString()}m)`;
     } else {
       const remainingMinutes = minutes % 60;
       result = hours > 0 ? 
