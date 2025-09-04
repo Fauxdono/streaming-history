@@ -136,7 +136,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topTabsHeight, setTopTabsHeight] = useState(72);
   const [topTabsWidth, setTopTabsWidth] = useState(192);
   const [topTabsCollapsed, setTopTabsCollapsed] = useState(false);
-  const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
   
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
