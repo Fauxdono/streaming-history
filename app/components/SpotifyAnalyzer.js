@@ -136,6 +136,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topTabsHeight, setTopTabsHeight] = useState(72);
   const [topTabsWidth, setTopTabsWidth] = useState(192);
   const [topTabsCollapsed, setTopTabsCollapsed] = useState(false);
+  const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
   
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
@@ -1561,13 +1562,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
     
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
-      // Simple fixed dimensions for instant calculation
-      const effectiveHeight = yearSelectorExpanded ? (customYearRangeMode ? 220 : 180) : 48;
-      
+      // Use measured height instead of static dimensions
       if (yearSelectorPosition === 'top') {
-        topSpace += effectiveHeight;
+        topSpace += yearSelectorHeight;
       } else if (yearSelectorPosition === 'bottom') {
-        bottomSpace += effectiveHeight;
+        bottomSpace += yearSelectorHeight;
       }
     }
     
@@ -1577,7 +1576,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       paddingLeft: `${leftSpace}px`,
       paddingRight: `${rightSpace}px`,
     };
-  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorExpanded, showYearSidebar, customYearRangeMode, isMobile]);
+  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorExpanded, showYearSidebar, customYearRangeMode, isMobile, yearSelectorHeight]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
@@ -2549,6 +2548,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             topTabsPosition={topTabsPosition}
             topTabsHeight={topTabsHeight}
             topTabsWidth={topTabsWidth}
+            onHeightChange={setYearSelectorHeight}
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :

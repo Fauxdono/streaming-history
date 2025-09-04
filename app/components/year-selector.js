@@ -26,7 +26,8 @@ const YearSelector = ({
   activeTab = null, // Add activeTab to determine behavior
   topTabsPosition = 'top', // Add topTabsPosition to avoid collision
   topTabsHeight = 72, // Add topTabsHeight for proper spacing
-  topTabsWidth = 192 // Add topTabsWidth for proper spacing
+  topTabsWidth = 192, // Add topTabsWidth for proper spacing
+  onHeightChange // New callback to communicate height changes to parent
 }) => {
   // Enhanced screen size detection
   const [screenInfo, setScreenInfo] = useState({
@@ -202,6 +203,31 @@ const YearSelector = ({
   useEffect(() => {
     setMode(isRangeMode ? 'range' : 'single');
   }, [isRangeMode]);
+
+  // Communicate height changes to parent (for top/bottom positions)
+  useEffect(() => {
+    if (onHeightChange) {
+      if (position === 'top' || position === 'bottom') {
+        // Measure actual height dynamically
+        const measureHeight = () => {
+          const yearSelectorElement = document.querySelector('.year-selector-container');
+          if (yearSelectorElement) {
+            const actualHeight = yearSelectorElement.offsetHeight;
+            onHeightChange(actualHeight);
+          }
+        };
+        
+        // Measure immediately and after a brief delay to ensure rendering is complete
+        measureHeight();
+        const timer = setTimeout(measureHeight, 100);
+        
+        return () => clearTimeout(timer);
+      } else {
+        // Reset height to 0 when not on top/bottom sides
+        onHeightChange(0);
+      }
+    }
+  }, [position, onHeightChange, expanded, mode, customYearRangeMode]);
   
   // Update yearRange when initialYearRange changes - improved
   useEffect(() => {
@@ -1292,7 +1318,7 @@ const YearSelector = ({
 
   return (
     <div 
-      className={`year-selector-sidebar ${containerClass}`}
+      className={`year-selector-sidebar year-selector-container ${containerClass}`}
       style={containerStyle}
     >
       {/* Collapse button for sidebar */}
