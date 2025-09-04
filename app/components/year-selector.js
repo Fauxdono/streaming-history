@@ -26,8 +26,7 @@ const YearSelector = ({
   activeTab = null, // Add activeTab to determine behavior
   topTabsPosition = 'top', // Add topTabsPosition to avoid collision
   topTabsHeight = 72, // Add topTabsHeight for proper spacing
-  topTabsWidth = 192, // Add topTabsWidth for proper spacing
-  onHeightChange // New callback to communicate height changes to parent
+  topTabsWidth = 192 // Add topTabsWidth for proper spacing
 }) => {
   // Enhanced screen size detection
   const [screenInfo, setScreenInfo] = useState({
