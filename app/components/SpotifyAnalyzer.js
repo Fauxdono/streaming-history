@@ -133,7 +133,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     }
     return 'top'; // SSR fallback
   });
-  const [topTabsHeight, setTopTabsHeight] = useState(72);
+  const [topTabsHeight, setTopTabsHeight] = useState(56);
   const [topTabsWidth, setTopTabsWidth] = useState(192);
   const [topTabsCollapsed, setTopTabsCollapsed] = useState(false);
   

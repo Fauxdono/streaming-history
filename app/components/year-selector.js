@@ -25,7 +25,7 @@ const YearSelector = ({
   asSidebar = false,
   activeTab = null, // Add activeTab to determine behavior
   topTabsPosition = 'top', // Add topTabsPosition to avoid collision
-  topTabsHeight = 72, // Add topTabsHeight for proper spacing
+  topTabsHeight = 56, // Add topTabsHeight for proper spacing
   topTabsWidth = 192 // Add topTabsWidth for proper spacing
 }) => {
   // Enhanced screen size detection
@@ -1114,7 +1114,7 @@ const YearSelector = ({
   const getPositionStyles = useMemo(() => {
     const settingsBarHeight = isMobile ? 85 : 56;
     // Use actual TopTabs dimensions, with fallbacks for mobile
-    const safeTopTabsHeight = topTabsHeight || (isMobile ? 56 : 72);
+    const safeTopTabsHeight = topTabsHeight || (isMobile ? 44 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
     
     if (topTabsPosition === currentPosition) {
