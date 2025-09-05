@@ -283,8 +283,27 @@ const TopTabs = ({
     );
   }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon]);
 
-  // Settings bar height calculation
-  const settingsBarHeight = isMobile ? '85px' : 'calc(2rem + 2 * 0.5rem)'; // Mobile: 85px, Desktop: py-2 calculation
+  // Settings bar height calculation - measure actual height on desktop
+  const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? '85px' : '40px');
+  
+  // Measure actual SettingsBar height on desktop
+  useEffect(() => {
+    if (!isMobile) {
+      const measureSettingsBarHeight = () => {
+        const settingsBarElement = document.querySelector('.fixed.left-0.right-0.w-full.z-\\[100\\]');
+        if (settingsBarElement) {
+          const actualHeight = settingsBarElement.offsetHeight;
+          setSettingsBarHeight(`${actualHeight}px`);
+        }
+      };
+      
+      // Measure after component mounts and after a brief delay
+      measureSettingsBarHeight();
+      const timer = setTimeout(measureSettingsBarHeight, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile]);
 
   // Position styles for different placements - now accounts for fixed settings bar
   const getPositionStyles = () => {

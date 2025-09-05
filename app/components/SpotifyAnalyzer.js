@@ -1526,7 +1526,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    const settingsBarHeight = isMobile ? 85 : 56;
+    const settingsBarHeight = isMobile ? 85 : 40;
     
     let leftSpace = 0;
     let rightSpace = 0;
