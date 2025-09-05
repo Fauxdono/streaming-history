@@ -1650,12 +1650,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             {/* Full-width How to Use section with two columns */}
             <div className="mb-6">
               <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
-                <h3 className={`font-semibold mb-4 text-base ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
+                <h3 className={`font-semibold mb-4 text-sm ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left Column */}
                   <div className="space-y-4">
-                    <div className={`${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
+                    <div className={`text-xs sm:text-sm ${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
                       <div className="flex items-start gap-3 mb-3">
                         <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
                         <span>Download your streaming history from your service</span>
