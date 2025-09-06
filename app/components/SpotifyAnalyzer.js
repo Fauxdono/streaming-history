@@ -2306,8 +2306,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
             <TrackRankings 
               processedData={processedData} 
+              briefObsessions={briefObsessions}
+              songsByYear={songsByYear}
               formatDuration={formatDuration}
-              selectedYear={selectedTrackYear}
+              initialYear={selectedTrackYear}
               colorTheme="red"
             />
           </div>
