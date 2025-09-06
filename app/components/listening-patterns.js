@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
+import TrackRankings from './TrackRankings.js';
 import { useTheme } from './themeprovider.js'; // Import the theme hook
 
 // Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
@@ -11,7 +12,9 @@ const ListeningPatterns = ({
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
-  colorTheme = 'purple'
+  colorTheme = 'purple',
+  briefObsessions = [],
+  songsByYear = {}
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
@@ -110,9 +113,6 @@ const ListeningPatterns = ({
     }
   }, [colorTheme, isDarkMode]);
   
-  // Month names for calendar data
-  const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
   // Removed useEffect that updated exported variables (now handled by SpotifyAnalyzer state)
   
@@ -448,245 +448,7 @@ const ListeningPatterns = ({
     return { months, seasons };
   }, [filteredData, chartColors.seasonColors]);
 
-  // Check if we're viewing a specific month (YYYY-MM format)
-  const isMonthView = selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 2;
-  
-  // Daily data for when a specific month is selected
-  const dailyCalendarData = useMemo(() => {
-    if (!isMonthView) return [];
-    
-    const [year, month] = selectedYear.split('-');
-    const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
-    
-    // Initialize array for each day of the month
-    const daysData = Array.from({ length: daysInMonth }, (_, i) => ({
-      day: i + 1,
-      date: `${year}-${month}-${(i + 1).toString().padStart(2, '0')}`,
-      totalPlays: 0,
-      totalTime: 0,
-      topArtist: { name: '', playCount: 0, totalTime: 0 },
-      topAlbum: { name: '', artist: '', playCount: 0, totalTime: 0 },
-      firstListens: [], // New songs discovered this day
-      uniqueArtists: new Set(),
-      uniqueSongs: new Set()
-    }));
 
-    // Track artists and albums per day
-    const dailyArtists = Array(daysInMonth).fill().map(() => new Map());
-    const dailyAlbums = Array(daysInMonth).fill().map(() => new Map());
-    const songFirstListens = new Map();
-
-    filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
-        const date = new Date(entry.ts);
-        const dayIndex = date.getDate() - 1; // 0-based index
-        
-        if (dayIndex >= 0 && dayIndex < daysInMonth) {
-          const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
-          const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-          const songName = entry.master_metadata_track_name || 'Unknown Song';
-          const songKey = `${songName}-${artistName}`;
-
-          // Update daily totals
-          daysData[dayIndex].totalPlays++;
-          daysData[dayIndex].totalTime += entry.ms_played;
-          daysData[dayIndex].uniqueArtists.add(artistName);
-          daysData[dayIndex].uniqueSongs.add(songKey);
-
-          // Track artists per day
-          if (!dailyArtists[dayIndex].has(artistName)) {
-            dailyArtists[dayIndex].set(artistName, { playCount: 0, totalTime: 0 });
-          }
-          const artistData = dailyArtists[dayIndex].get(artistName);
-          artistData.playCount++;
-          artistData.totalTime += entry.ms_played;
-
-          // Track albums per day
-          const albumKey = `${albumName}-${artistName}`;
-          if (!dailyAlbums[dayIndex].has(albumKey)) {
-            dailyAlbums[dayIndex].set(albumKey, { name: albumName, artist: artistName, playCount: 0, totalTime: 0 });
-          }
-          const albumData = dailyAlbums[dayIndex].get(albumKey);
-          albumData.playCount++;
-          albumData.totalTime += entry.ms_played;
-
-          // Track first listens for this day
-          if (!songFirstListens.has(songKey)) {
-            songFirstListens.set(songKey, {
-              song: songName,
-              artist: artistName,
-              album: albumName,
-              firstHeard: date,
-              day: dayIndex
-            });
-          } else {
-            const existing = songFirstListens.get(songKey);
-            if (date < existing.firstHeard) {
-              existing.firstHeard = date;
-              existing.day = dayIndex;
-            }
-          }
-        }
-      }
-    });
-
-    // Process the data to find top items for each day
-    daysData.forEach((dayData, dayIndex) => {
-      // Find top artist for this day
-      let topArtist = { name: '', playCount: 0, totalTime: 0 };
-      dailyArtists[dayIndex].forEach((data, artistName) => {
-        if (data.playCount > topArtist.playCount) {
-          topArtist = { name: artistName, playCount: data.playCount, totalTime: data.totalTime };
-        }
-      });
-      dayData.topArtist = topArtist;
-
-      // Find top album for this day
-      let topAlbum = { name: '', artist: '', playCount: 0, totalTime: 0 };
-      dailyAlbums[dayIndex].forEach((data, albumKey) => {
-        if (data.playCount > topAlbum.playCount) {
-          topAlbum = data;
-        }
-      });
-      dayData.topAlbum = topAlbum;
-
-      // Get first listens for this day
-      const dayFirstListens = [];
-      songFirstListens.forEach((data, songKey) => {
-        if (data.day === dayIndex) {
-          dayFirstListens.push(data);
-        }
-      });
-      
-      dayFirstListens.sort((a, b) => a.firstHeard - b.firstHeard);
-      dayData.firstListens = dayFirstListens.slice(0, 3);
-
-      // Convert Sets to counts
-      dayData.uniqueArtistCount = dayData.uniqueArtists.size;
-      dayData.uniqueSongCount = dayData.uniqueSongs.size;
-      delete dayData.uniqueArtists;
-      delete dayData.uniqueSongs;
-    });
-
-    return daysData;
-  }, [filteredData, selectedYear, isMonthView]);
-
-  // Calendar view data - monthly insights with top artist, album, and first listens
-  const calendarData = useMemo(() => {
-    if (isMonthView) return []; // Don't compute monthly data if we're in daily view
-    
-    const monthsData = Array.from({ length: 12 }, (_, i) => ({
-      month: i + 1,
-      name: monthNamesShort[i],
-      fullName: ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'][i],
-      totalPlays: 0,
-      totalTime: 0,
-      topArtist: { name: '', playCount: 0, totalTime: 0 },
-      topAlbum: { name: '', artist: '', playCount: 0, totalTime: 0 },
-      firstListens: [], // New songs discovered this month
-      uniqueArtists: new Set(),
-      uniqueSongs: new Set()
-    }));
-
-    // Track artists and albums per month
-    const monthlyArtists = Array(12).fill().map(() => new Map());
-    const monthlyAlbums = Array(12).fill().map(() => new Map());
-    const songFirstListens = new Map(); // Track when each song was first heard
-
-    filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
-        const date = new Date(entry.ts);
-        const month = date.getMonth(); // 0-based
-        const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
-        const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-        const songName = entry.master_metadata_track_name || 'Unknown Song';
-        const songKey = `${songName}-${artistName}`;
-
-        // Update monthly totals
-        monthsData[month].totalPlays++;
-        monthsData[month].totalTime += entry.ms_played;
-        monthsData[month].uniqueArtists.add(artistName);
-        monthsData[month].uniqueSongs.add(songKey);
-
-        // Track artists per month
-        if (!monthlyArtists[month].has(artistName)) {
-          monthlyArtists[month].set(artistName, { playCount: 0, totalTime: 0 });
-        }
-        const artistData = monthlyArtists[month].get(artistName);
-        artistData.playCount++;
-        artistData.totalTime += entry.ms_played;
-
-        // Track albums per month
-        const albumKey = `${albumName}-${artistName}`;
-        if (!monthlyAlbums[month].has(albumKey)) {
-          monthlyAlbums[month].set(albumKey, { name: albumName, artist: artistName, playCount: 0, totalTime: 0 });
-        }
-        const albumData = monthlyAlbums[month].get(albumKey);
-        albumData.playCount++;
-        albumData.totalTime += entry.ms_played;
-
-        // Track first listens
-        if (!songFirstListens.has(songKey)) {
-          songFirstListens.set(songKey, {
-            song: songName,
-            artist: artistName,
-            album: albumName,
-            firstHeard: date,
-            month: month
-          });
-        } else {
-          // Update if this is earlier
-          const existing = songFirstListens.get(songKey);
-          if (date < existing.firstHeard) {
-            existing.firstHeard = date;
-            existing.month = month;
-          }
-        }
-      }
-    });
-
-    // Process the data to find top items and first listens for each month
-    monthsData.forEach((monthData, index) => {
-      // Find top artist for this month
-      let topArtist = { name: '', playCount: 0, totalTime: 0 };
-      monthlyArtists[index].forEach((data, artistName) => {
-        if (data.playCount > topArtist.playCount) {
-          topArtist = { name: artistName, playCount: data.playCount, totalTime: data.totalTime };
-        }
-      });
-      monthData.topArtist = topArtist;
-
-      // Find top album for this month
-      let topAlbum = { name: '', artist: '', playCount: 0, totalTime: 0 };
-      monthlyAlbums[index].forEach((data, albumKey) => {
-        if (data.playCount > topAlbum.playCount) {
-          topAlbum = data;
-        }
-      });
-      monthData.topAlbum = topAlbum;
-
-      // Get first listens for this month (songs first heard in this month)
-      const monthFirstListens = [];
-      songFirstListens.forEach((data, songKey) => {
-        if (data.month === index) {
-          monthFirstListens.push(data);
-        }
-      });
-      
-      // Sort by first heard date and limit to top 5
-      monthFirstListens.sort((a, b) => a.firstHeard - b.firstHeard);
-      monthData.firstListens = monthFirstListens.slice(0, 5);
-
-      // Convert Sets to counts
-      monthData.uniqueArtistCount = monthData.uniqueArtists.size;
-      monthData.uniqueSongCount = monthData.uniqueSongs.size;
-      delete monthData.uniqueArtists;
-      delete monthData.uniqueSongs;
-    });
-
-    return monthsData;
-  }, [filteredData]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -746,8 +508,8 @@ const ListeningPatterns = ({
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
+        <TabButton id="obsessions" label="Brief Obsessions" />
         <TabButton id="streaming" label="Streaming" />
-        <TabButton id="calendar" label="Calendar" />
       </div>
     </div>
 
@@ -1107,141 +869,21 @@ const ListeningPatterns = ({
       </div>
     )}
 
-    {activeTab === 'calendar' && (
+    {activeTab === 'obsessions' && (
       <div className="space-y-6">
-        <div>
-          {/* Dynamic header based on view mode */}
-          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-purple-300' : 'text-purple-700'
-          }`}>
-            {isMonthView ? 
-              `Daily Calendar - ${selectedYear.split('-')[1]}/${selectedYear.split('-')[0]}` : 
-              'Yearly Calendar Overview'}
-          </h3>
-          <p className={`mb-4 ${
-            isDarkMode ? 'text-purple-400' : 'text-purple-600'
-          }`}>
-            {isMonthView ? 
-              'Daily breakdown showing your top artist, album, and new discoveries for each day' :
-              'Monthly insights showing your top artist, album, and new discoveries for each month'}
-          </p>
-          
-          {/* Monthly View */}
-          {!isMonthView && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-              {calendarData.map((monthData, index) => (
-                <div key={index} className={`p-3 rounded shadow-sm border-2 transition-colors relative ${
-                  isDarkMode 
-                    ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                    : 'bg-white border-purple-200 hover:border-purple-400'
-                }`}>
-                  
-                  <div className={`text-sm ${
-                    isDarkMode ? 'text-purple-400' : 'text-purple-500'
-                  }`}>
-                    Total Plays: <span className="font-bold">{monthData.totalPlays}</span>
-                    <br/>
-                    Songs: <span className="font-bold">{monthData.uniqueSongCount}</span>
-                    <br/>
-                    Artists: <span className="font-bold">{monthData.uniqueArtistCount}</span>
-                    <br/>
-                    {monthData.topArtist.name && (
-                      <>
-                        Top Artist: <span className="font-bold">{monthData.topArtist.name}</span>
-                        <br/>
-                        <span className="text-xs">({monthData.topArtist.playCount} plays)</span>
-                        <br/>
-                      </>
-                    )}
-                    {monthData.topAlbum.name && (
-                      <>
-                        Top Album: <span className="font-bold">{monthData.topAlbum.name}</span>
-                        <br/>
-                        <span className="text-xs">by {monthData.topAlbum.artist}</span>
-                        <br/>
-                      </>
-                    )}
-                    {monthData.firstListens.length > 0 && (
-                      <>
-                        New Songs: <span className="font-bold">{monthData.firstListens.length}</span>
-                        <br/>
-                        <span className="text-xs">First: {monthData.firstListens[0].song}</span>
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className={`absolute top-2 right-3 text-sm font-bold ${
-                    isDarkMode ? 'text-purple-500' : 'text-purple-300'
-                  }`}>{monthData.fullName}</div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Daily View */}
-          {isMonthView && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-              {dailyCalendarData.map((dayData, index) => (
-                <div key={index} className={`p-3 rounded shadow-sm border-2 transition-colors relative ${
-                  isDarkMode 
-                    ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                    : 'bg-white border-purple-200 hover:border-purple-400'
-                }`}>
-                  
-                  <div className={`text-sm ${
-                    isDarkMode ? 'text-purple-400' : 'text-purple-500'
-                  }`}>
-                    Total Plays: <span className="font-bold">{dayData.totalPlays}</span>
-                    <br/>
-                    Songs: <span className="font-bold">{dayData.uniqueSongCount}</span>
-                    <br/>
-                    Artists: <span className="font-bold">{dayData.uniqueArtistCount}</span>
-                    <br/>
-                    {dayData.topArtist.name && (
-                      <>
-                        Top Artist: <span className="font-bold">{dayData.topArtist.name}</span>
-                        <br/>
-                        <span className="text-xs">({dayData.topArtist.playCount} plays)</span>
-                        <br/>
-                      </>
-                    )}
-                    {dayData.topAlbum.name && (
-                      <>
-                        Top Album: <span className="font-bold">{dayData.topAlbum.name}</span>
-                        <br/>
-                        <span className="text-xs">by {dayData.topAlbum.artist}</span>
-                        <br/>
-                      </>
-                    )}
-                    {dayData.firstListens.length > 0 && (
-                      <>
-                        New Songs: <span className="font-bold">{dayData.firstListens.length}</span>
-                        <br/>
-                        <span className="text-xs">First: {dayData.firstListens[0].song}</span>
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className={`absolute top-2 right-3 text-lg font-bold ${
-                    isDarkMode ? 'text-purple-500' : 'text-purple-300'
-                  }`}>{selectedYear.split('-')[1].padStart(2, '0') === '01' ? 'Jan' : 
-                      selectedYear.split('-')[1].padStart(2, '0') === '02' ? 'Feb' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '03' ? 'Mar' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '04' ? 'Apr' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '05' ? 'May' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '06' ? 'Jun' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '07' ? 'Jul' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '08' ? 'Aug' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '09' ? 'Sep' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '10' ? 'Oct' :
-                      selectedYear.split('-')[1].padStart(2, '0') === '11' ? 'Nov' : 'Dec'} {dayData.day}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <TrackRankings 
+          processedData={[]} 
+          briefObsessions={briefObsessions}
+          songsByYear={songsByYear}
+          formatDuration={formatDuration}
+          initialYear={selectedYear}
+          yearRange={yearRange}
+          yearRangeMode={yearRangeMode}
+          colorTheme="purple"
+        />
       </div>
     )}
+
 
     {activeTab === 'streaming' && (
       <StreamingByYear 

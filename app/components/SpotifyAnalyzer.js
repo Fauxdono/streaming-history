@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey } from './streaming-adapter.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
+import CalendarView from './CalendarView.js';
 import PodcastRankings from './podcast-rankings.js';
 import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
@@ -83,7 +84,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [rawPlayData, setRawPlayData] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
-  const [selectedTrackYear, setSelectedTrackYear] = useState('all');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadedFileList, setUploadedFileList] = useState(null);
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
@@ -100,6 +100,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
   const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
+  
+  // Add date range states for calendar tab
+  const [selectedCalendarYear, setSelectedCalendarYear] = useState('all');
+  const [calendarYearRange, setCalendarYearRange] = useState({ startYear: '', endYear: '' });
+  const [calendarYearRangeMode, setCalendarYearRangeMode] = useState(false);
   // Add date range states for albums (like CustomTrackRankings)
   const [albumStartDate, setAlbumStartDate] = useState('');
   const [albumEndDate, setAlbumEndDate] = useState('');
@@ -294,6 +299,27 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     
     // Update the year range state
     setAlbumYearRange({ startYear, endYear });
+  }, []);
+
+  // Calendar year handlers
+  const handleCalendarYearChange = useCallback((year) => {
+    const yearValue = year === 'all' ? 'all' : year;
+    setSelectedCalendarYear(yearValue);
+  }, []);
+
+  const handleCalendarYearRangeChange = useCallback(({ startYear, endYear }) => {
+    if (!startYear || !endYear) {
+      return;
+    }
+    setCalendarYearRangeMode(true);
+    setCalendarYearRange({ startYear, endYear });
+  }, []);
+
+  const toggleCalendarYearRangeMode = useCallback((isRange) => {
+    setCalendarYearRangeMode(isRange);
+    if (!isRange) {
+      setCalendarYearRange({ startYear: '', endYear: '' });
+    }
   }, []);
 
   // Toggle album year range mode with useCallback
@@ -1121,12 +1147,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   }, []);
 
   // Tab label functions with useCallback to prevent recreation
-  const getTracksTabLabel = useCallback(() => { 
-    if (selectedTrackYear === 'all') { 
-      return 'All-time Brief Obsessions'; 
-    } 
-    return `Brief Obsessions - ${selectedTrackYear}`; 
-  }, [selectedTrackYear]);
 
   const getArtistsTabLabel = useCallback(() => {
     if (selectedArtistYear === 'all') {
@@ -1263,7 +1283,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
 
   // Determine if sidebar should be shown based on current tab
   const shouldShowSidebar = useCallback((tabName) => {
-    const sidebarTabs = ['artists', 'albums', 'tracks', 'patterns', 'behavior', 'custom', 'discovery', 'podcasts'];
+    const sidebarTabs = ['artists', 'albums', 'patterns', 'calendar', 'behavior', 'custom', 'discovery', 'podcasts'];
     return sidebarTabs.includes(tabName);
   }, []);
 
@@ -1281,11 +1301,11 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       case 'albums':
         setSidebarColorTheme('pink');
         break;
-      case 'tracks':
-        setSidebarColorTheme('blue');
-        break;
       case 'patterns':
         setSidebarColorTheme('purple');
+        break;
+      case 'calendar':
+        setSidebarColorTheme('blue');
         break;
       case 'behavior':
         setSidebarColorTheme('indigo');
@@ -1380,14 +1400,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         console.log("Setting selectedAlbumYear to:", year, "current value was:", selectedAlbumYear);
         setSelectedAlbumYear(year);
         break;
-      case 'tracks':
-        setSelectedTrackYear(year);
-        break;
       case 'custom':
         handleCustomTrackYearChange(year);
         break;
       case 'patterns':
         setSelectedPatternYear(year);
+        break;
+      case 'calendar':
+        handleCalendarYearChange(year);
         break;
       case 'behavior':
         setSelectedBehaviorYear(year);
@@ -1418,6 +1438,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         break;
       case 'patterns':
         setPatternYearRange({ startYear, endYear });
+        break;
+      case 'calendar':
+        handleCalendarYearRangeChange({ startYear, endYear });
         break;
       case 'behavior':
         setBehaviorYearRange({ startYear, endYear });
@@ -1473,6 +1496,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         setPatternYearRangeMode(isRange);
         if (isRange && availableYears.length >= 2) {
           setPatternYearRange({
+            startYear: availableYears[0],
+            endYear: availableYears[availableYears.length - 1]
+          });
+        }
+        break;
+      case 'calendar':
+        toggleCalendarYearRangeMode(isRange);
+        if (isRange && availableYears.length >= 2) {
+          setCalendarYearRange({
             startYear: availableYears[0],
             endYear: availableYears[availableYears.length - 1]
           });
@@ -2301,20 +2333,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           </div>
         );
       
-      case 'tracks':
-        return (
-          <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
-            <TrackRankings 
-              processedData={processedData} 
-              briefObsessions={briefObsessions}
-              songsByYear={songsByYear}
-              formatDuration={formatDuration}
-              initialYear={selectedTrackYear}
-              colorTheme="red"
-            />
-          </div>
-        );
-      
       case 'custom':
         return (
           <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
@@ -2339,6 +2357,22 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               yearRange={patternYearRange}
               yearRangeMode={patternYearRangeMode}
               colorTheme="purple"
+              briefObsessions={briefObsessions}
+              songsByYear={songsByYear}
+            />
+          </div>
+        );
+      
+      case 'calendar':
+        return (
+          <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
+            <CalendarView 
+              rawPlayData={rawPlayData} 
+              formatDuration={formatDuration}
+              selectedYear={selectedCalendarYear}
+              yearRange={calendarYearRange}
+              yearRangeMode={calendarYearRangeMode}
+              colorTheme="blue"
             />
           </div>
         );
@@ -2412,13 +2446,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     stats,
     processedData,
     rawPlayData,
-    selectedTrackYear,
     customTrackYear,
     customYearRangeMode,
     customYearRange,
     selectedPatternYear,
     patternYearRange,
     patternYearRangeMode,
+    selectedCalendarYear,
+    calendarYearRange,
+    calendarYearRangeMode,
     selectedBehaviorYear,
     behaviorYearRange,
     behaviorYearRangeMode,
@@ -2491,7 +2527,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           getArtistsTabLabel={getArtistsTabLabel}
           getAlbumsTabLabel={getAlbumsTabLabel}
           getCustomTabLabel={getCustomTabLabel}
-          getTracksTabLabel={getTracksTabLabel}
           getPatternsTabLabel={getPatternsTabLabel}
           getBehaviorTabLabel={getBehaviorTabLabel}
           onPositionChange={setTopTabsPosition}
@@ -2552,9 +2587,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             initialYear={
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :
-              activeTab === 'tracks' ? selectedTrackYear : 
               activeTab === 'custom' ? customTrackYear :
               activeTab === 'patterns' ? selectedPatternYear :
+              activeTab === 'calendar' ? selectedCalendarYear :
               activeTab === 'behavior' ? selectedBehaviorYear :
               activeTab === 'discovery' ? selectedDiscoveryYear :
               activeTab === 'podcasts' ? selectedPodcastYear : 'all'
@@ -2564,6 +2599,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               activeTab === 'albums' ? albumYearRange : 
               activeTab === 'custom' ? customYearRange :
               activeTab === 'patterns' ? patternYearRange :
+              activeTab === 'calendar' ? calendarYearRange :
               activeTab === 'behavior' ? behaviorYearRange :
               activeTab === 'discovery' ? discoveryYearRange :
               activeTab === 'podcasts' ? podcastYearRange :
@@ -2574,6 +2610,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               activeTab === 'albums' ? albumYearRangeMode :
               activeTab === 'custom' ? customYearRangeMode :
               activeTab === 'patterns' ? patternYearRangeMode :
+              activeTab === 'calendar' ? calendarYearRangeMode :
               activeTab === 'behavior' ? behaviorYearRangeMode :
               activeTab === 'discovery' ? discoveryYearRangeMode :
               activeTab === 'podcasts' ? podcastYearRangeMode : false
