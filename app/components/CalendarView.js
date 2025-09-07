@@ -584,10 +584,10 @@ const CalendarView = ({
             {!isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 rounded shadow-sm border-2 transition-colors relative ${
+                  <div key={index} className={`p-3 bg-white dark:bg-gray-800 rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
-                      ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                      : `bg-white border-${colors.border} hover:border-${colors.borderDark}`
+                      ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
+                      : `border-${colors.border} hover:border-${colors.borderDark}`
                   }`}>
                     
                     <div className={`text-sm ${
@@ -624,9 +624,9 @@ const CalendarView = ({
                       )}
                     </div>
                     
-                    <div className={`absolute top-2 right-3 text-sm font-bold ${
-                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.textLight}`
-                    }`}>{monthData.fullName}</div>
+                    <div className={`absolute top-1 right-3 font-bold ${
+                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`
+                    } text-[2rem]`}>{monthData.name}</div>
                   </div>
                 ))}
               </div>
@@ -636,10 +636,10 @@ const CalendarView = ({
             {isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {dailyCalendarData.map((dayData, index) => (
-                  <div key={index} className={`p-3 rounded shadow-sm border-2 transition-colors relative ${
+                  <div key={index} className={`p-3 bg-white dark:bg-gray-800 rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
-                      ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                      : `bg-white border-${colors.border} hover:border-${colors.borderDark}`
+                      ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
+                      : `border-${colors.border} hover:border-${colors.borderDark}`
                   }`}>
                     
                     <div className={`text-sm ${
@@ -676,19 +676,9 @@ const CalendarView = ({
                       )}
                     </div>
                     
-                    <div className={`absolute top-2 right-3 text-lg font-bold ${
-                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.textLight}`
-                    }`}>{selectedYear.split('-')[1].padStart(2, '0') === '01' ? 'Jan' : 
-                        selectedYear.split('-')[1].padStart(2, '0') === '02' ? 'Feb' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '03' ? 'Mar' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '04' ? 'Apr' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '05' ? 'May' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '06' ? 'Jun' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '07' ? 'Jul' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '08' ? 'Aug' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '09' ? 'Sep' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '10' ? 'Oct' :
-                        selectedYear.split('-')[1].padStart(2, '0') === '11' ? 'Nov' : 'Dec'} {dayData.day}</div>
+                    <div className={`absolute top-1 right-3 font-bold ${
+                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`
+                    } text-[2rem]`}>{dayData.day}</div>
                   </div>
                 ))}
               </div>
