@@ -51,7 +51,7 @@ const SERVICE_COLORS = {
   },
   cake: {
     unselected: 'bg-pink-300 text-black',
-    selected: 'bg-pink-500 text-white'
+    selected: 'bg-cyan-500 text-white'
   }
 };
 
@@ -1652,7 +1652,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     switch (activeTab) {
       case 'upload':
         return (
-          <div>
+          <div className="p-2 sm:p-4 bg-violet-100 rounded border-2 border-violet-300">
+            <div>
             {/* Storage Notification */}
             {storageNotification && (
               <div className={`mb-6 p-4 rounded-lg border ${
@@ -1851,17 +1852,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 <p className="text-sm">{error}</p>
               </div>
             )}
+            </div>
           </div>
         );
       
       case 'stats':
         return stats ? (
-          <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
-            <h3 className="font-bold mb-2 text-purple-700">Processing Statistics:</h3>
+          <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+            <h3 className="font-bold mb-2 text-indigo-700">Processing Statistics:</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <ul className="space-y-1 text-purple-700">
+                  <ul className="space-y-1 text-indigo-700">
                     <li>Files processed: {stats.totalFiles}</li>
                     <li>Total entries: {stats.totalEntries}</li>
                     <li>Processed songs: {stats.processedSongs}</li>
@@ -1871,19 +1873,19 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </ul>
                 </div>
                 <div className="bg-purple-50 p-3 rounded space-y-2">
-                  <div className="font-semibold mb-1 text-purple-700">Total Listening Time:</div>
-                  <div className="text-2xl text-purple-700">{formatDuration(stats.totalListeningTime)}</div>
+                  <div className="font-semibold mb-1 text-indigo-700">Total Listening Time:</div>
+                  <div className="text-2xl text-indigo-700">{formatDuration(stats.totalListeningTime)}</div>
                   <div className="text-sm text-purple-600">(only counting plays over 30 seconds)</div>
                   
                   {/* Service breakdown */}
                   {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
                     <div className="mt-4 pt-3 border-t border-purple-200">
-                      <div className="font-semibold text-purple-700 mb-2">Listening Time by Service:</div>
+                      <div className="font-semibold text-indigo-700 mb-2">Listening Time by Service:</div>
                       <ul className="space-y-1">
                         {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
                           <li key={service} className="flex justify-between items-center">
                             <span className="text-purple-600">{service}:</span>
-                            <span className="font-medium text-purple-700">{formatDuration(time)}</span>
+                            <span className="font-medium text-indigo-700">{formatDuration(time)}</span>
                           </li>
                         ))}
                       </ul>
@@ -1903,35 +1905,35 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'artists':
         return (
-          <div className="p-2 sm:p-4 bg-teal-100 rounded border-2 border-teal-300">
+          <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
             {/* Title - mobile gets its own row */}
             <div className="block sm:hidden mb-1">
-              <h3 className="font-bold text-teal-700">
+              <h3 className="font-bold text-blue-700">
                 {getArtistsTabLabel()}
               </h3>
             </div>
             
             {/* Desktop layout - title and controls on same row */}
             <div className="hidden sm:flex justify-between items-center mb-2">
-                <h3 className="font-bold text-teal-700">
+                <h3 className="font-bold text-blue-700">
                   {getArtistsTabLabel()}
                 </h3>
                 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <label className="text-teal-700">Show Top</label>
+                    <label className="text-blue-700">Show Top</label>
                     <input
                       type="number"
                       min="1"
                       max="500"
                       value={topArtistsCount}
                       onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
-                      className="w-16 border rounded px-2 py-1 text-teal-700"
+                      className="w-16 border rounded px-2 py-1 text-blue-700"
                     />
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-teal-700">View Mode</label>
+                    <label className="text-blue-700">View Mode</label>
                     <button
                       onClick={() => {
                         const modes = ['grid', 'compact', 'mobile'];
@@ -1939,7 +1941,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1947,10 +1949,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-teal-700">Sort by</label>
+                    <label className="text-blue-700">Sort by</label>
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -1962,14 +1964,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               <div className="block sm:hidden space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <label className="text-teal-700">Top</label>
+                    <label className="text-blue-700">Top</label>
                     <input
                       type="number"
                       min="1"
                       max="500"
                       value={topArtistsCount}
                       onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
-                      className="w-16 border rounded px-2 py-1 text-teal-700"
+                      className="w-16 border rounded px-2 py-1 text-blue-700"
                     />
                   </div>
                   
@@ -1981,7 +1983,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1989,7 +1991,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-teal-600 text-white hover:bg-teal-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2004,12 +2006,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   {selectedArtists.map(artist => (
                     <div 
                       key={artist} 
-                      className="flex items-center bg-teal-600 text-white px-2 py-1 rounded text-sm"
+                      className="flex items-center bg-blue-600 text-white px-2 py-1 rounded text-sm"
                     >
                       {artist}
                       <button 
                         onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                        className="ml-2 text-white hover:text-teal-200"
+                        className="ml-2 text-white hover:text-blue-200"
                       >
                         ×
                       </button>
@@ -2023,18 +2025,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     value={artistSearch}
                     onChange={(e) => setArtistSearch(e.target.value)}
                     placeholder="Search artists..."
-                    className="w-full border border-teal-300 rounded px-2 py-1 text-teal-700 focus:border-teal-400 focus:ring-teal-400 focus:outline-none"
+                    className="w-full border border-blue-300 rounded px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400 focus:outline-none"
                   />
                   {artistSearch && (
                     <button
                       onClick={() => setArtistSearch('')}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-teal-500 hover:text-teal-700"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700"
                     >
                       ×
                     </button>
                   )}
                   {artistSearch && filteredArtists.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white border border-teal-200 rounded shadow-lg mt-1">
+                    <div className="absolute z-10 w-full bg-white border border-blue-200 rounded shadow-lg mt-1">
                       {filteredArtists.map(artist => (
                         <div
                           key={artist}
@@ -2042,7 +2044,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             setSelectedArtists(prev => [...prev, artist]);
                             setArtistSearch('');
                           }}
-                          className="px-2 py-1 hover:bg-teal-100 text-teal-700 cursor-pointer"
+                          className="px-2 py-1 hover:bg-blue-100 text-blue-700 cursor-pointer"
                         >
                           {artist}
                         </div>
@@ -2065,10 +2067,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       key={artist.name} 
                       className={`
                         ${artistsViewMode === 'grid' ? 
-                          'p-4 bg-white rounded-lg shadow-sm border border-teal-200 hover:border-teal-400 transition-all duration-300' :
+                          'p-4 bg-white rounded-lg shadow-sm border border-blue-200 hover:border-blue-400 transition-all duration-300' :
                           artistsViewMode === 'compact' ?
-                          'p-3 bg-white rounded-lg shadow-sm border border-teal-200 hover:bg-teal-50 transition-all duration-200' :
-                          'p-2 bg-white rounded border border-teal-200 hover:bg-teal-50 transition-all duration-150'
+                          'p-3 bg-white rounded-lg shadow-sm border border-blue-200 hover:bg-blue-50 transition-all duration-200' :
+                          'p-2 bg-white rounded border border-blue-200 hover:bg-blue-50 transition-all duration-150'
                         }
                       `}
                     >
@@ -2078,7 +2080,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           'flex justify-between items-center text-sm'}
                       `}>
                         <div className={artistsViewMode === 'grid' ? 'flex justify-between items-start' : 'flex-1'}>
-                          <div className={`font-bold text-teal-600 ${
+                          <div className={`font-bold text-blue-600 ${
                             artistsViewMode === 'grid' ? 'text-lg' : 
                             artistsViewMode === 'compact' ? 'text-base' : 'text-sm'
                           }`}>
@@ -2086,18 +2088,18 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                           </div>
                           
                           {artistsViewMode === 'grid' && (
-                            <div className="text-xl font-bold text-teal-500">
+                            <div className="text-xl font-bold text-blue-500">
                               {index + 1}
                             </div>
                           )}
                           
                           {artistsViewMode !== 'grid' && (
-                            <span className="text-teal-500 font-medium">#{index + 1}</span>
+                            <span className="text-blue-500 font-medium">#{index + 1}</span>
                           )}
                         </div>
                         
                         {artistsViewMode === 'grid' && (
-                          <div className="space-y-1 text-sm text-teal-500">
+                          <div className="space-y-1 text-sm text-blue-500">
                             <div>Total Time: <span className="font-medium">{formatDuration(artist.totalPlayed)}</span></div>
                             <div>Plays: <span className="font-medium">{artist.playCount?.toLocaleString() || 0}</span></div>
                             {artist.mostPlayedSong && (
@@ -2113,7 +2115,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         )}
                         
                         {artistsViewMode !== 'grid' && (
-                          <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-teal-500`}>
+                          <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-blue-500`}>
                             <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
                             <div>{artist.playCount?.toLocaleString() || 0} plays</div>
                           </div>
@@ -2123,9 +2125,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   ))}
                 </div>
               ) : (
-                <div className="p-6 text-center bg-teal-50 rounded border-2 border-teal-300">
-                  <h4 className="text-lg font-bold text-teal-700">No artists found</h4>
-                  <p className="text-teal-600 mt-2">
+                <div className="p-6 text-center bg-blue-50 rounded border-2 border-blue-300">
+                  <h4 className="text-lg font-bold text-blue-700">No artists found</h4>
+                  <p className="text-blue-600 mt-2">
                     {yearRangeMode 
                       ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
                       : selectedArtistYear !== 'all' 
@@ -2138,7 +2140,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       setSelectedArtistYear('all');
                       setSelectedArtists([]);
                     }}
-                    className="mt-4 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700"
+                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
                     Show All Artists
                   </button>
@@ -2150,35 +2152,35 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'albums':
         return (
-          <div className="p-2 sm:p-4 bg-pink-100 rounded border-2 border-pink-300 transition-all duration-300">
+          <div className="p-2 sm:p-4 bg-cyan-100 rounded border-2 border-cyan-300 transition-all duration-300">
             {/* Title - mobile gets its own row */}
             <div className="block sm:hidden mb-1">
-              <h3 className="font-bold text-pink-700">
+              <h3 className="font-bold text-cyan-700">
                 {getAlbumsTabLabel()}
               </h3>
             </div>
             
             {/* Desktop layout - title and controls on same row */}
             <div className="hidden sm:flex justify-between items-center mb-2">
-                <h3 className="font-bold text-pink-700">
+                <h3 className="font-bold text-cyan-700">
                   {getAlbumsTabLabel()}
                 </h3>
                 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <label className="text-pink-700">Show Top</label>
+                    <label className="text-cyan-700">Show Top</label>
                     <input
                       type="number"
                       min="1"
                       max="500"
                       value={topAlbumsCount}
                       onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
-                      className="w-16 border rounded px-2 py-1 text-pink-700"
+                      className="w-16 border rounded px-2 py-1 text-cyan-700"
                     />
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-pink-700">View Mode</label>
+                    <label className="text-cyan-700">View Mode</label>
                     <button
                       onClick={() => {
                         const modes = ['grid', 'compact', 'mobile'];
@@ -2186,7 +2188,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
                     >
                       {albumsViewMode === 'grid' ? 'Grid' : 
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2194,10 +2196,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-pink-700">Sort by</label>
+                    <label className="text-cyan-700">Sort by</label>
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2209,14 +2211,14 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               <div className="block sm:hidden space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <label className="text-pink-700">Top</label>
+                    <label className="text-cyan-700">Top</label>
                     <input
                       type="number"
                       min="1"
                       max="500"
                       value={topAlbumsCount}
                       onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
-                      className="w-16 border rounded px-2 py-1 text-pink-700"
+                      className="w-16 border rounded px-2 py-1 text-cyan-700"
                     />
                   </div>
                   
@@ -2228,7 +2230,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
                     >
                       {albumsViewMode === 'grid' ? 'Grid' : 
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2236,7 +2238,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-pink-600 text-white hover:bg-pink-700"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2247,12 +2249,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             <div className="space-y-4">
               {/* Artist Filter */}
               {selectedArtists.length > 0 && (
-                <div className="bg-white p-3 rounded-lg border border-pink-200">
+                <div className="bg-white p-3 rounded-lg border border-cyan-200">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-pink-700 font-medium">Filtered Artists ({selectedArtists.length}):</span>
+                    <span className="text-cyan-700 font-medium">Filtered Artists ({selectedArtists.length}):</span>
                     <button
                       onClick={() => setSelectedArtists([])}
-                      className="text-pink-600 hover:text-pink-800 text-sm"
+                      className="text-cyan-600 hover:text-pink-800 text-sm"
                     >
                       Clear All
                     </button>
@@ -2261,12 +2263,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     {selectedArtists.map(artist => (
                       <span
                         key={artist}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-pink-100 text-cyan-700 rounded-full text-xs"
                       >
                         {artist}
                         <button
                           onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                          className="ml-1 text-pink-500 hover:text-pink-700"
+                          className="ml-1 text-cyan-500 hover:text-cyan-700"
                         >
                           ✕
                         </button>
@@ -2296,8 +2298,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         key={`${album.artist}-${album.name}`}
                         className={`
                           ${albumsViewMode === 'compact' ?
-                            'p-3 bg-white rounded-lg shadow-sm border border-pink-200 hover:bg-pink-50 transition-all duration-200' :
-                            'p-2 bg-white rounded border border-pink-200 hover:bg-pink-50 transition-all duration-150'
+                            'p-3 bg-white rounded-lg shadow-sm border border-cyan-200 hover:bg-cyan-50 transition-all duration-200' :
+                            'p-2 bg-white rounded border border-cyan-200 hover:bg-cyan-50 transition-all duration-150'
                           }
                         `}
                       >
@@ -2306,12 +2308,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             'flex justify-between items-center text-sm'}
                         `}>
                           <div className="flex-1">
-                            <div className={`font-bold text-pink-600 ${
+                            <div className={`font-bold text-cyan-600 ${
                               albumsViewMode === 'compact' ? 'text-base' : 'text-sm'
                             }`}>
                               #{index + 1} {album.name}
                             </div>
-                            <div className={`text-pink-500 ${
+                            <div className={`text-cyan-500 ${
                               albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'
                             }`}>
                               {album.artist}
@@ -2321,7 +2323,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             </div>
                           </div>
                           
-                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-pink-500`}>
+                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-cyan-500`}>
                             <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
                             <div>{(album.playCount || 0).toLocaleString()} plays</div>
                           </div>
@@ -2331,7 +2333,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-pink-600">
+                <div className="text-center py-8 text-cyan-600">
                   {selectedAlbumYear === 'all' ? 
                     'No album data available' : 
                     `No album data for ${selectedAlbumYear}`
@@ -2344,28 +2346,28 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'custom':
         return (
-          <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
+          <div className="p-2 sm:p-4 bg-emerald-100 rounded border-2 border-emerald-300">
             <CustomTrackRankings 
               rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={customTrackYear}
               yearRangeMode={customYearRangeMode}
               yearRange={customYearRange}
-              colorTheme="yellow"
+              colorTheme="emerald"
             />
           </div>
         );
       
       case 'patterns':
         return (
-          <div className="p-2 sm:p-4 bg-purple-100 rounded border-2 border-purple-300">
+          <div className="p-2 sm:p-4 bg-yellow-100 rounded border-2 border-yellow-300">
             <ListeningPatterns 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedPatternYear}
               yearRange={patternYearRange}
               yearRangeMode={patternYearRangeMode}
-              colorTheme="purple"
+              colorTheme="yellow"
               briefObsessions={briefObsessions}
               songsByYear={songsByYear}
             />
@@ -2374,65 +2376,65 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'calendar':
         return (
-          <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
+          <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
             <CalendarView 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedCalendarYear}
               yearRange={calendarYearRange}
               yearRangeMode={calendarYearRangeMode}
-              colorTheme="blue"
+              colorTheme="green"
             />
           </div>
         );
       
       case 'behavior':
         return (
-          <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+          <div className="p-2 sm:p-4 bg-amber-100 rounded border-2 border-amber-300">
             <ListeningBehavior 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedBehaviorYear}
               yearRange={behaviorYearRange}
               yearRangeMode={behaviorYearRangeMode}
-              colorTheme="indigo"
+              colorTheme="amber"
             />
           </div>
         );
       
       case 'discovery':
         return (
-          <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
+          <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
             <DiscoveryAnalysis 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedDiscoveryYear}
               yearRange={discoveryYearRange}
               yearRangeMode={discoveryYearRangeMode}
-              colorTheme="green"
+              colorTheme="orange"
             />
           </div>
         );
       
       case 'podcasts':
         return (
-          <div id="podcast-rankings" className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
+          <div id="podcast-rankings" className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
             <PodcastRankings 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedPodcastYear}
               yearRange={podcastYearRange}
               yearRangeMode={podcastYearRangeMode}
-              colorTheme="slate"
+              colorTheme="red"
             />
           </div>
         );
       
       case 'playlists':
         return (
-          <div className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
+          <div className="p-2 sm:p-4 bg-rose-100 rounded border-2 border-rose-300">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-red-700">Custom Playlists</h3>
+              <h3 className="font-bold text-rose-700">Custom Playlists</h3>
             </div>
             <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} />
           </div>
@@ -2440,8 +2442,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'updates':
         return (
-          <div className="p-2 sm:p-4 bg-cyan-200 rounded border-2 border-cyan-400">
-            <h3 className="font-bold mb-2 text-cyan-700">App Updates</h3>
+          <div className="p-2 sm:p-4 bg-fuchsia-100 rounded border-2 border-fuchsia-300">
+            <h3 className="font-bold mb-2 text-fuchsia-700">App Updates</h3>
             <UpdatesSection />
           </div>
         );
