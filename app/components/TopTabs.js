@@ -16,6 +16,7 @@ const TopTabs = ({
   getTracksTabLabel,
   getPatternsTabLabel,
   getBehaviorTabLabel,
+  getCalendarTabLabel,
   onPositionChange, // New callback to communicate position changes to parent
   onHeightChange,   // New callback to communicate height changes to parent
   onWidthChange,    // New callback to communicate width changes to parent
@@ -200,6 +201,8 @@ const TopTabs = ({
         return '📈';
       case 'behavior':
         return '🧠';
+      case 'calendar':
+        return '📅';
       case 'discovery':
         return '🔍';
       case 'podcasts':
@@ -251,6 +254,10 @@ const TopTabs = ({
           return activeTab === tabId 
             ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-400' 
             : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300 dark:bg-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-700';
+        case 'calendar':
+          return activeTab === tabId 
+            ? 'bg-teal-50 text-teal-600 border-b-2 border-teal-600 dark:bg-teal-900 dark:text-teal-300 dark:border-teal-400' 
+            : 'bg-teal-200 text-teal-600 hover:bg-teal-300 dark:bg-teal-800 dark:text-teal-300 dark:hover:bg-teal-700';
         case 'discovery':
           return activeTab === tabId 
             ? 'bg-violet-50 text-violet-600 border-b-2 border-violet-600 dark:bg-violet-900 dark:text-violet-300 dark:border-violet-400' 
@@ -382,7 +389,7 @@ const TopTabs = ({
       {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
       {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
       {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-      {rawPlayData.length > 0 && <TabButton id="calendar" label="Calendar" />}
+      {rawPlayData.length > 0 && <TabButton id="calendar" label={getCalendarTabLabel()} />}
       {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
       {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
       {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
@@ -435,7 +442,7 @@ const TopTabs = ({
               {topAlbums.length > 0 && <TabButton id="albums" label={getAlbumsTabLabel()} />}
               {processedData.length > 0 && <TabButton id="custom" label={getCustomTabLabel()}  />}
                       {processedData.length > 0 && <TabButton id="patterns" label={getPatternsTabLabel()} />}
-              {rawPlayData.length > 0 && <TabButton id="calendar" label="Calendar" />}
+              {rawPlayData.length > 0 && <TabButton id="calendar" label={getCalendarTabLabel()} />}
               {processedData.length > 0 && <TabButton id="behavior" label={getBehaviorTabLabel()} />}
               {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
               {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}

@@ -1184,6 +1184,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     return `Behavior - ${selectedBehaviorYear}`;
   }, [behaviorYearRangeMode, behaviorYearRange, selectedBehaviorYear]);
 
+  const getCalendarTabLabel = useCallback(() => {
+    if (calendarYearRangeMode && calendarYearRange.startYear && calendarYearRange.endYear) {
+      return `Calendar - ${calendarYearRange.startYear}-${calendarYearRange.endYear}`;
+    } else if (selectedCalendarYear === 'all') {
+      return 'All-time Calendar';
+    }
+    return `Calendar - ${selectedCalendarYear}`;
+  }, [calendarYearRangeMode, calendarYearRange, selectedCalendarYear]);
+
   const getDiscoveryTabLabel = useCallback(() => {
     if (discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear) {
       return `Discovery - ${discoveryYearRange.startYear}-${discoveryYearRange.endYear}`;
@@ -2529,6 +2538,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
           getCustomTabLabel={getCustomTabLabel}
           getPatternsTabLabel={getPatternsTabLabel}
           getBehaviorTabLabel={getBehaviorTabLabel}
+          getCalendarTabLabel={getCalendarTabLabel}
           onPositionChange={setTopTabsPosition}
           onHeightChange={isMobile && (topTabsPosition === 'left' || topTabsPosition === 'right') ? null : setTopTabsHeight}
           onWidthChange={isMobile && (topTabsPosition === 'top' || topTabsPosition === 'bottom') ? null : setTopTabsWidth}
