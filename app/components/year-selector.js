@@ -576,6 +576,108 @@ const YearSelector = ({
           bgLight: 'bg-teal-50',
           bgMed: 'bg-teal-200'
         };
+      case 'cyan':
+        return {
+          text: 'text-cyan-700',
+          textActive: 'text-white',
+          bgActive: 'bg-cyan-500',
+          bgHover: 'hover:bg-cyan-600/50',
+          bgLighter: 'bg-cyan-100',
+          bgDark: 'bg-cyan-800',
+          sidebarBg: 'bg-cyan-100',
+          glowActive: 'shadow-[0_0_15px_rgba(6,182,212,0.7)]',
+          buttonBg: 'bg-cyan-600',
+          buttonHover: 'hover:bg-cyan-700',
+          border: 'border-cyan-300',
+          textBold: 'text-cyan-800',
+          bgLight: 'bg-cyan-50',
+          bgMed: 'bg-cyan-200'
+        };
+      case 'emerald':
+        return {
+          text: 'text-emerald-700',
+          textActive: 'text-white',
+          bgActive: 'bg-emerald-500',
+          bgHover: 'hover:bg-emerald-600/50',
+          bgLighter: 'bg-emerald-100',
+          bgDark: 'bg-emerald-800',
+          sidebarBg: 'bg-emerald-100',
+          glowActive: 'shadow-[0_0_15px_rgba(16,185,129,0.7)]',
+          buttonBg: 'bg-emerald-600',
+          buttonHover: 'hover:bg-emerald-700',
+          border: 'border-emerald-300',
+          textBold: 'text-emerald-800',
+          bgLight: 'bg-emerald-50',
+          bgMed: 'bg-emerald-200'
+        };
+      case 'amber':
+        return {
+          text: 'text-amber-700',
+          textActive: 'text-white',
+          bgActive: 'bg-amber-500',
+          bgHover: 'hover:bg-amber-600/50',
+          bgLighter: 'bg-amber-100',
+          bgDark: 'bg-amber-800',
+          sidebarBg: 'bg-amber-100',
+          glowActive: 'shadow-[0_0_15px_rgba(245,158,11,0.7)]',
+          buttonBg: 'bg-amber-600',
+          buttonHover: 'hover:bg-amber-700',
+          border: 'border-amber-300',
+          textBold: 'text-amber-800',
+          bgLight: 'bg-amber-50',
+          bgMed: 'bg-amber-200'
+        };
+      case 'fuchsia':
+        return {
+          text: 'text-fuchsia-700',
+          textActive: 'text-white',
+          bgActive: 'bg-fuchsia-500',
+          bgHover: 'hover:bg-fuchsia-600/50',
+          bgLighter: 'bg-fuchsia-100',
+          bgDark: 'bg-fuchsia-800',
+          sidebarBg: 'bg-fuchsia-100',
+          glowActive: 'shadow-[0_0_15px_rgba(217,70,239,0.7)]',
+          buttonBg: 'bg-fuchsia-600',
+          buttonHover: 'hover:bg-fuchsia-700',
+          border: 'border-fuchsia-300',
+          textBold: 'text-fuchsia-800',
+          bgLight: 'bg-fuchsia-50',
+          bgMed: 'bg-fuchsia-200'
+        };
+      case 'violet':
+        return {
+          text: 'text-violet-700',
+          textActive: 'text-white',
+          bgActive: 'bg-violet-500',
+          bgHover: 'hover:bg-violet-600/50',
+          bgLighter: 'bg-violet-100',
+          bgDark: 'bg-violet-800',
+          sidebarBg: 'bg-violet-100',
+          glowActive: 'shadow-[0_0_15px_rgba(139,92,246,0.7)]',
+          buttonBg: 'bg-violet-600',
+          buttonHover: 'hover:bg-violet-700',
+          border: 'border-violet-300',
+          textBold: 'text-violet-800',
+          bgLight: 'bg-violet-50',
+          bgMed: 'bg-violet-200'
+        };
+      case 'rose':
+        return {
+          text: 'text-rose-700',
+          textActive: 'text-white',
+          bgActive: 'bg-rose-500',
+          bgHover: 'hover:bg-rose-600/50',
+          bgLighter: 'bg-rose-100',
+          bgDark: 'bg-rose-800',
+          sidebarBg: 'bg-rose-100',
+          glowActive: 'shadow-[0_0_15px_rgba(244,63,94,0.7)]',
+          buttonBg: 'bg-rose-600',
+          buttonHover: 'hover:bg-rose-700',
+          border: 'border-rose-300',
+          textBold: 'text-rose-800',
+          bgLight: 'bg-rose-50',
+          bgMed: 'bg-rose-200'
+        };
     }
   }, [colorTheme]);
 
