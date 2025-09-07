@@ -38,10 +38,10 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
   }, [albumTracks]);
 
   return (
-    <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm border border-pink-200 dark:border-pink-700 hover:border-pink-400 dark:hover:border-pink-500 transition-all duration-300 relative">
-      <div className="font-bold text-pink-600">{album.name}</div>
+    <div className="p-3 bg-white dark:bg-gray-800 rounded shadow-sm border border-cyan-200 dark:border-cyan-700 hover:border-cyan-400 dark:hover:border-cyan-500 transition-all duration-300 relative">
+      <div className="font-bold text-cyan-600">{album.name}</div>
       
-      <div className="text-sm text-pink-400">
+      <div className="text-sm text-cyan-400">
         Artist: <span className="font-bold">{album.artist}</span> 
         <br/>
         Total Time: <span className="font-bold">{formatDuration(album.totalPlayed)}</span> 
@@ -52,21 +52,21 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       </div>
       
       {/* Divider */}
-      <div className="border-t border-pink-200 my-2"></div>
+      <div className="border-t border-cyan-200 my-2"></div>
       
       {/* Top Track Section */}
       <div className="mt-2">
-        <div className="font-medium text-pink-600">Top Track:</div>
+        <div className="font-medium text-cyan-600">Top Track:</div>
         {topTrack ? (
-          <div className="text-sm text-pink-500 p-1 bg-pink-50 rounded">
+          <div className="text-sm text-cyan-500 p-1 bg-cyan-50 rounded">
             {topTrack.trackName}
-            <div className="flex justify-between text-xs text-pink-400">
+            <div className="flex justify-between text-xs text-cyan-400">
               <span>{formatDuration(topTrack.totalPlayed)}</span>
               <span>{topTrack.playCount} plays</span>
             </div>
           </div>
         ) : (
-          <div className="text-sm text-pink-400 italic">No track data available</div>
+          <div className="text-sm text-cyan-400 italic">No track data available</div>
         )}
       </div>
       
@@ -74,7 +74,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       {otherTracks.length > 0 && (
         <button 
           onClick={() => setShowTracks(!showTracks)}
-          className="mt-2 text-xs flex items-center justify-between w-full p-1 text-pink-600 bg-pink-100 hover:bg-pink-200 rounded"
+          className="mt-2 text-xs flex items-center justify-between w-full p-1 text-cyan-600 bg-cyan-100 hover:bg-cyan-200 rounded"
         >
           <span className="flex items-center">
             <Music size={14} className="mr-1" />
@@ -89,8 +89,8 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       
       {/* Track Dropdown Content */}
       {showTracks && otherTracks.length > 0 && (
-        <div className="mt-1 max-h-64 overflow-y-auto text-xs border border-pink-200 rounded">
-          <div className="sticky top-0 bg-pink-100 p-1 text-xs text-center text-pink-600 font-medium">
+        <div className="mt-1 max-h-64 overflow-y-auto text-xs border border-cyan-200 rounded">
+          <div className="sticky top-0 bg-cyan-100 p-1 text-xs text-center text-cyan-600 font-medium">
             {/* Use the correct available tracks count */}
             {remainingTracks !== otherTracks.length ?
               `Showing ${otherTracks.length} of ${remainingTracks} remaining tracks` :
@@ -99,17 +99,17 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
           {otherTracks.map((track, trackIndex) => (
             <div 
               key={`${track.trackName || 'unknown'}-${trackIndex}`}
-              className={`p-1 ${trackIndex % 2 === 0 ? 'bg-pink-50' : 'bg-white'}`}
+              className={`p-1 ${trackIndex % 2 === 0 ? 'bg-cyan-50' : 'bg-white'}`}
             >
-              <div className="text-pink-600">
+              <div className="text-cyan-600">
                 {track.trackName || 'Unknown Track'}
                 {track.variations && track.variations.length > 1 && (
-                  <span className="text-xs text-pink-400 ml-1">
+                  <span className="text-xs text-cyan-400 ml-1">
                     ({track.variations.length} versions)
                   </span>
                 )}
               </div>
-              <div className="flex justify-between text-pink-400">
+              <div className="flex justify-between text-cyan-400">
                 <span>{formatDuration(track.totalPlayed || 0)}</span>
                 <span>{track.playCount || 0} plays</span>
               </div>
@@ -118,7 +118,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
         </div>
       )}
       
-      <div className="absolute top-1 right-3 text-pink-600 text-[2rem]">{index + 1}</div>
+      <div className="absolute top-1 right-3 text-cyan-600 text-[2rem]">{index + 1}</div>
     </div>
   );
 };
