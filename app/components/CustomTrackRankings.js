@@ -1055,26 +1055,26 @@ const CustomTrackRankings = ({
       return (
         <tr 
           key={song.key} 
-          className={`border-b ${colors.border} dark:${colors.borderDark} hover:${colors.bg} dark:${colors.hoverBgDark} ${song.isFeatured ? '${colors.bg} dark:${colors.hoverBgDark}' : ''}`}
+          className={`border-b ${colors.border} dark:${colors.borderDark} hover:${colors.bg} dark:${colors.hoverBgDark} ${song.isFeatured ? `${colors.bg} dark:${colors.hoverBgDark}` : ''}`}
         >
           <td className={`p-2 ${colors.text}`}>
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">#{index + 1} {song.displayName || song.trackName}</div>
-                <div className="text-sm ${colors.textLighter}">
+                <div className={`text-sm ${colors.textLighter}`}>
                   {song.displayArtist || song.artist}
                   {song.isFeatured && (
-                    <span className="inline-block px-1 py-0.5 ml-1 ${colors.bgMed} ${colors.text} rounded text-xs">
+                    <span className={`inline-block px-1 py-0.5 ml-1 ${colors.bgMed} ${colors.text} rounded text-xs`}>
                       FEAT
                     </span>
                   )}
                 </div>
-                <div className="text-xs ${colors.textLighter}">{song.albumName}</div>
+                <div className={`text-xs ${colors.textLighter}`}>{song.albumName}</div>
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => omitSong(song)}
-                  className="p-1 ${colors.textLight} hover:${colors.textDark} rounded"
+                  className={`p-1 ${colors.textLight} hover:${colors.textDark} rounded`}
                   title="Omit this song"
                 >
                   <XCircle size={12} />
@@ -1082,9 +1082,9 @@ const CustomTrackRankings = ({
               </div>
             </div>
           </td>
-          <td className="p-2 text-right ${colors.text}">
+          <td className={`p-2 text-right ${colors.text}`}>
             <div>{formatDuration(song.totalPlayed)}</div>
-            <div className="text-sm ${colors.textLighter}">{song.playCount} plays</div>
+            <div className={`text-sm ${colors.textLighter}`}>{song.playCount} plays</div>
           </td>
         </tr>
       );
@@ -1093,40 +1093,40 @@ const CustomTrackRankings = ({
       return (
         <tr 
           key={song.key} 
-          className={`border-b ${colors.border} dark:${colors.borderDark} hover:${colors.bg} dark:${colors.hoverBgDark} ${song.isFeatured ? '${colors.bgLight} dark:${colors.hoverBgDark}' : ''}`}
+          className={`border-b ${colors.border} dark:${colors.borderDark} hover:${colors.bg} dark:${colors.hoverBgDark} ${song.isFeatured ? `${colors.bgLight} dark:${colors.hoverBgDark}` : ''}`}
         >
-          <td className="p-1 sm:p-2 ${colors.text} font-medium text-xs sm:text-sm">{index + 1}</td>
-          <td className="p-1 sm:p-2 ${colors.text} text-xs sm:text-sm">
+          <td className={`p-1 sm:p-2 ${colors.text} font-medium text-xs sm:text-sm`}>{index + 1}</td>
+          <td className={`p-1 sm:p-2 ${colors.text} text-xs sm:text-sm`}>
             <div className="flex items-center">
               {song.isFeatured && (
-                <span className="inline-block px-1 py-0.5 mr-1 ${colors.bgMed} ${colors.text} rounded text-xs">
+                <span className={`inline-block px-1 py-0.5 mr-1 ${colors.bgMed} ${colors.text} rounded text-xs`}>
                   FEAT
                 </span>
               )}
               <div>{song.displayName || song.trackName}</div>
             </div>
           </td>
-          <td className="p-1 sm:p-2 ${colors.text} text-xs sm:text-sm">{song.displayArtist || song.artist}</td>
-          <td className="p-1 sm:p-2 ${colors.text} text-xs sm:text-sm hidden sm:table-cell">{song.albumName}</td>
-          <td className="p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm">{formatDuration(song.totalPlayed)}</td>
-          <td className="p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm">{song.playCount}</td>
+          <td className={`p-1 sm:p-2 ${colors.text} text-xs sm:text-sm`}>{song.displayArtist || song.artist}</td>
+          <td className={`p-1 sm:p-2 ${colors.text} text-xs sm:text-sm hidden sm:table-cell`}>{song.albumName}</td>
+          <td className={`p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm`}>{formatDuration(song.totalPlayed)}</td>
+          <td className={`p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm`}>{song.playCount}</td>
           <td className="p-1 sm:p-2 text-center relative">
             <button
               onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
-              className="p-1 ${colors.textLight} hover:${colors.textDark} rounded"
+              className={`p-1 ${colors.textLight} hover:${colors.textDark} rounded`}
               title="Omit options"
             >
               <XCircle size={12} />
             </button>
             
             {showOmitDropdown === song.key && (
-              <div className="absolute bottom-full mb-1 right-full mr-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max">
+              <div className={`absolute bottom-full mb-1 right-full mr-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                 <button
                   onClick={() => {
                     omitSong(song);
                     setShowOmitDropdown(null);
                   }}
-                  className="block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}"
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
                 >
                   Omit song
                 </button>
@@ -1135,7 +1135,7 @@ const CustomTrackRankings = ({
                     omitArtist(song.artist);
                     setShowOmitDropdown(null);
                   }}
-                  className="block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}"
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
                 >
                   Omit artist
                 </button>
@@ -1150,32 +1150,32 @@ return (
   <div className="space-y-4">
     {/* Title - mobile gets its own row */}
     <div className="block sm:hidden mb-1">
-      <h3 className="font-bold ${colors.text}">
+      <h3 className={`font-bold ${colors.text}`}>
         {getPageTitle()}
       </h3>
     </div>
     
     {/* Desktop layout - title and controls on same row */}
     <div className="hidden sm:flex justify-between items-center mb-2">
-      <h3 className="font-bold ${colors.text}">
+      <h3 className={`font-bold ${colors.text}`}>
         {getPageTitle()}
       </h3>
       
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <label className="${colors.text}">Show Top</label>
+          <label className={`${colors.text}`}>Show Top</label>
           <input
             type="number"
             min="1"
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className="w-16 border rounded px-2 py-1 ${colors.text}"
+            className={`w-16 border rounded px-2 py-1 ${colors.text}`}
           />
         </div>
         
         <div className="flex items-center gap-2">
-          <label className="${colors.text}">View Mode</label>
+          <label className={`${colors.text}`}>View Mode</label>
           <button
             onClick={() => {
               const modes = ['grid', 'compact', 'mobile'];
@@ -1183,7 +1183,7 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className="px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}"
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {viewMode === 'grid' ? 'Grid' : 
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1191,10 +1191,10 @@ return (
         </div>
         
         <div className="flex items-center gap-2">
-          <label className="${colors.text}">Sort by</label>
+          <label className={`${colors.text}`}>Sort by</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className="px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}"
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1206,19 +1206,19 @@ return (
     <div className="block sm:hidden mb-4">
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1">
-          <label className="${colors.text} text-sm">Top</label>
+          <label className={`${colors.text} text-sm`}>Top</label>
           <input
             type="number"
             min="1"
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className="w-12 border rounded px-1 py-1 ${colors.text} text-sm"
+            className={`w-12 border rounded px-1 py-1 ${colors.text} text-sm`}
           />
         </div>
         
         <div className="flex items-center gap-1">
-          <label className="${colors.text} text-sm">View</label>
+          <label className={`${colors.text} text-sm`}>View</label>
           <button
             onClick={() => {
               const modes = ['grid', 'compact', 'mobile'];
@@ -1226,7 +1226,7 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className="px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}"
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {viewMode === 'grid' ? 'Grid' : 
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1234,10 +1234,10 @@ return (
         </div>
         
         <div className="flex items-center gap-1">
-          <label className="${colors.text} text-sm">Sort</label>
+          <label className={`${colors.text} text-sm`}>Sort</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className="px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}"
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1259,14 +1259,14 @@ return (
             setAlbumSearch(e.target.value);
           }}
           placeholder="Search artists or albums..."
-          className="w-full border rounded px-2 py-1 ${colors.text} ${colors.focusBorder} ${colors.focusRing}"
+          className={`w-full border rounded px-2 py-1 ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
         />
         
         {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-          <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto ${colors.textLight}">
+          <div className={`absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto ${colors.textLight}`}>
             {filteredArtists.length > 0 && (
               <div>
-                <div className="px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs">ARTISTS</div>
+                <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
                 {filteredArtists.map(artist => (
                   <div
                     key={artist}
@@ -1274,7 +1274,7 @@ return (
                       addArtistFromTrack(artist);
                       setUnifiedSearch('');
                     }}
-                    className="px-2 py-1 hover:${colors.bg} cursor-pointer"
+                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
                   >
                     <span className="mr-1">👤</span> {artist}
                   </div>
@@ -1284,7 +1284,7 @@ return (
             
             {filteredAlbums.length > 0 && (
               <div>
-                <div className="px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs">ALBUMS</div>
+                <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
                 {filteredAlbums.map(album => (
                   <div
                     key={album.key}
@@ -1292,7 +1292,7 @@ return (
                       addAlbumFromTrack(album.name, album.artist);
                       setUnifiedSearch('');
                     }}
-                    className="px-2 py-1 hover:${colors.bg} cursor-pointer"
+                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
                   >
                     <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
                   </div>
@@ -1308,12 +1308,12 @@ return (
         {selectedArtists.map(artist => (
           <div 
             key={artist} 
-            className="flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs"
+            className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
           >
             {artist}
             <button 
               onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-              className="ml-1 text-white ${colors.hoverText}"
+              className={`ml-1 text-white ${colors.hoverText}`}
             >
               ×
             </button>
@@ -1323,12 +1323,12 @@ return (
         {selectedAlbums.map(album => (
           <div 
             key={album.key} 
-            className="flex items-center ${colors.bg}0 text-white px-2 py-1 rounded text-xs"
+            className={`flex items-center ${colors.bg}0 text-white px-2 py-1 rounded text-xs`}
           >
             <span className="mr-1">💿</span> {album.name} 
             <button 
               onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
-              className="ml-1 text-white ${colors.hoverText}"
+              className={`ml-1 text-white ${colors.hoverText}`}
             >
               ×
             </button>
@@ -1349,10 +1349,10 @@ return (
                 onChange={() => handleFeatureToggleChange('include', !includeFeatures)}
                 className="sr-only"
               />
-              <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? '${colors.bg}0' : 'bg-gray-300'}`}></div>
+              <div className={`block w-8 sm:w-10 h-5 sm:h-6 rounded-full ${includeFeatures ? `${colors.bg}0` : 'bg-gray-300'}`}></div>
               <div className={`absolute left-1 top-1 bg-white w-3 sm:w-4 h-3 sm:h-4 rounded-full transition-transform ${includeFeatures ? 'transform translate-x-3 sm:translate-x-4' : ''}`}></div>
             </div>
-            <span className="ml-2 ${colors.text} text-xs sm:text-sm">
+            <span className={`ml-2 ${colors.text} text-xs sm:text-sm`}>
               Include features 
             </span>
           </label>
@@ -1378,8 +1378,8 @@ return (
           onClick={() => setShowOmittedTab(false)}
           className={`px-4 py-2 rounded-t text-sm ${
             !showOmittedTab
-              ? '${colors.bgDark} text-white'
-              : '${colors.bgLight} ${colors.text} hover:${colors.bgMed}'
+              ? `${colors.bgDark} text-white`
+              : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
           Track Results
@@ -1388,8 +1388,8 @@ return (
           onClick={() => setShowOmittedTab(true)}
           className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
             showOmittedTab
-              ? '${colors.bgDark} text-white'
-              : '${colors.bgLight} ${colors.text} hover:${colors.bgMed}'
+              ? `${colors.bgDark} text-white`
+              : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
           <Eye size={14} />
@@ -1398,7 +1398,7 @@ return (
       </div>
       <button
         onClick={() => setShowPlaylistExporter(true)}
-        className="flex items-center gap-1 px-3 py-1 ${colors.bgDark} text-white rounded text-sm ${colors.bgDarkHover} transition-colors"
+        className={`flex items-center gap-1 px-3 py-1 ${colors.bgDark} text-white rounded text-sm ${colors.bgDarkHover} transition-colors`}
       >
         <Download size={14} className="hidden sm:inline" />
         Export M3u
@@ -1407,22 +1407,22 @@ return (
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
-      <div className="border rounded-lg p-3 sm:p-4 ${colors.bg}">
-        <h3 className="font-bold ${colors.text} mb-4">Omitted Content</h3>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
+        <h3 className={`font-bold ${colors.text} mb-4`}>Omitted Content</h3>
         
         {omittedArtists.length > 0 && (
           <div className="mb-4">
-            <h4 className="font-semibold ${colors.textLight} mb-2">Omitted Artists</h4>
+            <h4 className={`font-semibold ${colors.textLight} mb-2`}>Omitted Artists</h4>
             <div className="flex flex-wrap gap-2">
               {omittedArtists.map(artist => (
                 <div 
                   key={artist} 
-                  className="flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs"
+                  className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
                 >
                   {artist}
                   <button 
                     onClick={() => unomitArtist(artist)}
-                    className="ml-2 text-white ${colors.hoverText}"
+                    className={`ml-2 text-white ${colors.hoverText}`}
                   >
                     Un-omit
                   </button>
@@ -1434,27 +1434,27 @@ return (
         
         {omittedSongs.length > 0 && (
           <div>
-            <h4 className="font-semibold ${colors.textLight} mb-2">Omitted Songs</h4>
+            <h4 className={`font-semibold ${colors.textLight} mb-2`}>Omitted Songs</h4>
             <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="border-b">
-                    <th className="p-2 text-left ${colors.text}">Track</th>
-                    <th className="p-2 text-left ${colors.text}">Artist</th>
-                    <th className="p-2 text-left ${colors.text}">Album</th>
-                    <th className="p-2 text-right ${colors.text}">Actions</th>
+                    <th className={`p-2 text-left ${colors.text}`}>Track</th>
+                    <th className={`p-2 text-left ${colors.text}`}>Artist</th>
+                    <th className={`p-2 text-left ${colors.text}`}>Album</th>
+                    <th className={`p-2 text-right ${colors.text}`}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {omittedSongs.map(song => (
-                    <tr key={song.key} className="border-b hover:${colors.bg}">
+                    <tr key={song.key} className={`border-b hover:${colors.bg}`}>
                       <td className={`p-2 ${colors.text}`}>{song.trackName}</td>
                       <td className={`p-2 ${colors.text}`}>{song.artist}</td>
                       <td className={`p-2 ${colors.text}`}>{song.albumName}</td>
                       <td className="p-2 text-right">
                         <button
                           onClick={() => unomitSong(song.key)}
-                          className="px-2 py-1 ${colors.bgDark} text-white rounded text-xs ${colors.bgDarkHover}"
+                          className={`px-2 py-1 ${colors.bgDark} text-white rounded text-xs ${colors.bgDarkHover}`}
                         >
                           Un-omit
                         </button>
@@ -1468,19 +1468,19 @@ return (
         )}
         
         {omittedSongs.length === 0 && omittedArtists.length === 0 && (
-          <div className="text-center py-4 ${colors.textLighter}">
+          <div className={`text-center py-4 ${colors.textLighter}`}>
             No songs or artists have been omitted yet
           </div>
         )}
       </div>
     ) : (
       /* Results section with date range info */
-      <div className="border rounded-lg p-3 sm:p-4 ${colors.bg}">
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
         <div className="flex justify-between items-center flex-wrap gap-2">
-          <div className="${colors.text} font-medium text-sm">
-            Date Range: <span className="${colors.textDark}">{getFormattedDateRange()}</span>
+          <div className={`${colors.text} font-medium text-sm`}>
+            Date Range: <span className={`${colors.textDark}`}>{getFormattedDateRange()}</span>
           </div>
-          <div className="${colors.text} text-sm">
+          <div className={`${colors.text} text-sm`}>
             Found <span className="font-bold">{filteredTracks.length}</span> tracks
           </div>
         </div>
@@ -1492,12 +1492,12 @@ return (
               {filteredTracks.map((song, index) => (
                 <div 
                   key={song.key}
-                  className={`p-3 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow ${song.isFeatured ? '${colors.border} ${colors.bg}' : 'border-gray-200'}`}
+                  className={`p-3 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow ${song.isFeatured ? `${colors.border} ${colors.bg}` : 'border-gray-200'}`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
                       {song.isFeatured && (
-                        <span className="inline-block px-1 py-0.5 mr-2 ${colors.bgMed} ${colors.text} rounded text-xs">
+                        <span className={`inline-block px-1 py-0.5 mr-2 ${colors.bgMed} ${colors.text} rounded text-xs`}>
                           FEAT
                         </span>
                       )}
@@ -1505,18 +1505,18 @@ return (
                   </div>
                   
                   <div className="mb-2">
-                    <div className="font-medium ${colors.textDark} text-sm leading-tight mb-1 flex items-center justify-between">
+                    <div className={`font-medium ${colors.textDark} text-sm leading-tight mb-1 flex items-center justify-between`}>
                       <span>{song.displayName || song.trackName}</span>
-                      <span className="font-bold text-sm ${colors.textDark}">{index + 1}</span>
+                      <span className={`font-bold text-sm ${colors.textDark}`}>{index + 1}</span>
                     </div>
                     <div 
-                      className="text-sm ${colors.textLight} cursor-pointer hover:underline"
+                      className={`text-sm ${colors.textLight} cursor-pointer hover:underline`}
                       onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
                     >
                       {song.displayArtist || song.artist}
                     </div>
                     <div 
-                      className="text-xs ${colors.textLighter} cursor-pointer hover:underline mt-1"
+                      className={`text-xs ${colors.textLighter} cursor-pointer hover:underline mt-1`}
                       onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
                     >
                       {song.albumName}
@@ -1525,30 +1525,30 @@ return (
                   
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <div className="text-sm font-medium ${colors.text}">
+                      <div className={`text-sm font-medium ${colors.text}`}>
                         {formatDuration(song.totalPlayed)}
                       </div>
-                      <div className="text-xs ${colors.textLight}">
+                      <div className={`text-xs ${colors.textLight}`}>
                         {song.playCount} plays
                       </div>
                     </div>
                     <div className="flex justify-center relative">
                       <button
                         onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
-                        className="p-1 ${colors.textLight} hover:${colors.textDark} rounded"
+                        className={`p-1 ${colors.textLight} hover:${colors.textDark} rounded`}
                         title="Omit options"
                       >
                         <XCircle size={12} />
                       </button>
                       
                       {showOmitDropdown === song.key && (
-                        <div className="absolute bottom-full mb-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max">
+                        <div className={`absolute bottom-full mb-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                           <button
                             onClick={() => {
                               omitSong(song);
                               setShowOmitDropdown(null);
                             }}
-                            className="block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}"
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
                           >
                             Omit song
                           </button>
@@ -1557,7 +1557,7 @@ return (
                               omitArtist(song.artist);
                               setShowOmitDropdown(null);
                             }}
-                            className="block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}"
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
                           >
                             Omit artist
                           </button>
@@ -1573,9 +1573,9 @@ return (
             <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b ${colors.border} dark:${colors.borderDark}">
-                    <th className="p-2 text-left ${colors.text}">Track Info</th>
-                    <th className="p-2 text-right ${colors.text}">Stats</th>
+                  <tr className={`border-b ${colors.border} dark:${colors.borderDark}`}>
+                    <th className={`p-2 text-left ${colors.text}`}>Track Info</th>
+                    <th className={`p-2 text-right ${colors.text}`}>Stats</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1589,14 +1589,14 @@ return (
                 <div className="min-w-full">
                   <table className="w-full border-collapse text-sm sm:text-base">
                     <thead>
-                      <tr className="border-b ${colors.border} dark:${colors.borderDark}">
-                        <th className="p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm">Rank</th>
-                        <th className="p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm">Track</th>
-                        <th className="p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm">Artist</th>
-                        <th className="p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm hidden sm:table-cell">Album</th>
-                        <th className="p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm">Time</th>
-                        <th className="p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm">Plays</th>
-                        <th className="p-1 sm:p-2 text-center ${colors.text} text-xs sm:text-sm"></th>
+                      <tr className={`border-b ${colors.border} dark:${colors.borderDark}`}>
+                        <th className={`p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm`}>Rank</th>
+                        <th className={`p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm`}>Track</th>
+                        <th className={`p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm`}>Artist</th>
+                        <th className={`p-1 sm:p-2 text-left ${colors.text} text-xs sm:text-sm hidden sm:table-cell`}>Album</th>
+                        <th className={`p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm`}>Time</th>
+                        <th className={`p-1 sm:p-2 text-right ${colors.text} text-xs sm:text-sm`}>Plays</th>
+                        <th className={`p-1 sm:p-2 text-center ${colors.text} text-xs sm:text-sm`}></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1610,7 +1610,7 @@ return (
             <div>Unknown view mode</div>
           )
         ) : (
-          <div className="text-center py-4 ${colors.textLighter}">
+          <div className={`text-center py-4 ${colors.textLighter}`}>
             {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
               ? 'No tracks found matching your filters' 
               : 'Select filters to view tracks'}
