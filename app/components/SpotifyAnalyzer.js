@@ -2254,7 +2254,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     <span className="text-cyan-700 font-medium">Filtered Artists ({selectedArtists.length}):</span>
                     <button
                       onClick={() => setSelectedArtists([])}
-                      className="text-cyan-600 hover:text-pink-800 text-sm"
+                      className="text-cyan-600 hover:text-cyan-800 text-sm"
                     >
                       Clear All
                     </button>
@@ -2263,7 +2263,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     {selectedArtists.map(artist => (
                       <span
                         key={artist}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-pink-100 text-cyan-700 rounded-full text-xs"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs"
                       >
                         {artist}
                         <button
