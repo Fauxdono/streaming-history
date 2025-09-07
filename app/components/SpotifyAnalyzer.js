@@ -1304,32 +1304,44 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     
     // Set the appropriate color theme based on the active tab
     switch(activeTab) {
+      case 'updates':
+        setSidebarColorTheme('fuchsia');
+        break;
+      case 'upload':
+        setSidebarColorTheme('violet');
+        break;
+      case 'stats':
+        setSidebarColorTheme('indigo');
+        break;
       case 'artists':
-        setSidebarColorTheme('teal');
-        break;
-      case 'albums':
-        setSidebarColorTheme('pink');
-        break;
-      case 'patterns':
-        setSidebarColorTheme('purple');
-        break;
-      case 'calendar':
         setSidebarColorTheme('blue');
         break;
-      case 'behavior':
-        setSidebarColorTheme('indigo');
+      case 'albums':
+        setSidebarColorTheme('cyan');
         break;
       case 'custom':
-        setSidebarColorTheme('orange');
+        setSidebarColorTheme('emerald');
         break;
-      case 'discovery':
+      case 'calendar':
         setSidebarColorTheme('green');
         break;
+      case 'patterns':
+        setSidebarColorTheme('yellow');
+        break;
+      case 'behavior':
+        setSidebarColorTheme('amber');
+        break;
+      case 'discovery':
+        setSidebarColorTheme('orange');
+        break;
       case 'podcasts':
-        setSidebarColorTheme('indigo');
+        setSidebarColorTheme('red');
+        break;
+      case 'playlists':
+        setSidebarColorTheme('rose');
         break;
       default:
-        setSidebarColorTheme('teal');
+        setSidebarColorTheme('blue');
     }
   }, [activeTab, shouldShowSidebar]);
 
