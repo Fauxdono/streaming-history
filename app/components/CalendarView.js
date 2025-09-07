@@ -14,6 +14,53 @@ const CalendarView = ({
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  // Color theme mapping
+  const getColors = (colorTheme) => {
+    switch (colorTheme) {
+      case 'green':
+        return {
+          primary: 'green-700',
+          primaryLight: 'green-600',
+          primaryLighter: 'green-500',
+          primaryDark: 'green-400',
+          bg: 'green-600',
+          bgLight: 'green-200',
+          bgMed: 'green-300',
+          border: 'green-200',
+          borderMed: 'green-300',
+          borderDark: 'green-400',
+          borderStrong: 'green-600',
+          hoverBg: 'green-300',
+          textDark: 'green-200',
+          textLight: 'green-300',
+          textLighter: 'green-400',
+          textVeryLight: 'green-500'
+        };
+      case 'blue':
+      default:
+        return {
+          primary: 'blue-700',
+          primaryLight: 'blue-600',
+          primaryLighter: 'blue-500',
+          primaryDark: 'blue-400',
+          bg: 'blue-600',
+          bgLight: 'blue-200',
+          bgMed: 'blue-300',
+          border: 'blue-200',
+          borderMed: 'blue-300',
+          borderDark: 'blue-400',
+          borderStrong: 'blue-600',
+          hoverBg: 'blue-300',
+          textDark: 'blue-200',
+          textLight: 'blue-300',
+          textLighter: 'blue-400',
+          textVeryLight: 'blue-500'
+        };
+    }
+  };
+
+  const colors = getColors(colorTheme);
   
   // Month names constants
   const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -482,11 +529,11 @@ const CalendarView = ({
       className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? isDarkMode 
-            ? 'bg-gray-700 text-blue-400 border border-blue-400' 
-            : 'bg-blue-600 text-white border border-blue-600'
+            ? `bg-gray-700 text-${colors.primaryDark} border border-${colors.borderDark}` 
+            : `bg-${colors.bg} text-white border border-${colors.borderStrong}`
           : isDarkMode
-            ? 'bg-gray-800 text-blue-400 hover:bg-gray-700 border border-gray-600'
-            : 'bg-blue-200 text-blue-600 hover:bg-blue-300 border border-blue-300'
+            ? `bg-gray-800 text-${colors.primaryDark} hover:bg-gray-700 border border-gray-600`
+            : `bg-${colors.bgLight} text-${colors.primaryLight} hover:bg-${colors.hoverBg} border border-${colors.borderMed}`
       }`}
     >
       {label}
@@ -505,7 +552,7 @@ const CalendarView = ({
   };
 
   return (
-    <div className={`w-full ${isDarkMode ? 'text-blue-200' : 'text-gray-900'}`}>
+    <div className={`w-full ${isDarkMode ? `text-${colors.textDark}` : 'text-gray-900'}`}>
       {/* Mobile-friendly tabs */}
       <div className="mb-4">
         <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -519,14 +566,14 @@ const CalendarView = ({
           <div>
             {/* Dynamic header based on view mode */}
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>
               {isMonthView ? 
                 `Daily Calendar - ${selectedYear.split('-')[1]}/${selectedYear.split('-')[0]}` : 
                 'Yearly Calendar Overview'}
             </h3>
             <p className={`mb-4 ${
-              isDarkMode ? 'text-blue-400' : 'text-blue-600'
+              isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
             }`}>
               {isMonthView ? 
                 'Daily breakdown showing your top artist, album, and new discoveries for each day' :
@@ -540,11 +587,11 @@ const CalendarView = ({
                   <div key={index} className={`p-3 rounded shadow-sm border-2 transition-colors relative ${
                     isDarkMode 
                       ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                      : 'bg-white border-blue-200 hover:border-blue-400'
+                      : `bg-white border-${colors.border} hover:border-${colors.borderDark}`
                   }`}>
                     
                     <div className={`text-sm ${
-                      isDarkMode ? 'text-blue-400' : 'text-blue-500'
+                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLighter}`
                     }`}>
                       Total Plays: <span className="font-bold">{monthData.totalPlays}</span>
                       <br/>
@@ -578,7 +625,7 @@ const CalendarView = ({
                     </div>
                     
                     <div className={`absolute top-2 right-3 text-sm font-bold ${
-                      isDarkMode ? 'text-blue-500' : 'text-blue-300'
+                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.textLight}`
                     }`}>{monthData.fullName}</div>
                   </div>
                 ))}
@@ -592,11 +639,11 @@ const CalendarView = ({
                   <div key={index} className={`p-3 rounded shadow-sm border-2 transition-colors relative ${
                     isDarkMode 
                       ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
-                      : 'bg-white border-blue-200 hover:border-blue-400'
+                      : `bg-white border-${colors.border} hover:border-${colors.borderDark}`
                   }`}>
                     
                     <div className={`text-sm ${
-                      isDarkMode ? 'text-blue-400' : 'text-blue-500'
+                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLighter}`
                     }`}>
                       Total Plays: <span className="font-bold">{dayData.totalPlays}</span>
                       <br/>
@@ -630,7 +677,7 @@ const CalendarView = ({
                     </div>
                     
                     <div className={`absolute top-2 right-3 text-lg font-bold ${
-                      isDarkMode ? 'text-blue-500' : 'text-blue-300'
+                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.textLight}`
                     }`}>{selectedYear.split('-')[1].padStart(2, '0') === '01' ? 'Jan' : 
                         selectedYear.split('-')[1].padStart(2, '0') === '02' ? 'Feb' :
                         selectedYear.split('-')[1].padStart(2, '0') === '03' ? 'Mar' :
@@ -655,14 +702,14 @@ const CalendarView = ({
           <div className="flex flex-col gap-4">
             <div>
               <h3 className={`text-lg font-bold ${
-                isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
               }`}>Daily Listening History</h3>
               <p className={`text-sm ${
-                isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
               }`}>Use the year selector to pick a specific date and see what you listened to in chronological order</p>
               {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
                 <div className={`mt-2 text-sm px-3 py-2 rounded ${
-                  isDarkMode ? 'bg-blue-800 text-blue-200 border border-blue-600' : 'bg-blue-50 text-blue-700 border border-blue-200'
+                  isDarkMode ? `bg-gray-800 text-${colors.textDark} border border-${colors.borderStrong}` : `bg-${colors.bg}-50 text-${colors.primary} border border-${colors.border}`
                 }`}>
                   📅 Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
                 </div>
@@ -671,42 +718,42 @@ const CalendarView = ({
           </div>
           
           <div className={`p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-blue-50 border border-blue-100'
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bg}-50 border border-${colors.border}-100`
           }`}>
             <h4 className={`font-bold mb-2 ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>Summary for {historyData.formattedDate}</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
                 <div className={`font-medium ${
-                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
                 }`}>Total Tracks</div>
                 <div className={`text-lg font-bold ${
-                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
                 }`}>{historyData.totalTracks}</div>
               </div>
               <div>
                 <div className={`font-medium ${
-                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
                 }`}>Listening Time</div>
                 <div className={`text-lg font-bold ${
-                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
                 }`}>{formatDuration(historyData.totalListeningTime)}</div>
               </div>
               <div>
                 <div className={`font-medium ${
-                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
                 }`}>Unique Tracks</div>
                 <div className={`text-lg font-bold ${
-                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
                 }`}>{historyData.uniqueTracks}</div>
               </div>
               <div>
                 <div className={`font-medium ${
-                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
                 }`}>Unique Artists</div>
                 <div className={`text-lg font-bold ${
-                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
                 }`}>{historyData.uniqueArtists}</div>
               </div>
             </div>
@@ -714,7 +761,7 @@ const CalendarView = ({
           
           <div>
             <h4 className={`font-bold mb-4 ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>Chronological Track List ({historyData.tracks.length} tracks)</h4>
             
             {historyData.tracks.length === 0 ? (
