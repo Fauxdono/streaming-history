@@ -529,8 +529,8 @@ const CalendarView = ({
       className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? isDarkMode 
-            ? `bg-gray-700 text-${colors.primaryDark} border border-${colors.borderDark}` 
-            : `bg-${colors.bg} text-white border border-${colors.borderStrong}`
+            ? `bg-green-600 text-black border border-green-500` 
+            : `bg-green-600 text-black border border-green-500`
           : isDarkMode
             ? `bg-gray-800 text-${colors.primaryDark} hover:bg-gray-700 border border-gray-600`
             : `bg-${colors.bgLight} text-${colors.primaryLight} hover:bg-${colors.hoverBg} border border-${colors.borderMed}`
