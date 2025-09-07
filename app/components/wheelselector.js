@@ -119,6 +119,110 @@ const WheelSelector = ({
           gradientLightBottom: 'bg-gradient-to-t from-green-50 to-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-green-900 to-transparent'
         };
+      case 'red':
+        return {
+          border: 'border-red-300',
+          highlight: 'bg-red-100',
+          text: 'text-red-700',
+          activeText: 'text-red-800 font-bold',
+          shadow: 'shadow-red-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-red-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-red-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-red-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-red-900 to-transparent'
+        };
+      case 'yellow':
+        return {
+          border: 'border-yellow-300',
+          highlight: 'bg-yellow-100',
+          text: 'text-yellow-700',
+          activeText: 'text-yellow-800 font-bold',
+          shadow: 'shadow-yellow-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-yellow-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-yellow-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-yellow-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-yellow-900 to-transparent'
+        };
+      case 'amber':
+        return {
+          border: 'border-amber-300',
+          highlight: 'bg-amber-100',
+          text: 'text-amber-700',
+          activeText: 'text-amber-800 font-bold',
+          shadow: 'shadow-amber-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-amber-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-amber-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-amber-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-amber-900 to-transparent'
+        };
+      case 'cyan':
+        return {
+          border: 'border-cyan-300',
+          highlight: 'bg-cyan-100',
+          text: 'text-cyan-700',
+          activeText: 'text-cyan-800 font-bold',
+          shadow: 'shadow-cyan-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-cyan-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-cyan-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-cyan-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-cyan-900 to-transparent'
+        };
+      case 'emerald':
+        return {
+          border: 'border-emerald-300',
+          highlight: 'bg-emerald-100',
+          text: 'text-emerald-700',
+          activeText: 'text-emerald-800 font-bold',
+          shadow: 'shadow-emerald-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-emerald-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-emerald-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-emerald-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-emerald-900 to-transparent'
+        };
+      case 'fuchsia':
+        return {
+          border: 'border-fuchsia-300',
+          highlight: 'bg-fuchsia-100',
+          text: 'text-fuchsia-700',
+          activeText: 'text-fuchsia-800 font-bold',
+          shadow: 'shadow-fuchsia-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-fuchsia-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-fuchsia-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-fuchsia-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-fuchsia-900 to-transparent'
+        };
+      case 'violet':
+        return {
+          border: 'border-violet-300',
+          highlight: 'bg-violet-100',
+          text: 'text-violet-700',
+          activeText: 'text-violet-800 font-bold',
+          shadow: 'shadow-violet-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-violet-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-violet-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-violet-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-violet-900 to-transparent'
+        };
+      case 'rose':
+        return {
+          border: 'border-rose-300',
+          highlight: 'bg-rose-100',
+          text: 'text-rose-700',
+          activeText: 'text-rose-800 font-bold',
+          shadow: 'shadow-rose-200',
+          background: 'bg-white',
+          gradientLight: 'bg-gradient-to-b from-rose-50 to-transparent',
+          gradientDark: 'bg-gradient-to-b from-rose-900 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-rose-50 to-transparent',
+          gradientDarkBottom: 'bg-gradient-to-t from-rose-900 to-transparent'
+        };
     }
   };
   
