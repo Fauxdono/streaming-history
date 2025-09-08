@@ -55,12 +55,12 @@ const WheelSelector = ({
         };
       case 'blue':
         return {
-          border: 'border-blue-300',
-          highlight: 'bg-blue-100',
-          text: 'text-blue-700',
-          activeText: 'text-blue-800 font-bold',
-          shadow: 'shadow-blue-200',
-          background: 'bg-white',
+          border: 'border-blue-300 dark:border-blue-700',
+          highlight: 'bg-blue-100 dark:bg-blue-900',
+          text: 'text-blue-700 dark:text-blue-300',
+          activeText: 'text-blue-800 font-bold dark:text-blue-200',
+          shadow: 'shadow-blue-200 dark:shadow-blue-900',
+          background: 'bg-white dark:bg-gray-800',
           gradientLight: 'bg-gradient-to-b from-blue-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-blue-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-blue-50 to-transparent',
@@ -108,12 +108,12 @@ const WheelSelector = ({
         };
    case 'green':
         return {
-          border: 'border-green-300',
-          highlight: 'bg-green-100',
-          text: 'text-green-700',
-          activeText: 'text-green-800 font-bold',
-          shadow: 'shadow-green-200',
-          background: 'bg-white',
+          border: 'border-green-300 dark:border-green-700',
+          highlight: 'bg-green-100 dark:bg-green-900',
+          text: 'text-green-700 dark:text-green-300',
+          activeText: 'text-green-800 font-bold dark:text-green-200',
+          shadow: 'shadow-green-200 dark:shadow-green-900',
+          background: 'bg-white dark:bg-gray-800',
           gradientLight: 'bg-gradient-to-b from-green-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-green-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-green-50 to-transparent',
@@ -147,12 +147,12 @@ const WheelSelector = ({
         };
       case 'amber':
         return {
-          border: 'border-amber-300',
-          highlight: 'bg-amber-100',
-          text: 'text-amber-700',
-          activeText: 'text-amber-800 font-bold',
-          shadow: 'shadow-amber-200',
-          background: 'bg-white',
+          border: 'border-amber-300 dark:border-amber-700',
+          highlight: 'bg-amber-100 dark:bg-amber-900',
+          text: 'text-amber-700 dark:text-amber-300',
+          activeText: 'text-amber-800 font-bold dark:text-amber-200',
+          shadow: 'shadow-amber-200 dark:shadow-amber-900',
+          background: 'bg-white dark:bg-gray-800',
           gradientLight: 'bg-gradient-to-b from-amber-50 to-transparent',
           gradientDark: 'bg-gradient-to-b from-amber-900 to-transparent',
           gradientLightBottom: 'bg-gradient-to-t from-amber-50 to-transparent',
