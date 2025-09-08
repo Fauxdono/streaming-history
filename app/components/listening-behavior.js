@@ -15,6 +15,9 @@ const ListeningBehavior = ({
 }) => {
   const [activeTab, setActiveTab] = useState('behavior');
   
+  // Debug: Log the colorTheme prop
+  console.log('🎨 ListeningBehavior colorTheme:', colorTheme);
+  
   // Defer heavy computations to prevent blocking during tab switch
   const deferredRawPlayData = useDeferredValue(rawPlayData);
   const deferredActiveTab = useDeferredValue(activeTab);
@@ -57,28 +60,30 @@ const ListeningBehavior = ({
 
   // Color theme mapping function
   const getColors = (colorTheme) => {
+    console.log('🔍 getColors called with:', colorTheme);
     switch (colorTheme) {
       case 'amber':
+        console.log('✅ Using amber color case - copying TopTabs colors');
         return {
-          primary: 'amber-700',
-          primaryLight: 'amber-600',
-          primaryLighter: 'amber-500',
-          primaryDark: 'amber-300',    // Use amber-300 for lighter amber in dark mode
-          primaryDarker: 'amber-400',  // Use amber-400 for slightly darker amber in dark mode
+          primary: 'amber-600',        // Same as TopTabs text-amber-600
+          primaryLight: 'amber-500',
+          primaryLighter: 'amber-400',
+          primaryDark: 'amber-300',    // Same as TopTabs dark:text-amber-300
+          primaryDarker: 'amber-200',
           bg: 'amber-600',
-          bgLight: 'amber-200',
+          bgLight: 'amber-200',        // Same as TopTabs bg-amber-200
           bgLighter: 'amber-100',
-          bgMed: 'amber-300',
+          bgMed: 'amber-300',          // Same as TopTabs hover:bg-amber-300
           border: 'amber-200',
           borderMed: 'amber-300',
-          borderDark: 'amber-400',
-          borderStrong: 'amber-600',
+          borderDark: 'amber-400',     // Same as TopTabs dark:border-amber-400
+          borderStrong: 'amber-600',   // Same as TopTabs border-amber-600
           hoverBg: 'amber-300',
-          text: 'amber-700',
-          textDark: 'amber-300',       // Use amber-300 for lighter amber text in dark mode
-          textLight: 'amber-400',      // Use amber-400 for amber text in dark mode
-          textLighter: 'amber-200',    // Use amber-200 for lightest amber text in dark mode
-          textVeryLight: 'amber-500'
+          text: 'amber-600',           // Same as TopTabs text-amber-600
+          textDark: 'amber-300',       // Same as TopTabs dark:text-amber-300
+          textLight: 'amber-300',      // Same as TopTabs dark:text-amber-300
+          textLighter: 'amber-300',    // Same as TopTabs dark:text-amber-300
+          textVeryLight: 'amber-400'
         };
       case 'yellow':
         return {
@@ -129,6 +134,7 @@ const ListeningBehavior = ({
   };
 
   const colors = getColors(colorTheme);
+  console.log('🎯 Final colors object:', colors);
 
   // Color theme for pie chart strokes - use actual hex values instead of CSS variables for SVG compatibility
   const getStrokeColor = useMemo(() => {
