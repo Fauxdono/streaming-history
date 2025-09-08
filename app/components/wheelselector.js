@@ -35,9 +35,9 @@ const WheelSelector = ({
           activeText: 'text-pink-800 font-bold',
           shadow: 'shadow-pink-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-pink-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-pink-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-pink-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-pink-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-pink-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-pink-900 to-transparent'
         };
       case 'purple':
@@ -48,9 +48,9 @@ const WheelSelector = ({
           activeText: 'text-purple-800 font-bold',
           shadow: 'shadow-purple-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-purple-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-purple-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-purple-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-purple-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-purple-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-purple-900 to-transparent'
         };
       case 'blue':
@@ -75,9 +75,9 @@ const WheelSelector = ({
           activeText: 'text-teal-800 font-bold',
           shadow: 'shadow-teal-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-teal-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-teal-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-teal-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-teal-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-teal-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-teal-900 to-transparent'
         };
       case 'orange':
@@ -88,9 +88,9 @@ const WheelSelector = ({
           activeText: 'text-orange-800 font-bold',
           shadow: 'shadow-orange-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-orange-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-orange-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-orange-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-orange-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-orange-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-orange-900 to-transparent'
         };
    case 'indigo':
@@ -101,9 +101,9 @@ const WheelSelector = ({
           activeText: 'text-indigo-800 font-bold',
           shadow: 'shadow-indigo-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-indigo-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-indigo-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-indigo-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-indigo-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-indigo-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-indigo-900 to-transparent'
         };
    case 'green':
@@ -127,9 +127,9 @@ const WheelSelector = ({
           activeText: 'text-red-800 font-bold',
           shadow: 'shadow-red-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-red-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-red-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-red-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-red-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-red-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-red-900 to-transparent'
         };
       case 'yellow':
@@ -140,9 +140,9 @@ const WheelSelector = ({
           activeText: 'text-yellow-800 font-bold',
           shadow: 'shadow-yellow-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-yellow-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-yellow-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-yellow-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-yellow-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-yellow-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-yellow-900 to-transparent'
         };
       case 'amber':
@@ -166,9 +166,9 @@ const WheelSelector = ({
           activeText: 'text-cyan-800 font-bold',
           shadow: 'shadow-cyan-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-cyan-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-cyan-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-cyan-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-cyan-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-cyan-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-cyan-900 to-transparent'
         };
       case 'emerald':
@@ -179,9 +179,9 @@ const WheelSelector = ({
           activeText: 'text-emerald-800 font-bold',
           shadow: 'shadow-emerald-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-emerald-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-emerald-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-emerald-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-emerald-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-emerald-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-emerald-900 to-transparent'
         };
       case 'fuchsia':
@@ -192,9 +192,9 @@ const WheelSelector = ({
           activeText: 'text-fuchsia-800 font-bold',
           shadow: 'shadow-fuchsia-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-fuchsia-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-fuchsia-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-fuchsia-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-fuchsia-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-fuchsia-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-fuchsia-900 to-transparent'
         };
       case 'violet':
@@ -205,9 +205,9 @@ const WheelSelector = ({
           activeText: 'text-violet-800 font-bold',
           shadow: 'shadow-violet-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-violet-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-violet-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-violet-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-violet-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-violet-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-violet-900 to-transparent'
         };
       case 'rose':
@@ -218,9 +218,9 @@ const WheelSelector = ({
           activeText: 'text-rose-800 font-bold',
           shadow: 'shadow-rose-200',
           background: 'bg-white',
-          gradientLight: 'bg-gradient-to-b from-rose-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-rose-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-rose-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-rose-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-rose-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-rose-900 to-transparent'
         };
     }
