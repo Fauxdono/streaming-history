@@ -38,6 +38,7 @@ const ListeningBehavior = ({
         case 'indigo': return '#A5B4FC';
         case 'green': return '#86EFAC';
         case 'blue': return '#93C5FD';
+        case 'yellow': return '#F59E0B';  // yellow-500 - brighter and more visible in dark mode
         default: return '#A5B4FC';
       }
     } else {
@@ -46,6 +47,7 @@ const ListeningBehavior = ({
         case 'indigo': return '#3730A3';
         case 'green': return '#14532D';
         case 'blue': return '#1E40AF';
+        case 'yellow': return '#92400E';  // yellow-800 - darker for light mode
         default: return '#3730A3';
       }
     }
@@ -59,8 +61,8 @@ const ListeningBehavior = ({
           primary: 'yellow-700',
           primaryLight: 'yellow-600',
           primaryLighter: 'yellow-500',
-          primaryDark: 'yellow-400',
-          primaryDarker: 'yellow-300',
+          primaryDark: 'yellow-500',   // Brighter for dark mode - yellow-500 is more visible
+          primaryDarker: 'yellow-400', // Even brighter for dark mode - yellow-400 
           bg: 'yellow-600',
           bgLight: 'yellow-200',
           bgLighter: 'yellow-100',
@@ -71,9 +73,9 @@ const ListeningBehavior = ({
           borderStrong: 'yellow-600',
           hoverBg: 'yellow-300',
           text: 'yellow-700',
-          textDark: 'yellow-200',
-          textLight: 'yellow-300',
-          textLighter: 'yellow-400',
+          textDark: 'yellow-500',      // Brighter for better dark mode visibility
+          textLight: 'yellow-400',     // Even brighter for dark mode visibility  
+          textLighter: 'yellow-300',   // Bright for dark mode visibility
           textVeryLight: 'yellow-500'
         };
       case 'indigo':
