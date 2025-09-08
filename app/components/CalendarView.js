@@ -688,7 +688,7 @@ const CalendarView = ({
       )}
 
       {activeTab === 'history' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
           <div className="flex flex-col gap-4">
             <div>
               <h3 className={`text-lg font-bold ${
@@ -707,13 +707,13 @@ const CalendarView = ({
             </div>
           </div>
           
-          <div className={`p-4 rounded ${
+          <div className={`p-3 sm:p-4 rounded ${
             isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bg}-50 border border-${colors.border}-100`
           }`}>
-            <h4 className={`font-bold mb-2 ${
+            <h4 className={`font-bold mb-3 sm:mb-2 text-sm sm:text-base ${
               isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>Summary for {historyData.formattedDate}</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
               <div>
                 <div className={`font-medium ${
                   isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -750,7 +750,7 @@ const CalendarView = ({
           </div>
           
           <div>
-            <h4 className={`font-bold mb-4 ${
+            <h4 className={`font-bold mb-3 sm:mb-4 text-sm sm:text-base ${
               isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>Chronological Track List ({historyData.tracks.length} tracks)</h4>
             
@@ -761,17 +761,17 @@ const CalendarView = ({
                 No listening data found for this date.
               </div>
             ) : (
-              <div className={`max-h-96 overflow-y-auto border rounded ${
+              <div className={`max-h-96 sm:max-h-96 md:max-h-[70vh] overflow-y-auto border rounded ${
                 isDarkMode ? 'border-gray-700' : 'border-gray-200'
               }`}>
-                <div className="space-y-1 p-2">
+                <div className="space-y-1 p-1 sm:p-2">
                   {historyData.tracks.map((track, index) => (
-                    <div key={index} className={`flex items-center justify-between p-3 rounded text-sm hover:bg-opacity-50 transition-colors ${
+                    <div key={index} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 rounded text-sm hover:bg-opacity-50 transition-colors gap-2 sm:gap-0 ${
                       isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'
                     }`}>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span className={`text-xs font-mono px-1.5 py-0.5 rounded w-fit ${
                             isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
                           }`}>
                             {track.formattedTime}
@@ -790,7 +790,7 @@ const CalendarView = ({
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-3 ml-4">
+                      <div className="flex items-center justify-between sm:justify-start gap-3 sm:ml-4">
                         <div className={`text-xs ${
                           isDarkMode ? 'text-gray-400' : 'text-gray-500'
                         }`}>
