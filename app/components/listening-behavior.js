@@ -740,11 +740,11 @@ const filteredData = useMemo(() => {
       className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? isDarkMode 
-            ? `bg-gray-700 text-${colors.primaryDark} border border-${colors.primaryDark}` 
-            : `bg-${colors.bg} text-white border border-${colors.bg}`
+            ? 'bg-amber-900 text-amber-300 border border-amber-400'
+            : 'bg-amber-50 text-amber-600 border-b-2 border-amber-600'
           : isDarkMode
-            ? `bg-gray-800 text-${colors.primaryDark} hover:bg-gray-700 border border-gray-600`
-            : `bg-${colors.bgLight} text-${colors.text} hover:bg-${colors.hoverBg} border border-${colors.borderMed}`
+            ? 'bg-amber-800 text-amber-300 hover:bg-amber-700 border border-gray-600'
+            : 'bg-amber-200 text-amber-600 hover:bg-amber-300 border border-amber-300'
       }`}
     >
       {label}
@@ -922,10 +922,10 @@ const filteredData = useMemo(() => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className={`p-4 rounded ${
-              isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+              isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-amber-100'
             }`}>
               <h3 className={`font-bold ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
+                isDarkMode ? 'text-amber-300' : 'text-amber-600'
               }`}>Total Sessions</h3>
               <p className={`text-3xl ${
                 isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
