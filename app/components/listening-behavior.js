@@ -38,7 +38,7 @@ const ListeningBehavior = ({
         case 'indigo': return '#A5B4FC';
         case 'green': return '#86EFAC';
         case 'blue': return '#93C5FD';
-        case 'yellow': return '#D97706';  // amber-600 - darker orange-yellow for dark mode
+        case 'yellow': return '#92400E';  // yellow-800 hex - darker for dark mode
         default: return '#A5B4FC';
       }
     } else {
@@ -61,8 +61,8 @@ const ListeningBehavior = ({
           primary: 'yellow-700',
           primaryLight: 'yellow-600',
           primaryLighter: 'yellow-500',
-          primaryDark: 'amber-600',    // Use amber-600 for better dark mode contrast
-          primaryDarker: 'amber-700',  // Darker amber for even better contrast
+          primaryDark: 'yellow-800',   // Use yellow-800 for much darker text in dark mode
+          primaryDarker: 'yellow-900', // Use yellow-900 for darkest text in dark mode
           bg: 'yellow-600',
           bgLight: 'yellow-200',
           bgLighter: 'yellow-100',
@@ -73,9 +73,9 @@ const ListeningBehavior = ({
           borderStrong: 'yellow-600',
           hoverBg: 'yellow-300',
           text: 'yellow-700',
-          textDark: 'amber-600',       // Use amber-600 for better dark mode readability
-          textLight: 'amber-700',      // Darker amber for good contrast
-          textLighter: 'amber-800',    // Even darker amber for strong contrast
+          textDark: 'yellow-800',      // Use yellow-800 for darker text in dark mode
+          textLight: 'yellow-900',     // Use yellow-900 for darkest text in dark mode
+          textLighter: 'yellow-800',   // Use yellow-800 for dark text
           textVeryLight: 'yellow-500'
         };
       case 'indigo':
