@@ -2563,11 +2563,58 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
         />
       )}
       
-      <div className="flex h-full w-full">
+      <div className="flex h-full w-full justify-start">
         {/* Main content area that adjusts based on year selector state */}
-        <div className="flex-1 transition-all duration-300" 
+        <div className="transition-all duration-300" 
              style={{
                ...contentAreaStyles,
+               // Calculate actual width reduction instead of just padding
+               width: (() => {
+                 if (!showYearSidebar || !shouldShowSidebar(activeTab)) return '100%';
+                 
+                 let totalWidthReduction = 0;
+                 
+                 // Calculate width reduction from TopTabs
+                 if (topTabsPosition === 'left' || topTabsPosition === 'right') {
+                   totalWidthReduction += topTabsWidth;
+                 }
+                 
+                 // Calculate width reduction from YearSelector
+                 if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
+                   const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+                   totalWidthReduction += effectiveWidth;
+                 }
+                 
+                 return `calc(100% - ${totalWidthReduction}px)`;
+               })(),
+               // Use margin to position content away from left-side sidebars
+               marginLeft: (() => {
+                 if (!showYearSidebar || !shouldShowSidebar(activeTab)) return '0px';
+                 
+                 let totalLeftMargin = 0;
+                 
+                 // Add margin for left-positioned TopTabs
+                 if (topTabsPosition === 'left') {
+                   totalLeftMargin += topTabsWidth;
+                 }
+                 
+                 // Add margin for left-positioned YearSelector
+                 if (yearSelectorPosition === 'left') {
+                   const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+                   totalLeftMargin += effectiveWidth;
+                 }
+                 
+                 return `${totalLeftMargin}px`;
+               })(),
+               // Keep original padding for top/bottom spacing
+               paddingLeft: (() => {
+                 if (yearSelectorPosition === 'left' || topTabsPosition === 'left') return '0px';
+                 return contentAreaStyles.paddingLeft;
+               })(),
+               paddingRight: (() => {
+                 if (yearSelectorPosition === 'right' || topTabsPosition === 'right') return '0px';
+                 return contentAreaStyles.paddingRight;
+               })(),
                // Add safe area support on mobile
                paddingBottom: isMobile ? `calc(${contentAreaStyles.paddingBottom} + env(safe-area-inset-bottom, 0px))` : contentAreaStyles.paddingBottom,
                // Debug info
