@@ -61,9 +61,9 @@ const WheelSelector = ({
           activeText: 'text-blue-800 font-bold dark:text-blue-200',
           shadow: 'shadow-blue-200 dark:shadow-blue-900',
           background: 'bg-white dark:bg-gray-800',
-          gradientLight: 'bg-gradient-to-b from-blue-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-blue-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-blue-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-blue-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-blue-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-blue-900 to-transparent'
         };
       case 'teal':
@@ -114,9 +114,9 @@ const WheelSelector = ({
           activeText: 'text-green-800 font-bold dark:text-green-200',
           shadow: 'shadow-green-200 dark:shadow-green-900',
           background: 'bg-white dark:bg-gray-800',
-          gradientLight: 'bg-gradient-to-b from-green-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-green-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-green-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-green-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-green-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-green-900 to-transparent'
         };
       case 'red':
@@ -153,9 +153,9 @@ const WheelSelector = ({
           activeText: 'text-amber-800 font-bold dark:text-amber-200',
           shadow: 'shadow-amber-200 dark:shadow-amber-900',
           background: 'bg-white dark:bg-gray-800',
-          gradientLight: 'bg-gradient-to-b from-amber-50 to-transparent',
+          gradientLight: 'bg-gradient-to-b from-amber-50 to-transparent dark:from-transparent',
           gradientDark: 'bg-gradient-to-b from-amber-900 to-transparent',
-          gradientLightBottom: 'bg-gradient-to-t from-amber-50 to-transparent',
+          gradientLightBottom: 'bg-gradient-to-t from-amber-50 to-transparent dark:from-transparent',
           gradientDarkBottom: 'bg-gradient-to-t from-amber-900 to-transparent'
         };
       case 'cyan':
