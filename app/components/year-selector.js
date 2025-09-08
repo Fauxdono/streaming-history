@@ -612,20 +612,20 @@ const YearSelector = ({
         };
       case 'amber':
         return {
-          text: 'text-amber-700',
+          text: 'text-amber-700 dark:text-amber-300',
           textActive: 'text-white',
-          bgActive: 'bg-amber-500',
-          bgHover: 'hover:bg-amber-600/50',
-          bgLighter: 'bg-amber-100',
-          bgDark: 'bg-amber-800',
-          sidebarBg: 'bg-amber-100',
+          bgActive: 'bg-amber-500 dark:bg-amber-600',
+          bgHover: 'hover:bg-amber-600/50 dark:hover:bg-amber-700/50',
+          bgLighter: 'bg-amber-100 dark:bg-amber-900',
+          bgDark: 'bg-amber-800 dark:bg-amber-900',
+          sidebarBg: 'bg-amber-100 dark:bg-amber-900',
           glowActive: 'shadow-[0_0_15px_rgba(245,158,11,0.7)]',
-          buttonBg: 'bg-amber-600',
-          buttonHover: 'hover:bg-amber-700',
-          border: 'border-amber-300',
-          textBold: 'text-amber-800',
-          bgLight: 'bg-amber-50',
-          bgMed: 'bg-amber-200'
+          buttonBg: 'bg-amber-600 dark:bg-amber-700',
+          buttonHover: 'hover:bg-amber-700 dark:hover:bg-amber-800',
+          border: 'border-amber-300 dark:border-amber-700',
+          textBold: 'text-amber-800 dark:text-amber-200',
+          bgLight: 'bg-amber-50 dark:bg-amber-900',
+          bgMed: 'bg-amber-200 dark:bg-amber-800'
         };
       case 'fuchsia':
         return {
