@@ -63,28 +63,9 @@ const ListeningBehavior = ({
     console.log('🔍 getColors called with:', colorTheme);
     switch (colorTheme) {
       case 'amber':
-        console.log('✅ Using amber color case - copying TopTabs colors');
-        return {
-          primary: 'amber-600',        // Same as TopTabs text-amber-600
-          primaryLight: 'amber-500',
-          primaryLighter: 'amber-400',
-          primaryDark: 'amber-300',    // Same as TopTabs dark:text-amber-300
-          primaryDarker: 'amber-200',
-          bg: 'amber-600',
-          bgLight: 'amber-200',        // Same as TopTabs bg-amber-200
-          bgLighter: 'amber-100',
-          bgMed: 'amber-300',          // Same as TopTabs hover:bg-amber-300
-          border: 'amber-200',
-          borderMed: 'amber-300',
-          borderDark: 'amber-400',     // Same as TopTabs dark:border-amber-400
-          borderStrong: 'amber-600',   // Same as TopTabs border-amber-600
-          hoverBg: 'amber-300',
-          text: 'amber-600',           // Same as TopTabs text-amber-600
-          textDark: 'amber-300',       // Same as TopTabs dark:text-amber-300
-          textLight: 'amber-300',      // Same as TopTabs dark:text-amber-300
-          textLighter: 'amber-300',    // Same as TopTabs dark:text-amber-300
-          textVeryLight: 'amber-400'
-        };
+        console.log('✅ Using amber color case - hardcoded colors');
+        // Return hardcoded class strings instead of using template literals
+        return 'HARDCODED_AMBER';
       case 'yellow':
         return {
           primary: 'yellow-700',
@@ -782,7 +763,7 @@ const filteredData = useMemo(() => {
   };
 
   return (
-    <div className={`w-full space-y-4 ${isDarkMode ? `text-${colors.textDark}` : 'text-gray-900'}`}>
+    <div className={`w-full space-y-4 ${isDarkMode ? 'text-amber-300' : 'text-gray-900'}`}>
       {/* Main title is only shown here - removed from SpotifyAnalyzer */}
       
       {/* Mobile-friendly tabs */}
@@ -799,7 +780,7 @@ const filteredData = useMemo(() => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
+                isDarkMode ? 'text-amber-300' : 'text-amber-600'
               }`}>Shuffle vs. Normal Play</h3>
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -820,7 +801,7 @@ const filteredData = useMemo(() => {
             
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
+                isDarkMode ? 'text-amber-300' : 'text-amber-600'
               }`}>Track Completion</h3>
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -841,7 +822,7 @@ const filteredData = useMemo(() => {
           
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
+              isDarkMode ? 'text-amber-300' : 'text-amber-600'
             }`}>How You Start Tracks</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-gray-800' : 'bg-white'
