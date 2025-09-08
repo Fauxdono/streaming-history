@@ -38,6 +38,7 @@ const ListeningBehavior = ({
         case 'indigo': return '#A5B4FC';
         case 'green': return '#86EFAC';
         case 'blue': return '#93C5FD';
+        case 'amber': return '#FCD34D';  // amber-300 hex - lighter amber for dark mode
         case 'yellow': return '#FCD34D';  // amber-300 hex - lighter amber for dark mode
         default: return '#A5B4FC';
       }
@@ -47,6 +48,7 @@ const ListeningBehavior = ({
         case 'indigo': return '#3730A3';
         case 'green': return '#14532D';
         case 'blue': return '#1E40AF';
+        case 'amber': return '#B45309';  // amber-700 hex - darker for light mode
         case 'yellow': return '#92400E';  // yellow-800 - darker for light mode
         default: return '#3730A3';
       }
@@ -56,6 +58,28 @@ const ListeningBehavior = ({
   // Color theme mapping function
   const getColors = (colorTheme) => {
     switch (colorTheme) {
+      case 'amber':
+        return {
+          primary: 'amber-700',
+          primaryLight: 'amber-600',
+          primaryLighter: 'amber-500',
+          primaryDark: 'amber-300',    // Use amber-300 for lighter amber in dark mode
+          primaryDarker: 'amber-400',  // Use amber-400 for slightly darker amber in dark mode
+          bg: 'amber-600',
+          bgLight: 'amber-200',
+          bgLighter: 'amber-100',
+          bgMed: 'amber-300',
+          border: 'amber-200',
+          borderMed: 'amber-300',
+          borderDark: 'amber-400',
+          borderStrong: 'amber-600',
+          hoverBg: 'amber-300',
+          text: 'amber-700',
+          textDark: 'amber-300',       // Use amber-300 for lighter amber text in dark mode
+          textLight: 'amber-400',      // Use amber-400 for amber text in dark mode
+          textLighter: 'amber-200',    // Use amber-200 for lightest amber text in dark mode
+          textVeryLight: 'amber-500'
+        };
       case 'yellow':
         return {
           primary: 'yellow-700',
