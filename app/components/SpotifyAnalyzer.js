@@ -2402,7 +2402,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'behavior':
         return (
-          <div className="p-2 sm:p-4 bg-amber-100 rounded border-2 border-amber-300">
+          <div className={`p-2 sm:p-4 rounded border-2 ${
+            isDarkMode ? 'bg-amber-900 border-amber-800' : 'bg-amber-100 border-amber-300'
+          }`}>
             <ListeningBehavior 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
