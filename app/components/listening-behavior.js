@@ -63,9 +63,29 @@ const ListeningBehavior = ({
     console.log('🔍 getColors called with:', colorTheme);
     switch (colorTheme) {
       case 'amber':
-        console.log('✅ Using amber color case - hardcoded colors');
-        // Return hardcoded class strings instead of using template literals
-        return 'HARDCODED_AMBER';
+        console.log('✅ Using amber color case - copying CustomTrackRankings approach');
+        return {
+          text: 'text-amber-700',
+          textLight: 'text-amber-600', 
+          textLighter: 'text-amber-500',
+          textDark: 'text-amber-800',
+          primary: 'text-amber-600',
+          primaryLight: 'text-amber-500',
+          primaryLighter: 'text-amber-400',
+          primaryDark: 'text-amber-300',    // For dark mode
+          primaryDarker: 'text-amber-200',
+          bg: 'bg-amber-50',
+          bgLight: 'bg-amber-100',
+          bgLighter: 'bg-amber-50',
+          bgMed: 'bg-amber-200',
+          bgDark: 'bg-amber-600',
+          border: 'border-amber-200',
+          borderMed: 'border-amber-300',
+          borderDark: 'border-amber-400',
+          borderStrong: 'border-amber-600',
+          hoverBg: 'hover:bg-amber-100',
+          textVeryLight: 'text-amber-400'
+        };
       case 'yellow':
         return {
           primary: 'yellow-700',
@@ -780,7 +800,7 @@ const filteredData = useMemo(() => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-                isDarkMode ? 'text-amber-300' : 'text-amber-600'
+                isDarkMode ? colors.primaryDark : colors.primary
               }`}>Shuffle vs. Normal Play</h3>
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
