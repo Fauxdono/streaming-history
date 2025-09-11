@@ -7,7 +7,8 @@ const CalendarView = ({
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
-  colorTheme = 'blue'
+  colorTheme = 'blue',
+  onYearChange // Add callback to update selected year
 }) => {
   const [activeTab, setActiveTab] = useState('calendar');
   
@@ -634,13 +635,41 @@ const CalendarView = ({
             
             {/* Daily View */}
             {isMonthView && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                {dailyCalendarData.map((dayData, index) => (
-                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative ${
-                    isDarkMode 
-                      ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
-                      : `border-${colors.border} hover:border-${colors.borderDark}`
-                  }`}>
+              <>
+                {/* View in Daily History Button */}
+                <div className="mb-4 flex justify-center">
+                  <button
+                    onClick={() => setActiveTab('history')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      isDarkMode 
+                        ? `bg-${colors.primaryDark} text-black hover:bg-${colors.primaryLighter} border border-${colors.primaryDark}`
+                        : `bg-${colors.primary} text-white hover:bg-${colors.primaryLight} border border-${colors.primary}`
+                    }`}
+                  >
+                    📅 View in Daily History
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                {dailyCalendarData.map((dayData, index) => {
+                  const handleDayClick = () => {
+                    if (onYearChange) {
+                      // Format the date as YYYY-MM-DD for the year selector
+                      onYearChange(dayData.date);
+                    }
+                    // Switch to daily history tab
+                    setActiveTab('history');
+                  };
+                  
+                  return (
+                  <div 
+                    key={index} 
+                    onClick={handleDayClick}
+                    className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative cursor-pointer ${
+                      isDarkMode 
+                        ? `border-${colors.borderDark} hover:border-${colors.borderStrong} hover:bg-gray-900` 
+                        : `border-${colors.border} hover:border-${colors.borderDark} hover:bg-gray-50`
+                    }`}>
                     
                     <div className={`text-sm ${
                       isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLighter}`
@@ -680,8 +709,10 @@ const CalendarView = ({
                       isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`
                     } text-[2rem]`}>{dayData.day}</div>
                   </div>
-                ))}
-              </div>
+                  );
+                })} 
+                </div>
+              </>
             )}
           </div>
         </div>

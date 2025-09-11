@@ -2396,6 +2396,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               yearRange={calendarYearRange}
               yearRangeMode={calendarYearRangeMode}
               colorTheme="green"
+              onYearChange={setSelectedCalendarYear}
             />
           </div>
         );
