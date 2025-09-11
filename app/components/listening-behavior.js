@@ -803,7 +803,7 @@ const filteredData = useMemo(() => {
                 isDarkMode ? colors.primaryDark : colors.primary
               }`}>Shuffle vs. Normal Play</h3>
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-                isDarkMode ? 'bg-gray-800' : 'bg-white'
+                isDarkMode ? 'bg-black' : 'bg-white'
               }`}>
                 <ShuffleChart 
                   data={behaviorData.shuffleData}
@@ -824,7 +824,7 @@ const filteredData = useMemo(() => {
                 isDarkMode ? 'text-amber-300' : 'text-amber-600'
               }`}>Track Completion</h3>
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-                isDarkMode ? 'bg-gray-800' : 'bg-white'
+                isDarkMode ? 'bg-black' : 'bg-white'
               }`}>
                 <CompletionChart 
                   data={behaviorData.skipData}
@@ -845,7 +845,7 @@ const filteredData = useMemo(() => {
               isDarkMode ? 'text-amber-300' : 'text-amber-600'
             }`}>How You Start Tracks</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -877,7 +877,7 @@ const filteredData = useMemo(() => {
               isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>How Tracks End</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -909,7 +909,7 @@ const filteredData = useMemo(() => {
               isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>Platforms Used</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -953,7 +953,7 @@ const filteredData = useMemo(() => {
             </div>
             
             <div className={`p-4 rounded ${
-              isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+              isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
             }`}>
               <h3 className={`font-bold ${
                 isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -964,7 +964,7 @@ const filteredData = useMemo(() => {
             </div>
             
             <div className={`p-4 rounded ${
-              isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+              isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
             }`}>
               <h3 className={`font-bold ${
                 isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -980,7 +980,7 @@ const filteredData = useMemo(() => {
               isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
             }`}>Session Duration Distribution</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart key={`pie-session-${isDarkMode}-${colorTheme}`}>
@@ -1015,7 +1015,7 @@ const filteredData = useMemo(() => {
               <ul className="space-y-2">
                 {sessionData.longestSession && (
                   <li className={`p-2 rounded ${
-                    isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
                   }`}>
                     <span className={`font-bold ${
                       isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -1038,7 +1038,7 @@ const filteredData = useMemo(() => {
                 
                 {sessionData.mostTracksSession && (
                   <li className={`p-2 rounded ${
-                    isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
                   }`}>
                     <span className={`font-bold ${
                       isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -1060,7 +1060,7 @@ const filteredData = useMemo(() => {
                 )}
                 
                 <li className={`p-2 rounded ${
-                  isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+                  isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
                 }`}>
                   <span className={`font-bold ${
                     isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -1081,7 +1081,7 @@ const filteredData = useMemo(() => {
               <div className="space-y-3">
                 {sessionData.mostActiveDay && (
                   <div className={`p-3 rounded ${
-                    isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
                   }`}>
                     <h4 className={`font-medium ${
                       isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -1099,7 +1099,7 @@ const filteredData = useMemo(() => {
                 
                 {sessionData.longestListeningDay && (
                   <div className={`p-3 rounded ${
-                    isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
                   }`}>
                   <h4 className={`font-medium ${
                     isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -1117,7 +1117,7 @@ const filteredData = useMemo(() => {
               
               {sessionData.mostActiveMonth && (
                 <div className={`p-3 rounded ${
-                  isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+                  isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
                 }`}>
                   <h4 className={`font-medium ${
                     isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -1141,7 +1141,7 @@ const filteredData = useMemo(() => {
             isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
           }`}>Session Insights</h3>
           <div className={`p-3 rounded space-y-2 ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bgLighter}`
+            isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
           }`}>
             <p className={`${
               isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`

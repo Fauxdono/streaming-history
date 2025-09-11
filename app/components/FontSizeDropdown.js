@@ -101,7 +101,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
   return (
     <div 
       ref={dropdownRef}
-      className={`fixed z-[300] ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'} 
+      className={`fixed z-[300] ${isDarkMode ? 'bg-black border-gray-600' : 'bg-white border-gray-300'} 
         border rounded-lg shadow-xl p-4`}
       style={{
         top: position.top,
@@ -118,7 +118,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
           value={currentSliderValue}
           onChange={handleSliderChange}
           className={`w-full h-2 rounded-lg appearance-none cursor-pointer slider
-            ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}
+            ${isDarkMode ? 'bg-black' : 'bg-gray-200'}`}
           style={{
             background: isDarkMode 
               ? `linear-gradient(to right, #374151 0%, #374151 ${(currentSliderValue / 3) * 100}%, #6366f1 ${(currentSliderValue / 3) * 100}%, #6366f1 100%)`

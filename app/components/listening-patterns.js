@@ -481,7 +481,7 @@ const ListeningPatterns = ({
             ? 'bg-gray-700 text-purple-400 border border-purple-400' 
             : 'bg-purple-600 text-white border border-purple-600'
           : isDarkMode
-            ? 'bg-gray-800 text-purple-400 hover:bg-gray-700 border border-gray-600'
+            ? 'bg-black text-purple-400 hover:bg-gray-700 border border-gray-600'
             : 'bg-purple-200 text-purple-600 hover:bg-purple-300 border border-purple-300'
       }`}
     >
@@ -524,7 +524,7 @@ const ListeningPatterns = ({
           }`}>When do you listen to music the most?</p>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
+            isDarkMode ? 'bg-black' : 'bg-white'
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -566,7 +566,7 @@ const ListeningPatterns = ({
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Time Periods</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -625,7 +625,7 @@ const ListeningPatterns = ({
             <ul className="space-y-2">
               {timeOfDayData.periods.map((period, index) => (
                 <li key={index} className={`p-2 rounded ${
-                  isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-purple-50'
+                  isDarkMode ? 'bg-black border border-gray-700' : 'bg-purple-50'
                 }`}>
                   <span className="font-bold" style={{ color: period.textColor || period.color }}>{period.fullName}:</span>
                   <div className="ml-2" style={{ color: period.textColor || period.color }}>
@@ -677,7 +677,7 @@ const ListeningPatterns = ({
           </div>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
+            isDarkMode ? 'bg-black' : 'bg-white'
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -723,7 +723,7 @@ const ListeningPatterns = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
             {dayOfWeekData.map((day, index) => (
               <div key={index} className={`p-3 rounded border relative ${
-                isDarkMode ? 'bg-gray-800' : 'bg-purple-50'
+                isDarkMode ? 'bg-black' : 'bg-purple-50'
               }`} style={{ borderColor: day.color }}>
                 {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
                 (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
@@ -757,7 +757,7 @@ const ListeningPatterns = ({
           }`}>How does your listening change throughout the year?</p>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
+            isDarkMode ? 'bg-black' : 'bg-white'
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -795,7 +795,7 @@ const ListeningPatterns = ({
               isDarkMode ? 'text-purple-300' : 'text-purple-700'
             }`}>Seasonal Listening</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -854,7 +854,7 @@ const ListeningPatterns = ({
             <ul className="space-y-2">
               {monthlyData.seasons.map((season, index) => (
                 <li key={index} className={`p-2 rounded ${
-                  isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-purple-50'
+                  isDarkMode ? 'bg-black border border-gray-700' : 'bg-purple-50'
                 }`}>
                   <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
                   <div className="ml-2" style={{ color: season.color }}>

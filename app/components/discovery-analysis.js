@@ -548,10 +548,10 @@ const filteredData = useMemo(() => {
       className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? isDarkMode 
-            ? 'bg-gray-700 text-green-400 border border-green-400' 
+            ? 'bg-black text-green-400 border border-green-400' 
             : 'bg-green-600 text-white border border-green-600'
           : isDarkMode
-            ? 'bg-gray-800 text-green-400 hover:bg-gray-700 border border-gray-600'
+            ? 'bg-black text-green-400 hover:bg-black border border-gray-600'
             : 'bg-green-200 text-green-600 hover:bg-green-300 border border-green-300'
       }`}
     >
@@ -587,7 +587,7 @@ const filteredData = useMemo(() => {
       className={`px-3 py-1 text-sm font-medium ${
         timeframe === id
           ? isDarkMode ? 'bg-green-600 text-white' : 'bg-green-500 text-white'
-          : isDarkMode ? 'bg-gray-700 text-green-400 hover:bg-gray-600' : 'bg-green-100 text-green-600 hover:bg-green-200'
+          : isDarkMode ? 'bg-black text-green-400 hover:bg-gray-600' : 'bg-green-100 text-green-600 hover:bg-green-200'
       } rounded-full`}
     >
       {label}
@@ -611,14 +611,14 @@ const filteredData = useMemo(() => {
       {activeTab === 'discovery' && (
         <div className="space-y-6">
           <div className={`p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+            isDarkMode ? 'bg-black border border-gray-700' : 'bg-green-50'
           }`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-4 ${
               isDarkMode ? 'text-green-400' : 'text-green-700'
             }`}>Artist Discovery Stats</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className={`p-3 rounded shadow ${
-                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                isDarkMode ? 'bg-black border border-gray-700' : 'bg-white'
               }`}>
                 <div className={`text-sm ${
                   isDarkMode ? 'text-green-400' : 'text-green-600'
@@ -628,7 +628,7 @@ const filteredData = useMemo(() => {
                 }`}>{discoveryData.uniqueArtistsCount}</div>
               </div>
               <div className={`p-3 rounded shadow ${
-                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                isDarkMode ? 'bg-black border border-gray-700' : 'bg-white'
               }`}>
                 <div className={`text-sm ${
                   isDarkMode ? 'text-green-400' : 'text-green-600'
@@ -653,7 +653,7 @@ const filteredData = useMemo(() => {
             }`}>New artists discovered over time</p>
             
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
@@ -703,7 +703,7 @@ const filteredData = useMemo(() => {
           </div>
           
           <div className={`p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+            isDarkMode ? 'bg-black border border-gray-700' : 'bg-green-50'
           }`}>
             <h3 className={`text-sm sm:text-lg font-bold ${
               isDarkMode ? 'text-green-400' : 'text-green-700'
@@ -747,7 +747,7 @@ const filteredData = useMemo(() => {
               }`}>Your listening time distribution</p>
               
               <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-                isDarkMode ? 'bg-gray-800' : 'bg-white'
+                isDarkMode ? 'bg-black' : 'bg-white'
               }`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -784,7 +784,7 @@ const filteredData = useMemo(() => {
               <div className="space-y-3">
                 {discoveryData.top5Artists.map((artist, index) => (
                   <div key={index} className={`p-3 rounded flex justify-between items-center ${
-                    isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+                    isDarkMode ? 'bg-black border border-gray-700' : 'bg-green-50'
                   }`}>
                     <div>
                       <span className={`font-bold text-lg ${
@@ -808,7 +808,7 @@ const filteredData = useMemo(() => {
           </div>
           
           <div className={`p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+            isDarkMode ? 'bg-black border border-gray-700' : 'bg-green-50'
           }`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-green-300' : 'text-green-700'
@@ -831,14 +831,14 @@ const filteredData = useMemo(() => {
       {activeTab === 'depth' && (
         <div className="space-y-6">
           <div className={`p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+            isDarkMode ? 'bg-black border border-gray-700' : 'bg-green-50'
           }`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-4 ${
               isDarkMode ? 'text-green-300' : 'text-green-700'
             }`}>Artist Catalog Exploration</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className={`p-3 rounded shadow ${
-                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                isDarkMode ? 'bg-black border border-gray-700' : 'bg-white'
               }`}>
                 <div className={`text-sm ${
                   isDarkMode ? 'text-green-400' : 'text-green-600'
@@ -851,7 +851,7 @@ const filteredData = useMemo(() => {
                 }`}>Higher scores indicate deeper exploration of artists' catalogs</div>
               </div>
               <div className={`p-3 rounded shadow ${
-                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                isDarkMode ? 'bg-black border border-gray-700' : 'bg-white'
               }`}>
                 <div className={`text-sm ${
                   isDarkMode ? 'text-green-400' : 'text-green-600'
@@ -880,7 +880,7 @@ const filteredData = useMemo(() => {
             }`}>How deeply you explore your favorite artists' music</p>
             
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -936,7 +936,7 @@ const filteredData = useMemo(() => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {depthData.replayValue.map((track, index) => (
                 <div key={index} className={`p-3 rounded border ${
-                  isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-green-50 border-green-100'
+                  isDarkMode ? 'bg-black border-gray-700' : 'bg-green-50 border-green-100'
                 }`}>
                   <div className={`font-bold ${
                     isDarkMode ? 'text-green-300' : 'text-green-700'
@@ -962,14 +962,14 @@ const filteredData = useMemo(() => {
           </div>
           
           <div className={`p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+            isDarkMode ? 'bg-black border border-gray-700' : 'bg-green-50'
           }`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-4 ${
               isDarkMode ? 'text-green-300' : 'text-green-700'
             }`}>Music Variety Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className={`p-3 rounded shadow ${
-                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                isDarkMode ? 'bg-black border border-gray-700' : 'bg-white'
               }`}>
                 <div className={`text-sm ${
                   isDarkMode ? 'text-green-400' : 'text-green-600'
@@ -982,7 +982,7 @@ const filteredData = useMemo(() => {
                 }`}>Average percentage of unique tracks in a day</div>
               </div>
               <div className={`p-3 rounded shadow ${
-                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                isDarkMode ? 'bg-black border border-gray-700' : 'bg-white'
               }`}>
                 <div className={`text-sm ${
                   isDarkMode ? 'text-green-400' : 'text-green-600'
@@ -995,7 +995,7 @@ const filteredData = useMemo(() => {
                 }`}>Average percentage of unique tracks in a week</div>
               </div>
               <div className={`p-3 rounded shadow ${
-                isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                isDarkMode ? 'bg-black border border-gray-700' : 'bg-white'
               }`}>
                 <div className={`text-sm ${
                   isDarkMode ? 'text-green-400' : 'text-green-600'
@@ -1021,7 +1021,7 @@ const filteredData = useMemo(() => {
             </p>
             
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              isDarkMode ? 'bg-black' : 'bg-white'
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
@@ -1079,7 +1079,7 @@ const filteredData = useMemo(() => {
           </div>
           
           <div className={`p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-green-50'
+            isDarkMode ? 'bg-black border border-gray-700' : 'bg-green-50'
           }`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               isDarkMode ? 'text-green-300' : 'text-green-700'
