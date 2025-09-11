@@ -333,7 +333,7 @@ const TopTabs = ({
   const getContainerStyles = () => {
     // Faster transitions on mobile to reduce lag
     const transitionClass = isMobile ? 'transition-all duration-150' : 'transition-all duration-300';
-    const baseStyles = `bg-white dark:bg-gray-800 border-violet-200 dark:border-gray-600 ${transitionClass}`;
+    const baseStyles = `bg-white dark:bg-black border-violet-200 dark:border-gray-600 ${transitionClass}`;
     
     switch (currentPosition) {
       case 'top':

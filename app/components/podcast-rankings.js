@@ -665,7 +665,7 @@ const PodcastRankings = ({
       return (
         <tr key={episode.key} className={`border-b hover:opacity-80 ${
           isDarkMode 
-            ? 'border-gray-700 hover:bg-gray-800' 
+            ? 'border-gray-700 hover:bg-black' 
             : 'border-gray-200 hover:bg-indigo-50'
         }`}>
           <td className={`p-2 ${
@@ -701,7 +701,7 @@ const PodcastRankings = ({
       return (
         <tr key={episode.key} className={`border-b hover:opacity-80 ${
           isDarkMode 
-            ? 'border-gray-700 hover:bg-gray-800' 
+            ? 'border-gray-700 hover:bg-black' 
             : 'border-gray-200 hover:bg-indigo-50'
         }`}>
           <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
@@ -751,7 +751,7 @@ const PodcastRankings = ({
       return (
         <tr key={episode.key} className={`border-b hover:opacity-80 ${
           isDarkMode 
-            ? 'border-gray-700 hover:bg-gray-800' 
+            ? 'border-gray-700 hover:bg-black' 
             : 'border-gray-200 hover:bg-indigo-50'
         }`}>
           <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
@@ -815,7 +815,7 @@ const PodcastRankings = ({
           className={`p-1 rounded ${
             isCompactView 
               ? (isDarkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white')
-              : (isDarkMode ? 'bg-gray-700 text-indigo-300' : 'bg-indigo-100 text-indigo-700')
+              : (isDarkMode ? 'bg-black text-indigo-300' : 'bg-indigo-100 text-indigo-700')
           } hover:opacity-80`}
           title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
         >
@@ -830,7 +830,7 @@ const PodcastRankings = ({
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
             className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm focus:border-indigo-400 focus:ring-indigo-400 ${
               isDarkMode 
-                ? 'bg-gray-800 border-gray-600 text-indigo-300' 
+                ? 'bg-black border-gray-600 text-indigo-300' 
                 : 'bg-white border-gray-300 text-indigo-700'
             }`}
           />
@@ -852,7 +852,7 @@ const PodcastRankings = ({
               onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
               className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm focus:border-indigo-400 focus:ring-indigo-400 ${
                 isDarkMode 
-                  ? 'bg-gray-800 border-gray-600 text-indigo-300' 
+                  ? 'bg-black border-gray-600 text-indigo-300' 
                   : 'bg-white border-gray-300 text-indigo-700'
               }`}
             />
@@ -865,7 +865,7 @@ const PodcastRankings = ({
             onClick={() => setShowDuplicateStats(!showDuplicateStats)}
             className={`px-3 py-1 rounded text-xs sm:text-sm hover:opacity-80 ${
               isDarkMode 
-                ? 'bg-gray-700 text-indigo-300 hover:bg-gray-600' 
+                ? 'bg-black text-indigo-300 hover:bg-gray-600' 
                 : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
             }`}
           >
@@ -876,7 +876,7 @@ const PodcastRankings = ({
         {showDuplicateStats && (
           <div className={`text-xs sm:text-sm p-2 rounded ${
             isDarkMode 
-              ? 'bg-gray-800 border border-gray-700 text-indigo-300' 
+              ? 'bg-black border border-gray-700 text-indigo-300' 
               : 'bg-indigo-100 text-indigo-700'
           }`}>
             <div><span className="font-medium">{duplicatesFound}</span> duplicate plays filtered:</div>
@@ -920,14 +920,14 @@ const PodcastRankings = ({
             placeholder="Search shows..."
             className={`w-full border rounded px-2 py-1 text-xs sm:text-sm focus:border-indigo-400 focus:ring-indigo-400 ${
               isDarkMode 
-                ? 'bg-gray-800 border-gray-600 text-indigo-300 placeholder-gray-500' 
+                ? 'bg-black border-gray-600 text-indigo-300 placeholder-gray-500' 
                 : 'bg-white border-gray-300 text-indigo-700'
             }`}
           />
           {showSearch && filteredShows.length > 0 && (
             <div className={`absolute z-10 w-full border rounded shadow-lg mt-1 ${
               isDarkMode 
-                ? 'bg-gray-800 border-gray-600' 
+                ? 'bg-black border-gray-600' 
                 : 'bg-white border-gray-300'
             }`}>
               {filteredShows.map(show => (
@@ -936,7 +936,7 @@ const PodcastRankings = ({
                   onClick={() => addShow(show)}
                   className={`px-2 py-1 cursor-pointer text-xs sm:text-sm ${
                     isDarkMode 
-                      ? 'text-indigo-300 hover:bg-gray-700' 
+                      ? 'text-indigo-300 hover:bg-black' 
                       : 'text-indigo-700 hover:bg-indigo-100'
                   }`}
                 >
@@ -977,7 +977,7 @@ const PodcastRankings = ({
                       }`}>Show</th>
                       <th 
                         className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
                         } ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('totalPlayed')}
                       >
@@ -985,7 +985,7 @@ const PodcastRankings = ({
                       </th>
                       <th 
                         className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
                         } ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('longestSession')}
                       >
@@ -993,7 +993,7 @@ const PodcastRankings = ({
                       </th>
                       <th 
                         className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
                         } ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('segmentCount')}
                       >
@@ -1022,7 +1022,7 @@ const PodcastRankings = ({
                       }`}>Show</th>
                       <th 
                         className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
                         } ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('totalPlayed')}
                       >
@@ -1030,7 +1030,7 @@ const PodcastRankings = ({
                       </th>
                       <th 
                         className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
                         } ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('longestSession')}
                       >
@@ -1038,7 +1038,7 @@ const PodcastRankings = ({
                       </th>
                       <th 
                         className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-gray-700' : 'text-indigo-700 hover:bg-indigo-100'
+                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
                         } ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('segmentCount')}
                       >

@@ -161,7 +161,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
         
         {serviceData.total.length === 0 ? (
           <div className={`p-4 rounded border text-center ${
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600'
+            isDarkMode ? 'bg-black border-gray-700 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600'
           }`}>
             No service data available
           </div>
@@ -214,7 +214,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
               <div className="space-y-3 max-h-72 overflow-y-auto p-1">
                 {serviceData.total.map((service, index) => (
                   <div key={index} className={`p-3 rounded border ${
-                    isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-purple-100'
+                    isDarkMode ? 'bg-black border-gray-700' : 'bg-purple-50 border-purple-100'
                   }`}>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: service.color }}></div>
@@ -247,7 +247,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableYears.map(year => (
               <div key={year} className={`p-4 rounded border ${
-                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-purple-100'
+                isDarkMode ? 'bg-black border-gray-700' : 'bg-purple-50 border-purple-100'
               }`}>
                 <h4 className={`font-bold mb-2 ${
                   isDarkMode ? 'text-purple-300' : 'text-purple-700'

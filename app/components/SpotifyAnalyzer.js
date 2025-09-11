@@ -1815,7 +1815,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             )}
                 
             {uploadedFiles.length > 0 && (
-              <div className={`mt-6 p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+              <div className={`mt-6 p-4 rounded-lg border ${isDarkMode ? 'bg-black border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                 <h4 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Uploaded Files:</h4>
                 <ul className="space-y-2">
                   {uploadedFiles.map((fileName, index) => (

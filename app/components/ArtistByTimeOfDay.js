@@ -283,7 +283,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+                isDarkMode ? 'bg-black text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
               }`}
             />
           </div>
@@ -296,7 +296,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+                isDarkMode ? 'bg-black text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
               }`}
             />
           </div>
@@ -323,7 +323,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
           value={artistLimit}
           onChange={e => setArtistLimit(Math.min(99, Math.max(1, parseInt(e.target.value) || 5)))}
           className={`w-16 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDarkMode ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
+            isDarkMode ? 'bg-black text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
           }`}
         />
       </div>
@@ -333,7 +333,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   return (
     <div className="space-y-6">
       <div className={`p-4 rounded ${
-        isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-indigo-50'
+        isDarkMode ? 'bg-black border border-gray-700' : 'bg-indigo-50'
       }`}>
         <h3 className={`font-bold mb-4 ${
           isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
@@ -433,7 +433,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {periodChartData.slice(0, 4).map((artist, index) => (
             <div key={index} className={`p-3 rounded border ${
-              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-indigo-50 border-indigo-100'
+              isDarkMode ? 'bg-black border-gray-700' : 'bg-indigo-50 border-indigo-100'
             }`}>
               <h4 className={`font-bold ${
                 isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
