@@ -552,7 +552,7 @@ const CalendarView = ({
   };
 
   return (
-    <div className={`w-full ${isDarkMode ? `text-${colors.textDark}` : 'text-gray-900'}`}>
+    <div className={`w-full ${isDarkMode ? `bg-black text-${colors.textDark}` : 'text-gray-900'}`}>
       {/* Mobile-friendly tabs */}
       <div className="mb-4">
         <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -562,7 +562,7 @@ const CalendarView = ({
       </div>
 
       {activeTab === 'calendar' && (
-        <div className="space-y-6">
+        <div className={`space-y-6 ${isDarkMode ? 'bg-black' : ''}`}>
           <div>
             {/* Dynamic header based on view mode */}
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
@@ -688,7 +688,7 @@ const CalendarView = ({
       )}
 
       {activeTab === 'history' && (
-        <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
+        <div className={`space-y-4 sm:space-y-6 px-1 sm:px-0 ${isDarkMode ? 'bg-black' : ''}`}>
           <div className="flex flex-col gap-4">
             <div>
               <h3 className={`text-lg font-bold ${
