@@ -52,13 +52,13 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       </div>
       
       {/* Divider */}
-      <div className="border-t border-cyan-200 my-2"></div>
+      <div className="border-t border-cyan-200 dark:border-cyan-700 my-2"></div>
       
       {/* Top Track Section */}
       <div className="mt-2">
         <div className="font-medium text-cyan-600">Top Track:</div>
         {topTrack ? (
-          <div className="text-sm text-cyan-500 p-1 bg-cyan-50 rounded">
+          <div className="text-sm text-cyan-500 p-1 bg-cyan-50 dark:bg-gray-900 rounded">
             {topTrack.trackName}
             <div className="flex justify-between text-xs text-cyan-400">
               <span>{formatDuration(topTrack.totalPlayed)}</span>
@@ -74,7 +74,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       {otherTracks.length > 0 && (
         <button 
           onClick={() => setShowTracks(!showTracks)}
-          className="mt-2 text-xs flex items-center justify-between w-full p-1 text-cyan-600 bg-cyan-100 hover:bg-cyan-200 rounded"
+          className="mt-2 text-xs flex items-center justify-between w-full p-1 text-cyan-600 bg-cyan-100 dark:bg-gray-800 hover:bg-cyan-200 dark:hover:bg-gray-700 rounded"
         >
           <span className="flex items-center">
             <Music size={14} className="mr-1" />
@@ -89,8 +89,8 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
       
       {/* Track Dropdown Content */}
       {showTracks && otherTracks.length > 0 && (
-        <div className="mt-1 max-h-64 overflow-y-auto text-xs border border-cyan-200 rounded">
-          <div className="sticky top-0 bg-cyan-100 p-1 text-xs text-center text-cyan-600 font-medium">
+        <div className="mt-1 max-h-64 overflow-y-auto text-xs border border-cyan-200 dark:border-cyan-700 rounded">
+          <div className="sticky top-0 bg-cyan-100 dark:bg-gray-800 p-1 text-xs text-center text-cyan-600 font-medium">
             {/* Use the correct available tracks count */}
             {remainingTracks !== otherTracks.length ?
               `Showing ${otherTracks.length} of ${remainingTracks} remaining tracks` :
@@ -99,7 +99,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration }) => {
           {otherTracks.map((track, trackIndex) => (
             <div 
               key={`${track.trackName || 'unknown'}-${trackIndex}`}
-              className={`p-1 ${trackIndex % 2 === 0 ? 'bg-cyan-50' : 'bg-white'}`}
+              className={`p-1 ${trackIndex % 2 === 0 ? 'bg-cyan-50 dark:bg-gray-900' : 'bg-white dark:bg-black'}`}
             >
               <div className="text-cyan-600">
                 {track.trackName || 'Unknown Track'}
