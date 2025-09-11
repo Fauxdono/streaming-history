@@ -552,7 +552,7 @@ const CalendarView = ({
   };
 
   return (
-    <div className={`w-full ${isDarkMode ? `bg-black text-${colors.textDark}` : 'text-gray-900'}`}>
+    <div className={`w-full ${isDarkMode ? `text-${colors.textDark}` : 'text-gray-900'}`}>
       {/* Mobile-friendly tabs */}
       <div className="mb-4">
         <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -562,7 +562,7 @@ const CalendarView = ({
       </div>
 
       {activeTab === 'calendar' && (
-        <div className={`space-y-6 ${isDarkMode ? 'bg-black' : ''}`}>
+        <div className="space-y-6">
           <div>
             {/* Dynamic header based on view mode */}
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
@@ -584,7 +584,7 @@ const CalendarView = ({
             {!isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 bg-white dark:bg-black rounded shadow-sm border transition-all duration-300 relative ${
+                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
                       ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
                       : `border-${colors.border} hover:border-${colors.borderDark}`
@@ -636,7 +636,7 @@ const CalendarView = ({
             {isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {dailyCalendarData.map((dayData, index) => (
-                  <div key={index} className={`p-3 bg-white dark:bg-black rounded shadow-sm border transition-all duration-300 relative ${
+                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
                       ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
                       : `border-${colors.border} hover:border-${colors.borderDark}`
@@ -688,7 +688,7 @@ const CalendarView = ({
       )}
 
       {activeTab === 'history' && (
-        <div className={`space-y-4 sm:space-y-6 px-1 sm:px-0 ${isDarkMode ? 'bg-black' : ''}`}>
+        <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
           <div className="flex flex-col gap-4">
             <div>
               <h3 className={`text-lg font-bold ${
