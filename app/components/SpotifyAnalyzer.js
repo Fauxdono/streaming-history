@@ -1820,7 +1820,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 <ul className="space-y-2">
                   {uploadedFiles.map((fileName, index) => (
                     <li key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-                      isDarkMode ? 'bg-gray-700' : 'bg-white'
+                      isDarkMode ? 'bg-black' : 'bg-white'
                     }`}>
                       <span className={`text-sm font-medium truncate mr-3 ${
                         isDarkMode ? 'text-gray-200' : 'text-gray-700'
@@ -2048,7 +2048,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     </button>
                   )}
                   {artistSearch && filteredArtists.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white border border-blue-200 rounded shadow-lg mt-1">
+                    <div className="absolute z-10 w-full bg-white dark:bg-black border border-blue-200 dark:border-blue-700 rounded shadow-lg mt-1">
                       {filteredArtists.map(artist => (
                         <div
                           key={artist}
@@ -2056,7 +2056,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             setSelectedArtists(prev => [...prev, artist]);
                             setArtistSearch('');
                           }}
-                          className="px-2 py-1 hover:bg-blue-100 text-blue-700 cursor-pointer"
+                          className="px-2 py-1 hover:bg-blue-100 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 cursor-pointer"
                         >
                           {artist}
                         </div>
@@ -2079,10 +2079,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       key={artist.name} 
                       className={`
                         ${artistsViewMode === 'grid' ? 
-                          'p-4 bg-white rounded-lg shadow-sm border border-blue-200 hover:border-blue-400 transition-all duration-300' :
+                          'p-4 bg-white dark:bg-black rounded-lg shadow-sm border border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300' :
                           artistsViewMode === 'compact' ?
-                          'p-3 bg-white rounded-lg shadow-sm border border-blue-200 hover:bg-blue-50 transition-all duration-200' :
-                          'p-2 bg-white rounded border border-blue-200 hover:bg-blue-50 transition-all duration-150'
+                          'p-3 bg-white dark:bg-black rounded-lg shadow-sm border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-gray-900 transition-all duration-200' :
+                          'p-2 bg-white dark:bg-black rounded border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-gray-900 transition-all duration-150'
                         }
                       `}
                     >
@@ -2261,7 +2261,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
             <div className="space-y-4">
               {/* Artist Filter */}
               {selectedArtists.length > 0 && (
-                <div className="bg-white p-3 rounded-lg border border-cyan-200">
+                <div className="bg-white dark:bg-black p-3 rounded-lg border border-cyan-200 dark:border-cyan-700">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-cyan-700 font-medium">Filtered Artists ({selectedArtists.length}):</span>
                     <button
@@ -2275,7 +2275,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     {selectedArtists.map(artist => (
                       <span
                         key={artist}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 text-cyan-700 rounded-full text-xs"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 dark:bg-gray-800 text-cyan-700 dark:text-cyan-300 rounded-full text-xs"
                       >
                         {artist}
                         <button
@@ -2310,8 +2310,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         key={`${album.artist}-${album.name}`}
                         className={`
                           ${albumsViewMode === 'compact' ?
-                            'p-3 bg-white rounded-lg shadow-sm border border-cyan-200 hover:bg-cyan-50 transition-all duration-200' :
-                            'p-2 bg-white rounded border border-cyan-200 hover:bg-cyan-50 transition-all duration-150'
+                            'p-3 bg-white dark:bg-black rounded-lg shadow-sm border border-cyan-200 dark:border-cyan-700 hover:bg-cyan-50 dark:hover:bg-gray-900 transition-all duration-200' :
+                            'p-2 bg-white dark:bg-black rounded border border-cyan-200 dark:border-cyan-700 hover:bg-cyan-50 dark:hover:bg-gray-900 transition-all duration-150'
                           }
                         `}
                       >
