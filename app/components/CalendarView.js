@@ -532,7 +532,7 @@ const CalendarView = ({
             ? `bg-green-600 text-black border border-green-500` 
             : `bg-green-600 text-black border border-green-500`
           : isDarkMode
-            ? `bg-gray-800 text-${colors.primaryDark} hover:bg-gray-700 border border-gray-600`
+            ? `bg-black text-${colors.primaryDark} hover:bg-gray-900 border border-gray-600`
             : `bg-${colors.bgLight} text-${colors.primaryLight} hover:bg-${colors.hoverBg} border border-${colors.borderMed}`
       }`}
     >
@@ -584,7 +584,7 @@ const CalendarView = ({
             {!isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 bg-white dark:bg-gray-800 rounded shadow-sm border transition-all duration-300 relative ${
+                  <div key={index} className={`p-3 bg-white dark:bg-black rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
                       ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
                       : `border-${colors.border} hover:border-${colors.borderDark}`
@@ -636,7 +636,7 @@ const CalendarView = ({
             {isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {dailyCalendarData.map((dayData, index) => (
-                  <div key={index} className={`p-3 bg-white dark:bg-gray-800 rounded shadow-sm border transition-all duration-300 relative ${
+                  <div key={index} className={`p-3 bg-white dark:bg-black rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
                       ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
                       : `border-${colors.border} hover:border-${colors.borderDark}`
@@ -708,7 +708,7 @@ const CalendarView = ({
           </div>
           
           <div className={`p-3 sm:p-4 rounded ${
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : `bg-${colors.bg}-50 border border-${colors.border}-100`
+            isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bg}-50 border border-${colors.border}-100`
           }`}>
             <h4 className={`font-bold mb-3 sm:mb-2 text-sm sm:text-base ${
               isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
@@ -762,12 +762,12 @@ const CalendarView = ({
               </div>
             ) : (
               <div className={`max-h-96 sm:max-h-96 md:max-h-[70vh] overflow-y-auto border rounded ${
-                isDarkMode ? 'border-gray-700' : 'border-gray-200'
+                isDarkMode ? 'border-gray-700 bg-black' : 'border-gray-200'
               }`}>
                 <div className="space-y-1 p-1 sm:p-2">
                   {historyData.tracks.map((track, index) => (
                     <div key={index} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 rounded text-sm hover:bg-opacity-50 transition-colors gap-2 sm:gap-0 ${
-                      isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'
+                      isDarkMode ? 'bg-gray-900 hover:bg-gray-800' : 'bg-white hover:bg-gray-50'
                     }`}>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
