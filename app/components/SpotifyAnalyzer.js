@@ -157,6 +157,13 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     setYearSelectorHeight(dimensions.height);
   }, [yearSelectorExpanded]);
   
+  // Reset artist selection mode when switching tabs
+  useEffect(() => {
+    if (activeTab !== 'artists') {
+      setArtistSelectionMode(false);
+    }
+  }, [activeTab]);
+  
   useEffect(() => {
     const checkMobile = () => {
       const isMobileNow = window.innerWidth < 640;
