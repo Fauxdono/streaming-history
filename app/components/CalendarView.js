@@ -11,6 +11,7 @@ const CalendarView = ({
   onYearChange // Add callback to update selected year
 }) => {
   const [activeTab, setActiveTab] = useState('calendar');
+  const [daySelectionMode, setDaySelectionMode] = useState(false);
   
   // Get the current theme
   const { theme } = useTheme();
@@ -637,38 +638,64 @@ const CalendarView = ({
             {isMonthView && (
               <>
                 {/* View in Daily History Button */}
-                <div className="mb-4 flex justify-center">
+                <div className="mb-4 flex flex-col items-center gap-2">
                   <button
-                    onClick={() => setActiveTab('history')}
+                    onClick={() => {
+                      setDaySelectionMode(true);
+                    }}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      isDarkMode 
-                        ? `bg-${colors.primaryDark} text-black hover:bg-${colors.primaryLighter} border border-${colors.primaryDark}`
-                        : `bg-${colors.primary} text-white hover:bg-${colors.primaryLight} border border-${colors.primary}`
+                      daySelectionMode
+                        ? isDarkMode
+                          ? `bg-${colors.primaryLighter} text-black border border-${colors.primaryLighter}`
+                          : `bg-${colors.primaryLight} text-white border border-${colors.primaryLight}`
+                        : isDarkMode 
+                          ? `bg-${colors.primaryDark} text-black hover:bg-${colors.primaryLighter} border border-${colors.primaryDark}`
+                          : `bg-${colors.primary} text-white hover:bg-${colors.primaryLight} border border-${colors.primary}`
                     }`}
                   >
                     📅 View in Daily History
                   </button>
+                  {daySelectionMode && (
+                    <p className={`text-sm text-center ${
+                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
+                    }`}>
+                      👆 Click on any day below to view its detailed history
+                    </p>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {dailyCalendarData.map((dayData, index) => {
                   const handleDayClick = () => {
+                    if (!daySelectionMode) {
+                      // Day selection mode not enabled yet
+                      return;
+                    }
+                    
                     if (onYearChange) {
                       // Format the date as YYYY-MM-DD for the year selector
                       onYearChange(dayData.date);
                     }
                     // Switch to daily history tab
                     setActiveTab('history');
+                    // Reset selection mode
+                    setDaySelectionMode(false);
                   };
                   
                   return (
                   <div 
                     key={index} 
                     onClick={handleDayClick}
-                    className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative cursor-pointer ${
-                      isDarkMode 
-                        ? `border-${colors.borderDark} hover:border-${colors.borderStrong} hover:bg-gray-900` 
-                        : `border-${colors.border} hover:border-${colors.borderDark} hover:bg-gray-50`
+                    className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative ${
+                      daySelectionMode ? 'cursor-pointer' : 'cursor-default'
+                    } ${
+                      daySelectionMode
+                        ? isDarkMode 
+                          ? `border-${colors.borderStrong} hover:border-${colors.primaryLighter} hover:bg-gray-900 ring-2 ring-${colors.primaryDark}` 
+                          : `border-${colors.borderDark} hover:border-${colors.primary} hover:bg-gray-50 ring-2 ring-${colors.primary} ring-opacity-30`
+                        : isDarkMode 
+                          ? `border-${colors.borderDark}` 
+                          : `border-${colors.border}`
                     }`}>
                     
                     <div className={`text-sm ${
