@@ -157,13 +157,6 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     setYearSelectorHeight(dimensions.height);
   }, [yearSelectorExpanded]);
   
-  // Reset artist selection mode when switching tabs
-  useEffect(() => {
-    if (activeTab !== 'artists') {
-      setArtistSelectionMode(false);
-    }
-  }, [activeTab]);
-  
   useEffect(() => {
     const checkMobile = () => {
       const isMobileNow = window.innerWidth < 640;
@@ -2078,7 +2071,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               <div className="mb-4 flex flex-col items-center gap-2">
                 <button
                   onClick={() => {
-                    setArtistSelectionMode(true);
+                    setArtistSelectionMode(prev => !prev);
                   }}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     artistSelectionMode
