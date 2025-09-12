@@ -69,6 +69,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(10);
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
+  const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
@@ -2066,6 +2067,27 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 </div>
               </div>
               
+              {/* View Artist Playlist Button */}
+              <div className="mb-4 flex flex-col items-center gap-2">
+                <button
+                  onClick={() => {
+                    setArtistSelectionMode(true);
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    artistSelectionMode
+                      ? 'bg-blue-400 text-white border border-blue-400'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 border border-blue-600'
+                  }`}
+                >
+                  🎵 View Artist Playlist
+                </button>
+                {artistSelectionMode && (
+                  <p className="text-sm text-center text-blue-600">
+                    👆 Click on any artist below to view their custom track rankings
+                  </p>
+                )}
+              </div>
+              
               {/* Artists Display */}
               {displayedArtists && displayedArtists.length > 0 ? (
                 <div className={`
@@ -2074,15 +2096,39 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                 `}>
                   {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
                     .slice(0, topArtistsCount)
-                    .map((artist, index) => (
+                    .map((artist, index) => {
+                      const handleArtistClick = () => {
+                        if (!artistSelectionMode) {
+                          // Artist selection mode not enabled yet
+                          return;
+                        }
+                        
+                        // Switch to custom tab with this artist selected
+                        setActiveTab('custom');
+                        
+                        // Set the artist in CustomTrackRankings (we'll need to pass this)
+                        // For now, we can use the selectedArtists state
+                        setSelectedArtists([artist.name]);
+                        
+                        // Reset selection mode
+                        setArtistSelectionMode(false);
+                      };
+                      
+                      return (
                     <div 
                       key={artist.name} 
+                      onClick={handleArtistClick}
                       className={`
+                        ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
                         ${artistsViewMode === 'grid' ? 
-                          'p-4 bg-white dark:bg-black rounded-lg shadow-sm border border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300' :
+                          'p-4 bg-white dark:bg-black rounded-lg shadow-sm border transition-all duration-300' :
                           artistsViewMode === 'compact' ?
-                          'p-3 bg-white dark:bg-black rounded-lg shadow-sm border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-gray-900 transition-all duration-200' :
-                          'p-2 bg-white dark:bg-black rounded border border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-gray-900 transition-all duration-150'
+                          'p-3 bg-white dark:bg-black rounded-lg shadow-sm border transition-all duration-200' :
+                          'p-2 bg-white dark:bg-black rounded border transition-all duration-150'
+                        }
+                        ${artistSelectionMode
+                          ? 'border-blue-400 dark:border-blue-400 hover:border-blue-600 dark:hover:border-blue-300 ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-50 dark:hover:bg-gray-900'
+                          : 'border-blue-200 dark:border-blue-700'
                         }
                       `}
                     >
@@ -2134,7 +2180,8 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         )}
                       </div>
                     </div>
-                  ))}
+                      );
+                    })}
                 </div>
               ) : (
                 <div className="p-6 text-center bg-blue-50 rounded border-2 border-blue-300">
@@ -2366,6 +2413,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
               yearRangeMode={customYearRangeMode}
               yearRange={customYearRange}
               colorTheme="emerald"
+              initialArtists={selectedArtists}
             />
           </div>
         );
