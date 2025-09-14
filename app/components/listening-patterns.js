@@ -478,7 +478,7 @@ const ListeningPatterns = ({
       className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
         activeTab === id
           ? 'bg-amber-500 text-black border border-amber-500'
-          : 'bg-black text-amber-500 hover:bg-gray-800 border border-amber-500'
+          : 'bg-black text-blue-500 hover:bg-gray-800 border border-amber-500'
       }`}
     >
       {label}
@@ -497,7 +497,7 @@ const ListeningPatterns = ({
   };
 
   return (
-   <div className={`w-full ${isDarkMode ? 'text-amber-200' : 'text-gray-900'}`}>
+   <div className={`w-full ${isDarkMode ? 'text-blue-200' : 'text-gray-900'}`}>
     {/* Mobile-friendly tabs */}
     <div className="mb-4">
       <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -513,10 +513,10 @@ const ListeningPatterns = ({
       <div className="space-y-6">
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-amber-300' : 'text-amber-700'
+            isDarkMode ? 'text-blue-300' : 'text-blue-700'
           }`}>Listening by Time of Day</h3>
           <p className={`mb-4 ${
-            isDarkMode ? 'text-amber-400' : 'text-amber-600'
+            isDarkMode ? 'text-blue-400' : 'text-blue-600'
           }`}>When do you listen to music the most?</p>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
@@ -559,7 +559,7 @@ const ListeningPatterns = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div id="timeOfDay">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-amber-300' : 'text-amber-700'
+              isDarkMode ? 'text-blue-300' : 'text-blue-700'
             }`}>Time Periods</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-black' : 'bg-white'
@@ -616,7 +616,7 @@ const ListeningPatterns = ({
           
           <div className="flex flex-col justify-center">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-amber-300' : 'text-amber-700'
+              isDarkMode ? 'text-blue-300' : 'text-blue-700'
             }`}>Time Period Stats</h3>
             <ul className="space-y-2">
               {timeOfDayData.periods.map((period, index) => (
@@ -642,10 +642,10 @@ const ListeningPatterns = ({
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className={`text-sm sm:text-lg font-bold ${
-                isDarkMode ? 'text-amber-300' : 'text-amber-700'
+                isDarkMode ? 'text-blue-300' : 'text-blue-700'
               }`}>Listening by Day of Week</h3>
               <p className={`${
-                isDarkMode ? 'text-amber-400' : 'text-amber-600'
+                isDarkMode ? 'text-blue-400' : 'text-blue-600'
               }`}>Which days do you stream music the most?</p>
             </div>
             <div className={`flex rounded-lg p-1 ${isDarkMode ? 'bg-gray-700' : 'bg-amber-100'}`}>
@@ -653,8 +653,8 @@ const ListeningPatterns = ({
                 onClick={() => setDayOfWeekViewMode('plays')}
                 className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
                   dayOfWeekViewMode === 'plays' 
-                    ? isDarkMode ? 'bg-amber-600 text-white' : 'bg-amber-600 text-white'
-                    : isDarkMode ? 'text-amber-300 hover:bg-gray-600' : 'text-amber-700 hover:bg-amber-200'
+                    ? isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'
+                    : isDarkMode ? 'text-blue-300 hover:bg-gray-600' : 'text-blue-700 hover:bg-amber-200'
                 }`}
               >
                 Total
@@ -663,8 +663,8 @@ const ListeningPatterns = ({
                 onClick={() => setDayOfWeekViewMode('average')}
                 className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
                   dayOfWeekViewMode === 'average' 
-                    ? isDarkMode ? 'bg-amber-600 text-white' : 'bg-amber-600 text-white'
-                    : isDarkMode ? 'text-amber-300 hover:bg-gray-600' : 'text-amber-700 hover:bg-amber-200'
+                    ? isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'
+                    : isDarkMode ? 'text-blue-300 hover:bg-gray-600' : 'text-blue-700 hover:bg-amber-200'
                 }`}
               >
                 Average
@@ -714,7 +714,7 @@ const ListeningPatterns = ({
         
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-amber-300' : 'text-amber-700'
+            isDarkMode ? 'text-blue-300' : 'text-blue-700'
           }`}>Day of Week Stats</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
             {dayOfWeekData.map((day, index) => (
@@ -726,10 +726,10 @@ const ListeningPatterns = ({
                   <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
                 ) : null}
                 <h4 className={`font-bold ${
-                  isDarkMode ? 'text-amber-300' : 'text-amber-700'
+                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
                 }`}>{day.fullName}</h4>
                 <div className={`text-sm ${
-                  isDarkMode ? 'text-amber-400' : 'text-amber-600'
+                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
                 }`}>
                   <div>Total Plays: {day.count}</div>
                   <div>Listening Time: {formatDuration(day.totalMs)}</div>
@@ -746,10 +746,10 @@ const ListeningPatterns = ({
       <div className="space-y-6">
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-amber-300' : 'text-amber-700'
+            isDarkMode ? 'text-blue-300' : 'text-blue-700'
           }`}>Listening by Month</h3>
           <p className={`mb-4 ${
-            isDarkMode ? 'text-amber-400' : 'text-amber-600'
+            isDarkMode ? 'text-blue-400' : 'text-blue-600'
           }`}>How does your listening change throughout the year?</p>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
@@ -788,7 +788,7 @@ const ListeningPatterns = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div id="seasonal">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-amber-300' : 'text-amber-700'
+              isDarkMode ? 'text-blue-300' : 'text-blue-700'
             }`}>Seasonal Listening</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
               isDarkMode ? 'bg-black' : 'bg-white'
@@ -845,7 +845,7 @@ const ListeningPatterns = ({
           
           <div className="flex flex-col justify-center">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-amber-300' : 'text-amber-700'
+              isDarkMode ? 'text-blue-300' : 'text-blue-700'
             }`}>Seasonal Stats</h3>
             <ul className="space-y-2">
               {monthlyData.seasons.map((season, index) => (
@@ -875,7 +875,7 @@ const ListeningPatterns = ({
           initialYear={selectedYear}
           yearRange={yearRange}
           yearRangeMode={yearRangeMode}
-          colorTheme="yellow"
+          colorTheme="blue"
         />
       </div>
     )}
