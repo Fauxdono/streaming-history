@@ -64,7 +64,7 @@ const SpotifyAnalyzer = ({
   artistBackgroundTheme = 'blue', 
   albumTextTheme = 'red',
   albumBackgroundTheme = 'cyan',
-  customTextTheme = 'red',
+  customTextTheme = 'violet',
   customBackgroundTheme = 'emerald',
   patternTextTheme = 'blue',
   patternBackgroundTheme = 'yellow',
@@ -126,6 +126,11 @@ const SpotifyAnalyzer = ({
         text: isDarkMode ? 'text-emerald-300' : 'text-emerald-700',
         textLight: isDarkMode ? 'text-emerald-400' : 'text-emerald-600',
         textDark: isDarkMode ? 'text-emerald-200' : 'text-emerald-800'
+      },
+      violet: {
+        text: isDarkMode ? 'text-violet-300' : 'text-violet-700',
+        textLight: isDarkMode ? 'text-violet-400' : 'text-violet-600',
+        textDark: isDarkMode ? 'text-violet-200' : 'text-violet-800'
       }
     };
 
@@ -192,6 +197,13 @@ const SpotifyAnalyzer = ({
         border: isDarkMode ? 'border-emerald-700' : 'border-emerald-200',
         borderHover: isDarkMode ? 'border-emerald-500' : 'border-emerald-400',
         wrapper: isDarkMode ? 'bg-emerald-900 border-emerald-800' : 'bg-emerald-100 border-emerald-300'
+      },
+      violet: {
+        bg: isDarkMode ? 'bg-black' : 'bg-violet-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-violet-700' : 'border-violet-200',
+        borderHover: isDarkMode ? 'border-violet-500' : 'border-violet-400',
+        wrapper: isDarkMode ? 'bg-violet-900 border-violet-800' : 'bg-violet-100 border-violet-300'
       }
     };
 
