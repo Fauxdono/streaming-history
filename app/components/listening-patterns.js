@@ -13,6 +13,8 @@ const ListeningPatterns = ({
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
   colorTheme = 'purple',
+  textTheme = null,
+  backgroundTheme = null,
   briefObsessions = [],
   songsByYear = {}
 }) => {
@@ -875,8 +877,8 @@ const ListeningPatterns = ({
           initialYear={selectedYear}
           yearRange={yearRange}
           yearRangeMode={yearRangeMode}
-          textTheme="blue"
-          backgroundTheme="amber"
+          textTheme={textTheme || "blue"}
+          backgroundTheme={backgroundTheme || "amber"}
         />
       </div>
     )}
@@ -887,8 +889,8 @@ const ListeningPatterns = ({
         rawPlayData={filteredData} 
         formatDuration={formatDuration} 
         isDarkMode={isDarkMode}
-        textTheme="blue"
-        backgroundTheme="amber"
+        textTheme={textTheme || "blue"}
+        backgroundTheme={backgroundTheme || "amber"}
       />
     )}
   </div>
