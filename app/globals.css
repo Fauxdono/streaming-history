@@ -284,12 +284,12 @@ body {
   border-color: #555;
 }
 
-/* Table styles */
-.dark table th {
+/* Table styles - with exceptions for themed tables */
+.dark table th:not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-green"]):not([class*="text-red"]):not([class*="text-purple"]):not([class*="text-yellow"]):not([class*="text-cyan"]):not([class*="text-orange"]):not([class*="text-pink"]):not([class*="text-indigo"]):not([class*="text-teal"]):not([class*="text-emerald"]):not([class*="text-rose"]) {
   color: #f3f4f6;
 }
 
-.dark table td {
+.dark table td:not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-green"]):not([class*="text-red"]):not([class*="text-purple"]):not([class*="text-yellow"]):not([class*="text-cyan"]):not([class*="text-orange"]):not([class*="text-pink"]):not([class*="text-indigo"]):not([class*="text-teal"]):not([class*="text-emerald"]):not([class*="text-rose"]) {
   color: #e5e7eb;
 }
 

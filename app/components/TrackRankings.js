@@ -29,8 +29,6 @@ const TrackRankings = ({
   
   // Get color classes based on theme and dark mode
   const getColorClasses = () => {
-    // Debug logging
-    console.log('TrackRankings - colorTheme:', colorTheme, 'isDarkMode:', isDarkMode);
     const themeColors = {
       blue: {
         text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
@@ -66,9 +64,7 @@ const TrackRankings = ({
       }
     };
     
-    const selectedColors = themeColors[colorTheme] || themeColors.blue;
-    console.log('TrackRankings - Selected colors:', selectedColors);
-    return selectedColors;
+    return themeColors[colorTheme] || themeColors.blue;
   };
   
   // Add check for mobile viewport
@@ -443,10 +439,7 @@ return (
     )}
 
     {/* Results Table */}
-    <div className={`border rounded-lg p-3 sm:p-4 ${getColorClasses().bg}`} style={{
-      backgroundColor: isDarkMode ? '#000000' : '#fffbeb',
-      color: isDarkMode ? '#fcd34d' : '#b45309'
-    }}>
+    <div className={`border rounded-lg p-3 sm:p-4 ${getColorClasses().bg}`}>
       <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
         <div className={`${getColorClasses().text} font-medium text-sm`}>
           {yearRangeMode && yearRange.startYear && yearRange.endYear
