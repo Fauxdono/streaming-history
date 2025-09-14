@@ -6,7 +6,7 @@ const MonthDaySelector = ({
   endDate,
   onRangeChange,
   rawPlayData = [],
-  formatDuration = (ms) => `${Math.floor(ms / 60000)}m`,
+  formatDuration = (ms) => `${Math.floor(ms / 60000)}min`,
   colorTheme = 'orange'
 }) => {
   // Parse start and end dates

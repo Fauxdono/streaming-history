@@ -204,12 +204,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
     if (days > 0) {
       const remainingHours = hours % 24;
       const remainingMinutes = minutes % 60;
-      result = `${days}d ${remainingHours}h (${minutes.toLocaleString()}m)`;
+      result = `${days}d ${remainingHours}h (${minutes.toLocaleString()}min)`;
     } else {
       const remainingMinutes = minutes % 60;
       result = hours > 0 ? 
-        `${hours}h ${remainingMinutes}m` : 
-        `${remainingMinutes}m`;
+        `${hours}h ${remainingMinutes}min` : 
+        `${remainingMinutes}min`;
     }
     
     // Store in cache for future use
