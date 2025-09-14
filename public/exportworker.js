@@ -46,8 +46,8 @@ function formatDuration(ms) {
   
   const remainingMinutes = minutes % 60;
   return hours > 0 ? 
-    `${hours}h ${remainingMinutes}m` : 
-    `${remainingMinutes}m`;
+    `${hours}h ${remainingMinutes}min` : 
+    `${remainingMinutes}min`;
 }
 
 // JSON Export Processing Function
