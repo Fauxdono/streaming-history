@@ -60,6 +60,8 @@ const SpotifyAnalyzer = ({
   setActiveTab, 
   TopTabsComponent,
   // Flexible theming props - shifted text colors (4 positions down from original)
+  statsTextTheme = 'green',
+  statsBackgroundTheme = 'indigo',
   artistTextTheme = 'yellow',
   artistBackgroundTheme = 'blue', 
   albumTextTheme = 'amber',
@@ -231,6 +233,7 @@ const SpotifyAnalyzer = ({
   };
 
   // Get themed colors for each tab
+  const statsColors = getTabColors(statsTextTheme, statsBackgroundTheme);
   const artistColors = getTabColors(artistTextTheme, artistBackgroundTheme);
   const albumColors = getTabColors(albumTextTheme, albumBackgroundTheme);
   const customColors = getTabColors(customTextTheme, customBackgroundTheme);
@@ -2051,12 +2054,12 @@ const SpotifyAnalyzer = ({
       
       case 'stats':
         return stats ? (
-          <div className="p-2 sm:p-4 bg-indigo-100 rounded border-2 border-indigo-300">
-            <h3 className="font-bold mb-2 text-indigo-700">Processing Statistics:</h3>
+          <div className={`p-2 sm:p-4 ${statsColors.wrapper} rounded border-2`}>
+            <h3 className={`font-bold mb-2 ${statsColors.text}`}>Processing Statistics:</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <ul className="space-y-1 text-indigo-700">
+                  <ul className={`space-y-1 ${statsColors.text}`}>
                     <li>Files processed: {stats.totalFiles}</li>
                     <li>Total entries: {stats.totalEntries}</li>
                     <li>Processed songs: {stats.processedSongs}</li>
@@ -2065,20 +2068,20 @@ const SpotifyAnalyzer = ({
                     <li>Plays under 30s: {stats.shortPlays}</li>
                   </ul>
                 </div>
-                <div className="bg-purple-50 p-3 rounded space-y-2">
-                  <div className="font-semibold mb-1 text-indigo-700">Total Listening Time:</div>
-                  <div className="text-2xl text-indigo-700">{formatDuration(stats.totalListeningTime)}</div>
-                  <div className="text-sm text-purple-600">(only counting plays over 30 seconds)</div>
+                <div className={`${statsColors.bgCard} p-3 rounded space-y-2 border ${statsColors.border}`}>
+                  <div className={`font-semibold mb-1 ${statsColors.text}`}>Total Listening Time:</div>
+                  <div className={`text-2xl ${statsColors.text}`}>{formatDuration(stats.totalListeningTime)}</div>
+                  <div className={`text-sm ${statsColors.textLight}`}>(only counting plays over 30 seconds)</div>
                   
                   {/* Service breakdown */}
                   {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-purple-200">
-                      <div className="font-semibold text-indigo-700 mb-2">Listening Time by Service:</div>
+                    <div className={`mt-4 pt-3 border-t ${statsColors.border}`}>
+                      <div className={`font-semibold ${statsColors.text} mb-2`}>Listening Time by Service:</div>
                       <ul className="space-y-1">
                         {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
                           <li key={service} className="flex justify-between items-center">
-                            <span className="text-purple-600">{service}:</span>
-                            <span className="font-medium text-indigo-700">{formatDuration(time)}</span>
+                            <span className={statsColors.textLight}>{service}:</span>
+                            <span className={`font-medium ${statsColors.text}`}>{formatDuration(time)}</span>
                           </li>
                         ))}
                       </ul>
