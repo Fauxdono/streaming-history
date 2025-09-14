@@ -29,114 +29,58 @@ const TrackRankings = ({
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   
-  // Get color classes based on theme and dark mode
-  const getColorClasses = () => {
-    // Define color themes for different aspects
+  // Helper function to get themed colors (flexible theming system)
+  const getThemedColors = () => {
     const textColors = {
-      blue: {
-        text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
-        textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600',
-        textLighter: isDarkMode ? 'text-blue-500' : 'text-blue-500',
-        textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800',
-      },
-      amber: {
-        text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
-        textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
-        textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
-        textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800',
-      },
-      yellow: {
-        text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
-        textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
-        textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
-        textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800',
-      },
-      rose: {
-        text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
-        textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
-        textLighter: isDarkMode ? 'text-rose-500' : 'text-rose-500',
-        textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800',
-      }
+      rose: { text: isDarkMode ? 'text-rose-300' : 'text-rose-700', textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600', textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800' },
+      blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
+      red: { text: isDarkMode ? 'text-red-300' : 'text-red-700', textLight: isDarkMode ? 'text-red-400' : 'text-red-600', textDark: isDarkMode ? 'text-red-200' : 'text-red-800' },
+      amber: { text: isDarkMode ? 'text-amber-300' : 'text-amber-700', textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600', textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800' },
+      yellow: { text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700', textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600', textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800' }
     };
 
     const backgroundColors = {
-      blue: {
-        bg: isDarkMode ? 'bg-black' : 'bg-blue-50',
-        bgLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
-        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-blue-100',
-        bgButtonLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-blue-200',
-        border: isDarkMode ? 'border-gray-600' : 'border-blue-400',
-      },
-      amber: {
-        bg: isDarkMode ? 'bg-amber-900 border border-amber-700' : 'bg-amber-50',
-        bgLight: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
-        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-amber-100',
-        bgButtonLight: isDarkMode ? 'bg-black text-amber-500 border border-amber-500' : 'bg-amber-100',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-amber-200',
-        border: isDarkMode ? 'border-gray-700' : 'border-amber-400',
-      },
-      yellow: {
-        bg: isDarkMode ? 'bg-yellow-900 border border-yellow-700' : 'bg-yellow-50',
-        bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
-        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-yellow-100',
-        bgButtonLight: isDarkMode ? 'bg-black text-yellow-500 border border-yellow-500' : 'bg-yellow-100',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-yellow-200',
-        border: isDarkMode ? 'border-gray-700' : 'border-yellow-400',
+      red: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-red-700' : 'border-red-200',
+        borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-red-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-red-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-red-200',
+        bgSelected: isDarkMode ? 'bg-red-600' : 'bg-red-600', bgSelectedHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-700',
+        focusRing: isDarkMode ? 'focus:ring-red-400' : 'focus:ring-red-400'
       },
       rose: {
-        bg: isDarkMode ? 'bg-rose-900 border border-rose-700' : 'bg-rose-50',
-        bgLight: isDarkMode ? 'bg-rose-800' : 'bg-rose-100',
-        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-rose-100',
-        bgButtonLight: isDarkMode ? 'bg-black text-rose-500 border border-rose-500' : 'bg-rose-100',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-rose-200',
-        border: isDarkMode ? 'border-gray-700' : 'border-rose-400',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-rose-700' : 'border-rose-200',
+        borderHover: isDarkMode ? 'border-rose-500' : 'border-rose-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-rose-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-rose-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-rose-200',
+        bgSelected: isDarkMode ? 'bg-rose-600' : 'bg-rose-600', bgSelectedHover: isDarkMode ? 'hover:bg-rose-700' : 'hover:bg-rose-700',
+        focusRing: isDarkMode ? 'focus:ring-rose-400' : 'focus:ring-rose-400'
+      },
+      blue: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-blue-700' : 'border-blue-200',
+        borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-blue-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-blue-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-blue-200',
+        bgSelected: isDarkMode ? 'bg-blue-600' : 'bg-blue-600', bgSelectedHover: isDarkMode ? 'hover:bg-blue-700' : 'hover:bg-blue-700',
+        focusRing: isDarkMode ? 'focus:ring-blue-400' : 'focus:ring-blue-400'
+      },
+      amber: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-amber-700' : 'border-amber-200',
+        borderHover: isDarkMode ? 'border-amber-500' : 'border-amber-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-amber-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-amber-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-amber-200',
+        bgSelected: isDarkMode ? 'bg-amber-600' : 'bg-amber-600', bgSelectedHover: isDarkMode ? 'hover:bg-amber-700' : 'hover:bg-amber-700',
+        focusRing: isDarkMode ? 'focus:ring-amber-400' : 'focus:ring-amber-400'
+      },
+      yellow: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-yellow-700' : 'border-yellow-200',
+        borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-yellow-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-yellow-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-yellow-200',
+        bgSelected: isDarkMode ? 'bg-yellow-600' : 'bg-yellow-600', bgSelectedHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-700',
+        focusRing: isDarkMode ? 'focus:ring-yellow-400' : 'focus:ring-yellow-400'
       }
     };
 
-    const buttonColors = {
-      blue: {
-        bgSelected: 'bg-blue-600',
-        bgButton: 'bg-blue-600',
-        bgButtonHover: 'hover:bg-blue-700',
-        focus: isDarkMode ? 'focus:border-blue-400 focus:ring-blue-400' : 'focus:border-blue-400 focus:ring-blue-400'
-      },
-      amber: {
-        bgSelected: 'bg-amber-600',
-        bgButton: 'bg-amber-600',
-        bgButtonHover: 'hover:bg-amber-700',
-        focus: isDarkMode ? 'focus:border-amber-400 focus:ring-amber-400' : 'focus:border-amber-400 focus:ring-amber-400'
-      },
-      yellow: {
-        bgSelected: 'bg-yellow-600',
-        bgButton: 'bg-yellow-600',
-        bgButtonHover: 'hover:bg-yellow-700',
-        focus: isDarkMode ? 'focus:border-yellow-400 focus:ring-yellow-400' : 'focus:border-yellow-400 focus:ring-yellow-400'
-      },
-      rose: {
-        bgSelected: 'bg-rose-600',
-        bgButton: 'bg-rose-600',
-        bgButtonHover: 'hover:bg-rose-700',
-        focus: isDarkMode ? 'focus:border-rose-400 focus:ring-rose-400' : 'focus:border-rose-400 focus:ring-rose-400'
-      }
-    };
+    const textColorObj = textColors[textTheme] || textColors.rose;
+    const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.red;
 
-    // Determine which themes to use
-    const selectedTextTheme = textTheme || colorTheme;
-    const selectedBackgroundTheme = backgroundTheme || colorTheme;
-    const selectedButtonTheme = textTheme || colorTheme; // Buttons follow text theme for consistency
-
-    // Get color objects
-    const textColorObj = textColors[selectedTextTheme] || textColors.blue;
-    const backgroundColorObj = backgroundColors[selectedBackgroundTheme] || backgroundColors.blue;
-    const buttonColorObj = buttonColors[selectedButtonTheme] || buttonColors.blue;
-
-    // Combine all themes
-    return {
-      ...textColorObj,
-      ...backgroundColorObj,
-      ...buttonColorObj
-    };
+    return { ...textColorObj, ...backgroundColorObj };
   };
   
   // Add check for mobile viewport
@@ -371,24 +315,24 @@ const filteredObsessions = useMemo(() => {
       // Mobile view for obsessions
       return (
         <>
-          <td className={`p-2 ${getColorClasses().text}`}>
+          <td className={`p-2 ${getThemedColors().text}`}>
             <div className="flex flex-col">
               <div className="flex items-center">
-                <span className={`font-bold text-xs mr-2 ${getColorClasses().textDark}`}>{index + 1}.</span>
+                <span className={`font-bold text-xs mr-2 ${getThemedColors().textDark}`}>{index + 1}.</span>
                 <div className="font-medium">{obsession.trackName}</div>
               </div>
-              <div className={`text-xs ${getColorClasses().textLight}`}>{obsession.artist}</div>
-              <div className={`text-xs ${getColorClasses().textLighter}`}>
+              <div className={`text-xs ${getThemedColors().textLight}`}>{obsession.artist}</div>
+              <div className={`text-xs ${getThemedColors().textLighter}`}>
                 Week of {formatDate(obsession.intensePeriod.weekStart)}
               </div>
             </div>
           </td>
-          <td className={`p-2 align-top text-right ${getColorClasses().text}`}>
+          <td className={`p-2 align-top text-right ${getThemedColors().text}`}>
             <div className="flex flex-col">
               <span className="font-medium">{obsession.intensePeriod.playsInWeek} in week</span>
-              <span className={`text-xs ${getColorClasses().text}`}>{obsession.playCount} total plays</span>
+              <span className={`text-xs ${getThemedColors().text}`}>{obsession.playCount} total plays</span>
               {obsession.albumName && (
-                <span className={`text-xs italic truncate max-w-[120px] ${getColorClasses().textLight}`}>{obsession.albumName}</span>
+                <span className={`text-xs italic truncate max-w-[120px] ${getThemedColors().textLight}`}>{obsession.albumName}</span>
               )}
             </div>
           </td>
@@ -399,14 +343,14 @@ const filteredObsessions = useMemo(() => {
     // Desktop view with all columns
     return (
       <>
-        <td className={`p-2 ${getColorClasses().text}`}>{index + 1}</td>
-        <td className={`p-2 ${getColorClasses().text}`}>{obsession.trackName}</td>
-        <td className={`p-2 ${getColorClasses().text}`}>{obsession.artist}</td>
-        <td className={`p-2 text-right ${getColorClasses().text}`}>
+        <td className={`p-2 ${getThemedColors().text}`}>{index + 1}</td>
+        <td className={`p-2 ${getThemedColors().text}`}>{obsession.trackName}</td>
+        <td className={`p-2 ${getThemedColors().text}`}>{obsession.artist}</td>
+        <td className={`p-2 text-right ${getThemedColors().text}`}>
           {formatDate(obsession.intensePeriod.weekStart)}
         </td>
-        <td className={`p-2 text-right ${getColorClasses().text}`}>{obsession.intensePeriod.playsInWeek}</td>
-        <td className={`p-2 text-right ${getColorClasses().text}`}>{obsession.playCount}</td>
+        <td className={`p-2 text-right ${getThemedColors().text}`}>{obsession.intensePeriod.playsInWeek}</td>
+        <td className={`p-2 text-right ${getThemedColors().text}`}>{obsession.playCount}</td>
       </>
     );
   };
@@ -415,7 +359,7 @@ return (
   <div className="w-full">
 
     <div className="flex justify-between items-center mb-2">
-      <h3 className={`text-sm sm:text-lg font-bold ${getColorClasses().text}`}>
+      <h3 className={`text-sm sm:text-lg font-bold ${getThemedColors().text}`}>
         {yearRangeMode && yearRange.startYear && yearRange.endYear
           ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
           : initialYear === 'all' 
@@ -425,15 +369,15 @@ return (
       
     
 
-        <div className={`flex items-center gap-1 sm:gap-2 ${getColorClasses().text} ml-2`}>
-      <label className={`${getColorClasses().text} ml-2`}>Show Top</label>
+        <div className={`flex items-center gap-1 sm:gap-2 ${getThemedColors().text} ml-2`}>
+      <label className={`${getThemedColors().text} ml-2`}>Show Top</label>
           <input
             type="number"
             min="1"
             max="250"
             value={topN}
             onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 ${getColorClasses().text} ${getColorClasses().focus}`}
+            className={`border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 ${getThemedColors().text} ${getThemedColors().focus}`}
           />
       </div>
     </div>
@@ -442,35 +386,35 @@ return (
  
       {/* Second line: Controls in a clean row */}
       <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
-        <div className={`flex items-center gap-1 sm:gap-2 ${getColorClasses().text}`}>
-          <label className={`text-sm ${getColorClasses().text}`}>Min plays/week</label>
+        <div className={`flex items-center gap-1 sm:gap-2 ${getThemedColors().text}`}>
+          <label className={`text-sm ${getThemedColors().text}`}>Min plays/week</label>
           <input
             type="number"
             min="1"
             max="20"
             value={intensityThreshold}
             onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`border rounded w-14 px-1 sm:px-2 py-1 ${getColorClasses().text} ${getColorClasses().focus}`}
+            className={`border rounded w-14 px-1 sm:px-2 py-1 ${getThemedColors().text} ${getThemedColors().focus}`}
           />
         </div>
 
   <div className="flex items-center gap-2">
         <button
           onClick={() => setShowExporter(!showExporter)}
-          className={`flex items-center gap-1 px-2 py-1 ${getColorClasses().bgButton} text-black rounded ${getColorClasses().bgButtonHover} text-xs`}
+          className={`flex items-center gap-1 px-2 py-1 ${getThemedColors().bgButton} text-black rounded ${getThemedColors().bgButtonHover} text-xs`}
         >
           <Download size={14} className="hidden sm:inline" />
           {showExporter ? "Hide" : "Export M3u"}
         </button>
         
         <div className="flex items-center gap-1 sm:gap-2">
-          <span className={`${getColorClasses().text} text-sm`}>Sort:</span>
+          <span className={`${getThemedColors().text} text-sm`}>Sort:</span>
           <button
             onClick={() => setSortBy('playsInWeek')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playsInWeek'
-                ? `${getColorClasses().bgButton} text-black`
-                : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
+                ? `${getThemedColors().bgButton} text-black`
+                : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
             }`}
           >
             Weekly Plays
@@ -479,8 +423,8 @@ return (
             onClick={() => setSortBy('playCount')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playCount'
-                ? `${getColorClasses().bgButton} text-black`
-                : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
+                ? `${getThemedColors().bgButton} text-black`
+                : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
             }`}
           >
             Total Plays
@@ -489,8 +433,8 @@ return (
             onClick={() => setSortBy('weekStart')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'weekStart'
-                ? `${getColorClasses().bgButton} text-black`
-                : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
+                ? `${getThemedColors().bgButton} text-black`
+                : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
             }`}
           >
             Recent First
@@ -511,35 +455,35 @@ return (
     )}
 
     {/* Results Table */}
-    <div className={`border rounded-lg p-3 sm:p-4 ${getColorClasses().bg}`}>
+    <div className={`border rounded-lg p-3 sm:p-4 ${getThemedColors().bg}`}>
       <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
-        <div className={`${getColorClasses().text} font-medium text-sm`}>
+        <div className={`${getThemedColors().text} font-medium text-sm`}>
           {yearRangeMode && yearRange.startYear && yearRange.endYear
             ? `Brief obsessions for ${yearRange.startYear}-${yearRange.endYear}`
             : initialYear === 'all' 
               ? 'All-time brief obsessions' 
               : `Brief obsessions for ${initialYear}`}
         </div>
-        <div className={`${getColorClasses().text} text-sm`}>
+        <div className={`${getThemedColors().text} text-sm`}>
           Found <span className="font-bold">{filteredObsessions.length}</span> obsessions
         </div>
       </div>
 
       <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
         <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
-          <table className={`w-full border-collapse ${getColorClasses().bg}`}>
+          <table className={`w-full border-collapse ${getThemedColors().bg}`}>
             <thead>
-              <tr className={`border-b ${getColorClasses().bg}`}>
-                {!isMobile && <th className={`p-2 text-left ${getColorClasses().text}`}>Rank</th>}
-                <th className={`p-2 text-left ${getColorClasses().text}`}>
+              <tr className={`border-b ${getThemedColors().bg}`}>
+                {!isMobile && <th className={`p-2 text-left ${getThemedColors().text}`}>Rank</th>}
+                <th className={`p-2 text-left ${getThemedColors().text}`}>
                   {isMobile ? "Track Info" : "Track"}
                 </th>
-                {!isMobile && <th className={`p-2 text-left ${getColorClasses().text}`}>Artist</th>}
+                {!isMobile && <th className={`p-2 text-left ${getThemedColors().text}`}>Artist</th>}
                 {!isMobile ? (
                   <>
-                    <th className={`p-2 text-right ${getColorClasses().text}`}>Peak Week</th>
+                    <th className={`p-2 text-right ${getThemedColors().text}`}>Peak Week</th>
                     <th 
-                      className={`p-2 text-right ${getColorClasses().text} cursor-pointer ${getColorClasses().bgHover} ${
+                      className={`p-2 text-right ${getThemedColors().text} cursor-pointer ${getThemedColors().bgHover} ${
                         sortBy === 'playsInWeek' ? 'font-bold' : ''
                       }`}
                       onClick={() => setSortBy('playsInWeek')}
@@ -547,7 +491,7 @@ return (
                       Plays in Week {sortBy === 'playsInWeek' && '▼'}
                     </th>
                     <th 
-                      className={`p-2 text-right ${getColorClasses().text} cursor-pointer ${getColorClasses().bgHover} ${
+                      className={`p-2 text-right ${getThemedColors().text} cursor-pointer ${getThemedColors().bgHover} ${
                         sortBy === 'playCount' ? 'font-bold' : ''
                       }`}
                       onClick={() => setSortBy('playCount')}
@@ -556,20 +500,20 @@ return (
                     </th>
                   </>
                 ) : (
-                  <th className={`p-2 text-right ${getColorClasses().text}`}>Stats</th>
+                  <th className={`p-2 text-right ${getThemedColors().text}`}>Stats</th>
                 )}
               </tr>
             </thead>
-            <tbody className={getColorClasses().bg}>
+            <tbody className={getThemedColors().bg}>
               {filteredObsessions.length > 0 ? (
                 filteredObsessions.map((obsession, index) => (
-                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getColorClasses().bg} ${getColorClasses().bgHover}`}>
+                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getThemedColors().bg} ${getThemedColors().bgHover}`}>
                     {renderObsessionColumns(obsession, index)}
                   </tr>
                 ))
               ) : (
-                <tr className={getColorClasses().bg}>
-                  <td colSpan={isMobile ? 2 : 6} className={`p-4 text-center ${getColorClasses().textLighter} ${getColorClasses().bg}`}>
+                <tr className={getThemedColors().bg}>
+                  <td colSpan={isMobile ? 2 : 6} className={`p-4 text-center ${getThemedColors().textLighter} ${getThemedColors().bg}`}>
                     {yearRangeMode && yearRange.startYear && yearRange.endYear
                       ? `No brief obsessions found for ${yearRange.startYear}-${yearRange.endYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
                       : initialYear !== 'all' 
