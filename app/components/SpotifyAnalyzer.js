@@ -55,10 +55,124 @@ const SERVICE_COLORS = {
   }
 };
 
-const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
+const SpotifyAnalyzer = ({ 
+  activeTab, 
+  setActiveTab, 
+  TopTabsComponent,
+  // Flexible theming props
+  artistTextTheme = 'blue',
+  artistBackgroundTheme = 'blue', 
+  albumTextTheme = 'cyan',
+  albumBackgroundTheme = 'cyan',
+  patternTextTheme = 'blue',
+  patternBackgroundTheme = 'yellow',
+  calendarTextTheme = 'green',
+  calendarBackgroundTheme = 'green',
+  behaviorTextTheme = 'amber',
+  behaviorBackgroundTheme = 'amber',
+  discoveryTextTheme = 'orange',
+  discoveryBackgroundTheme = 'orange'
+}) => {
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+  
+  // Helper function to get themed colors
+  const getTabColors = (textTheme, backgroundTheme) => {
+    const textColors = {
+      blue: {
+        text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
+        textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600',
+        textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800'
+      },
+      cyan: {
+        text: isDarkMode ? 'text-cyan-300' : 'text-cyan-700',
+        textLight: isDarkMode ? 'text-cyan-400' : 'text-cyan-600',
+        textDark: isDarkMode ? 'text-cyan-200' : 'text-cyan-800'
+      },
+      green: {
+        text: isDarkMode ? 'text-green-300' : 'text-green-700',
+        textLight: isDarkMode ? 'text-green-400' : 'text-green-600',
+        textDark: isDarkMode ? 'text-green-200' : 'text-green-800'
+      },
+      amber: {
+        text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
+        textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
+        textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800'
+      },
+      yellow: {
+        text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
+        textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
+        textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800'
+      },
+      orange: {
+        text: isDarkMode ? 'text-orange-300' : 'text-orange-700',
+        textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600',
+        textDark: isDarkMode ? 'text-orange-200' : 'text-orange-800'
+      }
+    };
+
+    const backgroundColors = {
+      blue: {
+        bg: isDarkMode ? 'bg-black' : 'bg-blue-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-blue-700' : 'border-blue-200',
+        borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400',
+        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-blue-300'
+      },
+      cyan: {
+        bg: isDarkMode ? 'bg-black' : 'bg-cyan-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-cyan-700' : 'border-cyan-200',
+        borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400',
+        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-cyan-300'
+      },
+      green: {
+        bg: isDarkMode ? 'bg-black' : 'bg-green-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-green-700' : 'border-green-200',
+        borderHover: isDarkMode ? 'border-green-500' : 'border-green-400',
+        wrapper: isDarkMode ? 'bg-green-900 border-green-800' : 'bg-green-100 border-green-300'
+      },
+      amber: {
+        bg: isDarkMode ? 'bg-black' : 'bg-amber-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-amber-700' : 'border-amber-200',
+        borderHover: isDarkMode ? 'border-amber-500' : 'border-amber-400',
+        wrapper: isDarkMode ? 'bg-amber-900 border-amber-800' : 'bg-amber-100 border-amber-300'
+      },
+      yellow: {
+        bg: isDarkMode ? 'bg-black' : 'bg-yellow-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-yellow-700' : 'border-yellow-200',
+        borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400',
+        wrapper: isDarkMode ? 'bg-yellow-900 border-yellow-800' : 'bg-yellow-100 border-yellow-300'
+      },
+      orange: {
+        bg: isDarkMode ? 'bg-black' : 'bg-orange-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-orange-700' : 'border-orange-200',
+        borderHover: isDarkMode ? 'border-orange-500' : 'border-orange-400',
+        wrapper: isDarkMode ? 'bg-orange-900 border-orange-800' : 'bg-orange-100 border-orange-300'
+      }
+    };
+
+    const textColorObj = textColors[textTheme] || textColors.blue;
+    const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.blue;
+
+    return {
+      ...textColorObj,
+      ...backgroundColorObj
+    };
+  };
+
+  // Get themed colors for each tab
+  const artistColors = getTabColors(artistTextTheme, artistBackgroundTheme);
+  const albumColors = getTabColors(albumTextTheme, albumBackgroundTheme);
+  const patternColors = getTabColors(patternTextTheme, patternBackgroundTheme);
+  const calendarColors = getTabColors(calendarTextTheme, calendarBackgroundTheme);
+  const behaviorColors = getTabColors(behaviorTextTheme, behaviorBackgroundTheme);
+  const discoveryColors = getTabColors(discoveryTextTheme, discoveryBackgroundTheme);
   
   // Core application state
   const [activeTrackTab, setActiveTrackTab] = useState('top250');
@@ -2121,10 +2235,10 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       className={`
                         ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
                         ${artistsViewMode === 'grid' ? 
-                          'p-3 bg-white dark:bg-black rounded shadow-sm border border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 relative' :
+                          `p-3 ${artistColors.bgCard} rounded shadow-sm border ${artistColors.border} hover:${artistColors.borderHover} transition-all duration-300 relative` :
                           artistsViewMode === 'compact' ?
-                          'p-3 bg-white dark:bg-black rounded-lg shadow-sm border transition-all duration-200' :
-                          'p-2 bg-white dark:bg-black rounded border transition-all duration-150'
+                          `p-3 ${artistColors.bgCard} rounded-lg shadow-sm border ${artistColors.border} transition-all duration-200` :
+                          `p-2 ${artistColors.bgCard} rounded border ${artistColors.border} transition-all duration-150`
                         }
                         ${artistSelectionMode
                           ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-50 dark:hover:bg-gray-900'
@@ -2134,9 +2248,9 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                     >
                       {artistsViewMode === 'grid' ? (
                         <>
-                          <div className="font-bold text-blue-600">{artist.name}</div>
+                          <div className={`font-bold ${artistColors.text}`}>{artist.name}</div>
                           
-                          <div className="text-sm text-blue-500">
+                          <div className={`text-sm ${artistColors.textLight}`}>
                             Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
                             <br/>
                             Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
@@ -2152,7 +2266,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             )}
                           </div>
                           
-                          <div className="absolute top-1 right-3 text-blue-600 text-[2rem]">{index + 1}</div>
+                          <div className={`absolute top-1 right-3 ${artistColors.text} text-[2rem]`}>{index + 1}</div>
                         </>
                       ) : (
                         <div className={`
@@ -2160,16 +2274,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             'flex justify-between items-center text-sm'}
                         `}>
                           <div className="flex-1">
-                            <div className={`font-bold text-blue-600 ${
+                            <div className={`font-bold ${artistColors.text} ${
                               artistsViewMode === 'compact' ? 'text-base' : 'text-sm'
                             }`}>
                               {artist.name}
                             </div>
                           </div>
                           
-                          <span className="text-blue-500 font-medium">#{index + 1}</span>
+                          <span className={`${artistColors.textLight} font-medium`}>#{index + 1}</span>
                           
-                          <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-blue-500`}>
+                          <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${artistColors.textLight}`}>
                             <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
                             <div>{artist.playCount?.toLocaleString() || 0} plays</div>
                           </div>
@@ -2346,15 +2460,17 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                         album={{...album, rank: index + 1}} 
                         index={index} 
                         processedData={processedData} 
-                        formatDuration={formatDuration} 
+                        formatDuration={formatDuration}
+                        textTheme={albumTextTheme}
+                        backgroundTheme={albumBackgroundTheme}
                       />
                     ) : (
                       <div 
                         key={`${album.artist}-${album.name}`}
                         className={`
                           ${albumsViewMode === 'compact' ?
-                            'p-3 bg-white dark:bg-black rounded-lg shadow-sm border border-cyan-200 dark:border-cyan-700 hover:bg-cyan-50 dark:hover:bg-gray-900 transition-all duration-200' :
-                            'p-2 bg-white dark:bg-black rounded border border-cyan-200 dark:border-cyan-700 hover:bg-cyan-50 dark:hover:bg-gray-900 transition-all duration-150'
+                            `p-3 ${albumColors.bgCard} rounded-lg shadow-sm border ${albumColors.border} hover:${albumColors.bgLight} transition-all duration-200` :
+                            `p-2 ${albumColors.bgCard} rounded border ${albumColors.border} hover:${albumColors.bgLight} transition-all duration-150`
                           }
                         `}
                       >
@@ -2363,12 +2479,12 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             'flex justify-between items-center text-sm'}
                         `}>
                           <div className="flex-1">
-                            <div className={`font-bold text-cyan-600 ${
+                            <div className={`font-bold ${albumColors.text} ${
                               albumsViewMode === 'compact' ? 'text-base' : 'text-sm'
                             }`}>
                               #{index + 1} {album.name}
                             </div>
-                            <div className={`text-cyan-500 ${
+                            <div className={`${albumColors.textLight} ${
                               albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'
                             }`}>
                               {album.artist}
@@ -2378,7 +2494,7 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                             </div>
                           </div>
                           
-                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-cyan-500`}>
+                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${albumColors.textLight}`}>
                             <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
                             <div>{(album.playCount || 0).toLocaleString()} plays</div>
                           </div>
@@ -2416,14 +2532,15 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'patterns':
         return (
-          <div className="p-2 sm:p-4 bg-yellow-100 rounded border-2 border-yellow-300">
+          <div className={`p-2 sm:p-4 ${patternColors.wrapper} rounded border-2`}>
             <ListeningPatterns 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedPatternYear}
               yearRange={patternYearRange}
               yearRangeMode={patternYearRangeMode}
-              colorTheme="yellow"
+              textTheme={patternTextTheme}
+              backgroundTheme={patternBackgroundTheme}
               briefObsessions={briefObsessions}
               songsByYear={songsByYear}
             />
@@ -2432,14 +2549,16 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'calendar':
         return (
-          <div className="p-2 sm:p-4 bg-green-100 rounded border-2 border-green-300">
+          <div className={`p-2 sm:p-4 ${calendarColors.wrapper} rounded border-2`}>
             <CalendarView 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedCalendarYear}
               yearRange={calendarYearRange}
               yearRangeMode={calendarYearRangeMode}
-              colorTheme="green"
+              colorTheme={calendarBackgroundTheme}
+              textTheme={calendarTextTheme}
+              backgroundTheme={calendarBackgroundTheme}
               onYearChange={setSelectedCalendarYear}
             />
           </div>
@@ -2447,30 +2566,32 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
       
       case 'behavior':
         return (
-          <div className={`p-2 sm:p-4 rounded border-2 ${
-            isDarkMode ? 'bg-amber-900 border-amber-800' : 'bg-amber-100 border-amber-300'
-          }`}>
+          <div className={`p-2 sm:p-4 ${behaviorColors.wrapper} rounded border-2`}>
             <ListeningBehavior 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedBehaviorYear}
               yearRange={behaviorYearRange}
               yearRangeMode={behaviorYearRangeMode}
-              colorTheme="amber"
+              colorTheme={behaviorBackgroundTheme}
+              textTheme={behaviorTextTheme}
+              backgroundTheme={behaviorBackgroundTheme}
             />
           </div>
         );
       
       case 'discovery':
         return (
-          <div className="p-2 sm:p-4 bg-orange-100 rounded border-2 border-orange-300">
+          <div className={`p-2 sm:p-4 ${discoveryColors.wrapper} rounded border-2`}>
             <DiscoveryAnalysis 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
               selectedYear={selectedDiscoveryYear}
               yearRange={discoveryYearRange}
               yearRangeMode={discoveryYearRangeMode}
-              colorTheme="orange"
+              colorTheme={discoveryBackgroundTheme}
+              textTheme={discoveryTextTheme}
+              backgroundTheme={discoveryBackgroundTheme}
             />
           </div>
         );
