@@ -2121,64 +2121,60 @@ const SpotifyAnalyzer = ({ activeTab, setActiveTab, TopTabsComponent }) => {
                       className={`
                         ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
                         ${artistsViewMode === 'grid' ? 
-                          'p-4 bg-white dark:bg-black rounded-lg shadow-sm border transition-all duration-300' :
+                          'p-3 bg-white dark:bg-black rounded shadow-sm border border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 relative' :
                           artistsViewMode === 'compact' ?
                           'p-3 bg-white dark:bg-black rounded-lg shadow-sm border transition-all duration-200' :
                           'p-2 bg-white dark:bg-black rounded border transition-all duration-150'
                         }
                         ${artistSelectionMode
-                          ? 'border-blue-400 dark:border-blue-400 hover:border-blue-600 dark:hover:border-blue-300 ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-50 dark:hover:bg-gray-900'
-                          : 'border-blue-200 dark:border-blue-700'
+                          ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-50 dark:hover:bg-gray-900'
+                          : ''
                         }
                       `}
                     >
-                      <div className={`
-                        ${artistsViewMode === 'grid' ? 'space-y-2' : 
-                          artistsViewMode === 'compact' ? 'flex justify-between items-center' :
-                          'flex justify-between items-center text-sm'}
-                      `}>
-                        <div className={artistsViewMode === 'grid' ? 'flex justify-between items-start' : 'flex-1'}>
-                          <div className={`font-bold text-blue-600 ${
-                            artistsViewMode === 'grid' ? 'text-lg' : 
-                            artistsViewMode === 'compact' ? 'text-base' : 'text-sm'
-                          }`}>
-                            {artistsViewMode === 'grid' ? artist.name : `${artist.name}`}
-                          </div>
+                      {artistsViewMode === 'grid' ? (
+                        <>
+                          <div className="font-bold text-blue-600">{artist.name}</div>
                           
-                          {artistsViewMode === 'grid' && (
-                            <div className="text-xl font-bold text-blue-500">
-                              {index + 1}
-                            </div>
-                          )}
-                          
-                          {artistsViewMode !== 'grid' && (
-                            <span className="text-blue-500 font-medium">#{index + 1}</span>
-                          )}
-                        </div>
-                        
-                        {artistsViewMode === 'grid' && (
-                          <div className="space-y-1 text-sm text-blue-500">
-                            <div>Total Time: <span className="font-medium">{formatDuration(artist.totalPlayed)}</span></div>
-                            <div>Plays: <span className="font-medium">{artist.playCount?.toLocaleString() || 0}</span></div>
+                          <div className="text-sm text-blue-500">
+                            Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+                            <br/>
+                            Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
+                            <br/>
                             {artist.mostPlayedSong && (
-                              <div>Top Song: <span className="font-medium">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)</div>
+                              <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
                             )}
                             {artist.firstSong && (
-                              <div>First Song: <span className="font-medium">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)</div>
+                              <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
                             )}
                             {artist.firstListen && (
-                              <div>First Listen: <span className="font-medium">{new Date(artist.firstListen).toLocaleDateString()}</span></div>
+                              <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
                             )}
                           </div>
-                        )}
-                        
-                        {artistsViewMode !== 'grid' && (
+                          
+                          <div className="absolute top-1 right-3 text-blue-600 text-[2rem]">{index + 1}</div>
+                        </>
+                      ) : (
+                        <div className={`
+                          ${artistsViewMode === 'compact' ? 'flex justify-between items-center' :
+                            'flex justify-between items-center text-sm'}
+                        `}>
+                          <div className="flex-1">
+                            <div className={`font-bold text-blue-600 ${
+                              artistsViewMode === 'compact' ? 'text-base' : 'text-sm'
+                            }`}>
+                              {artist.name}
+                            </div>
+                          </div>
+                          
+                          <span className="text-blue-500 font-medium">#{index + 1}</span>
+                          
                           <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} text-blue-500`}>
                             <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
                             <div>{artist.playCount?.toLocaleString() || 0} plays</div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                       );
                     })}
