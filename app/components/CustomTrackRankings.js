@@ -26,25 +26,29 @@ const CustomTrackRankings = ({
         text: 'text-violet-700',
         textLight: 'text-violet-600', 
         textLighter: 'text-violet-500',
-        textDark: 'text-violet-800'
+        textDark: 'text-violet-800',
+        hoverText: 'hover:text-violet-200'
       },
       red: {
         text: 'text-red-700',
         textLight: 'text-red-600', 
         textLighter: 'text-red-500',
-        textDark: 'text-red-800'
+        textDark: 'text-red-800',
+        hoverText: 'hover:text-red-200'
       },
       emerald: {
         text: 'text-emerald-700',
         textLight: 'text-emerald-600', 
         textLighter: 'text-emerald-500',
-        textDark: 'text-emerald-800'
+        textDark: 'text-emerald-800',
+        hoverText: 'hover:text-emerald-200'
       },
       orange: {
         text: 'text-orange-700',
         textLight: 'text-orange-600', 
         textLighter: 'text-orange-500',
-        textDark: 'text-orange-800'
+        textDark: 'text-orange-800',
+        hoverText: 'hover:text-orange-200'
       }
     };
 
@@ -60,8 +64,7 @@ const CustomTrackRankings = ({
         hoverBg: 'hover:bg-emerald-50',
         hoverBgDark: 'hover:bg-emerald-900',
         focusBorder: 'focus:border-emerald-400',
-        focusRing: 'focus:ring-emerald-400',
-        hoverText: 'hover:text-emerald-200'
+        focusRing: 'focus:ring-emerald-400'
       },
       violet: {
         bg: 'bg-violet-50',
@@ -74,8 +77,7 @@ const CustomTrackRankings = ({
         hoverBg: 'hover:bg-violet-50',
         hoverBgDark: 'hover:bg-violet-900',
         focusBorder: 'focus:border-violet-400',
-        focusRing: 'focus:ring-violet-400',
-        hoverText: 'hover:text-violet-200'
+        focusRing: 'focus:ring-violet-400'
       },
       orange: {
         bg: 'bg-orange-50',
@@ -88,8 +90,7 @@ const CustomTrackRankings = ({
         hoverBg: 'hover:bg-orange-50',
         hoverBgDark: 'hover:bg-orange-900',
         focusBorder: 'focus:border-orange-400',
-        focusRing: 'focus:ring-orange-400',
-        hoverText: 'hover:text-orange-200'
+        focusRing: 'focus:ring-orange-400'
       }
     };
 
