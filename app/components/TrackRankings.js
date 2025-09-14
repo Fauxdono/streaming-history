@@ -359,7 +359,7 @@ return (
   <div className="w-full">
 
     <div className="flex justify-between items-center mb-2">
-      <h3 className={`font-bold ${getColorClasses().text}`}>
+      <h3 className={`text-sm sm:text-lg font-bold ${getColorClasses().text}`}>
         {yearRangeMode && yearRange.startYear && yearRange.endYear
           ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
           : initialYear === 'all' 
