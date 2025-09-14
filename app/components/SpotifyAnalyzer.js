@@ -64,6 +64,8 @@ const SpotifyAnalyzer = ({
   artistBackgroundTheme = 'blue', 
   albumTextTheme = 'red',
   albumBackgroundTheme = 'cyan',
+  customTextTheme = 'red',
+  customBackgroundTheme = 'emerald',
   patternTextTheme = 'blue',
   patternBackgroundTheme = 'yellow',
   calendarTextTheme = 'indigo',
@@ -205,6 +207,7 @@ const SpotifyAnalyzer = ({
   // Get themed colors for each tab
   const artistColors = getTabColors(artistTextTheme, artistBackgroundTheme);
   const albumColors = getTabColors(albumTextTheme, albumBackgroundTheme);
+  const customColors = getTabColors(customTextTheme, customBackgroundTheme);
   const patternColors = getTabColors(patternTextTheme, patternBackgroundTheme);
   const calendarColors = getTabColors(calendarTextTheme, calendarBackgroundTheme);
   const behaviorColors = getTabColors(behaviorTextTheme, behaviorBackgroundTheme);
@@ -2553,14 +2556,14 @@ const SpotifyAnalyzer = ({
       
       case 'custom':
         return (
-          <div className="p-2 sm:p-4 bg-emerald-100 rounded border-2 border-emerald-300">
+          <div className={`p-2 sm:p-4 ${customColors.wrapper} rounded border-2`}>
             <CustomTrackRankings 
               rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={customTrackYear}
               yearRangeMode={customYearRangeMode}
               yearRange={customYearRange}
-              colorTheme="emerald"
+              colorTheme={customTextTheme}
               initialArtists={selectedArtists}
             />
           </div>
