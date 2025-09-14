@@ -62,7 +62,7 @@ const SpotifyAnalyzer = ({
   // Flexible theming props - shifted text colors (4 positions down from original)
   artistTextTheme = 'orange',
   artistBackgroundTheme = 'blue', 
-  albumTextTheme = 'red',
+  albumTextTheme = 'amber',
   albumBackgroundTheme = 'cyan',
   customTextTheme = 'rose',
   customBackgroundTheme = 'emerald',
