@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Download } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
+import { useTheme } from './themeprovider.js';
 
 const TrackRankings = ({ 
   processedData = [], 
@@ -22,40 +23,44 @@ const TrackRankings = ({
   const [topN, setTopN] = useState(100);
   const [intensityThreshold, setIntensityThreshold] = useState(5); // Minimum plays per week to qualify
   
-  // Get color classes based on theme
-  const getColorClasses = (type) => {
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  
+  // Get color classes based on theme and dark mode
+  const getColorClasses = () => {
     const themeColors = {
       blue: {
-        text: 'text-blue-700',
-        textLight: 'text-blue-600',
-        textLighter: 'text-blue-500',
-        textDark: 'text-blue-800',
-        bg: 'bg-blue-50',
-        bgLight: 'bg-blue-100',
-        bgHover: 'hover:bg-blue-100',
+        text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
+        textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600',
+        textLighter: isDarkMode ? 'text-blue-500' : 'text-blue-500',
+        textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800',
+        bg: isDarkMode ? 'bg-black' : 'bg-blue-50',
+        bgLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
+        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-blue-100',
         bgSelected: 'bg-blue-600',
         bgButton: 'bg-blue-600',
         bgButtonHover: 'hover:bg-blue-700',
-        bgButtonLight: 'bg-blue-100',
-        bgButtonLightHover: 'hover:bg-blue-200',
-        border: 'border-blue-400',
-        focus: 'focus:border-blue-400 focus:ring-blue-400'
+        bgButtonLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-blue-200',
+        border: isDarkMode ? 'border-gray-600' : 'border-blue-400',
+        focus: isDarkMode ? 'focus:border-blue-400 focus:ring-blue-400' : 'focus:border-blue-400 focus:ring-blue-400'
       },
       amber: {
-        text: 'text-amber-700',
-        textLight: 'text-amber-600',
-        textLighter: 'text-amber-500',
-        textDark: 'text-amber-800',
-        bg: 'bg-amber-50',
-        bgLight: 'bg-amber-100',
-        bgHover: 'hover:bg-amber-100',
+        text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
+        textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
+        textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
+        textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800',
+        bg: isDarkMode ? 'bg-black' : 'bg-amber-50',
+        bgLight: isDarkMode ? 'bg-gray-800' : 'bg-amber-100',
+        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-amber-100',
         bgSelected: 'bg-amber-600',
         bgButton: 'bg-amber-600',
         bgButtonHover: 'hover:bg-amber-700',
-        bgButtonLight: 'bg-amber-100',
-        bgButtonLightHover: 'hover:bg-amber-200',
-        border: 'border-amber-400',
-        focus: 'focus:border-amber-400 focus:ring-amber-400'
+        bgButtonLight: isDarkMode ? 'bg-gray-800' : 'bg-amber-100',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-amber-200',
+        border: isDarkMode ? 'border-gray-600' : 'border-amber-400',
+        focus: isDarkMode ? 'focus:border-amber-400 focus:ring-amber-400' : 'focus:border-amber-400 focus:ring-amber-400'
       }
     };
     
