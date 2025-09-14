@@ -432,22 +432,29 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
         }`}>Artist Insights by Time</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {periodChartData.slice(0, 4).map((artist, index) => (
-            <div key={index} className={`p-3 rounded border ${
-              isDarkMode ? 'bg-black border-gray-700' : 'bg-indigo-50 border-indigo-100'
+            <div key={index} className={`p-3 rounded shadow-sm border hover:border-indigo-400 transition-all duration-300 relative ${
+              isDarkMode ? 'bg-black border-gray-700 dark:hover:border-indigo-500' : 'bg-white border-indigo-200'
             }`}>
-              <h4 className={`font-bold ${
+              <div className={`font-bold ${
                 isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
               }`}>
-                {index + 1}. {artist.name}
-              </h4>
+                {artist.name}
+              </div>
+              
               <div className={`text-sm ${
                 isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
               }`}>
-                <div>Total Time: {artist.formattedTime}</div>
-                <div>Play Count: {artist.plays} tracks</div>
-                <div>
-                  Average: {formatDuration(artist.avgPlayTime)} per play
-                </div>
+                Total Time: <span className="font-bold">{artist.formattedTime}</span>
+                <br/>
+                Plays: <span className="font-bold">{artist.plays}</span> tracks
+                <br/>
+                Average: <span className="font-bold">{formatDuration(artist.avgPlayTime)}</span> per play
+              </div>
+              
+              <div className={`absolute top-1 right-3 text-[2rem] ${
+                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+              }`}>
+                {index + 1}
               </div>
             </div>
           ))}
