@@ -52,14 +52,14 @@ const TrackRankings = ({
         textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
         textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800',
         bg: isDarkMode ? 'bg-black' : 'bg-amber-50',
-        bgLight: isDarkMode ? 'bg-gray-800' : 'bg-amber-100',
+        bgLight: isDarkMode ? 'bg-black' : 'bg-amber-100',
         bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-amber-100',
         bgSelected: 'bg-amber-600',
         bgButton: 'bg-amber-600',
         bgButtonHover: 'hover:bg-amber-700',
-        bgButtonLight: isDarkMode ? 'bg-gray-800' : 'bg-amber-100',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-amber-200',
-        border: isDarkMode ? 'border-gray-600' : 'border-amber-400',
+        bgButtonLight: isDarkMode ? 'bg-black text-amber-500 border border-amber-500' : 'bg-amber-100',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-amber-200',
+        border: isDarkMode ? 'border-gray-700' : 'border-amber-400',
         focus: isDarkMode ? 'focus:border-amber-400 focus:ring-amber-400' : 'focus:border-amber-400 focus:ring-amber-400'
       }
     };
