@@ -455,9 +455,9 @@ return (
 
       <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
         <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
-          <table className="w-full border-collapse">
+          <table className={`w-full border-collapse ${getColorClasses().bg}`}>
             <thead>
-              <tr className="border-b">
+              <tr className={`border-b ${getColorClasses().bg}`}>
                 {!isMobile && <th className={`p-2 text-left ${getColorClasses().text}`}>Rank</th>}
                 <th className={`p-2 text-left ${getColorClasses().text}`}>
                   {isMobile ? "Track Info" : "Track"}
@@ -488,16 +488,16 @@ return (
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className={getColorClasses().bg}>
               {filteredObsessions.length > 0 ? (
                 filteredObsessions.map((obsession, index) => (
-                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getColorClasses().bgHover}`}>
+                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getColorClasses().bg} ${getColorClasses().bgHover}`}>
                     {renderObsessionColumns(obsession, index)}
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={isMobile ? 2 : 6} className={`p-4 text-center ${getColorClasses().textLighter}`}>
+                <tr className={getColorClasses().bg}>
+                  <td colSpan={isMobile ? 2 : 6} className={`p-4 text-center ${getColorClasses().textLighter} ${getColorClasses().bg}`}>
                     {yearRangeMode && yearRange.startYear && yearRange.endYear
                       ? `No brief obsessions found for ${yearRange.startYear}-${yearRange.endYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
                       : initialYear !== 'all' 
