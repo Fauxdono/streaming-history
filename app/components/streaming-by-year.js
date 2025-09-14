@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from './themeprovider.js'; // Add theme import if not passed as prop
 
-const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode }) => {
+const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple' }) => {
   // Use the theme if not explicitly passed as prop
   const { theme } = useTheme();
   const isDarkMode = propIsDarkMode !== undefined ? propIsDarkMode : theme === 'dark';
@@ -152,16 +152,16 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
   return (
     <div className="space-y-6">
       <div>
-        <h3 className={`text-lg font-bold mb-2 ${
-          isDarkMode ? 'text-purple-300' : 'text-purple-700'
+        <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+          isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
         }`}>Streaming Services</h3>
         <p className={`mb-4 ${
-          isDarkMode ? 'text-purple-400' : 'text-purple-600'
+          isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
         }`}>How do you distribute your listening across services?</p>
         
         {serviceData.total.length === 0 ? (
           <div className={`p-4 rounded border text-center ${
-            isDarkMode ? 'bg-black border-gray-700 text-purple-400' : 'bg-purple-50 border-purple-100 text-purple-600'
+            isDarkMode ? 'bg-black border-gray-700 text-yellow-400' : 'bg-yellow-50 border-yellow-100 text-yellow-600'
           }`}>
             No service data available
           </div>
@@ -169,7 +169,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h4 className={`font-medium mb-2 ${
-                isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
               }`}>Usage by Service</h4>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
@@ -209,23 +209,23 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
             
             <div>
               <h4 className={`font-medium mb-2 ${
-                isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
               }`}>Service Stats</h4>
               <div className="space-y-3 max-h-72 overflow-y-auto p-1">
                 {serviceData.total.map((service, index) => (
                   <div key={index} className={`p-3 rounded border ${
-                    isDarkMode ? 'bg-black border-gray-700' : 'bg-purple-50 border-purple-100'
+                    isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100'
                   }`}>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: service.color }}></div>
                       <h5 className={`font-bold capitalize ${
-                        isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                        isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
                       }`}>
                         {service.service.replace('_', ' ')}
                       </h5>
                     </div>
                     <div className={`text-sm mt-1 ${
-                      isDarkMode ? 'text-purple-400' : 'text-purple-600'
+                      isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
                     }`}>
                       <div>Plays: {service.count}</div>
                       <div>Listening Time: {formatDuration(service.totalMs)}</div>
@@ -241,16 +241,16 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
       
       {availableYears.length > 0 && (
         <div>
-          <h3 className={`text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-purple-300' : 'text-purple-700'
+          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+            isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
           }`}>Services by Year</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableYears.map(year => (
               <div key={year} className={`p-4 rounded border ${
-                isDarkMode ? 'bg-black border-gray-700' : 'bg-purple-50 border-purple-100'
+                isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100'
               }`}>
                 <h4 className={`font-bold mb-2 ${
-                  isDarkMode ? 'text-purple-300' : 'text-purple-700'
+                  isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
                 }`}>{year}</h4>
                 <div className="h-60">
                   <ResponsiveContainer width="100%" height="100%">

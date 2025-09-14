@@ -886,6 +886,7 @@ const ListeningPatterns = ({
         rawPlayData={filteredData} 
         formatDuration={formatDuration} 
         isDarkMode={isDarkMode}
+        colorTheme="yellow"
       />
     )}
   </div>
