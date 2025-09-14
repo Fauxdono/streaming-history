@@ -61,6 +61,22 @@ const TrackRankings = ({
         bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-amber-200',
         border: isDarkMode ? 'border-gray-700' : 'border-amber-400',
         focus: isDarkMode ? 'focus:border-amber-400 focus:ring-amber-400' : 'focus:border-amber-400 focus:ring-amber-400'
+      },
+      yellow: {
+        text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
+        textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
+        textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
+        textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800',
+        bg: isDarkMode ? 'bg-yellow-900 border border-yellow-700' : 'bg-yellow-50',
+        bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-yellow-100',
+        bgSelected: 'bg-yellow-600',
+        bgButton: 'bg-yellow-600',
+        bgButtonHover: 'hover:bg-yellow-700',
+        bgButtonLight: isDarkMode ? 'bg-black text-yellow-500 border border-yellow-500' : 'bg-yellow-100',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-yellow-200',
+        border: isDarkMode ? 'border-gray-700' : 'border-yellow-400',
+        focus: isDarkMode ? 'focus:border-yellow-400 focus:ring-yellow-400' : 'focus:border-yellow-400 focus:ring-yellow-400'
       }
     };
     
