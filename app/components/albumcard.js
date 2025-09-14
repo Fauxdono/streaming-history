@@ -16,7 +16,10 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
       blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600' },
       green: { text: isDarkMode ? 'text-green-300' : 'text-green-700', textLight: isDarkMode ? 'text-green-400' : 'text-green-600' },
       amber: { text: isDarkMode ? 'text-amber-300' : 'text-amber-700', textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600' },
-      orange: { text: isDarkMode ? 'text-orange-300' : 'text-orange-700', textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600' }
+      orange: { text: isDarkMode ? 'text-orange-300' : 'text-orange-700', textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600' },
+      red: { text: isDarkMode ? 'text-red-300' : 'text-red-700', textLight: isDarkMode ? 'text-red-400' : 'text-red-600' },
+      indigo: { text: isDarkMode ? 'text-indigo-300' : 'text-indigo-700', textLight: isDarkMode ? 'text-indigo-400' : 'text-indigo-600' },
+      emerald: { text: isDarkMode ? 'text-emerald-300' : 'text-emerald-700', textLight: isDarkMode ? 'text-emerald-400' : 'text-emerald-600' }
     };
 
     const backgroundColors = {
@@ -49,6 +52,24 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
         borderHover: isDarkMode ? 'border-orange-500' : 'border-orange-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-orange-50',
         bgButton: isDarkMode ? 'bg-gray-800' : 'bg-orange-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-orange-50',
         bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-orange-100'
+      },
+      red: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-red-700' : 'border-red-200',
+        borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-red-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-red-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-red-50',
+        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-red-100'
+      },
+      indigo: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-indigo-700' : 'border-indigo-200',
+        borderHover: isDarkMode ? 'border-indigo-500' : 'border-indigo-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-indigo-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-indigo-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-indigo-50',
+        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-indigo-100'
+      },
+      emerald: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-emerald-700' : 'border-emerald-200',
+        borderHover: isDarkMode ? 'border-emerald-500' : 'border-emerald-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-emerald-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-emerald-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-emerald-50',
+        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-emerald-100'
       }
     };
 
