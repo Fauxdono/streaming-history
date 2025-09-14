@@ -8,6 +8,8 @@ const CalendarView = ({
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
   colorTheme = 'blue',
+  textTheme = null,
+  backgroundTheme = null,
   onYearChange // Add callback to update selected year
 }) => {
   const [activeTab, setActiveTab] = useState('calendar');
@@ -17,7 +19,66 @@ const CalendarView = ({
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
 
-  // Color theme mapping
+  // Flexible theming system - uses textTheme and backgroundTheme when available
+  const getThemedColors = () => {
+    if (textTheme && backgroundTheme) {
+      const textColors = {
+        indigo: {
+          primary: isDarkMode ? 'indigo-300' : 'indigo-700',
+          primaryLight: isDarkMode ? 'indigo-400' : 'indigo-600', 
+          primaryLighter: isDarkMode ? 'indigo-500' : 'indigo-500',
+          primaryDark: isDarkMode ? 'indigo-200' : 'indigo-800',
+          textDark: isDarkMode ? 'indigo-200' : 'indigo-800',
+          textLight: isDarkMode ? 'indigo-300' : 'indigo-700',
+          textLighter: isDarkMode ? 'indigo-400' : 'indigo-600',
+          textVeryLight: isDarkMode ? 'indigo-500' : 'indigo-500'
+        },
+        blue: {
+          primary: isDarkMode ? 'blue-300' : 'blue-700',
+          primaryLight: isDarkMode ? 'blue-400' : 'blue-600',
+          primaryLighter: isDarkMode ? 'blue-500' : 'blue-500',
+          primaryDark: isDarkMode ? 'blue-200' : 'blue-800',
+          textDark: isDarkMode ? 'blue-200' : 'blue-800',
+          textLight: isDarkMode ? 'blue-300' : 'blue-700',
+          textLighter: isDarkMode ? 'blue-400' : 'blue-600',
+          textVeryLight: isDarkMode ? 'blue-500' : 'blue-500'
+        }
+      };
+
+      const backgroundColors = {
+        green: {
+          bg: 'green-600',
+          bgLight: isDarkMode ? 'green-800' : 'green-200',
+          bgMed: isDarkMode ? 'green-700' : 'green-300',
+          border: isDarkMode ? 'border-green-600' : 'border-green-200',
+          borderMed: isDarkMode ? 'border-green-500' : 'border-green-300',
+          borderDark: isDarkMode ? 'border-green-400' : 'border-green-400',
+          borderStrong: isDarkMode ? 'border-green-300' : 'border-green-600',
+          hoverBg: isDarkMode ? 'green-700' : 'green-300'
+        },
+        indigo: {
+          bg: 'indigo-600',
+          bgLight: isDarkMode ? 'indigo-800' : 'indigo-200',
+          bgMed: isDarkMode ? 'indigo-700' : 'indigo-300',
+          border: isDarkMode ? 'border-indigo-600' : 'border-indigo-200',
+          borderMed: isDarkMode ? 'border-indigo-500' : 'border-indigo-300',
+          borderDark: isDarkMode ? 'border-indigo-400' : 'border-indigo-400',
+          borderStrong: isDarkMode ? 'border-indigo-300' : 'border-indigo-600',
+          hoverBg: isDarkMode ? 'indigo-700' : 'indigo-300'
+        }
+      };
+
+      const textColorObj = textColors[textTheme] || textColors.blue;
+      const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.green;
+      
+      return { ...textColorObj, ...backgroundColorObj };
+    }
+    
+    // Fallback to old system
+    return getColors(colorTheme);
+  };
+
+  // Legacy color system for backward compatibility
   const getColors = (colorTheme) => {
     switch (colorTheme) {
       case 'green':
@@ -62,7 +123,7 @@ const CalendarView = ({
     }
   };
 
-  const colors = getColors(colorTheme);
+  const colors = getThemedColors();
   
   // Month names constants
   const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
