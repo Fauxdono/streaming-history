@@ -66,6 +66,8 @@ const SpotifyAnalyzer = ({
   albumBackgroundTheme = 'cyan',
   customTextTheme = 'violet',
   customBackgroundTheme = 'emerald',
+  tracksTextTheme = 'rose',
+  tracksBackgroundTheme = 'red',
   patternTextTheme = 'blue',
   patternBackgroundTheme = 'yellow',
   calendarTextTheme = 'indigo',
@@ -131,6 +133,11 @@ const SpotifyAnalyzer = ({
         text: isDarkMode ? 'text-violet-300' : 'text-violet-700',
         textLight: isDarkMode ? 'text-violet-400' : 'text-violet-600',
         textDark: isDarkMode ? 'text-violet-200' : 'text-violet-800'
+      },
+      rose: {
+        text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
+        textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
+        textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800'
       }
     };
 
@@ -204,6 +211,13 @@ const SpotifyAnalyzer = ({
         border: isDarkMode ? 'border-violet-700' : 'border-violet-200',
         borderHover: isDarkMode ? 'border-violet-500' : 'border-violet-400',
         wrapper: isDarkMode ? 'bg-violet-900 border-violet-800' : 'bg-violet-100 border-violet-300'
+      },
+      rose: {
+        bg: isDarkMode ? 'bg-black' : 'bg-rose-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-rose-700' : 'border-rose-200',
+        borderHover: isDarkMode ? 'border-rose-500' : 'border-rose-400',
+        wrapper: isDarkMode ? 'bg-rose-900 border-rose-800' : 'bg-rose-100 border-rose-300'
       }
     };
 
@@ -220,6 +234,7 @@ const SpotifyAnalyzer = ({
   const artistColors = getTabColors(artistTextTheme, artistBackgroundTheme);
   const albumColors = getTabColors(albumTextTheme, albumBackgroundTheme);
   const customColors = getTabColors(customTextTheme, customBackgroundTheme);
+  const tracksColors = getTabColors(tracksTextTheme, tracksBackgroundTheme);
   const patternColors = getTabColors(patternTextTheme, patternBackgroundTheme);
   const calendarColors = getTabColors(calendarTextTheme, calendarBackgroundTheme);
   const behaviorColors = getTabColors(behaviorTextTheme, behaviorBackgroundTheme);
@@ -2578,6 +2593,18 @@ const SpotifyAnalyzer = ({
               textTheme={customTextTheme}
               backgroundTheme={customBackgroundTheme}
               initialArtists={selectedArtists}
+            />
+          </div>
+        );
+      
+      case 'tracks':
+        return (
+          <div className={`p-2 sm:p-4 ${tracksColors.wrapper} rounded border-2`}>
+            <TrackRankings 
+              processedData={processedData}
+              formatDuration={formatDuration}
+              textTheme={tracksTextTheme}
+              backgroundTheme={tracksBackgroundTheme}
             />
           </div>
         );
