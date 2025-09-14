@@ -31,6 +31,8 @@ const TrackRankings = ({
   
   // Helper function to get themed colors (flexible theming system)
   const getThemedColors = () => {
+    // Debug logging to see what props we're receiving
+    console.log('TrackRankings props:', { textTheme, backgroundTheme, colorTheme });
     const textColors = {
       rose: { text: isDarkMode ? 'text-rose-300' : 'text-rose-700', textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600', textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800' },
       blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
@@ -79,6 +81,14 @@ const TrackRankings = ({
 
     const textColorObj = textColors[textTheme] || textColors.rose;
     const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.red;
+
+    console.log('Selected colors:', { 
+      textTheme, 
+      backgroundTheme, 
+      textColorObj, 
+      backgroundColorObj,
+      finalColors: { ...textColorObj, ...backgroundColorObj }
+    });
 
     return { ...textColorObj, ...backgroundColorObj };
   };
