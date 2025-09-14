@@ -14,10 +14,95 @@ const CustomTrackRankings = ({
   onYearChange,
   onYearRangeChange,
   onToggleYearRangeMode,
-  colorTheme = 'orange'
+  colorTheme = 'orange',
+  textTheme = null,
+  backgroundTheme = null
 }) => {
 
-  // Color theme mapping
+  // Flexible theming support - if textTheme and backgroundTheme are provided, use them
+  const getFlexibleColors = (textTheme, backgroundTheme) => {
+    const textColors = {
+      violet: {
+        text: 'text-violet-700',
+        textLight: 'text-violet-600', 
+        textLighter: 'text-violet-500',
+        textDark: 'text-violet-800'
+      },
+      red: {
+        text: 'text-red-700',
+        textLight: 'text-red-600', 
+        textLighter: 'text-red-500',
+        textDark: 'text-red-800'
+      },
+      emerald: {
+        text: 'text-emerald-700',
+        textLight: 'text-emerald-600', 
+        textLighter: 'text-emerald-500',
+        textDark: 'text-emerald-800'
+      },
+      orange: {
+        text: 'text-orange-700',
+        textLight: 'text-orange-600', 
+        textLighter: 'text-orange-500',
+        textDark: 'text-orange-800'
+      }
+    };
+
+    const backgroundColors = {
+      emerald: {
+        bg: 'bg-emerald-50',
+        bgLight: 'bg-emerald-100',
+        bgMed: 'bg-emerald-200',
+        bgDark: 'bg-emerald-600',
+        bgDarkHover: 'hover:bg-emerald-700',
+        border: 'border-emerald-200',
+        borderDark: 'border-emerald-700',
+        hoverBg: 'hover:bg-emerald-50',
+        hoverBgDark: 'hover:bg-emerald-900',
+        focusBorder: 'focus:border-emerald-400',
+        focusRing: 'focus:ring-emerald-400',
+        hoverText: 'hover:text-emerald-200'
+      },
+      violet: {
+        bg: 'bg-violet-50',
+        bgLight: 'bg-violet-100',
+        bgMed: 'bg-violet-200',
+        bgDark: 'bg-violet-600',
+        bgDarkHover: 'hover:bg-violet-700',
+        border: 'border-violet-200',
+        borderDark: 'border-violet-700',
+        hoverBg: 'hover:bg-violet-50',
+        hoverBgDark: 'hover:bg-violet-900',
+        focusBorder: 'focus:border-violet-400',
+        focusRing: 'focus:ring-violet-400',
+        hoverText: 'hover:text-violet-200'
+      },
+      orange: {
+        bg: 'bg-orange-50',
+        bgLight: 'bg-orange-100',
+        bgMed: 'bg-orange-200',
+        bgDark: 'bg-orange-600',
+        bgDarkHover: 'hover:bg-orange-700',
+        border: 'border-orange-200',
+        borderDark: 'border-orange-700',
+        hoverBg: 'hover:bg-orange-50',
+        hoverBgDark: 'hover:bg-orange-900',
+        focusBorder: 'focus:border-orange-400',
+        focusRing: 'focus:ring-orange-400',
+        hoverText: 'hover:text-orange-200'
+      }
+    };
+
+    const textThemeObj = textColors[textTheme] || textColors.orange;
+    const backgroundThemeObj = backgroundColors[backgroundTheme] || backgroundColors.orange;
+
+    return {
+      ...textThemeObj,
+      ...backgroundThemeObj
+    };
+  };
+
+  // Color theme mapping (legacy support)
   const getColors = (theme) => {
     switch (theme) {
       case 'emerald':
@@ -100,7 +185,8 @@ const CustomTrackRankings = ({
     }
   };
 
-  const colors = getColors(colorTheme);
+  // Use flexible theming if both textTheme and backgroundTheme are provided, otherwise fall back to colorTheme
+  const colors = (textTheme && backgroundTheme) ? getFlexibleColors(textTheme, backgroundTheme) : getColors(colorTheme);
   
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
