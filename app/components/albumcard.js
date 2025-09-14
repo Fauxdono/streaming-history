@@ -73,7 +73,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
       }
     };
 
-    const textColorObj = textColors[textTheme] || textColors.cyan;
+    const textColorObj = textColors[textTheme] || textColors.red;
     const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.cyan;
 
     return { ...textColorObj, ...backgroundColorObj };
