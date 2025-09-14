@@ -42,6 +42,16 @@ const CalendarView = ({
           textLight: isDarkMode ? 'blue-300' : 'blue-700',
           textLighter: isDarkMode ? 'blue-400' : 'blue-600',
           textVeryLight: isDarkMode ? 'blue-500' : 'blue-500'
+        },
+        red: {
+          primary: isDarkMode ? 'red-300' : 'red-700',
+          primaryLight: isDarkMode ? 'red-400' : 'red-600',
+          primaryLighter: isDarkMode ? 'red-500' : 'red-500',
+          primaryDark: isDarkMode ? 'red-200' : 'red-800',
+          textDark: isDarkMode ? 'red-200' : 'red-800',
+          textLight: isDarkMode ? 'red-300' : 'red-700',
+          textLighter: isDarkMode ? 'red-400' : 'red-600',
+          textVeryLight: isDarkMode ? 'red-500' : 'red-500'
         }
       };
 
