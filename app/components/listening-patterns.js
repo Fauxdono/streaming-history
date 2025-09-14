@@ -875,7 +875,7 @@ const ListeningPatterns = ({
           initialYear={selectedYear}
           yearRange={yearRange}
           yearRangeMode={yearRangeMode}
-          colorTheme="purple"
+          colorTheme="amber"
         />
       </div>
     )}

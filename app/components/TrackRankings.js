@@ -13,13 +13,54 @@ const TrackRankings = ({
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
   onYearRangeChange,
-  onToggleYearRangeMode
+  onToggleYearRangeMode,
+  colorTheme = 'blue'
 }) => {
   const [sortBy, setSortBy] = useState('playsInWeek');
   const [showExporter, setShowExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [topN, setTopN] = useState(100);
   const [intensityThreshold, setIntensityThreshold] = useState(5); // Minimum plays per week to qualify
+  
+  // Get color classes based on theme
+  const getColorClasses = (type) => {
+    const themeColors = {
+      blue: {
+        text: 'text-blue-700',
+        textLight: 'text-blue-600',
+        textLighter: 'text-blue-500',
+        textDark: 'text-blue-800',
+        bg: 'bg-blue-50',
+        bgLight: 'bg-blue-100',
+        bgHover: 'hover:bg-blue-100',
+        bgSelected: 'bg-blue-600',
+        bgButton: 'bg-blue-600',
+        bgButtonHover: 'hover:bg-blue-700',
+        bgButtonLight: 'bg-blue-100',
+        bgButtonLightHover: 'hover:bg-blue-200',
+        border: 'border-blue-400',
+        focus: 'focus:border-blue-400 focus:ring-blue-400'
+      },
+      amber: {
+        text: 'text-amber-700',
+        textLight: 'text-amber-600',
+        textLighter: 'text-amber-500',
+        textDark: 'text-amber-800',
+        bg: 'bg-amber-50',
+        bgLight: 'bg-amber-100',
+        bgHover: 'hover:bg-amber-100',
+        bgSelected: 'bg-amber-600',
+        bgButton: 'bg-amber-600',
+        bgButtonHover: 'hover:bg-amber-700',
+        bgButtonLight: 'bg-amber-100',
+        bgButtonLightHover: 'hover:bg-amber-200',
+        border: 'border-amber-400',
+        focus: 'focus:border-amber-400 focus:ring-amber-400'
+      }
+    };
+    
+    return themeColors[colorTheme] || themeColors.blue;
+  };
   
   // Add check for mobile viewport
   useEffect(() => {
@@ -253,19 +294,19 @@ const filteredObsessions = useMemo(() => {
       // Mobile view for obsessions
       return (
         <>
-          <td className="p-2 text-blue-700">
+          <td className={`p-2 ${getColorClasses().text}`}>
             <div className="flex flex-col">
               <div className="flex items-center">
-                <span className="font-bold text-xs mr-2 text-blue-800">{index + 1}.</span>
+                <span className={`font-bold text-xs mr-2 ${getColorClasses().textDark}`}>{index + 1}.</span>
                 <div className="font-medium">{obsession.trackName}</div>
               </div>
-              <div className="text-xs text-blue-600">{obsession.artist}</div>
-              <div className="text-xs text-blue-500">
+              <div className={`text-xs ${getColorClasses().textLight}`}>{obsession.artist}</div>
+              <div className={`text-xs ${getColorClasses().textLighter}`}>
                 Week of {formatDate(obsession.intensePeriod.weekStart)}
               </div>
             </div>
           </td>
-          <td className="p-2 align-top text-right text-blue-700">
+          <td className={`p-2 align-top text-right ${getColorClasses().text}`}>
             <div className="flex flex-col">
               <span className="font-medium">{obsession.intensePeriod.playsInWeek} in week</span>
               <span className="text-xs">{obsession.playCount} total plays</span>
@@ -281,14 +322,14 @@ const filteredObsessions = useMemo(() => {
     // Desktop view with all columns
     return (
       <>
-        <td className="p-2 text-blue-700">{index + 1}</td>
-        <td className="p-2 text-blue-700">{obsession.trackName}</td>
-        <td className="p-2 text-blue-700">{obsession.artist}</td>
-        <td className="p-2 text-right text-blue-700">
+        <td className={`p-2 ${getColorClasses().text}`}>{index + 1}</td>
+        <td className={`p-2 ${getColorClasses().text}`}>{obsession.trackName}</td>
+        <td className={`p-2 ${getColorClasses().text}`}>{obsession.artist}</td>
+        <td className={`p-2 text-right ${getColorClasses().text}`}>
           {formatDate(obsession.intensePeriod.weekStart)}
         </td>
-        <td className="p-2 text-right text-blue-700">{obsession.intensePeriod.playsInWeek}</td>
-        <td className="p-2 text-right text-blue-700">{obsession.playCount}</td>
+        <td className={`p-2 text-right ${getColorClasses().text}`}>{obsession.intensePeriod.playsInWeek}</td>
+        <td className={`p-2 text-right ${getColorClasses().text}`}>{obsession.playCount}</td>
       </>
     );
   };
@@ -297,7 +338,7 @@ return (
   <div className="w-full">
 
     <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-blue-700">
+      <h3 className={`font-bold ${getColorClasses().text}`}>
         {yearRangeMode && yearRange.startYear && yearRange.endYear
           ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
           : initialYear === 'all' 
@@ -307,15 +348,15 @@ return (
       
     
 
-        <div className="flex items-center gap-1 sm:gap-2 text-blue-700 ml-2">
-      <label className="text-blue-700 ml-2">Show Top</label>
+        <div className={`flex items-center gap-1 sm:gap-2 ${getColorClasses().text} ml-2`}>
+      <label className={`${getColorClasses().text} ml-2`}>Show Top</label>
           <input
             type="number"
             min="1"
             max="250"
             value={topN}
             onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
-            className="border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
+            className={`border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 ${getColorClasses().text} ${getColorClasses().focus}`}
           />
       </div>
     </div>
@@ -324,7 +365,7 @@ return (
  
       {/* Second line: Controls in a clean row */}
       <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
-        <div className="flex items-center gap-1 sm:gap-2 text-blue-700">
+        <div className={`flex items-center gap-1 sm:gap-2 ${getColorClasses().text}`}>
           <label className="text-sm">Min plays/week</label>
           <input
             type="number"
@@ -332,27 +373,27 @@ return (
             max="20"
             value={intensityThreshold}
             onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
-            className="border rounded w-14 px-1 sm:px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400"
+            className={`border rounded w-14 px-1 sm:px-2 py-1 ${getColorClasses().text} ${getColorClasses().focus}`}
           />
         </div>
 
   <div className="flex items-center gap-2">
         <button
           onClick={() => setShowExporter(!showExporter)}
-          className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs"
+          className={`flex items-center gap-1 px-2 py-1 ${getColorClasses().bgButton} text-white rounded ${getColorClasses().bgButtonHover} text-xs`}
         >
           <Download size={14} className="hidden sm:inline" />
           {showExporter ? "Hide" : "Export M3u"}
         </button>
         
         <div className="flex items-center gap-1 sm:gap-2">
-          <span className="text-blue-700 text-sm">Sort:</span>
+          <span className={`${getColorClasses().text} text-sm`}>Sort:</span>
           <button
             onClick={() => setSortBy('playsInWeek')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playsInWeek'
-                ? 'bg-blue-600 text-white'
-                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                ? `${getColorClasses().bgButton} text-white`
+                : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
             }`}
           >
             Weekly Plays
@@ -361,8 +402,8 @@ return (
             onClick={() => setSortBy('playCount')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playCount'
-                ? 'bg-blue-600 text-white'
-                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                ? `${getColorClasses().bgButton} text-white`
+                : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
             }`}
           >
             Total Plays
@@ -371,8 +412,8 @@ return (
             onClick={() => setSortBy('weekStart')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'weekStart'
-                ? 'bg-blue-600 text-white'
-                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                ? `${getColorClasses().bgButton} text-white`
+                : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
             }`}
           >
             Recent First
@@ -388,21 +429,21 @@ return (
         songsByYear={songsByYear}
         selectedYear={yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : initialYear}
         briefObsessions={briefObsessions}
-        colorTheme="blue" // Pass the colorTheme prop to match the tab's color
+        colorTheme={colorTheme} // Pass the colorTheme prop to match the tab's color
       />
     )}
 
     {/* Results Table */}
-    <div className="border rounded-lg p-3 sm:p-4 bg-blue-50">
+    <div className={`border rounded-lg p-3 sm:p-4 ${getColorClasses().bg}`}>
       <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
-        <div className="text-blue-700 font-medium text-sm">
+        <div className={`${getColorClasses().text} font-medium text-sm`}>
           {yearRangeMode && yearRange.startYear && yearRange.endYear
             ? `Brief obsessions for ${yearRange.startYear}-${yearRange.endYear}`
             : initialYear === 'all' 
               ? 'All-time brief obsessions' 
               : `Brief obsessions for ${initialYear}`}
         </div>
-        <div className="text-blue-700 text-sm">
+        <div className={`${getColorClasses().text} text-sm`}>
           Found <span className="font-bold">{filteredObsessions.length}</span> obsessions
         </div>
       </div>
@@ -412,16 +453,16 @@ return (
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b">
-                {!isMobile && <th className="p-2 text-left text-blue-700">Rank</th>}
-                <th className="p-2 text-left text-blue-700">
+                {!isMobile && <th className={`p-2 text-left ${getColorClasses().text}`}>Rank</th>}
+                <th className={`p-2 text-left ${getColorClasses().text}`}>
                   {isMobile ? "Track Info" : "Track"}
                 </th>
-                {!isMobile && <th className="p-2 text-left text-blue-700">Artist</th>}
+                {!isMobile && <th className={`p-2 text-left ${getColorClasses().text}`}>Artist</th>}
                 {!isMobile ? (
                   <>
-                    <th className="p-2 text-right text-blue-700">Peak Week</th>
+                    <th className={`p-2 text-right ${getColorClasses().text}`}>Peak Week</th>
                     <th 
-                      className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+                      className={`p-2 text-right ${getColorClasses().text} cursor-pointer ${getColorClasses().bgHover} ${
                         sortBy === 'playsInWeek' ? 'font-bold' : ''
                       }`}
                       onClick={() => setSortBy('playsInWeek')}
@@ -429,7 +470,7 @@ return (
                       Plays in Week {sortBy === 'playsInWeek' && '▼'}
                     </th>
                     <th 
-                      className={`p-2 text-right text-blue-700 cursor-pointer hover:bg-blue-100 ${
+                      className={`p-2 text-right ${getColorClasses().text} cursor-pointer ${getColorClasses().bgHover} ${
                         sortBy === 'playCount' ? 'font-bold' : ''
                       }`}
                       onClick={() => setSortBy('playCount')}
@@ -438,20 +479,20 @@ return (
                     </th>
                   </>
                 ) : (
-                  <th className="p-2 text-right text-blue-700">Stats</th>
+                  <th className={`p-2 text-right ${getColorClasses().text}`}>Stats</th>
                 )}
               </tr>
             </thead>
             <tbody>
               {filteredObsessions.length > 0 ? (
                 filteredObsessions.map((obsession, index) => (
-                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className="border-b hover:bg-blue-50">
+                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getColorClasses().bgHover}`}>
                     {renderObsessionColumns(obsession, index)}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isMobile ? 2 : 6} className="p-4 text-center text-blue-500">
+                  <td colSpan={isMobile ? 2 : 6} className={`p-4 text-center ${getColorClasses().textLighter}`}>
                     {yearRangeMode && yearRange.startYear && yearRange.endYear
                       ? `No brief obsessions found for ${yearRange.startYear}-${yearRange.endYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
                       : initialYear !== 'all' 
