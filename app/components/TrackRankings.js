@@ -51,7 +51,7 @@ const TrackRankings = ({
         textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
         textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
         textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800',
-        bg: isDarkMode ? 'bg-black' : 'bg-amber-50',
+        bg: isDarkMode ? 'bg-black border border-gray-700' : 'bg-amber-50 border',
         bgLight: isDarkMode ? 'bg-black' : 'bg-amber-100',
         bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-amber-100',
         bgSelected: 'bg-amber-600',
@@ -314,9 +314,9 @@ const filteredObsessions = useMemo(() => {
           <td className={`p-2 align-top text-right ${getColorClasses().text}`}>
             <div className="flex flex-col">
               <span className="font-medium">{obsession.intensePeriod.playsInWeek} in week</span>
-              <span className="text-xs">{obsession.playCount} total plays</span>
+              <span className={`text-xs ${getColorClasses().text}`}>{obsession.playCount} total plays</span>
               {obsession.albumName && (
-                <span className="text-xs italic truncate max-w-[120px]">{obsession.albumName}</span>
+                <span className={`text-xs italic truncate max-w-[120px] ${getColorClasses().textLight}`}>{obsession.albumName}</span>
               )}
             </div>
           </td>
@@ -371,7 +371,7 @@ return (
       {/* Second line: Controls in a clean row */}
       <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
         <div className={`flex items-center gap-1 sm:gap-2 ${getColorClasses().text}`}>
-          <label className="text-sm">Min plays/week</label>
+          <label className={`text-sm ${getColorClasses().text}`}>Min plays/week</label>
           <input
             type="number"
             min="1"
@@ -385,7 +385,7 @@ return (
   <div className="flex items-center gap-2">
         <button
           onClick={() => setShowExporter(!showExporter)}
-          className={`flex items-center gap-1 px-2 py-1 ${getColorClasses().bgButton} text-white rounded ${getColorClasses().bgButtonHover} text-xs`}
+          className={`flex items-center gap-1 px-2 py-1 ${getColorClasses().bgButton} text-black rounded ${getColorClasses().bgButtonHover} text-xs`}
         >
           <Download size={14} className="hidden sm:inline" />
           {showExporter ? "Hide" : "Export M3u"}
@@ -397,7 +397,7 @@ return (
             onClick={() => setSortBy('playsInWeek')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playsInWeek'
-                ? `${getColorClasses().bgButton} text-white`
+                ? `${getColorClasses().bgButton} text-black`
                 : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
             }`}
           >
@@ -407,7 +407,7 @@ return (
             onClick={() => setSortBy('playCount')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playCount'
-                ? `${getColorClasses().bgButton} text-white`
+                ? `${getColorClasses().bgButton} text-black`
                 : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
             }`}
           >
@@ -417,7 +417,7 @@ return (
             onClick={() => setSortBy('weekStart')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'weekStart'
-                ? `${getColorClasses().bgButton} text-white`
+                ? `${getColorClasses().bgButton} text-black`
                 : `${getColorClasses().bgButtonLight} ${getColorClasses().text} ${getColorClasses().bgButtonLightHover}`
             }`}
           >
