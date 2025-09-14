@@ -58,6 +58,25 @@ const CustomTrackRankings = ({
           focusRing: 'focus:ring-red-400',
           hoverText: 'hover:text-red-200'
         };
+      case 'violet':
+        return {
+          text: 'text-violet-700',
+          textLight: 'text-violet-600', 
+          textLighter: 'text-violet-500',
+          textDark: 'text-violet-800',
+          bg: 'bg-violet-50',
+          bgLight: 'bg-violet-100',
+          bgMed: 'bg-violet-200',
+          bgDark: 'bg-violet-600',
+          bgDarkHover: 'hover:bg-violet-700',
+          border: 'border-violet-200',
+          borderDark: 'border-violet-700',
+          hoverBg: 'hover:bg-violet-50',
+          hoverBgDark: 'hover:bg-violet-900',
+          focusBorder: 'focus:border-violet-400',
+          focusRing: 'focus:ring-violet-400',
+          hoverText: 'hover:text-violet-200'
+        };
       case 'orange':
       default:
         return {
