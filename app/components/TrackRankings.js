@@ -50,6 +50,12 @@ const TrackRankings = ({
         textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
         textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
         textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800',
+      },
+      rose: {
+        text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
+        textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
+        textLighter: isDarkMode ? 'text-rose-500' : 'text-rose-500',
+        textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800',
       }
     };
 
@@ -77,6 +83,14 @@ const TrackRankings = ({
         bgButtonLight: isDarkMode ? 'bg-black text-yellow-500 border border-yellow-500' : 'bg-yellow-100',
         bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-yellow-200',
         border: isDarkMode ? 'border-gray-700' : 'border-yellow-400',
+      },
+      rose: {
+        bg: isDarkMode ? 'bg-rose-900 border border-rose-700' : 'bg-rose-50',
+        bgLight: isDarkMode ? 'bg-rose-800' : 'bg-rose-100',
+        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-rose-100',
+        bgButtonLight: isDarkMode ? 'bg-black text-rose-500 border border-rose-500' : 'bg-rose-100',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-rose-200',
+        border: isDarkMode ? 'border-gray-700' : 'border-rose-400',
       }
     };
 
@@ -98,6 +112,12 @@ const TrackRankings = ({
         bgButton: 'bg-yellow-600',
         bgButtonHover: 'hover:bg-yellow-700',
         focus: isDarkMode ? 'focus:border-yellow-400 focus:ring-yellow-400' : 'focus:border-yellow-400 focus:ring-yellow-400'
+      },
+      rose: {
+        bgSelected: 'bg-rose-600',
+        bgButton: 'bg-rose-600',
+        bgButtonHover: 'hover:bg-rose-700',
+        focus: isDarkMode ? 'focus:border-rose-400 focus:ring-rose-400' : 'focus:border-rose-400 focus:ring-rose-400'
       }
     };
 
