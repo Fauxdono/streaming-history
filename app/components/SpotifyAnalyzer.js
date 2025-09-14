@@ -60,7 +60,7 @@ const SpotifyAnalyzer = ({
   setActiveTab, 
   TopTabsComponent,
   // Flexible theming props - shifted text colors (4 positions down from original)
-  artistTextTheme = 'orange',
+  artistTextTheme = 'yellow',
   artistBackgroundTheme = 'blue', 
   albumTextTheme = 'amber',
   albumBackgroundTheme = 'cyan',
