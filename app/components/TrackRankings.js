@@ -15,7 +15,9 @@ const TrackRankings = ({
   yearRangeMode = false,
   onYearRangeChange,
   onToggleYearRangeMode,
-  colorTheme = 'blue'
+  colorTheme = 'blue',
+  backgroundTheme = null, // Optional separate background theme
+  textTheme = null // Optional separate text theme
 }) => {
   const [sortBy, setSortBy] = useState('playsInWeek');
   const [showExporter, setShowExporter] = useState(false);
@@ -29,58 +31,92 @@ const TrackRankings = ({
   
   // Get color classes based on theme and dark mode
   const getColorClasses = () => {
-    const themeColors = {
+    // Define color themes for different aspects
+    const textColors = {
       blue: {
         text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
         textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600',
         textLighter: isDarkMode ? 'text-blue-500' : 'text-blue-500',
         textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800',
-        bg: isDarkMode ? 'bg-black' : 'bg-blue-50',
-        bgLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
-        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-blue-100',
-        bgSelected: 'bg-blue-600',
-        bgButton: 'bg-blue-600',
-        bgButtonHover: 'hover:bg-blue-700',
-        bgButtonLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-blue-200',
-        border: isDarkMode ? 'border-gray-600' : 'border-blue-400',
-        focus: isDarkMode ? 'focus:border-blue-400 focus:ring-blue-400' : 'focus:border-blue-400 focus:ring-blue-400'
       },
       amber: {
         text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
         textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
         textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
         textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800',
-        bg: isDarkMode ? 'bg-amber-900 border border-amber-700' : 'bg-amber-50',
-        bgLight: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
-        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-amber-100',
-        bgSelected: 'bg-amber-600',
-        bgButton: 'bg-amber-600',
-        bgButtonHover: 'hover:bg-amber-700',
-        bgButtonLight: isDarkMode ? 'bg-black text-amber-500 border border-amber-500' : 'bg-amber-100',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-amber-200',
-        border: isDarkMode ? 'border-gray-700' : 'border-amber-400',
-        focus: isDarkMode ? 'focus:border-amber-400 focus:ring-amber-400' : 'focus:border-amber-400 focus:ring-amber-400'
       },
       yellow: {
         text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
         textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
         textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
         textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800',
+      }
+    };
+
+    const backgroundColors = {
+      blue: {
+        bg: isDarkMode ? 'bg-black' : 'bg-blue-50',
+        bgLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
+        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-blue-100',
+        bgButtonLight: isDarkMode ? 'bg-gray-800' : 'bg-blue-100',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-blue-200',
+        border: isDarkMode ? 'border-gray-600' : 'border-blue-400',
+      },
+      amber: {
+        bg: isDarkMode ? 'bg-amber-900 border border-amber-700' : 'bg-amber-50',
+        bgLight: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
+        bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-amber-100',
+        bgButtonLight: isDarkMode ? 'bg-black text-amber-500 border border-amber-500' : 'bg-amber-100',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-amber-200',
+        border: isDarkMode ? 'border-gray-700' : 'border-amber-400',
+      },
+      yellow: {
         bg: isDarkMode ? 'bg-yellow-900 border border-yellow-700' : 'bg-yellow-50',
         bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
         bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-yellow-100',
-        bgSelected: 'bg-yellow-600',
-        bgButton: 'bg-yellow-600',
-        bgButtonHover: 'hover:bg-yellow-700',
         bgButtonLight: isDarkMode ? 'bg-black text-yellow-500 border border-yellow-500' : 'bg-yellow-100',
         bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-yellow-200',
         border: isDarkMode ? 'border-gray-700' : 'border-yellow-400',
+      }
+    };
+
+    const buttonColors = {
+      blue: {
+        bgSelected: 'bg-blue-600',
+        bgButton: 'bg-blue-600',
+        bgButtonHover: 'hover:bg-blue-700',
+        focus: isDarkMode ? 'focus:border-blue-400 focus:ring-blue-400' : 'focus:border-blue-400 focus:ring-blue-400'
+      },
+      amber: {
+        bgSelected: 'bg-amber-600',
+        bgButton: 'bg-amber-600',
+        bgButtonHover: 'hover:bg-amber-700',
+        focus: isDarkMode ? 'focus:border-amber-400 focus:ring-amber-400' : 'focus:border-amber-400 focus:ring-amber-400'
+      },
+      yellow: {
+        bgSelected: 'bg-yellow-600',
+        bgButton: 'bg-yellow-600',
+        bgButtonHover: 'hover:bg-yellow-700',
         focus: isDarkMode ? 'focus:border-yellow-400 focus:ring-yellow-400' : 'focus:border-yellow-400 focus:ring-yellow-400'
       }
     };
-    
-    return themeColors[colorTheme] || themeColors.blue;
+
+    // Determine which themes to use
+    const selectedTextTheme = textTheme || colorTheme;
+    const selectedBackgroundTheme = backgroundTheme || colorTheme;
+    const selectedButtonTheme = textTheme || colorTheme; // Buttons follow text theme for consistency
+
+    // Get color objects
+    const textColorObj = textColors[selectedTextTheme] || textColors.blue;
+    const backgroundColorObj = backgroundColors[selectedBackgroundTheme] || backgroundColors.blue;
+    const buttonColorObj = buttonColors[selectedButtonTheme] || buttonColors.blue;
+
+    // Combine all themes
+    return {
+      ...textColorObj,
+      ...backgroundColorObj,
+      ...buttonColorObj
+    };
   };
   
   // Add check for mobile viewport
