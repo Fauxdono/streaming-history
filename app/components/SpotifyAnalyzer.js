@@ -59,18 +59,18 @@ const SpotifyAnalyzer = ({
   activeTab, 
   setActiveTab, 
   TopTabsComponent,
-  // Flexible theming props
-  artistTextTheme = 'blue',
+  // Flexible theming props - shifted text colors (4 positions down from original)
+  artistTextTheme = 'orange',
   artistBackgroundTheme = 'blue', 
-  albumTextTheme = 'cyan',
+  albumTextTheme = 'red',
   albumBackgroundTheme = 'cyan',
   patternTextTheme = 'blue',
   patternBackgroundTheme = 'yellow',
-  calendarTextTheme = 'green',
+  calendarTextTheme = 'indigo',
   calendarBackgroundTheme = 'green',
-  behaviorTextTheme = 'amber',
+  behaviorTextTheme = 'cyan',
   behaviorBackgroundTheme = 'amber',
-  discoveryTextTheme = 'orange',
+  discoveryTextTheme = 'emerald',
   discoveryBackgroundTheme = 'orange'
 }) => {
   // Get the current theme
