@@ -875,7 +875,8 @@ const ListeningPatterns = ({
           initialYear={selectedYear}
           yearRange={yearRange}
           yearRangeMode={yearRangeMode}
-          colorTheme="blue"
+          textTheme="blue"
+          backgroundTheme="amber"
         />
       </div>
     )}
@@ -886,7 +887,8 @@ const ListeningPatterns = ({
         rawPlayData={filteredData} 
         formatDuration={formatDuration} 
         isDarkMode={isDarkMode}
-        colorTheme="yellow"
+        textTheme="blue"
+        backgroundTheme="amber"
       />
     )}
   </div>

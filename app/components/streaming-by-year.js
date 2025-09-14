@@ -2,10 +2,56 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from './themeprovider.js'; // Add theme import if not passed as prop
 
-const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple' }) => {
+const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple', textTheme = null, backgroundTheme = null }) => {
   // Use the theme if not explicitly passed as prop
   const { theme } = useTheme();
   const isDarkMode = propIsDarkMode !== undefined ? propIsDarkMode : theme === 'dark';
+  
+  // Helper function to get themed colors
+  const getThemedColors = () => {
+    const textColors = {
+      blue: {
+        text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
+        textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600'
+      },
+      amber: {
+        text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
+        textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600'
+      },
+      yellow: {
+        text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
+        textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
+      }
+    };
+    
+    const backgroundColors = {
+      blue: {
+        bg: isDarkMode ? 'bg-black border-gray-700' : 'bg-blue-50 border-blue-100',
+        bgCard: isDarkMode ? 'bg-black border-gray-700' : 'bg-blue-50 border-blue-100'
+      },
+      amber: {
+        bg: isDarkMode ? 'bg-black border-gray-700' : 'bg-amber-50 border-amber-100',
+        bgCard: isDarkMode ? 'bg-black border-gray-700' : 'bg-amber-50 border-amber-100'
+      },
+      yellow: {
+        bg: isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100',
+        bgCard: isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100'
+      }
+    };
+    
+    const selectedTextTheme = textTheme || colorTheme;
+    const selectedBackgroundTheme = backgroundTheme || colorTheme;
+    
+    const textColorObj = textColors[selectedTextTheme] || textColors.yellow;
+    const backgroundColorObj = backgroundColors[selectedBackgroundTheme] || backgroundColors.yellow;
+    
+    return {
+      ...textColorObj,
+      ...backgroundColorObj
+    };
+  };
+  
+  const themedColors = getThemedColors();
   
   // Service colors with dark mode variants
   const serviceColors = useMemo(() => ({
@@ -153,23 +199,23 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     <div className="space-y-6">
       <div>
         <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-          isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
+          themedColors.text
         }`}>Streaming Services</h3>
         <p className={`mb-4 ${
-          isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
+          themedColors.textLight
         }`}>How do you distribute your listening across services?</p>
         
         {serviceData.total.length === 0 ? (
           <div className={`p-4 rounded border text-center ${
-            isDarkMode ? 'bg-black border-gray-700 text-yellow-400' : 'bg-yellow-50 border-yellow-100 text-yellow-600'
-          }`}>
+            themedColors.bg
+          } ${themedColors.textLight}`}>
             No service data available
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h4 className={`font-medium mb-2 ${
-                isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
+                themedColors.text
               }`}>Usage by Service</h4>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
@@ -209,23 +255,23 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
             
             <div>
               <h4 className={`font-medium mb-2 ${
-                isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
+                themedColors.text
               }`}>Service Stats</h4>
               <div className="space-y-3 max-h-72 overflow-y-auto p-1">
                 {serviceData.total.map((service, index) => (
                   <div key={index} className={`p-3 rounded border ${
-                    isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100'
+                    themedColors.bgCard
                   }`}>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: service.color }}></div>
                       <h5 className={`font-bold capitalize ${
-                        isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
+                        themedColors.text
                       }`}>
                         {service.service.replace('_', ' ')}
                       </h5>
                     </div>
                     <div className={`text-sm mt-1 ${
-                      isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
+                      themedColors.textLight
                     }`}>
                       <div>Plays: {service.count}</div>
                       <div>Listening Time: {formatDuration(service.totalMs)}</div>
@@ -242,15 +288,15 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
       {availableYears.length > 0 && (
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
+            themedColors.text
           }`}>Services by Year</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableYears.map(year => (
               <div key={year} className={`p-4 rounded border ${
-                isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100'
+                themedColors.bgCard
               }`}>
                 <h4 className={`font-bold mb-2 ${
-                  isDarkMode ? 'text-yellow-300' : 'text-yellow-700'
+                  themedColors.text
                 }`}>{year}</h4>
                 <div className="h-60">
                   <ResponsiveContainer width="100%" height="100%">
