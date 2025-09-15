@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 
 const ArtistsRankings = ({
@@ -29,6 +30,7 @@ const ArtistsRankings = ({
   textTheme = null
 }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedArtists, setExpandedArtists] = useState(new Set());
   
   // Get the current theme and colorblind adjustment function
   const { theme, getColorblindAdjustedTheme } = useTheme() || {};
@@ -63,7 +65,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-blue-800' : 'bg-blue-600', bgButtonHover: isDarkMode ? 'hover:bg-blue-700' : 'hover:bg-blue-700',
         bgSelected: isDarkMode ? 'bg-blue-600' : 'bg-blue-600', bgSelectedHover: isDarkMode ? 'hover:bg-blue-700' : 'hover:bg-blue-700',
         focusRing: isDarkMode ? 'focus:ring-blue-400' : 'focus:ring-blue-400',
-        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-blue-300'
+        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-blue-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-blue-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-blue-100'
       },
       yellow: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-yellow-700' : 'border-yellow-200',
@@ -71,7 +74,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-600', bgButtonHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-700',
         bgSelected: isDarkMode ? 'bg-yellow-600' : 'bg-yellow-600', bgSelectedHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-700',
         focusRing: isDarkMode ? 'focus:ring-yellow-400' : 'focus:ring-yellow-400',
-        wrapper: isDarkMode ? 'bg-yellow-900 border-yellow-800' : 'bg-yellow-100 border-yellow-300'
+        wrapper: isDarkMode ? 'bg-yellow-900 border-yellow-800' : 'bg-yellow-100 border-yellow-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-yellow-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-yellow-100'
       },
       cyan: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-cyan-700' : 'border-cyan-200',
@@ -79,7 +83,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-cyan-800' : 'bg-cyan-600', bgButtonHover: isDarkMode ? 'hover:bg-cyan-700' : 'hover:bg-cyan-700',
         bgSelected: isDarkMode ? 'bg-cyan-600' : 'bg-cyan-600', bgSelectedHover: isDarkMode ? 'hover:bg-cyan-700' : 'hover:bg-cyan-700',
         focusRing: isDarkMode ? 'focus:ring-cyan-400' : 'focus:ring-cyan-400',
-        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-cyan-300'
+        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-cyan-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-cyan-100'
       },
       teal: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-teal-700' : 'border-teal-200',
@@ -87,7 +92,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-teal-800' : 'bg-teal-600', bgButtonHover: isDarkMode ? 'hover:bg-teal-700' : 'hover:bg-teal-700',
         bgSelected: isDarkMode ? 'bg-teal-600' : 'bg-teal-600', bgSelectedHover: isDarkMode ? 'hover:bg-teal-700' : 'hover:bg-teal-700',
         focusRing: isDarkMode ? 'focus:ring-teal-400' : 'focus:ring-teal-400',
-        wrapper: isDarkMode ? 'bg-teal-900 border-teal-800' : 'bg-teal-100 border-teal-300'
+        wrapper: isDarkMode ? 'bg-teal-900 border-teal-800' : 'bg-teal-100 border-teal-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-teal-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-teal-100'
       },
       violet: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-violet-700' : 'border-violet-200',
@@ -95,7 +101,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-violet-800' : 'bg-violet-600', bgButtonHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-700',
         bgSelected: isDarkMode ? 'bg-violet-600' : 'bg-violet-600', bgSelectedHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-700',
         focusRing: isDarkMode ? 'focus:ring-violet-400' : 'focus:ring-violet-400',
-        wrapper: isDarkMode ? 'bg-violet-900 border-violet-800' : 'bg-violet-100 border-violet-300'
+        wrapper: isDarkMode ? 'bg-violet-900 border-violet-800' : 'bg-violet-100 border-violet-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-violet-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-violet-100'
       },
       purple: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-purple-700' : 'border-purple-200',
@@ -103,7 +110,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-purple-800' : 'bg-purple-600', bgButtonHover: isDarkMode ? 'hover:bg-purple-700' : 'hover:bg-purple-700',
         bgSelected: isDarkMode ? 'bg-purple-600' : 'bg-purple-600', bgSelectedHover: isDarkMode ? 'hover:bg-purple-700' : 'hover:bg-purple-700',
         focusRing: isDarkMode ? 'focus:ring-purple-400' : 'focus:ring-purple-400',
-        wrapper: isDarkMode ? 'bg-purple-900 border-purple-800' : 'bg-purple-100 border-purple-300'
+        wrapper: isDarkMode ? 'bg-purple-900 border-purple-800' : 'bg-purple-100 border-purple-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-purple-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-purple-100'
       },
       gray: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
@@ -111,7 +119,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-600', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700',
         bgSelected: isDarkMode ? 'bg-gray-600' : 'bg-gray-600', bgSelectedHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700',
         focusRing: isDarkMode ? 'focus:ring-gray-400' : 'focus:ring-gray-400',
-        wrapper: isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300'
+        wrapper: isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-gray-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
       },
       slate: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-slate-700' : 'border-slate-200',
@@ -119,7 +128,8 @@ const ArtistsRankings = ({
         bgButton: isDarkMode ? 'bg-slate-800' : 'bg-slate-600', bgButtonHover: isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-700',
         bgSelected: isDarkMode ? 'bg-slate-600' : 'bg-slate-600', bgSelectedHover: isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-700',
         focusRing: isDarkMode ? 'focus:ring-slate-400' : 'focus:ring-slate-400',
-        wrapper: isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-300'
+        wrapper: isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-slate-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-slate-100'
       }
     };
 
@@ -142,6 +152,37 @@ const ArtistsRankings = ({
   }, []);
 
   const colors = getThemedColors();
+
+  // Helper function to toggle artist track expansion
+  const toggleArtistTracks = (artistName) => {
+    setExpandedArtists(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(artistName)) {
+        newSet.delete(artistName);
+      } else {
+        newSet.add(artistName);
+      }
+      return newSet;
+    });
+  };
+
+  // Helper function to get top tracks for an artist
+  const getArtistTracks = useMemo(() => {
+    return (artist) => {
+      // If artist has trackObjects, use those
+      if (artist.trackObjects && Array.isArray(artist.trackObjects)) {
+        return artist.trackObjects.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
+      }
+      
+      // If artist has songs, use those
+      if (artist.songs && Array.isArray(artist.songs)) {
+        return artist.songs.sort((a, b) => (b.playCount || 0) - (a.playCount || 0));
+      }
+      
+      // Return empty array if no tracks
+      return [];
+    };
+  }, []);
 
   return (
     <div className={`p-2 sm:p-4 rounded border-2 ${colors.wrapper}`}>
@@ -330,38 +371,97 @@ const ArtistsRankings = ({
                   setActiveTab('custom');
                 };
 
+                // Get artist tracks
+                const artistTracks = getArtistTracks(artist);
+                const topTrack = artistTracks.length > 0 ? artistTracks[0] : null;
+                const otherTracks = artistTracks.slice(1);
+                const artistName = typeof artist === 'string' ? artist : (artist.artist || artist.name);
+                const isExpanded = expandedArtists.has(artistName);
+
                 return (
                   <div 
-                    key={artist.artist || artist} 
-                    className={`
-                      ${artistsViewMode === 'grid' ? 
-                        `${colors.bg} border rounded-lg p-4 ${colors.border} ${colors.borderHover} transition-colors ${artistSelectionMode ? 'cursor-pointer' : ''}` :
-                        artistsViewMode === 'compact' ?
-                        `flex items-center justify-between p-2 ${colors.bg} border rounded ${colors.border} ${colors.borderHover} transition-colors ${artistSelectionMode ? 'cursor-pointer' : ''}` :
-                        `flex items-center justify-between p-1 text-sm ${colors.bg} ${artistSelectionMode ? 'cursor-pointer' : ''}`
-                      }
-                    `}
+                    key={artistName} 
+                    className={`p-3 ${colors.bg} rounded shadow-sm border ${colors.border} hover:${colors.borderHover} transition-all duration-300 relative ${artistSelectionMode ? 'cursor-pointer' : ''}`}
                     onClick={handleArtistClick}
                   >
-                    <div className={artistsViewMode === 'grid' ? 'text-center' : 'flex items-center flex-1'}>
-                      <span className={`${colors.text} font-medium ${artistsViewMode === 'grid' ? 'text-lg' : 'text-sm'}`}>
-                        {artistsViewMode !== 'mobile' && `${index + 1}. `}
-                        {typeof artist === 'string' ? artist : artist.artist}
-                      </span>
-                      {artistsViewMode === 'grid' && typeof artist === 'object' && (
-                        <div className={`mt-2 space-y-1 ${colors.textLight}`}>
-                          <div>Plays: {artist.playCount?.toLocaleString() || 'N/A'}</div>
-                          <div>Time: {formatDuration ? formatDuration(artist.totalPlayed) : artist.totalPlayed}</div>
-                        </div>
+                    {/* Artist Name */}
+                    <div className={`font-bold ${colors.text}`}>{artistName}</div>
+                    
+                    {/* Artist Stats */}
+                    <div className={`text-sm ${colors.textLight}`}>
+                      Total Time: <span className="font-bold">{formatDuration ? formatDuration(artist.totalPlayed) : (artist.totalPlayed || 'N/A')}</span>
+                      <br/>
+                      Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 'N/A'}</span>
+                      <br/>
+                      {artist.firstListen && (
+                        <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span><br/></>
+                      )}
+                      {artist.mostPlayedSong && (
+                        <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName || artist.mostPlayedSong}</span></>
                       )}
                     </div>
                     
-                    {artistsViewMode !== 'grid' && typeof artist === 'object' && (
-                      <div className={`text-right ${colors.textLight} ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'}`}>
-                        <div>Plays: {artist.playCount?.toLocaleString() || 'N/A'}</div>
-                        <div>Time: {formatDuration ? formatDuration(artist.totalPlayed) : artist.totalPlayed}</div>
+                    {/* Divider */}
+                    <div className={`border-t ${colors.border} my-2`}></div>
+                    
+                    {/* Top Track Section */}
+                    <div className="mt-2">
+                      <div className={`font-medium ${colors.text}`}>Top Track:</div>
+                      {topTrack ? (
+                        <div className={`text-sm ${colors.textLight} p-1 ${colors.bgLight} rounded`}>
+                          {topTrack.trackName || topTrack.name || 'Unknown Track'}
+                          <div className={`flex justify-between text-xs ${colors.textLight}`}>
+                            <span>{formatDuration ? formatDuration(topTrack.totalPlayed || 0) : (topTrack.totalPlayed || 'N/A')}</span>
+                            <span>{(topTrack.playCount || 0)} plays</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={`text-sm ${colors.textLight} italic`}>No track data available</div>
+                      )}
+                    </div>
+                    
+                    {/* Track Dropdown Toggle */}
+                    {otherTracks.length > 0 && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent artist click when clicking tracks button
+                          toggleArtistTracks(artistName);
+                        }}
+                        className={`mt-2 text-xs flex items-center justify-between w-full p-1 ${colors.text} ${colors.bgButton} hover:${colors.bgButton} rounded`}
+                      >
+                        <span className="flex items-center">
+                          <Music size={14} className="mr-1" />
+                          {isExpanded ? 'Hide' : 'Show'} {otherTracks.length} more tracks
+                        </span>
+                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    )}
+                    
+                    {/* Track Dropdown Content */}
+                    {isExpanded && otherTracks.length > 0 && (
+                      <div className={`mt-1 max-h-64 overflow-y-auto text-xs border ${colors.border} rounded`}>
+                        <div className={`sticky top-0 ${colors.bgHeader} p-1 text-xs text-center ${colors.text} font-medium`}>
+                          Showing all {otherTracks.length} remaining tracks
+                        </div>
+                        {otherTracks.map((track, trackIndex) => (
+                          <div 
+                            key={`${track.trackName || track.name || 'unknown'}-${trackIndex}`}
+                            className={`p-1 ${trackIndex % 2 === 0 ? colors.bgStripe : colors.bg}`}
+                          >
+                            <div className={colors.text}>
+                              {track.trackName || track.name || 'Unknown Track'}
+                            </div>
+                            <div className={`flex justify-between ${colors.textLight}`}>
+                              <span>{formatDuration ? formatDuration(track.totalPlayed || 0) : (track.totalPlayed || 'N/A')}</span>
+                              <span>{(track.playCount || 0)} plays</span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
+                    
+                    {/* Artist Rank Number */}
+                    <div className={`absolute top-1 right-3 ${colors.text} text-[2rem]`}>{index + 1}</div>
                   </div>
                 );
               })}
