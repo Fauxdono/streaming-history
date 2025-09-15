@@ -1462,10 +1462,10 @@ const YearSelector = ({
             {/* Expand button */}
             <button 
               onClick={toggleExpanded}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-8 w-8 h-8 flex items-center justify-center`}
+              className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
-              {isTop ? '↓' : '↑'}
+              <span className={colors.textActive}>{isTop ? '↓' : '↑'}</span>
             </button>
             
             {/* Text container */}
@@ -1484,7 +1484,7 @@ const YearSelector = ({
               className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
-              <span className="text-xs">⇄</span>
+              <span className={`text-xs ${colors.textActive}`}>⇄</span>
             </button>
           </div>
         ) : (
@@ -1492,10 +1492,10 @@ const YearSelector = ({
             {/* Vertical layout - keep original structure */}
             <button 
               onClick={toggleExpanded}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
-              {currentPosition === 'left' ? '→' : '←'}
+              <span className={colors.textActive}>{currentPosition === 'left' ? '→' : '←'}</span>
             </button>
             
             <div className={`h-full ${isMobile ? 'pt-4' : 'pt-16'} pb-16 flex flex-col items-center justify-center ${colors.text}`}>
@@ -1512,7 +1512,7 @@ const YearSelector = ({
               className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
-              <span className="text-xs">⇄</span>
+              <span className={`text-xs ${colors.textActive}`}>⇄</span>
             </button>
           </>
         )}
@@ -1559,10 +1559,10 @@ const YearSelector = ({
               : currentPosition === 'top'
               ? 'absolute right-2 bottom-1/2 translate-y-8'
               : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20`
-          } p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          } p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Collapse sidebar"
         >
-          {currentPosition === 'bottom' ? '↓' : currentPosition === 'top' ? '↑' : currentPosition === 'left' ? '←' : '→'}
+          <span className={colors.textActive}>{currentPosition === 'bottom' ? '↓' : currentPosition === 'top' ? '↑' : currentPosition === 'left' ? '←' : '→'}</span>
         </button>
       )}
       
@@ -2030,7 +2030,7 @@ const YearSelector = ({
               className={`absolute right-2 ${currentPosition === 'top' ? 'bottom-1/2 -translate-y-6' : 'top-1/2 translate-y-6'} p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
               aria-label="Toggle sidebar position"
             >
-              <span className="text-sm">⇄</span>
+              <span className={`text-sm ${colors.textActive}`}>⇄</span>
             </button>
           )
         ) : (
@@ -2041,7 +2041,7 @@ const YearSelector = ({
                 className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
                 aria-label="Toggle sidebar position"
               >
-                <span className="text-sm">⇄</span>
+                <span className={`text-sm ${colors.textActive}`}>⇄</span>
               </button>
             )}
           </div>
