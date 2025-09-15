@@ -684,7 +684,7 @@ const CalendarView = ({
             {!isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-green-950' : 'bg-green-50'} rounded shadow-sm border transition-all duration-300 relative ${
+                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-green-950' : 'bg-green-200'} rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
                       ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
                       : `border-${colors.border} hover:border-${colors.borderDark}`
@@ -692,7 +692,7 @@ const CalendarView = ({
                     
                     {/* Month name centered at top with handwriting font */}
                     <div className={`text-center pb-3 border-b ${
-                      isDarkMode ? 'border-red-600' : 'border-red-400'
+                      isDarkMode ? 'border-red-600' : 'border-red-300'
                     } mb-3`}>
                       <div className={`text-xl font-bold ${
                         isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
@@ -927,7 +927,7 @@ const CalendarView = ({
                   <div 
                     key={index} 
                     onClick={handleDayClick}
-                    className={`p-3 ${isDarkMode ? 'bg-green-950' : 'bg-green-50'} rounded shadow-sm border transition-all duration-300 ${
+                    className={`p-3 ${isDarkMode ? 'bg-green-950' : 'bg-green-200'} rounded shadow-sm border transition-all duration-300 ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
                     } ${
                       daySelectionMode
@@ -941,7 +941,7 @@ const CalendarView = ({
                     
                     {/* Date formatted as "January 1st" centered at top with handwriting font */}
                     <div className={`text-center pb-3 border-b ${
-                      isDarkMode ? 'border-red-600' : 'border-red-400'
+                      isDarkMode ? 'border-red-600' : 'border-red-300'
                     } mb-3`}>
                       <div className={`text-xl font-bold ${
                         isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
