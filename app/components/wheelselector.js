@@ -232,13 +232,13 @@ const WheelSelector = ({
     switch (theme) {
       case 'pink':
         return {
-          text: 'text-pink-700',
-          activeText: 'text-pink-800 font-bold'
+          text: 'text-pink-700 dark:text-pink-300',
+          activeText: 'text-pink-800 font-bold dark:text-pink-200'
         };
       case 'purple':
         return {
-          text: 'text-purple-700',
-          activeText: 'text-purple-800 font-bold'
+          text: 'text-purple-700 dark:text-purple-300',
+          activeText: 'text-purple-800 font-bold dark:text-purple-200'
         };
       case 'blue':
         return {
@@ -247,63 +247,63 @@ const WheelSelector = ({
         };
       case 'indigo':
         return {
-          text: 'text-indigo-700',
-          activeText: 'text-indigo-800 font-bold'
+          text: 'text-indigo-700 dark:text-indigo-300',
+          activeText: 'text-indigo-800 font-bold dark:text-indigo-200'
         };
       case 'green':
         return {
-          text: 'text-green-700',
-          activeText: 'text-green-800 font-bold'
+          text: 'text-green-700 dark:text-green-300',
+          activeText: 'text-green-800 font-bold dark:text-green-200'
         };
       case 'teal':
         return {
-          text: 'text-teal-700',
-          activeText: 'text-teal-800 font-bold'
+          text: 'text-teal-700 dark:text-teal-300',
+          activeText: 'text-teal-800 font-bold dark:text-teal-200'
         };
       case 'cyan':
         return {
-          text: 'text-cyan-700',
-          activeText: 'text-cyan-800 font-bold'
+          text: 'text-cyan-700 dark:text-cyan-300',
+          activeText: 'text-cyan-800 font-bold dark:text-cyan-200'
         };
       case 'emerald':
         return {
-          text: 'text-emerald-700',
-          activeText: 'text-emerald-800 font-bold'
+          text: 'text-emerald-700 dark:text-emerald-300',
+          activeText: 'text-emerald-800 font-bold dark:text-emerald-200'
         };
       case 'orange':
         return {
-          text: 'text-orange-700',
-          activeText: 'text-orange-800 font-bold'
+          text: 'text-orange-700 dark:text-orange-300',
+          activeText: 'text-orange-800 font-bold dark:text-orange-200'
         };
       case 'red':
         return {
-          text: 'text-red-700',
-          activeText: 'text-red-800 font-bold'
+          text: 'text-red-700 dark:text-red-300',
+          activeText: 'text-red-800 font-bold dark:text-red-200'
         };
       case 'yellow':
         return {
-          text: 'text-yellow-700',
-          activeText: 'text-yellow-800 font-bold'
+          text: 'text-yellow-700 dark:text-yellow-300',
+          activeText: 'text-yellow-800 font-bold dark:text-yellow-200'
         };
       case 'amber':
         return {
-          text: 'text-amber-700',
-          activeText: 'text-amber-800 font-bold'
+          text: 'text-amber-700 dark:text-amber-300',
+          activeText: 'text-amber-800 font-bold dark:text-amber-200'
         };
       case 'fuchsia':
         return {
-          text: 'text-fuchsia-700',
-          activeText: 'text-fuchsia-800 font-bold'
+          text: 'text-fuchsia-700 dark:text-fuchsia-300',
+          activeText: 'text-fuchsia-800 font-bold dark:text-fuchsia-200'
         };
       case 'violet':
         return {
-          text: 'text-violet-700',
-          activeText: 'text-violet-800 font-bold'
+          text: 'text-violet-700 dark:text-violet-300',
+          activeText: 'text-violet-800 font-bold dark:text-violet-200'
         };
       case 'rose':
         return {
-          text: 'text-rose-700',
-          activeText: 'text-rose-800 font-bold'
+          text: 'text-rose-700 dark:text-rose-300',
+          activeText: 'text-rose-800 font-bold dark:text-rose-200'
         };
       default:
         return {};
@@ -315,17 +315,6 @@ const WheelSelector = ({
   const colors = textTheme && textTheme !== colorTheme
     ? { ...baseColors, ...getTextColors(textTheme) }
     : baseColors;
-
-  // Debug logging to help troubleshoot color issues
-  if (colorTheme === 'cyan') { // Albums page
-    console.log('WheelSelector (albums page):', {
-      colorTheme,
-      textTheme,
-      usingTextOverride: textTheme && textTheme !== colorTheme,
-      finalTextColor: colors.text,
-      finalActiveTextColor: colors.activeText
-    });
-  }
   
   // If no value is selected or item not found, default to first item if available
   useEffect(() => {
