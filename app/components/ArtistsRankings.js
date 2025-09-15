@@ -32,19 +32,39 @@ const ArtistsRankings = ({
   const [isMobile, setIsMobile] = useState(false);
   const [expandedArtists, setExpandedArtists] = useState(new Set());
   
-  // Get the current theme and colorblind adjustment function
-  const { theme, getColorblindAdjustedTheme } = useTheme() || {};
+  // Get the current theme
+  const { theme } = useTheme() || {};
   const isDarkMode = theme === 'dark';
   
-  // Helper function to get themed colors (flexible theming system)
+  // Helper function to get themed colors with colorblind override
   const getThemedColors = () => {
-    // Apply colorblind adjustments to themes
-    const adjustedTextTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(textTheme || colorTheme) : (textTheme || colorTheme);
-    const adjustedBackgroundTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(backgroundTheme || colorTheme) : (backgroundTheme || colorTheme);
-    const adjustedColorTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(colorTheme) : colorTheme;
+    const { colorblindMode } = useTheme() || {};
     
-    // Debug logging to see what props we're receiving
-    console.log('ArtistsRankings props:', { textTheme, backgroundTheme, colorTheme, adjustedTextTheme, adjustedBackgroundTheme, adjustedColorTheme });
+    // Simple colorblind formula: override colors when colorblind mode is active
+    let finalTextTheme = textTheme || colorTheme;
+    let finalBackgroundTheme = backgroundTheme || colorTheme;
+    
+    if (colorblindMode && colorblindMode !== 'none') {
+      // Direct color mapping for colorblind modes
+      switch (colorblindMode) {
+        case 'protanopia':
+          finalTextTheme = 'cyan';
+          finalBackgroundTheme = 'teal';
+          break;
+        case 'deuteranopia':
+          finalTextTheme = 'violet';
+          finalBackgroundTheme = 'purple';
+          break;
+        case 'tritanopia':
+          finalTextTheme = 'orange';
+          finalBackgroundTheme = 'red';
+          break;
+        case 'monochrome':
+          finalTextTheme = 'gray';
+          finalBackgroundTheme = 'slate';
+          break;
+      }
+    }
     
     const textColors = {
       blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
@@ -136,8 +156,8 @@ const ArtistsRankings = ({
       }
     };
 
-    const textColorObj = textColors[adjustedTextTheme] || textColors.blue;
-    const backgroundColorObj = backgroundColors[adjustedBackgroundTheme] || backgroundColors.blue;
+    const textColorObj = textColors[finalTextTheme] || textColors.blue;
+    const backgroundColorObj = backgroundColors[finalBackgroundTheme] || backgroundColors.blue;
 
     return { ...textColorObj, ...backgroundColorObj };
   };
