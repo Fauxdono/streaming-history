@@ -129,6 +129,43 @@ export const ThemeProvider = ({ children }) => {
     });
   };
 
+  // Function to transform color themes based on colorblind mode
+  const getColorblindAdjustedTheme = (originalTheme) => {
+    if (colorblindMode === 'none') return originalTheme;
+    
+    const colorMappings = {
+      protanopia: {
+        // Map red-based themes to cyan/teal
+        'red': 'cyan',
+        'rose': 'cyan',
+        'pink': 'teal'
+      },
+      deuteranopia: {
+        // Map green-based themes to violet/purple  
+        'green': 'violet',
+        'emerald': 'purple',
+        'lime': 'indigo'
+      },
+      tritanopia: {
+        // Map blue-based themes to red/orange
+        'blue': 'red',
+        'cyan': 'orange',
+        'sky': 'amber'
+      },
+      monochrome: {
+        // All colors become gray variants
+        'red': 'gray', 'green': 'slate', 'blue': 'gray',
+        'yellow': 'gray', 'purple': 'slate', 'pink': 'gray',
+        'indigo': 'slate', 'cyan': 'gray', 'teal': 'slate',
+        'orange': 'gray', 'amber': 'gray', 'lime': 'slate',
+        'emerald': 'slate', 'violet': 'gray', 'fuchsia': 'slate',
+        'rose': 'gray', 'sky': 'gray'
+      }
+    };
+
+    return colorMappings[colorblindMode]?.[originalTheme] || originalTheme;
+  };
+
   // Avoid hydration mismatch by not rendering anything until mounted
   if (!mounted) {
     return <>{children}</>;
@@ -141,7 +178,8 @@ export const ThemeProvider = ({ children }) => {
       toggleTheme, 
       colorblindMode, 
       setColorblindMode, 
-      cycleColorblindMode 
+      cycleColorblindMode,
+      getColorblindAdjustedTheme
     }}>
       {children}
     </ThemeContext.Provider>

@@ -26,6 +26,8 @@ const TopTabs = ({
   position = 'top',  // New prop for initial position
   yearSelectorPosition = null // YearSelector position to adjust borders when stacked
 }) => {
+  // Get colorblind adjustment function from theme provider
+  const { getColorblindAdjustedTheme } = useTheme();
   
   // Position state - cycles through top, right, bottom, left
   const [currentPosition, setCurrentPosition] = useState(position);
@@ -215,67 +217,44 @@ const TopTabs = ({
         return '📄';
     }
   }, []);
+  // Map tab IDs to their base color themes
+  const getTabBaseColor = (tabId) => {
+    const colorMap = {
+      'updates': 'fuchsia',
+      'upload': 'violet', 
+      'stats': 'indigo',
+      'artists': 'blue',
+      'albums': 'cyan',
+      'custom': 'emerald',
+      'tracks': 'red',
+      'calendar': 'green', 
+      'patterns': 'yellow',
+      'behavior': 'amber',
+      'discovery': 'orange',
+      'podcasts': 'red',
+      'playlists': 'rose'
+    };
+    return colorMap[tabId] || 'gray';
+  };
+
+  // Generate Tailwind classes for a given color theme
+  const getColorClasses = (colorName, isActive) => {
+    if (isActive) {
+      return `bg-${colorName}-50 text-${colorName}-600 border-b-2 border-${colorName}-600 dark:bg-${colorName}-900 dark:text-${colorName}-300 dark:border-${colorName}-400`;
+    } else {
+      return `bg-${colorName}-200 text-${colorName}-600 hover:bg-${colorName}-300 dark:bg-${colorName}-800 dark:text-${colorName}-300 dark:hover:bg-${colorName}-700`;
+    }
+  };
+
   // Memoized TabButton component to prevent recreation
   const TabButton = useCallback(({ id, label }) => {
-    // Helper function to get the color based on tab ID
-    const getTabColor = (tabId) => {
-      switch (tabId) {
-        case 'updates':
-          return activeTab === tabId 
-            ? 'bg-fuchsia-50 text-fuchsia-600 border-b-2 border-fuchsia-600 dark:bg-fuchsia-900 dark:text-fuchsia-300 dark:border-fuchsia-400' 
-            : 'bg-fuchsia-200 text-fuchsia-600 hover:bg-fuchsia-300 dark:bg-fuchsia-800 dark:text-fuchsia-300 dark:hover:bg-fuchsia-700';
-        case 'upload':
-          return activeTab === tabId 
-            ? 'bg-violet-50 text-violet-600 border-b-2 border-violet-600 dark:bg-violet-900 dark:text-violet-300 dark:border-violet-400' 
-            : 'bg-violet-200 text-violet-600 hover:bg-violet-300 dark:bg-violet-800 dark:text-violet-300 dark:hover:bg-violet-700';
-        case 'stats':
-          return activeTab === tabId 
-            ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-400' 
-            : 'bg-indigo-200 text-indigo-600 hover:bg-indigo-300 dark:bg-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-700';
-        case 'artists':
-          return activeTab === tabId 
-            ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-400' 
-            : 'bg-blue-200 text-blue-600 hover:bg-blue-300 dark:bg-blue-800 dark:text-blue-300 dark:hover:bg-blue-700';
-        case 'albums':
-          return activeTab === tabId 
-            ? 'bg-cyan-50 text-cyan-600 border-b-2 border-cyan-600 dark:bg-cyan-900 dark:text-cyan-300 dark:border-cyan-400' 
-            : 'bg-cyan-200 text-cyan-600 hover:bg-cyan-300 dark:bg-cyan-800 dark:text-cyan-300 dark:hover:bg-cyan-700';
-        case 'custom':
-          return activeTab === tabId 
-            ? 'bg-emerald-50 text-emerald-600 border-b-2 border-emerald-600 dark:bg-emerald-900 dark:text-emerald-300 dark:border-emerald-400' 
-            : 'bg-emerald-200 text-emerald-600 hover:bg-emerald-300 dark:bg-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-700';
-        case 'tracks':
-          return activeTab === tabId 
-            ? 'bg-red-50 text-red-600 border-b-2 border-red-600 dark:bg-red-900 dark:text-red-300 dark:border-red-400' 
-            : 'bg-red-200 text-red-600 hover:bg-red-300 dark:bg-red-800 dark:text-red-300 dark:hover:bg-red-700';
-        case 'calendar':
-          return activeTab === tabId 
-            ? 'bg-green-50 text-green-600 border-b-2 border-green-600 dark:bg-green-900 dark:text-green-300 dark:border-green-400' 
-            : 'bg-green-200 text-green-600 hover:bg-green-300 dark:bg-green-800 dark:text-green-300 dark:hover:bg-green-700';
-        case 'patterns':
-          return activeTab === tabId 
-            ? 'bg-yellow-50 text-yellow-600 border-b-2 border-yellow-600 dark:bg-yellow-900 dark:text-yellow-300 dark:border-yellow-400' 
-            : 'bg-yellow-200 text-yellow-600 hover:bg-yellow-300 dark:bg-yellow-800 dark:text-yellow-300 dark:hover:bg-yellow-700';
-        case 'behavior':
-          return activeTab === tabId 
-            ? 'bg-amber-50 text-amber-600 border-b-2 border-amber-600 dark:bg-amber-900 dark:text-amber-300 dark:border-amber-400' 
-            : 'bg-amber-200 text-amber-600 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-300 dark:hover:bg-amber-700';
-        case 'discovery':
-          return activeTab === tabId 
-            ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600 dark:bg-orange-900 dark:text-orange-300 dark:border-orange-400' 
-            : 'bg-orange-200 text-orange-600 hover:bg-orange-300 dark:bg-orange-800 dark:text-orange-300 dark:hover:bg-orange-700';
-        case 'podcasts':
-          return activeTab === tabId 
-            ? 'bg-red-50 text-red-600 border-b-2 border-red-600 dark:bg-red-900 dark:text-red-300 dark:border-red-400' 
-            : 'bg-red-200 text-red-600 hover:bg-red-300 dark:bg-red-800 dark:text-red-300 dark:hover:bg-red-700';
-        case 'playlists':
-          return activeTab === tabId 
-            ? 'bg-rose-50 text-rose-600 border-b-2 border-rose-600 dark:bg-rose-900 dark:text-rose-300 dark:border-rose-400' 
-            : 'bg-rose-200 text-rose-600 hover:bg-rose-300 dark:bg-rose-800 dark:text-rose-300 dark:hover:bg-rose-700';
-        default:
-          return '';
-      }
-    };
+    // Get base color and apply colorblind adjustment
+    const baseColor = getTabBaseColor(id);
+    const adjustedColor = getColorblindAdjustedTheme(baseColor);
+    const isActive = activeTab === id;
+    
+    // Use the colorblind-adjusted color classes
+    const colorClasses = getColorClasses(adjustedColor, isActive);
 
     return (
       <button
@@ -284,13 +263,13 @@ const TopTabs = ({
           isCollapsed && isMobile 
             ? 'p-2 text-base' 
             : 'px-2 sm:px-4 py-2 text-sm sm:text-base'
-        } font-medium ${getTabColor(id)}`}
+        } font-medium ${colorClasses}`}
         title={isCollapsed && isMobile ? label : undefined}
       >
         {isCollapsed && isMobile ? getTabIcon(id) : label}
       </button>
     );
-  }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon]);
+  }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon, getColorblindAdjustedTheme]);
 
   // Settings bar height calculation - measure actual height on desktop
   const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? '85px' : '40px');

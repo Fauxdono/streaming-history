@@ -832,46 +832,7 @@ body {
 .dark .bg-gradient-to-b.from-green-50 { background: linear-gradient(to bottom, #14532d, transparent) !important; }
 .dark .bg-gradient-to-t.from-green-50 { background: linear-gradient(to top, #14532d, transparent) !important; }
 
-/* Colorblind Accessibility Modes */
-
-/* Protanopia (red-blind) - Replace reds with blues/teals */
-.colorblind-protanopia .text-red-600 { color: #0891b2 !important; }
-.colorblind-protanopia .text-red-700 { color: #0e7490 !important; }
-.colorblind-protanopia .text-red-800 { color: #155e75 !important; }
-.colorblind-protanopia .bg-red-50 { background-color: #ecfeff !important; }
-.colorblind-protanopia .bg-red-200 { background-color: #a5f3fc !important; }
-.colorblind-protanopia .bg-red-900 { background-color: #164e63 !important; }
-.colorblind-protanopia .border-red-600 { border-color: #0891b2 !important; }
-.colorblind-protanopia .border-red-400 { border-color: #22d3ee !important; }
-
-.dark.colorblind-protanopia .text-red-300 { color: #67e8f9 !important; }
-.dark.colorblind-protanopia .text-red-200 { color: #a5f3fc !important; }
-
-/* Deuteranopia (green-blind) - Replace greens with blues/purples */
-.colorblind-deuteranopia .text-green-600 { color: #7c3aed !important; }
-.colorblind-deuteranopia .text-green-700 { color: #6d28d9 !important; }
-.colorblind-deuteranopia .text-green-800 { color: #5b21b6 !important; }
-.colorblind-deuteranopia .bg-green-50 { background-color: #f5f3ff !important; }
-.colorblind-deuteranopia .bg-green-200 { background-color: #c4b5fd !important; }
-.colorblind-deuteranopia .bg-green-900 { background-color: #4c1d95 !important; }
-.colorblind-deuteranopia .border-green-600 { border-color: #7c3aed !important; }
-.colorblind-deuteranopia .border-green-400 { border-color: #a78bfa !important; }
-
-.dark.colorblind-deuteranopia .text-green-300 { color: #c4b5fd !important; }
-.dark.colorblind-deuteranopia .text-green-200 { color: #ddd6fe !important; }
-
-/* Tritanopia (blue-blind) - Replace blues with reds/oranges */
-.colorblind-tritanopia .text-blue-600 { color: #dc2626 !important; }
-.colorblind-tritanopia .text-blue-700 { color: #b91c1c !important; }
-.colorblind-tritanopia .text-blue-800 { color: #991b1b !important; }
-.colorblind-tritanopia .bg-blue-50 { background-color: #fef2f2 !important; }
-.colorblind-tritanopia .bg-blue-200 { background-color: #fecaca !important; }
-.colorblind-tritanopia .bg-blue-900 { background-color: #7f1d1d !important; }
-.colorblind-tritanopia .border-blue-600 { border-color: #dc2626 !important; }
-.colorblind-tritanopia .border-blue-400 { border-color: #f87171 !important; }
-
-.dark.colorblind-tritanopia .text-blue-300 { color: #fca5a5 !important; }
-.dark.colorblind-tritanopia .text-blue-200 { color: #fecaca !important; }
+/* Colorblind Accessibility Modes - using theme system instead of CSS overrides */
 
 /* Monochrome (black & white) */
 .colorblind-monochrome * {
