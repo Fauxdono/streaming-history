@@ -6,6 +6,7 @@ const WheelSelector = ({
   onChange,
   label,
   colorTheme = 'teal',
+  textTheme = null, // Add separate textTheme prop for text-only color control
   displayFormat = (val) => val
 }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -225,8 +226,95 @@ const WheelSelector = ({
         };
     }
   };
+
+  // Helper function to get text colors for a specific theme
+  const getTextColors = (theme) => {
+    switch (theme) {
+      case 'pink':
+        return {
+          text: 'text-pink-700',
+          activeText: 'text-pink-800 font-bold'
+        };
+      case 'purple':
+        return {
+          text: 'text-purple-700',
+          activeText: 'text-purple-800 font-bold'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700 dark:text-blue-300',
+          activeText: 'text-blue-800 font-bold dark:text-blue-200'
+        };
+      case 'indigo':
+        return {
+          text: 'text-indigo-700',
+          activeText: 'text-indigo-800 font-bold'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700',
+          activeText: 'text-green-800 font-bold'
+        };
+      case 'teal':
+        return {
+          text: 'text-teal-700',
+          activeText: 'text-teal-800 font-bold'
+        };
+      case 'cyan':
+        return {
+          text: 'text-cyan-700',
+          activeText: 'text-cyan-800 font-bold'
+        };
+      case 'emerald':
+        return {
+          text: 'text-emerald-700',
+          activeText: 'text-emerald-800 font-bold'
+        };
+      case 'orange':
+        return {
+          text: 'text-orange-700',
+          activeText: 'text-orange-800 font-bold'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700',
+          activeText: 'text-red-800 font-bold'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700',
+          activeText: 'text-yellow-800 font-bold'
+        };
+      case 'amber':
+        return {
+          text: 'text-amber-700',
+          activeText: 'text-amber-800 font-bold'
+        };
+      case 'fuchsia':
+        return {
+          text: 'text-fuchsia-700',
+          activeText: 'text-fuchsia-800 font-bold'
+        };
+      case 'violet':
+        return {
+          text: 'text-violet-700',
+          activeText: 'text-violet-800 font-bold'
+        };
+      case 'rose':
+        return {
+          text: 'text-rose-700',
+          activeText: 'text-rose-800 font-bold'
+        };
+      default:
+        return {};
+    }
+  };
   
-  const colors = getColors();
+  // Get base colors and override text colors if textTheme is provided
+  const baseColors = getColors();
+  const colors = textTheme && textTheme !== colorTheme
+    ? { ...baseColors, ...getTextColors(textTheme) }
+    : baseColors;
   
   // If no value is selected or item not found, default to first item if available
   useEffect(() => {
