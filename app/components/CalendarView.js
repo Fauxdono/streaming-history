@@ -44,14 +44,14 @@ const CalendarView = ({
           textVeryLight: isDarkMode ? 'blue-500' : 'blue-500'
         },
         red: {
-          primary: isDarkMode ? 'red-700' : 'red-800',
-          primaryLight: isDarkMode ? 'red-700' : 'red-700',
+          primary: isDarkMode ? 'red-500' : 'red-800',
+          primaryLight: isDarkMode ? 'red-500' : 'red-700',
           primaryLighter: isDarkMode ? 'red-600' : 'red-600',
-          primaryDark: isDarkMode ? 'red-700' : 'red-900',
-          textDark: isDarkMode ? 'red-700' : 'red-900',
-          textLight: isDarkMode ? 'red-700' : 'red-800',
-          textLighter: isDarkMode ? 'red-700' : 'red-700',
-          textVeryLight: isDarkMode ? 'red-700' : 'red-600'
+          primaryDark: isDarkMode ? 'red-500' : 'red-900',
+          textDark: isDarkMode ? 'red-500' : 'red-900',
+          textLight: isDarkMode ? 'red-500' : 'red-800',
+          textLighter: isDarkMode ? 'red-500' : 'red-700',
+          textVeryLight: isDarkMode ? 'red-500' : 'red-600'
         }
       };
 
@@ -142,8 +142,10 @@ const CalendarView = ({
     isDarkMode,
     'colors.primaryLighter': colors.primaryLighter,
     'colors.primary': colors.primary,
+    'colors.primaryDark': colors.primaryDark,
     'month indicator class': isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`,
-    'normal text uses': 'various properties like colors.primary, colors.primaryDark, etc.'
+    'example normal text class': isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLighter}`,
+    'all colors object': colors
   });
   
   // Month names constants
