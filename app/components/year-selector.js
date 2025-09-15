@@ -420,6 +420,89 @@ const YearSelector = ({
     setRefreshCounter(prev => prev + 1);
   }, [yearRange.startYear, yearRange.endYear, startMonth, endMonth, getDaysInMonth]);
   
+  // Helper function to get text colors for a specific theme
+  const getTextColorsForTheme = (theme) => {
+    switch (theme) {
+      case 'pink':
+        return {
+          text: 'text-pink-700 dark:text-pink-300',
+          textBold: 'text-pink-800 dark:text-pink-200'
+        };
+      case 'purple':
+        return {
+          text: 'text-purple-700 dark:text-purple-300',
+          textBold: 'text-purple-800 dark:text-purple-200'
+        };
+      case 'indigo':
+        return {
+          text: 'text-indigo-700 dark:text-indigo-300',
+          textBold: 'text-indigo-800 dark:text-indigo-200'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700 dark:text-blue-300',
+          textBold: 'text-blue-800 dark:text-blue-200'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700 dark:text-green-300',
+          textBold: 'text-green-800 dark:text-green-200'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700 dark:text-yellow-300',
+          textBold: 'text-yellow-800 dark:text-yellow-200'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700 dark:text-red-300',
+          textBold: 'text-red-800 dark:text-red-200'
+        };
+      case 'orange':
+        return {
+          text: 'text-orange-700 dark:text-orange-300',
+          textBold: 'text-orange-800 dark:text-orange-200'
+        };
+      case 'teal':
+        return {
+          text: 'text-teal-700 dark:text-teal-300',
+          textBold: 'text-teal-800 dark:text-teal-200'
+        };
+      case 'cyan':
+        return {
+          text: 'text-cyan-700 dark:text-cyan-300',
+          textBold: 'text-cyan-800 dark:text-cyan-200'
+        };
+      case 'emerald':
+        return {
+          text: 'text-emerald-700 dark:text-emerald-300',
+          textBold: 'text-emerald-800 dark:text-emerald-200'
+        };
+      case 'amber':
+        return {
+          text: 'text-amber-700 dark:text-amber-300',
+          textBold: 'text-amber-800 dark:text-amber-200'
+        };
+      case 'fuchsia':
+        return {
+          text: 'text-fuchsia-700 dark:text-fuchsia-300',
+          textBold: 'text-fuchsia-800 dark:text-fuchsia-200'
+        };
+      case 'violet':
+        return {
+          text: 'text-violet-700 dark:text-violet-300',
+          textBold: 'text-violet-800 dark:text-violet-200'
+        };
+      case 'rose':
+        return {
+          text: 'text-rose-700 dark:text-rose-300',
+          textBold: 'text-rose-800 dark:text-rose-200'
+        };
+      default:
+        return {};
+    }
+  };
+
   // Memoized color theme to prevent recalculation
   const colors = useMemo(() => {
     // Get base colors from colorTheme (used for backgrounds/borders)
@@ -709,89 +792,6 @@ const YearSelector = ({
 
     return baseColors;
   }, [colorTheme, textTheme]);
-
-  // Helper function to get text colors for a specific theme
-  const getTextColorsForTheme = (theme) => {
-    switch (theme) {
-      case 'pink':
-        return {
-          text: 'text-pink-700 dark:text-pink-300',
-          textBold: 'text-pink-800 dark:text-pink-200'
-        };
-      case 'purple':
-        return {
-          text: 'text-purple-700 dark:text-purple-300',
-          textBold: 'text-purple-800 dark:text-purple-200'
-        };
-      case 'indigo':
-        return {
-          text: 'text-indigo-700 dark:text-indigo-300',
-          textBold: 'text-indigo-800 dark:text-indigo-200'
-        };
-      case 'blue':
-        return {
-          text: 'text-blue-700 dark:text-blue-300',
-          textBold: 'text-blue-800 dark:text-blue-200'
-        };
-      case 'green':
-        return {
-          text: 'text-green-700 dark:text-green-300',
-          textBold: 'text-green-800 dark:text-green-200'
-        };
-      case 'yellow':
-        return {
-          text: 'text-yellow-700 dark:text-yellow-300',
-          textBold: 'text-yellow-800 dark:text-yellow-200'
-        };
-      case 'red':
-        return {
-          text: 'text-red-700 dark:text-red-300',
-          textBold: 'text-red-800 dark:text-red-200'
-        };
-      case 'orange':
-        return {
-          text: 'text-orange-700 dark:text-orange-300',
-          textBold: 'text-orange-800 dark:text-orange-200'
-        };
-      case 'teal':
-        return {
-          text: 'text-teal-700 dark:text-teal-300',
-          textBold: 'text-teal-800 dark:text-teal-200'
-        };
-      case 'cyan':
-        return {
-          text: 'text-cyan-700 dark:text-cyan-300',
-          textBold: 'text-cyan-800 dark:text-cyan-200'
-        };
-      case 'emerald':
-        return {
-          text: 'text-emerald-700 dark:text-emerald-300',
-          textBold: 'text-emerald-800 dark:text-emerald-200'
-        };
-      case 'amber':
-        return {
-          text: 'text-amber-700 dark:text-amber-300',
-          textBold: 'text-amber-800 dark:text-amber-200'
-        };
-      case 'fuchsia':
-        return {
-          text: 'text-fuchsia-700 dark:text-fuchsia-300',
-          textBold: 'text-fuchsia-800 dark:text-fuchsia-200'
-        };
-      case 'violet':
-        return {
-          text: 'text-violet-700 dark:text-violet-300',
-          textBold: 'text-violet-800 dark:text-violet-200'
-        };
-      case 'rose':
-        return {
-          text: 'text-rose-700 dark:text-rose-300',
-          textBold: 'text-rose-800 dark:text-rose-200'
-        };
-      default:
-        return {};
-    }
-  };
 
   if (years.length === 0) {
     return <div className={colors.text + " italic"}>No year data available</div>;
