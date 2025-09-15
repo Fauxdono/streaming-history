@@ -426,77 +426,92 @@ const YearSelector = ({
       case 'pink':
         return {
           text: 'text-pink-700 dark:text-pink-300',
-          textBold: 'text-pink-800 dark:text-pink-200'
+          textBold: 'text-pink-800 dark:text-pink-200',
+          textActive: 'text-pink-100 dark:text-pink-100'
         };
       case 'purple':
         return {
           text: 'text-purple-700 dark:text-purple-300',
-          textBold: 'text-purple-800 dark:text-purple-200'
+          textBold: 'text-purple-800 dark:text-purple-200',
+          textActive: 'text-purple-100 dark:text-purple-100'
         };
       case 'indigo':
         return {
           text: 'text-indigo-700 dark:text-indigo-300',
-          textBold: 'text-indigo-800 dark:text-indigo-200'
+          textBold: 'text-indigo-800 dark:text-indigo-200',
+          textActive: 'text-indigo-100 dark:text-indigo-100'
         };
       case 'blue':
         return {
           text: 'text-blue-700 dark:text-blue-300',
-          textBold: 'text-blue-800 dark:text-blue-200'
+          textBold: 'text-blue-800 dark:text-blue-200',
+          textActive: 'text-blue-100 dark:text-blue-100'
         };
       case 'green':
         return {
           text: 'text-green-700 dark:text-green-300',
-          textBold: 'text-green-800 dark:text-green-200'
+          textBold: 'text-green-800 dark:text-green-200',
+          textActive: 'text-green-100 dark:text-green-100'
         };
       case 'yellow':
         return {
           text: 'text-yellow-700 dark:text-yellow-300',
-          textBold: 'text-yellow-800 dark:text-yellow-200'
+          textBold: 'text-yellow-800 dark:text-yellow-200',
+          textActive: 'text-yellow-100 dark:text-yellow-100'
         };
       case 'red':
         return {
           text: 'text-red-700 dark:text-red-300',
-          textBold: 'text-red-800 dark:text-red-200'
+          textBold: 'text-red-800 dark:text-red-200',
+          textActive: 'text-red-100 dark:text-red-100'
         };
       case 'orange':
         return {
           text: 'text-orange-700 dark:text-orange-300',
-          textBold: 'text-orange-800 dark:text-orange-200'
+          textBold: 'text-orange-800 dark:text-orange-200',
+          textActive: 'text-orange-100 dark:text-orange-100'
         };
       case 'teal':
         return {
           text: 'text-teal-700 dark:text-teal-300',
-          textBold: 'text-teal-800 dark:text-teal-200'
+          textBold: 'text-teal-800 dark:text-teal-200',
+          textActive: 'text-teal-100 dark:text-teal-100'
         };
       case 'cyan':
         return {
           text: 'text-cyan-700 dark:text-cyan-300',
-          textBold: 'text-cyan-800 dark:text-cyan-200'
+          textBold: 'text-cyan-800 dark:text-cyan-200',
+          textActive: 'text-cyan-100 dark:text-cyan-100'
         };
       case 'emerald':
         return {
           text: 'text-emerald-700 dark:text-emerald-300',
-          textBold: 'text-emerald-800 dark:text-emerald-200'
+          textBold: 'text-emerald-800 dark:text-emerald-200',
+          textActive: 'text-emerald-100 dark:text-emerald-100'
         };
       case 'amber':
         return {
           text: 'text-amber-700 dark:text-amber-300',
-          textBold: 'text-amber-800 dark:text-amber-200'
+          textBold: 'text-amber-800 dark:text-amber-200',
+          textActive: 'text-amber-100 dark:text-amber-100' // Light amber for button text
         };
       case 'fuchsia':
         return {
           text: 'text-fuchsia-700 dark:text-fuchsia-300',
-          textBold: 'text-fuchsia-800 dark:text-fuchsia-200'
+          textBold: 'text-fuchsia-800 dark:text-fuchsia-200',
+          textActive: 'text-fuchsia-100 dark:text-fuchsia-100'
         };
       case 'violet':
         return {
           text: 'text-violet-700 dark:text-violet-300',
-          textBold: 'text-violet-800 dark:text-violet-200'
+          textBold: 'text-violet-800 dark:text-violet-200',
+          textActive: 'text-violet-100 dark:text-violet-100'
         };
       case 'rose':
         return {
           text: 'text-rose-700 dark:text-rose-300',
-          textBold: 'text-rose-800 dark:text-rose-200'
+          textBold: 'text-rose-800 dark:text-rose-200',
+          textActive: 'text-rose-100 dark:text-rose-100'
         };
       default:
         return {};
@@ -1466,7 +1481,7 @@ const YearSelector = ({
             {/* Position toggle button */}
             <button 
               onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8 w-8 h-8 flex items-center justify-center`}
+              className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
               <span className="text-xs">⇄</span>
@@ -1494,7 +1509,7 @@ const YearSelector = ({
             
             <button 
               onClick={togglePosition}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
               <span className="text-xs">⇄</span>
@@ -2012,7 +2027,7 @@ const YearSelector = ({
           asSidebar && (
             <button 
               onClick={togglePosition}
-              className={`absolute right-2 ${currentPosition === 'top' ? 'bottom-1/2 -translate-y-6' : 'top-1/2 translate-y-6'} p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+              className={`absolute right-2 ${currentPosition === 'top' ? 'bottom-1/2 -translate-y-6' : 'top-1/2 translate-y-6'} p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
               aria-label="Toggle sidebar position"
             >
               <span className="text-sm">⇄</span>
@@ -2023,7 +2038,7 @@ const YearSelector = ({
             {asSidebar && (
               <button 
                 onClick={togglePosition}
-                className={`p-1 rounded-full ${colors.buttonBg} text-white ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
                 aria-label="Toggle sidebar position"
               >
                 <span className="text-sm">⇄</span>
