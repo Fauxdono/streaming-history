@@ -119,9 +119,9 @@ const SpotifyAnalyzer = ({
         textDark: isDarkMode ? 'text-orange-200' : 'text-orange-800'
       },
       red: {
-        text: isDarkMode ? 'text-red-300' : 'text-red-700',
-        textLight: isDarkMode ? 'text-red-400' : 'text-red-600',
-        textDark: isDarkMode ? 'text-red-200' : 'text-red-800'
+        text: isDarkMode ? 'text-red-400' : 'text-red-800',
+        textLight: isDarkMode ? 'text-red-500' : 'text-red-700',
+        textDark: isDarkMode ? 'text-red-300' : 'text-red-900'
       },
       indigo: {
         text: isDarkMode ? 'text-indigo-300' : 'text-indigo-700',
