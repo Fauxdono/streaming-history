@@ -6,11 +6,15 @@ const ThemeContext = createContext({
   theme: "light",
   setTheme: () => null,
   toggleTheme: () => null,
+  colorblindMode: false,
+  setColorblindMode: () => null,
+  toggleColorblindMode: () => null,
 });
 
 export const ThemeProvider = ({ children }) => {
   // Initialize theme to 'light' but will be updated based on system preference
   const [theme, setTheme] = useState("light");
+  const [colorblindMode, setColorblindMode] = useState(false);
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -42,6 +46,14 @@ export const ThemeProvider = ({ children }) => {
     // Set theme based on preference
     const initialTheme = getInitialTheme();
     setTheme(initialTheme);
+    
+    // Check for saved colorblind mode preference
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedColorblindMode = window.localStorage.getItem('colorblindMode');
+      if (storedColorblindMode === 'true') {
+        setColorblindMode(true);
+      }
+    }
     
     // Set up listener for system preference changes
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -86,9 +98,32 @@ export const ThemeProvider = ({ children }) => {
       localStorage.setItem('theme', theme);
     }
   }, [theme, mounted]);
+
+  // Handle colorblind mode changes
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const root = window.document.documentElement;
+    
+    // Add or remove colorblind class
+    if (colorblindMode) {
+      root.classList.add('colorblind');
+    } else {
+      root.classList.remove('colorblind');
+    }
+    
+    // Save preference to localStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('colorblindMode', colorblindMode.toString());
+    }
+  }, [colorblindMode, mounted]);
   
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+
+  const toggleColorblindMode = () => {
+    setColorblindMode(prev => !prev);
   };
 
   // Avoid hydration mismatch by not rendering anything until mounted
@@ -97,7 +132,14 @@ export const ThemeProvider = ({ children }) => {
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ 
+      theme, 
+      setTheme, 
+      toggleTheme, 
+      colorblindMode, 
+      setColorblindMode, 
+      toggleColorblindMode 
+    }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -830,3 +830,82 @@ body {
 .dark .bg-gradient-to-b.from-indigo-50 { background: linear-gradient(to bottom, #312e81, transparent) !important; }
 .dark .bg-gradient-to-t.from-indigo-50 { background: linear-gradient(to top, #312e81, transparent) !important; }
 .dark .bg-gradient-to-b.from-green-50 { background: linear-gradient(to bottom, #14532d, transparent) !important; }
+.dark .bg-gradient-to-t.from-green-50 { background: linear-gradient(to top, #14532d, transparent) !important; }
+
+/* Colorblind Accessibility Mode - High Contrast Black & White */
+.colorblind * {
+  /* Force all colors to black/white/gray scale */
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border-color: #000000 !important;
+  fill: #000000 !important;
+  stroke: #000000 !important;
+}
+
+/* Dark mode colorblind adjustments */
+.dark.colorblind * {
+  color: #ffffff !important;
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Specific colorblind overrides for better contrast */
+.colorblind .bg-white,
+.colorblind [class*="bg-"]:not([class*="bg-black"]):not([class*="bg-gray-"]) {
+  background-color: #ffffff !important;
+}
+
+.colorblind .bg-black,
+.colorblind .text-white {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.dark.colorblind .bg-white,
+.dark.colorblind [class*="bg-"]:not([class*="bg-black"]):not([class*="bg-gray-"]) {
+  background-color: #000000 !important;
+}
+
+.dark.colorblind .bg-black,
+.dark.colorblind .text-black {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Colorblind button styles */
+.colorblind button {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+
+.dark.colorblind button {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+.colorblind button:hover {
+  background-color: #f0f0f0 !important;
+}
+
+.dark.colorblind button:hover {
+  background-color: #1a1a1a !important;
+}
+
+/* Preserve some gray variations for better UX */
+.colorblind .bg-gray-100 { background-color: #f5f5f5 !important; }
+.colorblind .bg-gray-200 { background-color: #e5e5e5 !important; }
+.colorblind .bg-gray-300 { background-color: #d4d4d4 !important; }
+.colorblind .bg-gray-700 { background-color: #404040 !important; }
+.colorblind .bg-gray-800 { background-color: #262626 !important; }
+.colorblind .bg-gray-900 { background-color: #171717 !important; }
+
+.dark.colorblind .bg-gray-100 { background-color: #262626 !important; }
+.dark.colorblind .bg-gray-200 { background-color: #404040 !important; }
+.dark.colorblind .bg-gray-300 { background-color: #525252 !important; }
+.dark.colorblind .bg-gray-700 { background-color: #d4d4d4 !important; }
+.dark.colorblind .bg-gray-800 { background-color: #e5e5e5 !important; }
+.dark.colorblind .bg-gray-900 { background-color: #f5f5f5 !important; }
