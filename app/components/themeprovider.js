@@ -131,7 +131,7 @@ export const ThemeProvider = ({ children }) => {
 
   // Function to transform color themes based on colorblind mode
   const getColorblindAdjustedTheme = (originalTheme) => {
-    if (colorblindMode === 'none') return originalTheme;
+    if (!originalTheme || colorblindMode === 'none') return originalTheme;
     
     const colorMappings = {
       protanopia: {

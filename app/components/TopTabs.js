@@ -26,8 +26,8 @@ const TopTabs = ({
   position = 'top',  // New prop for initial position
   yearSelectorPosition = null // YearSelector position to adjust borders when stacked
 }) => {
-  // Get colorblind adjustment function from theme provider
-  const { getColorblindAdjustedTheme } = useTheme();
+  // Get colorblind adjustment function from theme provider with fallback
+  const { getColorblindAdjustedTheme } = useTheme() || {};
   
   // Position state - cycles through top, right, bottom, left
   const [currentPosition, setCurrentPosition] = useState(position);
@@ -217,8 +217,9 @@ const TopTabs = ({
         return '📄';
     }
   }, []);
-  // Map tab IDs to their base color themes
-  const getTabBaseColor = (tabId) => {
+  
+  // Map tab IDs to their base color themes - move outside component to avoid recreating
+  const getTabBaseColor = useCallback((tabId) => {
     const colorMap = {
       'updates': 'fuchsia',
       'upload': 'violet', 
@@ -235,22 +236,22 @@ const TopTabs = ({
       'playlists': 'rose'
     };
     return colorMap[tabId] || 'gray';
-  };
+  }, []);
 
   // Generate Tailwind classes for a given color theme
-  const getColorClasses = (colorName, isActive) => {
+  const getColorClasses = useCallback((colorName, isActive) => {
     if (isActive) {
       return `bg-${colorName}-50 text-${colorName}-600 border-b-2 border-${colorName}-600 dark:bg-${colorName}-900 dark:text-${colorName}-300 dark:border-${colorName}-400`;
     } else {
       return `bg-${colorName}-200 text-${colorName}-600 hover:bg-${colorName}-300 dark:bg-${colorName}-800 dark:text-${colorName}-300 dark:hover:bg-${colorName}-700`;
     }
-  };
+  }, []);
 
   // Memoized TabButton component to prevent recreation
   const TabButton = useCallback(({ id, label }) => {
-    // Get base color and apply colorblind adjustment
+    // Get base color and apply colorblind adjustment with fallback
     const baseColor = getTabBaseColor(id);
-    const adjustedColor = getColorblindAdjustedTheme(baseColor);
+    const adjustedColor = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(baseColor) : baseColor;
     const isActive = activeTab === id;
     
     // Use the colorblind-adjusted color classes
@@ -269,7 +270,7 @@ const TopTabs = ({
         {isCollapsed && isMobile ? getTabIcon(id) : label}
       </button>
     );
-  }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon, getColorblindAdjustedTheme]);
+  }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon, getColorblindAdjustedTheme, getTabBaseColor, getColorClasses]);
 
   // Settings bar height calculation - measure actual height on desktop
   const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? '85px' : '40px');
