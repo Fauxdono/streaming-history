@@ -5,6 +5,7 @@ import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDa
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import ArtistsRankings from './ArtistsRankings.js';
+import AlbumRankings from './AlbumRankings.js';
 import CalendarView from './CalendarView.js';
 import PodcastRankings from './podcast-rankings.js';
 import _ from 'lodash';
@@ -2229,198 +2230,23 @@ const SpotifyAnalyzer = ({
       
       case 'albums':
         return (
-          <div className="p-2 sm:p-4 bg-cyan-100 rounded border-2 border-cyan-300 transition-all duration-300">
-            {/* Title - mobile gets its own row */}
-            <div className="block sm:hidden mb-1">
-              <h3 className="font-bold text-cyan-700">
-                {getAlbumsTabLabel()}
-              </h3>
-            </div>
-            
-            {/* Desktop layout - title and controls on same row */}
-            <div className="hidden sm:flex justify-between items-center mb-2">
-                <h3 className="font-bold text-cyan-700">
-                  {getAlbumsTabLabel()}
-                </h3>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">Show Top</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="500"
-                      value={topAlbumsCount}
-                      onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
-                      className="w-16 border rounded px-2 py-1 text-cyan-700"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">View Mode</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(albumsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setAlbumsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
-                    >
-                      {albumsViewMode === 'grid' ? 'Grid' : 
-                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">Sort by</label>
-                    <button
-                      onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
-                    >
-                      {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Mobile controls */}
-              <div className="block sm:hidden space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">Top</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="500"
-                      value={topAlbumsCount}
-                      onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
-                      className="w-16 border rounded px-2 py-1 text-cyan-700"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(albumsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setAlbumsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
-                    >
-                      {albumsViewMode === 'grid' ? 'Grid' : 
-                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                    
-                    <button
-                      onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
-                    >
-                      {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-            <div className="space-y-4">
-              {/* Artist Filter */}
-              {selectedArtists.length > 0 && (
-                <div className="bg-white dark:bg-black p-3 rounded-lg border border-cyan-200 dark:border-cyan-700">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-cyan-700 font-medium">Filtered Artists ({selectedArtists.length}):</span>
-                    <button
-                      onClick={() => setSelectedArtists([])}
-                      className="text-cyan-600 hover:text-cyan-800 text-sm"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedArtists.map(artist => (
-                      <span
-                        key={artist}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 dark:bg-gray-800 text-cyan-700 dark:text-cyan-300 rounded-full text-xs"
-                      >
-                        {artist}
-                        <button
-                          onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                          className="ml-1 text-cyan-500 hover:text-cyan-700"
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Albums Display */}
-              {displayedAlbums && displayedAlbums.length > 0 ? (
-                <div className={`
-                  ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 
-                    albumsViewMode === 'compact' ? 'space-y-2' : 'space-y-1'}
-                `}>
-                  {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-                    albumsViewMode === 'grid' ? (
-                      <AlbumCard 
-                        key={`${album.artist}-${album.name}`}
-                        album={{...album, rank: index + 1}} 
-                        index={index} 
-                        processedData={processedData} 
-                        formatDuration={formatDuration}
-                        textTheme={albumTextTheme}
-                        backgroundTheme={albumBackgroundTheme}
-                      />
-                    ) : (
-                      <div 
-                        key={`${album.artist}-${album.name}`}
-                        className={`
-                          ${albumsViewMode === 'compact' ?
-                            `p-3 ${albumColors.bgCard} rounded-lg shadow-sm border ${albumColors.border} hover:${albumColors.bgLight} transition-all duration-200` :
-                            `p-2 ${albumColors.bgCard} rounded border ${albumColors.border} hover:${albumColors.bgLight} transition-all duration-150`
-                          }
-                        `}
-                      >
-                        <div className={`
-                          ${albumsViewMode === 'compact' ? 'flex justify-between items-center' :
-                            'flex justify-between items-center text-sm'}
-                        `}>
-                          <div className="flex-1">
-                            <div className={`font-bold ${albumColors.text} ${
-                              albumsViewMode === 'compact' ? 'text-base' : 'text-sm'
-                            }`}>
-                              #{index + 1} {album.name}
-                            </div>
-                            <div className={`${albumColors.textLight} ${
-                              albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'
-                            }`}>
-                              {album.artist}
-                              {albumsViewMode === 'compact' && album.trackCountValue && (
-                                <span className="ml-2">• {album.trackCountValue} tracks</span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${albumColors.textLight}`}>
-                            <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
-                            <div>{(album.playCount || 0).toLocaleString()} plays</div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-cyan-600">
-                  {selectedAlbumYear === 'all' ? 
-                    'No album data available' : 
-                    `No album data for ${selectedAlbumYear}`
-                  }
-                </div>
-              )}
-            </div>
-          </div>
+          <AlbumRankings
+            displayedAlbums={displayedAlbums}
+            selectedArtists={selectedArtists}
+            topAlbumsCount={topAlbumsCount}
+            albumsViewMode={albumsViewMode}
+            albumsSortBy={albumsSortBy}
+            getAlbumsTabLabel={getAlbumsTabLabel}
+            setTopAlbumsCount={setTopAlbumsCount}
+            setAlbumsViewMode={setAlbumsViewMode}
+            setAlbumsSortBy={setAlbumsSortBy}
+            setSelectedArtists={setSelectedArtists}
+            formatDuration={formatDuration}
+            processedData={processedData}
+            textTheme={albumTextTheme}
+            backgroundTheme={albumBackgroundTheme}
+            colorTheme={albumTextTheme}
+          />
         );
       
       case 'custom':
