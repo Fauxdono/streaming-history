@@ -317,6 +317,7 @@ const SpotifyAnalyzer = ({
 
 
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
+  const [sidebarTextTheme, setSidebarTextTheme] = useState(null);
 
   // TopTabs position state - initialize based on screen size
   const [topTabsPosition, setTopTabsPosition] = useState(() => {
@@ -1489,46 +1490,88 @@ const SpotifyAnalyzer = ({
     const showSidebar = shouldShowSidebar(activeTab);
     setShowYearSidebar(showSidebar);
     
-    // Set the appropriate color theme based on the active tab (using correct text theme colors)
+    // Set the appropriate color theme based on the active tab (reverted to original background colors)
     switch(activeTab) {
       case 'updates':
-        setSidebarColorTheme('fuchsia'); // Keep original as this doesn't have flexible theming
+        setSidebarColorTheme('pink'); // Original TopTabs color for updates
         break;
       case 'upload':
-        setSidebarColorTheme('emerald'); // uploadTextTheme
+        setSidebarColorTheme('emerald'); // Original TopTabs color for upload
         break;
       case 'stats':
-        setSidebarColorTheme('green'); // statsTextTheme
+        setSidebarColorTheme('green'); // Original TopTabs color for stats
         break;
       case 'artists':
-        setSidebarColorTheme('yellow'); // artistTextTheme
+        setSidebarColorTheme('orange'); // Original TopTabs color for artists
         break;
       case 'albums':
-        setSidebarColorTheme('amber'); // albumTextTheme
+        setSidebarColorTheme('red'); // Original TopTabs color for albums
         break;
       case 'custom':
-        setSidebarColorTheme('orange'); // customTextTheme
+        setSidebarColorTheme('violet'); // Original TopTabs color for custom/songs
         break;
       case 'calendar':
-        setSidebarColorTheme('red'); // calendarTextTheme
+        setSidebarColorTheme('indigo'); // Original TopTabs color for calendar
         break;
       case 'patterns':
-        setSidebarColorTheme('rose'); // patternTextTheme
+        setSidebarColorTheme('blue'); // Original TopTabs color for patterns
         break;
       case 'behavior':
-        setSidebarColorTheme('fuchsia'); // behaviorTextTheme
+        setSidebarColorTheme('teal'); // Original TopTabs color for behavior
         break;
       case 'discovery':
-        setSidebarColorTheme('violet'); // discoveryTextTheme
+        setSidebarColorTheme('cyan'); // Original TopTabs color for discovery
         break;
       case 'podcasts':
-        setSidebarColorTheme('indigo'); // podcastTextTheme
+        setSidebarColorTheme('amber'); // Original TopTabs color for podcasts
         break;
       case 'playlists':
-        setSidebarColorTheme('blue'); // playlistTextTheme
+        setSidebarColorTheme('yellow'); // Original TopTabs color for playlists
         break;
       default:
         setSidebarColorTheme('blue');
+    }
+
+    // Set the appropriate text theme based on the active tab (new shifted text colors)
+    switch(activeTab) {
+      case 'updates':
+        setSidebarTextTheme('fuchsia'); // Keep same for updates
+        break;
+      case 'upload':
+        setSidebarTextTheme('violet'); // Keep same for upload
+        break;
+      case 'stats':
+        setSidebarTextTheme('indigo'); // Keep same for stats
+        break;
+      case 'artists':
+        setSidebarTextTheme('yellow'); // Yellow text for artists
+        break;
+      case 'albums':
+        setSidebarTextTheme('amber'); // Amber text for albums
+        break;
+      case 'custom':
+        setSidebarTextTheme('orange'); // Orange text for custom/songs
+        break;
+      case 'calendar':
+        setSidebarTextTheme('red'); // Red text for calendar
+        break;
+      case 'patterns':
+        setSidebarTextTheme('rose'); // Rose text for patterns
+        break;
+      case 'behavior':
+        setSidebarTextTheme('fuchsia'); // Fuchsia text for behavior
+        break;
+      case 'discovery':
+        setSidebarTextTheme('violet'); // Violet text for discovery
+        break;
+      case 'podcasts':
+        setSidebarTextTheme('indigo'); // Indigo text for podcasts
+        break;
+      case 'playlists':
+        setSidebarTextTheme('blue'); // Blue text for playlists
+        break;
+      default:
+        setSidebarTextTheme('blue');
     }
   }, [activeTab, shouldShowSidebar]);
 
@@ -2941,6 +2984,7 @@ const SpotifyAnalyzer = ({
             }
             onToggleRangeMode={handleSidebarRangeModeToggle}
             colorTheme={sidebarColorTheme}
+            textTheme={sidebarTextTheme}
             asSidebar={true}
             position="right"
             startMinimized={false}
