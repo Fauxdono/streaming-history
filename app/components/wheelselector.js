@@ -315,6 +315,17 @@ const WheelSelector = ({
   const colors = textTheme && textTheme !== colorTheme
     ? { ...baseColors, ...getTextColors(textTheme) }
     : baseColors;
+
+  // Debug logging to help troubleshoot color issues
+  if (colorTheme === 'cyan') { // Albums page
+    console.log('WheelSelector (albums page):', {
+      colorTheme,
+      textTheme,
+      usingTextOverride: textTheme && textTheme !== colorTheme,
+      finalTextColor: colors.text,
+      finalActiveTextColor: colors.activeText
+    });
+  }
   
   // If no value is selected or item not found, default to first item if available
   useEffect(() => {
