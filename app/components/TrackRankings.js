@@ -25,20 +25,34 @@ const TrackRankings = ({
   const [topN, setTopN] = useState(100);
   const [intensityThreshold, setIntensityThreshold] = useState(5); // Minimum plays per week to qualify
   
-  // Get the current theme
-  const { theme } = useTheme();
+  // Get the current theme and colorblind adjustment function
+  const { theme, getColorblindAdjustedTheme } = useTheme() || {};
   const isDarkMode = theme === 'dark';
   
   // Helper function to get themed colors (flexible theming system)
   const getThemedColors = () => {
+    // Apply colorblind adjustments to themes
+    const adjustedTextTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(textTheme || colorTheme) : (textTheme || colorTheme);
+    const adjustedBackgroundTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(backgroundTheme || colorTheme) : (backgroundTheme || colorTheme);
+    const adjustedColorTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(colorTheme) : colorTheme;
+    
     // Debug logging to see what props we're receiving
-    console.log('TrackRankings props:', { textTheme, backgroundTheme, colorTheme });
+    console.log('TrackRankings props:', { textTheme, backgroundTheme, colorTheme, adjustedTextTheme, adjustedBackgroundTheme, adjustedColorTheme });
     const textColors = {
       rose: { text: isDarkMode ? 'text-rose-300' : 'text-rose-700', textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600', textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800' },
       blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
       red: { text: isDarkMode ? 'text-red-300' : 'text-red-700', textLight: isDarkMode ? 'text-red-400' : 'text-red-600', textDark: isDarkMode ? 'text-red-200' : 'text-red-800' },
       amber: { text: isDarkMode ? 'text-amber-300' : 'text-amber-700', textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600', textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800' },
-      yellow: { text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700', textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600', textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800' }
+      yellow: { text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700', textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600', textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800' },
+      // Add colorblind-friendly colors
+      cyan: { text: isDarkMode ? 'text-cyan-300' : 'text-cyan-700', textLight: isDarkMode ? 'text-cyan-400' : 'text-cyan-600', textDark: isDarkMode ? 'text-cyan-200' : 'text-cyan-800' },
+      teal: { text: isDarkMode ? 'text-teal-300' : 'text-teal-700', textLight: isDarkMode ? 'text-teal-400' : 'text-teal-600', textDark: isDarkMode ? 'text-teal-200' : 'text-teal-800' },
+      violet: { text: isDarkMode ? 'text-violet-300' : 'text-violet-700', textLight: isDarkMode ? 'text-violet-400' : 'text-violet-600', textDark: isDarkMode ? 'text-violet-200' : 'text-violet-800' },
+      purple: { text: isDarkMode ? 'text-purple-300' : 'text-purple-700', textLight: isDarkMode ? 'text-purple-400' : 'text-purple-600', textDark: isDarkMode ? 'text-purple-200' : 'text-purple-800' },
+      indigo: { text: isDarkMode ? 'text-indigo-300' : 'text-indigo-700', textLight: isDarkMode ? 'text-indigo-400' : 'text-indigo-600', textDark: isDarkMode ? 'text-indigo-200' : 'text-indigo-800' },
+      orange: { text: isDarkMode ? 'text-orange-300' : 'text-orange-700', textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600', textDark: isDarkMode ? 'text-orange-200' : 'text-orange-800' },
+      gray: { text: isDarkMode ? 'text-gray-300' : 'text-gray-700', textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600', textDark: isDarkMode ? 'text-gray-200' : 'text-gray-800' },
+      slate: { text: isDarkMode ? 'text-slate-300' : 'text-slate-700', textLight: isDarkMode ? 'text-slate-400' : 'text-slate-600', textDark: isDarkMode ? 'text-slate-200' : 'text-slate-800' }
     };
 
     const backgroundColors = {
@@ -76,11 +90,68 @@ const TrackRankings = ({
         bgButton: isDarkMode ? 'bg-gray-800' : 'bg-yellow-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-yellow-200',
         bgSelected: isDarkMode ? 'bg-yellow-600' : 'bg-yellow-600', bgSelectedHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-700',
         focusRing: isDarkMode ? 'focus:ring-yellow-400' : 'focus:ring-yellow-400'
+      },
+      // Add colorblind-friendly background colors
+      cyan: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-cyan-700' : 'border-cyan-200',
+        borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-cyan-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-cyan-200',
+        bgSelected: isDarkMode ? 'bg-cyan-600' : 'bg-cyan-600', bgSelectedHover: isDarkMode ? 'hover:bg-cyan-700' : 'hover:bg-cyan-700',
+        focusRing: isDarkMode ? 'focus:ring-cyan-400' : 'focus:ring-cyan-400'
+      },
+      teal: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-teal-700' : 'border-teal-200',
+        borderHover: isDarkMode ? 'border-teal-500' : 'border-teal-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-teal-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-teal-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-teal-200',
+        bgSelected: isDarkMode ? 'bg-teal-600' : 'bg-teal-600', bgSelectedHover: isDarkMode ? 'hover:bg-teal-700' : 'hover:bg-teal-700',
+        focusRing: isDarkMode ? 'focus:ring-teal-400' : 'focus:ring-teal-400'
+      },
+      violet: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-violet-700' : 'border-violet-200',
+        borderHover: isDarkMode ? 'border-violet-500' : 'border-violet-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-violet-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-violet-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-violet-200',
+        bgSelected: isDarkMode ? 'bg-violet-600' : 'bg-violet-600', bgSelectedHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-700',
+        focusRing: isDarkMode ? 'focus:ring-violet-400' : 'focus:ring-violet-400'
+      },
+      purple: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-purple-700' : 'border-purple-200',
+        borderHover: isDarkMode ? 'border-purple-500' : 'border-purple-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-purple-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-purple-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-purple-200',
+        bgSelected: isDarkMode ? 'bg-purple-600' : 'bg-purple-600', bgSelectedHover: isDarkMode ? 'hover:bg-purple-700' : 'hover:bg-purple-700',
+        focusRing: isDarkMode ? 'focus:ring-purple-400' : 'focus:ring-purple-400'
+      },
+      indigo: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-indigo-700' : 'border-indigo-200',
+        borderHover: isDarkMode ? 'border-indigo-500' : 'border-indigo-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-indigo-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-indigo-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-indigo-200',
+        bgSelected: isDarkMode ? 'bg-indigo-600' : 'bg-indigo-600', bgSelectedHover: isDarkMode ? 'hover:bg-indigo-700' : 'hover:bg-indigo-700',
+        focusRing: isDarkMode ? 'focus:ring-indigo-400' : 'focus:ring-indigo-400'
+      },
+      orange: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-orange-700' : 'border-orange-200',
+        borderHover: isDarkMode ? 'border-orange-500' : 'border-orange-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-orange-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-orange-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-orange-200',
+        bgSelected: isDarkMode ? 'bg-orange-600' : 'bg-orange-600', bgSelectedHover: isDarkMode ? 'hover:bg-orange-700' : 'hover:bg-orange-700',
+        focusRing: isDarkMode ? 'focus:ring-orange-400' : 'focus:ring-orange-400'
+      },
+      gray: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+        borderHover: isDarkMode ? 'border-gray-500' : 'border-gray-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200',
+        bgSelected: isDarkMode ? 'bg-gray-600' : 'bg-gray-600', bgSelectedHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700',
+        focusRing: isDarkMode ? 'focus:ring-gray-400' : 'focus:ring-gray-400'
+      },
+      slate: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-slate-700' : 'border-slate-200',
+        borderHover: isDarkMode ? 'border-slate-500' : 'border-slate-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-slate-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-slate-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-slate-200',
+        bgSelected: isDarkMode ? 'bg-slate-600' : 'bg-slate-600', bgSelectedHover: isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-700',
+        focusRing: isDarkMode ? 'focus:ring-slate-400' : 'focus:ring-slate-400'
       }
     };
 
-    const textColorObj = textColors[textTheme] || textColors.rose;
-    const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.red;
+    const textColorObj = textColors[adjustedTextTheme] || textColors.rose;
+    const backgroundColorObj = backgroundColors[adjustedBackgroundTheme] || backgroundColors.red;
 
     console.log('Selected colors:', { 
       textTheme, 
