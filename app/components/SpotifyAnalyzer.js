@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey } from './streaming-adapter.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
+import ArtistsRankings from './ArtistsRankings.js';
 import CalendarView from './CalendarView.js';
 import PodcastRankings from './podcast-rankings.js';
 import _ from 'lodash';
@@ -81,12 +82,15 @@ const SpotifyAnalyzer = ({
   discoveryTextTheme = 'emerald',
   discoveryBackgroundTheme = 'orange'
 }) => {
-  // Get the current theme
-  const { theme } = useTheme();
+  // Get the current theme and colorblind adjustment function
+  const { theme, getColorblindAdjustedTheme } = useTheme() || {};
   const isDarkMode = theme === 'dark';
   
   // Helper function to get themed colors
   const getTabColors = (textTheme, backgroundTheme) => {
+    // Apply colorblind adjustments to themes
+    const adjustedTextTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(textTheme) : textTheme;
+    const adjustedBackgroundTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(backgroundTheme) : backgroundTheme;
     const textColors = {
       blue: {
         text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
@@ -142,6 +146,27 @@ const SpotifyAnalyzer = ({
         text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
         textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
         textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800'
+      },
+      // Add colorblind-friendly colors
+      teal: {
+        text: isDarkMode ? 'text-teal-300' : 'text-teal-700',
+        textLight: isDarkMode ? 'text-teal-400' : 'text-teal-600',
+        textDark: isDarkMode ? 'text-teal-200' : 'text-teal-800'
+      },
+      purple: {
+        text: isDarkMode ? 'text-purple-300' : 'text-purple-700',
+        textLight: isDarkMode ? 'text-purple-400' : 'text-purple-600',
+        textDark: isDarkMode ? 'text-purple-200' : 'text-purple-800'
+      },
+      gray: {
+        text: isDarkMode ? 'text-gray-300' : 'text-gray-700',
+        textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+        textDark: isDarkMode ? 'text-gray-200' : 'text-gray-800'
+      },
+      slate: {
+        text: isDarkMode ? 'text-slate-300' : 'text-slate-700',
+        textLight: isDarkMode ? 'text-slate-400' : 'text-slate-600',
+        textDark: isDarkMode ? 'text-slate-200' : 'text-slate-800'
       }
     };
 
@@ -222,11 +247,40 @@ const SpotifyAnalyzer = ({
         border: isDarkMode ? 'border-rose-700' : 'border-rose-200',
         borderHover: isDarkMode ? 'border-rose-500' : 'border-rose-400',
         wrapper: isDarkMode ? 'bg-rose-900 border-rose-800' : 'bg-rose-100 border-rose-300'
+      },
+      // Add colorblind-friendly background colors
+      teal: {
+        bg: isDarkMode ? 'bg-black' : 'bg-teal-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-teal-700' : 'border-teal-200',
+        borderHover: isDarkMode ? 'border-teal-500' : 'border-teal-400',
+        wrapper: isDarkMode ? 'bg-teal-900 border-teal-800' : 'bg-teal-100 border-teal-300'
+      },
+      purple: {
+        bg: isDarkMode ? 'bg-black' : 'bg-purple-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-purple-700' : 'border-purple-200',
+        borderHover: isDarkMode ? 'border-purple-500' : 'border-purple-400',
+        wrapper: isDarkMode ? 'bg-purple-900 border-purple-800' : 'bg-purple-100 border-purple-300'
+      },
+      gray: {
+        bg: isDarkMode ? 'bg-black' : 'bg-gray-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+        borderHover: isDarkMode ? 'border-gray-500' : 'border-gray-400',
+        wrapper: isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300'
+      },
+      slate: {
+        bg: isDarkMode ? 'bg-black' : 'bg-slate-50',
+        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-slate-700' : 'border-slate-200',
+        borderHover: isDarkMode ? 'border-slate-500' : 'border-slate-400',
+        wrapper: isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-300'
       }
     };
 
-    const textColorObj = textColors[textTheme] || textColors.blue;
-    const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.blue;
+    const textColorObj = textColors[adjustedTextTheme] || textColors.blue;
+    const backgroundColorObj = backgroundColors[adjustedBackgroundTheme] || backgroundColors.blue;
 
     return {
       ...textColorObj,
@@ -2147,291 +2201,30 @@ const SpotifyAnalyzer = ({
       
       case 'artists':
         return (
-          <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
-            {/* Title - mobile gets its own row */}
-            <div className="block sm:hidden mb-1">
-              <h3 className="font-bold text-blue-700">
-                {getArtistsTabLabel()}
-              </h3>
-            </div>
-            
-            {/* Desktop layout - title and controls on same row */}
-            <div className="hidden sm:flex justify-between items-center mb-2">
-                <h3 className="font-bold text-blue-700">
-                  {getArtistsTabLabel()}
-                </h3>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <label className="text-blue-700">Show Top</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="500"
-                      value={topArtistsCount}
-                      onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
-                      className="w-16 border rounded px-2 py-1 text-blue-700"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-blue-700">View Mode</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(artistsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setArtistsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      {artistsViewMode === 'grid' ? 'Grid' : 
-                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <label className="text-blue-700">Sort by</label>
-                    <button
-                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Mobile controls */}
-              <div className="block sm:hidden space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <label className="text-blue-700">Top</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="500"
-                      value={topArtistsCount}
-                      onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
-                      className="w-16 border rounded px-2 py-1 text-blue-700"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(artistsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setArtistsViewMode(modes[nextIndex]);
-                      }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      {artistsViewMode === 'grid' ? 'Grid' : 
-                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                    
-                    <button
-                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-            <div className="space-y-4">
-              {/* Artist Selection */}
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedArtists.map(artist => (
-                    <div 
-                      key={artist} 
-                      className="flex items-center bg-blue-600 text-white px-2 py-1 rounded text-sm"
-                    >
-                      {artist}
-                      <button 
-                        onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                        className="ml-2 text-white hover:text-blue-200"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={artistSearch}
-                    onChange={(e) => setArtistSearch(e.target.value)}
-                    placeholder="Search artists..."
-                    className="w-full border border-blue-300 rounded px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400 focus:outline-none"
-                  />
-                  {artistSearch && (
-                    <button
-                      onClick={() => setArtistSearch('')}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700"
-                    >
-                      ×
-                    </button>
-                  )}
-                  {artistSearch && filteredArtists.length > 0 && (
-                    <div className="absolute z-10 w-full bg-white dark:bg-black border border-blue-200 dark:border-blue-700 rounded shadow-lg mt-1">
-                      {filteredArtists.map(artist => (
-                        <div
-                          key={artist}
-                          onClick={() => {
-                            setSelectedArtists(prev => [...prev, artist]);
-                            setArtistSearch('');
-                          }}
-                          className="px-2 py-1 hover:bg-blue-100 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 cursor-pointer"
-                        >
-                          {artist}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* View Artist Playlist Button */}
-              <div className="mb-4 flex flex-col items-center gap-2">
-                <button
-                  onClick={() => {
-                    setArtistSelectionMode(prev => !prev);
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    artistSelectionMode
-                      ? 'bg-blue-400 text-white border border-blue-400'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 border border-blue-600'
-                  }`}
-                >
-                  🎵 View Artist Playlist
-                </button>
-                {artistSelectionMode && (
-                  <p className="text-sm text-center text-blue-600">
-                    👆 Click on any artist below to view their custom track rankings
-                  </p>
-                )}
-              </div>
-              
-              {/* Artists Display */}
-              {displayedArtists && displayedArtists.length > 0 ? (
-                <div className={`
-                  ${artistsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 
-                    artistsViewMode === 'compact' ? 'space-y-2' : 'space-y-1'}
-                `}>
-                  {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
-                    .slice(0, topArtistsCount)
-                    .map((artist, index) => {
-                      const handleArtistClick = () => {
-                        if (!artistSelectionMode) {
-                          // Artist selection mode not enabled yet
-                          return;
-                        }
-                        
-                        // Switch to custom tab with this artist selected
-                        setActiveTab('custom');
-                        
-                        // Set the artist in CustomTrackRankings (we'll need to pass this)
-                        // For now, we can use the selectedArtists state
-                        setSelectedArtists([artist.name]);
-                        
-                        // Reset selection mode
-                        setArtistSelectionMode(false);
-                      };
-                      
-                      return (
-                    <div 
-                      key={artist.name} 
-                      onClick={handleArtistClick}
-                      className={`
-                        ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
-                        ${artistsViewMode === 'grid' ? 
-                          `p-3 ${artistColors.bgCard} rounded shadow-sm border ${artistColors.border} hover:${artistColors.borderHover} transition-all duration-300 relative` :
-                          artistsViewMode === 'compact' ?
-                          `p-3 ${artistColors.bgCard} rounded-lg shadow-sm border ${artistColors.border} transition-all duration-200` :
-                          `p-2 ${artistColors.bgCard} rounded border ${artistColors.border} transition-all duration-150`
-                        }
-                        ${artistSelectionMode
-                          ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-50 dark:hover:bg-gray-900'
-                          : ''
-                        }
-                      `}
-                    >
-                      {artistsViewMode === 'grid' ? (
-                        <>
-                          <div className={`font-bold ${artistColors.text}`}>{artist.name}</div>
-                          
-                          <div className={`text-sm ${artistColors.textLight}`}>
-                            Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                            <br/>
-                            Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
-                            <br/>
-                            {artist.mostPlayedSong && (
-                              <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
-                            )}
-                            {artist.firstSong && (
-                              <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
-                            )}
-                            {artist.firstListen && (
-                              <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
-                            )}
-                          </div>
-                          
-                          <div className={`absolute top-1 right-3 ${artistColors.text} text-[2rem]`}>{index + 1}</div>
-                        </>
-                      ) : (
-                        <div className={`
-                          ${artistsViewMode === 'compact' ? 'flex justify-between items-center' :
-                            'flex justify-between items-center text-sm'}
-                        `}>
-                          <div className="flex-1">
-                            <div className={`font-bold ${artistColors.text} ${
-                              artistsViewMode === 'compact' ? 'text-base' : 'text-sm'
-                            }`}>
-                              {artist.name}
-                            </div>
-                          </div>
-                          
-                          <span className={`${artistColors.textLight} font-medium`}>#{index + 1}</span>
-                          
-                          <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${artistColors.textLight}`}>
-                            <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
-                            <div>{artist.playCount?.toLocaleString() || 0} plays</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                      );
-                    })}
-                </div>
-              ) : (
-                <div className="p-6 text-center bg-blue-50 rounded border-2 border-blue-300">
-                  <h4 className="text-lg font-bold text-blue-700">No artists found</h4>
-                  <p className="text-blue-600 mt-2">
-                    {yearRangeMode 
-                      ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.` 
-                      : selectedArtistYear !== 'all' 
-                        ? `No artists found for the year ${selectedArtistYear}.`
-                        : "No artist data available."}
-                  </p>
-                  <button
-                    onClick={() => {
-                      setYearRangeMode(false);
-                      setSelectedArtistYear('all');
-                      setSelectedArtists([]);
-                    }}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    Show All Artists
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          <ArtistsRankings
+            displayedArtists={displayedArtists}
+            filteredDisplayedArtists={filteredDisplayedArtists}
+            selectedArtists={selectedArtists}
+            topArtistsCount={topArtistsCount}
+            artistsViewMode={artistsViewMode}
+            artistsSortBy={artistsSortBy}
+            getArtistsTabLabel={getArtistsTabLabel}
+            selectedArtistYear={selectedArtistYear}
+            filteredArtists={filteredArtists}
+            artistSearch={artistSearch}
+            setTopArtistsCount={setTopArtistsCount}
+            setArtistsViewMode={setArtistsViewMode}
+            setArtistsSortBy={setArtistsSortBy}
+            setSelectedArtists={setSelectedArtists}
+            setArtistSearch={setArtistSearch}
+            setActiveTab={setActiveTab}
+            setArtistSelectionMode={setArtistSelectionMode}
+            artistSelectionMode={artistSelectionMode}
+            formatDuration={formatDuration}
+            textTheme={artistTextTheme}
+            backgroundTheme={artistBackgroundTheme}
+            colorTheme={artistTextTheme}
+          />
         );
       
       case 'albums':
