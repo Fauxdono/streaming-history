@@ -939,14 +939,23 @@ const CalendarView = ({
                           : `border-${colors.border}`
                     }`}>
                     
-                    {/* Day number centered at top with handwriting font */}
+                    {/* Date formatted as "January 1st" centered at top with handwriting font */}
                     <div className={`text-center pb-3 border-b ${
                       isDarkMode ? 'border-red-600' : 'border-red-400'
                     } mb-3`}>
                       <div className={`text-xl font-bold ${
                         isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
                       }`} style={{fontFamily: 'cursive'}}>
-                        Day {dayData.day}
+                        {new Date(dayData.date).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric' 
+                        }).replace(/(\d+)/, (match) => {
+                          const num = parseInt(match);
+                          const suffix = num % 10 === 1 && num !== 11 ? 'st' : 
+                                        num % 10 === 2 && num !== 12 ? 'nd' : 
+                                        num % 10 === 3 && num !== 13 ? 'rd' : 'th';
+                          return num + suffix;
+                        })}
                       </div>
                     </div>
                     
