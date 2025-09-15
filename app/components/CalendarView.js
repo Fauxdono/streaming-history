@@ -927,55 +927,150 @@ const CalendarView = ({
                   <div 
                     key={index} 
                     onClick={handleDayClick}
-                    className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative ${
+                    className={`p-3 ${isDarkMode ? 'bg-green-950' : 'bg-green-50'} rounded shadow-sm border transition-all duration-300 ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
                     } ${
                       daySelectionMode
                         ? isDarkMode 
-                          ? `border-${colors.borderStrong} hover:border-${colors.primaryLighter} hover:bg-gray-900 ring-2 ring-${colors.primaryDark}` 
-                          : `border-${colors.borderDark} hover:border-${colors.primary} hover:bg-gray-50 ring-2 ring-${colors.primary} ring-opacity-30`
+                          ? `border-${colors.borderStrong} hover:border-${colors.primaryLighter} hover:bg-green-900 ring-2 ring-${colors.primaryDark}` 
+                          : `border-${colors.borderDark} hover:border-${colors.primary} hover:bg-green-100 ring-2 ring-${colors.primary} ring-opacity-30`
                         : isDarkMode 
                           ? `border-${colors.borderDark}` 
                           : `border-${colors.border}`
                     }`}>
                     
-                    <div className={`text-sm ${
-                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLighter}`
-                    }`}>
-                      Total Plays: <span className="font-bold">{dayData.totalPlays}</span>
-                      <br/>
-                      Songs: <span className="font-bold">{dayData.uniqueSongCount}</span>
-                      <br/>
-                      Artists: <span className="font-bold">{dayData.uniqueArtistCount}</span>
-                      <br/>
-                      {dayData.topArtist.name && (
-                        <>
-                          Top Artist: <span className="font-bold">{dayData.topArtist.name}</span>
-                          <br/>
-                          <span className="text-xs">({dayData.topArtist.playCount} plays)</span>
-                          <br/>
-                        </>
-                      )}
-                      {dayData.topAlbum.name && (
-                        <>
-                          Top Album: <span className="font-bold">{dayData.topAlbum.name}</span>
-                          <br/>
-                          <span className="text-xs">by {dayData.topAlbum.artist}</span>
-                          <br/>
-                        </>
-                      )}
-                      {dayData.firstListens.length > 0 && (
-                        <>
-                          New Songs: <span className="font-bold">{dayData.firstListens.length}</span>
-                          <br/>
-                          <span className="text-xs">First: {dayData.firstListens[0].song}</span>
-                        </>
-                      )}
+                    {/* Day number centered at top with handwriting font */}
+                    <div className={`text-center pb-3 border-b ${
+                      isDarkMode ? 'border-red-600' : 'border-red-400'
+                    } mb-3`}>
+                      <div className={`text-xl font-bold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`} style={{fontFamily: 'cursive'}}>
+                        Day {dayData.day}
+                      </div>
                     </div>
                     
-                    <div className={`absolute top-1 right-3 font-bold ${
-                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`
-                    } text-[2rem]`}>{dayData.day}</div>
+                    {/* Table content inside container */}
+                    <div>
+                      <table className="w-full">
+                        <tbody>
+                          <tr>
+                            <td className="text-center py-2">
+                              <div className={`text-xl font-bold ${
+                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                              }`}>
+                                {dayData.totalPlays}
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                Total Plays
+                              </div>
+                            </td>
+                            <td className="text-center py-2">
+                              <div className={`text-xl font-bold ${
+                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                              }`}>
+                                {dayData.uniqueSongCount}
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                Songs
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="text-center py-2">
+                              <div className={`text-xl font-bold ${
+                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                              }`}>
+                                {dayData.uniqueArtistCount}
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                Artists
+                              </div>
+                            </td>
+                            <td className="text-center py-2">
+                              <div className={`text-xl font-bold ${
+                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                              }`}>
+                                {dayData.firstListens.length}
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                New Songs
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="text-center py-2" colSpan="2">
+                              {dayData.topArtist.name ? (
+                                <>
+                                  <div className={`text-sm font-bold ${
+                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                  }`}>
+                                    {dayData.topArtist.name}
+                                  </div>
+                                  <div className={`text-xs ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    Top Artist
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className={`text-sm ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    No data
+                                  </div>
+                                  <div className={`text-xs ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    Top Artist
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="text-center py-2" colSpan="2">
+                              {dayData.topAlbum.name ? (
+                                <>
+                                  <div className={`text-sm font-bold ${
+                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                  }`}>
+                                    {dayData.topAlbum.name}
+                                  </div>
+                                  <div className={`text-xs ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    Top Album
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className={`text-sm ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    No data
+                                  </div>
+                                  <div className={`text-xs ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    Top Album
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                   );
                 })} 
