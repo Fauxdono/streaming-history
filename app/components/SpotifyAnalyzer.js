@@ -1489,43 +1489,43 @@ const SpotifyAnalyzer = ({
     const showSidebar = shouldShowSidebar(activeTab);
     setShowYearSidebar(showSidebar);
     
-    // Set the appropriate color theme based on the active tab
+    // Set the appropriate color theme based on the active tab (using correct text theme colors)
     switch(activeTab) {
       case 'updates':
-        setSidebarColorTheme('fuchsia');
+        setSidebarColorTheme('fuchsia'); // Keep original as this doesn't have flexible theming
         break;
       case 'upload':
-        setSidebarColorTheme('violet');
+        setSidebarColorTheme('emerald'); // uploadTextTheme
         break;
       case 'stats':
-        setSidebarColorTheme('indigo');
+        setSidebarColorTheme('green'); // statsTextTheme
         break;
       case 'artists':
-        setSidebarColorTheme('blue');
+        setSidebarColorTheme('yellow'); // artistTextTheme
         break;
       case 'albums':
-        setSidebarColorTheme('cyan');
+        setSidebarColorTheme('amber'); // albumTextTheme
         break;
       case 'custom':
-        setSidebarColorTheme('emerald');
+        setSidebarColorTheme('orange'); // customTextTheme
         break;
       case 'calendar':
-        setSidebarColorTheme('green');
+        setSidebarColorTheme('red'); // calendarTextTheme
         break;
       case 'patterns':
-        setSidebarColorTheme('yellow');
+        setSidebarColorTheme('rose'); // patternTextTheme
         break;
       case 'behavior':
-        setSidebarColorTheme('amber');
+        setSidebarColorTheme('fuchsia'); // behaviorTextTheme
         break;
       case 'discovery':
-        setSidebarColorTheme('orange');
+        setSidebarColorTheme('violet'); // discoveryTextTheme
         break;
       case 'podcasts':
-        setSidebarColorTheme('red');
+        setSidebarColorTheme('indigo'); // podcastTextTheme
         break;
       case 'playlists':
-        setSidebarColorTheme('rose');
+        setSidebarColorTheme('blue'); // playlistTextTheme
         break;
       default:
         setSidebarColorTheme('blue');
