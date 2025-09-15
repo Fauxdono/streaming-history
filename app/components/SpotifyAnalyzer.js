@@ -60,6 +60,8 @@ const SpotifyAnalyzer = ({
   setActiveTab, 
   TopTabsComponent,
   // Flexible theming props - shifted text colors (4 positions down from original)
+  uploadTextTheme = 'emerald',
+  uploadBackgroundTheme = 'violet',
   statsTextTheme = 'green',
   statsBackgroundTheme = 'indigo',
   artistTextTheme = 'yellow',
@@ -233,6 +235,7 @@ const SpotifyAnalyzer = ({
   };
 
   // Get themed colors for each tab
+  const uploadColors = getTabColors(uploadTextTheme, uploadBackgroundTheme);
   const statsColors = getTabColors(statsTextTheme, statsBackgroundTheme);
   const artistColors = getTabColors(artistTextTheme, artistBackgroundTheme);
   const albumColors = getTabColors(albumTextTheme, albumBackgroundTheme);
@@ -1848,7 +1851,7 @@ const SpotifyAnalyzer = ({
     switch (activeTab) {
       case 'upload':
         return (
-          <div className="p-2 sm:p-4 bg-violet-100 rounded border-2 border-violet-300">
+          <div className={`p-2 sm:p-4 rounded border-2 ${uploadColors.wrapper}`}>
             <div>
             {/* Storage Notification */}
             {storageNotification && (
@@ -1887,23 +1890,23 @@ const SpotifyAnalyzer = ({
 
             {/* Full-width How to Use section with two columns */}
             <div className="mb-6">
-              <div className={`p-4 sm:p-6 border rounded-lg ${isDarkMode ? 'bg-purple-900/30 border-purple-500/40' : 'bg-purple-100 border-purple-300'}`}>
-                <h3 className={`font-semibold mb-4 text-sm ${isDarkMode ? 'text-purple-100' : 'text-purple-800'}`}>How to use:</h3>
+              <div className={`p-4 sm:p-6 border rounded-lg ${uploadColors.bg} ${uploadColors.border}`}>
+                <h3 className={`font-semibold mb-4 text-sm ${uploadColors.text}`}>How to use:</h3>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left Column */}
                   <div className="space-y-4">
-                    <div className={`text-xs sm:text-sm ${isDarkMode ? 'text-purple-200' : 'text-purple-800'}`}>
+                    <div className={`text-xs sm:text-sm ${uploadColors.textLight}`}>
                       <div className="flex items-start gap-3 mb-3">
-                        <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${uploadColors.text.replace('text-', 'bg-')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
                         <span>Download your streaming history from your service</span>
                       </div>
                       <div className="flex items-start gap-3 mb-3">
-                        <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${uploadColors.text.replace('text-', 'bg-')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
                         <span>Upload your file(s) or connect Google Drive for large files</span>
                       </div>
                       <div className="flex items-start gap-3 mb-4">
-                        <span className="flex-shrink-0 w-6 h-6 bg-purple-700 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${uploadColors.text.replace('text-', 'bg-')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
                         <span>Click "Calculate Statistics" and explore your data</span>
                       </div>
                     </div>
@@ -1921,7 +1924,7 @@ const SpotifyAnalyzer = ({
                           <Download size={16} />
                           Try Demo
                         </button>
-                        <p className={`text-sm mt-2 ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`}>
+                        <p className={`text-sm mt-2 ${uploadColors.textLight}`}>
                           Want to test the app? Click to load sample streaming history.
                         </p>
                       </div>
@@ -1956,11 +1959,11 @@ const SpotifyAnalyzer = ({
               />
             </div>
               
-            <div className={`p-4 rounded-lg border ${isDarkMode ? 'bg-orange-900/20 border-orange-600/30' : 'bg-orange-50 border-orange-200'}`}>
-              <p className={`mb-3 font-semibold text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-700'}`}>
+            <div className={`p-4 rounded-lg border ${uploadColors.bg} ${uploadColors.border}`}>
+              <p className={`mb-3 font-semibold text-sm ${uploadColors.text}`}>
                 Upload your streaming history files:
               </p>
-              <p className={`mb-3 text-xs sm:text-sm ${isDarkMode ? 'text-orange-200' : 'text-orange-600'}`}>
+              <p className={`mb-3 text-xs sm:text-sm ${uploadColors.textLight}`}>
                 Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), Cake (.xlsx/.json)
               </p>
               <input
