@@ -692,7 +692,7 @@ const CalendarView = ({
                     
                     {/* Month name centered at top with handwriting font */}
                     <div className={`text-center pb-3 border-b ${
-                      isDarkMode ? `border-${colors.borderDark}` : `border-${colors.border}`
+                      isDarkMode ? 'border-red-600' : 'border-red-400'
                     } mb-3`}>
                       <div className={`text-xl font-bold ${
                         isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
