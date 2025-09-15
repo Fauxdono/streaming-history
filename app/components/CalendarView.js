@@ -135,19 +135,6 @@ const CalendarView = ({
 
   const colors = getThemedColors();
   
-  // Debug what's actually happening
-  console.log('CalendarView colors debug:', {
-    textTheme,
-    backgroundTheme,
-    isDarkMode,
-    'colors.primaryLighter': colors.primaryLighter,
-    'colors.primary': colors.primary,
-    'colors.primaryDark': colors.primaryDark,
-    'month indicator class': isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`,
-    'example normal text class': isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLighter}`,
-    'all colors object': colors
-  });
-  
   // Month names constants
   const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -666,55 +653,172 @@ const CalendarView = ({
                 'Monthly insights showing your top artist, album, and new discoveries for each month'}
             </p>
             
-            {/* Monthly View */}
+            {/* Monthly View - Two Column Table */}
             {!isMonthView && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative ${
-                    isDarkMode 
-                      ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
-                      : `border-${colors.border} hover:border-${colors.borderDark}`
-                  }`}>
-                    
-                    <div className={`text-sm ${
-                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLighter}`
+              <div className="overflow-x-auto">
+                <table className={`w-full border-collapse ${isDarkMode ? 'bg-black' : 'bg-white'} rounded-lg border ${
+                  isDarkMode ? `border-${colors.borderDark}` : `border-${colors.border}`
+                }`}>
+                  <thead>
+                    <tr className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} border-b ${
+                      isDarkMode ? `border-${colors.borderDark}` : `border-${colors.border}`
                     }`}>
-                      Total Plays: <span className="font-bold">{monthData.totalPlays}</span>
-                      <br/>
-                      Songs: <span className="font-bold">{monthData.uniqueSongCount}</span>
-                      <br/>
-                      Artists: <span className="font-bold">{monthData.uniqueArtistCount}</span>
-                      <br/>
-                      {monthData.topArtist.name && (
-                        <>
-                          Top Artist: <span className="font-bold">{monthData.topArtist.name}</span>
-                          <br/>
-                          <span className="text-xs">({monthData.topArtist.playCount} plays)</span>
-                          <br/>
-                        </>
-                      )}
-                      {monthData.topAlbum.name && (
-                        <>
-                          Top Album: <span className="font-bold">{monthData.topAlbum.name}</span>
-                          <br/>
-                          <span className="text-xs">by {monthData.topAlbum.artist}</span>
-                          <br/>
-                        </>
-                      )}
-                      {monthData.firstListens.length > 0 && (
-                        <>
-                          New Songs: <span className="font-bold">{monthData.firstListens.length}</span>
-                          <br/>
-                          <span className="text-xs">First: {monthData.firstListens[0].song}</span>
-                        </>
-                      )}
-                    </div>
-                    
-                    <div className={`absolute top-1 right-3 font-bold ${
-                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`
-                    } text-[2rem]`}>{monthData.name}</div>
-                  </div>
-                ))}
+                      <th className={`p-4 text-left font-semibold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`}>Month</th>
+                      <th className={`p-4 text-center font-semibold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`}>Total Plays</th>
+                      <th className={`p-4 text-center font-semibold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`}>Songs</th>
+                      <th className={`p-4 text-center font-semibold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`}>Artists</th>
+                      <th className={`p-4 text-center font-semibold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`}>Top Artist</th>
+                      <th className={`p-4 text-center font-semibold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`}>Top Album</th>
+                      <th className={`p-4 text-center font-semibold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`}>New Songs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {calendarData.map((monthData, index) => (
+                      <tr key={index} className={`border-b transition-colors ${
+                        isDarkMode 
+                          ? `border-${colors.borderDark} hover:bg-gray-900` 
+                          : `border-${colors.border} hover:bg-gray-50`
+                      }`}>
+                        <td className={`p-4 font-bold text-xl ${
+                          isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`
+                        }`}>
+                          {monthData.name}
+                        </td>
+                        <td className="p-4 text-center">
+                          <div className={`text-2xl font-bold ${
+                            isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                          }`}>
+                            {monthData.totalPlays}
+                          </div>
+                          <div className={`text-xs ${
+                            isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                          }`}>
+                            Total Plays
+                          </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <div className={`text-2xl font-bold ${
+                            isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                          }`}>
+                            {monthData.uniqueSongCount}
+                          </div>
+                          <div className={`text-xs ${
+                            isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                          }`}>
+                            Songs
+                          </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          <div className={`text-2xl font-bold ${
+                            isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                          }`}>
+                            {monthData.uniqueArtistCount}
+                          </div>
+                          <div className={`text-xs ${
+                            isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                          }`}>
+                            Artists
+                          </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          {monthData.topArtist.name ? (
+                            <>
+                              <div className={`text-lg font-bold ${
+                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                              }`}>
+                                {monthData.topArtist.name}
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                Top Artist
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                ({monthData.topArtist.playCount} plays)
+                              </div>
+                            </>
+                          ) : (
+                            <div className={`text-sm ${
+                              isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                            }`}>
+                              No data
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-4 text-center">
+                          {monthData.topAlbum.name ? (
+                            <>
+                              <div className={`text-lg font-bold ${
+                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                              }`}>
+                                {monthData.topAlbum.name}
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                Top Album
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                by {monthData.topAlbum.artist}
+                              </div>
+                            </>
+                          ) : (
+                            <div className={`text-sm ${
+                              isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                            }`}>
+                              No data
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-4 text-center">
+                          {monthData.firstListens.length > 0 ? (
+                            <>
+                              <div className={`text-2xl font-bold ${
+                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                              }`}>
+                                {monthData.firstListens.length}
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                New Songs
+                              </div>
+                              <div className={`text-xs ${
+                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                              }`}>
+                                First: {monthData.firstListens[0].song}
+                              </div>
+                            </>
+                          ) : (
+                            <div className={`text-sm ${
+                              isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                            }`}>
+                              No new songs
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
             
