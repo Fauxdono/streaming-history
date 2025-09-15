@@ -690,13 +690,19 @@ const CalendarView = ({
                       : `border-${colors.border} hover:border-${colors.borderDark}`
                   }`}>
                     
-                    {/* Month indicator in top right */}
-                    <div className={`absolute top-1 right-3 font-bold ${
-                      isDarkMode ? `text-${colors.primaryLighter}` : `text-${colors.primaryLight}`
-                    } text-[2rem]`}>{monthData.name}</div>
+                    {/* Month name centered at top with handwriting font */}
+                    <div className={`text-center pb-3 border-b ${
+                      isDarkMode ? `border-${colors.borderDark}` : `border-${colors.border}`
+                    } mb-3`}>
+                      <div className={`text-xl font-bold ${
+                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                      }`} style={{fontFamily: 'cursive'}}>
+                        {monthData.fullName}
+                      </div>
+                    </div>
                     
                     {/* Table content inside container */}
-                    <div className="pt-8">
+                    <div>
                       <table className="w-full">
                         <tbody>
                           <tr>
