@@ -6,15 +6,15 @@ const ThemeContext = createContext({
   theme: "light",
   setTheme: () => null,
   toggleTheme: () => null,
-  colorblindMode: false,
+  colorblindMode: "none", // "none", "protanopia", "deuteranopia", "tritanopia", "monochrome"
   setColorblindMode: () => null,
-  toggleColorblindMode: () => null,
+  cycleColorblindMode: () => null,
 });
 
 export const ThemeProvider = ({ children }) => {
   // Initialize theme to 'light' but will be updated based on system preference
   const [theme, setTheme] = useState("light");
-  const [colorblindMode, setColorblindMode] = useState(false);
+  const [colorblindMode, setColorblindMode] = useState("none");
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -50,8 +50,8 @@ export const ThemeProvider = ({ children }) => {
     // Check for saved colorblind mode preference
     if (typeof window !== 'undefined' && window.localStorage) {
       const storedColorblindMode = window.localStorage.getItem('colorblindMode');
-      if (storedColorblindMode === 'true') {
-        setColorblindMode(true);
+      if (storedColorblindMode && ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'monochrome'].includes(storedColorblindMode)) {
+        setColorblindMode(storedColorblindMode);
       }
     }
     
@@ -105,16 +105,15 @@ export const ThemeProvider = ({ children }) => {
     
     const root = window.document.documentElement;
     
-    // Add or remove colorblind class
-    if (colorblindMode) {
-      root.classList.add('colorblind');
-    } else {
-      root.classList.remove('colorblind');
-    }
+    // Remove all colorblind classes
+    root.classList.remove('colorblind-none', 'colorblind-protanopia', 'colorblind-deuteranopia', 'colorblind-tritanopia', 'colorblind-monochrome');
+    
+    // Add current colorblind mode class
+    root.classList.add(`colorblind-${colorblindMode}`);
     
     // Save preference to localStorage
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('colorblindMode', colorblindMode.toString());
+      localStorage.setItem('colorblindMode', colorblindMode);
     }
   }, [colorblindMode, mounted]);
   
@@ -122,8 +121,12 @@ export const ThemeProvider = ({ children }) => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
-  const toggleColorblindMode = () => {
-    setColorblindMode(prev => !prev);
+  const cycleColorblindMode = () => {
+    setColorblindMode(prev => {
+      const modes = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'monochrome'];
+      const currentIndex = modes.indexOf(prev);
+      return modes[(currentIndex + 1) % modes.length];
+    });
   };
 
   // Avoid hydration mismatch by not rendering anything until mounted
@@ -138,7 +141,7 @@ export const ThemeProvider = ({ children }) => {
       toggleTheme, 
       colorblindMode, 
       setColorblindMode, 
-      toggleColorblindMode 
+      cycleColorblindMode 
     }}>
       {children}
     </ThemeContext.Provider>

@@ -26,8 +26,6 @@ const TopTabs = ({
   position = 'top',  // New prop for initial position
   yearSelectorPosition = null // YearSelector position to adjust borders when stacked
 }) => {
-  // Get colorblind mode from theme provider
-  const { colorblindMode, toggleColorblindMode } = useTheme();
   
   // Position state - cycles through top, right, bottom, left
   const [currentPosition, setCurrentPosition] = useState(position);
@@ -383,28 +381,6 @@ const TopTabs = ({
   };
 
 
-  // Colorblind accessibility button component
-  const ColorblindButton = () => (
-    <button
-      onClick={toggleColorblindMode}
-      className={`
-        px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium rounded transition-colors duration-200 flex items-center gap-1 sm:gap-2 whitespace-nowrap
-        ${colorblindMode 
-          ? 'bg-gray-800 text-white border-2 border-gray-600 dark:bg-gray-200 dark:text-black dark:border-gray-400' 
-          : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-        }
-      `}
-      title={colorblindMode ? "Disable high contrast mode" : "Enable high contrast mode for colorblind accessibility"}
-      aria-label={colorblindMode ? "Disable high contrast mode" : "Enable high contrast mode"}
-    >
-      <span className="text-sm sm:text-base">
-        {colorblindMode ? '◐' : '○'}
-      </span>
-      <span className={`${isCollapsed ? 'hidden' : 'inline'}`}>
-        {colorblindMode ? 'High Contrast' : 'Accessibility'}
-      </span>
-    </button>
-  );
 
   // Tabs component for reuse
   const TabsContainer = () => (
@@ -421,7 +397,6 @@ const TopTabs = ({
       {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
       {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
       {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
-      <ColorblindButton />
     </div>
   );
 
@@ -475,7 +450,6 @@ const TopTabs = ({
               {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
               {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
               {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
-              <ColorblindButton />
             </div>
           </div>
         )}
