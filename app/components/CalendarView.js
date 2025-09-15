@@ -494,6 +494,7 @@ const CalendarView = ({
       totalTime: 0,
       topArtist: { name: '', playCount: 0, totalTime: 0 },
       topAlbum: { name: '', artist: '', playCount: 0, totalTime: 0 },
+      topSong: { name: '', artist: '', playCount: 0, totalTime: 0 },
       uniqueArtists: new Set(),
       uniqueSongs: new Set(),
       firstListens: []
@@ -503,6 +504,7 @@ const CalendarView = ({
     const monthlyArtists = Array.from({ length: 12 }, () => new Map());
     const monthlyAlbums = Array.from({ length: 12 }, () => new Map());
     const monthlySongs = Array.from({ length: 12 }, () => new Set());
+    const monthlyTrackedSongs = Array.from({ length: 12 }, () => new Map());
     
     filteredData.forEach(entry => {
       if (entry.ms_played >= 30000) {
@@ -534,6 +536,19 @@ const CalendarView = ({
         const albumData = monthlyAlbums[month].get(albumName);
         albumData.playCount++;
         albumData.totalTime += entry.ms_played;
+
+        // Track songs per month
+        if (!monthlyTrackedSongs[month].has(songKey)) {
+          monthlyTrackedSongs[month].set(songKey, { 
+            name: songName, 
+            artist: artistName, 
+            playCount: 0, 
+            totalTime: 0 
+          });
+        }
+        const songData = monthlyTrackedSongs[month].get(songKey);
+        songData.playCount++;
+        songData.totalTime += entry.ms_played;
 
         // Track first listens (songs not heard in previous months)
         if (!monthlySongs[month].has(songKey)) {
@@ -581,6 +596,18 @@ const CalendarView = ({
           artist: topAlbum[1].artist,
           playCount: topAlbum[1].playCount,
           totalTime: topAlbum[1].totalTime
+        };
+      }
+      
+      // Top song
+      if (monthlyTrackedSongs[index].size > 0) {
+        const topSong = [...monthlyTrackedSongs[index].entries()]
+          .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+        monthData.topSong = {
+          name: topSong[1].name,
+          artist: topSong[1].artist,
+          playCount: topSong[1].playCount,
+          totalTime: topSong[1].totalTime
         };
       }
       
@@ -657,7 +684,7 @@ const CalendarView = ({
             {!isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-black' : 'bg-white'} rounded shadow-sm border transition-all duration-300 relative ${
+                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-gray-900' : 'bg-green-50'} rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
                       ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
                       : `border-${colors.border} hover:border-${colors.borderDark}`
@@ -798,6 +825,37 @@ const CalendarView = ({
                                     isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
                                   }`}>
                                     Top Album
+                                  </div>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="text-center py-2" colSpan="2">
+                              {monthData.topSong.name ? (
+                                <>
+                                  <div className={`text-sm font-bold ${
+                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                  }`}>
+                                    {monthData.topSong.name}
+                                  </div>
+                                  <div className={`text-xs ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    Top Song
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className={`text-sm ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    No data
+                                  </div>
+                                  <div className={`text-xs ${
+                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                  }`}>
+                                    Top Song
                                   </div>
                                 </>
                               )}
