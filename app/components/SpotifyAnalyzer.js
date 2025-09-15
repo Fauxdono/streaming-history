@@ -2221,9 +2221,9 @@ const SpotifyAnalyzer = ({
             setArtistSelectionMode={setArtistSelectionMode}
             artistSelectionMode={artistSelectionMode}
             formatDuration={formatDuration}
-            textTheme={artistTextTheme}
-            backgroundTheme={artistBackgroundTheme}
-            colorTheme={artistTextTheme}
+            textTheme={getColorblindAdjustedTheme ? getColorblindAdjustedTheme(artistTextTheme) : artistTextTheme}
+            backgroundTheme={getColorblindAdjustedTheme ? getColorblindAdjustedTheme(artistBackgroundTheme) : artistBackgroundTheme}
+            colorTheme={getColorblindAdjustedTheme ? getColorblindAdjustedTheme(artistTextTheme) : artistTextTheme}
           />
         );
       
