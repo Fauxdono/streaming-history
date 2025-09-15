@@ -684,7 +684,7 @@ const CalendarView = ({
             {!isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-gray-900' : 'bg-green-50'} rounded shadow-sm border transition-all duration-300 relative ${
+                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-green-900' : 'bg-green-50'} rounded shadow-sm border transition-all duration-300 relative ${
                     isDarkMode 
                       ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
                       : `border-${colors.border} hover:border-${colors.borderDark}`
