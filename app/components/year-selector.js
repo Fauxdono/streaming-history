@@ -20,6 +20,7 @@ const YearSelector = ({
   isRangeMode, 
   onToggleRangeMode,
   colorTheme = 'teal', 
+  textTheme = null, // Add separate textTheme prop for text-only color control
   position = 'right', 
   startMinimized = false,
   asSidebar = false,
@@ -421,9 +422,11 @@ const YearSelector = ({
   
   // Memoized color theme to prevent recalculation
   const colors = useMemo(() => {
+    // Get base colors from colorTheme (used for backgrounds/borders)
+    let baseColors;
     switch (colorTheme) {
       case 'pink':
-        return {
+        baseColors = {
           text: 'text-pink-700 dark:text-pink-300',
           textActive: 'text-white',
           bgActive: 'bg-pink-500 dark:bg-pink-600',
@@ -439,8 +442,9 @@ const YearSelector = ({
           bgLight: 'bg-pink-50 dark:bg-pink-900',
           bgMed: 'bg-pink-200 dark:bg-pink-800'
         };
+        break;
       case 'purple':
-        return {
+        baseColors = {
           text: 'text-purple-700 dark:text-purple-300',
           textActive: 'text-white',
           bgActive: 'bg-purple-500 dark:bg-purple-600',
@@ -456,8 +460,9 @@ const YearSelector = ({
           bgLight: 'bg-purple-50 dark:bg-purple-900',
           bgMed: 'bg-purple-200 dark:bg-purple-800'
         };
+        break;
       case 'indigo':
-        return {
+        baseColors = {
           text: 'text-indigo-700 dark:text-indigo-300',
           textActive: 'text-white',
           bgActive: 'bg-indigo-500 dark:bg-indigo-600',
@@ -473,8 +478,9 @@ const YearSelector = ({
           bgLight: 'bg-indigo-50 dark:bg-indigo-900',
           bgMed: 'bg-indigo-200 dark:bg-indigo-800'
         };
+        break;
       case 'blue':
-        return {
+        baseColors = {
           text: 'text-blue-700 dark:text-blue-300',
           textActive: 'text-white',
           bgActive: 'bg-blue-500 dark:bg-blue-600',
@@ -490,8 +496,9 @@ const YearSelector = ({
           bgLight: 'bg-blue-50 dark:bg-blue-900',
           bgMed: 'bg-blue-200 dark:bg-blue-800'
         };
+        break;
       case 'green':
-        return {
+        baseColors = {
           text: 'text-green-700 dark:text-green-300',
           textActive: 'text-white',
           bgActive: 'bg-green-500 dark:bg-green-600',
@@ -507,8 +514,9 @@ const YearSelector = ({
           bgLight: 'bg-green-50 dark:bg-green-900',
           bgMed: 'bg-green-200 dark:bg-green-800'
         };
+        break;
       case 'yellow':
-        return {
+        baseColors = {
           text: 'text-yellow-700 dark:text-yellow-300',
           textActive: 'text-white',
           bgActive: 'bg-yellow-500 dark:bg-yellow-600',
@@ -524,8 +532,9 @@ const YearSelector = ({
           bgLight: 'bg-yellow-50 dark:bg-yellow-900',
           bgMed: 'bg-yellow-200 dark:bg-yellow-800'
         };
+        break;
       case 'red':
-        return {
+        baseColors = {
           text: 'text-red-700 dark:text-red-300',
           textActive: 'text-white',
           bgActive: 'bg-red-500 dark:bg-red-600',
@@ -541,8 +550,9 @@ const YearSelector = ({
           bgLight: 'bg-red-50 dark:bg-red-900',
           bgMed: 'bg-red-200 dark:bg-red-800'
         };
+        break;
       case 'orange':
-        return {
+        baseColors = {
           text: 'text-orange-700 dark:text-orange-300',
           textActive: 'text-white',
           bgActive: 'bg-orange-500 dark:bg-orange-600',
@@ -558,9 +568,10 @@ const YearSelector = ({
           bgLight: 'bg-orange-50 dark:bg-orange-900',
           bgMed: 'bg-orange-200 dark:bg-orange-800'
         };
+        break;
       case 'teal':
       default:
-        return {
+        baseColors = {
           text: 'text-teal-700 dark:text-teal-300',
           textActive: 'text-white',
           bgActive: 'bg-teal-500 dark:bg-teal-600',
@@ -576,8 +587,9 @@ const YearSelector = ({
           bgLight: 'bg-teal-50 dark:bg-teal-900',
           bgMed: 'bg-teal-200 dark:bg-teal-800'
         };
+        break;
       case 'cyan':
-        return {
+        baseColors = {
           text: 'text-cyan-700 dark:text-cyan-300',
           textActive: 'text-white',
           bgActive: 'bg-cyan-500 dark:bg-cyan-600',
@@ -593,8 +605,9 @@ const YearSelector = ({
           bgLight: 'bg-cyan-50 dark:bg-cyan-900',
           bgMed: 'bg-cyan-200 dark:bg-cyan-800'
         };
+        break;
       case 'emerald':
-        return {
+        baseColors = {
           text: 'text-emerald-700 dark:text-emerald-300',
           textActive: 'text-white',
           bgActive: 'bg-emerald-500 dark:bg-emerald-600',
@@ -610,8 +623,9 @@ const YearSelector = ({
           bgLight: 'bg-emerald-50 dark:bg-emerald-900',
           bgMed: 'bg-emerald-200 dark:bg-emerald-800'
         };
+        break;
       case 'amber':
-        return {
+        baseColors = {
           text: 'text-amber-700 dark:text-amber-300',
           textActive: 'text-white',
           bgActive: 'bg-amber-500 dark:bg-amber-600',
@@ -627,8 +641,9 @@ const YearSelector = ({
           bgLight: 'bg-amber-50 dark:bg-amber-900',
           bgMed: 'bg-amber-200 dark:bg-amber-800'
         };
+        break;
       case 'fuchsia':
-        return {
+        baseColors = {
           text: 'text-fuchsia-700 dark:text-fuchsia-300',
           textActive: 'text-white',
           bgActive: 'bg-fuchsia-500 dark:bg-fuchsia-600',
@@ -644,8 +659,9 @@ const YearSelector = ({
           bgLight: 'bg-fuchsia-50 dark:bg-fuchsia-900',
           bgMed: 'bg-fuchsia-200 dark:bg-fuchsia-800'
         };
+        break;
       case 'violet':
-        return {
+        baseColors = {
           text: 'text-violet-700 dark:text-violet-300',
           textActive: 'text-white',
           bgActive: 'bg-violet-500 dark:bg-violet-600',
@@ -661,8 +677,9 @@ const YearSelector = ({
           bgLight: 'bg-violet-50 dark:bg-violet-900',
           bgMed: 'bg-violet-200 dark:bg-violet-800'
         };
+        break;
       case 'rose':
-        return {
+        baseColors = {
           text: 'text-rose-700 dark:text-rose-300',
           textActive: 'text-white',
           bgActive: 'bg-rose-500 dark:bg-rose-600',
@@ -678,8 +695,103 @@ const YearSelector = ({
           bgLight: 'bg-rose-50 dark:bg-rose-900',
           bgMed: 'bg-rose-200 dark:bg-rose-800'
         };
+        break;
     }
-  }, [colorTheme]);
+
+    // If textTheme is provided, override text colors while keeping background colors from colorTheme
+    if (textTheme && textTheme !== colorTheme) {
+      const textOverrides = getTextColorsForTheme(textTheme);
+      return {
+        ...baseColors, // Keep background colors from colorTheme
+        ...textOverrides // Override text colors with textTheme
+      };
+    }
+
+    return baseColors;
+  }, [colorTheme, textTheme]);
+
+  // Helper function to get text colors for a specific theme
+  const getTextColorsForTheme = (theme) => {
+    switch (theme) {
+      case 'pink':
+        return {
+          text: 'text-pink-700 dark:text-pink-300',
+          textBold: 'text-pink-800 dark:text-pink-200'
+        };
+      case 'purple':
+        return {
+          text: 'text-purple-700 dark:text-purple-300',
+          textBold: 'text-purple-800 dark:text-purple-200'
+        };
+      case 'indigo':
+        return {
+          text: 'text-indigo-700 dark:text-indigo-300',
+          textBold: 'text-indigo-800 dark:text-indigo-200'
+        };
+      case 'blue':
+        return {
+          text: 'text-blue-700 dark:text-blue-300',
+          textBold: 'text-blue-800 dark:text-blue-200'
+        };
+      case 'green':
+        return {
+          text: 'text-green-700 dark:text-green-300',
+          textBold: 'text-green-800 dark:text-green-200'
+        };
+      case 'yellow':
+        return {
+          text: 'text-yellow-700 dark:text-yellow-300',
+          textBold: 'text-yellow-800 dark:text-yellow-200'
+        };
+      case 'red':
+        return {
+          text: 'text-red-700 dark:text-red-300',
+          textBold: 'text-red-800 dark:text-red-200'
+        };
+      case 'orange':
+        return {
+          text: 'text-orange-700 dark:text-orange-300',
+          textBold: 'text-orange-800 dark:text-orange-200'
+        };
+      case 'teal':
+        return {
+          text: 'text-teal-700 dark:text-teal-300',
+          textBold: 'text-teal-800 dark:text-teal-200'
+        };
+      case 'cyan':
+        return {
+          text: 'text-cyan-700 dark:text-cyan-300',
+          textBold: 'text-cyan-800 dark:text-cyan-200'
+        };
+      case 'emerald':
+        return {
+          text: 'text-emerald-700 dark:text-emerald-300',
+          textBold: 'text-emerald-800 dark:text-emerald-200'
+        };
+      case 'amber':
+        return {
+          text: 'text-amber-700 dark:text-amber-300',
+          textBold: 'text-amber-800 dark:text-amber-200'
+        };
+      case 'fuchsia':
+        return {
+          text: 'text-fuchsia-700 dark:text-fuchsia-300',
+          textBold: 'text-fuchsia-800 dark:text-fuchsia-200'
+        };
+      case 'violet':
+        return {
+          text: 'text-violet-700 dark:text-violet-300',
+          textBold: 'text-violet-800 dark:text-violet-200'
+        };
+      case 'rose':
+        return {
+          text: 'text-rose-700 dark:text-rose-300',
+          textBold: 'text-rose-800 dark:text-rose-200'
+        };
+      default:
+        return {};
+    }
+  };
 
   if (years.length === 0) {
     return <div className={colors.text + " italic"}>No year data available</div>;
