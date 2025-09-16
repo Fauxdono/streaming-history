@@ -129,7 +129,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
   }, [albumTracks]);
 
   return (
-    <div className={`p-3 ${colors.bg} rounded shadow-sm border ${colors.border} hover:${colors.borderHover} transition-all duration-300 relative`}>
+    <div className={`p-3 ${colors.bg} rounded shadow-sm ${isDarkMode ? 'border-[0.5px]' : 'border'} ${colors.border} hover:${colors.borderHover} transition-all duration-300 relative`}>
       <div className={`font-bold ${colors.text}`}>{album.name}</div>
       
       <div className={`text-sm ${colors.textLight}`}>
@@ -143,7 +143,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
       </div>
       
       {/* Divider */}
-      <div className={`border-t ${colors.border} my-2`}></div>
+      <div className={`${isDarkMode ? 'border-t-[0.5px]' : 'border-t'} ${colors.border} my-2`}></div>
       
       {/* Top Track Section */}
       <div className="mt-2">
@@ -180,7 +180,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
       
       {/* Track Dropdown Content */}
       {showTracks && otherTracks.length > 0 && (
-        <div className={`mt-1 max-h-64 overflow-y-auto text-xs border ${colors.border} rounded`}>
+        <div className={`mt-1 max-h-64 overflow-y-auto text-xs ${isDarkMode ? 'border-[0.5px]' : 'border'} ${colors.border} rounded`}>
           <div className={`sticky top-0 ${colors.bgHeader} p-1 text-xs text-center ${colors.text} font-medium`}>
             {/* Use the correct available tracks count */}
             {remainingTracks !== otherTracks.length ?
