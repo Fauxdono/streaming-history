@@ -46,26 +46,27 @@ const ArtistsRankings = ({
     
     if (colorblindMode && colorblindMode !== 'none') {
       // Apply the same colorblind mappings as TopTabs for artists (blue base)
+      // Use different background colors for better visual distinction
       switch (colorblindMode) {
         case 'protanopia':
           // blue has no mapping, stays blue
           finalTextTheme = 'blue';
-          finalBackgroundTheme = 'blue';
+          finalBackgroundTheme = 'cyan';  // Different background for variety
           break;
         case 'deuteranopia':
           // blue has no mapping, stays blue
           finalTextTheme = 'blue';
-          finalBackgroundTheme = 'blue';
+          finalBackgroundTheme = 'teal';  // Different background for variety
           break;
         case 'tritanopia':
           // blue → red
           finalTextTheme = 'red';
-          finalBackgroundTheme = 'red';
+          finalBackgroundTheme = 'orange';  // Complementary background
           break;
         case 'monochrome':
           // blue → gray
           finalTextTheme = 'gray';
-          finalBackgroundTheme = 'gray';
+          finalBackgroundTheme = 'slate';  // Different gray variant
           break;
       }
     }
