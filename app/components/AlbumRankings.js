@@ -337,8 +337,8 @@ const AlbumRankings = ({
                   index={index} 
                   processedData={processedData} 
                   formatDuration={formatDuration}
-                  textTheme={textTheme || colorTheme}
-                  backgroundTheme={backgroundTheme || colorTheme}
+                  textTheme={finalTextTheme}
+                  backgroundTheme={finalBackgroundTheme}
                 />
               ) : (
                 <div 
