@@ -36,23 +36,27 @@ const AlbumRankings = ({
     let finalBackgroundTheme = backgroundTheme || colorTheme;
     
     if (colorblindMode && colorblindMode !== 'none') {
-      // Direct color mapping for colorblind modes
+      // Apply the same colorblind mappings as TopTabs for albums (cyan base)
       switch (colorblindMode) {
         case 'protanopia':
+          // cyan has no mapping, stays cyan
           finalTextTheme = 'cyan';
-          finalBackgroundTheme = 'teal';
+          finalBackgroundTheme = 'cyan';
           break;
         case 'deuteranopia':
-          finalTextTheme = 'violet';
-          finalBackgroundTheme = 'purple';
+          // cyan has no mapping, stays cyan
+          finalTextTheme = 'cyan';
+          finalBackgroundTheme = 'cyan';
           break;
         case 'tritanopia':
+          // cyan → orange
           finalTextTheme = 'orange';
-          finalBackgroundTheme = 'red';
+          finalBackgroundTheme = 'orange';
           break;
         case 'monochrome':
+          // cyan → gray
           finalTextTheme = 'gray';
-          finalBackgroundTheme = 'slate';
+          finalBackgroundTheme = 'gray';
           break;
       }
     }
