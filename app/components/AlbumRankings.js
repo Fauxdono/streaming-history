@@ -27,40 +27,42 @@ const AlbumRankings = ({
   const { theme } = useTheme() || {};
   const isDarkMode = theme === 'dark';
   
-  // Helper function to get themed colors with colorblind override
-  const getThemedColors = () => {
-    const { colorblindMode } = useTheme() || {};
-    
-    // Simple colorblind formula: override colors when colorblind mode is active
-    let finalTextTheme = textTheme || colorTheme;
-    let finalBackgroundTheme = backgroundTheme || colorTheme;
-    
-    if (colorblindMode && colorblindMode !== 'none') {
-      // Apply the same colorblind mappings as TopTabs for albums (cyan base)
-      // Use different background colors for better visual distinction
-      switch (colorblindMode) {
-        case 'protanopia':
-          // cyan has no mapping, stays cyan
-          finalTextTheme = 'cyan';
-          finalBackgroundTheme = 'teal';  // Different background for variety
-          break;
-        case 'deuteranopia':
-          // cyan has no mapping, stays cyan
-          finalTextTheme = 'cyan';
-          finalBackgroundTheme = 'blue';  // Different background for variety
-          break;
-        case 'tritanopia':
-          // cyan → orange
-          finalTextTheme = 'orange';
-          finalBackgroundTheme = 'red';  // Complementary background
-          break;
-        case 'monochrome':
-          // cyan → gray
-          finalTextTheme = 'gray';
-          finalBackgroundTheme = 'slate';  // Different gray variant
-          break;
-      }
+  // Get colorblind adjusted themes
+  const { colorblindMode } = useTheme() || {};
+  
+  // Simple colorblind formula: override colors when colorblind mode is active
+  let finalTextTheme = textTheme || colorTheme;
+  let finalBackgroundTheme = backgroundTheme || colorTheme;
+  
+  if (colorblindMode && colorblindMode !== 'none') {
+    // Apply the same colorblind mappings as TopTabs for albums (cyan base)
+    // Use different background colors for better visual distinction
+    switch (colorblindMode) {
+      case 'protanopia':
+        // cyan has no mapping, stays cyan
+        finalTextTheme = 'cyan';
+        finalBackgroundTheme = 'teal';  // Different background for variety
+        break;
+      case 'deuteranopia':
+        // cyan has no mapping, stays cyan
+        finalTextTheme = 'cyan';
+        finalBackgroundTheme = 'blue';  // Different background for variety
+        break;
+      case 'tritanopia':
+        // cyan → orange
+        finalTextTheme = 'orange';
+        finalBackgroundTheme = 'red';  // Complementary background
+        break;
+      case 'monochrome':
+        // cyan → gray
+        finalTextTheme = 'gray';
+        finalBackgroundTheme = 'slate';  // Different gray variant
+        break;
     }
+  }
+
+  // Helper function to get themed colors
+  const getThemedColors = () => {
     
     const textColors = {
       cyan: { text: isDarkMode ? 'text-cyan-300' : 'text-cyan-700', textLight: isDarkMode ? 'text-cyan-400' : 'text-cyan-600', textDark: isDarkMode ? 'text-cyan-200' : 'text-cyan-800' },
