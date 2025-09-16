@@ -213,7 +213,7 @@ const ArtistsRankings = ({
   }, []);
 
   return (
-    <div className={`p-2 sm:p-4 rounded border-2 ${colors.wrapper}`}>
+    <div className={`p-2 sm:p-4 rounded ${colors.wrapper}`}>
       {/* Title - mobile gets its own row */}
       <div className="block sm:hidden mb-1">
         <h3 className={`font-bold ${colors.text}`}>
