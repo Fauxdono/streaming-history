@@ -271,7 +271,7 @@ body {
   background-color: var(--card-background) !important;
 }
 
-.dark .border {
+.dark .border:not([class*="border-"]) {
   border-color: var(--border) !important;
 }
 
