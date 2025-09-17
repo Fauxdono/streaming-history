@@ -199,7 +199,7 @@ const AlbumRankings = ({
   const colors = getThemedColors();
 
   return (
-    <div className={`p-2 sm:p-4 rounded ${colors.wrapper}`}>
+    <div className={`p-2 sm:p-4 rounded border ${colors.wrapper}`}>
       {/* Title - mobile gets its own row */}
       <div className="block sm:hidden mb-1">
         <h3 className={`font-bold ${colors.text}`}>
