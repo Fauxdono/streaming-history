@@ -82,6 +82,9 @@ const CustomTrackRankings = ({
   // Get the colorblind-adjusted theme
   const actualColorTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(colorTheme) : colorTheme;
   
+  // Debug: log the color transformation
+  console.log('Songs tab - Original color:', colorTheme, 'Adjusted color:', actualColorTheme);
+  
   // Use flexible theming if both textTheme and backgroundTheme are provided, otherwise use colorblind-adjusted theme
   const colors = (textTheme && backgroundTheme) ? getFlexibleColors(textTheme, backgroundTheme) : getColors(actualColorTheme);
   

@@ -131,6 +131,7 @@ export const ThemeProvider = ({ children }) => {
 
   // Function to transform color themes based on colorblind mode
   const getColorblindAdjustedTheme = (originalTheme) => {
+    console.log('getColorblindAdjustedTheme called with:', originalTheme, 'mode:', colorblindMode);
     if (!originalTheme || colorblindMode === 'none') return originalTheme;
     
     const colorMappings = {
@@ -163,7 +164,9 @@ export const ThemeProvider = ({ children }) => {
       }
     };
 
-    return colorMappings[colorblindMode]?.[originalTheme] || originalTheme;
+    const result = colorMappings[colorblindMode]?.[originalTheme] || originalTheme;
+    console.log('getColorblindAdjustedTheme returning:', result);
+    return result;
   };
 
   // Avoid hydration mismatch by not rendering anything until mounted
