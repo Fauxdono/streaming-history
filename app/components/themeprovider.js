@@ -153,13 +153,13 @@ export const ThemeProvider = ({ children }) => {
         'sky': 'amber'
       },
       monochrome: {
-        // All colors become gray variants
-        'red': 'gray', 'green': 'slate', 'blue': 'gray',
-        'yellow': 'gray', 'purple': 'slate', 'pink': 'gray',
-        'indigo': 'slate', 'cyan': 'gray', 'teal': 'slate',
-        'orange': 'gray', 'amber': 'gray', 'lime': 'slate',
-        'emerald': 'slate', 'violet': 'gray', 'fuchsia': 'slate',
-        'rose': 'gray', 'sky': 'gray'
+        // All colors become the same gray for true uniformity
+        'red': 'gray', 'green': 'gray', 'blue': 'gray',
+        'yellow': 'gray', 'purple': 'gray', 'pink': 'gray',
+        'indigo': 'gray', 'cyan': 'gray', 'teal': 'gray',
+        'orange': 'gray', 'amber': 'gray', 'lime': 'gray',
+        'emerald': 'gray', 'violet': 'gray', 'fuchsia': 'gray',
+        'rose': 'gray', 'sky': 'gray', 'slate': 'gray'
       }
     };
 
