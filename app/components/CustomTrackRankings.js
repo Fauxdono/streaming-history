@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus, XCircle, Eye, LayoutGrid, List } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
+import { useTheme } from './themeprovider.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
@@ -18,176 +19,141 @@ const CustomTrackRankings = ({
   textTheme = null,
   backgroundTheme = null
 }) => {
+  
+  // Get the current theme
+  const { theme } = useTheme() || {};
+  const isDarkMode = theme === 'dark';
 
-  // Flexible theming support - if textTheme and backgroundTheme are provided, use them
-  const getFlexibleColors = (textTheme, backgroundTheme) => {
-    const textColors = {
-      violet: {
-        text: 'text-violet-700',
-        textLight: 'text-violet-600', 
-        textLighter: 'text-violet-500',
-        textDark: 'text-violet-800',
-        hoverText: 'hover:text-violet-200'
-      },
-      red: {
-        text: 'text-red-700',
-        textLight: 'text-red-600', 
-        textLighter: 'text-red-500',
-        textDark: 'text-red-800',
-        hoverText: 'hover:text-red-200'
-      },
-      emerald: {
-        text: 'text-emerald-700',
-        textLight: 'text-emerald-600', 
-        textLighter: 'text-emerald-500',
-        textDark: 'text-emerald-800',
-        hoverText: 'hover:text-emerald-200'
-      },
-      orange: {
-        text: 'text-orange-700',
-        textLight: 'text-orange-600', 
-        textLighter: 'text-orange-500',
-        textDark: 'text-orange-800',
-        hoverText: 'hover:text-orange-200'
+  // Helper function to get themed colors with colorblind override
+  const getThemedColors = () => {
+    const { colorblindMode } = useTheme() || {};
+    
+    // Simple colorblind formula: override colors when colorblind mode is active
+    let finalTextTheme = textTheme || colorTheme;
+    let finalBackgroundTheme = backgroundTheme || colorTheme;
+    
+    if (colorblindMode && colorblindMode !== 'none') {
+      // Apply the same colorblind mappings as TopTabs for songs (orange base)
+      // Use different background colors for better visual distinction
+      switch (colorblindMode) {
+        case 'protanopia':
+          // orange → cyan
+          finalTextTheme = 'cyan';
+          finalBackgroundTheme = 'blue';  // Different background for variety
+          break;
+        case 'deuteranopia':
+          // orange → purple
+          finalTextTheme = 'purple';
+          finalBackgroundTheme = 'violet';  // Different background for variety
+          break;
+        case 'tritanopia':
+          // orange has no mapping, stays orange
+          finalTextTheme = 'orange';
+          finalBackgroundTheme = 'red';  // Complementary background
+          break;
+        case 'monochrome':
+          // orange → gray
+          finalTextTheme = 'gray';
+          finalBackgroundTheme = 'slate';  // Different gray variant
+          break;
       }
+    }
+    
+    const textColors = {
+      orange: { text: isDarkMode ? 'text-orange-300' : 'text-orange-700', textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600', textDark: isDarkMode ? 'text-orange-200' : 'text-orange-800' },
+      cyan: { text: isDarkMode ? 'text-cyan-300' : 'text-cyan-700', textLight: isDarkMode ? 'text-cyan-400' : 'text-cyan-600', textDark: isDarkMode ? 'text-cyan-200' : 'text-cyan-800' },
+      purple: { text: isDarkMode ? 'text-purple-300' : 'text-purple-700', textLight: isDarkMode ? 'text-purple-400' : 'text-purple-600', textDark: isDarkMode ? 'text-purple-200' : 'text-purple-800' },
+      violet: { text: isDarkMode ? 'text-violet-300' : 'text-violet-700', textLight: isDarkMode ? 'text-violet-400' : 'text-violet-600', textDark: isDarkMode ? 'text-violet-200' : 'text-violet-800' },
+      red: { text: isDarkMode ? 'text-red-300' : 'text-red-700', textLight: isDarkMode ? 'text-red-400' : 'text-red-600', textDark: isDarkMode ? 'text-red-200' : 'text-red-800' },
+      blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
+      gray: { text: isDarkMode ? 'text-gray-300' : 'text-gray-700', textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600', textDark: isDarkMode ? 'text-gray-200' : 'text-gray-800' },
+      slate: { text: isDarkMode ? 'text-slate-300' : 'text-slate-700', textLight: isDarkMode ? 'text-slate-400' : 'text-slate-600', textDark: isDarkMode ? 'text-slate-200' : 'text-slate-800' }
     };
 
     const backgroundColors = {
-      emerald: {
-        bg: 'bg-emerald-50',
-        bgLight: 'bg-emerald-100',
-        bgMed: 'bg-emerald-200',
-        bgDark: 'bg-emerald-600',
-        bgDarkHover: 'hover:bg-emerald-700',
-        border: 'border-emerald-200',
-        borderDark: 'border-emerald-700',
-        hoverBg: 'hover:bg-emerald-50',
-        hoverBgDark: 'hover:bg-emerald-900',
-        focusBorder: 'focus:border-emerald-400',
-        focusRing: 'focus:ring-emerald-400'
+      orange: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-orange-700' : 'border-orange-200',
+        borderHover: isDarkMode ? 'border-orange-500' : 'border-orange-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-orange-50',
+        bgButton: isDarkMode ? 'bg-orange-800' : 'bg-orange-600', bgButtonHover: isDarkMode ? 'hover:bg-orange-700' : 'hover:bg-orange-700',
+        bgSelected: isDarkMode ? 'bg-orange-600' : 'bg-orange-600', bgSelectedHover: isDarkMode ? 'hover:bg-orange-700' : 'hover:bg-orange-700',
+        focusRing: isDarkMode ? 'focus:ring-orange-400' : 'focus:ring-orange-400',
+        wrapper: isDarkMode ? 'bg-orange-900 border-orange-800' : 'bg-orange-100 border-orange-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-orange-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-orange-100'
+      },
+      cyan: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-cyan-700' : 'border-cyan-200',
+        borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50',
+        bgButton: isDarkMode ? 'bg-cyan-800' : 'bg-cyan-600', bgButtonHover: isDarkMode ? 'hover:bg-cyan-700' : 'hover:bg-cyan-700',
+        bgSelected: isDarkMode ? 'bg-cyan-600' : 'bg-cyan-600', bgSelectedHover: isDarkMode ? 'hover:bg-cyan-700' : 'hover:bg-cyan-700',
+        focusRing: isDarkMode ? 'focus:ring-cyan-400' : 'focus:ring-cyan-400',
+        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-cyan-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-cyan-100'
+      },
+      purple: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-purple-700' : 'border-purple-200',
+        borderHover: isDarkMode ? 'border-purple-500' : 'border-purple-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-purple-50',
+        bgButton: isDarkMode ? 'bg-purple-800' : 'bg-purple-600', bgButtonHover: isDarkMode ? 'hover:bg-purple-700' : 'hover:bg-purple-700',
+        bgSelected: isDarkMode ? 'bg-purple-600' : 'bg-purple-600', bgSelectedHover: isDarkMode ? 'hover:bg-purple-700' : 'hover:bg-purple-700',
+        focusRing: isDarkMode ? 'focus:ring-purple-400' : 'focus:ring-purple-400',
+        wrapper: isDarkMode ? 'bg-purple-900 border-purple-800' : 'bg-purple-100 border-purple-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-purple-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-purple-100'
       },
       violet: {
-        bg: 'bg-violet-50',
-        bgLight: 'bg-violet-100',
-        bgMed: 'bg-violet-200',
-        bgDark: 'bg-violet-600',
-        bgDarkHover: 'hover:bg-violet-700',
-        border: 'border-violet-200',
-        borderDark: 'border-violet-700',
-        hoverBg: 'hover:bg-violet-50',
-        hoverBgDark: 'hover:bg-violet-900',
-        focusBorder: 'focus:border-violet-400',
-        focusRing: 'focus:ring-violet-400'
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-violet-700' : 'border-violet-200',
+        borderHover: isDarkMode ? 'border-violet-500' : 'border-violet-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-violet-50',
+        bgButton: isDarkMode ? 'bg-violet-800' : 'bg-violet-600', bgButtonHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-700',
+        bgSelected: isDarkMode ? 'bg-violet-600' : 'bg-violet-600', bgSelectedHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-700',
+        focusRing: isDarkMode ? 'focus:ring-violet-400' : 'focus:ring-violet-400',
+        wrapper: isDarkMode ? 'bg-violet-900 border-violet-800' : 'bg-violet-100 border-violet-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-violet-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-violet-100'
       },
-      orange: {
-        bg: 'bg-orange-50',
-        bgLight: 'bg-orange-100',
-        bgMed: 'bg-orange-200',
-        bgDark: 'bg-orange-600',
-        bgDarkHover: 'hover:bg-orange-700',
-        border: 'border-orange-200',
-        borderDark: 'border-orange-700',
-        hoverBg: 'hover:bg-orange-50',
-        hoverBgDark: 'hover:bg-orange-900',
-        focusBorder: 'focus:border-orange-400',
-        focusRing: 'focus:ring-orange-400'
+      red: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-red-700' : 'border-red-200',
+        borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-red-50',
+        bgButton: isDarkMode ? 'bg-red-800' : 'bg-red-600', bgButtonHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-700',
+        bgSelected: isDarkMode ? 'bg-red-600' : 'bg-red-600', bgSelectedHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-700',
+        focusRing: isDarkMode ? 'focus:ring-red-400' : 'focus:ring-red-400',
+        wrapper: isDarkMode ? 'bg-red-900 border-red-800' : 'bg-red-100 border-red-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-red-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-red-100'
+      },
+      blue: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-blue-700' : 'border-blue-200',
+        borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-blue-50',
+        bgButton: isDarkMode ? 'bg-blue-800' : 'bg-blue-600', bgButtonHover: isDarkMode ? 'hover:bg-blue-700' : 'hover:bg-blue-700',
+        bgSelected: isDarkMode ? 'bg-blue-600' : 'bg-blue-600', bgSelectedHover: isDarkMode ? 'hover:bg-blue-700' : 'hover:bg-blue-700',
+        focusRing: isDarkMode ? 'focus:ring-blue-400' : 'focus:ring-blue-400',
+        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-blue-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-blue-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-blue-100'
+      },
+      gray: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+        borderHover: isDarkMode ? 'border-gray-500' : 'border-gray-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-600', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700',
+        bgSelected: isDarkMode ? 'bg-gray-600' : 'bg-gray-600', bgSelectedHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700',
+        focusRing: isDarkMode ? 'focus:ring-gray-400' : 'focus:ring-gray-400',
+        wrapper: isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-gray-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
+      },
+      slate: {
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-slate-700' : 'border-slate-200',
+        borderHover: isDarkMode ? 'border-slate-500' : 'border-slate-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-slate-50',
+        bgButton: isDarkMode ? 'bg-slate-800' : 'bg-slate-600', bgButtonHover: isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-700',
+        bgSelected: isDarkMode ? 'bg-slate-600' : 'bg-slate-600', bgSelectedHover: isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-700',
+        focusRing: isDarkMode ? 'focus:ring-slate-400' : 'focus:ring-slate-400',
+        wrapper: isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-300',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-slate-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-slate-100'
       }
     };
 
-    const textThemeObj = textColors[textTheme] || textColors.orange;
-    const backgroundThemeObj = backgroundColors[backgroundTheme] || backgroundColors.orange;
+    const textColorObj = textColors[finalTextTheme] || textColors.orange;
+    const backgroundColorObj = backgroundColors[finalBackgroundTheme] || backgroundColors.orange;
 
-    return {
-      ...textThemeObj,
-      ...backgroundThemeObj
-    };
+    return { ...textColorObj, ...backgroundColorObj };
   };
 
-  // Color theme mapping (legacy support)
-  const getColors = (theme) => {
-    switch (theme) {
-      case 'emerald':
-        return {
-          text: 'text-emerald-700',
-          textLight: 'text-emerald-600', 
-          textLighter: 'text-emerald-500',
-          textDark: 'text-emerald-800',
-          bg: 'bg-emerald-50',
-          bgLight: 'bg-emerald-100',
-          bgMed: 'bg-emerald-200',
-          bgDark: 'bg-emerald-600',
-          bgDarkHover: 'hover:bg-emerald-700',
-          border: 'border-emerald-200',
-          borderDark: 'border-emerald-700',
-          hoverBg: 'hover:bg-emerald-50',
-          hoverBgDark: 'hover:bg-emerald-900',
-          focusBorder: 'focus:border-emerald-400',
-          focusRing: 'focus:ring-emerald-400',
-          hoverText: 'hover:text-emerald-200'
-        };
-      case 'red':
-        return {
-          text: 'text-red-700',
-          textLight: 'text-red-600', 
-          textLighter: 'text-red-500',
-          textDark: 'text-red-800',
-          bg: 'bg-red-50',
-          bgLight: 'bg-red-100',
-          bgMed: 'bg-red-200',
-          bgDark: 'bg-red-600',
-          bgDarkHover: 'hover:bg-red-700',
-          border: 'border-red-200',
-          borderDark: 'border-red-700',
-          hoverBg: 'hover:bg-red-50',
-          hoverBgDark: 'hover:bg-red-900',
-          focusBorder: 'focus:border-red-400',
-          focusRing: 'focus:ring-red-400',
-          hoverText: 'hover:text-red-200'
-        };
-      case 'violet':
-        return {
-          text: 'text-violet-700',
-          textLight: 'text-violet-600', 
-          textLighter: 'text-violet-500',
-          textDark: 'text-violet-800',
-          bg: 'bg-violet-50',
-          bgLight: 'bg-violet-100',
-          bgMed: 'bg-violet-200',
-          bgDark: 'bg-violet-600',
-          bgDarkHover: 'hover:bg-violet-700',
-          border: 'border-violet-200',
-          borderDark: 'border-violet-700',
-          hoverBg: 'hover:bg-violet-50',
-          hoverBgDark: 'hover:bg-violet-900',
-          focusBorder: 'focus:border-violet-400',
-          focusRing: 'focus:ring-violet-400',
-          hoverText: 'hover:text-violet-200'
-        };
-      case 'orange':
-      default:
-        return {
-          text: 'text-orange-700',
-          textLight: 'text-orange-600', 
-          textLighter: 'text-orange-500',
-          textDark: 'text-orange-800',
-          bg: 'bg-orange-50',
-          bgLight: 'bg-orange-100',
-          bgMed: 'bg-orange-200',
-          bgDark: 'bg-orange-600',
-          bgDarkHover: 'hover:bg-orange-700',
-          border: 'border-orange-200',
-          borderDark: 'border-orange-700',
-          hoverBg: 'hover:bg-orange-50',
-          hoverBgDark: 'hover:bg-orange-900',
-          focusBorder: 'focus:border-orange-400',
-          focusRing: 'focus:ring-orange-400',
-          hoverText: 'hover:text-orange-200'
-        };
-    }
-  };
 
-  // Use flexible theming if both textTheme and backgroundTheme are provided, otherwise fall back to colorTheme
-  const colors = (textTheme && backgroundTheme) ? getFlexibleColors(textTheme, backgroundTheme) : getColors(colorTheme);
+  // Use new colorblind-aware theming system
+  const colors = getThemedColors();
   
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -1186,7 +1152,7 @@ const CustomTrackRankings = ({
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">#{index + 1} {song.displayName || song.trackName}</div>
-                <div className={`text-sm ${colors.textLighter}`}>
+                <div className={`text-sm ${colors.textLight}`}>
                   {song.displayArtist || song.artist}
                   {song.isFeatured && (
                     <span className={`inline-block px-1 py-0.5 ml-1 ${colors.bgMed} ${colors.text} rounded text-xs`}>
@@ -1194,7 +1160,7 @@ const CustomTrackRankings = ({
                     </span>
                   )}
                 </div>
-                <div className={`text-xs ${colors.textLighter}`}>{song.albumName}</div>
+                <div className={`text-xs ${colors.textLight}`}>{song.albumName}</div>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -1209,7 +1175,7 @@ const CustomTrackRankings = ({
           </td>
           <td className={`p-2 text-right ${colors.text}`}>
             <div>{formatDuration(song.totalPlayed)}</div>
-            <div className={`text-sm ${colors.textLighter}`}>{song.playCount} plays</div>
+            <div className={`text-sm ${colors.textLight}`}>{song.playCount} plays</div>
           </td>
         </tr>
       );
@@ -1245,13 +1211,13 @@ const CustomTrackRankings = ({
             </button>
             
             {showOmitDropdown === song.key && (
-              <div className={`absolute bottom-full mb-1 right-full mr-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+              <div className={`absolute bottom-full mb-1 right-full mr-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                 <button
                   onClick={() => {
                     omitSong(song);
                     setShowOmitDropdown(null);
                   }}
-                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight}`}
                 >
                   Omit song
                 </button>
@@ -1260,7 +1226,7 @@ const CustomTrackRankings = ({
                     omitArtist(song.artist);
                     setShowOmitDropdown(null);
                   }}
-                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight} border-t ${colors.border}`}
                 >
                   Omit artist
                 </button>
@@ -1272,7 +1238,7 @@ const CustomTrackRankings = ({
     }
   };
 return (
-  <div className="space-y-4">
+  <div className={`p-2 sm:p-4 rounded border ${colors.wrapper}`}>
     {/* Title - mobile gets its own row */}
     <div className="block sm:hidden mb-1">
       <h3 className={`font-bold ${colors.text}`}>
@@ -1295,7 +1261,7 @@ return (
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-16 border rounded px-2 py-1 ${colors.text}`}
+            className={`w-16 border rounded px-2 py-1 ${colors.text} ${colors.border}`}
           />
         </div>
         
@@ -1308,7 +1274,7 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
           >
             {viewMode === 'grid' ? 'Grid' : 
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1319,7 +1285,7 @@ return (
           <label className={`${colors.text}`}>Sort by</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1338,7 +1304,7 @@ return (
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-12 border rounded px-1 py-1 ${colors.text} text-sm`}
+            className={`w-12 border rounded px-1 py-1 ${colors.text} ${colors.border} text-sm`}
           />
         </div>
         
@@ -1351,7 +1317,7 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
           >
             {viewMode === 'grid' ? 'Grid' : 
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1362,7 +1328,7 @@ return (
           <label className={`${colors.text} text-sm`}>Sort</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1384,11 +1350,11 @@ return (
             setAlbumSearch(e.target.value);
           }}
           placeholder="Search artists or albums..."
-          className={`w-full border rounded px-2 py-1 ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+          className={`w-full border rounded px-2 py-1 ${colors.text} ${colors.border} ${colors.borderHover} ${colors.focusRing} focus:outline-none`}
         />
         
         {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-          <div className={`absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto ${colors.textLight}`}>
+          <div className={`absolute z-10 mt-1 w-full ${colors.bg} border rounded-md shadow-lg max-h-60 overflow-y-auto ${colors.border}`}>
             {filteredArtists.length > 0 && (
               <div>
                 <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
@@ -1399,7 +1365,7 @@ return (
                       addArtistFromTrack(artist);
                       setUnifiedSearch('');
                     }}
-                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
+                    className={`px-2 py-1 ${colors.text} hover:${colors.bgLight} cursor-pointer`}
                   >
                     <span className="mr-1">👤</span> {artist}
                   </div>
@@ -1417,7 +1383,7 @@ return (
                       addAlbumFromTrack(album.name, album.artist);
                       setUnifiedSearch('');
                     }}
-                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
+                    className={`px-2 py-1 ${colors.text} hover:${colors.bgLight} cursor-pointer`}
                   >
                     <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
                   </div>
@@ -1433,12 +1399,12 @@ return (
         {selectedArtists.map(artist => (
           <div 
             key={artist} 
-            className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
+            className={`flex items-center ${colors.bgSelected} text-white px-2 py-1 rounded text-xs`}
           >
             {artist}
             <button 
               onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-              className={`ml-1 text-white ${colors.hoverText}`}
+              className={`ml-1 text-white hover:text-gray-200`}
             >
               ×
             </button>
@@ -1448,12 +1414,12 @@ return (
         {selectedAlbums.map(album => (
           <div 
             key={album.key} 
-            className={`flex items-center ${colors.bg}0 text-white px-2 py-1 rounded text-xs`}
+            className={`flex items-center ${colors.bgSelected} text-white px-2 py-1 rounded text-xs`}
           >
             <span className="mr-1">💿</span> {album.name} 
             <button 
               onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
-              className={`ml-1 text-white ${colors.hoverText}`}
+              className={`ml-1 text-white hover:text-gray-200`}
             >
               ×
             </button>
@@ -1503,7 +1469,7 @@ return (
           onClick={() => setShowOmittedTab(false)}
           className={`px-4 py-2 rounded-t text-sm ${
             !showOmittedTab
-              ? `${colors.bgDark} text-white`
+              ? `${colors.bgButton} text-white`
               : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
@@ -1513,7 +1479,7 @@ return (
           onClick={() => setShowOmittedTab(true)}
           className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
             showOmittedTab
-              ? `${colors.bgDark} text-white`
+              ? `${colors.bgButton} text-white`
               : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
@@ -1523,7 +1489,7 @@ return (
       </div>
       <button
         onClick={() => setShowPlaylistExporter(true)}
-        className={`flex items-center gap-1 px-3 py-1 ${colors.bgDark} text-white rounded text-sm ${colors.bgDarkHover} transition-colors`}
+        className={`flex items-center gap-1 px-3 py-1 ${colors.bgButton} text-white rounded text-sm ${colors.bgButtonHover} transition-colors`}
       >
         <Download size={14} className="hidden sm:inline" />
         Export M3u
@@ -1532,7 +1498,7 @@ return (
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
         <h3 className={`font-bold ${colors.text} mb-4`}>Omitted Content</h3>
         
         {omittedArtists.length > 0 && (
@@ -1542,7 +1508,7 @@ return (
               {omittedArtists.map(artist => (
                 <div 
                   key={artist} 
-                  className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
+                  className={`flex items-center ${colors.bgSelected} text-white px-2 py-1 rounded text-xs`}
                 >
                   {artist}
                   <button 
@@ -1579,7 +1545,7 @@ return (
                       <td className="p-2 text-right">
                         <button
                           onClick={() => unomitSong(song.key)}
-                          className={`px-2 py-1 ${colors.bgDark} text-white rounded text-xs ${colors.bgDarkHover}`}
+                          className={`px-2 py-1 ${colors.bgButton} text-white rounded text-xs ${colors.bgButtonHover}`}
                         >
                           Un-omit
                         </button>
@@ -1593,14 +1559,14 @@ return (
         )}
         
         {omittedSongs.length === 0 && omittedArtists.length === 0 && (
-          <div className={`text-center py-4 ${colors.textLighter}`}>
+          <div className={`text-center py-4 ${colors.textLight}`}>
             No songs or artists have been omitted yet
           </div>
         )}
       </div>
     ) : (
       /* Results section with date range info */
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div className={`${colors.text} font-medium text-sm`}>
             Date Range: <span className={`${colors.textDark}`}>{getFormattedDateRange()}</span>
@@ -1641,7 +1607,7 @@ return (
                       {song.displayArtist || song.artist}
                     </div>
                     <div 
-                      className={`text-xs ${colors.textLighter} cursor-pointer hover:underline mt-1`}
+                      className={`text-xs ${colors.textLight} cursor-pointer hover:underline mt-1`}
                       onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
                     >
                       {song.albumName}
@@ -1667,13 +1633,13 @@ return (
                       </button>
                       
                       {showOmitDropdown === song.key && (
-                        <div className={`absolute bottom-full mb-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+                        <div className={`absolute bottom-full mb-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                           <button
                             onClick={() => {
                               omitSong(song);
                               setShowOmitDropdown(null);
                             }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight}`}
                           >
                             Omit song
                           </button>
@@ -1682,7 +1648,7 @@ return (
                               omitArtist(song.artist);
                               setShowOmitDropdown(null);
                             }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight} border-t ${colors.border}`}
                           >
                             Omit artist
                           </button>
@@ -1735,7 +1701,7 @@ return (
             <div>Unknown view mode</div>
           )
         ) : (
-          <div className={`text-center py-4 ${colors.textLighter}`}>
+          <div className={`text-center py-4 ${colors.textLight}`}>
             {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
               ? 'No tracks found matching your filters' 
               : 'Select filters to view tracks'}
