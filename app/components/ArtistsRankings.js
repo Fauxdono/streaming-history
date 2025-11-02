@@ -88,7 +88,7 @@ const ArtistsRankings = ({
 
     const backgroundColors = {
       blue: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-blue-500' : 'border-blue-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-blue-200' : 'border-blue-200',
         borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-blue-50',
         bgButton: isDarkMode ? 'bg-blue-800' : 'bg-blue-600', bgButtonHover: isDarkMode ? 'hover:bg-blue-700' : 'hover:bg-blue-700',
         bgSelected: isDarkMode ? 'bg-blue-600' : 'bg-blue-600', bgSelectedHover: isDarkMode ? 'hover:bg-blue-700' : 'hover:bg-blue-700',
@@ -97,7 +97,7 @@ const ArtistsRankings = ({
         bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-blue-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-blue-100'
       },
       yellow: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-yellow-500' : 'border-yellow-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-yellow-200' : 'border-yellow-200',
         borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-yellow-50',
         bgButton: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-600', bgButtonHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-700',
         bgSelected: isDarkMode ? 'bg-yellow-600' : 'bg-yellow-600', bgSelectedHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-700',
@@ -106,7 +106,7 @@ const ArtistsRankings = ({
         bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-yellow-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-yellow-100'
       },
       cyan: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-cyan-500' : 'border-cyan-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-cyan-200' : 'border-cyan-200',
         borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50',
         bgButton: isDarkMode ? 'bg-cyan-800' : 'bg-cyan-600', bgButtonHover: isDarkMode ? 'hover:bg-cyan-700' : 'hover:bg-cyan-700',
         bgSelected: isDarkMode ? 'bg-cyan-600' : 'bg-cyan-600', bgSelectedHover: isDarkMode ? 'hover:bg-cyan-700' : 'hover:bg-cyan-700',
@@ -115,7 +115,7 @@ const ArtistsRankings = ({
         bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-cyan-100'
       },
       teal: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-teal-500' : 'border-teal-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-teal-200' : 'border-teal-200',
         borderHover: isDarkMode ? 'border-teal-500' : 'border-teal-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-teal-50',
         bgButton: isDarkMode ? 'bg-teal-800' : 'bg-teal-600', bgButtonHover: isDarkMode ? 'hover:bg-teal-700' : 'hover:bg-teal-700',
         bgSelected: isDarkMode ? 'bg-teal-600' : 'bg-teal-600', bgSelectedHover: isDarkMode ? 'hover:bg-teal-700' : 'hover:bg-teal-700',
@@ -124,7 +124,7 @@ const ArtistsRankings = ({
         bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-teal-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-teal-100'
       },
       violet: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-violet-500' : 'border-violet-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-violet-200' : 'border-violet-200',
         borderHover: isDarkMode ? 'border-violet-500' : 'border-violet-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-violet-50',
         bgButton: isDarkMode ? 'bg-violet-800' : 'bg-violet-600', bgButtonHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-700',
         bgSelected: isDarkMode ? 'bg-violet-600' : 'bg-violet-600', bgSelectedHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-700',
@@ -133,7 +133,7 @@ const ArtistsRankings = ({
         bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-violet-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-violet-100'
       },
       purple: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-purple-500' : 'border-purple-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-purple-200' : 'border-purple-200',
         borderHover: isDarkMode ? 'border-purple-500' : 'border-purple-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-purple-50',
         bgButton: isDarkMode ? 'bg-purple-800' : 'bg-purple-600', bgButtonHover: isDarkMode ? 'hover:bg-purple-700' : 'hover:bg-purple-700',
         bgSelected: isDarkMode ? 'bg-purple-600' : 'bg-purple-600', bgSelectedHover: isDarkMode ? 'hover:bg-purple-700' : 'hover:bg-purple-700',
@@ -142,7 +142,7 @@ const ArtistsRankings = ({
         bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-purple-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-purple-100'
       },
       gray: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-gray-500' : 'border-gray-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-gray-200' : 'border-gray-200',
         borderHover: isDarkMode ? 'border-gray-500' : 'border-gray-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
         bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-600', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700',
         bgSelected: isDarkMode ? 'bg-gray-600' : 'bg-gray-600', bgSelectedHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-700',
@@ -151,7 +151,7 @@ const ArtistsRankings = ({
         bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-gray-50', bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
       },
       slate: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-slate-500' : 'border-slate-200',
+        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-slate-200' : 'border-slate-200',
         borderHover: isDarkMode ? 'border-slate-500' : 'border-slate-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-slate-50',
         bgButton: isDarkMode ? 'bg-slate-800' : 'bg-slate-600', bgButtonHover: isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-700',
         bgSelected: isDarkMode ? 'bg-slate-600' : 'bg-slate-600', bgSelectedHover: isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-700',
