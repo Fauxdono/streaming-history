@@ -847,36 +847,12 @@ body {
   background-color: #000000 !important;
   fill: #ffffff !important;
   stroke: #ffffff !important;
-}
-
-/* Fix borders in dark monochrome mode to prevent thick white borders */
-/* Borders default to currentColor (text color), which is white in dark mode */
-/* This overrides that behavior with subtle semi-transparent borders */
-.dark.colorblind-monochrome *:not(button) {
   border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* More prominent borders for specific colored border classes */
-.dark.colorblind-monochrome [class*="border-blue-"],
-.dark.colorblind-monochrome [class*="border-cyan-"],
-.dark.colorblind-monochrome [class*="border-green-"],
-.dark.colorblind-monochrome [class*="border-amber-"],
-.dark.colorblind-monochrome [class*="border-yellow-"],
-.dark.colorblind-monochrome [class*="border-orange-"],
-.dark.colorblind-monochrome [class*="border-red-"],
-.dark.colorblind-monochrome [class*="border-indigo-"],
-.dark.colorblind-monochrome [class*="border-emerald-"],
-.dark.colorblind-monochrome [class*="border-violet-"],
-.dark.colorblind-monochrome [class*="border-rose-"],
-.dark.colorblind-monochrome [class*="border-teal-"],
-.dark.colorblind-monochrome [class*="border-purple-"],
-.dark.colorblind-monochrome [class*="border-gray-"],
-.dark.colorblind-monochrome [class*="border-slate-"],
-.dark.colorblind-monochrome [class*="border-pink-"],
-.dark.colorblind-monochrome [class*="border-fuchsia-"],
-.dark.colorblind-monochrome [class*="border-lime-"],
-.dark.colorblind-monochrome [class*="border-sky-"] {
-  border-color: rgba(255, 255, 255, 0.4) !important;
+/* Make buttons have visible borders in monochrome mode */
+.dark.colorblind-monochrome button {
+  border-color: #ffffff !important;
 }
 
 /* Monochrome specific overrides */
