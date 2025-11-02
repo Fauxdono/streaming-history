@@ -946,6 +946,7 @@ body {
 
 /* Force thin borders for all bordered elements including tables in dark monochrome */
 .dark.colorblind-monochrome .border,
+.dark.colorblind-monochrome .border-2,
 .dark.colorblind-monochrome table,
 .dark.colorblind-monochrome td,
 .dark.colorblind-monochrome th { 
