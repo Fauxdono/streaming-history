@@ -2039,25 +2039,28 @@ const SpotifyAnalyzer = ({
               </div>
             </div>
             
-            {/* Google Drive Storage */}
-            <div className="mb-6">
-              <GoogleDriveSync
-                stats={stats}
-                processedData={processedData}
-                topArtists={topArtists}
-                topAlbums={topAlbums}
-                briefObsessions={briefObsessions}
-                songsByYear={songsByYear}
-                rawPlayData={rawPlayData}
-                artistsByYear={artistsByYear}
-                albumsByYear={albumsByYear}
-                uploadedFiles={uploadedFiles}
-                uploadedFileList={uploadedFileList}
-                onDataLoaded={handleDataLoaded}
-              />
-            </div>
+            {/* Google Drive Storage and Upload Section - Side by Side */}
+            <div className="mb-6 flex flex-col lg:flex-row gap-6">
+              {/* Google Drive Storage */}
+              <div className="flex-1">
+                <GoogleDriveSync
+                  stats={stats}
+                  processedData={processedData}
+                  topArtists={topArtists}
+                  topAlbums={topAlbums}
+                  briefObsessions={briefObsessions}
+                  songsByYear={songsByYear}
+                  rawPlayData={rawPlayData}
+                  artistsByYear={artistsByYear}
+                  albumsByYear={albumsByYear}
+                  uploadedFiles={uploadedFiles}
+                  uploadedFileList={uploadedFileList}
+                  onDataLoaded={handleDataLoaded}
+                />
+              </div>
               
-            <div className={`p-4 rounded-lg border ${uploadColors.bg} ${uploadColors.border}`}>
+              {/* Upload Files */}
+              <div className={`flex-1 p-4 rounded-lg border ${uploadColors.bg} ${uploadColors.border}`}>
               <p className={`mb-3 font-semibold text-sm ${uploadColors.text}`}>
                 Upload your streaming history files:
               </p>
@@ -2076,6 +2079,7 @@ const SpotifyAnalyzer = ({
                   file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
                   ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
               />
+              </div>
             </div>
                 
             {isProcessing && (
