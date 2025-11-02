@@ -895,6 +895,27 @@ body {
   background-color: #1a1a1a !important;
 }
 
+/* Force text colors for specific button text color classes */
+.colorblind-monochrome .text-black,
+.colorblind-monochrome button.text-black {
+  color: #000000 !important;
+}
+
+.colorblind-monochrome .text-white,
+.colorblind-monochrome button.text-white {
+  color: #000000 !important;
+}
+
+.dark.colorblind-monochrome .text-black,
+.dark.colorblind-monochrome button.text-black {
+  color: #ffffff !important;
+}
+
+.dark.colorblind-monochrome .text-white,
+.dark.colorblind-monochrome button.text-white {
+  color: #ffffff !important;
+}
+
 /* Preserve gray variations for monochrome */
 .colorblind-monochrome .bg-gray-100 { background-color: #f5f5f5 !important; }
 .colorblind-monochrome .bg-gray-200 { background-color: #e5e5e5 !important; }
