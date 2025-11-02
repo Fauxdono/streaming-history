@@ -849,8 +849,14 @@ body {
   stroke: #ffffff !important;
 }
 
-/* Replace ALL colored border classes with thin opacity-based borders in monochrome mode */
-/* This prevents thick white borders from appearing on tables and windows */
+/* Fix borders in dark monochrome mode to prevent thick white borders */
+/* Borders default to currentColor (text color), which is white in dark mode */
+/* This overrides that behavior with subtle semi-transparent borders */
+.dark.colorblind-monochrome *:not(button) {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* More prominent borders for specific colored border classes */
 .dark.colorblind-monochrome [class*="border-blue-"],
 .dark.colorblind-monochrome [class*="border-cyan-"],
 .dark.colorblind-monochrome [class*="border-green-"],
@@ -871,7 +877,6 @@ body {
 .dark.colorblind-monochrome [class*="border-lime-"],
 .dark.colorblind-monochrome [class*="border-sky-"] {
   border-color: rgba(255, 255, 255, 0.4) !important;
-  border-width: 1px !important;
 }
 
 /* Monochrome specific overrides */
