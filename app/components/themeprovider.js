@@ -6,7 +6,7 @@ const ThemeContext = createContext({
   theme: "light",
   setTheme: () => null,
   toggleTheme: () => null,
-  colorblindMode: "none", // "none", "protanopia", "deuteranopia", "tritanopia", "monochrome"
+  colorblindMode: "none", // "none", "monochrome"
   setColorblindMode: () => null,
   cycleColorblindMode: () => null,
 });
@@ -50,7 +50,7 @@ export const ThemeProvider = ({ children }) => {
     // Check for saved colorblind mode preference
     if (typeof window !== 'undefined' && window.localStorage) {
       const storedColorblindMode = window.localStorage.getItem('colorblindMode');
-      if (storedColorblindMode && ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'monochrome'].includes(storedColorblindMode)) {
+      if (storedColorblindMode && ['none', 'monochrome'].includes(storedColorblindMode)) {
         setColorblindMode(storedColorblindMode);
       }
     }
@@ -106,7 +106,7 @@ export const ThemeProvider = ({ children }) => {
     const root = window.document.documentElement;
     
     // Remove all colorblind classes
-    root.classList.remove('colorblind-none', 'colorblind-protanopia', 'colorblind-deuteranopia', 'colorblind-tritanopia', 'colorblind-monochrome');
+    root.classList.remove('colorblind-none', 'colorblind-monochrome');
     
     // Add current colorblind mode class
     root.classList.add(`colorblind-${colorblindMode}`);
@@ -123,50 +123,10 @@ export const ThemeProvider = ({ children }) => {
 
   const cycleColorblindMode = () => {
     setColorblindMode(prev => {
-      const modes = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'monochrome'];
+      const modes = ['none', 'monochrome'];
       const currentIndex = modes.indexOf(prev);
       return modes[(currentIndex + 1) % modes.length];
     });
-  };
-
-  // Function to transform color themes based on colorblind mode
-  const getColorblindAdjustedTheme = (originalTheme) => {
-    console.log('getColorblindAdjustedTheme called with:', originalTheme, 'mode:', colorblindMode);
-    if (!originalTheme || colorblindMode === 'none') return originalTheme;
-    
-    const colorMappings = {
-      protanopia: {
-        // Map red-based themes to cyan/teal
-        'red': 'cyan',
-        'rose': 'cyan',
-        'pink': 'teal'
-      },
-      deuteranopia: {
-        // Map green-based themes to violet/purple  
-        'green': 'violet',
-        'emerald': 'purple',
-        'lime': 'indigo'
-      },
-      tritanopia: {
-        // Map blue-based themes to red/orange
-        'blue': 'red',
-        'cyan': 'orange',
-        'sky': 'amber'
-      },
-      monochrome: {
-        // All colors become the same gray for true uniformity
-        'red': 'gray', 'green': 'gray', 'blue': 'gray',
-        'yellow': 'gray', 'purple': 'gray', 'pink': 'gray',
-        'indigo': 'gray', 'cyan': 'gray', 'teal': 'gray',
-        'orange': 'gray', 'amber': 'gray', 'lime': 'gray',
-        'emerald': 'gray', 'violet': 'gray', 'fuchsia': 'gray',
-        'rose': 'gray', 'sky': 'gray', 'slate': 'gray'
-      }
-    };
-
-    const result = colorMappings[colorblindMode]?.[originalTheme] || originalTheme;
-    console.log('getColorblindAdjustedTheme returning:', result);
-    return result;
   };
 
   // Avoid hydration mismatch by not rendering anything until mounted
@@ -181,8 +141,7 @@ export const ThemeProvider = ({ children }) => {
       toggleTheme, 
       colorblindMode, 
       setColorblindMode, 
-      cycleColorblindMode,
-      getColorblindAdjustedTheme
+      cycleColorblindMode
     }}>
       {children}
     </ThemeContext.Provider>

@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus, XCircle, Eye, LayoutGrid, List } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
-import { useTheme } from './themeprovider.js';
 
 const CustomTrackRankings = ({ 
   rawPlayData = [], 
@@ -15,33 +14,93 @@ const CustomTrackRankings = ({
   onYearChange,
   onYearRangeChange,
   onToggleYearRangeMode,
-  colorTheme = 'emerald',
+  colorTheme = 'orange',
   textTheme = null,
   backgroundTheme = null
 }) => {
-  
-  // Use the simple colorblind-aware theming
-  const { getColorblindAdjustedTheme } = useTheme() || {};
 
   // Flexible theming support - if textTheme and backgroundTheme are provided, use them
   const getFlexibleColors = (textTheme, backgroundTheme) => {
     const textColors = {
-      violet: { text: 'text-violet-700', textLight: 'text-violet-600', textLighter: 'text-violet-500', textDark: 'text-violet-800', hoverText: 'hover:text-violet-200' },
-      red: { text: 'text-red-700', textLight: 'text-red-600', textLighter: 'text-red-500', textDark: 'text-red-800', hoverText: 'hover:text-red-200' },
-      emerald: { text: 'text-emerald-700', textLight: 'text-emerald-600', textLighter: 'text-emerald-500', textDark: 'text-emerald-800', hoverText: 'hover:text-emerald-200' },
-      orange: { text: 'text-orange-700', textLight: 'text-orange-600', textLighter: 'text-orange-500', textDark: 'text-orange-800', hoverText: 'hover:text-orange-200' }
+      violet: {
+        text: 'text-violet-700',
+        textLight: 'text-violet-600', 
+        textLighter: 'text-violet-500',
+        textDark: 'text-violet-800',
+        hoverText: 'hover:text-violet-200'
+      },
+      red: {
+        text: 'text-red-700',
+        textLight: 'text-red-600', 
+        textLighter: 'text-red-500',
+        textDark: 'text-red-800',
+        hoverText: 'hover:text-red-200'
+      },
+      emerald: {
+        text: 'text-emerald-700',
+        textLight: 'text-emerald-600', 
+        textLighter: 'text-emerald-500',
+        textDark: 'text-emerald-800',
+        hoverText: 'hover:text-emerald-200'
+      },
+      orange: {
+        text: 'text-orange-700',
+        textLight: 'text-orange-600', 
+        textLighter: 'text-orange-500',
+        textDark: 'text-orange-800',
+        hoverText: 'hover:text-orange-200'
+      }
     };
 
     const backgroundColors = {
-      emerald: { bg: 'bg-emerald-50', bgLight: 'bg-emerald-100', bgMed: 'bg-emerald-200', bgDark: 'bg-emerald-600', bgDarkHover: 'hover:bg-emerald-700', border: 'border-emerald-200', borderDark: 'border-emerald-700', hoverBg: 'hover:bg-emerald-50', hoverBgDark: 'hover:bg-emerald-900', focusBorder: 'focus:border-emerald-400', focusRing: 'focus:ring-emerald-400' },
-      violet: { bg: 'bg-violet-50', bgLight: 'bg-violet-100', bgMed: 'bg-violet-200', bgDark: 'bg-violet-600', bgDarkHover: 'hover:bg-violet-700', border: 'border-violet-200', borderDark: 'border-violet-700', hoverBg: 'hover:bg-violet-50', hoverBgDark: 'hover:bg-violet-900', focusBorder: 'focus:border-violet-400', focusRing: 'focus:ring-violet-400' },
-      orange: { bg: 'bg-orange-50', bgLight: 'bg-orange-100', bgMed: 'bg-orange-200', bgDark: 'bg-orange-600', bgDarkHover: 'hover:bg-orange-700', border: 'border-orange-200', borderDark: 'border-orange-700', hoverBg: 'hover:bg-orange-50', hoverBgDark: 'hover:bg-orange-900', focusBorder: 'focus:border-orange-400', focusRing: 'focus:ring-orange-400' }
+      emerald: {
+        bg: 'bg-emerald-50',
+        bgLight: 'bg-emerald-100',
+        bgMed: 'bg-emerald-200',
+        bgDark: 'bg-emerald-600',
+        bgDarkHover: 'hover:bg-emerald-700',
+        border: 'border-emerald-200',
+        borderDark: 'border-emerald-700',
+        hoverBg: 'hover:bg-emerald-50',
+        hoverBgDark: 'hover:bg-emerald-900',
+        focusBorder: 'focus:border-emerald-400',
+        focusRing: 'focus:ring-emerald-400'
+      },
+      violet: {
+        bg: 'bg-violet-50',
+        bgLight: 'bg-violet-100',
+        bgMed: 'bg-violet-200',
+        bgDark: 'bg-violet-600',
+        bgDarkHover: 'hover:bg-violet-700',
+        border: 'border-violet-200',
+        borderDark: 'border-violet-700',
+        hoverBg: 'hover:bg-violet-50',
+        hoverBgDark: 'hover:bg-violet-900',
+        focusBorder: 'focus:border-violet-400',
+        focusRing: 'focus:ring-violet-400'
+      },
+      orange: {
+        bg: 'bg-orange-50',
+        bgLight: 'bg-orange-100',
+        bgMed: 'bg-orange-200',
+        bgDark: 'bg-orange-600',
+        bgDarkHover: 'hover:bg-orange-700',
+        border: 'border-orange-200',
+        borderDark: 'border-orange-700',
+        hoverBg: 'hover:bg-orange-50',
+        hoverBgDark: 'hover:bg-orange-900',
+        focusBorder: 'focus:border-orange-400',
+        focusRing: 'focus:ring-orange-400'
+      }
     };
 
-    const textThemeObj = textColors[textTheme] || textColors.emerald;
-    const backgroundThemeObj = backgroundColors[backgroundTheme] || backgroundColors.emerald;
+    const textThemeObj = textColors[textTheme] || textColors.orange;
+    const backgroundThemeObj = backgroundColors[backgroundTheme] || backgroundColors.orange;
 
-    return { ...textThemeObj, ...backgroundThemeObj };
+    return {
+      ...textThemeObj,
+      ...backgroundThemeObj
+    };
   };
 
   // Color theme mapping (legacy support)
@@ -49,44 +108,86 @@ const CustomTrackRankings = ({
     switch (theme) {
       case 'emerald':
         return {
-          text: 'text-emerald-700', textLight: 'text-emerald-600', textLighter: 'text-emerald-500', textDark: 'text-emerald-800',
-          bg: 'bg-emerald-50', bgLight: 'bg-emerald-100', bgMed: 'bg-emerald-200', bgDark: 'bg-emerald-600', bgDarkHover: 'hover:bg-emerald-700',
-          border: 'border-emerald-200', borderDark: 'border-emerald-700', hoverBg: 'hover:bg-emerald-50', hoverBgDark: 'hover:bg-emerald-900',
-          focusBorder: 'focus:border-emerald-400', focusRing: 'focus:ring-emerald-400', hoverText: 'hover:text-emerald-200'
+          text: 'text-emerald-700',
+          textLight: 'text-emerald-600', 
+          textLighter: 'text-emerald-500',
+          textDark: 'text-emerald-800',
+          bg: 'bg-emerald-50',
+          bgLight: 'bg-emerald-100',
+          bgMed: 'bg-emerald-200',
+          bgDark: 'bg-emerald-600',
+          bgDarkHover: 'hover:bg-emerald-700',
+          border: 'border-emerald-200',
+          borderDark: 'border-emerald-700',
+          hoverBg: 'hover:bg-emerald-50',
+          hoverBgDark: 'hover:bg-emerald-900',
+          focusBorder: 'focus:border-emerald-400',
+          focusRing: 'focus:ring-emerald-400',
+          hoverText: 'hover:text-emerald-200'
         };
       case 'red':
         return {
-          text: 'text-red-700', textLight: 'text-red-600', textLighter: 'text-red-500', textDark: 'text-red-800',
-          bg: 'bg-red-50', bgLight: 'bg-red-100', bgMed: 'bg-red-200', bgDark: 'bg-red-600', bgDarkHover: 'hover:bg-red-700',
-          border: 'border-red-200', borderDark: 'border-red-700', hoverBg: 'hover:bg-red-50', hoverBgDark: 'hover:bg-red-900',
-          focusBorder: 'focus:border-red-400', focusRing: 'focus:ring-red-400', hoverText: 'hover:text-red-200'
+          text: 'text-red-700',
+          textLight: 'text-red-600', 
+          textLighter: 'text-red-500',
+          textDark: 'text-red-800',
+          bg: 'bg-red-50',
+          bgLight: 'bg-red-100',
+          bgMed: 'bg-red-200',
+          bgDark: 'bg-red-600',
+          bgDarkHover: 'hover:bg-red-700',
+          border: 'border-red-200',
+          borderDark: 'border-red-700',
+          hoverBg: 'hover:bg-red-50',
+          hoverBgDark: 'hover:bg-red-900',
+          focusBorder: 'focus:border-red-400',
+          focusRing: 'focus:ring-red-400',
+          hoverText: 'hover:text-red-200'
         };
       case 'violet':
         return {
-          text: 'text-violet-700', textLight: 'text-violet-600', textLighter: 'text-violet-500', textDark: 'text-violet-800',
-          bg: 'bg-violet-50', bgLight: 'bg-violet-100', bgMed: 'bg-violet-200', bgDark: 'bg-violet-600', bgDarkHover: 'hover:bg-violet-700',
-          border: 'border-violet-200', borderDark: 'border-violet-700', hoverBg: 'hover:bg-violet-50', hoverBgDark: 'hover:bg-violet-900',
-          focusBorder: 'focus:border-violet-400', focusRing: 'focus:ring-violet-400', hoverText: 'hover:text-violet-200'
+          text: 'text-violet-700',
+          textLight: 'text-violet-600', 
+          textLighter: 'text-violet-500',
+          textDark: 'text-violet-800',
+          bg: 'bg-violet-50',
+          bgLight: 'bg-violet-100',
+          bgMed: 'bg-violet-200',
+          bgDark: 'bg-violet-600',
+          bgDarkHover: 'hover:bg-violet-700',
+          border: 'border-violet-200',
+          borderDark: 'border-violet-700',
+          hoverBg: 'hover:bg-violet-50',
+          hoverBgDark: 'hover:bg-violet-900',
+          focusBorder: 'focus:border-violet-400',
+          focusRing: 'focus:ring-violet-400',
+          hoverText: 'hover:text-violet-200'
         };
       case 'orange':
       default:
         return {
-          text: 'text-orange-700', textLight: 'text-orange-600', textLighter: 'text-orange-500', textDark: 'text-orange-800',
-          bg: 'bg-orange-50', bgLight: 'bg-orange-100', bgMed: 'bg-orange-200', bgDark: 'bg-orange-600', bgDarkHover: 'hover:bg-orange-700',
-          border: 'border-orange-200', borderDark: 'border-orange-700', hoverBg: 'hover:bg-orange-50', hoverBgDark: 'hover:bg-orange-900',
-          focusBorder: 'focus:border-orange-400', focusRing: 'focus:ring-orange-400', hoverText: 'hover:text-orange-200'
+          text: 'text-orange-700',
+          textLight: 'text-orange-600', 
+          textLighter: 'text-orange-500',
+          textDark: 'text-orange-800',
+          bg: 'bg-orange-50',
+          bgLight: 'bg-orange-100',
+          bgMed: 'bg-orange-200',
+          bgDark: 'bg-orange-600',
+          bgDarkHover: 'hover:bg-orange-700',
+          border: 'border-orange-200',
+          borderDark: 'border-orange-700',
+          hoverBg: 'hover:bg-orange-50',
+          hoverBgDark: 'hover:bg-orange-900',
+          focusBorder: 'focus:border-orange-400',
+          focusRing: 'focus:ring-orange-400',
+          hoverText: 'hover:text-orange-200'
         };
     }
   };
 
-  // Get the colorblind-adjusted theme
-  const actualColorTheme = getColorblindAdjustedTheme ? getColorblindAdjustedTheme(colorTheme) : colorTheme;
-  
-  // Debug: log the color transformation
-  console.log('Songs tab - Original color:', colorTheme, 'Adjusted color:', actualColorTheme);
-  
-  // Use flexible theming if both textTheme and backgroundTheme are provided, otherwise use colorblind-adjusted theme
-  const colors = (textTheme && backgroundTheme) ? getFlexibleColors(textTheme, backgroundTheme) : getColors(actualColorTheme);
+  // Use flexible theming if both textTheme and backgroundTheme are provided, otherwise fall back to colorTheme
+  const colors = (textTheme && backgroundTheme) ? getFlexibleColors(textTheme, backgroundTheme) : getColors(colorTheme);
   
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -1085,7 +1186,7 @@ const CustomTrackRankings = ({
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium">#{index + 1} {song.displayName || song.trackName}</div>
-                <div className={`text-sm ${colors.textLight}`}>
+                <div className={`text-sm ${colors.textLighter}`}>
                   {song.displayArtist || song.artist}
                   {song.isFeatured && (
                     <span className={`inline-block px-1 py-0.5 ml-1 ${colors.bgMed} ${colors.text} rounded text-xs`}>
@@ -1093,7 +1194,7 @@ const CustomTrackRankings = ({
                     </span>
                   )}
                 </div>
-                <div className={`text-xs ${colors.textLight}`}>{song.albumName}</div>
+                <div className={`text-xs ${colors.textLighter}`}>{song.albumName}</div>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -1108,7 +1209,7 @@ const CustomTrackRankings = ({
           </td>
           <td className={`p-2 text-right ${colors.text}`}>
             <div>{formatDuration(song.totalPlayed)}</div>
-            <div className={`text-sm ${colors.textLight}`}>{song.playCount} plays</div>
+            <div className={`text-sm ${colors.textLighter}`}>{song.playCount} plays</div>
           </td>
         </tr>
       );
@@ -1144,13 +1245,13 @@ const CustomTrackRankings = ({
             </button>
             
             {showOmitDropdown === song.key && (
-              <div className={`absolute bottom-full mb-1 right-full mr-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+              <div className={`absolute bottom-full mb-1 right-full mr-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                 <button
                   onClick={() => {
                     omitSong(song);
                     setShowOmitDropdown(null);
                   }}
-                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight}`}
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
                 >
                   Omit song
                 </button>
@@ -1159,7 +1260,7 @@ const CustomTrackRankings = ({
                     omitArtist(song.artist);
                     setShowOmitDropdown(null);
                   }}
-                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight} border-t ${colors.border}`}
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
                 >
                   Omit artist
                 </button>
@@ -1171,7 +1272,7 @@ const CustomTrackRankings = ({
     }
   };
 return (
-  <div className={`p-2 sm:p-4 rounded border ${colors.wrapper}`}>
+  <div className="space-y-4">
     {/* Title - mobile gets its own row */}
     <div className="block sm:hidden mb-1">
       <h3 className={`font-bold ${colors.text}`}>
@@ -1194,7 +1295,7 @@ return (
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-16 border rounded px-2 py-1 ${colors.text} ${colors.border}`}
+            className={`w-16 border rounded px-2 py-1 ${colors.text}`}
           />
         </div>
         
@@ -1207,7 +1308,7 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {viewMode === 'grid' ? 'Grid' : 
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1218,7 +1319,7 @@ return (
           <label className={`${colors.text}`}>Sort by</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1237,7 +1338,7 @@ return (
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-12 border rounded px-1 py-1 ${colors.text} ${colors.border} text-sm`}
+            className={`w-12 border rounded px-1 py-1 ${colors.text} text-sm`}
           />
         </div>
         
@@ -1250,7 +1351,7 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {viewMode === 'grid' ? 'Grid' : 
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1261,7 +1362,7 @@ return (
           <label className={`${colors.text} text-sm`}>Sort</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgButton} text-white ${colors.bgButtonHover}`}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1283,11 +1384,11 @@ return (
             setAlbumSearch(e.target.value);
           }}
           placeholder="Search artists or albums..."
-          className={`w-full border rounded px-2 py-1 ${colors.text} ${colors.border} ${colors.borderHover} ${colors.focusRing} focus:outline-none`}
+          className={`w-full border rounded px-2 py-1 ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
         />
         
         {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-          <div className={`absolute z-10 mt-1 w-full ${colors.bg} border rounded-md shadow-lg max-h-60 overflow-y-auto ${colors.border}`}>
+          <div className={`absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto ${colors.textLight}`}>
             {filteredArtists.length > 0 && (
               <div>
                 <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
@@ -1298,7 +1399,7 @@ return (
                       addArtistFromTrack(artist);
                       setUnifiedSearch('');
                     }}
-                    className={`px-2 py-1 ${colors.text} hover:${colors.bgLight} cursor-pointer`}
+                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
                   >
                     <span className="mr-1">👤</span> {artist}
                   </div>
@@ -1316,7 +1417,7 @@ return (
                       addAlbumFromTrack(album.name, album.artist);
                       setUnifiedSearch('');
                     }}
-                    className={`px-2 py-1 ${colors.text} hover:${colors.bgLight} cursor-pointer`}
+                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
                   >
                     <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
                   </div>
@@ -1332,12 +1433,12 @@ return (
         {selectedArtists.map(artist => (
           <div 
             key={artist} 
-            className={`flex items-center ${colors.bgSelected} text-white px-2 py-1 rounded text-xs`}
+            className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
           >
             {artist}
             <button 
               onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-              className={`ml-1 text-white hover:text-gray-200`}
+              className={`ml-1 text-white ${colors.hoverText}`}
             >
               ×
             </button>
@@ -1347,12 +1448,12 @@ return (
         {selectedAlbums.map(album => (
           <div 
             key={album.key} 
-            className={`flex items-center ${colors.bgSelected} text-white px-2 py-1 rounded text-xs`}
+            className={`flex items-center ${colors.bg}0 text-white px-2 py-1 rounded text-xs`}
           >
             <span className="mr-1">💿</span> {album.name} 
             <button 
               onClick={() => setSelectedAlbums(prev => prev.filter(a => a.key !== album.key))}
-              className={`ml-1 text-white hover:text-gray-200`}
+              className={`ml-1 text-white ${colors.hoverText}`}
             >
               ×
             </button>
@@ -1402,7 +1503,7 @@ return (
           onClick={() => setShowOmittedTab(false)}
           className={`px-4 py-2 rounded-t text-sm ${
             !showOmittedTab
-              ? `${colors.bgButton} text-white`
+              ? `${colors.bgDark} text-white`
               : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
@@ -1412,7 +1513,7 @@ return (
           onClick={() => setShowOmittedTab(true)}
           className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
             showOmittedTab
-              ? `${colors.bgButton} text-white`
+              ? `${colors.bgDark} text-white`
               : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
@@ -1422,7 +1523,7 @@ return (
       </div>
       <button
         onClick={() => setShowPlaylistExporter(true)}
-        className={`flex items-center gap-1 px-3 py-1 ${colors.bgButton} text-white rounded text-sm ${colors.bgButtonHover} transition-colors`}
+        className={`flex items-center gap-1 px-3 py-1 ${colors.bgDark} text-white rounded text-sm ${colors.bgDarkHover} transition-colors`}
       >
         <Download size={14} className="hidden sm:inline" />
         Export M3u
@@ -1431,7 +1532,7 @@ return (
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
         <h3 className={`font-bold ${colors.text} mb-4`}>Omitted Content</h3>
         
         {omittedArtists.length > 0 && (
@@ -1441,7 +1542,7 @@ return (
               {omittedArtists.map(artist => (
                 <div 
                   key={artist} 
-                  className={`flex items-center ${colors.bgSelected} text-white px-2 py-1 rounded text-xs`}
+                  className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
                 >
                   {artist}
                   <button 
@@ -1478,7 +1579,7 @@ return (
                       <td className="p-2 text-right">
                         <button
                           onClick={() => unomitSong(song.key)}
-                          className={`px-2 py-1 ${colors.bgButton} text-white rounded text-xs ${colors.bgButtonHover}`}
+                          className={`px-2 py-1 ${colors.bgDark} text-white rounded text-xs ${colors.bgDarkHover}`}
                         >
                           Un-omit
                         </button>
@@ -1492,14 +1593,14 @@ return (
         )}
         
         {omittedSongs.length === 0 && omittedArtists.length === 0 && (
-          <div className={`text-center py-4 ${colors.textLight}`}>
+          <div className={`text-center py-4 ${colors.textLighter}`}>
             No songs or artists have been omitted yet
           </div>
         )}
       </div>
     ) : (
       /* Results section with date range info */
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div className={`${colors.text} font-medium text-sm`}>
             Date Range: <span className={`${colors.textDark}`}>{getFormattedDateRange()}</span>
@@ -1540,7 +1641,7 @@ return (
                       {song.displayArtist || song.artist}
                     </div>
                     <div 
-                      className={`text-xs ${colors.textLight} cursor-pointer hover:underline mt-1`}
+                      className={`text-xs ${colors.textLighter} cursor-pointer hover:underline mt-1`}
                       onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
                     >
                       {song.albumName}
@@ -1566,13 +1667,13 @@ return (
                       </button>
                       
                       {showOmitDropdown === song.key && (
-                        <div className={`absolute bottom-full mb-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+                        <div className={`absolute bottom-full mb-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                           <button
                             onClick={() => {
                               omitSong(song);
                               setShowOmitDropdown(null);
                             }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight}`}
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
                           >
                             Omit song
                           </button>
@@ -1581,7 +1682,7 @@ return (
                               omitArtist(song.artist);
                               setShowOmitDropdown(null);
                             }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bgLight} border-t ${colors.border}`}
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
                           >
                             Omit artist
                           </button>
@@ -1634,7 +1735,7 @@ return (
             <div>Unknown view mode</div>
           )
         ) : (
-          <div className={`text-center py-4 ${colors.textLight}`}>
+          <div className={`text-center py-4 ${colors.textLighter}`}>
             {startDate || endDate || selectedArtists.length > 0 || selectedAlbums.length > 0 
               ? 'No tracks found matching your filters' 
               : 'Select filters to view tracks'}
