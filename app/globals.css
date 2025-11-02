@@ -838,7 +838,6 @@ body {
 .colorblind-monochrome * {
   color: #000000 !important;
   background-color: #ffffff !important;
-  border-color: #000000 !important;
   fill: #000000 !important;
   stroke: #000000 !important;
 }
@@ -846,9 +845,17 @@ body {
 .dark.colorblind-monochrome * {
   color: #ffffff !important;
   background-color: #000000 !important;
-  border-color: #ffffff !important;
   fill: #ffffff !important;
   stroke: #ffffff !important;
+}
+
+/* Specific border color handling for monochrome - preserve original border width */
+.colorblind-monochrome *:not(button) {
+  border-color: #000000 !important;
+}
+
+.dark.colorblind-monochrome *:not(button) {
+  border-color: #ffffff !important;
 }
 
 /* Monochrome specific overrides */
@@ -874,7 +881,7 @@ body {
   color: #000000 !important;
 }
 
-/* Monochrome button styles */
+/* Monochrome button styles - only thick borders for buttons */
 .colorblind-monochrome button {
   background-color: #ffffff !important;
   color: #000000 !important;
@@ -885,29 +892,6 @@ body {
   background-color: #000000 !important;
   color: #ffffff !important;
   border: 2px solid #ffffff !important;
-}
-
-/* Keep thin borders for non-button elements */
-.colorblind-monochrome div,
-.colorblind-monochrome section,
-.colorblind-monochrome article,
-.colorblind-monochrome aside,
-.colorblind-monochrome main,
-.colorblind-monochrome header,
-.colorblind-monochrome footer,
-.colorblind-monochrome nav {
-  border-width: 1px !important;
-}
-
-.dark.colorblind-monochrome div,
-.dark.colorblind-monochrome section,
-.dark.colorblind-monochrome article,
-.dark.colorblind-monochrome aside,
-.dark.colorblind-monochrome main,
-.dark.colorblind-monochrome header,
-.dark.colorblind-monochrome footer,
-.dark.colorblind-monochrome nav {
-  border-width: 1px !important;
 }
 
 .colorblind-monochrome button:hover {
