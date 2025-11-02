@@ -2224,7 +2224,7 @@ const SpotifyAnalyzer = ({
             formatDuration={formatDuration}
             textTheme={artistTextTheme}
             backgroundTheme={artistBackgroundTheme}
-            colorTheme={artistTextTheme}
+            colorTheme={artistBackgroundTheme}
           />
         );
       
@@ -2245,7 +2245,7 @@ const SpotifyAnalyzer = ({
             processedData={processedData}
             textTheme={albumTextTheme}
             backgroundTheme={albumBackgroundTheme}
-            colorTheme={albumTextTheme}
+            colorTheme={albumBackgroundTheme}
           />
         );
       
