@@ -887,6 +887,29 @@ body {
   border: 2px solid #ffffff !important;
 }
 
+/* Keep thin borders for non-button elements */
+.colorblind-monochrome div,
+.colorblind-monochrome section,
+.colorblind-monochrome article,
+.colorblind-monochrome aside,
+.colorblind-monochrome main,
+.colorblind-monochrome header,
+.colorblind-monochrome footer,
+.colorblind-monochrome nav {
+  border-width: 1px !important;
+}
+
+.dark.colorblind-monochrome div,
+.dark.colorblind-monochrome section,
+.dark.colorblind-monochrome article,
+.dark.colorblind-monochrome aside,
+.dark.colorblind-monochrome main,
+.dark.colorblind-monochrome header,
+.dark.colorblind-monochrome footer,
+.dark.colorblind-monochrome nav {
+  border-width: 1px !important;
+}
+
 .colorblind-monochrome button:hover {
   background-color: #f0f0f0 !important;
 }
