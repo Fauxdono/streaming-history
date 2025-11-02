@@ -846,7 +846,7 @@ body {
   color: #ffffff !important;
   background-color: #000000 !important;
   fill: #ffffff !important;
-  stroke: #ffffff !important;
+  stroke: #666666 !important;
 }
 
 /* No longer needed - fixed at source by using -500 classes instead of -700 */
@@ -884,7 +884,7 @@ body {
 .dark.colorblind-monochrome button {
   background-color: #000000 !important;
   color: #ffffff !important;
-  border: 2px solid #ffffff !important;
+  border: 1px solid #666666 !important;
 }
 
 .colorblind-monochrome button:hover {
@@ -893,6 +893,7 @@ body {
 
 .dark.colorblind-monochrome button:hover {
   background-color: #1a1a1a !important;
+  border-color: #888888 !important;
 }
 
 /* Force text colors for specific button text color classes */
@@ -930,3 +931,23 @@ body {
 .dark.colorblind-monochrome .bg-gray-700 { background-color: #d4d4d4 !important; }
 .dark.colorblind-monochrome .bg-gray-800 { background-color: #e5e5e5 !important; }
 .dark.colorblind-monochrome .bg-gray-900 { background-color: #f5f5f5 !important; }
+
+/* Subtler border colors for dark monochrome mode */
+.dark.colorblind-monochrome .border-gray-700 { border-color: #666666 !important; }
+.dark.colorblind-monochrome .border-gray-600 { border-color: #666666 !important; }
+.dark.colorblind-monochrome .border-gray-500 { border-color: #666666 !important; }
+.dark.colorblind-monochrome .border-gray-400 { border-color: #666666 !important; }
+.dark.colorblind-monochrome .border-gray-300 { border-color: #666666 !important; }
+.dark.colorblind-monochrome .border-gray-200 { border-color: #666666 !important; }
+.dark.colorblind-monochrome [class*="border-"]:not([class*="border-gray"]):not([class*="border-black"]):not([class*="border-white"]) { 
+  border-color: #666666 !important;
+  border-width: 1px !important;
+}
+
+/* Force thin borders for all bordered elements including tables in dark monochrome */
+.dark.colorblind-monochrome .border,
+.dark.colorblind-monochrome table,
+.dark.colorblind-monochrome td,
+.dark.colorblind-monochrome th { 
+  border-width: 1px !important; 
+}
