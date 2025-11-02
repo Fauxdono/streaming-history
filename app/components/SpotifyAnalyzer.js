@@ -2040,7 +2040,7 @@ const SpotifyAnalyzer = ({
             </div>
             
             {/* Google Drive Storage and Upload Section - Side by Side */}
-            <div className="mb-6 flex flex-col lg:flex-row gap-6">
+            <div className="mb-6 flex flex-col sm:flex-row gap-4 sm:gap-6">
               {/* Google Drive Storage */}
               <div className="flex-1">
                 <GoogleDriveSync
