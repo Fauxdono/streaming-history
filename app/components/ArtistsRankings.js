@@ -436,7 +436,7 @@ const ArtistsRankings = ({
                     <div className="mt-2">
                       <div className={`font-medium ${colors.text}`}>Top Track:</div>
                       {topTrack ? (
-                        <div className={`text-sm ${colors.textLight} p-1 ${colors.bgLight} rounded`}>
+                        <div className={`text-sm ${colors.textLight} p-1 rounded`}>
                           {topTrack.trackName || topTrack.name || 'Unknown Track'}
                           <div className={`flex justify-between text-xs ${colors.textLight}`}>
                             <span>{formatDuration ? formatDuration(topTrack.totalPlayed || 0) : (topTrack.totalPlayed || 'N/A')}</span>
