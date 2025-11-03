@@ -2171,14 +2171,14 @@ const SpotifyAnalyzer = ({
                     <li>Plays under 30s: {stats.shortPlays}</li>
                   </ul>
                 </div>
-                <div className={`${statsColors.bgCard} p-3 rounded space-y-2 border ${statsColors.border}`}>
+                <div className={`${statsColors.bgCard} p-3 rounded space-y-2`}>
                   <div className={`font-semibold mb-1 ${statsColors.text}`}>Total Listening Time:</div>
                   <div className={`text-2xl ${statsColors.text}`}>{formatDuration(stats.totalListeningTime)}</div>
                   <div className={`text-sm ${statsColors.textLight}`}>(only counting plays over 30 seconds)</div>
                   
                   {/* Service breakdown */}
                   {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
-                    <div className={`mt-4 pt-3 border-t ${statsColors.border}`}>
+                    <div className="mt-4 pt-3">
                       <div className={`font-semibold ${statsColors.text} mb-2`}>Listening Time by Service:</div>
                       <ul className="space-y-1">
                         {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
