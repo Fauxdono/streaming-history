@@ -2171,7 +2171,7 @@ const SpotifyAnalyzer = ({
                     <li>Plays under 30s: {stats.shortPlays}</li>
                   </ul>
                 </div>
-                <div className={`${statsColors.bgCard} p-3 rounded space-y-2`}>
+                <div className="p-3 rounded space-y-2">
                   <div className={`font-semibold mb-1 ${statsColors.text}`}>Total Listening Time:</div>
                   <div className={`text-2xl ${statsColors.text}`}>{formatDuration(stats.totalListeningTime)}</div>
                   <div className={`text-sm ${statsColors.textLight}`}>(only counting plays over 30 seconds)</div>
