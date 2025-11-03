@@ -129,7 +129,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
   }, [albumTracks]);
 
   return (
-    <div className={`p-3 ${colors.bg} rounded shadow-sm ${isDarkMode ? 'border border-gray-700' : `border ${colors.border}`} hover:${colors.borderHover} transition-all duration-300 relative`}>
+    <div className={`p-3 rounded shadow-sm ${isDarkMode ? 'border border-gray-700' : `border ${colors.border}`} hover:${colors.borderHover} transition-all duration-300 relative`}>
       <div className={`font-bold ${colors.text}`}>{album.name}</div>
       
       <div className={`text-sm ${colors.textLight}`}>
@@ -149,7 +149,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
       <div className="mt-2">
         <div className={`font-medium ${colors.text}`}>Top Track:</div>
         {topTrack ? (
-          <div className={`text-sm ${colors.textLight} p-1 ${colors.bgLight} rounded`}>
+          <div className={`text-sm ${colors.textLight} p-1 rounded`}>
             {topTrack.trackName}
             <div className={`flex justify-between text-xs ${colors.textLight}`}>
               <span>{formatDuration(topTrack.totalPlayed)}</span>
