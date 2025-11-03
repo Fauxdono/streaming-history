@@ -310,7 +310,7 @@ const AlbumRankings = ({
               {selectedArtists.map(artist => (
                 <span
                   key={artist}
-                  className={`inline-flex items-center gap-1 px-2 py-1 ${colors.bgLight} ${colors.text} rounded-full text-xs`}
+                  className={`inline-flex items-center gap-1 px-2 py-1 ${colors.text} rounded-full text-xs`}
                 >
                   {artist}
                   <button
