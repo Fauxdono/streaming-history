@@ -1949,7 +1949,7 @@ const SpotifyAnalyzer = ({
     switch (activeTab) {
       case 'upload':
         return (
-          <div className={`p-2 sm:p-4 rounded border-2 ${uploadColors.wrapper}`}>
+          <div className={`p-2 sm:p-4 rounded ${isDarkMode ? 'border border-gray-700' : 'border-2'} ${uploadColors.wrapper}`}>
             <div>
             {/* Storage Notification */}
             {storageNotification && (
@@ -1988,7 +1988,7 @@ const SpotifyAnalyzer = ({
 
             {/* Full-width How to Use section with two columns */}
             <div className="mb-6">
-              <div className={`p-4 sm:p-6 border rounded-lg ${uploadColors.bg} ${uploadColors.border}`}>
+              <div className={`p-4 sm:p-6 rounded-lg ${uploadColors.bg} ${isDarkMode ? 'border border-gray-700' : `border ${uploadColors.border}`}`}>
                 <h3 className={`font-semibold mb-4 text-sm ${uploadColors.text}`}>How to use:</h3>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2060,7 +2060,7 @@ const SpotifyAnalyzer = ({
               </div>
               
               {/* Upload Files */}
-              <div className={`flex-1 p-4 rounded-lg border ${uploadColors.bg} ${uploadColors.border}`}>
+              <div className={`flex-1 p-4 rounded-lg ${uploadColors.bg} ${isDarkMode ? 'border border-gray-700' : `border ${uploadColors.border}`}`}>
               <p className={`mb-3 font-semibold text-sm ${uploadColors.text}`}>
                 Upload your streaming history files:
               </p>
