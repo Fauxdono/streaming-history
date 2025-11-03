@@ -1987,7 +1987,7 @@ const SpotifyAnalyzer = ({
 
             {/* Full-width How to Use section with two columns */}
             <div className="mb-6">
-              <div className="p-4 sm:p-6 rounded-lg">
+              <div className={`p-4 sm:p-6 rounded-lg ${uploadColors.bg}`}>
                 <h3 className={`font-semibold mb-4 text-sm ${uploadColors.text}`}>How to use:</h3>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2059,7 +2059,7 @@ const SpotifyAnalyzer = ({
               </div>
               
               {/* Upload Files */}
-              <div className="flex-1 p-4 rounded-lg">
+              <div className={`flex-1 p-4 rounded-lg ${uploadColors.bg}`}>
               <p className={`mb-3 font-semibold text-sm ${uploadColors.text}`}>
                 Upload your streaming history files:
               </p>
@@ -2103,7 +2103,7 @@ const SpotifyAnalyzer = ({
             )}
                 
             {uploadedFiles.length > 0 && (
-              <div className="mt-6 p-4 rounded-lg">
+              <div className={`mt-6 p-4 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
                 <h4 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Uploaded Files:</h4>
                 <ul className="space-y-2">
                   {uploadedFiles.map((fileName, index) => (
@@ -2145,8 +2145,8 @@ const SpotifyAnalyzer = ({
             {error && (
               <div className={`mt-6 p-4 rounded-lg ${
                 isDarkMode 
-                  ? 'text-red-300' 
-                  : 'text-red-700'
+                  ? 'bg-red-900/20 text-red-300' 
+                  : 'bg-red-100 text-red-700'
               }`}>
                 <h4 className="font-semibold mb-2">Error:</h4>
                 <p className="text-sm">{error}</p>
