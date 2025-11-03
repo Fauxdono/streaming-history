@@ -177,77 +177,77 @@ const SpotifyAnalyzer = ({
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-blue-500' : 'border-blue-200',
         borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-blue-100 border-blue-300'
+        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-blue-300'
       },
       cyan: {
         bg: isDarkMode ? 'bg-black' : 'bg-cyan-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-cyan-500' : 'border-cyan-200',
         borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-cyan-100 border-cyan-300'
+        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-cyan-300'
       },
       green: {
         bg: isDarkMode ? 'bg-black' : 'bg-green-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-green-500' : 'border-green-200',
         borderHover: isDarkMode ? 'border-green-500' : 'border-green-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-green-100 border-green-300'
+        wrapper: isDarkMode ? 'bg-green-900 border-green-800' : 'bg-green-100 border-green-300'
       },
       amber: {
         bg: isDarkMode ? 'bg-black' : 'bg-amber-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-amber-500' : 'border-amber-200',
         borderHover: isDarkMode ? 'border-amber-500' : 'border-amber-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-amber-100 border-amber-300'
+        wrapper: isDarkMode ? 'bg-amber-900 border-amber-800' : 'bg-amber-100 border-amber-300'
       },
       yellow: {
         bg: isDarkMode ? 'bg-black' : 'bg-yellow-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-yellow-500' : 'border-yellow-200',
         borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-100 border-yellow-300'
+        wrapper: isDarkMode ? 'bg-yellow-900 border-yellow-800' : 'bg-yellow-100 border-yellow-300'
       },
       orange: {
         bg: isDarkMode ? 'bg-black' : 'bg-orange-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-orange-500' : 'border-orange-200',
         borderHover: isDarkMode ? 'border-orange-500' : 'border-orange-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-orange-100 border-orange-300'
+        wrapper: isDarkMode ? 'bg-orange-900 border-orange-800' : 'bg-orange-100 border-orange-300'
       },
       red: {
         bg: isDarkMode ? 'bg-black' : 'bg-red-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-red-500' : 'border-red-200',
         borderHover: isDarkMode ? 'border-red-500' : 'border-red-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-red-100 border-red-300'
+        wrapper: isDarkMode ? 'bg-red-900 border-red-800' : 'bg-red-100 border-red-300'
       },
       indigo: {
         bg: isDarkMode ? 'bg-black' : 'bg-indigo-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-indigo-500' : 'border-indigo-200',
         borderHover: isDarkMode ? 'border-indigo-500' : 'border-indigo-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-indigo-100 border-indigo-300'
+        wrapper: isDarkMode ? 'bg-indigo-900 border-indigo-800' : 'bg-indigo-100 border-indigo-300'
       },
       emerald: {
         bg: isDarkMode ? 'bg-black' : 'bg-emerald-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-emerald-500' : 'border-emerald-200',
         borderHover: isDarkMode ? 'border-emerald-500' : 'border-emerald-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-emerald-100 border-emerald-300'
+        wrapper: isDarkMode ? 'bg-emerald-900 border-emerald-800' : 'bg-emerald-100 border-emerald-300'
       },
       violet: {
         bg: isDarkMode ? 'bg-black' : 'bg-violet-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-violet-500' : 'border-violet-200',
         borderHover: isDarkMode ? 'border-violet-500' : 'border-violet-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-violet-100 border-violet-300'
+        wrapper: isDarkMode ? 'bg-violet-900 border-violet-800' : 'bg-violet-100 border-violet-300'
       },
       rose: {
         bg: isDarkMode ? 'bg-black' : 'bg-rose-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-rose-500' : 'border-rose-200',
         borderHover: isDarkMode ? 'border-rose-500' : 'border-rose-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-rose-100 border-rose-300'
+        wrapper: isDarkMode ? 'bg-rose-900 border-rose-800' : 'bg-rose-100 border-rose-300'
       },
       // Add colorblind-friendly background colors
       teal: {
@@ -255,28 +255,28 @@ const SpotifyAnalyzer = ({
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-teal-500' : 'border-teal-200',
         borderHover: isDarkMode ? 'border-teal-500' : 'border-teal-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-teal-100 border-teal-300'
+        wrapper: isDarkMode ? 'bg-teal-900 border-teal-800' : 'bg-teal-100 border-teal-300'
       },
       purple: {
         bg: isDarkMode ? 'bg-black' : 'bg-purple-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-purple-500' : 'border-purple-200',
         borderHover: isDarkMode ? 'border-purple-500' : 'border-purple-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-purple-100 border-purple-300'
+        wrapper: isDarkMode ? 'bg-purple-900 border-purple-800' : 'bg-purple-100 border-purple-300'
       },
       gray: {
         bg: isDarkMode ? 'bg-black' : 'bg-gray-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-gray-500' : 'border-gray-200',
         borderHover: isDarkMode ? 'border-gray-500' : 'border-gray-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-gray-100 border-gray-300'
+        wrapper: isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300'
       },
       slate: {
         bg: isDarkMode ? 'bg-black' : 'bg-slate-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-slate-500' : 'border-slate-200',
         borderHover: isDarkMode ? 'border-slate-500' : 'border-slate-400',
-        wrapper: isDarkMode ? 'bg-black border-gray-700' : 'bg-slate-100 border-slate-300'
+        wrapper: isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-300'
       }
     };
 
