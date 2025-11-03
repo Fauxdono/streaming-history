@@ -2157,7 +2157,7 @@ const SpotifyAnalyzer = ({
       
       case 'stats':
         return stats ? (
-          <div className={`p-2 sm:p-4 ${statsColors.wrapper} rounded border-2`}>
+          <div className={`p-2 sm:p-4 ${statsColors.wrapper} rounded ${isDarkMode ? 'border border-gray-700' : 'border-2'}`}>
             <h3 className={`font-bold mb-2 ${statsColors.text}`}>Processing Statistics:</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
