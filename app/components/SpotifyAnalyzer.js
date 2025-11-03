@@ -1949,8 +1949,7 @@ const SpotifyAnalyzer = ({
     switch (activeTab) {
       case 'upload':
         return (
-          <div className={`p-2 sm:p-4 rounded ${isDarkMode ? 'border border-gray-700' : 'border-2'} ${uploadColors.wrapper}`}>
-            <div>
+          <div className={`p-3 sm:p-4 rounded ${isDarkMode ? 'bg-black border border-gray-700' : `${uploadColors.bg} border-2 ${uploadColors.wrapper}`}`}>
             {/* Storage Notification */}
             {storageNotification && (
               <div className={`mb-6 p-4 rounded-lg border ${
@@ -2153,7 +2152,6 @@ const SpotifyAnalyzer = ({
                 <p className="text-sm">{error}</p>
               </div>
             )}
-            </div>
           </div>
         );
       
