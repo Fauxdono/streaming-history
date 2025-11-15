@@ -2270,7 +2270,7 @@ const SpotifyAnalyzer = ({
       
       case 'custom':
         return (
-          <PageWrapper colorTheme="emerald" backgroundTheme="emerald" textTheme="orange" transparent={true}>
+          <PageWrapper colorTheme="emerald" backgroundTheme="emerald" textTheme="orange">
             <CustomTrackRankings 
               rawPlayData={rawPlayData}
               formatDuration={formatDuration}
@@ -2286,7 +2286,7 @@ const SpotifyAnalyzer = ({
       
       case 'tracks':
         return (
-          <PageWrapper colorTheme="red" backgroundTheme="red" textTheme="rose" transparent={true}>
+          <PageWrapper colorTheme="red" backgroundTheme="red" textTheme="rose">
             <TrackRankings 
               processedData={processedData}
               formatDuration={formatDuration}
@@ -2298,7 +2298,7 @@ const SpotifyAnalyzer = ({
       
       case 'patterns':
         return (
-          <PageWrapper colorTheme="yellow" backgroundTheme="yellow" textTheme="rose" transparent={true}>
+          <PageWrapper colorTheme="yellow" backgroundTheme="yellow" textTheme="rose">
             <ListeningPatterns 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2315,7 +2315,7 @@ const SpotifyAnalyzer = ({
       
       case 'calendar':
         return (
-          <PageWrapper colorTheme="green" backgroundTheme="green" textTheme="red" transparent={true}>
+          <PageWrapper colorTheme="green" backgroundTheme="green" textTheme="red">
             <CalendarView 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2332,7 +2332,7 @@ const SpotifyAnalyzer = ({
       
       case 'behavior':
         return (
-          <PageWrapper colorTheme="amber" backgroundTheme="amber" textTheme="fuchsia" transparent={true}>
+          <PageWrapper colorTheme="amber" backgroundTheme="amber" textTheme="fuchsia">
             <ListeningBehavior 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2348,7 +2348,7 @@ const SpotifyAnalyzer = ({
       
       case 'discovery':
         return (
-          <PageWrapper colorTheme="orange" backgroundTheme="orange" textTheme="violet" transparent={true}>
+          <PageWrapper colorTheme="orange" backgroundTheme="orange" textTheme="violet">
             <DiscoveryAnalysis 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2364,7 +2364,7 @@ const SpotifyAnalyzer = ({
       
       case 'podcasts':
         return (
-          <PageWrapper colorTheme="red" backgroundTheme="red" textTheme="indigo" transparent={true}>
+          <PageWrapper colorTheme="red" backgroundTheme="red" textTheme="indigo">
             <PodcastRankings 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2378,7 +2378,7 @@ const SpotifyAnalyzer = ({
       
       case 'playlists':
         return (
-          <PageWrapper colorTheme="rose" backgroundTheme="rose" textTheme="blue" transparent={true}>
+          <PageWrapper colorTheme="rose" backgroundTheme="rose" textTheme="blue">
             <PageHeader 
               title="Custom Playlists"
               subtitle="Create and export custom playlists from your listening data"
@@ -2391,7 +2391,7 @@ const SpotifyAnalyzer = ({
       
       case 'updates':
         return (
-          <PageWrapper colorTheme="fuchsia" backgroundTheme="fuchsia" textTheme="cyan" transparent={true}>
+          <PageWrapper colorTheme="fuchsia" backgroundTheme="fuchsia" textTheme="cyan">
             <PageHeader 
               title="App Updates"
               subtitle="Latest updates and new features for the streaming analyzer"
