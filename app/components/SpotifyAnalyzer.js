@@ -24,6 +24,8 @@ import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import GoogleDriveSync from './GoogleDriveSync.js';
 import FixedSettingsBar from './FixedSettingsBar.js';
+import PageWrapper from './PageWrapper.js';
+import PageHeader from './PageHeader.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -1949,7 +1951,13 @@ const SpotifyAnalyzer = ({
     switch (activeTab) {
       case 'upload':
         return (
-          <div className={`p-3 sm:p-4 rounded ${isDarkMode ? 'bg-black border border-gray-700' : `${uploadColors.bg} border-2 ${uploadColors.wrapper}`}`}>
+          <PageWrapper colorTheme="violet" backgroundTheme="violet" textTheme="emerald">
+            <PageHeader 
+              title="Upload Streaming Data"
+              subtitle="Upload your streaming history files to start analyzing your listening patterns"
+              colorTheme="violet"
+              textTheme="emerald"
+            />
             {/* Storage Notification */}
             {storageNotification && (
               <div className={`mb-6 p-4 rounded-lg border ${
@@ -2152,13 +2160,18 @@ const SpotifyAnalyzer = ({
                 <p className="text-sm">{error}</p>
               </div>
             )}
-          </div>
+          </PageWrapper>
         );
       
       case 'stats':
         return stats ? (
-          <div className={`p-2 sm:p-4 ${statsColors.wrapper} rounded ${isDarkMode ? 'border border-gray-700' : 'border-2'}`}>
-            <h3 className={`font-bold mb-2 ${statsColors.text}`}>Processing Statistics:</h3>
+          <PageWrapper colorTheme="indigo" backgroundTheme="indigo" textTheme="green">
+            <PageHeader 
+              title="Processing Statistics"
+              subtitle="Overview of your uploaded streaming data and processing results"
+              colorTheme="indigo"
+              textTheme="green"
+            />
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -2199,12 +2212,13 @@ const SpotifyAnalyzer = ({
                 </div>
               )}
             </div>
-          </div>
+          </PageWrapper>
         ) : null;
       
       case 'artists':
         return (
-          <ArtistsRankings
+          <PageWrapper colorTheme="blue" backgroundTheme="blue" textTheme="yellow" noPadding={true}>
+            <ArtistsRankings
             displayedArtists={displayedArtists}
             filteredDisplayedArtists={filteredDisplayedArtists}
             selectedArtists={selectedArtists}
@@ -2228,11 +2242,13 @@ const SpotifyAnalyzer = ({
             backgroundTheme={artistBackgroundTheme}
             colorTheme={artistBackgroundTheme}
           />
+          </PageWrapper>
         );
       
       case 'albums':
         return (
-          <AlbumRankings
+          <PageWrapper colorTheme="cyan" backgroundTheme="cyan" textTheme="amber" noPadding={true}>
+            <AlbumRankings
             displayedAlbums={displayedAlbums}
             selectedArtists={selectedArtists}
             topAlbumsCount={topAlbumsCount}
@@ -2249,11 +2265,12 @@ const SpotifyAnalyzer = ({
             backgroundTheme={albumBackgroundTheme}
             colorTheme={albumBackgroundTheme}
           />
+          </PageWrapper>
         );
       
       case 'custom':
         return (
-          <div className={`p-2 sm:p-4 ${customColors.wrapper} rounded border-2`}>
+          <PageWrapper colorTheme="emerald" backgroundTheme="emerald" textTheme="orange" noPadding={true}>
             <CustomTrackRankings 
               rawPlayData={rawPlayData}
               formatDuration={formatDuration}
@@ -2264,24 +2281,24 @@ const SpotifyAnalyzer = ({
               backgroundTheme={customBackgroundTheme}
               initialArtists={selectedArtists}
             />
-          </div>
+          </PageWrapper>
         );
       
       case 'tracks':
         return (
-          <div className={`p-2 sm:p-4 ${tracksColors.wrapper} rounded border-2`}>
+          <PageWrapper colorTheme="red" backgroundTheme="red" textTheme="rose" noPadding={true}>
             <TrackRankings 
               processedData={processedData}
               formatDuration={formatDuration}
               textTheme={tracksTextTheme}
               backgroundTheme={tracksBackgroundTheme}
             />
-          </div>
+          </PageWrapper>
         );
       
       case 'patterns':
         return (
-          <div className={`p-2 sm:p-4 ${patternColors.wrapper} rounded border-2`}>
+          <PageWrapper colorTheme="yellow" backgroundTheme="yellow" textTheme="rose" noPadding={true}>
             <ListeningPatterns 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2293,12 +2310,12 @@ const SpotifyAnalyzer = ({
               briefObsessions={briefObsessions}
               songsByYear={songsByYear}
             />
-          </div>
+          </PageWrapper>
         );
       
       case 'calendar':
         return (
-          <div className={`p-2 sm:p-4 ${calendarColors.wrapper} rounded border-2`}>
+          <PageWrapper colorTheme="green" backgroundTheme="green" textTheme="red" noPadding={true}>
             <CalendarView 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2310,12 +2327,12 @@ const SpotifyAnalyzer = ({
               backgroundTheme={calendarBackgroundTheme}
               onYearChange={setSelectedCalendarYear}
             />
-          </div>
+          </PageWrapper>
         );
       
       case 'behavior':
         return (
-          <div className={`p-2 sm:p-4 ${behaviorColors.wrapper} rounded border-2`}>
+          <PageWrapper colorTheme="amber" backgroundTheme="amber" textTheme="fuchsia" noPadding={true}>
             <ListeningBehavior 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2326,12 +2343,12 @@ const SpotifyAnalyzer = ({
               textTheme={behaviorTextTheme}
               backgroundTheme={behaviorBackgroundTheme}
             />
-          </div>
+          </PageWrapper>
         );
       
       case 'discovery':
         return (
-          <div className={`p-2 sm:p-4 ${discoveryColors.wrapper} rounded border-2`}>
+          <PageWrapper colorTheme="orange" backgroundTheme="orange" textTheme="violet" noPadding={true}>
             <DiscoveryAnalysis 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2342,12 +2359,12 @@ const SpotifyAnalyzer = ({
               textTheme={discoveryTextTheme}
               backgroundTheme={discoveryBackgroundTheme}
             />
-          </div>
+          </PageWrapper>
         );
       
       case 'podcasts':
         return (
-          <div id="podcast-rankings" className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
+          <PageWrapper colorTheme="red" backgroundTheme="red" textTheme="indigo" noPadding={true}>
             <PodcastRankings 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2356,25 +2373,33 @@ const SpotifyAnalyzer = ({
               yearRangeMode={podcastYearRangeMode}
               colorTheme="red"
             />
-          </div>
+          </PageWrapper>
         );
       
       case 'playlists':
         return (
-          <div className="p-2 sm:p-4 bg-rose-100 rounded border-2 border-rose-300">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-rose-700">Custom Playlists</h3>
-            </div>
+          <PageWrapper colorTheme="rose" backgroundTheme="rose" textTheme="blue" noPadding={true}>
+            <PageHeader 
+              title="Custom Playlists"
+              subtitle="Create and export custom playlists from your listening data"
+              colorTheme="rose"
+              textTheme="blue"
+            />
             <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} />
-          </div>
+          </PageWrapper>
         );
       
       case 'updates':
         return (
-          <div className="p-2 sm:p-4 bg-fuchsia-100 rounded border-2 border-fuchsia-300">
-            <h3 className="font-bold mb-2 text-fuchsia-700">App Updates</h3>
+          <PageWrapper colorTheme="fuchsia" backgroundTheme="fuchsia" textTheme="cyan" noPadding={true}>
+            <PageHeader 
+              title="App Updates"
+              subtitle="Latest updates and new features for the streaming analyzer"
+              colorTheme="fuchsia"
+              textTheme="cyan"
+            />
             <UpdatesSection />
-          </div>
+          </PageWrapper>
         );
       
       default:
