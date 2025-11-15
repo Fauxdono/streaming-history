@@ -9,7 +9,8 @@ const PageWrapper = ({
   backgroundTheme = null,
   textTheme = null,
   className = '',
-  noPadding = false
+  noPadding = false,
+  transparent = false
 }) => {
   const { theme, getColorblindAdjustedTheme } = useTheme() || {};
   const isDarkMode = theme === 'dark';
@@ -21,6 +22,11 @@ const PageWrapper = ({
   // Get consistent wrapper styles based on theme
   const getWrapperStyles = () => {
     const baseStyles = noPadding ? 'rounded' : 'p-3 sm:p-4 rounded';
+    
+    // If transparent mode, don't apply background or border
+    if (transparent) {
+      return noPadding ? '' : 'p-3 sm:p-4';
+    }
     
     if (isDarkMode) {
       return `${baseStyles} bg-black border border-gray-700`;
