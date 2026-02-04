@@ -1099,16 +1099,19 @@ const GoogleDriveSync = ({
     setLoadingStep('');
   };
 
-  // Container styling based on colorMode
+  // Container styling based on colorMode - use violet to match Upload tab
   const containerBg = isColorful
-    ? (isDarkMode ? 'bg-blue-900/20 border-blue-500/40' : 'bg-blue-50 border-blue-200')
+    ? (isDarkMode ? 'bg-violet-800 border-violet-600' : 'bg-violet-50 border-violet-300')
     : (isDarkMode ? 'bg-black border-white' : 'bg-white border-black');
   const headerText = isColorful
-    ? (isDarkMode ? 'text-blue-100' : 'text-blue-800')
+    ? (isDarkMode ? 'text-violet-100' : 'text-violet-800')
     : '';
   const subText = isColorful
-    ? (isDarkMode ? 'text-blue-200' : 'text-blue-700')
+    ? (isDarkMode ? 'text-violet-200' : 'text-violet-700')
     : (isDarkMode ? 'text-gray-400' : 'text-gray-600');
+  const cardBg = isColorful
+    ? (isDarkMode ? 'bg-violet-700 border-violet-500' : 'bg-violet-100 border-violet-300')
+    : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300');
 
   return (
     <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg}`}>
@@ -1138,11 +1141,7 @@ const GoogleDriveSync = ({
       )}
 
       {!isConnected ? (
-        <div className={`p-3 sm:p-4 rounded-lg border text-center ${
-          isColorful
-            ? 'bg-blue-50 border-blue-200'
-            : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300')
-        }`}>
+        <div className={`p-3 sm:p-4 rounded-lg border text-center ${cardBg}`}>
           <p className={`mb-3 text-xs sm:text-sm ${subText}`}>
             Save analysis to Google Drive for cloud access
           </p>
@@ -1153,7 +1152,7 @@ const GoogleDriveSync = ({
           >
             {isInitializing ? 'Initializing...' : isConnecting ? 'Connecting...' : 'Connect Google Drive'}
           </button>
-          <p className="text-xs text-blue-600 mt-2 sm:mt-3">
+          <p className={`text-xs mt-2 sm:mt-3 ${isColorful ? 'text-blue-600' : (isDarkMode ? 'text-blue-400' : 'text-blue-600')}`}>
             Your data stays private - saved to YOUR Google Drive
           </p>
           {!isInitialized && !isInitializing && (
@@ -1170,12 +1169,8 @@ const GoogleDriveSync = ({
       ) : (
         <div className="space-y-3 sm:space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className={`p-3 sm:p-4 border rounded-lg ${
-              isColorful
-                ? 'border-blue-200 dark:border-blue-700'
-                : (isDarkMode ? 'border-gray-700' : 'border-gray-200')
-            }`}>
-              <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">💾 Save Analysis</h4>
+            <div className={`p-3 sm:p-4 border rounded-lg ${cardBg}`}>
+              <h4 className={`font-semibold mb-1 sm:mb-2 text-sm sm:text-base ${headerText}`}>💾 Save Analysis</h4>
               <p className={`text-xs sm:text-sm mb-2 sm:mb-3 hidden sm:block ${subText}`}>
                 Save analysis + original files to "cakeculator" folder
               </p>
@@ -1192,12 +1187,8 @@ const GoogleDriveSync = ({
               </button>
             </div>
 
-            <div className={`p-3 sm:p-4 border rounded-lg ${
-              isColorful
-                ? 'border-blue-200 dark:border-blue-700'
-                : (isDarkMode ? 'border-gray-700' : 'border-gray-200')
-            }`}>
-              <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">📥 Load Analysis</h4>
+            <div className={`p-3 sm:p-4 border rounded-lg ${cardBg}`}>
+              <h4 className={`font-semibold mb-1 sm:mb-2 text-sm sm:text-base ${headerText}`}>📥 Load Analysis</h4>
               <p className={`text-xs sm:text-sm mb-2 sm:mb-3 hidden sm:block ${subText}`}>
                 Restore saved analysis from Google Drive
               </p>
@@ -1208,7 +1199,7 @@ const GoogleDriveSync = ({
               {isLoading && loadingStep && (
                 <div className={`mb-2 sm:mb-3 p-2 rounded text-xs sm:text-sm ${
                   isColorful
-                    ? 'bg-blue-50 text-blue-700'
+                    ? (isDarkMode ? 'bg-violet-600 text-violet-100' : 'bg-violet-200 text-violet-800')
                     : (isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700')
                 }`}>
                   🔄 {loadingStep}
