@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Heart, Coffee, CreditCard, DollarSign, Copy, Check } from 'lucide-react';
 import { Card, CardContent } from './ui/Card';
 
-const SupportOptions = ({ className = "" }) => {
+const SupportOptions = ({ className = "", colorMode = "minimal" }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [activePlatform, setActivePlatform] = useState('ko-fi');
   const [copied, setCopied] = useState(false);
+
+  const isColorful = colorMode === 'colorful';
 
   const accounts = {
     'ko-fi': 'fauxdono',
@@ -22,15 +24,22 @@ const SupportOptions = ({ className = "" }) => {
     });
   };
 
+  const codeBg = isColorful
+    ? 'bg-indigo-200 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100'
+    : 'bg-gray-100 text-blue-700';
+  const copyBtnColor = isColorful
+    ? 'text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200'
+    : 'text-gray-500 hover:text-blue-500';
+
   const renderPlatformContent = () => {
     switch (activePlatform) {
       case 'ko-fi':
         return (
           <div className="text-center space-y-3">
             <div className="text-blue-500 font-medium">Ko-fi</div>
-            <a 
+            <a
               href={`https://ko-fi.com/${accounts['ko-fi']}`}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
@@ -43,9 +52,9 @@ const SupportOptions = ({ className = "" }) => {
         return (
           <div className="text-center space-y-3">
             <div className="text-yellow-700 font-medium">Buy Me A Coffee</div>
-            <a 
+            <a
               href={`https://www.buymeacoffee.com/${accounts['buymeacoffee']}`}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
             >
@@ -59,18 +68,18 @@ const SupportOptions = ({ className = "" }) => {
           <div className="text-center space-y-3">
             <div className="text-blue-700 font-medium">Send via PayPal</div>
             <div className="flex items-center justify-center space-x-2">
-              <code className="px-2 py-1 bg-gray-100 rounded text-blue-700">{accounts['paypal']}</code>
-              <button 
+              <code className={`px-2 py-1 rounded ${codeBg}`}>{accounts['paypal']}</code>
+              <button
                 onClick={() => copyToClipboard(accounts['paypal'])}
-                className="p-1 text-gray-500 hover:text-blue-500"
+                className={`p-1 ${copyBtnColor}`}
                 title="Copy email"
               >
                 {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
               </button>
             </div>
-            <a 
+            <a
               href={`https://paypal.me/${accounts['paypal'].split('@')[0]}`}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
@@ -84,10 +93,10 @@ const SupportOptions = ({ className = "" }) => {
           <div className="text-center space-y-3">
             <div className="text-blue-500 font-medium">Send via Venmo</div>
             <div className="flex items-center justify-center space-x-2">
-              <code className="px-2 py-1 bg-gray-100 rounded text-blue-700">{accounts['venmo']}</code>
-              <button 
+              <code className={`px-2 py-1 rounded ${codeBg}`}>{accounts['venmo']}</code>
+              <button
                 onClick={() => copyToClipboard(accounts['venmo'])}
-                className="p-1 text-gray-500 hover:text-blue-500"
+                className={`p-1 ${copyBtnColor}`}
                 title="Copy username"
               >
                 {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
@@ -100,12 +109,12 @@ const SupportOptions = ({ className = "" }) => {
           <div className="text-center space-y-3">
             <div className="text-purple-700 font-medium">Bitcoin Address</div>
             <div className="flex items-center justify-center space-x-2">
-              <code className="px-2 py-1 bg-gray-100 rounded text-xs sm:text-sm text-purple-700 truncate max-w-[250px]">
+              <code className={`px-2 py-1 rounded text-xs sm:text-sm truncate max-w-[250px] ${codeBg}`}>
                 {accounts['crypto']}
               </code>
-              <button 
+              <button
                 onClick={() => copyToClipboard(accounts['crypto'])}
-                className="p-1 text-gray-500 hover:text-purple-500"
+                className={`p-1 ${copyBtnColor}`}
                 title="Copy address"
               >
                 {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
@@ -118,17 +127,40 @@ const SupportOptions = ({ className = "" }) => {
     }
   };
 
+  // Color classes based on mode
+  const cardBg = isColorful
+    ? 'bg-indigo-100 dark:bg-indigo-900 border-indigo-300 dark:border-indigo-700'
+    : '';
+  const textPrimary = isColorful
+    ? 'text-indigo-700 dark:text-indigo-300'
+    : 'text-purple-600';
+  const textSecondary = isColorful
+    ? 'text-indigo-600 dark:text-indigo-400'
+    : 'text-purple-500 hover:text-purple-700';
+  const contentBg = isColorful
+    ? 'bg-indigo-50 dark:bg-indigo-800 border-indigo-200 dark:border-indigo-600'
+    : 'bg-white border-gray-200';
+  const footerText = isColorful
+    ? 'text-indigo-600 dark:text-indigo-400'
+    : 'text-gray-600';
+  const pillActive = isColorful
+    ? 'bg-indigo-500 text-white'
+    : 'bg-purple-500 text-white';
+  const pillInactive = isColorful
+    ? 'bg-indigo-200 dark:bg-indigo-700 text-indigo-700 dark:text-indigo-200 hover:bg-indigo-300 dark:hover:bg-indigo-600'
+    : 'bg-purple-100 text-purple-700 hover:bg-purple-200';
+
   return (
-    <Card className={`w-full ${className}`}>
+    <Card className={`w-full ${cardBg} ${className}`}>
       <CardContent className="p-1">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <span className="text-purple-600 text-xs">no ads, just vibes</span>
+            <span className={`text-xs ${textPrimary}`}>no ads, just vibes</span>
             {!showOptions && <span className="text-red-500">❤️</span>}
           </div>
           <button
             onClick={() => setShowOptions(!showOptions)}
-            className="text-purple-500 hover:text-purple-700 text-xs"
+            className={`text-xs ${textSecondary}`}
           >
             {showOptions ? "Hide" : "Support"}
           </button>
@@ -143,21 +175,21 @@ const SupportOptions = ({ className = "" }) => {
                 key={platform}
                 onClick={() => setActivePlatform(platform)}
                 className={`px-3 py-1 rounded-full text-sm ${
-                  activePlatform === platform 
-                    ? 'bg-purple-500 text-white' 
-                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                  activePlatform === platform
+                    ? pillActive
+                    : pillInactive
                 }`}
               >
                 {platform}
               </button>
             ))}
           </div>
-          
-          <div className="p-4 border border-gray-200 rounded-lg bg-white">
+
+          <div className={`p-4 border rounded-lg ${contentBg}`}>
             {renderPlatformContent()}
           </div>
-          
-          <div className="mt-4 text-xs text-center text-gray-600">
+
+          <div className={`mt-4 text-xs text-center ${footerText}`}>
             Love Yourz💖
           </div>
         </CardContent>
