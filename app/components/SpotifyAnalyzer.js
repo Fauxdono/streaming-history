@@ -2582,35 +2582,51 @@ const SpotifyAnalyzer = ({
       
       case 'albums':
         return (
-          <div className="p-2 sm:p-4 bg-cyan-100 rounded border-2 border-[var(--border)] transition-all duration-300">
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-cyan-100 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700 transition-all duration-300'
+              : `p-2 sm:p-4 rounded border-2 transition-all duration-300 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
             {/* Title - mobile gets its own row */}
             <div className="block sm:hidden mb-1">
-              <h3 className="text-xl">
+              <h3 className={
+                colorMode === 'colorful'
+                  ? 'text-xl text-cyan-700 dark:text-cyan-300'
+                  : 'text-xl'
+              }>
                 {getAlbumsTabLabel()}
               </h3>
             </div>
-            
+
             {/* Desktop layout - title and controls on same row */}
             <div className="hidden sm:flex justify-between items-center mb-2">
-                <h3 className="text-xl">
+                <h3 className={
+                  colorMode === 'colorful'
+                    ? 'text-xl text-cyan-700 dark:text-cyan-300'
+                    : 'text-xl'
+                }>
                   {getAlbumsTabLabel()}
                 </h3>
-                
-                <div className="flex items-center gap-4">
+
+                <div className={`flex items-center gap-4 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
                   <div className="flex items-center gap-2">
-                    <label className="">Show Top</label>
+                    <label>Show Top</label>
                     <input
                       type="number"
                       min="1"
                       max="500"
                       value={topAlbumsCount}
                       onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
-                      className="w-16 border rounded px-2 py-1 text-cyan-700"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                          : `w-16 border rounded px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                      }
                     />
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <label className="">View Mode</label>
+                    <label>View Mode</label>
                     <button
                       onClick={() => {
                         const modes = ['grid', 'compact', 'mobile'];
@@ -2618,18 +2634,26 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                      }
                     >
-                      {albumsViewMode === 'grid' ? 'Grid' : 
+                      {albumsViewMode === 'grid' ? 'Grid' :
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
                     </button>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <label className="">Sort by</label>
+                    <label>Sort by</label>
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                      }
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2638,20 +2662,24 @@ const SpotifyAnalyzer = ({
               </div>
               
               {/* Mobile controls */}
-              <div className="block sm:hidden space-y-2">
+              <div className={`block sm:hidden space-y-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <label className="">Top</label>
+                    <label>Top</label>
                     <input
                       type="number"
                       min="1"
                       max="500"
                       value={topAlbumsCount}
                       onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
-                      className="w-16 border rounded px-2 py-1 text-cyan-700"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                          : `w-16 border rounded px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                      }
                     />
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
@@ -2660,15 +2688,23 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                      }
                     >
-                      {albumsViewMode === 'grid' ? 'Grid' : 
+                      {albumsViewMode === 'grid' ? 'Grid' :
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
                     </button>
-                    
+
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                      }
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2679,12 +2715,24 @@ const SpotifyAnalyzer = ({
             <div className="space-y-4">
               {/* Artist Filter */}
               {selectedArtists.length > 0 && (
-                <div className="bg-white dark:bg-black p-3 rounded-lg border border-cyan-200 dark:border-cyan-700">
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'bg-cyan-50 dark:bg-cyan-800 p-3 rounded-lg border border-cyan-200 dark:border-cyan-600'
+                    : `p-3 rounded-lg border ${isDarkMode ? 'bg-black border-white' : 'bg-white border-black'}`
+                }>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-cyan-700 font-medium">Filtered Artists ({selectedArtists.length}):</span>
+                    <span className={
+                      colorMode === 'colorful'
+                        ? 'text-cyan-700 dark:text-cyan-200 font-medium'
+                        : 'font-medium'
+                    }>Filtered Artists ({selectedArtists.length}):</span>
                     <button
                       onClick={() => setSelectedArtists([])}
-                      className="text-cyan-600 hover:text-cyan-800 text-sm"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'text-cyan-600 dark:text-cyan-400 hover:text-cyan-800 dark:hover:text-cyan-200 text-sm'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white text-sm'
+                      }
                     >
                       Clear All
                     </button>
@@ -2693,12 +2741,20 @@ const SpotifyAnalyzer = ({
                     {selectedArtists.map(artist => (
                       <span
                         key={artist}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 dark:bg-gray-800 text-cyan-700 dark:text-cyan-300 rounded-full text-xs"
+                        className={
+                          colorMode === 'colorful'
+                            ? 'inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 dark:bg-cyan-700 text-cyan-700 dark:text-cyan-200 rounded-full text-xs'
+                            : `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'}`
+                        }
                       >
                         {artist}
                         <button
                           onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                          className="ml-1 text-cyan-500 hover:text-cyan-700"
+                          className={
+                            colorMode === 'colorful'
+                              ? 'ml-1 text-cyan-500 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-200'
+                              : 'ml-1 text-gray-500 hover:text-black dark:hover:text-white'
+                          }
                         >
                           ✕
                         </button>
@@ -2711,27 +2767,42 @@ const SpotifyAnalyzer = ({
               {/* Albums Display */}
               {displayedAlbums && displayedAlbums.length > 0 ? (
                 <div className={`
-                  ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 
+                  ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' :
                     albumsViewMode === 'compact' ? 'space-y-2' : 'space-y-1'}
                 `}>
-                  {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-                    albumsViewMode === 'grid' ? (
-                      <AlbumCard 
+                  {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
+                    // Card colors based on colorMode
+                    const albumCardBg = colorMode === 'colorful'
+                      ? 'bg-cyan-50 dark:bg-cyan-800'
+                      : (isDarkMode ? 'bg-black' : 'bg-white');
+                    const albumCardBorder = colorMode === 'colorful'
+                      ? 'border-cyan-300 dark:border-cyan-600'
+                      : (isDarkMode ? 'border-white' : 'border-black');
+                    const albumCardText = colorMode === 'colorful'
+                      ? 'text-cyan-700 dark:text-cyan-200'
+                      : '';
+                    const albumCardTextLight = colorMode === 'colorful'
+                      ? 'text-cyan-600 dark:text-cyan-300'
+                      : 'text-gray-600 dark:text-gray-400';
+
+                    return albumsViewMode === 'grid' ? (
+                      <AlbumCard
                         key={`${album.artist}-${album.name}`}
-                        album={{...album, rank: index + 1}} 
-                        index={index} 
-                        processedData={processedData} 
+                        album={{...album, rank: index + 1}}
+                        index={index}
+                        processedData={processedData}
                         formatDuration={formatDuration}
                         textTheme={albumTextTheme}
                         backgroundTheme={albumBackgroundTheme}
+                        colorMode={colorMode}
                       />
                     ) : (
-                      <div 
+                      <div
                         key={`${album.artist}-${album.name}`}
                         className={`
                           ${albumsViewMode === 'compact' ?
-                            `p-3 ${albumColors.bgCard} rounded-lg shadow-sm border ${albumColors.border} hover:${albumColors.bgLight} transition-all duration-200` :
-                            `p-2 ${albumColors.bgCard} rounded border ${albumColors.border} hover:${albumColors.bgLight} transition-all duration-150`
+                            `p-3 ${albumCardBg} rounded-lg shadow-sm border ${albumCardBorder} transition-all duration-200` :
+                            `p-2 ${albumCardBg} rounded border ${albumCardBorder} transition-all duration-150`
                           }
                         `}
                       >
@@ -2740,12 +2811,12 @@ const SpotifyAnalyzer = ({
                             'flex justify-between items-center text-sm'}
                         `}>
                           <div className="flex-1">
-                            <div className={`font-bold ${albumColors.text} ${
+                            <div className={`font-bold ${albumCardText} ${
                               albumsViewMode === 'compact' ? 'text-base' : 'text-sm'
                             }`}>
                               #{index + 1} {album.name}
                             </div>
-                            <div className={`${albumColors.textLight} ${
+                            <div className={`${albumCardTextLight} ${
                               albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'
                             }`}>
                               {album.artist}
@@ -2754,20 +2825,24 @@ const SpotifyAnalyzer = ({
                               )}
                             </div>
                           </div>
-                          
-                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${albumColors.textLight}`}>
+
+                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${albumCardTextLight}`}>
                             <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
                             <div>{(album.playCount || 0).toLocaleString()} plays</div>
                           </div>
                         </div>
                       </div>
-                    )
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="text-center py-8 text-cyan-600">
-                  {selectedAlbumYear === 'all' ? 
-                    'No album data available' : 
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'text-center py-8 text-cyan-600 dark:text-cyan-400'
+                    : 'text-center py-8 text-gray-600 dark:text-gray-400'
+                }>
+                  {selectedAlbumYear === 'all' ?
+                    'No album data available' :
                     `No album data for ${selectedAlbumYear}`
                   }
                 </div>
