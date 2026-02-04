@@ -1895,8 +1895,25 @@ const SpotifyAnalyzer = ({
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'upload':
+        // Upload tab colors based on colorMode
+        const uploadBg = colorMode === 'colorful'
+          ? 'bg-violet-100 dark:bg-violet-900'
+          : '';
+        const uploadBorder = colorMode === 'colorful'
+          ? 'border-violet-300 dark:border-violet-700'
+          : (isDarkMode ? 'border-white' : 'border-black');
+        const uploadText = colorMode === 'colorful'
+          ? 'text-violet-700 dark:text-violet-300'
+          : '';
+        const uploadTextLight = colorMode === 'colorful'
+          ? 'text-violet-600 dark:text-violet-400'
+          : 'text-gray-600 dark:text-gray-400';
+        const uploadCardBg = colorMode === 'colorful'
+          ? 'bg-violet-50 dark:bg-violet-800'
+          : (isDarkMode ? 'bg-black' : 'bg-white');
+
         return (
-          <div className={`p-2 sm:p-4 rounded border-2 ${uploadColors.wrapper}`}>
+          <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder}`}>
             <div>
             {/* Storage Notification */}
             {storageNotification && (
@@ -1935,28 +1952,28 @@ const SpotifyAnalyzer = ({
 
             {/* Full-width How to Use section with two columns */}
             <div className="mb-6">
-              <div className={`p-4 sm:p-6 border rounded-lg ${uploadColors.bg} ${uploadColors.border}`}>
-                <h3 className={`font-semibold mb-4 text-sm ${uploadColors.text}`}>How to use:</h3>
-                
+              <div className={`p-4 sm:p-6 border rounded-lg ${uploadCardBg} ${uploadBorder}`}>
+                <h3 className={`font-semibold mb-4 text-sm ${uploadText}`}>How to use:</h3>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left Column */}
                   <div className="space-y-4">
-                    <div className={`text-xs sm:text-sm ${uploadColors.textLight}`}>
+                    <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                       <div className="flex items-start gap-3 mb-3">
-                        <span className={`flex-shrink-0 w-6 h-6 ${uploadColors.text.replace('text-', 'bg-')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600' : (isDarkMode ? 'bg-white text-black' : 'bg-black')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
                         <span>Download your streaming history from your service</span>
                       </div>
                       <div className="flex items-start gap-3 mb-3">
-                        <span className={`flex-shrink-0 w-6 h-6 ${uploadColors.text.replace('text-', 'bg-')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600' : (isDarkMode ? 'bg-white text-black' : 'bg-black')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
                         <span>Upload your file(s) or connect Google Drive for large files</span>
                       </div>
                       <div className="flex items-start gap-3 mb-4">
-                        <span className={`flex-shrink-0 w-6 h-6 ${uploadColors.text.replace('text-', 'bg-')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600' : (isDarkMode ? 'bg-white text-black' : 'bg-black')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
                         <span>Click "Calculate Statistics" and explore your data</span>
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Right Column */}
                   <div className="space-y-4">
                     <div className="mt-4 flex flex-col sm:flex-row gap-3">
@@ -1969,13 +1986,17 @@ const SpotifyAnalyzer = ({
                           <Download size={16} />
                           Try Demo
                         </button>
-                        <p className={`text-sm mt-2 ${uploadColors.textLight}`}>
+                        <p className={`text-sm mt-2 ${uploadTextLight}`}>
                           Want to test the app? Click to load sample streaming history.
                         </p>
                       </div>
-                      
+
                       <div className="flex-1">
-                        <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded text-white">
+                        <div className={
+                          colorMode === 'colorful'
+                            ? 'p-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
+                            : `p-2 rounded ${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`
+                        }>
                           <p className="font-bold text-xs">📱 Download as Web App!</p>
                           <p className="text-xs mt-0.5">Install to your device for offline access.</p>
                         </div>
@@ -2004,11 +2025,11 @@ const SpotifyAnalyzer = ({
               />
             </div>
               
-            <div className={`p-4 rounded-lg border ${uploadColors.bg} ${uploadColors.border}`}>
-              <p className={`mb-3 font-semibold text-sm ${uploadColors.text}`}>
+            <div className={`p-4 rounded-lg border ${uploadCardBg} ${uploadBorder}`}>
+              <p className={`mb-3 font-semibold text-sm ${uploadText}`}>
                 Upload your streaming history files:
               </p>
-              <p className={`mb-3 text-xs sm:text-sm ${uploadColors.textLight}`}>
+              <p className={`mb-3 text-xs sm:text-sm ${uploadTextLight}`}>
                 Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), Cake (.xlsx/.json)
               </p>
               <input
@@ -2017,9 +2038,9 @@ const SpotifyAnalyzer = ({
                 accept=".json,.csv,.xlsx"
                 onChange={handleFileUpload}
                 className={`block w-full text-sm transition-colors
-                  file:mr-4 file:py-2 file:px-4 file:rounded-lg 
-                  file:border-2 file:border-yellow-400 file:text-sm 
-                  file:font-semibold file:bg-yellow-300 
+                  file:mr-4 file:py-2 file:px-4 file:rounded-lg
+                  file:border-2 file:border-yellow-400 file:text-sm
+                  file:font-semibold file:bg-yellow-300
                   file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
                   ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
               />
@@ -2047,19 +2068,23 @@ const SpotifyAnalyzer = ({
             )}
                 
             {uploadedFiles.length > 0 && (
-              <div className={`mt-6 p-4 rounded-lg border ${isDarkMode ? 'bg-black border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                <h4 className={`font-semibold mb-3 text-lg ${isDarkMode ? 'text-orange-300' : 'text-orange-700'}`}>Uploaded Files:</h4>
+              <div className={`mt-6 p-4 rounded-lg border ${
+                colorMode === 'colorful'
+                  ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
+                  : (isDarkMode ? 'bg-black border-white' : 'bg-gray-50 border-black')
+              }`}>
+                <h4 className={`font-semibold mb-3 text-lg ${uploadText}`}>Uploaded Files:</h4>
                 <ul className="space-y-2">
                   {uploadedFiles.map((fileName, index) => (
                     <li key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-                      isDarkMode ? 'bg-black' : 'bg-white'
+                      colorMode === 'colorful'
+                        ? 'bg-violet-100 dark:bg-violet-700'
+                        : (isDarkMode ? 'bg-gray-900' : 'bg-white')
                     }`}>
-                      <span className={`text-sm font-medium truncate mr-3 ${
-                        isDarkMode ? 'text-gray-200' : 'text-gray-700'
-                      }`}>
+                      <span className={`text-sm font-medium truncate mr-3 ${uploadTextLight}`}>
                         {fileName}
                       </span>
-                      <button 
+                      <button
                         onClick={() => handleDeleteFile(index)}
                         className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0"
                         title="Remove file"
@@ -2069,12 +2094,12 @@ const SpotifyAnalyzer = ({
                     </li>
                   ))}
                 </ul>
-                
-                {uploadedFileList && uploadedFileList.length === 1 && 
+
+                {uploadedFileList && uploadedFileList.length === 1 &&
                  uploadedFileList[0].name.endsWith('.xlsx') && (
                   <ExcelPreview file={uploadedFileList[0]} />
                 )}
-                
+
                 <button
                   onClick={handleProcessFiles}
                   disabled={isProcessing}
@@ -2088,9 +2113,9 @@ const SpotifyAnalyzer = ({
                 
             {error && (
               <div className={`mt-6 p-4 rounded-lg border ${
-                isDarkMode 
-                  ? 'bg-red-900/20 border-red-600/30 text-red-300' 
-                  : 'bg-red-100 border-[var(--border)] text-red-700'
+                isDarkMode
+                  ? 'bg-red-900/20 border-red-600/30 text-red-300'
+                  : 'bg-red-100 border-red-300 text-red-700'
               }`}>
                 <h4 className="font-semibold mb-2">Error:</h4>
                 <p className="text-sm">{error}</p>
