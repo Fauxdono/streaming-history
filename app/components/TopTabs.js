@@ -2,13 +2,13 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-const TopTabs = ({ 
-  activeTab, 
-  setActiveTab, 
-  stats, 
-  topArtists, 
-  topAlbums, 
-  processedData, 
+const TopTabs = ({
+  activeTab,
+  setActiveTab,
+  stats,
+  topArtists,
+  topAlbums,
+  processedData,
   rawPlayData,
   getArtistsTabLabel,
   getAlbumsTabLabel,
@@ -23,7 +23,9 @@ const TopTabs = ({
   onCollapseChange, // New callback to communicate collapse state changes to parent
   isCollapsed: externalIsCollapsed, // External collapsed state from parent
   position = 'top',  // New prop for initial position
-  yearSelectorPosition = null // YearSelector position to adjust borders when stacked
+  yearSelectorPosition = null, // YearSelector position to adjust borders when stacked
+  colorMode = 'minimal', // Color mode: 'minimal' or 'colorful'
+  setColorMode = () => {} // Function to toggle color mode
 }) => {
   // Position state - cycles through top, right, bottom, left
   const [currentPosition, setCurrentPosition] = useState(position);
@@ -387,7 +389,7 @@ const TopTabs = ({
 
   // Tabs component for reuse
   const TabsContainer = () => (
-    <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
+    <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2 items-center">
       {stats && <TabButton id="updates" label="Updates" />}
       <TabButton id="upload" label="Upload" />
       {stats && <TabButton id="stats" label="Statistics" />}
@@ -401,6 +403,15 @@ const TopTabs = ({
       {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
       {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
       <TabButton id="settings" label="Settings" />
+
+      {/* Color Mode Toggle */}
+      <button
+        onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
+        className="ml-4 px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
+        title={colorMode === 'minimal' ? 'Switch to Colorful Mode' : 'Switch to Minimal Mode'}
+      >
+        {colorMode === 'minimal' ? '🎨' : '⬛'}
+      </button>
     </div>
   );
 
@@ -455,6 +466,15 @@ const TopTabs = ({
               {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
               {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
               <TabButton id="settings" label="Settings" />
+
+              {/* Color Mode Toggle */}
+              <button
+                onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
+                className="mt-4 px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
+                title={colorMode === 'minimal' ? 'Switch to Colorful Mode' : 'Switch to Minimal Mode'}
+              >
+                {colorMode === 'minimal' ? '🎨 Color' : '⬛ Minimal'}
+              </button>
             </div>
           </div>
         )}
