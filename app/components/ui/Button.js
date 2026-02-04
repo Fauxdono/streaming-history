@@ -21,9 +21,13 @@ export const Button = ({
     const base = 'px-3 py-1 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium';
 
     const variants = {
-      default: 'bg-[var(--accent-color)] text-white hover:opacity-90',
+      default: isDark
+        ? 'bg-white text-black hover:bg-gray-200'
+        : 'bg-black text-white hover:bg-gray-800',
 
-      accent: 'bg-[var(--accent-color)] text-white hover:opacity-90',
+      primary: isDark
+        ? 'bg-white text-black hover:bg-gray-200'
+        : 'bg-black text-white hover:bg-gray-800',
 
       ghost: isDark
         ? 'bg-transparent text-white hover:bg-white/10'
