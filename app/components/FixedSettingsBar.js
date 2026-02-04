@@ -5,11 +5,13 @@ import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import { ArrowLeftRight, FileText, Files, Type } from 'lucide-react';
 
-const FixedSettingsBar = ({ 
-  togglePosition, 
-  toggleCollapsed, 
-  isMobile, 
-  isCollapsed 
+const FixedSettingsBar = ({
+  togglePosition,
+  toggleCollapsed,
+  isMobile,
+  isCollapsed,
+  colorMode = 'minimal',
+  setColorMode = () => {}
 }) => {
   const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
   const settingsButtonRef = useRef(null);
@@ -40,7 +42,14 @@ const FixedSettingsBar = ({
               {/* Left side buttons */}
               <div className="flex items-center gap-4">
                 <DarkModeToggle className="!p-1.5 !rounded-full !w-[33px] !h-[33px]" />
-                <button 
+                <button
+                  onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
+                  className="p-1.5 rounded-full bg-pink-600 text-white hover:bg-pink-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                  title={colorMode === 'minimal' ? 'Switch to Colorful Mode' : 'Switch to Minimal Mode'}
+                >
+                  {colorMode === 'minimal' ? '🎨' : '⬛'}
+                </button>
+                <button
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
                   className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
@@ -73,8 +82,17 @@ const FixedSettingsBar = ({
               {/* Dark mode toggle */}
               <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
 
+              {/* Color mode toggle */}
+              <button
+                onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
+                className="p-1.5 rounded-full bg-pink-600 text-white hover:bg-pink-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                title={colorMode === 'minimal' ? 'Switch to Colorful Mode' : 'Switch to Minimal Mode'}
+              >
+                <span className="text-xs">{colorMode === 'minimal' ? '🎨' : '⬛'}</span>
+              </button>
+
               {/* Position toggle button */}
-              <button 
+              <button
                 onClick={togglePosition}
                 className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
                 title="Change tab position"
@@ -83,7 +101,7 @@ const FixedSettingsBar = ({
               </button>
 
               {/* Settings button */}
-              <button 
+              <button
                 ref={settingsButtonRef}
                 onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
                 className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"

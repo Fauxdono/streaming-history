@@ -2861,11 +2861,13 @@ const SpotifyAnalyzer = ({
 
   return (
     <div className="w-full h-full">
-      <FixedSettingsBar 
+      <FixedSettingsBar
         togglePosition={togglePosition}
         toggleCollapsed={toggleCollapsed}
         isMobile={isMobile}
         isCollapsed={topTabsCollapsed}
+        colorMode={colorMode}
+        setColorMode={setColorMode}
       />
       {TopTabsComponent && (
         <TopTabsComponent
