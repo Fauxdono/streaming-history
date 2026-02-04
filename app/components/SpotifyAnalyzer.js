@@ -2856,7 +2856,8 @@ const SpotifyAnalyzer = ({
     setSelectedArtists,
     setArtistSearch,
     setYearRangeMode,
-    setSelectedArtistYear
+    setSelectedArtistYear,
+    colorMode
   ]);
 
   return (
