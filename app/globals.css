@@ -2,491 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   MINIMAL DESIGN SYSTEM - Barebones Aesthetic
+   ============================================ */
+
 :root {
-  /* Base variables */
-  --background: #ffffff;
-  --foreground: #171717;
-  
-  /* Card and UI variables */
-  --card-background: #ffffff;
-  --card-foreground: #171717;
-  --border: #e2e8f0;
-  
-  /* Tab colors - light mode */
-  --orange-bg-light: #ffedd5;
-  --orange-bg-dark: #fdba74;
-  --orange-text: #9a3412;
-  
-  --purple-bg-light: #f3e8ff;
-  --purple-bg-dark: #d8b4fe;
-  --purple-text: #6b21a8;
-  
-  --teal-bg-light: #ccfbf1;
-  --teal-bg-dark: #5eead4;
-  --teal-text: #115e59;
-  
-  --blue-bg-light: #dbeafe;
-  --blue-bg-dark: #93c5fd;
-  --blue-text: #1e40af;
-  
-  --green-bg-light: #dcfce7;
-  --green-bg-dark: #86efac;
-  --green-text: #14532d;
-  
-  --indigo-bg-light: #e0e7ff;
-  --indigo-bg-dark: #a5b4fc;
-  --indigo-text: #3730a3;
-  
-  --pink-bg-light: #fce7f3;
-  --pink-bg-dark: #f9a8d4;
-  --pink-text: #831843;
-  
-  --red-bg-light: #fee2e2;
-  --red-bg-dark: #fca5a5;
-  --red-text: #7f1d1d;
-  
-  --yellow-bg-light: #fef9c3;
-  --yellow-bg-dark: #fde047;
-  --yellow-text: #713f12;
-  
-  --cyan-bg-light: #cffafe;
-  --cyan-bg-dark: #67e8f9;
-  --cyan-text: #155e75;
-  
-  --emerald-bg-light: #d1fae5;
-  --emerald-bg-dark: #6ee7b7;
-  --emerald-text: #065f46;
-  
-  --rose-bg-light: #ffe4e6;
-  --rose-bg-dark: #fda4af;
-  --rose-text: #9f1239;
+  /* Base colors - pure black and white */
+  --bg: #ffffff;
+  --fg: #000000;
+  --border: #000000;
+
+  /* Accent color - customizable */
+  --accent-color: #3b82f6;
+
+  /* Subtle backgrounds for tables/cards */
+  --bg-subtle: #fafafa;
 }
 
-/* System dark mode preference */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Base variables */
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    
-    /* Card and UI variables */
-    --card-background: #171717;
-    --card-foreground: #ededed;
-    --border: #303030;
-    
-    /* Tab colors - dark mode */
-    --orange-bg-light: #7c2d12;
-    --orange-bg-dark: #9a3412;
-    --orange-text: #fdba74;
-    
-    --purple-bg-light: #581c87;
-    --purple-bg-dark: #6b21a8;
-    --purple-text: #d8b4fe;
-    
-    --teal-bg-light: #134e4a;
-    --teal-bg-dark: #115e59;
-    --teal-text: #5eead4;
-    
-    --blue-bg-light: #1e3a8a;
-    --blue-bg-dark: #1e40af;
-    --blue-text: #93c5fd;
-    
-    --green-bg-light: #14532d;
-    --green-bg-dark: #166534;
-    --green-text: #86efac;
-    
-    --indigo-bg-light: #312e81;
-    --indigo-bg-dark: #3730a3;
-    --indigo-text: #a5b4fc;
-    
-    --pink-bg-light: #831843;
-    --pink-bg-dark: #9d174d;
-    --pink-text: #f9a8d4;
-    
-    --red-bg-light: #7f1d1d;
-    --red-bg-dark: #991b1b;
-    --red-text: #fca5a5;
-    
-    --yellow-bg-light: #713f12;
-    --yellow-bg-dark: #854d0e;
-    --yellow-text: #fde047;
-    
-    --cyan-bg-light: #155e75;
-    --cyan-bg-dark: #0e7490;
-    --cyan-text: #67e8f9;
-    
-    --emerald-bg-light: #064e3b;
-    --emerald-bg-dark: #065f46;
-    --emerald-text: #6ee7b7;
-    
-    --rose-bg-light: #881337;
-    --rose-bg-dark: #9f1239;
-    --rose-text: #fda4af;
-  }
-}
-
-/* Class-based dark mode (when using the toggle) */
 .dark {
-  /* Base variables */
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  
-  /* Card and UI variables */
-  --card-background: #171717;
-  --card-foreground: #ededed;
-  --border: #303030;
-  
-  /* Tab colors - dark mode */
-  --orange-bg-light: #7c2d12;
-  --orange-bg-dark: #9a3412;
-  --orange-text: #fdba74;
-  
-  --purple-bg-light: #581c87;
-  --purple-bg-dark: #6b21a8;
-  --purple-text: #d8b4fe;
-  
-  --teal-bg-light: #134e4a;
-  --teal-bg-dark: #115e59;
-  --teal-text: #5eead4;
-  
-  --blue-bg-light: #1e3a8a;
-  --blue-bg-dark: #1e40af;
-  --blue-text: #93c5fd;
-  
-  --green-bg-light: #14532d;
-  --green-bg-dark: #166534;
-  --green-text: #86efac;
-  
-  --indigo-bg-light: #312e81;
-  --indigo-bg-dark: #3730a3;
-  --indigo-text: #a5b4fc;
-  
-  --pink-bg-light: #831843;
-  --pink-bg-dark: #9d174d;
-  --pink-text: #f9a8d4;
-  
-  --red-bg-light: #7f1d1d;
-  --red-bg-dark: #991b1b;
-  --red-text: #fca5a5;
-  
-  --yellow-bg-light: #713f12;
-  --yellow-bg-dark: #854d0e;
-  --yellow-text: #fde047;
-  
-  --cyan-bg-light: #155e75;
-  --cyan-bg-dark: #0e7490;
-  --cyan-text: #67e8f9;
-  
-  --emerald-bg-light: #064e3b;
-  --emerald-bg-dark: #065f46;
-  --emerald-text: #6ee7b7;
-  
-  --rose-bg-light: #881337;
-  --rose-bg-dark: #9f1239;
-  --rose-text: #fda4af;
+  --bg: #000000;
+  --fg: #ffffff;
+  --border: #ffffff;
+  --bg-subtle: #0a0a0a;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  overflow-x: auto; /* Ensure horizontal scrollbar appears when needed */
-  padding-top: 0 !important; /* Override any safe area top padding */
+  color: var(--fg);
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
 }
 
-/* Ensure no automatic safe area top spacing on mobile */
-@media (max-width: 640px) {
-  body, html, #__next {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
+/* ============================================
+   FONT FAMILY SYSTEM
+   ============================================ */
+
+.font-sans {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Dark mode class-based styles */
-/* Tab Background Colors - Using CSS Variables - EXCLUDING gradient classes */
-.dark .bg-orange-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--orange-bg-light) !important; }
-.dark .bg-orange-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--orange-bg-light) !important; }
-.dark .bg-orange-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--orange-bg-dark) !important; }
-
-.dark .bg-purple-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--purple-bg-light) !important; }
-.dark .bg-purple-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--purple-bg-light) !important; }
-.dark .bg-purple-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--purple-bg-dark) !important; }
-
-.dark .bg-teal-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--teal-bg-light) !important; }
-.dark .bg-teal-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--teal-bg-light) !important; }
-.dark .bg-teal-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--teal-bg-dark) !important; }
-
-.dark .bg-blue-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--blue-bg-light) !important; }
-.dark .bg-blue-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--blue-bg-light) !important; }
-.dark .bg-blue-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--blue-bg-dark) !important; }
-
-.dark .bg-green-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--green-bg-light) !important; }
-.dark .bg-green-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--green-bg-light) !important; }
-.dark .bg-green-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--green-bg-dark) !important; }
-
-.dark .bg-indigo-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--indigo-bg-light) !important; }
-.dark .bg-indigo-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--indigo-bg-light) !important; }
-.dark .bg-indigo-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--indigo-bg-dark) !important; }
-
-.dark .bg-pink-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--pink-bg-light) !important; }
-.dark .bg-pink-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--pink-bg-light) !important; }
-.dark .bg-pink-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--pink-bg-dark) !important; }
-
-.dark .bg-red-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--red-bg-light) !important; }
-.dark .bg-red-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--red-bg-light) !important; }
-.dark .bg-red-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--red-bg-dark) !important; }
-
-.dark .bg-yellow-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--yellow-bg-light) !important; }
-.dark .bg-yellow-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--yellow-bg-light) !important; }
-.dark .bg-yellow-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--yellow-bg-dark) !important; }
-
-.dark .bg-cyan-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--cyan-bg-light) !important; }
-.dark .bg-cyan-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--cyan-bg-light) !important; }
-.dark .bg-cyan-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--cyan-bg-dark) !important; }
-
-.dark .bg-emerald-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--emerald-bg-light) !important; }
-.dark .bg-emerald-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--emerald-bg-light) !important; }
-.dark .bg-emerald-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--emerald-bg-dark) !important; }
-
-.dark .bg-rose-50:not([class*="from-"]):not([class*="to-"]) { background-color: var(--rose-bg-light) !important; }
-.dark .bg-rose-100:not([class*="from-"]):not([class*="to-"]) { background-color: var(--rose-bg-light) !important; }
-.dark .bg-rose-200:not([class*="from-"]):not([class*="to-"]) { background-color: var(--rose-bg-dark) !important; }
-
-/* Tab Text Colors */
-.dark .text-orange-600, .dark .text-orange-700, .dark .text-orange-800 { color: var(--orange-text) !important; }
-.dark .text-purple-600, .dark .text-purple-700, .dark .text-purple-800 { color: var(--purple-text) !important; }
-.dark .text-teal-600, .dark .text-teal-700, .dark .text-teal-800 { color: var(--teal-text) !important; }
-.dark .text-blue-600, .dark .text-blue-700, .dark .text-blue-800 { color: var(--blue-text) !important; }
-.dark .text-green-600, .dark .text-green-700, .dark .text-green-800 { color: var(--green-text) !important; }
-.dark .text-indigo-600, .dark .text-indigo-700, .dark .text-indigo-800 { color: var(--indigo-text) !important; }
-.dark .text-pink-600, .dark .text-pink-700, .dark .text-pink-800 { color: var(--pink-text) !important; }
-.dark .text-red-600, .dark .text-red-700, .dark .text-red-800 { color: var(--red-text) !important; }
-.dark .text-yellow-600, .dark .text-yellow-700, .dark .text-yellow-800 { color: var(--yellow-text) !important; }
-.dark .text-cyan-600, .dark .text-cyan-700, .dark .text-cyan-800 { color: var(--cyan-text) !important; }
-.dark .text-emerald-600, .dark .text-emerald-700, .dark .text-emerald-800 { color: var(--emerald-text) !important; }
-.dark .text-rose-600, .dark .text-rose-700, .dark .text-rose-800 { color: var(--rose-text) !important; }
-
-/* Card adjustments */
-.dark .bg-white {
-  background-color: var(--card-background) !important;
+.font-serif {
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-.dark .border {
-  border-color: var(--border) !important;
+.font-mono {
+  font-family: 'Courier New', Courier, monospace;
 }
 
-/* Input styles */
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: #333;
-  color: #f3f4f6;
-  border-color: #555;
+.font-comic {
+  font-family: 'Comic Neue', 'Comic Sans MS', cursive;
 }
 
-/* Table styles - with exceptions for themed tables */
-.dark table th:not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-green"]):not([class*="text-red"]):not([class*="text-purple"]):not([class*="text-yellow"]):not([class*="text-cyan"]):not([class*="text-orange"]):not([class*="text-pink"]):not([class*="text-indigo"]):not([class*="text-teal"]):not([class*="text-emerald"]):not([class*="text-rose"]) {
-  color: #f3f4f6;
-}
+/* ============================================
+   FONT SIZE SYSTEM
+   ============================================ */
 
-.dark table td:not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-green"]):not([class*="text-red"]):not([class*="text-purple"]):not([class*="text-yellow"]):not([class*="text-cyan"]):not([class*="text-orange"]):not([class*="text-pink"]):not([class*="text-indigo"]):not([class*="text-teal"]):not([class*="text-emerald"]):not([class*="text-rose"]) {
-  color: #e5e7eb;
-}
-
-/* Year Selector */
-.dark .year-selector-sidebar {
-  background-color: #222;
-  border-color: #444;
-}
-
-/* ENHANCED DARK MODE CHART STYLES */
-/* Removed brightness filter - using theme-aware colors instead */
-
-/* Text elements use theme-aware colors directly */
-
-
-/* Make tooltip background darker in dark mode */
-.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background-color: #1f2937 !important;
-  border-color: #374151 !important;
-}
-
-.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
-  color: #f3f4f6 !important;
-}
-
-.dark .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item {
-  color: #e5e7eb !important;
-}
-
-
-/* Pie sectors use theme-aware colors directly - no filter needed */
-
-/* Force legend text to use our theme colors instead of auto-generated colors */
-.dark .recharts-legend-item-text {
-  color: inherit !important;
-}
-
-.recharts-legend-item-text {
-  color: inherit !important;
-}
-
-.dark .recharts-bar-rectangle {
-  filter: brightness(1.3);
-}
-
-/* Make chart areas more distinct */
-.dark .recharts-area {
-  filter: brightness(1.3);
-}
-
-/* Fix specific elements like the time-of-day, day-of-week, and seasonal section charts */
-.dark #timeOfDay .recharts-bar-rectangle,
-.dark #dayOfWeek .recharts-bar-rectangle,
-.dark #seasonal .recharts-bar-rectangle {
-  fill-opacity: 0.9;
-}
-
-/* Fix for line charts */
-.dark .recharts-line {
-  stroke-width: 2.5px;
-}
-
-.dark .recharts-line-curve {
-  filter: brightness(1.5);
-}
-
-/* Fix for active dots in charts */
-.dark .recharts-active-dot {
-  filter: brightness(1.7);
-}
-
-
-
-/* Fix loading animation to not change in dark mode */
-.dark .animate-rock {
-  filter: none; /* Remove the inversion filter */
-}
-
-/* Existing animations */
-@keyframes rock {
-  0%, 100% { transform: rotate(-5deg); }
-  50% { transform: rotate(5deg); }
-}
-
-.animate-rock {
-  animation: rock 1s ease-in-out infinite;
-  transform-origin: center bottom;
-}
-
-@keyframes rainbow {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(360deg); }
-}
-
-.animate-rainbow {
-  color: #ff0000;
-  animation: rainbow 2s linear infinite;
-}
-
-/* Override: Don't hide scrollbars on desktop - we want them styled */
-/* Removed the desktop scrollbar hiding rule to allow styled scrollbars */
-
-/* Specific styling for main tabs scrollbar */
-.main-tabs-scrollbar::-webkit-scrollbar {
-  width: 4px !important;
-  height: 4px !important;
-}
-
-.main-tabs-scrollbar::-webkit-scrollbar-track {
-  background: rgba(243, 244, 246, 0.5) !important;
-  border-radius: 8px !important;
-}
-
-.main-tabs-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.9) !important;
-  border-radius: 8px !important;
-}
-
-.main-tabs-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(147, 51, 234, 1) !important;
-}
-
-/* Dark mode for main tabs scrollbar */
-.dark .main-tabs-scrollbar::-webkit-scrollbar-track {
-  background: rgba(31, 41, 55, 0.5) !important;
-}
-
-.dark .main-tabs-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.9) !important;
-}
-
-.dark .main-tabs-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(109, 40, 217, 1) !important;
-}
-
-/* Mobile and general fallback scrollbar styling */
-@media not all and (hover: hover) and (pointer: fine) {
-  /* Mobile devices - keep native styling */
-  ::-webkit-scrollbar {
-    display: none; /* Let mobile use native overlay scrollbars */
-  }
-}
-
-/* Global WebKit scrollbar styling for all browsers (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(243, 244, 246, 0.6);
-  border-radius: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.8);
-  border-radius: 6px;
-  border: 2px solid rgba(243, 244, 246, 0.6);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(147, 51, 234, 0.9);
-}
-
-::-webkit-scrollbar-corner {
-  background: rgba(243, 244, 246, 0.6);
-}
-
-/* Dark mode scrollbar */
-.dark ::-webkit-scrollbar-track {
-  background: rgba(31, 41, 55, 0.6);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.8);
-  border: 2px solid rgba(31, 41, 55, 0.6);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(109, 40, 217, 0.9);
-}
-
-.dark ::-webkit-scrollbar-corner {
-  background: rgba(31, 41, 55, 0.6);
-}
-
-/* Firefox scrollbar styling */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(168, 85, 247, 0.8) rgba(243, 244, 246, 0.3);
-}
-
-.dark * {
-  scrollbar-color: rgba(124, 58, 237, 0.8) rgba(31, 41, 55, 0.3);
-}
-
-/* Font Size Settings */
 :root {
   --font-scale-small: 0.875;
   --font-scale-medium: 1;
@@ -494,339 +64,93 @@ body {
   --font-scale-xlarge: 1.25;
 }
 
-/* Small font size (like upload page) */
-.font-small {
-  --tw-text-opacity: 1;
-}
-.font-small * {
-  font-size: calc(var(--tw-text-base) * var(--font-scale-small)) !important;
-}
-.font-small .text-xs { font-size: 0.625rem !important; }
-.font-small .text-sm { font-size: 0.75rem !important; }
-.font-small .text-base { font-size: 0.875rem !important; }
-.font-small .text-lg { font-size: 1rem !important; }
-.font-small .text-xl { font-size: 1.125rem !important; }
-.font-small .text-2xl { font-size: 1.25rem !important; }
-.font-small .text-3xl { font-size: 1.5rem !important; }
-.font-small .text-4xl { font-size: 1.875rem !important; }
+.text-small { font-size: calc(1rem * var(--font-scale-small)); }
+.text-medium { font-size: calc(1rem * var(--font-scale-medium)); }
+.text-large { font-size: calc(1rem * var(--font-scale-large)); }
+.text-xlarge { font-size: calc(1rem * var(--font-scale-xlarge)); }
 
-/* Medium font size (default) */
-.font-medium {
-  /* Uses default Tailwind sizes */
-}
+/* Apply font size globally */
+html.text-small { font-size: 14px; }
+html.text-medium { font-size: 16px; }
+html.text-large { font-size: 18px; }
+html.text-xlarge { font-size: 20px; }
 
-/* Large font size */
-.font-large .text-xs { font-size: 0.875rem !important; }
-.font-large .text-sm { font-size: 1rem !important; }
-.font-large .text-base { font-size: 1.125rem !important; }
-.font-large .text-lg { font-size: 1.25rem !important; }
-.font-large .text-xl { font-size: 1.375rem !important; }
-.font-large .text-2xl { font-size: 1.625rem !important; }
-.font-large .text-3xl { font-size: 1.875rem !important; }
-.font-large .text-4xl { font-size: 2.25rem !important; }
+/* ============================================
+   MINIMAL COMPONENT STYLES
+   ============================================ */
 
-/* Extra Large font size */
-.font-xlarge .text-xs { font-size: 1rem !important; }
-.font-xlarge .text-sm { font-size: 1.125rem !important; }
-.font-xlarge .text-base { font-size: 1.25rem !important; }
-.font-xlarge .text-lg { font-size: 1.375rem !important; }
-.font-xlarge .text-xl { font-size: 1.5rem !important; }
-.font-xlarge .text-2xl { font-size: 1.875rem !important; }
-.font-xlarge .text-3xl { font-size: 2.25rem !important; }
-.font-xlarge .text-4xl { font-size: 2.75rem !important; }
-
-/* Apply font scaling to common elements */
-.font-small p, .font-small span, .font-small div, .font-small button, .font-small input, .font-small label { 
-  font-size: 0.875rem !important; 
-}
-.font-large p, .font-large span, .font-large div, .font-large button, .font-large input, .font-large label { 
-  font-size: 1.125rem !important; 
-}
-.font-xlarge p, .font-xlarge span, .font-xlarge div, .font-xlarge button, .font-xlarge input, .font-xlarge label { 
-  font-size: 1.25rem !important; 
+/* Simple border for everything */
+.border-minimal {
+  border: 1px solid var(--border);
 }
 
-/* Ranking numbers should maintain consistent size regardless of font size setting */
-.ranking-number {
-  font-size: 1rem !important;
+/* Accent color utility */
+.accent {
+  color: var(--accent-color);
 }
 
-.ranking-number-large {
-  font-size: 2rem !important;
+.accent-bg {
+  background-color: var(--accent-color);
+  color: var(--bg);
 }
 
-/* Font Size Slider Styling */
-.slider {
-  -webkit-appearance: none;
-  appearance: none;
+.accent-border {
+  border-color: var(--accent-color);
+}
+
+/* Table striping - very subtle */
+.table-stripe:nth-child(even) {
+  background-color: var(--bg-subtle);
+}
+
+/* Simple focus state */
+*:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   MINIMAL SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
   height: 8px;
-  border-radius: 4px;
-  outline: none;
 }
 
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #4f46e5;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+::-webkit-scrollbar-track {
+  background: var(--bg);
 }
 
-.slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #4f46e5;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 1px solid var(--bg);
 }
 
-/* Dark mode slider styling */
-.dark .slider::-webkit-slider-thumb {
-  background: #6366f1;
-  border: 2px solid #374151;
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
 }
 
-.dark .slider::-moz-range-thumb {
-  background: #6366f1;
-  border: 2px solid #374151;
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg);
 }
 
-/* Font size dropdown letters should not be affected by global font scaling */
-/* Make this extremely specific to override all global font scaling */
-/* Base styles that apply to all indicators */
-[class*="font-size-indicator-"] {
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-  line-height: 1 !important;
-  vertical-align: baseline !important;
-  text-align: center !important;
-  flex-shrink: 0 !important;
-  flex-grow: 0 !important;
+/* ============================================
+   CHART ADJUSTMENTS FOR DARK MODE
+   ============================================ */
+
+.dark .recharts-text {
+  fill: var(--fg);
 }
 
-/* Universal override for all global font scaling */
-.font-small [class*="font-size-indicator-"],
-.font-medium [class*="font-size-indicator-"],
-.font-large [class*="font-size-indicator-"],
-.font-xlarge [class*="font-size-indicator-"] {
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-  line-height: 1 !important;
-  vertical-align: baseline !important;
-  text-align: center !important;
-  flex-shrink: 0 !important;
-  flex-grow: 0 !important;
-}
-.font-size-indicator-small {
-  font-size: 12px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-  line-height: 1 !important;
-  vertical-align: baseline !important;
-  text-align: center !important;
+.dark .recharts-cartesian-axis-line,
+.dark .recharts-cartesian-axis-tick-line {
+  stroke: var(--border);
 }
 
-.font-size-indicator-medium {
-  font-size: 16px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-  line-height: 1 !important;
-  vertical-align: baseline !important;
-  text-align: center !important;
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--fg) !important;
 }
-
-.font-size-indicator-large {
-  font-size: 20px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-  line-height: 1 !important;
-  vertical-align: baseline !important;
-  text-align: center !important;
-}
-
-.font-size-indicator-xlarge {
-  font-size: 24px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-  line-height: 1 !important;
-  vertical-align: baseline !important;
-  text-align: center !important;
-}
-
-/* Override global font classes for these specific indicators */
-.font-small .font-size-indicator-small,
-.font-medium .font-size-indicator-small,
-.font-large .font-size-indicator-small,
-.font-xlarge .font-size-indicator-small {
-  font-size: 12px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-}
-
-.font-small .font-size-indicator-medium,
-.font-medium .font-size-indicator-medium,
-.font-large .font-size-indicator-medium,
-.font-xlarge .font-size-indicator-medium {
-  font-size: 16px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-}
-
-.font-small .font-size-indicator-large,
-.font-medium .font-size-indicator-large,
-.font-large .font-size-indicator-large,
-.font-xlarge .font-size-indicator-large {
-  font-size: 20px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-}
-
-.font-small .font-size-indicator-xlarge,
-.font-medium .font-size-indicator-xlarge,
-.font-large .font-size-indicator-xlarge,
-.font-xlarge .font-size-indicator-xlarge {
-  font-size: 24px !important;
-  width: 24px !important;
-  height: 24px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 24px !important;
-  max-width: 24px !important;
-  min-height: 24px !important;
-  max-height: 24px !important;
-  box-sizing: border-box !important;
-}
-
-/* Loading animation */
-.loading-cake-image {
-  mix-blend-mode: multiply;
-  filter: brightness(1);
-}
-
-/* In dark mode, invert the blend mode strategy */
-.dark .loading-cake-image {
-  mix-blend-mode: screen; /* 'screen' works better on dark backgrounds */
-  filter: brightness(1.5); /* Brighten the image to improve visibility */
-}
-
-/* Loading text color in dark mode */
-.dark .cakeculating-text {
-  color: #60a5fa !important; /* Lighter blue for dark mode */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* Wheel selector gradient overrides for dark mode */
-.dark .bg-gradient-to-b.from-teal-50 { background: linear-gradient(to bottom, #134e4a, transparent) !important; }
-.dark .bg-gradient-to-t.from-teal-50 { background: linear-gradient(to top, #134e4a, transparent) !important; }
-.dark .bg-gradient-to-b.from-purple-50 { background: linear-gradient(to bottom, #581c87, transparent) !important; }
-.dark .bg-gradient-to-t.from-purple-50 { background: linear-gradient(to top, #581c87, transparent) !important; }
-.dark .bg-gradient-to-b.from-pink-50 { background: linear-gradient(to bottom, #831843, transparent) !important; }
-.dark .bg-gradient-to-t.from-pink-50 { background: linear-gradient(to top, #831843, transparent) !important; }
-.dark .bg-gradient-to-b.from-blue-50 { background: linear-gradient(to bottom, #1e3a8a, transparent) !important; }
-.dark .bg-gradient-to-t.from-blue-50 { background: linear-gradient(to top, #1e3a8a, transparent) !important; }
-.dark .bg-gradient-to-b.from-orange-50 { background: linear-gradient(to bottom, #7c2d12, transparent) !important; }
-.dark .bg-gradient-to-t.from-orange-50 { background: linear-gradient(to top, #7c2d12, transparent) !important; }
-.dark .bg-gradient-to-b.from-indigo-50 { background: linear-gradient(to bottom, #312e81, transparent) !important; }
-.dark .bg-gradient-to-t.from-indigo-50 { background: linear-gradient(to top, #312e81, transparent) !important; }
-.dark .bg-gradient-to-b.from-green-50 { background: linear-gradient(to bottom, #14532d, transparent) !important; }

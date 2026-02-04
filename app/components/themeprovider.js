@@ -6,16 +6,25 @@ const ThemeContext = createContext({
   theme: "light",
   setTheme: () => null,
   toggleTheme: () => null,
+  fontFamily: "sans",
+  setFontFamily: () => null,
+  fontSize: "medium",
+  setFontSize: () => null,
+  accentColor: "#3b82f6",
+  setAccentColor: () => null,
 });
 
 export const ThemeProvider = ({ children }) => {
   // Initialize theme to 'light' but will be updated based on system preference
   const [theme, setTheme] = useState("light");
+  const [fontFamily, setFontFamily] = useState("sans");
+  const [fontSize, setFontSize] = useState("medium");
+  const [accentColor, setAccentColor] = useState("#3b82f6");
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
     setMounted(true);
-    
+
     // Check for saved theme preference or use system preference
     const getInitialTheme = () => {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -23,7 +32,7 @@ export const ThemeProvider = ({ children }) => {
         if (storedTheme) {
           return storedTheme;
         }
-        
+
         // If no stored preference, check system preference
         try {
           const userMedia = window.matchMedia('(prefers-color-scheme: dark)');
@@ -34,14 +43,39 @@ export const ThemeProvider = ({ children }) => {
           console.warn("Error checking system theme preference:", e);
         }
       }
-      
+
       // Always default to light mode if nothing else is determined
       return 'light';
     };
-    
+
+    // Load preferences from localStorage
+    const getInitialFontFamily = () => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem('fontFamily') || 'sans';
+      }
+      return 'sans';
+    };
+
+    const getInitialFontSize = () => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem('fontSize') || 'medium';
+      }
+      return 'medium';
+    };
+
+    const getInitialAccentColor = () => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem('accentColor') || '#3b82f6';
+      }
+      return '#3b82f6';
+    };
+
     // Set theme based on preference
     const initialTheme = getInitialTheme();
     setTheme(initialTheme);
+    setFontFamily(getInitialFontFamily());
+    setFontSize(getInitialFontSize());
+    setAccentColor(getInitialAccentColor());
     
     // Set up listener for system preference changes
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -72,20 +106,71 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     if (!mounted) return;
-    
+
     const root = window.document.documentElement;
-    
+
     // Remove both classes to ensure clean slate
     root.classList.remove('light', 'dark');
-    
+
     // Add current theme class
     root.classList.add(theme);
-    
+
     // Save preference to localStorage
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem('theme', theme);
     }
   }, [theme, mounted]);
+
+  // Apply font family
+  useEffect(() => {
+    if (!mounted) return;
+
+    const root = window.document.documentElement;
+
+    // Remove all font family classes
+    root.classList.remove('font-sans', 'font-serif', 'font-mono', 'font-comic');
+
+    // Add current font family class
+    root.classList.add(`font-${fontFamily}`);
+
+    // Save to localStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('fontFamily', fontFamily);
+    }
+  }, [fontFamily, mounted]);
+
+  // Apply font size
+  useEffect(() => {
+    if (!mounted) return;
+
+    const root = window.document.documentElement;
+
+    // Remove all font size classes
+    root.classList.remove('text-small', 'text-medium', 'text-large', 'text-xlarge');
+
+    // Add current font size class
+    root.classList.add(`text-${fontSize}`);
+
+    // Save to localStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('fontSize', fontSize);
+    }
+  }, [fontSize, mounted]);
+
+  // Apply accent color
+  useEffect(() => {
+    if (!mounted) return;
+
+    const root = window.document.documentElement;
+
+    // Set CSS variable for accent color
+    root.style.setProperty('--accent-color', accentColor);
+
+    // Save to localStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('accentColor', accentColor);
+    }
+  }, [accentColor, mounted]);
   
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
@@ -97,7 +182,17 @@ export const ThemeProvider = ({ children }) => {
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{
+      theme,
+      setTheme,
+      toggleTheme,
+      fontFamily,
+      setFontFamily,
+      fontSize,
+      setFontSize,
+      accentColor,
+      setAccentColor
+    }}>
       {children}
     </ThemeContext.Provider>
   );

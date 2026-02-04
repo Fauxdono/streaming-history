@@ -22,6 +22,7 @@ import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import GoogleDriveSync from './GoogleDriveSync.js';
 import FixedSettingsBar from './FixedSettingsBar.js';
+import SettingsPanel from './SettingsPanel.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -151,14 +152,14 @@ const SpotifyAnalyzer = ({
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-blue-700' : 'border-blue-200',
         borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400',
-        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-blue-300'
+        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-[var(--border)]'
       },
       cyan: {
         bg: isDarkMode ? 'bg-black' : 'bg-cyan-50',
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-cyan-700' : 'border-cyan-200',
         borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400',
-        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-cyan-300'
+        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-[var(--border)]'
       },
       green: {
         bg: isDarkMode ? 'bg-black' : 'bg-green-50',
@@ -179,7 +180,7 @@ const SpotifyAnalyzer = ({
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-yellow-700' : 'border-yellow-200',
         borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400',
-        wrapper: isDarkMode ? 'bg-yellow-900 border-yellow-800' : 'bg-yellow-100 border-yellow-300'
+        wrapper: isDarkMode ? 'bg-yellow-900 border-yellow-800' : 'bg-yellow-100 border-[var(--border)]'
       },
       orange: {
         bg: isDarkMode ? 'bg-black' : 'bg-orange-50',
@@ -193,7 +194,7 @@ const SpotifyAnalyzer = ({
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-red-700' : 'border-red-200',
         borderHover: isDarkMode ? 'border-red-500' : 'border-red-400',
-        wrapper: isDarkMode ? 'bg-red-900 border-red-800' : 'bg-red-100 border-red-300'
+        wrapper: isDarkMode ? 'bg-red-900 border-red-800' : 'bg-red-100 border-[var(--border)]'
       },
       indigo: {
         bg: isDarkMode ? 'bg-black' : 'bg-indigo-50',
@@ -207,7 +208,7 @@ const SpotifyAnalyzer = ({
         bgCard: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-emerald-700' : 'border-emerald-200',
         borderHover: isDarkMode ? 'border-emerald-500' : 'border-emerald-400',
-        wrapper: isDarkMode ? 'bg-emerald-900 border-emerald-800' : 'bg-emerald-100 border-emerald-300'
+        wrapper: isDarkMode ? 'bg-emerald-900 border-emerald-800' : 'bg-emerald-100 border-[var(--border)]'
       },
       violet: {
         bg: isDarkMode ? 'bg-black' : 'bg-violet-50',
@@ -2088,7 +2089,7 @@ const SpotifyAnalyzer = ({
               <div className={`mt-6 p-4 rounded-lg border ${
                 isDarkMode 
                   ? 'bg-red-900/20 border-red-600/30 text-red-300' 
-                  : 'bg-red-100 border-red-300 text-red-700'
+                  : 'bg-red-100 border-[var(--border)] text-red-700'
               }`}>
                 <h4 className="font-semibold mb-2">Error:</h4>
                 <p className="text-sm">{error}</p>
@@ -2100,12 +2101,12 @@ const SpotifyAnalyzer = ({
       
       case 'stats':
         return stats ? (
-          <div className={`p-2 sm:p-4 ${statsColors.wrapper} rounded border-2`}>
-            <h3 className={`font-bold mb-2 ${statsColors.text}`}>Processing Statistics:</h3>
+          <div className={`p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
+            <h3 className="text-xl mb-4">Processing Statistics</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <ul className={`space-y-1 ${statsColors.text}`}>
+                  <ul className="space-y-1">
                     <li>Files processed: {stats.totalFiles}</li>
                     <li>Total entries: {stats.totalEntries}</li>
                     <li>Processed songs: {stats.processedSongs}</li>
@@ -2114,20 +2115,20 @@ const SpotifyAnalyzer = ({
                     <li>Plays under 30s: {stats.shortPlays}</li>
                   </ul>
                 </div>
-                <div className={`${statsColors.bgCard} p-3 rounded space-y-2 border ${statsColors.border}`}>
-                  <div className={`font-semibold mb-1 ${statsColors.text}`}>Total Listening Time:</div>
-                  <div className={`text-2xl ${statsColors.text}`}>{formatDuration(stats.totalListeningTime)}</div>
-                  <div className={`text-sm ${statsColors.textLight}`}>(only counting plays over 30 seconds)</div>
-                  
+                <div className={`p-4 border space-y-2 ${isDarkMode ? 'border-white' : 'border-black'}`}>
+                  <div className="mb-1">Total Listening Time:</div>
+                  <div className="text-2xl">{formatDuration(stats.totalListeningTime)}</div>
+                  <div className="text-sm">(only counting plays over 30 seconds)</div>
+
                   {/* Service breakdown */}
                   {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
-                    <div className={`mt-4 pt-3 border-t ${statsColors.border}`}>
-                      <div className={`font-semibold ${statsColors.text} mb-2`}>Listening Time by Service:</div>
+                    <div className={`mt-4 pt-3 border-t ${isDarkMode ? 'border-white' : 'border-black'}`}>
+                      <div className="mb-2">Listening Time by Service:</div>
                       <ul className="space-y-1">
                         {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
                           <li key={service} className="flex justify-between items-center">
-                            <span className={statsColors.textLight}>{service}:</span>
-                            <span className={`font-medium ${statsColors.text}`}>{formatDuration(time)}</span>
+                            <span>{service}:</span>
+                            <span>{formatDuration(time)}</span>
                           </li>
                         ))}
                       </ul>
@@ -2147,23 +2148,23 @@ const SpotifyAnalyzer = ({
       
       case 'artists':
         return (
-          <div className="p-2 sm:p-4 bg-blue-100 rounded border-2 border-blue-300">
+          <div className="p-4 border border-[var(--border)]">
             {/* Title - mobile gets its own row */}
             <div className="block sm:hidden mb-1">
-              <h3 className="font-bold text-blue-700">
+              <h3 className="text-xl">
                 {getArtistsTabLabel()}
               </h3>
             </div>
             
             {/* Desktop layout - title and controls on same row */}
             <div className="hidden sm:flex justify-between items-center mb-2">
-                <h3 className="font-bold text-blue-700">
+                <h3 className="text-xl">
                   {getArtistsTabLabel()}
                 </h3>
                 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <label className="text-blue-700">Show Top</label>
+                    <label className="">Show Top</label>
                     <input
                       type="number"
                       min="1"
@@ -2175,7 +2176,7 @@ const SpotifyAnalyzer = ({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-blue-700">View Mode</label>
+                    <label className="">View Mode</label>
                     <button
                       onClick={() => {
                         const modes = ['grid', 'compact', 'mobile'];
@@ -2183,7 +2184,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2191,10 +2192,10 @@ const SpotifyAnalyzer = ({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-blue-700">Sort by</label>
+                    <label className="">Sort by</label>
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2206,7 +2207,7 @@ const SpotifyAnalyzer = ({
               <div className="block sm:hidden space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <label className="text-blue-700">Top</label>
+                    <label className="">Top</label>
                     <input
                       type="number"
                       min="1"
@@ -2225,7 +2226,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2233,7 +2234,7 @@ const SpotifyAnalyzer = ({
                     
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2248,7 +2249,7 @@ const SpotifyAnalyzer = ({
                   {selectedArtists.map(artist => (
                     <div 
                       key={artist} 
-                      className="flex items-center bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                      className="flex items-center border border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--bg)] px-2 py-1 rounded text-sm"
                     >
                       {artist}
                       <button 
@@ -2267,7 +2268,7 @@ const SpotifyAnalyzer = ({
                     value={artistSearch}
                     onChange={(e) => setArtistSearch(e.target.value)}
                     placeholder="Search artists..."
-                    className="w-full border border-blue-300 rounded px-2 py-1 text-blue-700 focus:border-blue-400 focus:ring-blue-400 focus:outline-none"
+                    className="w-full border border-[var(--border)] rounded px-2 py-1 text-blue-700 focus:border-[var(--accent-color)] focus:ring-[var(--accent-color)] focus:outline-none"
                   />
                   {artistSearch && (
                     <button
@@ -2286,7 +2287,7 @@ const SpotifyAnalyzer = ({
                             setSelectedArtists(prev => [...prev, artist]);
                             setArtistSearch('');
                           }}
-                          className="px-2 py-1 hover:bg-blue-100 dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 cursor-pointer"
+                          className="px-2 py-1 hover:bg-[var(--bg-subtle)] dark:hover:bg-gray-800 text-blue-700 dark:text-blue-300 cursor-pointer"
                         >
                           {artist}
                         </div>
@@ -2305,7 +2306,7 @@ const SpotifyAnalyzer = ({
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     artistSelectionMode
                       ? 'bg-blue-400 text-white border border-blue-400'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 border border-blue-600'
+                      : 'border border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--bg)] hover:bg-blue-700 border border-blue-600'
                   }`}
                 >
                   🎵 View Artist Playlist
@@ -2409,7 +2410,7 @@ const SpotifyAnalyzer = ({
                     })}
                 </div>
               ) : (
-                <div className="p-6 text-center bg-blue-50 rounded border-2 border-blue-300">
+                <div className="p-6 text-center bg-blue-50 rounded border-2 border-[var(--border)]">
                   <h4 className="text-lg font-bold text-blue-700">No artists found</h4>
                   <p className="text-blue-600 mt-2">
                     {yearRangeMode 
@@ -2424,7 +2425,7 @@ const SpotifyAnalyzer = ({
                       setSelectedArtistYear('all');
                       setSelectedArtists([]);
                     }}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="mt-4 px-4 py-2 border border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--bg)] rounded hover:bg-blue-700"
                   >
                     Show All Artists
                   </button>
@@ -2436,23 +2437,23 @@ const SpotifyAnalyzer = ({
       
       case 'albums':
         return (
-          <div className="p-2 sm:p-4 bg-cyan-100 rounded border-2 border-cyan-300 transition-all duration-300">
+          <div className="p-2 sm:p-4 bg-cyan-100 rounded border-2 border-[var(--border)] transition-all duration-300">
             {/* Title - mobile gets its own row */}
             <div className="block sm:hidden mb-1">
-              <h3 className="font-bold text-cyan-700">
+              <h3 className="text-xl">
                 {getAlbumsTabLabel()}
               </h3>
             </div>
             
             {/* Desktop layout - title and controls on same row */}
             <div className="hidden sm:flex justify-between items-center mb-2">
-                <h3 className="font-bold text-cyan-700">
+                <h3 className="text-xl">
                   {getAlbumsTabLabel()}
                 </h3>
                 
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">Show Top</label>
+                    <label className="">Show Top</label>
                     <input
                       type="number"
                       min="1"
@@ -2464,7 +2465,7 @@ const SpotifyAnalyzer = ({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">View Mode</label>
+                    <label className="">View Mode</label>
                     <button
                       onClick={() => {
                         const modes = ['grid', 'compact', 'mobile'];
@@ -2472,7 +2473,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {albumsViewMode === 'grid' ? 'Grid' : 
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2480,10 +2481,10 @@ const SpotifyAnalyzer = ({
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">Sort by</label>
+                    <label className="">Sort by</label>
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2495,7 +2496,7 @@ const SpotifyAnalyzer = ({
               <div className="block sm:hidden space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <label className="text-cyan-700">Top</label>
+                    <label className="">Top</label>
                     <input
                       type="number"
                       min="1"
@@ -2514,7 +2515,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {albumsViewMode === 'grid' ? 'Grid' : 
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2522,7 +2523,7 @@ const SpotifyAnalyzer = ({
                     
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-600 text-white hover:bg-cyan-700"
+                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2726,7 +2727,7 @@ const SpotifyAnalyzer = ({
       
       case 'podcasts':
         return (
-          <div id="podcast-rankings" className="p-2 sm:p-4 bg-red-100 rounded border-2 border-red-300">
+          <div id="podcast-rankings" className="p-4 border border-[var(--border)]">
             <PodcastRankings 
               rawPlayData={rawPlayData} 
               formatDuration={formatDuration}
@@ -2740,9 +2741,9 @@ const SpotifyAnalyzer = ({
       
       case 'playlists':
         return (
-          <div className="p-2 sm:p-4 bg-rose-100 rounded border-2 border-rose-300">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-rose-700">Custom Playlists</h3>
+          <div className={`p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl">Custom Playlists</h3>
             </div>
             <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} />
           </div>
@@ -2750,12 +2751,19 @@ const SpotifyAnalyzer = ({
       
       case 'updates':
         return (
-          <div className="p-2 sm:p-4 bg-fuchsia-100 rounded border-2 border-fuchsia-300">
-            <h3 className="font-bold mb-2 text-fuchsia-700">App Updates</h3>
+          <div className={`p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
+            <h3 className="text-xl mb-4">App Updates</h3>
             <UpdatesSection />
           </div>
         );
-      
+
+      case 'settings':
+        return (
+          <div className="p-2 sm:p-4">
+            <SettingsPanel />
+          </div>
+        );
+
       default:
         return null;
     }
