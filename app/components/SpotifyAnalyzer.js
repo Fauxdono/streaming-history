@@ -2130,7 +2130,7 @@ const SpotifyAnalyzer = ({
                 </div>
                 <div className={
                   colorMode === 'colorful'
-                    ? 'p-4 border space-y-2 bg-white dark:bg-black border-indigo-300 dark:border-indigo-700 rounded text-indigo-700 dark:text-indigo-300'
+                    ? 'p-4 border space-y-2 bg-indigo-50 dark:bg-indigo-950 border-indigo-300 dark:border-indigo-700 rounded text-indigo-700 dark:text-indigo-300'
                     : `p-4 border space-y-2 ${isDarkMode ? 'border-white' : 'border-black'}`
                 }>
                   <div className={
@@ -2181,7 +2181,7 @@ const SpotifyAnalyzer = ({
               {stats && processedData.length > 0 && (
                 <div className={
                   colorMode === 'colorful'
-                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-white dark:bg-black'
+                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-50 dark:bg-indigo-950'
                     : 'mt-4'
                 }>
                   <SupportOptions className="h-full" />
