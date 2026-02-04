@@ -8,10 +8,10 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('upload');
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-400 via-yellow-300 to-orange-300">
-      <SpotifyAnalyzer 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
+    <main className="min-h-screen bg-[var(--bg)]">
+      <SpotifyAnalyzer
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
         TopTabsComponent={TopTabs}
       />
     </main>

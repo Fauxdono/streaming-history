@@ -1,13 +1,20 @@
+"use client";
+
+import { useTheme } from '../themeprovider';
+
 interface CardProps {
   children: React.ReactNode;
   className?: string;
 }
 
 export function Card({ children, className = "" }: CardProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
-   <div className={`bg-white rounded-lg shadow p-3 sm:p-6 w-full max-w-[95vw] sm:max-w-4xl ${className}`}>
-  {children}
-</div>
+    <div className={`border p-4 ${isDark ? 'border-white bg-black' : 'border-black bg-white'} ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -21,7 +28,7 @@ export function CardHeader({ children, className = "" }: CardProps) {
 
 export function CardTitle({ children, className = "" }: CardProps) {
   return (
-    <h2 className={`text-2xl font-bold ${className}`}>
+    <h2 className={`text-xl font-normal ${className}`}>
       {children}
     </h2>
   );

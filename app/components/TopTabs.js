@@ -209,6 +209,8 @@ const TopTabs = ({
         return '🎧';
       case 'playlists':
         return '📋';
+      case 'settings':
+        return '⚙️';
       default:
         return '📄';
     }
@@ -267,9 +269,13 @@ const TopTabs = ({
             ? 'bg-red-50 text-red-600 border-b-2 border-red-600 dark:bg-red-900 dark:text-red-300 dark:border-red-400' 
             : 'bg-red-200 text-red-600 hover:bg-red-300 dark:bg-red-800 dark:text-red-300 dark:hover:bg-red-700';
         case 'playlists':
-          return activeTab === tabId 
-            ? 'bg-rose-50 text-rose-600 border-b-2 border-rose-600 dark:bg-rose-900 dark:text-rose-300 dark:border-rose-400' 
+          return activeTab === tabId
+            ? 'bg-rose-50 text-rose-600 border-b-2 border-rose-600 dark:bg-rose-900 dark:text-rose-300 dark:border-rose-400'
             : 'bg-rose-200 text-rose-600 hover:bg-rose-300 dark:bg-rose-800 dark:text-rose-300 dark:hover:bg-rose-700';
+        case 'settings':
+          return activeTab === tabId
+            ? 'bg-gray-50 text-gray-600 border-b-2 border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-400'
+            : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700';
         default:
           return '';
       }
@@ -382,7 +388,7 @@ const TopTabs = ({
   // Tabs component for reuse
   const TabsContainer = () => (
     <div className="flex gap-1 sm:gap-2 min-w-max text-sm sm:text-base px-2">
-      {stats && <TabButton id="updates" label="Updates" />} 
+      {stats && <TabButton id="updates" label="Updates" />}
       <TabButton id="upload" label="Upload" />
       {stats && <TabButton id="stats" label="Statistics" />}
       {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
@@ -394,6 +400,7 @@ const TopTabs = ({
       {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
       {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
       {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+      <TabButton id="settings" label="Settings" />
     </div>
   );
 
@@ -435,7 +442,7 @@ const TopTabs = ({
           // Vertical layout for left and right positions
           <div className="overflow-y-auto main-tabs-scrollbar max-h-full py-4">
             <div className="flex flex-col gap-1 sm:gap-2 min-h-max text-sm sm:text-base">
-              {stats && <TabButton id="updates" label="Updates" />} 
+              {stats && <TabButton id="updates" label="Updates" />}
               <TabButton id="upload" label="Upload" />
               {stats && <TabButton id="stats" label="Statistics" />}
               {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
@@ -447,6 +454,7 @@ const TopTabs = ({
               {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
               {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
               {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+              <TabButton id="settings" label="Settings" />
             </div>
           </div>
         )}
