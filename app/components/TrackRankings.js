@@ -3,22 +3,24 @@ import { Download } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
 
-const TrackRankings = ({ 
-  processedData = [], 
-  briefObsessions = [], 
-  songsByYear = {}, 
-  formatDuration, 
-  onYearChange, 
+const TrackRankings = ({
+  processedData = [],
+  briefObsessions = [],
+  songsByYear = {},
+  formatDuration,
+  onYearChange,
   initialYear,
-  // Add new props to handle year ranges 
+  // Add new props to handle year ranges
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
   onYearRangeChange,
   onToggleYearRangeMode,
   colorTheme = 'blue',
   backgroundTheme = null, // Optional separate background theme
-  textTheme = null // Optional separate text theme
+  textTheme = null, // Optional separate text theme
+  colorMode = 'minimal'
 }) => {
+  const isColorful = colorMode === 'colorful';
   const [sortBy, setSortBy] = useState('playsInWeek');
   const [showExporter, setShowExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -31,8 +33,6 @@ const TrackRankings = ({
   
   // Helper function to get themed colors (flexible theming system)
   const getThemedColors = () => {
-    // Debug logging to see what props we're receiving
-    console.log('TrackRankings props:', { textTheme, backgroundTheme, colorTheme });
     const textColors = {
       rose: { text: isDarkMode ? 'text-rose-300' : 'text-rose-700', textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600', textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800' },
       blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
@@ -43,10 +43,10 @@ const TrackRankings = ({
 
     const backgroundColors = {
       red: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-red-700' : 'border-red-200',
-        borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-red-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-red-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-red-200',
-        bgSelected: isDarkMode ? 'bg-red-600' : 'bg-red-600', bgSelectedHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-700',
+        bg: isDarkMode ? 'bg-red-900' : 'bg-red-50', border: isDarkMode ? 'border-red-700' : 'border-red-200',
+        borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-red-800' : 'bg-red-100',
+        bgButton: isDarkMode ? 'bg-red-800' : 'bg-red-100', bgButtonHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-200',
+        bgSelected: isDarkMode ? 'bg-red-500' : 'bg-red-600', bgSelectedHover: isDarkMode ? 'hover:bg-red-400' : 'hover:bg-red-700',
         focusRing: isDarkMode ? 'focus:ring-red-400' : 'focus:ring-red-400'
       },
       rose: {
@@ -79,16 +79,29 @@ const TrackRankings = ({
       }
     };
 
+    // Minimal mode colors
+    const minimalColors = {
+      text: '',
+      textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+      textDark: '',
+      bg: isDarkMode ? 'bg-black' : 'bg-white',
+      border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+      borderHover: isDarkMode ? 'border-gray-500' : 'border-gray-400',
+      bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+      bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
+      bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200',
+      bgSelected: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+      bgSelectedHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
+      focusRing: 'focus:ring-gray-400'
+    };
+
+    // Return minimal colors if not in colorful mode
+    if (!isColorful) {
+      return minimalColors;
+    }
+
     const textColorObj = textColors[textTheme] || textColors.rose;
     const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.red;
-
-    console.log('Selected colors:', { 
-      textTheme, 
-      backgroundTheme, 
-      textColorObj, 
-      backgroundColorObj,
-      finalColors: { ...textColorObj, ...backgroundColorObj }
-    });
 
     return { ...textColorObj, ...backgroundColorObj };
   };

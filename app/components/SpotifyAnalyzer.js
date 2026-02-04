@@ -2901,12 +2901,17 @@ const SpotifyAnalyzer = ({
       
       case 'tracks':
         return (
-          <div className={`p-2 sm:p-4 ${tracksColors.wrapper} rounded border-2`}>
-            <TrackRankings 
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-red-100 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <TrackRankings
               processedData={processedData}
               formatDuration={formatDuration}
               textTheme={tracksTextTheme}
               backgroundTheme={tracksBackgroundTheme}
+              colorMode={colorMode}
             />
           </div>
         );
