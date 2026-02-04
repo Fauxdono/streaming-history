@@ -13,4 +13,6 @@ module.exports = withPWA({
   images: {
     domains: [],
   },
+  // Empty turbopack config to acknowledge we're using webpack for next-pwa
+  turbopack: {},
 });
