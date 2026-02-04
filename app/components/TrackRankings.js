@@ -34,19 +34,20 @@ const TrackRankings = ({
   // Helper function to get themed colors (flexible theming system)
   const getThemedColors = () => {
     const textColors = {
-      rose: { text: isDarkMode ? 'text-rose-300' : 'text-rose-700', textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600', textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800' },
-      blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
-      red: { text: isDarkMode ? 'text-red-300' : 'text-red-700', textLight: isDarkMode ? 'text-red-400' : 'text-red-600', textDark: isDarkMode ? 'text-red-200' : 'text-red-800' },
-      amber: { text: isDarkMode ? 'text-amber-300' : 'text-amber-700', textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600', textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800' },
-      yellow: { text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700', textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600', textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800' }
+      rose: { text: isDarkMode ? 'text-rose-300' : 'text-rose-700', textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600', textLighter: isDarkMode ? 'text-rose-500' : 'text-rose-500', textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800' },
+      blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600', textLighter: isDarkMode ? 'text-blue-500' : 'text-blue-500', textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800' },
+      red: { text: isDarkMode ? 'text-red-300' : 'text-red-700', textLight: isDarkMode ? 'text-red-400' : 'text-red-600', textLighter: isDarkMode ? 'text-red-500' : 'text-red-500', textDark: isDarkMode ? 'text-red-200' : 'text-red-800' },
+      amber: { text: isDarkMode ? 'text-amber-300' : 'text-amber-700', textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600', textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500', textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800' },
+      yellow: { text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700', textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600', textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500', textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800' }
     };
 
     const backgroundColors = {
       red: {
-        bg: isDarkMode ? 'bg-red-900' : 'bg-red-50', border: isDarkMode ? 'border-red-600' : 'border-red-300',
+        bg: isDarkMode ? 'bg-red-900' : 'bg-red-50', bgHover: isDarkMode ? 'hover:bg-red-800' : 'hover:bg-red-100',
+        border: isDarkMode ? 'border-red-600' : 'border-red-300',
         borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-red-800' : 'bg-red-100',
         bgButton: isDarkMode ? 'bg-red-700 text-red-100' : 'bg-red-200 text-red-800', bgButtonHover: isDarkMode ? 'hover:bg-red-600' : 'hover:bg-red-300',
-        bgButtonLight: isDarkMode ? 'bg-red-800' : 'bg-red-100', bgButtonLightHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-200',
+        bgButtonLight: isDarkMode ? 'bg-red-800 text-red-200' : 'bg-red-100 text-red-700', bgButtonLightHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-200',
         bgSelected: isDarkMode ? 'bg-red-500 text-white' : 'bg-red-600 text-white', bgSelectedHover: isDarkMode ? 'hover:bg-red-400' : 'hover:bg-red-700',
         focusRing: isDarkMode ? 'focus:ring-red-400' : 'focus:ring-red-400',
         focus: isDarkMode ? 'border-red-600 bg-red-800 text-red-100' : 'border-red-300 bg-red-50 text-red-800'
@@ -83,17 +84,19 @@ const TrackRankings = ({
 
     // Minimal mode colors
     const minimalColors = {
-      text: '',
+      text: isDarkMode ? 'text-white' : 'text-black',
       textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
-      textDark: '',
+      textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+      textDark: isDarkMode ? 'text-white' : 'text-black',
       bg: isDarkMode ? 'bg-black' : 'bg-white',
+      bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
       border: isDarkMode ? 'border-white' : 'border-black',
       borderHover: isDarkMode ? 'border-gray-400' : 'border-gray-600',
       bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
       bgButton: isDarkMode ? 'bg-black border border-white text-white' : 'bg-white border border-black text-black',
       bgButtonHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
-      bgButtonLight: isDarkMode ? 'bg-gray-900 border border-gray-600' : 'bg-gray-100 border border-gray-300',
-      bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200',
+      bgButtonLight: isDarkMode ? 'bg-black border border-gray-600 text-gray-300' : 'bg-white border border-gray-400 text-gray-600',
+      bgButtonLightHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
       bgSelected: isDarkMode ? 'bg-white text-black border border-white' : 'bg-black text-white border border-black',
       bgSelectedHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
       focusRing: 'focus:ring-gray-400',
@@ -387,7 +390,7 @@ return (
   <div className="w-full">
 
     <div className="flex justify-between items-center mb-2">
-      <h3 className={`text-xl ${getThemedColors().text}`}>
+      <h3 className={`text-xl font-normal ${getThemedColors().text}`}>
         {yearRangeMode && yearRange.startYear && yearRange.endYear
           ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
           : initialYear === 'all' 
@@ -483,7 +486,7 @@ return (
     )}
 
     {/* Results Table */}
-    <div className={`border rounded-lg p-3 sm:p-4 ${getThemedColors().bg}`}>
+    <div className={`border rounded-lg p-3 sm:p-4 ${getThemedColors().bg} ${getThemedColors().border}`}>
       <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
         <div className={`${getThemedColors().text} font-medium text-sm`}>
           {yearRangeMode && yearRange.startYear && yearRange.endYear
@@ -501,7 +504,7 @@ return (
         <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
           <table className={`w-full border-collapse ${getThemedColors().bg}`}>
             <thead>
-              <tr className={`border-b ${getThemedColors().bg}`}>
+              <tr className={`border-b ${getThemedColors().border} ${getThemedColors().bg}`}>
                 {!isMobile && <th className={`p-2 text-left ${getThemedColors().text}`}>Rank</th>}
                 <th className={`p-2 text-left ${getThemedColors().text}`}>
                   {isMobile ? "Track Info" : "Track"}
@@ -535,7 +538,7 @@ return (
             <tbody className={getThemedColors().bg}>
               {filteredObsessions.length > 0 ? (
                 filteredObsessions.map((obsession, index) => (
-                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getThemedColors().bg} ${getThemedColors().bgHover}`}>
+                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getThemedColors().border} ${getThemedColors().bg} ${getThemedColors().bgHover}`}>
                     {renderObsessionColumns(obsession, index)}
                   </tr>
                 ))
