@@ -2248,7 +2248,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {artistsViewMode === 'grid' ? 'Grid' :
@@ -2263,7 +2263,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2302,7 +2302,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {artistsViewMode === 'grid' ? 'Grid' :
@@ -2314,7 +2314,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2333,13 +2333,13 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'flex items-center border border-blue-500 bg-blue-500 text-white px-2 py-1 rounded text-sm'
-                          : 'flex items-center border border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--bg)] px-2 py-1 rounded text-sm'
+                          : `flex items-center border px-2 py-1 rounded text-sm ${isDarkMode ? 'border-white bg-white text-black' : 'border-black bg-black text-white'}`
                       }
                     >
                       {artist}
                       <button
                         onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                        className="ml-2 text-white hover:text-blue-200"
+                        className={colorMode === 'colorful' ? 'ml-2 text-white hover:text-blue-200' : 'ml-2 hover:opacity-70'}
                       >
                         ×
                       </button>
@@ -2414,7 +2414,7 @@ const SpotifyAnalyzer = ({
                       : `px-4 py-2 rounded-lg font-medium transition-colors ${
                           artistSelectionMode
                             ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
-                            : 'border border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--bg)] hover:opacity-90'
+                            : (isDarkMode ? 'border border-white bg-white text-black hover:bg-gray-200' : 'border border-black bg-black text-white hover:bg-gray-800')
                         }`
                   }
                 >
@@ -2569,7 +2569,7 @@ const SpotifyAnalyzer = ({
                     className={
                       colorMode === 'colorful'
                         ? 'mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-                        : 'mt-4 px-4 py-2 border border-[var(--accent-color)] bg-[var(--accent-color)] text-[var(--bg)] rounded hover:opacity-90'
+                        : `mt-4 px-4 py-2 rounded ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                     }
                   >
                     Show All Artists
@@ -2637,7 +2637,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {albumsViewMode === 'grid' ? 'Grid' :
@@ -2652,7 +2652,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2691,7 +2691,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {albumsViewMode === 'grid' ? 'Grid' :
@@ -2703,7 +2703,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'px-3 py-1 rounded text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : 'px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90'
+                          : `px-3 py-1 rounded text-sm font-medium transition-colors ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
                       }
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
