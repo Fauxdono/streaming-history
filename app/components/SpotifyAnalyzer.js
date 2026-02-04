@@ -2184,7 +2184,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2195,7 +2195,7 @@ const SpotifyAnalyzer = ({
                     <label className="">Sort by</label>
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2226,7 +2226,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {artistsViewMode === 'grid' ? 'Grid' : 
                        artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2234,7 +2234,7 @@ const SpotifyAnalyzer = ({
                     
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2473,7 +2473,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {albumsViewMode === 'grid' ? 'Grid' : 
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2484,7 +2484,7 @@ const SpotifyAnalyzer = ({
                     <label className="">Sort by</label>
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>
@@ -2515,7 +2515,7 @@ const SpotifyAnalyzer = ({
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setAlbumsViewMode(modes[nextIndex]);
                       }}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {albumsViewMode === 'grid' ? 'Grid' : 
                        albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -2523,7 +2523,7 @@ const SpotifyAnalyzer = ({
                     
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className="px-3 py-1 border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg)] transition-colors"
+                      className="px-3 py-1 rounded text-sm font-medium transition-colors bg-[var(--accent-color)] text-white hover:opacity-90"
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                     </button>

@@ -18,18 +18,16 @@ export const Button = ({
   const isDark = theme === 'dark';
 
   const getVariantClasses = () => {
-    const base = 'px-4 py-2 border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+    const base = 'px-3 py-1 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium';
 
     const variants = {
-      default: isDark
-        ? 'border-white text-white hover:bg-white hover:text-black'
-        : 'border-black text-black hover:bg-black hover:text-white',
+      default: 'bg-[var(--accent-color)] text-white hover:opacity-90',
 
-      accent: 'border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-white',
+      accent: 'bg-[var(--accent-color)] text-white hover:opacity-90',
 
       ghost: isDark
-        ? 'border-transparent text-white hover:border-white'
-        : 'border-transparent text-black hover:border-black',
+        ? 'bg-transparent text-white hover:bg-white/10'
+        : 'bg-transparent text-black hover:bg-black/10',
     };
 
     return `${base} ${variants[variant] || variants.default}`;
