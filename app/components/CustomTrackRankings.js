@@ -211,20 +211,20 @@ const CustomTrackRankings = ({
 
   // Minimal mode colors (black/white)
   const getMinimalColors = () => ({
-    text: '',
+    text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
-    textLighter: 'text-gray-500',
-    textDark: '',
+    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+    textDark: isDarkMode ? 'text-white' : 'text-black',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
     bgMed: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
-    bgDark: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-    bgDarkHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
-    border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    bgDark: isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black',
+    bgDarkHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
+    border: isDarkMode ? 'border-white' : 'border-black',
     borderDark: isDarkMode ? 'border-white' : 'border-black',
     hoverBg: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
-    hoverBgDark: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
-    focusBorder: 'focus:border-gray-400',
+    hoverBgDark: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
+    focusBorder: isDarkMode ? 'focus:border-white' : 'focus:border-black',
     focusRing: 'focus:ring-gray-400',
     hoverText: isDarkMode ? 'hover:text-gray-300' : 'hover:text-gray-700'
   });
@@ -1320,14 +1320,14 @@ return (
   <div className="space-y-4">
     {/* Title - mobile gets its own row */}
     <div className="block sm:hidden mb-1">
-      <h3 className={`font-bold ${colors.text}`}>
+      <h3 className={`text-xl font-normal ${colors.text}`}>
         {getPageTitle()}
       </h3>
     </div>
-    
+
     {/* Desktop layout - title and controls on same row */}
     <div className="hidden sm:flex justify-between items-center mb-2">
-      <h3 className={`font-bold ${colors.text}`}>
+      <h3 className={`text-xl font-normal ${colors.text}`}>
         {getPageTitle()}
       </h3>
       
@@ -1353,18 +1353,18 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
           >
-            {viewMode === 'grid' ? 'Grid' : 
+            {viewMode === 'grid' ? 'Grid' :
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
           </button>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <label className={`${colors.text}`}>Sort by</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1396,18 +1396,18 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
           >
-            {viewMode === 'grid' ? 'Grid' : 
+            {viewMode === 'grid' ? 'Grid' :
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
           </button>
         </div>
-        
+
         <div className="flex items-center gap-1">
           <label className={`${colors.text} text-sm`}>Sort</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} text-white ${colors.bgDarkHover}`}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
@@ -1476,9 +1476,9 @@ return (
       {/* Selected filters display */}
       <div className="flex flex-wrap gap-2 mt-2">
         {selectedArtists.map(artist => (
-          <div 
-            key={artist} 
-            className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
+          <div
+            key={artist}
+            className={`flex items-center ${colors.bgDark} px-2 py-1 rounded text-xs`}
           >
             {artist}
             <button 
@@ -1548,7 +1548,7 @@ return (
           onClick={() => setShowOmittedTab(false)}
           className={`px-4 py-2 rounded-t text-sm ${
             !showOmittedTab
-              ? `${colors.bgDark} text-white`
+              ? colors.bgDark
               : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
@@ -1558,7 +1558,7 @@ return (
           onClick={() => setShowOmittedTab(true)}
           className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
             showOmittedTab
-              ? `${colors.bgDark} text-white`
+              ? colors.bgDark
               : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
           }`}
         >
@@ -1568,7 +1568,7 @@ return (
       </div>
       <button
         onClick={() => setShowPlaylistExporter(true)}
-        className={`flex items-center gap-1 px-3 py-1 ${colors.bgDark} text-white rounded text-sm ${colors.bgDarkHover} transition-colors`}
+        className={`flex items-center gap-1 px-3 py-1 ${colors.bgDark} rounded text-sm ${colors.bgDarkHover} transition-colors`}
       >
         <Download size={14} className="hidden sm:inline" />
         Export M3u
@@ -1577,17 +1577,17 @@ return (
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
-        <h3 className={`font-bold ${colors.text} mb-4`}>Omitted Content</h3>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
+        <h3 className={`text-xl font-normal ${colors.text} mb-4`}>Omitted Content</h3>
         
         {omittedArtists.length > 0 && (
           <div className="mb-4">
             <h4 className={`font-semibold ${colors.textLight} mb-2`}>Omitted Artists</h4>
             <div className="flex flex-wrap gap-2">
               {omittedArtists.map(artist => (
-                <div 
-                  key={artist} 
-                  className={`flex items-center ${colors.bgDark} text-white px-2 py-1 rounded text-xs`}
+                <div
+                  key={artist}
+                  className={`flex items-center ${colors.bgDark} px-2 py-1 rounded text-xs`}
                 >
                   {artist}
                   <button 
@@ -1606,9 +1606,9 @@ return (
           <div>
             <h4 className={`font-semibold ${colors.textLight} mb-2`}>Omitted Songs</h4>
             <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
-              <table className="w-full border-collapse">
+              <table className={`w-full border-collapse ${colors.bg}`}>
                 <thead>
-                  <tr className="border-b">
+                  <tr className={`border-b ${colors.border}`}>
                     <th className={`p-2 text-left ${colors.text}`}>Track</th>
                     <th className={`p-2 text-left ${colors.text}`}>Artist</th>
                     <th className={`p-2 text-left ${colors.text}`}>Album</th>
@@ -1617,14 +1617,14 @@ return (
                 </thead>
                 <tbody>
                   {omittedSongs.map(song => (
-                    <tr key={song.key} className={`border-b hover:${colors.bg}`}>
+                    <tr key={song.key} className={`border-b ${colors.border} hover:${colors.hoverBg}`}>
                       <td className={`p-2 ${colors.text}`}>{song.trackName}</td>
                       <td className={`p-2 ${colors.text}`}>{song.artist}</td>
                       <td className={`p-2 ${colors.text}`}>{song.albumName}</td>
                       <td className="p-2 text-right">
                         <button
                           onClick={() => unomitSong(song.key)}
-                          className={`px-2 py-1 ${colors.bgDark} text-white rounded text-xs ${colors.bgDarkHover}`}
+                          className={`px-2 py-1 ${colors.bgDark} rounded text-xs ${colors.bgDarkHover}`}
                         >
                           Un-omit
                         </button>
@@ -1645,7 +1645,7 @@ return (
       </div>
     ) : (
       /* Results section with date range info */
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div className={`${colors.text} font-medium text-sm`}>
             Date Range: <span className={`${colors.textDark}`}>{getFormattedDateRange()}</span>
