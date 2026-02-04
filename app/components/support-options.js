@@ -26,10 +26,10 @@ const SupportOptions = ({ className = "", colorMode = "minimal" }) => {
 
   const codeBg = isColorful
     ? 'bg-indigo-200 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100'
-    : 'bg-gray-100 text-blue-700';
+    : 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white';
   const copyBtnColor = isColorful
     ? 'text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200'
-    : 'text-gray-500 hover:text-blue-500';
+    : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white';
 
   const renderPlatformContent = () => {
     switch (activePlatform) {
@@ -133,22 +133,22 @@ const SupportOptions = ({ className = "", colorMode = "minimal" }) => {
     : '';
   const textPrimary = isColorful
     ? 'text-indigo-700 dark:text-indigo-300'
-    : 'text-purple-600';
+    : 'text-black dark:text-white';
   const textSecondary = isColorful
     ? 'text-indigo-600 dark:text-indigo-400'
-    : 'text-purple-500 hover:text-purple-700';
+    : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white';
   const contentBg = isColorful
     ? 'bg-indigo-50 dark:bg-indigo-800 border-indigo-200 dark:border-indigo-600'
-    : 'bg-white border-gray-200';
+    : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700';
   const footerText = isColorful
     ? 'text-indigo-600 dark:text-indigo-400'
-    : 'text-gray-600';
+    : 'text-gray-600 dark:text-gray-400';
   const pillActive = isColorful
     ? 'bg-indigo-500 text-white'
-    : 'bg-purple-500 text-white';
+    : 'bg-black dark:bg-white text-white dark:text-black';
   const pillInactive = isColorful
     ? 'bg-indigo-200 dark:bg-indigo-700 text-indigo-700 dark:text-indigo-200 hover:bg-indigo-300 dark:hover:bg-indigo-600'
-    : 'bg-purple-100 text-purple-700 hover:bg-purple-200';
+    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700';
 
   return (
     <Card className={`w-full ${cardBg} ${className}`}>
