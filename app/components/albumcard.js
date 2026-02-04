@@ -2,15 +2,32 @@ import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Music } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 
-const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan' }) => {
+const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan', colorMode = 'minimal' }) => {
   const [showTracks, setShowTracks] = useState(false);
-  
+
   // Get theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
-  
+  const isColorful = colorMode === 'colorful';
+
   // Helper function to get themed colors
   const getThemedColors = () => {
+    // Minimal mode: black/white only
+    if (!isColorful) {
+      return {
+        text: '',
+        textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+        bg: isDarkMode ? 'bg-black' : 'bg-white',
+        border: isDarkMode ? 'border-white' : 'border-black',
+        borderHover: isDarkMode ? 'border-gray-400' : 'border-gray-600',
+        bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
+        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
+      };
+    }
+
+    // Colorful mode: use theme colors
     const textColors = {
       cyan: { text: isDarkMode ? 'text-cyan-300' : 'text-cyan-700', textLight: isDarkMode ? 'text-cyan-400' : 'text-cyan-600' },
       blue: { text: isDarkMode ? 'text-blue-300' : 'text-blue-700', textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600' },
@@ -24,10 +41,10 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
 
     const backgroundColors = {
       cyan: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-cyan-700' : 'border-cyan-200',
-        borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-cyan-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-cyan-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-cyan-100'
+        bg: isDarkMode ? 'bg-cyan-800' : 'bg-cyan-50', border: isDarkMode ? 'border-cyan-600' : 'border-cyan-300',
+        borderHover: isDarkMode ? 'border-cyan-400' : 'border-cyan-400', bgLight: isDarkMode ? 'bg-cyan-900' : 'bg-cyan-100',
+        bgButton: isDarkMode ? 'bg-cyan-700' : 'bg-cyan-100', bgStripe: isDarkMode ? 'bg-cyan-900' : 'bg-cyan-100',
+        bgHeader: isDarkMode ? 'bg-cyan-700' : 'bg-cyan-200'
       },
       blue: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-blue-700' : 'border-blue-200',
