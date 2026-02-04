@@ -30,12 +30,15 @@ export const metadata = {
     ]
   },
   manifest: '/manifest.json',
-  themeColor: '#000000',
   appleWebApp: {
     capable: true,
     title: 'Cakeculator',
     statusBarStyle: 'black-translucent',
   }
+};
+
+export const viewport = {
+  themeColor: '#000000',
 };
 
 export default function RootLayout({ children }) {
