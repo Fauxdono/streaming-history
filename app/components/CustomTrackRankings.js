@@ -28,38 +28,32 @@ const CustomTrackRankings = ({
   const getFlexibleColors = (textTheme, backgroundTheme) => {
     const textColors = {
       violet: {
-        text: 'text-violet-700',
-        textLight: 'text-violet-600', 
-        textLighter: 'text-violet-500',
-        textDark: 'text-violet-800',
-        hoverText: 'hover:text-violet-200'
+        text: isDarkMode ? 'text-violet-300' : 'text-violet-700',
+        textLight: isDarkMode ? 'text-violet-400' : 'text-violet-600',
+        textLighter: isDarkMode ? 'text-violet-500' : 'text-violet-500',
+        textDark: isDarkMode ? 'text-violet-200' : 'text-violet-800',
+        hoverText: isDarkMode ? 'hover:text-violet-100' : 'hover:text-violet-200'
       },
       red: {
-        text: 'text-red-700',
-        textLight: 'text-red-600', 
-        textLighter: 'text-red-500',
-        textDark: 'text-red-800',
-        hoverText: 'hover:text-red-200'
+        text: isDarkMode ? 'text-red-300' : 'text-red-700',
+        textLight: isDarkMode ? 'text-red-400' : 'text-red-600',
+        textLighter: isDarkMode ? 'text-red-500' : 'text-red-500',
+        textDark: isDarkMode ? 'text-red-200' : 'text-red-800',
+        hoverText: isDarkMode ? 'hover:text-red-100' : 'hover:text-red-200'
       },
-      emerald: isDarkMode ? {
-        text: 'text-emerald-200',
-        textLight: 'text-emerald-300',
-        textLighter: 'text-emerald-400',
-        textDark: 'text-emerald-100',
-        hoverText: 'hover:text-emerald-100'
-      } : {
-        text: 'text-emerald-700',
-        textLight: 'text-emerald-600',
-        textLighter: 'text-emerald-500',
-        textDark: 'text-emerald-800',
-        hoverText: 'hover:text-emerald-200'
+      emerald: {
+        text: isDarkMode ? 'text-emerald-300' : 'text-emerald-700',
+        textLight: isDarkMode ? 'text-emerald-400' : 'text-emerald-600',
+        textLighter: isDarkMode ? 'text-emerald-500' : 'text-emerald-500',
+        textDark: isDarkMode ? 'text-emerald-200' : 'text-emerald-800',
+        hoverText: isDarkMode ? 'hover:text-emerald-100' : 'hover:text-emerald-200'
       },
       orange: {
-        text: 'text-orange-700',
-        textLight: 'text-orange-600', 
-        textLighter: 'text-orange-500',
-        textDark: 'text-orange-800',
-        hoverText: 'hover:text-orange-200'
+        text: isDarkMode ? 'text-orange-300' : 'text-orange-700',
+        textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600',
+        textLighter: isDarkMode ? 'text-orange-500' : 'text-orange-500',
+        textDark: isDarkMode ? 'text-orange-200' : 'text-orange-800',
+        hoverText: isDarkMode ? 'hover:text-orange-100' : 'hover:text-orange-200'
       }
     };
 
@@ -90,29 +84,29 @@ const CustomTrackRankings = ({
         focusRing: 'focus:ring-emerald-400'
       },
       violet: {
-        bg: 'bg-violet-50',
-        bgLight: 'bg-violet-100',
-        bgMed: 'bg-violet-200',
-        bgDark: 'bg-violet-600',
-        bgDarkHover: 'hover:bg-violet-700',
-        border: 'border-violet-200',
-        borderDark: 'border-violet-700',
-        hoverBg: 'hover:bg-violet-50',
-        hoverBgDark: 'hover:bg-violet-900',
-        focusBorder: 'focus:border-violet-400',
+        bg: isDarkMode ? 'bg-violet-900' : 'bg-violet-50',
+        bgLight: isDarkMode ? 'bg-violet-800' : 'bg-violet-100',
+        bgMed: isDarkMode ? 'bg-violet-700' : 'bg-violet-200',
+        bgDark: isDarkMode ? 'bg-violet-500' : 'bg-violet-600',
+        bgDarkHover: isDarkMode ? 'hover:bg-violet-400' : 'hover:bg-violet-700',
+        border: isDarkMode ? 'border-violet-600' : 'border-violet-200',
+        borderDark: isDarkMode ? 'border-violet-400' : 'border-violet-700',
+        hoverBg: isDarkMode ? 'hover:bg-violet-800' : 'hover:bg-violet-50',
+        hoverBgDark: isDarkMode ? 'hover:bg-violet-600' : 'hover:bg-violet-900',
+        focusBorder: isDarkMode ? 'focus:border-violet-400' : 'focus:border-violet-400',
         focusRing: 'focus:ring-violet-400'
       },
       orange: {
-        bg: 'bg-orange-50',
-        bgLight: 'bg-orange-100',
-        bgMed: 'bg-orange-200',
-        bgDark: 'bg-orange-600',
-        bgDarkHover: 'hover:bg-orange-700',
-        border: 'border-orange-200',
-        borderDark: 'border-orange-700',
-        hoverBg: 'hover:bg-orange-50',
-        hoverBgDark: 'hover:bg-orange-900',
-        focusBorder: 'focus:border-orange-400',
+        bg: isDarkMode ? 'bg-orange-900' : 'bg-orange-50',
+        bgLight: isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
+        bgMed: isDarkMode ? 'bg-orange-700' : 'bg-orange-200',
+        bgDark: isDarkMode ? 'bg-orange-500' : 'bg-orange-600',
+        bgDarkHover: isDarkMode ? 'hover:bg-orange-400' : 'hover:bg-orange-700',
+        border: isDarkMode ? 'border-orange-600' : 'border-orange-200',
+        borderDark: isDarkMode ? 'border-orange-400' : 'border-orange-700',
+        hoverBg: isDarkMode ? 'hover:bg-orange-800' : 'hover:bg-orange-50',
+        hoverBgDark: isDarkMode ? 'hover:bg-orange-600' : 'hover:bg-orange-900',
+        focusBorder: isDarkMode ? 'focus:border-orange-400' : 'focus:border-orange-400',
         focusRing: 'focus:ring-orange-400'
       }
     };
