@@ -258,6 +258,7 @@ const SpotifyAnalyzer = ({
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
+  const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
@@ -2101,12 +2102,24 @@ const SpotifyAnalyzer = ({
       
       case 'stats':
         return stats ? (
-          <div className={`p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
-            <h3 className="text-xl mb-4">Processing Statistics</h3>
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-4 bg-indigo-100 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
+              : `p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <h3 className={
+              colorMode === 'colorful'
+                ? 'text-xl mb-4 font-bold text-indigo-700 dark:text-indigo-300'
+                : 'text-xl mb-4'
+            }>Processing Statistics</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <ul className="space-y-1">
+                  <ul className={
+                    colorMode === 'colorful'
+                      ? 'space-y-1 text-indigo-700 dark:text-indigo-300'
+                      : 'space-y-1'
+                  }>
                     <li>Files processed: {stats.totalFiles}</li>
                     <li>Total entries: {stats.totalEntries}</li>
                     <li>Processed songs: {stats.processedSongs}</li>
@@ -2115,15 +2128,27 @@ const SpotifyAnalyzer = ({
                     <li>Plays under 30s: {stats.shortPlays}</li>
                   </ul>
                 </div>
-                <div className={`p-4 border space-y-2 ${isDarkMode ? 'border-white' : 'border-black'}`}>
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'p-4 border space-y-2 bg-white dark:bg-black border-indigo-300 dark:border-indigo-700 rounded'
+                    : `p-4 border space-y-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+                }>
                   <div className="mb-1">Total Listening Time:</div>
                   <div className="text-2xl">{formatDuration(stats.totalListeningTime)}</div>
                   <div className="text-sm">(only counting plays over 30 seconds)</div>
 
                   {/* Service breakdown */}
                   {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
-                    <div className={`mt-4 pt-3 border-t ${isDarkMode ? 'border-white' : 'border-black'}`}>
-                      <div className="mb-2">Listening Time by Service:</div>
+                    <div className={
+                      colorMode === 'colorful'
+                        ? 'mt-4 pt-3 border-t border-indigo-300 dark:border-indigo-700'
+                        : `mt-4 pt-3 border-t ${isDarkMode ? 'border-white' : 'border-black'}`
+                    }>
+                      <div className={
+                        colorMode === 'colorful'
+                          ? 'mb-2 font-semibold text-indigo-700 dark:text-indigo-300'
+                          : 'mb-2'
+                      }>Listening Time by Service:</div>
                       <ul className="space-y-1">
                         {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
                           <li key={service} className="flex justify-between items-center">
@@ -2864,6 +2889,8 @@ const SpotifyAnalyzer = ({
           isCollapsed={topTabsCollapsed}
           yearSelectorPosition={yearSelectorPosition}
           position={topTabsPosition}
+          colorMode={colorMode}
+          setColorMode={setColorMode}
         />
       )}
       
