@@ -43,11 +43,13 @@ const TrackRankings = ({
 
     const backgroundColors = {
       red: {
-        bg: isDarkMode ? 'bg-red-900' : 'bg-red-50', border: isDarkMode ? 'border-red-700' : 'border-red-200',
+        bg: isDarkMode ? 'bg-red-900' : 'bg-red-50', border: isDarkMode ? 'border-red-600' : 'border-red-300',
         borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-red-800' : 'bg-red-100',
-        bgButton: isDarkMode ? 'bg-red-800' : 'bg-red-100', bgButtonHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-200',
-        bgSelected: isDarkMode ? 'bg-red-500' : 'bg-red-600', bgSelectedHover: isDarkMode ? 'hover:bg-red-400' : 'hover:bg-red-700',
-        focusRing: isDarkMode ? 'focus:ring-red-400' : 'focus:ring-red-400'
+        bgButton: isDarkMode ? 'bg-red-700 text-red-100' : 'bg-red-200 text-red-800', bgButtonHover: isDarkMode ? 'hover:bg-red-600' : 'hover:bg-red-300',
+        bgButtonLight: isDarkMode ? 'bg-red-800' : 'bg-red-100', bgButtonLightHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-200',
+        bgSelected: isDarkMode ? 'bg-red-500 text-white' : 'bg-red-600 text-white', bgSelectedHover: isDarkMode ? 'hover:bg-red-400' : 'hover:bg-red-700',
+        focusRing: isDarkMode ? 'focus:ring-red-400' : 'focus:ring-red-400',
+        focus: isDarkMode ? 'border-red-600 bg-red-800 text-red-100' : 'border-red-300 bg-red-50 text-red-800'
       },
       rose: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-rose-700' : 'border-rose-200',
@@ -85,14 +87,17 @@ const TrackRankings = ({
       textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
       textDark: '',
       bg: isDarkMode ? 'bg-black' : 'bg-white',
-      border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
-      borderHover: isDarkMode ? 'border-gray-500' : 'border-gray-400',
+      border: isDarkMode ? 'border-white' : 'border-black',
+      borderHover: isDarkMode ? 'border-gray-400' : 'border-gray-600',
       bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
-      bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
-      bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200',
-      bgSelected: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+      bgButton: isDarkMode ? 'bg-black border border-white text-white' : 'bg-white border border-black text-black',
+      bgButtonHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
+      bgButtonLight: isDarkMode ? 'bg-gray-900 border border-gray-600' : 'bg-gray-100 border border-gray-300',
+      bgButtonLightHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-200',
+      bgSelected: isDarkMode ? 'bg-white text-black border border-white' : 'bg-black text-white border border-black',
       bgSelectedHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
-      focusRing: 'focus:ring-gray-400'
+      focusRing: 'focus:ring-gray-400',
+      focus: isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'
     };
 
     // Return minimal colors if not in colorful mode
@@ -382,7 +387,7 @@ return (
   <div className="w-full">
 
     <div className="flex justify-between items-center mb-2">
-      <h3 className={`text-sm sm:text-lg font-bold ${getThemedColors().text}`}>
+      <h3 className={`text-xl ${getThemedColors().text}`}>
         {yearRangeMode && yearRange.startYear && yearRange.endYear
           ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
           : initialYear === 'all' 
@@ -424,19 +429,19 @@ return (
   <div className="flex items-center gap-2">
         <button
           onClick={() => setShowExporter(!showExporter)}
-          className={`flex items-center gap-1 px-2 py-1 ${getThemedColors().bgButton} text-black rounded ${getThemedColors().bgButtonHover} text-xs`}
+          className={`flex items-center gap-1 px-2 py-1 ${getThemedColors().bgButton} rounded ${getThemedColors().bgButtonHover} text-xs`}
         >
           <Download size={14} className="hidden sm:inline" />
           {showExporter ? "Hide" : "Export M3u"}
         </button>
-        
+
         <div className="flex items-center gap-1 sm:gap-2">
           <span className={`${getThemedColors().text} text-sm`}>Sort:</span>
           <button
             onClick={() => setSortBy('playsInWeek')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playsInWeek'
-                ? `${getThemedColors().bgButton} text-black`
+                ? getThemedColors().bgButton
                 : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
             }`}
           >
@@ -446,7 +451,7 @@ return (
             onClick={() => setSortBy('playCount')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'playCount'
-                ? `${getThemedColors().bgButton} text-black`
+                ? getThemedColors().bgButton
                 : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
             }`}
           >
@@ -456,7 +461,7 @@ return (
             onClick={() => setSortBy('weekStart')}
             className={`px-2 py-1 rounded text-xs ${
               sortBy === 'weekStart'
-                ? `${getThemedColors().bgButton} text-black`
+                ? getThemedColors().bgButton
                 : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
             }`}
           >
