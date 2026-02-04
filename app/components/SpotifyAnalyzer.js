@@ -2184,7 +2184,7 @@ const SpotifyAnalyzer = ({
                     ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
                     : 'mt-4'
                 }>
-                  <SupportOptions className="h-full" />
+                  <SupportOptions className="h-full" colorMode={colorMode} />
                 </div>
               )}
             </div>
