@@ -2130,12 +2130,24 @@ const SpotifyAnalyzer = ({
                 </div>
                 <div className={
                   colorMode === 'colorful'
-                    ? 'p-4 border space-y-2 bg-white dark:bg-black border-indigo-300 dark:border-indigo-700 rounded'
+                    ? 'p-4 border space-y-2 bg-white dark:bg-black border-indigo-300 dark:border-indigo-700 rounded text-indigo-700 dark:text-indigo-300'
                     : `p-4 border space-y-2 ${isDarkMode ? 'border-white' : 'border-black'}`
                 }>
-                  <div className="mb-1">Total Listening Time:</div>
-                  <div className="text-2xl">{formatDuration(stats.totalListeningTime)}</div>
-                  <div className="text-sm">(only counting plays over 30 seconds)</div>
+                  <div className={
+                    colorMode === 'colorful'
+                      ? 'mb-1 font-semibold text-indigo-700 dark:text-indigo-300'
+                      : 'mb-1'
+                  }>Total Listening Time:</div>
+                  <div className={
+                    colorMode === 'colorful'
+                      ? 'text-2xl text-indigo-700 dark:text-indigo-300'
+                      : 'text-2xl'
+                  }>{formatDuration(stats.totalListeningTime)}</div>
+                  <div className={
+                    colorMode === 'colorful'
+                      ? 'text-sm text-indigo-600 dark:text-indigo-400'
+                      : 'text-sm'
+                  }>(only counting plays over 30 seconds)</div>
 
                   {/* Service breakdown */}
                   {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
@@ -2149,7 +2161,11 @@ const SpotifyAnalyzer = ({
                           ? 'mb-2 font-semibold text-indigo-700 dark:text-indigo-300'
                           : 'mb-2'
                       }>Listening Time by Service:</div>
-                      <ul className="space-y-1">
+                      <ul className={
+                        colorMode === 'colorful'
+                          ? 'space-y-1 text-indigo-700 dark:text-indigo-300'
+                          : 'space-y-1'
+                      }>
                         {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
                           <li key={service} className="flex justify-between items-center">
                             <span>{service}:</span>
@@ -2163,7 +2179,11 @@ const SpotifyAnalyzer = ({
               </div>
 
               {stats && processedData.length > 0 && (
-                <div className="mt-4">
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-white dark:bg-black'
+                    : 'mt-4'
+                }>
                   <SupportOptions className="h-full" />
                 </div>
               )}
