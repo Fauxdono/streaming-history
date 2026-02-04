@@ -1960,15 +1960,15 @@ const SpotifyAnalyzer = ({
                   <div className="space-y-4">
                     <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                       <div className="flex items-start gap-3 mb-3">
-                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600' : (isDarkMode ? 'bg-white text-black' : 'bg-black')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-white text-black' : 'bg-black text-white')} rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
                         <span>Download your streaming history from your service</span>
                       </div>
                       <div className="flex items-start gap-3 mb-3">
-                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600' : (isDarkMode ? 'bg-white text-black' : 'bg-black')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-white text-black' : 'bg-black text-white')} rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
                         <span>Upload your file(s) or connect Google Drive for large files</span>
                       </div>
                       <div className="flex items-start gap-3 mb-4">
-                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600' : (isDarkMode ? 'bg-white text-black' : 'bg-black')} text-white rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
+                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-white text-black' : 'bg-black text-white')} rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
                         <span>Click "Calculate Statistics" and explore your data</span>
                       </div>
                     </div>
@@ -2022,6 +2022,8 @@ const SpotifyAnalyzer = ({
                 uploadedFiles={uploadedFiles}
                 uploadedFileList={uploadedFileList}
                 onDataLoaded={handleDataLoaded}
+                isDarkMode={isDarkMode}
+                colorMode={colorMode}
               />
             </div>
               

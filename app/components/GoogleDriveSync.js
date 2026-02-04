@@ -2,21 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 
-const GoogleDriveSync = ({ 
-  stats, 
-  processedData, 
-  topArtists = [], 
-  topAlbums = [], 
-  briefObsessions = [], 
-  songsByYear = {}, 
-  rawPlayData = [], 
+const GoogleDriveSync = ({
+  stats,
+  processedData,
+  topArtists = [],
+  topAlbums = [],
+  briefObsessions = [],
+  songsByYear = {},
+  rawPlayData = [],
   artistsByYear = {},
   albumsByYear = {},
   uploadedFiles = [],
   uploadedFileList = null,
   onDataLoaded,
-  isDarkMode = false 
+  isDarkMode = false,
+  colorMode = 'minimal'
 }) => {
+  const isColorful = colorMode === 'colorful';
   // Always start disconnected and let validation determine connection state
   const [isConnected, setIsConnectedState] = useState(false);
   
@@ -1097,13 +1099,24 @@ const GoogleDriveSync = ({
     setLoadingStep('');
   };
 
+  // Container styling based on colorMode
+  const containerBg = isColorful
+    ? (isDarkMode ? 'bg-blue-900/20 border-blue-500/40' : 'bg-blue-50 border-blue-200')
+    : (isDarkMode ? 'bg-black border-white' : 'bg-white border-black');
+  const headerText = isColorful
+    ? (isDarkMode ? 'text-blue-100' : 'text-blue-800')
+    : '';
+  const subText = isColorful
+    ? (isDarkMode ? 'text-blue-200' : 'text-blue-700')
+    : (isDarkMode ? 'text-gray-400' : 'text-gray-600');
+
   return (
-    <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${isDarkMode ? 'bg-blue-900/20 border-blue-500/40' : 'bg-blue-50 border-blue-200'}`}>
+    <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg}`}>
       <div className="flex items-center space-x-2 sm:space-x-3">
         <div className="flex-1">
-          <h2 className={`text-sm font-semibold ${isDarkMode ? 'text-blue-100' : 'text-blue-800'}`}>Google Drive Storage</h2>
-          <p className={`text-xs hidden sm:block ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to organized "cakeculator" folder with original files</p>
-          <p className={`text-xs sm:hidden ${isDarkMode ? 'text-blue-200' : 'text-blue-700'}`}>Save to Google Drive</p>
+          <h2 className={`text-sm font-semibold ${headerText}`}>Google Drive Storage</h2>
+          <p className={`text-xs hidden sm:block ${subText}`}>Save to organized "cakeculator" folder with original files</p>
+          <p className={`text-xs sm:hidden ${subText}`}>Save to Google Drive</p>
         </div>
         {isConnected && (
           <button
@@ -1125,8 +1138,12 @@ const GoogleDriveSync = ({
       )}
 
       {!isConnected ? (
-        <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200 text-center">
-          <p className="text-blue-700 mb-3 text-xs sm:text-sm">
+        <div className={`p-3 sm:p-4 rounded-lg border text-center ${
+          isColorful
+            ? 'bg-blue-50 border-blue-200'
+            : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300')
+        }`}>
+          <p className={`mb-3 text-xs sm:text-sm ${subText}`}>
             Save analysis to Google Drive for cloud access
           </p>
           <button
@@ -1153,12 +1170,16 @@ const GoogleDriveSync = ({
       ) : (
         <div className="space-y-3 sm:space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="p-3 sm:p-4 border border-gray-200 rounded-lg">
+            <div className={`p-3 sm:p-4 border rounded-lg ${
+              isColorful
+                ? 'border-blue-200 dark:border-blue-700'
+                : (isDarkMode ? 'border-gray-700' : 'border-gray-200')
+            }`}>
               <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">💾 Save Analysis</h4>
-              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 hidden sm:block">
+              <p className={`text-xs sm:text-sm mb-2 sm:mb-3 hidden sm:block ${subText}`}>
                 Save analysis + original files to "cakeculator" folder
               </p>
-              <p className="text-xs text-gray-600 mb-2 sm:hidden">
+              <p className={`text-xs mb-2 sm:hidden ${subText}`}>
                 Save to Drive
               </p>
               <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
@@ -1171,17 +1192,25 @@ const GoogleDriveSync = ({
               </button>
             </div>
 
-            <div className="p-3 sm:p-4 border border-gray-200 rounded-lg">
+            <div className={`p-3 sm:p-4 border rounded-lg ${
+              isColorful
+                ? 'border-blue-200 dark:border-blue-700'
+                : (isDarkMode ? 'border-gray-700' : 'border-gray-200')
+            }`}>
               <h4 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">📥 Load Analysis</h4>
-              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 hidden sm:block">
+              <p className={`text-xs sm:text-sm mb-2 sm:mb-3 hidden sm:block ${subText}`}>
                 Restore saved analysis from Google Drive
               </p>
-              <p className="text-xs text-gray-600 mb-2 sm:hidden">
+              <p className={`text-xs mb-2 sm:hidden ${subText}`}>
                 Load from Drive
               </p>
               <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
               {isLoading && loadingStep && (
-                <div className="mb-2 sm:mb-3 p-2 bg-blue-50 rounded text-xs sm:text-sm text-blue-700">
+                <div className={`mb-2 sm:mb-3 p-2 rounded text-xs sm:text-sm ${
+                  isColorful
+                    ? 'bg-blue-50 text-blue-700'
+                    : (isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700')
+                }`}>
                   🔄 {loadingStep}
                 </div>
               )}
