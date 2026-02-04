@@ -2,10 +2,11 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 import { Download, Plus, XCircle, Eye, LayoutGrid, List } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
+import { useTheme } from './themeprovider.js';
 
-const CustomTrackRankings = ({ 
-  rawPlayData = [], 
-  formatDuration, 
+const CustomTrackRankings = ({
+  rawPlayData = [],
+  formatDuration,
   initialArtists = [],
   // Add props for connecting with the YearSelector sidebar
   selectedYear = 'all',
@@ -16,8 +17,12 @@ const CustomTrackRankings = ({
   onToggleYearRangeMode,
   colorTheme = 'orange',
   textTheme = null,
-  backgroundTheme = null
+  backgroundTheme = null,
+  colorMode = 'minimal'
 }) => {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
 
   // Flexible theming support - if textTheme and backgroundTheme are provided, use them
   const getFlexibleColors = (textTheme, backgroundTheme) => {
@@ -36,9 +41,15 @@ const CustomTrackRankings = ({
         textDark: 'text-red-800',
         hoverText: 'hover:text-red-200'
       },
-      emerald: {
+      emerald: isDarkMode ? {
+        text: 'text-emerald-200',
+        textLight: 'text-emerald-300',
+        textLighter: 'text-emerald-400',
+        textDark: 'text-emerald-100',
+        hoverText: 'hover:text-emerald-100'
+      } : {
         text: 'text-emerald-700',
-        textLight: 'text-emerald-600', 
+        textLight: 'text-emerald-600',
         textLighter: 'text-emerald-500',
         textDark: 'text-emerald-800',
         hoverText: 'hover:text-emerald-200'
@@ -53,7 +64,19 @@ const CustomTrackRankings = ({
     };
 
     const backgroundColors = {
-      emerald: {
+      emerald: isDarkMode ? {
+        bg: 'bg-emerald-900',
+        bgLight: 'bg-emerald-800',
+        bgMed: 'bg-emerald-700',
+        bgDark: 'bg-emerald-500',
+        bgDarkHover: 'hover:bg-emerald-400',
+        border: 'border-emerald-700',
+        borderDark: 'border-emerald-500',
+        hoverBg: 'hover:bg-emerald-800',
+        hoverBgDark: 'hover:bg-emerald-600',
+        focusBorder: 'focus:border-emerald-500',
+        focusRing: 'focus:ring-emerald-500'
+      } : {
         bg: 'bg-emerald-50',
         bgLight: 'bg-emerald-100',
         bgMed: 'bg-emerald-200',
@@ -186,8 +209,30 @@ const CustomTrackRankings = ({
     }
   };
 
-  // Use flexible theming if both textTheme and backgroundTheme are provided, otherwise fall back to colorTheme
-  const colors = (textTheme && backgroundTheme) ? getFlexibleColors(textTheme, backgroundTheme) : getColors(colorTheme);
+  // Minimal mode colors (black/white)
+  const getMinimalColors = () => ({
+    text: '',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    textLighter: 'text-gray-500',
+    textDark: '',
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
+    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgMed: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
+    bgDark: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+    bgDarkHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
+    border: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    borderDark: isDarkMode ? 'border-white' : 'border-black',
+    hoverBg: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
+    hoverBgDark: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
+    focusBorder: 'focus:border-gray-400',
+    focusRing: 'focus:ring-gray-400',
+    hoverText: isDarkMode ? 'hover:text-gray-300' : 'hover:text-gray-700'
+  });
+
+  // Use minimal colors if not in colorful mode, otherwise use themed colors
+  const colors = !isColorful
+    ? getMinimalColors()
+    : (textTheme && backgroundTheme) ? getFlexibleColors(textTheme, backgroundTheme) : getColors(colorTheme);
   
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');

@@ -2880,8 +2880,12 @@ const SpotifyAnalyzer = ({
       
       case 'custom':
         return (
-          <div className={`p-2 sm:p-4 ${customColors.wrapper} rounded border-2`}>
-            <CustomTrackRankings 
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-emerald-100 dark:bg-emerald-900 rounded border-2 border-emerald-300 dark:border-emerald-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <CustomTrackRankings
               rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={customTrackYear}
@@ -2890,6 +2894,7 @@ const SpotifyAnalyzer = ({
               textTheme={customTextTheme}
               backgroundTheme={customBackgroundTheme}
               initialArtists={selectedArtists}
+              colorMode={colorMode}
             />
           </div>
         );
