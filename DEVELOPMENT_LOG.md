@@ -1,0 +1,154 @@
+# Development Log - Cakeculator Streaming History Analyzer
+
+## Project Overview
+A Next.js web app for analyzing music streaming history from multiple platforms (Spotify, Apple Music, YouTube Music, etc.). Features data visualization, statistics, and customizable appearance.
+
+---
+
+## Recent Major Updates
+
+### 2025-02-04: Minimal Design System Implementation
+
+#### Complete UI Redesign
+- **Objective**: Create uniform, barebones design across all pages while maintaining full functionality
+- **Problem Solved**: App had 4 parallel theming systems and inconsistent styling across 30+ components
+  - 572 instances of inconsistent typography
+  - 5 different table designs
+  - Multiple conflicting color systems
+
+#### What Was Built
+
+**1. Design System Foundation**
+- Created new minimal `globals.css` (832 lines → 157 lines)
+- Stripped to pure black/white aesthetic with customizable accent color
+- Enhanced `themeprovider.js` to support:
+  - Font family selection (Sans, Serif, Mono, Comic)
+  - Font size adjustment (Small, Medium, Large, X-Large)
+  - Custom accent color picker
+  - All preferences persist in localStorage
+
+**2. New UI Components** (`app/components/ui/`)
+- `Table.js` - Uniform table styling
+- `Button.js` - Colorful buttons with accent color (user preference: kept vibrant, not minimal)
+- `Card.tsx` - Updated to minimal border-only design
+- `Typography.js` - Consistent text hierarchy
+- `design-system.js` - Utility functions for consistent styling
+
+**3. Settings Panel** (`app/components/SettingsPanel.js`)
+- New "Settings" tab in main navigation
+- Font family selector
+- Font size slider
+- Accent color picker (6 presets + custom)
+- Dark/Light mode toggle
+- Live preview
+
+**4. Color Mode Toggle Feature**
+- Added toggle button in `FixedSettingsBar` (🎨 = Colorful, ⬛ = Minimal)
+- **Minimal Mode** (default): Clean black/white design
+- **Colorful Mode**: Each tab uses its own color scheme
+  - Statistics tab: Indigo/Violet theme
+  - (Other tabs pending implementation)
+- Button location: Top bar (desktop) / Bottom bar (mobile), next to dark mode toggle
+
+**5. Security Updates**
+- Updated Next.js: 15.4.6 → 16.1.6 (fixed CVE-2025-66478)
+- Updated React: 18.x → 19.2.4
+- Added `turbopack: {}` config for Next.js 16 compatibility
+
+#### Files Modified
+- `app/globals.css` - Complete rewrite (minimal design)
+- `app/components/themeprovider.js` - Enhanced with font/color customization
+- `app/components/SpotifyAnalyzer.js` - All tabs updated to support color modes
+- `app/components/TopTabs.js` - Added Settings tab
+- `app/components/FixedSettingsBar.js` - Added color mode toggle button
+- `app/page.js` - Removed gradient background
+- `package.json` - Updated dependencies
+
+#### Files Created
+- `app/components/SettingsPanel.js`
+- `app/components/design-system.js`
+- `app/components/MinimalTabs.js`
+- `app/components/ui/Button.js`
+- `app/components/ui/Table.js`
+- `app/components/ui/Typography.js`
+- `DEVELOPMENT_LOG.md` (this file)
+
+#### Current State - Statistics Tab
+When colorful mode is enabled:
+- ✅ Background: Indigo-100 (light) / Indigo-900 (dark)
+- ✅ Borders: Indigo-300 / Indigo-700
+- ✅ All text: Indigo colors throughout
+- ✅ Total Listening Time card: Fully themed
+- ✅ Service breakdown: Fully themed
+- ✅ Support Options: Wrapped with indigo border
+
+#### Design Decisions
+- **Buttons**: User preferred colorful buttons over minimal borders
+  - Use accent color backgrounds with white text
+  - Rounded corners
+  - Hover effect uses opacity
+- **Color Mode Default**: Minimal (black/white)
+- **Tab Colors** (for colorful mode):
+  - Updates: Fuchsia
+  - Upload: Violet
+  - Statistics: Indigo ✅ (implemented)
+  - Artists: Blue (pending)
+  - Albums: Cyan (pending)
+  - Custom: Emerald (pending)
+  - Tracks: Red (pending)
+  - Calendar: Green (pending)
+  - Patterns: Yellow (pending)
+  - Behavior: Amber (pending)
+  - Discovery: Orange (pending)
+  - Podcasts: Red (pending)
+  - Playlists: Rose (pending)
+
+---
+
+## TODO / Next Steps
+
+### High Priority
+- [ ] Add colorful mode styling to remaining tabs (Artists, Albums, etc.)
+- [ ] Update child components (CustomTrackRankings, TrackRankings, AlbumCard) to use minimal design
+
+### Future Enhancements
+- [ ] Consider theme presets (not just minimal/colorful, but different color schemes)
+- [ ] Export/import custom themes
+- [ ] Add more font options
+
+---
+
+## Technical Notes
+
+### Important Dependencies
+- Next.js 16.1.6 (uses Turbopack by default)
+- React 19.2.4
+- next-pwa 5.6.0 (requires webpack config)
+- Tailwind CSS
+- Lucide React (for icons)
+
+### Key State Management
+- Color mode stored in `colorMode` state ('minimal' | 'colorful')
+- Must be in `renderTabContent` dependency array for re-renders
+- Font/size preferences stored in localStorage via ThemeProvider
+
+### Build Notes
+- Build warnings about deprecated npm packages (not critical)
+- Service worker auto-generated by next-pwa
+- TypeScript config auto-updated by Next.js 16
+
+---
+
+## Repository
+- **Location**: github.com/Fauxdono/streaming-history
+- **Branch**: main
+- **Latest Commit**: Color mode toggle with Statistics tab fully themed
+
+---
+
+## Development Tips for Future Sessions
+1. Always check this log first to understand current state
+2. Color mode toggle is in FixedSettingsBar, not TopTabs
+3. When adding colorful mode to new tabs, update both container AND all text elements
+4. Remember to add new state variables to useMemo dependency arrays
+5. Buttons should use accent color (user preference)
