@@ -20,13 +20,23 @@
 - Dark mode uses lighter text shades (e.g., blue-300) and darker backgrounds (e.g., blue-900)
 - Light mode uses darker text shades (e.g., blue-700) and lighter backgrounds (e.g., blue-100)
 
-### Flat Design Principle
-- **All backgrounds match the main page** - no container contrast
-- Cards, charts, inputs all use the same background as their parent
-- Colorful light: `{color}-100` everywhere
-- Colorful dark: `{color}-900` everywhere
+### Design Principles by Mode
+
+**Minimal Mode - Flat Design:**
+- All backgrounds match (no container contrast)
 - Minimal light: white everywhere
 - Minimal dark: black everywhere
+
+**Colorful Mode - Two-Tone Design:**
+- Main page uses base color, cards use lighter shade for visual depth
+- Dark colorful:
+  - Page background: `{color}-900`
+  - Cards/inputs: `{color}-800`
+  - Buttons inactive: `{color}-800`
+- Light colorful:
+  - Page background: `{color}-100`
+  - Cards/inputs: `{color}-50`
+  - Buttons inactive: `{color}-50`
 
 ### Tab Color Assignments
 | Tab | Color |
@@ -69,6 +79,7 @@ Every colorful theme must have both dark and light variants:
 ```
 text: isDarkMode ? 'text-{color}-300' : 'text-{color}-700'
 bg: isDarkMode ? 'bg-{color}-900' : 'bg-{color}-100'
+bgCard: isDarkMode ? 'bg-{color}-800' : 'bg-{color}-50'
 border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 ```
 

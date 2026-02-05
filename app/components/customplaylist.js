@@ -13,19 +13,19 @@ const CustomPlaylistCreator = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - flat design (Rose theme)
+  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat (Rose theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
     textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
     textLighter: isDarkMode ? 'text-rose-500' : 'text-rose-500',
     bg: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
-    bgLight: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
-    bgCard: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
-    bgCardAlt: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
+    bgLight: isDarkMode ? 'bg-rose-800' : 'bg-rose-50',
+    bgCard: isDarkMode ? 'bg-rose-800' : 'bg-rose-50',
+    bgCardAlt: isDarkMode ? 'bg-rose-800' : 'bg-rose-50',
     border: isDarkMode ? 'border-rose-600' : 'border-rose-300',
     borderLight: isDarkMode ? 'border-rose-600' : 'border-rose-300',
     buttonActive: isDarkMode ? 'bg-rose-600 text-white' : 'bg-rose-500 text-white',
-    buttonInactive: isDarkMode ? 'bg-rose-900 text-rose-300 border border-rose-600 hover:bg-rose-800' : 'bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200',
+    buttonInactive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 hover:bg-rose-700' : 'bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-100',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',

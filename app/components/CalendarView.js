@@ -21,19 +21,19 @@ const CalendarView = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - flat design (Green theme)
+  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat (Green theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-green-300' : 'text-green-700',
     textLight: isDarkMode ? 'text-green-400' : 'text-green-600',
     textLighter: isDarkMode ? 'text-green-500' : 'text-green-500',
     bg: isDarkMode ? 'bg-green-900' : 'bg-green-100',
-    bgLight: isDarkMode ? 'bg-green-900' : 'bg-green-100',
-    bgCard: isDarkMode ? 'bg-green-900' : 'bg-green-100',
-    bgCardAlt: isDarkMode ? 'bg-green-900' : 'bg-green-100',
+    bgLight: isDarkMode ? 'bg-green-800' : 'bg-green-50',
+    bgCard: isDarkMode ? 'bg-green-800' : 'bg-green-50',
+    bgCardAlt: isDarkMode ? 'bg-green-800' : 'bg-green-50',
     border: isDarkMode ? 'border-green-600' : 'border-green-300',
     borderLight: isDarkMode ? 'border-green-600' : 'border-green-300',
     buttonActive: isDarkMode ? 'bg-green-600 text-black' : 'bg-green-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-green-900 text-green-300 border border-green-600 hover:bg-green-800' : 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200',
+    buttonInactive: isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 hover:bg-green-700' : 'bg-green-50 text-green-700 border border-green-300 hover:bg-green-100',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',

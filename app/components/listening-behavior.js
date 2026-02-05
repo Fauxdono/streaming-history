@@ -32,19 +32,19 @@ const ListeningBehavior = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - flat design (Amber theme)
+  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat (Amber theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
     textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
     textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
     bg: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
-    bgLight: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
-    bgCard: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
-    bgCardAlt: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
+    bgLight: isDarkMode ? 'bg-amber-800' : 'bg-amber-50',
+    bgCard: isDarkMode ? 'bg-amber-800' : 'bg-amber-50',
+    bgCardAlt: isDarkMode ? 'bg-amber-800' : 'bg-amber-50',
     border: isDarkMode ? 'border-amber-600' : 'border-amber-300',
     borderLight: isDarkMode ? 'border-amber-600' : 'border-amber-300',
     buttonActive: isDarkMode ? 'bg-amber-600 text-black' : 'bg-amber-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-amber-900 text-amber-300 border border-amber-600 hover:bg-amber-800' : 'bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200',
+    buttonInactive: isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 hover:bg-amber-700' : 'bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',

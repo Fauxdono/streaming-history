@@ -23,19 +23,19 @@ const DiscoveryAnalysis = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - flat design (Orange theme)
+  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat (Orange theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-orange-300' : 'text-orange-700',
     textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600',
     textLighter: isDarkMode ? 'text-orange-500' : 'text-orange-500',
     bg: isDarkMode ? 'bg-orange-900' : 'bg-orange-100',
-    bgLight: isDarkMode ? 'bg-orange-900' : 'bg-orange-100',
-    bgCard: isDarkMode ? 'bg-orange-900' : 'bg-orange-100',
-    bgCardAlt: isDarkMode ? 'bg-orange-900' : 'bg-orange-100',
+    bgLight: isDarkMode ? 'bg-orange-800' : 'bg-orange-50',
+    bgCard: isDarkMode ? 'bg-orange-800' : 'bg-orange-50',
+    bgCardAlt: isDarkMode ? 'bg-orange-800' : 'bg-orange-50',
     border: isDarkMode ? 'border-orange-600' : 'border-orange-300',
     borderLight: isDarkMode ? 'border-orange-600' : 'border-orange-300',
     buttonActive: isDarkMode ? 'bg-orange-600 text-black' : 'bg-orange-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-orange-900 text-orange-300 border border-orange-600 hover:bg-orange-800' : 'bg-orange-100 text-orange-700 border border-orange-300 hover:bg-orange-200',
+    buttonInactive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 hover:bg-orange-700' : 'bg-orange-50 text-orange-700 border border-orange-300 hover:bg-orange-100',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
