@@ -1637,7 +1637,7 @@ return (
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bgLight} ${colors.border}`}>
         <h3 className={`text-xl font-normal ${colors.text} mb-4`}>Omitted Content</h3>
         
         {omittedArtists.length > 0 && (
@@ -1666,7 +1666,7 @@ return (
           <div>
             <h4 className={`font-semibold ${colors.textLight} mb-2`}>Omitted Songs</h4>
             <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
-              <table className={`w-full border-collapse ${colors.bg}`}>
+              <table className={`w-full border-collapse ${colors.bgLight}`}>
                 <thead>
                   <tr className={`border-b ${colors.border}`}>
                     <th className={`p-2 text-left ${colors.text}`}>Track</th>
@@ -1705,7 +1705,7 @@ return (
       </div>
     ) : (
       /* Results section with date range info */
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bgLight} ${colors.border}`}>
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div className={`${colors.text} font-medium text-sm`}>
             Date Range: <span className={`${colors.textDark}`}>{getFormattedDateRange()}</span>
@@ -1722,7 +1722,7 @@ return (
               {filteredTracks.map((song, index) => (
                 <div
                   key={song.key}
-                  className={`p-3 border rounded-lg ${colors.bg} ${colors.border} shadow-sm hover:shadow-md transition-shadow`}
+                  className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} shadow-sm hover:shadow-md transition-shadow`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
