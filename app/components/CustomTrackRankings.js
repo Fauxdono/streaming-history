@@ -1334,7 +1334,7 @@ return (
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-16 border rounded px-2 py-1 ${colors.text}`}
+            className={`w-16 border rounded px-2 py-1 ${colors.bg} ${colors.border} ${colors.text}`}
           />
         </div>
         
@@ -1377,7 +1377,7 @@ return (
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-12 border rounded px-1 py-1 ${colors.text} text-sm`}
+            className={`w-12 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-sm`}
           />
         </div>
         
