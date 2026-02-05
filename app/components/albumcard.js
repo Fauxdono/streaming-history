@@ -47,46 +47,46 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
         bgHeader: isDarkMode ? 'bg-cyan-700' : 'bg-cyan-200'
       },
       blue: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-blue-700' : 'border-blue-200',
-        borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-blue-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-blue-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-blue-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-blue-100'
+        bg: isDarkMode ? 'bg-blue-800' : 'bg-blue-50', border: isDarkMode ? 'border-blue-600' : 'border-blue-300',
+        borderHover: isDarkMode ? 'border-blue-400' : 'border-blue-400', bgLight: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
+        bgButton: isDarkMode ? 'bg-blue-700' : 'bg-blue-100', bgStripe: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
+        bgHeader: isDarkMode ? 'bg-blue-700' : 'bg-blue-200'
       },
       green: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-green-700' : 'border-green-200',
-        borderHover: isDarkMode ? 'border-green-500' : 'border-green-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-green-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-green-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-green-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-green-100'
+        bg: isDarkMode ? 'bg-green-800' : 'bg-green-50', border: isDarkMode ? 'border-green-600' : 'border-green-300',
+        borderHover: isDarkMode ? 'border-green-400' : 'border-green-400', bgLight: isDarkMode ? 'bg-green-900' : 'bg-green-100',
+        bgButton: isDarkMode ? 'bg-green-700' : 'bg-green-100', bgStripe: isDarkMode ? 'bg-green-900' : 'bg-green-100',
+        bgHeader: isDarkMode ? 'bg-green-700' : 'bg-green-200'
       },
       amber: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-amber-700' : 'border-amber-200',
-        borderHover: isDarkMode ? 'border-amber-500' : 'border-amber-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-amber-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-amber-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-amber-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-amber-100'
+        bg: isDarkMode ? 'bg-amber-800' : 'bg-amber-50', border: isDarkMode ? 'border-amber-600' : 'border-amber-300',
+        borderHover: isDarkMode ? 'border-amber-400' : 'border-amber-400', bgLight: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
+        bgButton: isDarkMode ? 'bg-amber-700' : 'bg-amber-100', bgStripe: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
+        bgHeader: isDarkMode ? 'bg-amber-700' : 'bg-amber-200'
       },
       orange: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-orange-700' : 'border-orange-200',
-        borderHover: isDarkMode ? 'border-orange-500' : 'border-orange-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-orange-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-orange-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-orange-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-orange-100'
+        bg: isDarkMode ? 'bg-orange-800' : 'bg-orange-50', border: isDarkMode ? 'border-orange-600' : 'border-orange-300',
+        borderHover: isDarkMode ? 'border-orange-400' : 'border-orange-400', bgLight: isDarkMode ? 'bg-orange-900' : 'bg-orange-100',
+        bgButton: isDarkMode ? 'bg-orange-700' : 'bg-orange-100', bgStripe: isDarkMode ? 'bg-orange-900' : 'bg-orange-100',
+        bgHeader: isDarkMode ? 'bg-orange-700' : 'bg-orange-200'
       },
       red: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-red-700' : 'border-red-200',
-        borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-red-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-red-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-red-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-red-100'
+        bg: isDarkMode ? 'bg-red-800' : 'bg-red-50', border: isDarkMode ? 'border-red-600' : 'border-red-300',
+        borderHover: isDarkMode ? 'border-red-400' : 'border-red-400', bgLight: isDarkMode ? 'bg-red-900' : 'bg-red-100',
+        bgButton: isDarkMode ? 'bg-red-700' : 'bg-red-100', bgStripe: isDarkMode ? 'bg-red-900' : 'bg-red-100',
+        bgHeader: isDarkMode ? 'bg-red-700' : 'bg-red-200'
       },
       indigo: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-indigo-700' : 'border-indigo-200',
-        borderHover: isDarkMode ? 'border-indigo-500' : 'border-indigo-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-indigo-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-indigo-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-indigo-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-indigo-100'
+        bg: isDarkMode ? 'bg-indigo-800' : 'bg-indigo-50', border: isDarkMode ? 'border-indigo-600' : 'border-indigo-300',
+        borderHover: isDarkMode ? 'border-indigo-400' : 'border-indigo-400', bgLight: isDarkMode ? 'bg-indigo-900' : 'bg-indigo-100',
+        bgButton: isDarkMode ? 'bg-indigo-700' : 'bg-indigo-100', bgStripe: isDarkMode ? 'bg-indigo-900' : 'bg-indigo-100',
+        bgHeader: isDarkMode ? 'bg-indigo-700' : 'bg-indigo-200'
       },
       emerald: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-emerald-700' : 'border-emerald-200',
-        borderHover: isDarkMode ? 'border-emerald-500' : 'border-emerald-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-emerald-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-emerald-100', bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-emerald-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-emerald-100'
+        bg: isDarkMode ? 'bg-emerald-800' : 'bg-emerald-50', border: isDarkMode ? 'border-emerald-600' : 'border-emerald-300',
+        borderHover: isDarkMode ? 'border-emerald-400' : 'border-emerald-400', bgLight: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-100',
+        bgButton: isDarkMode ? 'bg-emerald-700' : 'bg-emerald-100', bgStripe: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-100',
+        bgHeader: isDarkMode ? 'bg-emerald-700' : 'bg-emerald-200'
       }
     };
 
