@@ -73,7 +73,7 @@ const SpotifyAnalyzer = ({
   customBackgroundTheme = 'emerald',
   tracksTextTheme = 'rose',
   tracksBackgroundTheme = 'red',
-  patternTextTheme = 'blue',
+  patternTextTheme = 'yellow',
   patternBackgroundTheme = 'yellow',
   calendarTextTheme = 'red',
   calendarBackgroundTheme = 'green',
@@ -2918,9 +2918,13 @@ const SpotifyAnalyzer = ({
       
       case 'patterns':
         return (
-          <div className={`p-2 sm:p-4 ${patternColors.wrapper} rounded border-2`}>
-            <ListeningPatterns 
-              rawPlayData={rawPlayData} 
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-yellow-100 dark:bg-yellow-900 rounded border-2 border-yellow-300 dark:border-yellow-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <ListeningPatterns
+              rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={selectedPatternYear}
               yearRange={patternYearRange}
@@ -2929,6 +2933,7 @@ const SpotifyAnalyzer = ({
               backgroundTheme={patternBackgroundTheme}
               briefObsessions={briefObsessions}
               songsByYear={songsByYear}
+              colorMode={colorMode}
             />
           </div>
         );

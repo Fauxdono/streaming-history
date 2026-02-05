@@ -6,8 +6,8 @@ import { useTheme } from './themeprovider.js'; // Import the theme hook
 
 // Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
-const ListeningPatterns = ({ 
-  rawPlayData = [], 
+const ListeningPatterns = ({
+  rawPlayData = [],
   formatDuration,
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
@@ -16,14 +16,45 @@ const ListeningPatterns = ({
   textTheme = null,
   backgroundTheme = null,
   briefObsessions = [],
-  songsByYear = {}
+  songsByYear = {},
+  colorMode = 'minimal'
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
-  
+
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
+
+  // Color system for colorful/minimal modes
+  const colors = isColorful ? {
+    text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
+    textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
+    textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
+    bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-50',
+    bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    bgCard: colors.bgCard,
+    border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
+    buttonActive: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
+    buttonInactive: isDarkMode ? 'bg-black text-yellow-300 border border-yellow-600 hover:bg-yellow-900' : 'bg-white text-yellow-700 border border-yellow-300 hover:bg-yellow-50',
+    toggleBg: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    toggleActive: isDarkMode ? 'bg-yellow-500 text-black' : 'bg-yellow-600 text-white',
+    toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-700' : 'text-yellow-700 hover:bg-yellow-200'
+  } : {
+    text: isDarkMode ? 'text-white' : 'text-black',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+    bg: colors.bgCard,
+    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgCard: colors.bgCard,
+    border: isDarkMode ? 'border-white' : 'border-black',
+    buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+    toggleBg: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
+    toggleActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+    toggleInactive: isDarkMode ? 'text-white hover:bg-gray-700' : 'text-black hover:bg-gray-200'
+  };
 
   // Color theme for legends (similar to year selector)
   const getLegendTextColor = useMemo(() => {
@@ -477,10 +508,8 @@ const ListeningPatterns = ({
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
-        activeTab === id
-          ? 'bg-amber-500 text-black border border-amber-500'
-          : 'bg-black text-blue-500 hover:bg-gray-800 border border-amber-500'
+      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${
+        activeTab === id ? colors.buttonActive : colors.buttonInactive
       }`}
     >
       {label}
@@ -499,15 +528,36 @@ const ListeningPatterns = ({
   };
 
   return (
-   <div className={`w-full ${isDarkMode ? 'text-blue-200' : 'text-gray-900'}`}>
-    {/* Mobile-friendly tabs */}
-    <div className="mb-4">
+   <div className={`w-full ${colors.text}`}>
+    {/* Title - mobile gets its own row */}
+    <div className="block sm:hidden mb-1">
+      <h3 className={`text-xl ${colors.text}`}>
+        {getPageTitle()}
+      </h3>
+    </div>
+
+    {/* Desktop layout - title and controls on same row */}
+    <div className="hidden sm:flex justify-between items-center mb-2">
+      <h3 className={`text-xl ${colors.text}`}>
+        {getPageTitle()}
+      </h3>
       <div className="flex flex-wrap gap-1 sm:gap-2">
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
-        <TabButton id="obsessions" label="Brief Obsessions" />
+        <TabButton id="obsessions" label="Obsessions" />
         <TabButton id="streaming" label="Streaming" />
+      </div>
+    </div>
+
+    {/* Mobile controls - separate row */}
+    <div className="block sm:hidden mb-4">
+      <div className="flex flex-wrap gap-1">
+        <TabButton id="timeOfDay" label="Time" />
+        <TabButton id="dayOfWeek" label="Day" />
+        <TabButton id="seasonal" label="Season" />
+        <TabButton id="obsessions" label="Obsess" />
+        <TabButton id="streaming" label="Stream" />
       </div>
     </div>
 
@@ -515,14 +565,14 @@ const ListeningPatterns = ({
       <div className="space-y-6">
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-blue-300' : 'text-blue-700'
+            colors.text
           }`}>Listening by Time of Day</h3>
           <p className={`mb-4 ${
-            isDarkMode ? 'text-blue-400' : 'text-blue-600'
+            colors.textLight
           }`}>When do you listen to music the most?</p>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            isDarkMode ? 'bg-black' : 'bg-white'
+            colors.bgCard
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -561,10 +611,10 @@ const ListeningPatterns = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div id="timeOfDay">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              colors.text
             }`}>Time Periods</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-black' : 'bg-white'
+              colors.bgCard
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -618,12 +668,12 @@ const ListeningPatterns = ({
           
           <div className="flex flex-col justify-center">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              colors.text
             }`}>Time Period Stats</h3>
             <ul className="space-y-2">
               {timeOfDayData.periods.map((period, index) => (
                 <li key={index} className={`p-2 rounded ${
-                  isDarkMode ? 'bg-black border border-gray-700' : 'bg-amber-50'
+                  `${colors.bgCard} border ${colors.border}`
                 }`}>
                   <span className="font-bold" style={{ color: period.textColor || period.color }}>{period.fullName}:</span>
                   <div className="ml-2" style={{ color: period.textColor || period.color }}>
@@ -644,19 +694,17 @@ const ListeningPatterns = ({
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className={`text-sm sm:text-lg font-bold ${
-                isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                colors.text
               }`}>Listening by Day of Week</h3>
               <p className={`${
-                isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                colors.textLight
               }`}>Which days do you stream music the most?</p>
             </div>
-            <div className={`flex rounded-lg p-1 ${isDarkMode ? 'bg-gray-700' : 'bg-amber-100'}`}>
+            <div className={`flex rounded-lg p-1 ${colors.toggleBg}`}>
               <button
                 onClick={() => setDayOfWeekViewMode('plays')}
                 className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
-                  dayOfWeekViewMode === 'plays' 
-                    ? isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'
-                    : isDarkMode ? 'text-blue-300 hover:bg-gray-600' : 'text-blue-700 hover:bg-amber-200'
+                  dayOfWeekViewMode === 'plays' ? colors.toggleActive : colors.toggleInactive
                 }`}
               >
                 Total
@@ -664,9 +712,7 @@ const ListeningPatterns = ({
               <button
                 onClick={() => setDayOfWeekViewMode('average')}
                 className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
-                  dayOfWeekViewMode === 'average' 
-                    ? isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'
-                    : isDarkMode ? 'text-blue-300 hover:bg-gray-600' : 'text-blue-700 hover:bg-amber-200'
+                  dayOfWeekViewMode === 'average' ? colors.toggleActive : colors.toggleInactive
                 }`}
               >
                 Average
@@ -675,7 +721,7 @@ const ListeningPatterns = ({
           </div>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            isDarkMode ? 'bg-black' : 'bg-white'
+            colors.bgCard
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -716,7 +762,7 @@ const ListeningPatterns = ({
         
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-blue-300' : 'text-blue-700'
+            colors.text
           }`}>Day of Week Stats</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
             {dayOfWeekData.map((day, index) => (
@@ -728,10 +774,10 @@ const ListeningPatterns = ({
                   <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
                 ) : null}
                 <h4 className={`font-bold ${
-                  isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                  colors.text
                 }`}>{day.fullName}</h4>
                 <div className={`text-sm ${
-                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                  colors.textLight
                 }`}>
                   <div>Total Plays: {day.count}</div>
                   <div>Listening Time: {formatDuration(day.totalMs)}</div>
@@ -748,14 +794,14 @@ const ListeningPatterns = ({
       <div className="space-y-6">
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? 'text-blue-300' : 'text-blue-700'
+            colors.text
           }`}>Listening by Month</h3>
           <p className={`mb-4 ${
-            isDarkMode ? 'text-blue-400' : 'text-blue-600'
+            colors.textLight
           }`}>How does your listening change throughout the year?</p>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            isDarkMode ? 'bg-black' : 'bg-white'
+            colors.bgCard
           }`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -790,10 +836,10 @@ const ListeningPatterns = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div id="seasonal">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              colors.text
             }`}>Seasonal Listening</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-black' : 'bg-white'
+              colors.bgCard
             }`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -847,12 +893,12 @@ const ListeningPatterns = ({
           
           <div className="flex flex-col justify-center">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+              colors.text
             }`}>Seasonal Stats</h3>
             <ul className="space-y-2">
               {monthlyData.seasons.map((season, index) => (
                 <li key={index} className={`p-2 rounded ${
-                  isDarkMode ? 'bg-black border border-gray-700' : 'bg-amber-50'
+                  `${colors.bgCard} border ${colors.border}`
                 }`}>
                   <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
                   <div className="ml-2" style={{ color: season.color }}>
@@ -869,28 +915,29 @@ const ListeningPatterns = ({
 
     {activeTab === 'obsessions' && (
       <div className="space-y-6">
-        <TrackRankings 
-          processedData={[]} 
+        <TrackRankings
+          processedData={[]}
           briefObsessions={briefObsessions}
           songsByYear={songsByYear}
           formatDuration={formatDuration}
           initialYear={selectedYear}
           yearRange={yearRange}
           yearRangeMode={yearRangeMode}
-          textTheme={textTheme || "blue"}
-          backgroundTheme={backgroundTheme || "amber"}
+          textTheme="yellow"
+          backgroundTheme="yellow"
+          colorMode={colorMode}
         />
       </div>
     )}
 
-
     {activeTab === 'streaming' && (
-      <StreamingByYear 
-        rawPlayData={filteredData} 
-        formatDuration={formatDuration} 
+      <StreamingByYear
+        rawPlayData={filteredData}
+        formatDuration={formatDuration}
         isDarkMode={isDarkMode}
-        textTheme={textTheme || "blue"}
-        backgroundTheme={backgroundTheme || "amber"}
+        textTheme="yellow"
+        backgroundTheme="yellow"
+        colorMode={colorMode}
       />
     )}
   </div>
