@@ -8,12 +8,12 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
   const isDarkMode = propIsDarkMode !== undefined ? propIsDarkMode : theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes (Yellow theme for Patterns)
+  // Color system for colorful/minimal modes - flat design (Yellow theme for Patterns)
   const colors = isColorful ? {
     text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
     textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
-    bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-50',
-    bgCard: isDarkMode ? 'bg-yellow-950' : 'bg-yellow-50',
+    bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
+    bgCard: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
     bgCardAlt: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
     border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
   } : {
@@ -21,7 +21,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
   };
 

@@ -32,31 +32,31 @@ const ListeningBehavior = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes (Amber theme)
+  // Color system for colorful/minimal modes - flat design (Amber theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
     textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
     textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
-    bg: isDarkMode ? 'bg-amber-900' : 'bg-amber-50',
-    bgLight: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-amber-950' : 'bg-amber-200',
+    bg: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
+    bgLight: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
+    bgCard: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
+    bgCardAlt: isDarkMode ? 'bg-amber-900' : 'bg-amber-100',
     border: isDarkMode ? 'border-amber-600' : 'border-amber-300',
-    borderLight: isDarkMode ? 'border-amber-700' : 'border-amber-200',
+    borderLight: isDarkMode ? 'border-amber-600' : 'border-amber-300',
     buttonActive: isDarkMode ? 'bg-amber-600 text-black' : 'bg-amber-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-black text-amber-300 border border-amber-600 hover:bg-amber-900' : 'bg-white text-amber-700 border border-amber-300 hover:bg-amber-50',
+    buttonInactive: isDarkMode ? 'bg-amber-900 text-amber-300 border border-amber-600 hover:bg-amber-800' : 'bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
-    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    borderLight: isDarkMode ? 'border-white' : 'border-black',
     buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100',
   };
 
   // Color theme for legends

@@ -13,31 +13,31 @@ const CustomPlaylistCreator = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes (Rose theme)
+  // Color system for colorful/minimal modes - flat design (Rose theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
     textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
     textLighter: isDarkMode ? 'text-rose-500' : 'text-rose-500',
-    bg: isDarkMode ? 'bg-rose-900' : 'bg-rose-50',
-    bgLight: isDarkMode ? 'bg-rose-800' : 'bg-rose-100',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-rose-950' : 'bg-rose-200',
+    bg: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
+    bgLight: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
+    bgCard: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
+    bgCardAlt: isDarkMode ? 'bg-rose-900' : 'bg-rose-100',
     border: isDarkMode ? 'border-rose-600' : 'border-rose-300',
-    borderLight: isDarkMode ? 'border-rose-700' : 'border-rose-200',
+    borderLight: isDarkMode ? 'border-rose-600' : 'border-rose-300',
     buttonActive: isDarkMode ? 'bg-rose-600 text-white' : 'bg-rose-500 text-white',
-    buttonInactive: isDarkMode ? 'bg-black text-rose-300 border border-rose-600 hover:bg-rose-900' : 'bg-white text-rose-700 border border-rose-300 hover:bg-rose-50',
+    buttonInactive: isDarkMode ? 'bg-rose-900 text-rose-300 border border-rose-600 hover:bg-rose-800' : 'bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
-    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    borderLight: isDarkMode ? 'border-white' : 'border-black',
     buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100',
   };
   const [playlistName, setPlaylistName] = useState('My Custom Playlist');
   const [searchTerm, setSearchTerm] = useState('');
