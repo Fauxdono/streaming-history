@@ -20,6 +20,14 @@
 - Dark mode uses lighter text shades (e.g., blue-300) and darker backgrounds (e.g., blue-900)
 - Light mode uses darker text shades (e.g., blue-700) and lighter backgrounds (e.g., blue-100)
 
+### Flat Design Principle
+- **All backgrounds match the main page** - no container contrast
+- Cards, charts, inputs all use the same background as their parent
+- Colorful light: `{color}-100` everywhere
+- Colorful dark: `{color}-900` everywhere
+- Minimal light: white everywhere
+- Minimal dark: black everywhere
+
 ### Tab Color Assignments
 | Tab | Color |
 |-----|-------|
@@ -63,6 +71,22 @@ text: isDarkMode ? 'text-{color}-300' : 'text-{color}-700'
 bg: isDarkMode ? 'bg-{color}-900' : 'bg-{color}-100'
 border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 ```
+
+---
+
+## Chart Colors
+
+### Bar Charts
+- Bars use the **same color as darkest text** in each mode
+- Colorful: `{color}-300` (dark) / `{color}-700` (light)
+- Minimal: white (dark) / black (light)
+
+### Grid Lines
+- Visible in all modes with appropriate contrast
+- Colorful dark: `{color}-700`
+- Colorful light: `{color}-600`
+- Minimal dark: gray-500
+- Minimal light: gray-700
 
 ---
 
