@@ -34,7 +34,8 @@ const ListeningPatterns = ({
     textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
     bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-50',
     bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCard: isDarkMode ? 'bg-yellow-950' : 'bg-yellow-50',
+    bgCardAlt: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
     border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
     buttonActive: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
     buttonInactive: isDarkMode ? 'bg-black text-yellow-300 border border-yellow-600 hover:bg-yellow-900' : 'bg-white text-yellow-700 border border-yellow-300 hover:bg-yellow-50',
@@ -48,6 +49,7 @@ const ListeningPatterns = ({
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
     border: isDarkMode ? 'border-white' : 'border-black',
     buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
@@ -764,9 +766,7 @@ const ListeningPatterns = ({
           }`}>Day of Week Stats</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
             {dayOfWeekData.map((day, index) => (
-              <div key={index} className={`p-3 rounded border relative ${
-                isDarkMode ? 'bg-black' : 'bg-amber-50'
-              }`} style={{ borderColor: day.color }}>
+              <div key={index} className={`p-3 rounded border relative ${colors.bgCardAlt}`} style={{ borderColor: day.color }}>
                 {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
                 (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
                   <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>

@@ -2,56 +2,30 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from './themeprovider.js'; // Add theme import if not passed as prop
 
-const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple', textTheme = null, backgroundTheme = null }) => {
+const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple', textTheme = null, backgroundTheme = null, colorMode = 'minimal' }) => {
   // Use the theme if not explicitly passed as prop
   const { theme } = useTheme();
   const isDarkMode = propIsDarkMode !== undefined ? propIsDarkMode : theme === 'dark';
-  
-  // Helper function to get themed colors
-  const getThemedColors = () => {
-    const textColors = {
-      blue: {
-        text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
-        textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600'
-      },
-      amber: {
-        text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
-        textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600'
-      },
-      yellow: {
-        text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
-        textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
-      }
-    };
-    
-    const backgroundColors = {
-      blue: {
-        bg: isDarkMode ? 'bg-black border-gray-700' : 'bg-blue-50 border-blue-100',
-        bgCard: isDarkMode ? 'bg-black border-gray-700' : 'bg-blue-50 border-blue-100'
-      },
-      amber: {
-        bg: isDarkMode ? 'bg-black border-gray-700' : 'bg-amber-50 border-amber-100',
-        bgCard: isDarkMode ? 'bg-black border-gray-700' : 'bg-amber-50 border-amber-100'
-      },
-      yellow: {
-        bg: isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100',
-        bgCard: isDarkMode ? 'bg-black border-gray-700' : 'bg-yellow-50 border-yellow-100'
-      }
-    };
-    
-    const selectedTextTheme = textTheme || colorTheme;
-    const selectedBackgroundTheme = backgroundTheme || colorTheme;
-    
-    const textColorObj = textColors[selectedTextTheme] || textColors.yellow;
-    const backgroundColorObj = backgroundColors[selectedBackgroundTheme] || backgroundColors.yellow;
-    
-    return {
-      ...textColorObj,
-      ...backgroundColorObj
-    };
+  const isColorful = colorMode === 'colorful';
+
+  // Color system for colorful/minimal modes (Yellow theme for Patterns)
+  const colors = isColorful ? {
+    text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
+    textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
+    bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-50',
+    bgCard: isDarkMode ? 'bg-yellow-950' : 'bg-yellow-50',
+    bgCardAlt: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
+    border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
+  } : {
+    text: isDarkMode ? 'text-white' : 'text-black',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    border: isDarkMode ? 'border-white' : 'border-black',
   };
-  
-  const themedColors = getThemedColors();
+
+  const themedColors = colors;
   
   // Service colors with dark mode variants
   const serviceColors = useMemo(() => ({
