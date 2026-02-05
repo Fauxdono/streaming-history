@@ -44,6 +44,7 @@ const ListeningPatterns = ({
     toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-800' : 'text-yellow-700 hover:bg-yellow-200',
     barColor: isDarkMode ? '#fde047' : '#a16207', // yellow-300 / yellow-700
     barColorAlt: isDarkMode ? '#facc15' : '#ca8a04', // yellow-400 / yellow-600
+    gridColor: isDarkMode ? '#a16207' : '#fde047', // yellow-700 / yellow-300
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
@@ -60,6 +61,7 @@ const ListeningPatterns = ({
     toggleInactive: isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100',
     barColor: isDarkMode ? '#ffffff' : '#000000', // white / black
     barColorAlt: isDarkMode ? '#d1d5db' : '#374151', // gray-300 / gray-700
+    gridColor: isDarkMode ? '#374151' : '#d1d5db', // gray-700 / gray-300
   };
 
   // Color theme for legends (similar to year selector)
@@ -585,7 +587,7 @@ const ListeningPatterns = ({
                 data={timeOfDayData.hourly}
                 margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                <CartesianGrid strokeDasharray="3 3" stroke={colors.gridColor} />
                 <XAxis 
                   dataKey="displayHour" 
                   stroke={isDarkMode ? '#9CA3AF' : '#374151'}
@@ -732,7 +734,7 @@ const ListeningPatterns = ({
                 data={dayOfWeekData}
                 margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                <CartesianGrid strokeDasharray="3 3" stroke={colors.gridColor} />
                 <XAxis 
                   dataKey="name" 
                   tick={{ fontSize: 10 }}
@@ -810,7 +812,7 @@ const ListeningPatterns = ({
                 data={monthlyData.months}
                 margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                <CartesianGrid strokeDasharray="3 3" stroke={colors.gridColor} />
                 <XAxis 
                   dataKey="name" 
                   tick={{ fontSize: 10 }}
