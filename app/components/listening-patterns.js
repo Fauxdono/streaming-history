@@ -41,7 +41,9 @@ const ListeningPatterns = ({
     buttonInactive: isDarkMode ? 'bg-yellow-900 text-yellow-300 border border-yellow-600 hover:bg-yellow-800' : 'bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200',
     toggleBg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
     toggleActive: isDarkMode ? 'bg-yellow-500 text-black' : 'bg-yellow-600 text-white',
-    toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-800' : 'text-yellow-700 hover:bg-yellow-200'
+    toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-800' : 'text-yellow-700 hover:bg-yellow-200',
+    barColor: isDarkMode ? '#fde047' : '#a16207', // yellow-300 / yellow-700
+    barColorAlt: isDarkMode ? '#facc15' : '#ca8a04', // yellow-400 / yellow-600
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
@@ -55,7 +57,9 @@ const ListeningPatterns = ({
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100',
     toggleBg: isDarkMode ? 'bg-black' : 'bg-white',
     toggleActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-    toggleInactive: isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100'
+    toggleInactive: isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100',
+    barColor: isDarkMode ? '#ffffff' : '#000000', // white / black
+    barColorAlt: isDarkMode ? '#d1d5db' : '#374151', // gray-300 / gray-700
   };
 
   // Color theme for legends (similar to year selector)
@@ -604,7 +608,7 @@ const ListeningPatterns = ({
                   }}
                 />
                 <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
+                <Bar name="Number of Plays" dataKey="count" fill={colors.barColor} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -751,9 +755,9 @@ const ListeningPatterns = ({
                 />
                 <Legend />
                 {dayOfWeekViewMode === 'plays' ? (
-                  <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
+                  <Bar name="Number of Plays" dataKey="count" fill={colors.barColor} />
                 ) : (
-                  <Bar name="Average per Day" dataKey="avgPerDay" fill={isDarkMode ? "#059669" : "#82ca9d"} />
+                  <Bar name="Average per Day" dataKey="avgPerDay" fill={colors.barColorAlt} />
                 )}
               </BarChart>
             </ResponsiveContainer>
@@ -825,7 +829,7 @@ const ListeningPatterns = ({
                   }}
                 />
                 <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
+                <Bar name="Number of Plays" dataKey="count" fill={colors.barColor} />
               </BarChart>
             </ResponsiveContainer>
           </div>
