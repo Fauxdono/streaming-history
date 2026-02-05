@@ -52,31 +52,31 @@ const PodcastRankings = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes (Red theme)
+  // Color system for colorful/minimal modes - flat design (Red theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-red-300' : 'text-red-700',
     textLight: isDarkMode ? 'text-red-400' : 'text-red-600',
     textLighter: isDarkMode ? 'text-red-500' : 'text-red-500',
-    bg: isDarkMode ? 'bg-red-900' : 'bg-red-50',
-    bgLight: isDarkMode ? 'bg-red-800' : 'bg-red-100',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-red-950' : 'bg-red-200',
+    bg: isDarkMode ? 'bg-red-900' : 'bg-red-100',
+    bgLight: isDarkMode ? 'bg-red-900' : 'bg-red-100',
+    bgCard: isDarkMode ? 'bg-red-900' : 'bg-red-100',
+    bgCardAlt: isDarkMode ? 'bg-red-900' : 'bg-red-100',
     border: isDarkMode ? 'border-red-600' : 'border-red-300',
-    borderLight: isDarkMode ? 'border-red-700' : 'border-red-200',
+    borderLight: isDarkMode ? 'border-red-600' : 'border-red-300',
     buttonActive: isDarkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white',
-    buttonInactive: isDarkMode ? 'bg-black text-red-300 border border-red-600 hover:bg-red-900' : 'bg-white text-red-700 border border-red-300 hover:bg-red-50',
+    buttonInactive: isDarkMode ? 'bg-red-900 text-red-300 border border-red-600 hover:bg-red-800' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
-    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    borderLight: isDarkMode ? 'border-white' : 'border-black',
     buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100',
   };
 
   // Add check for mobile viewport

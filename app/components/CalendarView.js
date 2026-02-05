@@ -21,31 +21,31 @@ const CalendarView = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes (Green theme)
+  // Color system for colorful/minimal modes - flat design (Green theme)
   const modeColors = isColorful ? {
     text: isDarkMode ? 'text-green-300' : 'text-green-700',
     textLight: isDarkMode ? 'text-green-400' : 'text-green-600',
     textLighter: isDarkMode ? 'text-green-500' : 'text-green-500',
-    bg: isDarkMode ? 'bg-green-900' : 'bg-green-50',
-    bgLight: isDarkMode ? 'bg-green-800' : 'bg-green-100',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-green-950' : 'bg-green-200',
+    bg: isDarkMode ? 'bg-green-900' : 'bg-green-100',
+    bgLight: isDarkMode ? 'bg-green-900' : 'bg-green-100',
+    bgCard: isDarkMode ? 'bg-green-900' : 'bg-green-100',
+    bgCardAlt: isDarkMode ? 'bg-green-900' : 'bg-green-100',
     border: isDarkMode ? 'border-green-600' : 'border-green-300',
-    borderLight: isDarkMode ? 'border-green-700' : 'border-green-200',
+    borderLight: isDarkMode ? 'border-green-600' : 'border-green-300',
     buttonActive: isDarkMode ? 'bg-green-600 text-black' : 'bg-green-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-black text-green-300 border border-green-600 hover:bg-green-900' : 'bg-white text-green-700 border border-green-300 hover:bg-green-50',
+    buttonInactive: isDarkMode ? 'bg-green-900 text-green-300 border border-green-600 hover:bg-green-800' : 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
-    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    borderLight: isDarkMode ? 'border-white' : 'border-black',
     buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100',
   };
 
   // Flexible theming system - uses textTheme and backgroundTheme when available
