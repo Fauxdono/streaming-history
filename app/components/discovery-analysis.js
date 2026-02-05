@@ -2,8 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useTheme } from './themeprovider.js';
 
-const DiscoveryAnalysis = ({ 
-  rawPlayData = [], 
+const DiscoveryAnalysis = ({
+  rawPlayData = [],
   formatDuration,
   // Add props for connecting with the YearSelector sidebar
   selectedYear = 'all',
@@ -12,14 +12,43 @@ const DiscoveryAnalysis = ({
   onYearChange,
   onYearRangeChange,
   onToggleYearRangeMode,
-  colorTheme = 'green'
+  colorTheme = 'green',
+  colorMode = 'minimal'
 }) => {
   const [activeTab, setActiveTab] = useState('discovery');
   const [timeframe, setTimeframe] = useState('all');
-  
+
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
+
+  // Color system for colorful/minimal modes (Orange theme)
+  const modeColors = isColorful ? {
+    text: isDarkMode ? 'text-orange-300' : 'text-orange-700',
+    textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600',
+    textLighter: isDarkMode ? 'text-orange-500' : 'text-orange-500',
+    bg: isDarkMode ? 'bg-orange-900' : 'bg-orange-50',
+    bgLight: isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-orange-950' : 'bg-orange-200',
+    border: isDarkMode ? 'border-orange-600' : 'border-orange-300',
+    borderLight: isDarkMode ? 'border-orange-700' : 'border-orange-200',
+    buttonActive: isDarkMode ? 'bg-orange-600 text-black' : 'bg-orange-500 text-black',
+    buttonInactive: isDarkMode ? 'bg-black text-orange-300 border border-orange-600 hover:bg-orange-900' : 'bg-white text-orange-700 border border-orange-300 hover:bg-orange-50',
+  } : {
+    text: isDarkMode ? 'text-white' : 'text-black',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
+    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    border: isDarkMode ? 'border-white' : 'border-black',
+    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+  };
 
   // Color theme for legends
   const getLegendTextColor = useMemo(() => {
@@ -546,13 +575,7 @@ const filteredData = useMemo(() => {
     <button
       onClick={() => setActiveTab(id)}
       className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
-        activeTab === id
-          ? isDarkMode 
-            ? 'bg-black text-green-400 border border-green-400' 
-            : 'bg-green-600 text-white border border-green-600'
-          : isDarkMode
-            ? 'bg-black text-green-400 hover:bg-black border border-gray-600'
-            : 'bg-green-200 text-green-600 hover:bg-green-300 border border-green-300'
+        activeTab === id ? modeColors.buttonActive : modeColors.buttonInactive
       }`}
     >
       {label}
@@ -584,27 +607,43 @@ const filteredData = useMemo(() => {
   const TimeframeButton = ({ id, label }) => (
     <button
       onClick={() => setTimeframe(id)}
-      className={`px-3 py-1 text-sm font-medium ${
-        timeframe === id
-          ? isDarkMode ? 'bg-green-600 text-white' : 'bg-green-500 text-white'
-          : isDarkMode ? 'bg-black text-green-400 hover:bg-gray-600' : 'bg-green-100 text-green-600 hover:bg-green-200'
-      } rounded-full`}
+      className={`px-3 py-1 text-sm font-medium rounded-full ${
+        timeframe === id ? modeColors.buttonActive : modeColors.buttonInactive
+      }`}
     >
       {label}
     </button>
   );
 
   return (
-    <div className={`w-full space-y-4 ${isDarkMode ? 'text-green-200' : 'text-gray-900'}`}>
-    
-      
-      {/* Mobile-friendly tabs */}
-      <div className="mb-4">
+    <div className={`w-full ${modeColors.text}`}>
+      {/* Title - mobile gets its own row */}
+      <div className="block sm:hidden mb-1">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          {getPageTitle()}
+        </h3>
+      </div>
+
+      {/* Desktop layout - title and controls on same row */}
+      <div className="hidden sm:flex justify-between items-center mb-2">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          {getPageTitle()}
+        </h3>
         <div className="flex flex-wrap gap-1 sm:gap-2">
-          <TabButton id="discovery" label="Artist Discovery" />
-          <TabButton id="loyalty" label="Artist Loyalty" />
-          <TabButton id="depth" label="Listening Depth" />
-          <TabButton id="variety" label="Music Variety" />
+          <TabButton id="discovery" label="Discovery" />
+          <TabButton id="loyalty" label="Loyalty" />
+          <TabButton id="depth" label="Depth" />
+          <TabButton id="variety" label="Variety" />
+        </div>
+      </div>
+
+      {/* Mobile controls - separate row */}
+      <div className="block sm:hidden mb-4">
+        <div className="flex flex-wrap gap-1">
+          <TabButton id="discovery" label="Discovery" />
+          <TabButton id="loyalty" label="Loyalty" />
+          <TabButton id="depth" label="Depth" />
+          <TabButton id="variety" label="Variety" />
         </div>
       </div>
 

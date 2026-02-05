@@ -34,7 +34,7 @@ const ListeningPatterns = ({
     textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
     bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-50',
     bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
-    bgCard: colors.bgCard,
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
     buttonActive: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
     buttonInactive: isDarkMode ? 'bg-black text-yellow-300 border border-yellow-600 hover:bg-yellow-900' : 'bg-white text-yellow-700 border border-yellow-300 hover:bg-yellow-50',
@@ -45,9 +45,9 @@ const ListeningPatterns = ({
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
-    bg: colors.bgCard,
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
-    bgCard: colors.bgCard,
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
     buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
@@ -672,9 +672,7 @@ const ListeningPatterns = ({
             }`}>Time Period Stats</h3>
             <ul className="space-y-2">
               {timeOfDayData.periods.map((period, index) => (
-                <li key={index} className={`p-2 rounded ${
-                  `${colors.bgCard} border ${colors.border}`
-                }`}>
+                <li key={index} className={`p-2 rounded ${colors.bgCard} border ${colors.border}`}>
                   <span className="font-bold" style={{ color: period.textColor || period.color }}>{period.fullName}:</span>
                   <div className="ml-2" style={{ color: period.textColor || period.color }}>
                     <div>{period.count} plays</div>
@@ -897,9 +895,7 @@ const ListeningPatterns = ({
             }`}>Seasonal Stats</h3>
             <ul className="space-y-2">
               {monthlyData.seasons.map((season, index) => (
-                <li key={index} className={`p-2 rounded ${
-                  `${colors.bgCard} border ${colors.border}`
-                }`}>
+                <li key={index} className={`p-2 rounded ${colors.bgCard} border ${colors.border}`}>
                   <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
                   <div className="ml-2" style={{ color: season.color }}>
                     <div>{season.count} plays</div>

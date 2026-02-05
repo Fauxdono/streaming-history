@@ -1,11 +1,44 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Download, Plus, Trash2, Save, Music, Filter, PlusSquare, ArrowUp, ArrowDown } from 'lucide-react';
+import { useTheme } from './themeprovider.js';
 
-const CustomPlaylistCreator = ({ 
-  processedData = [], 
+const CustomPlaylistCreator = ({
+  processedData = [],
   formatDuration,
-  rawPlayData = []
+  rawPlayData = [],
+  colorMode = 'minimal'
 }) => {
+  // Get the current theme
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
+
+  // Color system for colorful/minimal modes (Rose theme)
+  const modeColors = isColorful ? {
+    text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
+    textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
+    textLighter: isDarkMode ? 'text-rose-500' : 'text-rose-500',
+    bg: isDarkMode ? 'bg-rose-900' : 'bg-rose-50',
+    bgLight: isDarkMode ? 'bg-rose-800' : 'bg-rose-100',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-rose-950' : 'bg-rose-200',
+    border: isDarkMode ? 'border-rose-600' : 'border-rose-300',
+    borderLight: isDarkMode ? 'border-rose-700' : 'border-rose-200',
+    buttonActive: isDarkMode ? 'bg-rose-600 text-white' : 'bg-rose-500 text-white',
+    buttonInactive: isDarkMode ? 'bg-black text-rose-300 border border-rose-600 hover:bg-rose-900' : 'bg-white text-rose-700 border border-rose-300 hover:bg-rose-50',
+  } : {
+    text: isDarkMode ? 'text-white' : 'text-black',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
+    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    border: isDarkMode ? 'border-white' : 'border-black',
+    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+  };
   const [playlistName, setPlaylistName] = useState('My Custom Playlist');
   const [searchTerm, setSearchTerm] = useState('');
   const [creationMode, setCreationMode] = useState('manual'); // 'manual' or 'smart'
@@ -1063,40 +1096,45 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       .reduce((total, track) => total + (track.totalPlayed / Math.max(1, track.playCount)), 0);
   }, [selectedTracks]);
   
+  const TabButton = ({ id, label }) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${
+        activeTab === id ? modeColors.buttonActive : modeColors.buttonInactive
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div className="space-y-4">
-      {/* Tabs */}
-      <div className="flex border-b mb-4">
-        <button
-          onClick={() => setActiveTab('create')}
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'create' 
-              ? 'text-red-600 border-b-2 border-red-600' 
-              : 'text-red-500 hover:text-red-700'
-          }`}
-        >
-          Create Playlist
-        </button>
-        <button
-          onClick={() => setActiveTab('saved')}
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'saved' 
-              ? 'text-red-600 border-b-2 border-red-600' 
-              : 'text-red-500 hover:text-red-700'
-          }`}
-        >
-          Saved Playlists ({savedPlaylists.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('export')}
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'export' 
-              ? 'text-red-600 border-b-2 border-red-600' 
-              : 'text-red-500 hover:text-red-700'
-          }`}
-        >
-          Export Settings
-        </button>
+    <div className={`w-full ${modeColors.text}`}>
+      {/* Title - mobile gets its own row */}
+      <div className="block sm:hidden mb-1">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          Custom Playlists
+        </h3>
+      </div>
+
+      {/* Desktop layout - title and controls on same row */}
+      <div className="hidden sm:flex justify-between items-center mb-2">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          Custom Playlists
+        </h3>
+        <div className="flex flex-wrap gap-1 sm:gap-2">
+          <TabButton id="create" label="Create" />
+          <TabButton id="saved" label={`Saved (${savedPlaylists.length})`} />
+          <TabButton id="export" label="Export" />
+        </div>
+      </div>
+
+      {/* Mobile controls - separate row */}
+      <div className="block sm:hidden mb-4">
+        <div className="flex flex-wrap gap-1">
+          <TabButton id="create" label="Create" />
+          <TabButton id="saved" label={`Saved (${savedPlaylists.length})`} />
+          <TabButton id="export" label="Export" />
+        </div>
       </div>
       
       {activeTab === 'create' && (

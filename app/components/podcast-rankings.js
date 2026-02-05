@@ -21,16 +21,17 @@ const safeParseISOAndValidate = (dateString) => {
   }
 };
 
-const PodcastRankings = ({ 
-  rawPlayData = [], 
-  formatDuration, 
+const PodcastRankings = ({
+  rawPlayData = [],
+  formatDuration,
   // Add props for connecting with the YearSelector sidebar
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
   onYearChange,
   onYearRangeChange,
-  onToggleYearRangeMode
+  onToggleYearRangeMode,
+  colorMode = 'minimal'
 }) => {
   // State for filters and sorting
   const [startDate, setStartDate] = useState('');
@@ -49,6 +50,34 @@ const PodcastRankings = ({
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
+
+  // Color system for colorful/minimal modes (Red theme)
+  const modeColors = isColorful ? {
+    text: isDarkMode ? 'text-red-300' : 'text-red-700',
+    textLight: isDarkMode ? 'text-red-400' : 'text-red-600',
+    textLighter: isDarkMode ? 'text-red-500' : 'text-red-500',
+    bg: isDarkMode ? 'bg-red-900' : 'bg-red-50',
+    bgLight: isDarkMode ? 'bg-red-800' : 'bg-red-100',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-red-950' : 'bg-red-200',
+    border: isDarkMode ? 'border-red-600' : 'border-red-300',
+    borderLight: isDarkMode ? 'border-red-700' : 'border-red-200',
+    buttonActive: isDarkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white',
+    buttonInactive: isDarkMode ? 'bg-black text-red-300 border border-red-600 hover:bg-red-900' : 'bg-white text-red-700 border border-red-300 hover:bg-red-50',
+  } : {
+    text: isDarkMode ? 'text-white' : 'text-black',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
+    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    border: isDarkMode ? 'border-white' : 'border-black',
+    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+  };
 
   // Add check for mobile viewport
   useEffect(() => {
@@ -800,42 +829,60 @@ const PodcastRankings = ({
   };
 
   return (
-    <div className={`w-full space-y-4 ${isDarkMode ? 'text-indigo-200' : 'text-gray-900'}`}>
-  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
-      <h3 className={`text-sm sm:text-lg font-bold ${
-        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-      }`}>
-        {getPageTitle()}
-      </h3>
-       <div className={`flex items-center gap-1 sm:gap-2 ${
-         isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-       }`}>
-        <button
-          onClick={() => setIsCompactView(!isCompactView)}
-          className={`p-1 rounded ${
-            isCompactView 
-              ? (isDarkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white')
-              : (isDarkMode ? 'bg-black text-indigo-300' : 'bg-indigo-100 text-indigo-700')
-          } hover:opacity-80`}
-          title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
-        >
-          {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
-        </button>
-        <label className="text-xs sm:text-sm">Show top</label>
+    <div className={`w-full ${modeColors.text}`}>
+      {/* Title - mobile gets its own row */}
+      <div className="block sm:hidden mb-1">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          {getPageTitle()}
+        </h3>
+      </div>
+
+      {/* Desktop layout - title and controls on same row */}
+      <div className="hidden sm:flex justify-between items-center mb-2">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          {getPageTitle()}
+        </h3>
+        <div className={`flex items-center gap-1 sm:gap-2 ${modeColors.text}`}>
+          <button
+            onClick={() => setIsCompactView(!isCompactView)}
+            className={`p-1 rounded ${isCompactView ? modeColors.buttonActive : modeColors.buttonInactive} hover:opacity-80`}
+            title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
+          >
+            {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
+          </button>
+          <label className="text-xs sm:text-sm">Show top</label>
           <input
             type="number"
             min="1"
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
-            className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm focus:border-indigo-400 focus:ring-indigo-400 ${
-              isDarkMode 
-                ? 'bg-black border-gray-600 text-indigo-300' 
-                : 'bg-white border-gray-300 text-indigo-700'
-            }`}
+            className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
           />
         </div>
-       </div>
+      </div>
+
+      {/* Mobile controls - separate row */}
+      <div className="block sm:hidden mb-4">
+        <div className={`flex items-center gap-1 ${modeColors.text}`}>
+          <button
+            onClick={() => setIsCompactView(!isCompactView)}
+            className={`p-1 rounded ${isCompactView ? modeColors.buttonActive : modeColors.buttonInactive} hover:opacity-80`}
+            title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
+          >
+            {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
+          </button>
+          <label className="text-xs">Show top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            value={topN}
+            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
+            className={`border rounded w-16 px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          />
+        </div>
+      </div>
      
 
       {/* Duplicate Detection Settings */}

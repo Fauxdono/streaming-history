@@ -77,12 +77,18 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 
 ---
 
-## Pending Work
+## Completed Work
 
-### Tabs Needing Colorful Mode
-- Calendar
-- Patterns
-- Behavior
-- Discovery
-- Podcasts
-- Playlists
+All tabs now support colorful/minimal mode:
+- Statistics (Indigo)
+- Upload (Violet)
+- Artists (Blue)
+- Albums (Cyan)
+- Custom (Emerald)
+- Tracks (Red)
+- Calendar (Green)
+- Patterns (Yellow)
+- Behavior (Amber)
+- Discovery (Orange)
+- Podcasts (Red)
+- Playlists (Rose)

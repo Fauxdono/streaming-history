@@ -2940,9 +2940,13 @@ const SpotifyAnalyzer = ({
       
       case 'calendar':
         return (
-          <div className={`p-2 sm:p-4 ${calendarColors.wrapper} rounded border-2`}>
-            <CalendarView 
-              rawPlayData={rawPlayData} 
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-green-100 dark:bg-green-900 rounded border-2 border-green-300 dark:border-green-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <CalendarView
+              rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={selectedCalendarYear}
               yearRange={calendarYearRange}
@@ -2951,15 +2955,20 @@ const SpotifyAnalyzer = ({
               textTheme={calendarTextTheme}
               backgroundTheme={calendarBackgroundTheme}
               onYearChange={setSelectedCalendarYear}
+              colorMode={colorMode}
             />
           </div>
         );
       
       case 'behavior':
         return (
-          <div className={`p-2 sm:p-4 ${behaviorColors.wrapper} rounded border-2`}>
-            <ListeningBehavior 
-              rawPlayData={rawPlayData} 
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-amber-100 dark:bg-amber-900 rounded border-2 border-amber-300 dark:border-amber-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <ListeningBehavior
+              rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={selectedBehaviorYear}
               yearRange={behaviorYearRange}
@@ -2967,15 +2976,20 @@ const SpotifyAnalyzer = ({
               colorTheme={behaviorBackgroundTheme}
               textTheme={behaviorTextTheme}
               backgroundTheme={behaviorBackgroundTheme}
+              colorMode={colorMode}
             />
           </div>
         );
       
       case 'discovery':
         return (
-          <div className={`p-2 sm:p-4 ${discoveryColors.wrapper} rounded border-2`}>
-            <DiscoveryAnalysis 
-              rawPlayData={rawPlayData} 
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-orange-100 dark:bg-orange-900 rounded border-2 border-orange-300 dark:border-orange-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <DiscoveryAnalysis
+              rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={selectedDiscoveryYear}
               yearRange={discoveryYearRange}
@@ -2983,31 +2997,38 @@ const SpotifyAnalyzer = ({
               colorTheme={discoveryBackgroundTheme}
               textTheme={discoveryTextTheme}
               backgroundTheme={discoveryBackgroundTheme}
+              colorMode={colorMode}
             />
           </div>
         );
       
       case 'podcasts':
         return (
-          <div id="podcast-rankings" className="p-4 border border-[var(--border)]">
-            <PodcastRankings 
-              rawPlayData={rawPlayData} 
+          <div id="podcast-rankings" className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-red-100 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <PodcastRankings
+              rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={selectedPodcastYear}
               yearRange={podcastYearRange}
               yearRangeMode={podcastYearRangeMode}
               colorTheme="red"
+              colorMode={colorMode}
             />
           </div>
         );
       
       case 'playlists':
         return (
-          <div className={`p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl">Custom Playlists</h3>
-            </div>
-            <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} />
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-rose-100 dark:bg-rose-900 rounded border-2 border-rose-300 dark:border-rose-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
+          }>
+            <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} colorMode={colorMode} />
           </div>
         );
       

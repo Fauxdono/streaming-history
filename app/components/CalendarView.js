@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTheme } from './themeprovider.js';
 
-const CalendarView = ({ 
-  rawPlayData = [], 
+const CalendarView = ({
+  rawPlayData = [],
   formatDuration,
   selectedYear = 'all',
   yearRange = { startYear: '', endYear: '' },
@@ -10,14 +10,43 @@ const CalendarView = ({
   colorTheme = 'blue',
   textTheme = null,
   backgroundTheme = null,
-  onYearChange // Add callback to update selected year
+  onYearChange, // Add callback to update selected year
+  colorMode = 'minimal'
 }) => {
   const [activeTab, setActiveTab] = useState('calendar');
   const [daySelectionMode, setDaySelectionMode] = useState(false);
-  
+
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
+
+  // Color system for colorful/minimal modes (Green theme)
+  const modeColors = isColorful ? {
+    text: isDarkMode ? 'text-green-300' : 'text-green-700',
+    textLight: isDarkMode ? 'text-green-400' : 'text-green-600',
+    textLighter: isDarkMode ? 'text-green-500' : 'text-green-500',
+    bg: isDarkMode ? 'bg-green-900' : 'bg-green-50',
+    bgLight: isDarkMode ? 'bg-green-800' : 'bg-green-100',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-green-950' : 'bg-green-200',
+    border: isDarkMode ? 'border-green-600' : 'border-green-300',
+    borderLight: isDarkMode ? 'border-green-700' : 'border-green-200',
+    buttonActive: isDarkMode ? 'bg-green-600 text-black' : 'bg-green-500 text-black',
+    buttonInactive: isDarkMode ? 'bg-black text-green-300 border border-green-600 hover:bg-green-900' : 'bg-white text-green-700 border border-green-300 hover:bg-green-50',
+  } : {
+    text: isDarkMode ? 'text-white' : 'text-black',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
+    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCardAlt: isDarkMode ? 'bg-gray-900' : 'bg-gray-100',
+    border: isDarkMode ? 'border-white' : 'border-black',
+    borderLight: isDarkMode ? 'border-gray-700' : 'border-gray-200',
+    buttonActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+    buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100',
+  };
 
   // Flexible theming system - uses textTheme and backgroundTheme when available
   const getThemedColors = () => {
@@ -627,13 +656,7 @@ const CalendarView = ({
     <button
       onClick={() => setActiveTab(id)}
       className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
-        activeTab === id
-          ? isDarkMode 
-            ? `bg-green-600 text-black border border-green-500` 
-            : `bg-green-600 text-black border border-green-500`
-          : isDarkMode
-            ? `bg-black text-${colors.primaryDark} hover:bg-gray-900 border border-gray-600`
-            : `bg-${colors.bgLight} text-${colors.primaryLight} hover:bg-${colors.hoverBg} border border-${colors.borderMed}`
+        activeTab === id ? modeColors.buttonActive : modeColors.buttonInactive
       }`}
     >
       {label}
@@ -652,12 +675,30 @@ const CalendarView = ({
   };
 
   return (
-    <div className={`w-full ${isDarkMode ? `text-${colors.textDark}` : 'text-gray-900'}`}>
-      {/* Mobile-friendly tabs */}
-      <div className="mb-4">
+    <div className={`w-full ${modeColors.text}`}>
+      {/* Title - mobile gets its own row */}
+      <div className="block sm:hidden mb-1">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          {getPageTitle()}
+        </h3>
+      </div>
+
+      {/* Desktop layout - title and controls on same row */}
+      <div className="hidden sm:flex justify-between items-center mb-2">
+        <h3 className={`text-xl ${modeColors.text}`}>
+          {getPageTitle()}
+        </h3>
         <div className="flex flex-wrap gap-1 sm:gap-2">
           <TabButton id="calendar" label="Calendar" />
           <TabButton id="history" label="Daily History" />
+        </div>
+      </div>
+
+      {/* Mobile controls - separate row */}
+      <div className="block sm:hidden mb-4">
+        <div className="flex flex-wrap gap-1">
+          <TabButton id="calendar" label="Calendar" />
+          <TabButton id="history" label="History" />
         </div>
       </div>
 
@@ -665,17 +706,13 @@ const CalendarView = ({
         <div className="space-y-6">
           <div>
             {/* Dynamic header based on view mode */}
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>
-              {isMonthView ? 
-                `Daily Calendar - ${selectedYear.split('-')[1]}/${selectedYear.split('-')[0]}` : 
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>
+              {isMonthView ?
+                `Daily Calendar - ${selectedYear.split('-')[1]}/${selectedYear.split('-')[0]}` :
                 'Yearly Calendar Overview'}
             </h3>
-            <p className={`mb-4 ${
-              isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-            }`}>
-              {isMonthView ? 
+            <p className={`mb-4 ${modeColors.textLight}`}>
+              {isMonthView ?
                 'Daily breakdown showing your top artist, album, and new discoveries for each day' :
                 'Monthly insights showing your top artist, album, and new discoveries for each month'}
             </p>
@@ -684,19 +721,11 @@ const CalendarView = ({
             {!isMonthView && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${isDarkMode ? 'bg-green-950' : 'bg-green-200'} rounded shadow-sm border transition-all duration-300 relative ${
-                    isDarkMode 
-                      ? `border-${colors.borderDark} hover:border-${colors.borderStrong}` 
-                      : `border-${colors.border} hover:border-${colors.borderDark}`
-                  }`}>
-                    
+                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
+
                     {/* Month name centered at top with handwriting font */}
-                    <div className={`text-center pb-3 border-b ${
-                      isDarkMode ? 'border-red-600' : 'border-red-300'
-                    } mb-3`}>
-                      <div className={`text-xl font-bold ${
-                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
-                      }`} style={{fontFamily: 'cursive'}}>
+                    <div className={`text-center pb-3 border-b ${modeColors.border} mb-3`}>
+                      <div className={`text-xl font-bold ${modeColors.text}`} style={{fontFamily: 'cursive'}}>
                         {monthData.fullName}
                       </div>
                     </div>
@@ -708,24 +737,24 @@ const CalendarView = ({
                           <tr>
                             <td className="text-center py-2">
                               <div className={`text-xl font-bold ${
-                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                modeColors.text
                               }`}>
                                 {monthData.totalPlays}
                               </div>
                               <div className={`text-xs ${
-                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                modeColors.textLight
                               }`}>
                                 Total Plays
                               </div>
                             </td>
                             <td className="text-center py-2">
                               <div className={`text-xl font-bold ${
-                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                modeColors.text
                               }`}>
                                 {monthData.uniqueSongCount}
                               </div>
                               <div className={`text-xs ${
-                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                modeColors.textLight
                               }`}>
                                 Songs
                               </div>
@@ -734,12 +763,12 @@ const CalendarView = ({
                           <tr>
                             <td className="text-center py-2">
                               <div className={`text-xl font-bold ${
-                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                modeColors.text
                               }`}>
                                 {monthData.uniqueArtistCount}
                               </div>
                               <div className={`text-xs ${
-                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                modeColors.textLight
                               }`}>
                                 Artists
                               </div>
@@ -748,12 +777,12 @@ const CalendarView = ({
                               {monthData.firstListens.length > 0 ? (
                                 <>
                                   <div className={`text-xl font-bold ${
-                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                    modeColors.text
                                   }`}>
                                     {monthData.firstListens.length}
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     New Songs
                                   </div>
@@ -761,12 +790,12 @@ const CalendarView = ({
                               ) : (
                                 <>
                                   <div className={`text-xl font-bold ${
-                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                    modeColors.text
                                   }`}>
                                     0
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     New Songs
                                   </div>
@@ -779,12 +808,12 @@ const CalendarView = ({
                               {monthData.topArtist.name ? (
                                 <>
                                   <div className={`text-sm font-bold ${
-                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                    modeColors.text
                                   }`}>
                                     {monthData.topArtist.name}
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Artist
                                   </div>
@@ -792,12 +821,12 @@ const CalendarView = ({
                               ) : (
                                 <>
                                   <div className={`text-sm ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     No data
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Artist
                                   </div>
@@ -810,12 +839,12 @@ const CalendarView = ({
                               {monthData.topAlbum.name ? (
                                 <>
                                   <div className={`text-sm font-bold ${
-                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                    modeColors.text
                                   }`}>
                                     {monthData.topAlbum.name}
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Album
                                   </div>
@@ -823,12 +852,12 @@ const CalendarView = ({
                               ) : (
                                 <>
                                   <div className={`text-sm ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     No data
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Album
                                   </div>
@@ -841,12 +870,12 @@ const CalendarView = ({
                               {monthData.topSong.name ? (
                                 <>
                                   <div className={`text-sm font-bold ${
-                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                    modeColors.text
                                   }`}>
                                     {monthData.topSong.name}
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Song
                                   </div>
@@ -854,12 +883,12 @@ const CalendarView = ({
                               ) : (
                                 <>
                                   <div className={`text-sm ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     No data
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Song
                                   </div>
@@ -885,22 +914,14 @@ const CalendarView = ({
                       setDaySelectionMode(true);
                     }}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      daySelectionMode
-                        ? isDarkMode
-                          ? `bg-${colors.primaryLighter} text-black border border-${colors.primaryLighter}`
-                          : `bg-${colors.primaryLight} text-white border border-${colors.primaryLight}`
-                        : isDarkMode 
-                          ? `bg-${colors.primaryDark} text-black hover:bg-${colors.primaryLighter} border border-${colors.primaryDark}`
-                          : `bg-${colors.primary} text-white hover:bg-${colors.primaryLight} border border-${colors.primary}`
+                      daySelectionMode ? modeColors.buttonActive : modeColors.buttonInactive
                     }`}
                   >
-                    📅 View in Daily History
+                    View in Daily History
                   </button>
                   {daySelectionMode && (
-                    <p className={`text-sm text-center ${
-                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                    }`}>
-                      👆 Click on any day below to view its detailed history
+                    <p className={`text-sm text-center ${modeColors.textLight}`}>
+                      Click on any day below to view its detailed history
                     </p>
                   )}
                 </div>
@@ -924,27 +945,25 @@ const CalendarView = ({
                   };
                   
                   return (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     onClick={handleDayClick}
-                    className={`p-3 ${isDarkMode ? 'bg-green-950' : 'bg-green-200'} rounded shadow-sm border transition-all duration-300 ${
+                    className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
-                    } ${
+                    } ${modeColors.border} ${
                       daySelectionMode
-                        ? isDarkMode 
-                          ? `border-${colors.borderStrong} hover:border-${colors.primaryLighter} hover:bg-green-900 ring-2 ring-${colors.primaryDark}` 
-                          : `border-${colors.borderDark} hover:border-${colors.primary} hover:bg-green-100 ring-2 ring-${colors.primary} ring-opacity-30`
-                        : isDarkMode 
-                          ? `border-${colors.borderDark}` 
-                          : `border-${colors.border}`
+                        ? isColorful
+                          ? 'hover:opacity-80 ring-2 ring-green-500 ring-opacity-50'
+                          : isDarkMode
+                            ? 'hover:bg-gray-800 ring-2 ring-white ring-opacity-30'
+                            : 'hover:bg-gray-100 ring-2 ring-black ring-opacity-30'
+                        : ''
                     }`}>
-                    
+
                     {/* Date formatted as "January 1st" centered at top with handwriting font */}
-                    <div className={`text-center pb-3 border-b ${
-                      isDarkMode ? 'border-red-600' : 'border-red-300'
-                    } mb-3`}>
+                    <div className={`text-center pb-3 border-b ${modeColors.border} mb-3`}>
                       <div className={`text-xl font-bold ${
-                        isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                        modeColors.text
                       }`} style={{fontFamily: 'cursive'}}>
                         {new Date(dayData.date).toLocaleDateString('en-US', { 
                           month: 'long', 
@@ -966,24 +985,24 @@ const CalendarView = ({
                           <tr>
                             <td className="text-center py-2">
                               <div className={`text-xl font-bold ${
-                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                modeColors.text
                               }`}>
                                 {dayData.totalPlays}
                               </div>
                               <div className={`text-xs ${
-                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                modeColors.textLight
                               }`}>
                                 Total Plays
                               </div>
                             </td>
                             <td className="text-center py-2">
                               <div className={`text-xl font-bold ${
-                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                modeColors.text
                               }`}>
                                 {dayData.uniqueSongCount}
                               </div>
                               <div className={`text-xs ${
-                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                modeColors.textLight
                               }`}>
                                 Songs
                               </div>
@@ -992,24 +1011,24 @@ const CalendarView = ({
                           <tr>
                             <td className="text-center py-2">
                               <div className={`text-xl font-bold ${
-                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                modeColors.text
                               }`}>
                                 {dayData.uniqueArtistCount}
                               </div>
                               <div className={`text-xs ${
-                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                modeColors.textLight
                               }`}>
                                 Artists
                               </div>
                             </td>
                             <td className="text-center py-2">
                               <div className={`text-xl font-bold ${
-                                isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                modeColors.text
                               }`}>
                                 {dayData.firstListens.length}
                               </div>
                               <div className={`text-xs ${
-                                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                modeColors.textLight
                               }`}>
                                 New Songs
                               </div>
@@ -1020,12 +1039,12 @@ const CalendarView = ({
                               {dayData.topArtist.name ? (
                                 <>
                                   <div className={`text-sm font-bold ${
-                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                    modeColors.text
                                   }`}>
                                     {dayData.topArtist.name}
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Artist
                                   </div>
@@ -1033,12 +1052,12 @@ const CalendarView = ({
                               ) : (
                                 <>
                                   <div className={`text-sm ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     No data
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Artist
                                   </div>
@@ -1051,12 +1070,12 @@ const CalendarView = ({
                               {dayData.topAlbum.name ? (
                                 <>
                                   <div className={`text-sm font-bold ${
-                                    isDarkMode ? `text-${colors.primary}` : `text-${colors.primary}`
+                                    modeColors.text
                                   }`}>
                                     {dayData.topAlbum.name}
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Album
                                   </div>
@@ -1064,12 +1083,12 @@ const CalendarView = ({
                               ) : (
                                 <>
                                   <div className={`text-sm ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     No data
                                   </div>
                                   <div className={`text-xs ${
-                                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryDark}`
+                                    modeColors.textLight
                                   }`}>
                                     Top Album
                                   </div>
@@ -1094,109 +1113,67 @@ const CalendarView = ({
         <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
           <div className="flex flex-col gap-4">
             <div>
-              <h3 className={`text-lg font-bold ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-              }`}>Daily Listening History</h3>
-              <p className={`text-sm ${
-                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-              }`}>Use the year selector to pick a specific date and see what you listened to in chronological order</p>
+              <h3 className={`text-lg font-bold ${modeColors.text}`}>Daily Listening History</h3>
+              <p className={`text-sm ${modeColors.textLight}`}>Use the year selector to pick a specific date and see what you listened to in chronological order</p>
               {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
-                <div className={`mt-2 text-sm px-3 py-2 rounded ${
-                  isDarkMode ? `bg-gray-800 text-${colors.textDark} border border-${colors.borderStrong}` : `bg-${colors.bg}-50 text-${colors.primary} border border-${colors.border}`
-                }`}>
-                  📅 Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
+                <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border}`}>
+                  Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
                 </div>
               )}
             </div>
           </div>
-          
-          <div className={`p-3 sm:p-4 rounded ${
-            isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bg}-50 border border-${colors.border}-100`
-          }`}>
-            <h4 className={`font-bold mb-3 sm:mb-2 text-sm sm:text-base ${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>Summary for {historyData.formattedDate}</h4>
+
+          <div className={`p-3 sm:p-4 rounded ${modeColors.bgCard} border ${modeColors.borderLight}`}>
+            <h4 className={`font-bold mb-3 sm:mb-2 text-sm sm:text-base ${modeColors.text}`}>Summary for {historyData.formattedDate}</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
               <div>
-                <div className={`font-medium ${
-                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                }`}>Total Tracks</div>
-                <div className={`text-lg font-bold ${
-                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                }`}>{historyData.totalTracks}</div>
+                <div className={`font-medium ${modeColors.text}`}>Total Tracks</div>
+                <div className={`text-lg font-bold ${modeColors.textLight}`}>{historyData.totalTracks}</div>
               </div>
               <div>
-                <div className={`font-medium ${
-                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                }`}>Listening Time</div>
-                <div className={`text-lg font-bold ${
-                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                }`}>{formatDuration(historyData.totalListeningTime)}</div>
+                <div className={`font-medium ${modeColors.text}`}>Listening Time</div>
+                <div className={`text-lg font-bold ${modeColors.textLight}`}>{formatDuration(historyData.totalListeningTime)}</div>
               </div>
               <div>
-                <div className={`font-medium ${
-                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                }`}>Unique Tracks</div>
-                <div className={`text-lg font-bold ${
-                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                }`}>{historyData.uniqueTracks}</div>
+                <div className={`font-medium ${modeColors.text}`}>Unique Tracks</div>
+                <div className={`text-lg font-bold ${modeColors.textLight}`}>{historyData.uniqueTracks}</div>
               </div>
               <div>
-                <div className={`font-medium ${
-                  isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                }`}>Unique Artists</div>
-                <div className={`text-lg font-bold ${
-                  isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                }`}>{historyData.uniqueArtists}</div>
+                <div className={`font-medium ${modeColors.text}`}>Unique Artists</div>
+                <div className={`text-lg font-bold ${modeColors.textLight}`}>{historyData.uniqueArtists}</div>
               </div>
             </div>
           </div>
-          
+
           <div>
-            <h4 className={`font-bold mb-3 sm:mb-4 text-sm sm:text-base ${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>Chronological Track List ({historyData.tracks.length} tracks)</h4>
+            <h4 className={`font-bold mb-3 sm:mb-4 text-sm sm:text-base ${modeColors.text}`}>Chronological Track List ({historyData.tracks.length} tracks)</h4>
             
             {historyData.tracks.length === 0 ? (
-              <div className={`text-center py-8 ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-600'
-              }`}>
+              <div className={`text-center py-8 ${modeColors.textLight}`}>
                 No listening data found for this date.
               </div>
             ) : (
-              <div className={`max-h-96 sm:max-h-96 md:max-h-[70vh] overflow-y-auto border rounded ${
-                isDarkMode ? 'border-gray-700 bg-black' : 'border-gray-200'
-              }`}>
+              <div className={`max-h-96 sm:max-h-96 md:max-h-[70vh] overflow-y-auto border rounded ${modeColors.borderLight} ${modeColors.bgCard}`}>
                 <div className="space-y-1 p-1 sm:p-2">
                   {historyData.tracks.map((track, index) => (
-                    <div key={index} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 rounded text-sm hover:bg-opacity-50 transition-colors gap-2 sm:gap-0 ${
-                      isDarkMode ? 'bg-gray-900 hover:bg-gray-800' : 'bg-white hover:bg-gray-50'
-                    }`}>
+                    <div key={index} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 rounded text-sm hover:opacity-80 transition-colors gap-2 sm:gap-0 ${modeColors.bgCardAlt}`}>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                          <span className={`text-xs font-mono px-1.5 py-0.5 rounded w-fit ${
-                            isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                          }`}>
+                          <span className={`text-xs font-mono px-1.5 py-0.5 rounded w-fit ${modeColors.bgLight} ${modeColors.textLight}`}>
                             {track.formattedTime}
                           </span>
-                          <span className={`font-medium truncate ${
-                            isDarkMode ? 'text-gray-200' : 'text-gray-900'
-                          }`}>
+                          <span className={`font-medium truncate ${modeColors.text}`}>
                             {track.master_metadata_track_name || 'Unknown Track'}
                           </span>
                         </div>
-                        <div className={`text-xs mt-1 truncate ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
+                        <div className={`text-xs mt-1 truncate ${modeColors.textLighter}`}>
                           {track.master_metadata_album_artist_name || 'Unknown Artist'}
                           {track.master_metadata_album_album_name && ` • ${track.master_metadata_album_album_name}`}
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center justify-between sm:justify-start gap-3 sm:ml-4">
-                        <div className={`text-xs ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
+                        <div className={`text-xs ${modeColors.textLighter}`}>
                           {track.formattedDuration}
                         </div>
                         {track.reason_end === 'trackdone' && (
