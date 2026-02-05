@@ -1897,7 +1897,7 @@ const SpotifyAnalyzer = ({
       case 'upload':
         // Upload tab colors based on colorMode
         const uploadBg = colorMode === 'colorful'
-          ? 'bg-violet-100 dark:bg-violet-900'
+          ? 'bg-violet-200 dark:bg-violet-900'
           : '';
         const uploadBorder = colorMode === 'colorful'
           ? 'border-violet-300 dark:border-violet-700'
@@ -1909,7 +1909,7 @@ const SpotifyAnalyzer = ({
           ? 'text-violet-600 dark:text-violet-400'
           : 'text-gray-600 dark:text-gray-400';
         const uploadCardBg = colorMode === 'colorful'
-          ? 'bg-violet-50 dark:bg-violet-800'
+          ? 'bg-violet-100 dark:bg-violet-800'
           : (isDarkMode ? 'bg-black' : 'bg-white');
 
         return (
@@ -2131,7 +2131,7 @@ const SpotifyAnalyzer = ({
         return stats ? (
           <div className={
             colorMode === 'colorful'
-              ? 'p-4 bg-indigo-100 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
+              ? 'p-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
               : `p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <h3 className={
@@ -2222,7 +2222,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-4 bg-blue-100 dark:bg-blue-900 rounded border-2 border-blue-300 dark:border-blue-700'
+              ? 'p-4 bg-blue-200 dark:bg-blue-900 rounded border-2 border-blue-300 dark:border-blue-700'
               : `p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             {/* Title - mobile gets its own row */}
@@ -2486,7 +2486,7 @@ const SpotifyAnalyzer = ({
                       
                       // Card colors based on colorMode
                       const cardBg = colorMode === 'colorful'
-                        ? 'bg-blue-50 dark:bg-blue-800'
+                        ? 'bg-blue-100 dark:bg-blue-800'
                         : (isDarkMode ? 'bg-black' : 'bg-white');
                       const cardBorder = colorMode === 'colorful'
                         ? 'border-blue-300 dark:border-blue-600'
@@ -2568,7 +2568,7 @@ const SpotifyAnalyzer = ({
               ) : (
                 <div className={
                   colorMode === 'colorful'
-                    ? 'p-6 text-center bg-blue-50 dark:bg-blue-800 rounded border-2 border-blue-300 dark:border-blue-600'
+                    ? 'p-6 text-center bg-blue-100 dark:bg-blue-800 rounded border-2 border-blue-300 dark:border-blue-600'
                     : `p-6 text-center rounded border-2 ${isDarkMode ? 'bg-black border-white' : 'bg-white border-black'}`
                 }>
                   <h4 className={
@@ -2611,7 +2611,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-cyan-100 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700 transition-all duration-300'
+              ? 'p-2 sm:p-4 bg-cyan-200 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700 transition-all duration-300'
               : `p-2 sm:p-4 rounded border-2 transition-all duration-300 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             {/* Title - mobile gets its own row */}
@@ -2882,7 +2882,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-emerald-100 dark:bg-emerald-900 rounded border-2 border-emerald-300 dark:border-emerald-700'
+              ? 'p-2 sm:p-4 bg-emerald-200 dark:bg-emerald-900 rounded border-2 border-emerald-300 dark:border-emerald-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <CustomTrackRankings

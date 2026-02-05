@@ -41,16 +41,16 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
 
     const backgroundColors = {
       cyan: {
-        bg: isDarkMode ? 'bg-cyan-800' : 'bg-cyan-50', border: isDarkMode ? 'border-cyan-600' : 'border-cyan-300',
-        borderHover: isDarkMode ? 'border-cyan-400' : 'border-cyan-400', bgLight: isDarkMode ? 'bg-cyan-900' : 'bg-cyan-100',
-        bgButton: isDarkMode ? 'bg-cyan-700' : 'bg-cyan-100', bgStripe: isDarkMode ? 'bg-cyan-900' : 'bg-cyan-100',
-        bgHeader: isDarkMode ? 'bg-cyan-700' : 'bg-cyan-200'
+        bg: isDarkMode ? 'bg-cyan-800' : 'bg-cyan-100', border: isDarkMode ? 'border-cyan-600' : 'border-cyan-300',
+        borderHover: isDarkMode ? 'border-cyan-400' : 'border-cyan-400', bgLight: isDarkMode ? 'bg-cyan-900' : 'bg-cyan-200',
+        bgButton: isDarkMode ? 'bg-cyan-700' : 'bg-cyan-200', bgStripe: isDarkMode ? 'bg-cyan-900' : 'bg-cyan-200',
+        bgHeader: isDarkMode ? 'bg-cyan-700' : 'bg-cyan-300'
       },
       blue: {
-        bg: isDarkMode ? 'bg-blue-800' : 'bg-blue-50', border: isDarkMode ? 'border-blue-600' : 'border-blue-300',
-        borderHover: isDarkMode ? 'border-blue-400' : 'border-blue-400', bgLight: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
-        bgButton: isDarkMode ? 'bg-blue-700' : 'bg-blue-100', bgStripe: isDarkMode ? 'bg-blue-900' : 'bg-blue-100',
-        bgHeader: isDarkMode ? 'bg-blue-700' : 'bg-blue-200'
+        bg: isDarkMode ? 'bg-blue-800' : 'bg-blue-100', border: isDarkMode ? 'border-blue-600' : 'border-blue-300',
+        borderHover: isDarkMode ? 'border-blue-400' : 'border-blue-400', bgLight: isDarkMode ? 'bg-blue-900' : 'bg-blue-200',
+        bgButton: isDarkMode ? 'bg-blue-700' : 'bg-blue-200', bgStripe: isDarkMode ? 'bg-blue-900' : 'bg-blue-200',
+        bgHeader: isDarkMode ? 'bg-blue-700' : 'bg-blue-300'
       },
       green: {
         bg: isDarkMode ? 'bg-green-800' : 'bg-green-50', border: isDarkMode ? 'border-green-600' : 'border-green-300',
