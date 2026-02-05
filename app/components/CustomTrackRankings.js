@@ -271,17 +271,17 @@ const CustomTrackRankings = ({
     }
   };
 
-  // Minimal mode colors (black/white)
+  // Minimal mode colors (black/white) - flat design, no contrast
   const getMinimalColors = () => ({
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
     textDark: isDarkMode ? 'text-white' : 'text-black',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
-    bgMed: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
+    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
+    bgMed: isDarkMode ? 'bg-black' : 'bg-white',
     bgDark: isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black',
-    bgDarkHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
+    bgDarkHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderDark: isDarkMode ? 'border-white' : 'border-black',
     hoverBg: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
@@ -1637,7 +1637,7 @@ return (
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bgLight} ${colors.border}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
         <h3 className={`text-xl font-normal ${colors.text} mb-4`}>Omitted Content</h3>
         
         {omittedArtists.length > 0 && (
@@ -1666,7 +1666,7 @@ return (
           <div>
             <h4 className={`font-semibold ${colors.textLight} mb-2`}>Omitted Songs</h4>
             <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4">
-              <table className={`w-full border-collapse ${colors.bgLight}`}>
+              <table className={`w-full border-collapse ${colors.bg}`}>
                 <thead>
                   <tr className={`border-b ${colors.border}`}>
                     <th className={`p-2 text-left ${colors.text}`}>Track</th>
@@ -1705,7 +1705,7 @@ return (
       </div>
     ) : (
       /* Results section with date range info */
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bgLight} ${colors.border}`}>
+      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
         <div className="flex justify-between items-center flex-wrap gap-2">
           <div className={`${colors.text} font-medium text-sm`}>
             Date Range: <span className={`${colors.textDark}`}>{getFormattedDateRange()}</span>
