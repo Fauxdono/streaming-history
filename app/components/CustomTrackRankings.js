@@ -1311,20 +1311,20 @@ const CustomTrackRankings = ({
     }
   };
 return (
-  <div className="space-y-4">
+  <div>
     {/* Title - mobile gets its own row */}
     <div className="block sm:hidden mb-1">
-      <h3 className={`text-xl font-normal ${colors.text}`}>
+      <h3 className={`text-xl ${colors.text}`}>
         {getPageTitle()}
       </h3>
     </div>
 
     {/* Desktop layout - title and controls on same row */}
     <div className="hidden sm:flex justify-between items-center mb-2">
-      <h3 className={`text-xl font-normal ${colors.text}`}>
+      <h3 className={`text-xl ${colors.text}`}>
         {getPageTitle()}
       </h3>
-      
+
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <label className={`${colors.text}`}>Show Top</label>
@@ -1410,10 +1410,8 @@ return (
     </div>
    
 
-    {/* Date Range Selection */}
-
-      {/* Search input */}
-      <div className="relative">
+    {/* Search input */}
+      <div className="relative mt-4">
         <input
           type="text"
           value={unifiedSearch}
@@ -1536,7 +1534,7 @@ return (
     )}
 
     {/* Tabs for switching between main content and omitted content */}
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex justify-between items-center mt-4 mb-4">
       <div className="flex gap-2">
         <button
           onClick={() => setShowOmittedTab(false)}
