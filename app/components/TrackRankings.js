@@ -74,11 +74,19 @@ const TrackRankings = ({
         focusRing: isDarkMode ? 'focus:ring-amber-400' : 'focus:ring-amber-400'
       },
       yellow: {
-        bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-yellow-700' : 'border-yellow-200',
-        borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-yellow-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-yellow-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-yellow-200',
-        bgSelected: isDarkMode ? 'bg-yellow-600' : 'bg-yellow-600', bgSelectedHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-700',
-        focusRing: isDarkMode ? 'focus:ring-yellow-400' : 'focus:ring-yellow-400'
+        bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
+        bgHover: isDarkMode ? 'hover:bg-yellow-800' : 'hover:bg-yellow-200',
+        border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
+        borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400',
+        bgLight: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
+        bgButton: isDarkMode ? 'bg-yellow-900 border border-yellow-600 text-yellow-300' : 'bg-yellow-100 border border-yellow-300 text-yellow-700',
+        bgButtonHover: isDarkMode ? 'hover:bg-yellow-800' : 'hover:bg-yellow-200',
+        bgButtonLight: isDarkMode ? 'bg-yellow-900 border border-yellow-700 text-yellow-400' : 'bg-yellow-100 border border-yellow-400 text-yellow-600',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-yellow-800' : 'hover:bg-yellow-200',
+        bgSelected: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
+        bgSelectedHover: isDarkMode ? 'hover:bg-yellow-500' : 'hover:bg-yellow-600',
+        focusRing: isDarkMode ? 'focus:ring-yellow-400' : 'focus:ring-yellow-400',
+        focus: isDarkMode ? 'border-yellow-600 bg-yellow-900 text-yellow-300' : 'border-yellow-300 bg-yellow-100 text-yellow-700'
       }
     };
 
