@@ -1284,13 +1284,13 @@ const CustomTrackRankings = ({
             </button>
             
             {showOmitDropdown === song.key && (
-              <div className={`absolute bottom-full mb-1 right-full mr-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+              <div className={`absolute bottom-full mb-1 right-full mr-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                 <button
                   onClick={() => {
                     omitSong(song);
                     setShowOmitDropdown(null);
                   }}
-                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg}`}
                 >
                   Omit song
                 </button>
@@ -1299,7 +1299,7 @@ const CustomTrackRankings = ({
                     omitArtist(song.artist);
                     setShowOmitDropdown(null);
                   }}
-                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
+                  className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg} border-t ${colors.border}`}
                 >
                   Omit artist
                 </button>
@@ -1423,11 +1423,11 @@ return (
             setAlbumSearch(e.target.value);
           }}
           placeholder="Search artists or albums..."
-          className={`w-full border rounded px-2 py-1 ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+          className={`w-full border rounded px-2 py-1 ${colors.bg} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
         />
         
         {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-          <div className={`absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto ${colors.textLight}`}>
+          <div className={`absolute z-10 mt-1 w-full ${colors.bg} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
             {filteredArtists.length > 0 && (
               <div>
                 <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
@@ -1438,14 +1438,14 @@ return (
                       addArtistFromTrack(artist);
                       setUnifiedSearch('');
                     }}
-                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
+                    className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
                   >
                     <span className="mr-1">👤</span> {artist}
                   </div>
                 ))}
               </div>
             )}
-            
+
             {filteredAlbums.length > 0 && (
               <div>
                 <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
@@ -1456,9 +1456,9 @@ return (
                       addAlbumFromTrack(album.name, album.artist);
                       setUnifiedSearch('');
                     }}
-                    className={`px-2 py-1 hover:${colors.bg} cursor-pointer`}
+                    className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
                   >
-                    <span className="mr-1">💿</span> {album.name} <span className="text-xs">({album.artist})</span>
+                    <span className="mr-1">💿</span> {album.name} <span className={`text-xs ${colors.textLight}`}>({album.artist})</span>
                   </div>
                 ))}
               </div>
@@ -1654,9 +1654,9 @@ return (
             // Grid view - like artists tab grid
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredTracks.map((song, index) => (
-                <div 
+                <div
                   key={song.key}
-                  className={`p-3 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow ${song.isFeatured ? `${colors.border} ${colors.bg}` : 'border-gray-200'}`}
+                  className={`p-3 border rounded-lg ${colors.bg} ${colors.border} shadow-sm hover:shadow-md transition-shadow`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
@@ -1706,13 +1706,13 @@ return (
                       </button>
                       
                       {showOmitDropdown === song.key && (
-                        <div className={`absolute bottom-full mb-1 bg-white border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+                        <div className={`absolute bottom-full mb-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                           <button
                             onClick={() => {
                               omitSong(song);
                               setShowOmitDropdown(null);
                             }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg}`}
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg}`}
                           >
                             Omit song
                           </button>
@@ -1721,7 +1721,7 @@ return (
                               omitArtist(song.artist);
                               setShowOmitDropdown(null);
                             }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} hover:${colors.bg} border-t ${colors.borderDark}`}
+                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg} border-t ${colors.border}`}
                           >
                             Omit artist
                           </button>
