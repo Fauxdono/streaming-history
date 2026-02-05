@@ -2882,7 +2882,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-emerald-100 dark:bg-emerald-900 rounded border-2 border-emerald-300 dark:border-emerald-700'
+              ? 'p-2 sm:p-4 bg-emerald-200 dark:bg-emerald-900 rounded border-2 border-emerald-300 dark:border-emerald-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <CustomTrackRankings
