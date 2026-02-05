@@ -75,18 +75,18 @@ const TrackRankings = ({
       },
       yellow: {
         bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
-        bgHover: isDarkMode ? 'hover:bg-yellow-800' : 'hover:bg-yellow-200',
+        bgHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-100',
         border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
         borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400',
-        bgLight: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
-        bgButton: isDarkMode ? 'bg-yellow-900 border border-yellow-600 text-yellow-300' : 'bg-yellow-100 border border-yellow-300 text-yellow-700',
-        bgButtonHover: isDarkMode ? 'hover:bg-yellow-800' : 'hover:bg-yellow-200',
-        bgButtonLight: isDarkMode ? 'bg-yellow-900 border border-yellow-700 text-yellow-400' : 'bg-yellow-100 border border-yellow-400 text-yellow-600',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-yellow-800' : 'hover:bg-yellow-200',
+        bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-50',
+        bgButton: isDarkMode ? 'bg-yellow-800 border border-yellow-600 text-yellow-300' : 'bg-yellow-50 border border-yellow-300 text-yellow-700',
+        bgButtonHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-100',
+        bgButtonLight: isDarkMode ? 'bg-yellow-800 border border-yellow-700 text-yellow-400' : 'bg-yellow-50 border border-yellow-400 text-yellow-600',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-100',
         bgSelected: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
         bgSelectedHover: isDarkMode ? 'hover:bg-yellow-500' : 'hover:bg-yellow-600',
         focusRing: isDarkMode ? 'focus:ring-yellow-400' : 'focus:ring-yellow-400',
-        focus: isDarkMode ? 'border-yellow-600 bg-yellow-900 text-yellow-300' : 'border-yellow-300 bg-yellow-100 text-yellow-700'
+        focus: isDarkMode ? 'border-yellow-600 bg-yellow-800 text-yellow-300' : 'border-yellow-300 bg-yellow-50 text-yellow-700'
       }
     };
 
