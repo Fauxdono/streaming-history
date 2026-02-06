@@ -59,9 +59,9 @@ const ListeningPatterns = ({
     toggleBg: isDarkMode ? 'bg-black' : 'bg-white',
     toggleActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
     toggleInactive: isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100',
-    barColor: isDarkMode ? '#ffffff' : '#000000', // white / black
-    barColorAlt: isDarkMode ? '#d1d5db' : '#374151', // gray-300 / gray-700
-    gridColor: isDarkMode ? '#6b7280' : '#374151', // gray-500 / gray-700
+    barColor: isDarkMode ? '#9CA3AF' : '#6B7280', // gray-400 / gray-500
+    barColorAlt: isDarkMode ? '#6B7280' : '#9CA3AF', // gray-500 / gray-400
+    gridColor: isDarkMode ? '#4B5563' : '#D1D5DB', // gray-600 / gray-300
   };
 
   // Color theme for legends - grey in minimal mode
