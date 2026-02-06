@@ -59,8 +59,11 @@ const ListeningBehavior = ({
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100',
   };
 
-  // Color theme for legends
+  // Color theme for legends - grey in minimal mode
   const getLegendTextColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000'; // White/black in minimal mode
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#C4B5FD';
@@ -82,7 +85,7 @@ const ListeningBehavior = ({
         default: return '#3730A3';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
 
   // Color theme mapping function
   const getColors = (colorTheme) => {
@@ -164,7 +167,11 @@ const ListeningBehavior = ({
   console.log('🎯 Final colors object:', colors);
 
   // Color theme for pie chart strokes - use actual hex values instead of CSS variables for SVG compatibility
+  // In minimal mode, use grey; in colorful mode, use theme colors
   const getStrokeColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000'; // White/black stroke in minimal mode
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#d8b4fe';
@@ -179,6 +186,7 @@ const ListeningBehavior = ({
         case 'cyan': return '#67e8f9';
         case 'emerald': return '#6ee7b7';
         case 'rose': return '#fda4af';
+        case 'amber': return '#fcd34d';
         default: return '#a5b4fc';
       }
     } else {
@@ -195,13 +203,18 @@ const ListeningBehavior = ({
         case 'cyan': return '#155e75';
         case 'emerald': return '#065f46';
         case 'rose': return '#9f1239';
+        case 'amber': return '#b45309';
         default: return '#3730a3';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
 
   // Color theme for pie chart text labels - use actual hex values instead of CSS variables for SVG compatibility
+  // In minimal mode, use grey; in colorful mode, use theme colors
   const getTextColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000'; // White/black text in minimal mode
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#d8b4fe';
@@ -216,6 +229,7 @@ const ListeningBehavior = ({
         case 'cyan': return '#67e8f9';
         case 'emerald': return '#6ee7b7';
         case 'rose': return '#fda4af';
+        case 'amber': return '#fcd34d';
         default: return '#a5b4fc';
       }
     } else {
@@ -232,10 +246,11 @@ const ListeningBehavior = ({
         case 'cyan': return '#155e75';
         case 'emerald': return '#065f46';
         case 'rose': return '#9f1239';
+        case 'amber': return '#b45309';
         default: return '#3730a3';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
   
 // Update the filteredData useMemo in ListeningBehavior.js
 const filteredData = useMemo(() => {
@@ -429,16 +444,16 @@ const filteredData = useMemo(() => {
       }
     });
     
-    // Format for pie charts with much darker colors for dark mode
+    // Format for pie charts - grey in minimal mode, colorful otherwise
     const shuffleData = [
-      { name: 'Shuffle On', value: shufflePlays, color: isDarkMode ? '#4C1D95' : '#8884d8' },
-      { name: 'Shuffle Off', value: normalPlays, color: isDarkMode ? '#065F46' : '#82ca9d' }
+      { name: 'Shuffle On', value: shufflePlays, color: isColorful ? (isDarkMode ? '#4C1D95' : '#8884d8') : (isDarkMode ? '#6B7280' : '#9CA3AF') },
+      { name: 'Shuffle Off', value: normalPlays, color: isColorful ? (isDarkMode ? '#065F46' : '#82ca9d') : (isDarkMode ? '#374151' : '#D1D5DB') }
     ];
-    
+
     const skipData = [
-      { name: 'Completed', value: completedTracks, color: isDarkMode ? '#065F46' : '#82ca9d' },
-      { name: 'Skipped', value: skippedTracks, color: isDarkMode ? '#DC2626' : '#ff8042' },
-      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: isDarkMode ? '#4C1D95' : '#8884d8' }
+      { name: 'Completed', value: completedTracks, color: isColorful ? (isDarkMode ? '#065F46' : '#82ca9d') : (isDarkMode ? '#4B5563' : '#9CA3AF') },
+      { name: 'Skipped', value: skippedTracks, color: isColorful ? (isDarkMode ? '#DC2626' : '#ff8042') : (isDarkMode ? '#6B7280' : '#6B7280') },
+      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: isColorful ? (isDarkMode ? '#4C1D95' : '#8884d8') : (isDarkMode ? '#374151' : '#D1D5DB') }
     ];
     
     // Format reasons for bar charts
@@ -475,7 +490,7 @@ const filteredData = useMemo(() => {
       skipData,
       platformData
     };
-  }, [filteredData, deferredActiveTab, activeTab, isDarkMode]);
+  }, [filteredData, deferredActiveTab, activeTab, isDarkMode, isColorful]);
   
   // Analyze listening sessions - only compute for active sessions tab
   const sessionData = useMemo(() => {
@@ -601,13 +616,13 @@ const filteredData = useMemo(() => {
     const mostActiveMonth = Object.values(monthStats)
       .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
     
-    // Group sessions by duration with much darker colors for dark mode
+    // Group sessions by duration - grey in minimal mode, colorful otherwise
     const durationGroups = [
-      { name: "< 15 min", count: 0, color: isDarkMode ? "#4C1D95" : "#8884d8" },
-      { name: "15-30 min", count: 0, color: isDarkMode ? "#065F46" : "#82ca9d" },
-      { name: "30-60 min", count: 0, color: isDarkMode ? "#D97706" : "#ffc658" },
-      { name: "1-2 hours", count: 0, color: isDarkMode ? "#DC2626" : "#ff8042" },
-      { name: "> 2 hours", count: 0, color: isDarkMode ? "#1E40AF" : "#8dd1e1" }
+      { name: "< 15 min", count: 0, color: isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#374151" : "#D1D5DB") },
+      { name: "15-30 min", count: 0, color: isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#4B5563" : "#9CA3AF") },
+      { name: "30-60 min", count: 0, color: isColorful ? (isDarkMode ? "#D97706" : "#ffc658") : (isDarkMode ? "#6B7280" : "#6B7280") },
+      { name: "1-2 hours", count: 0, color: isColorful ? (isDarkMode ? "#DC2626" : "#ff8042") : (isDarkMode ? "#9CA3AF" : "#4B5563") },
+      { name: "> 2 hours", count: 0, color: isColorful ? (isDarkMode ? "#1E40AF" : "#8dd1e1") : (isDarkMode ? "#D1D5DB" : "#374151") }
     ];
     
     sessionLengths.forEach(session => {
@@ -652,7 +667,7 @@ const filteredData = useMemo(() => {
       longestListeningDay,
       mostActiveMonth
     };
-  }, [filteredData, isDarkMode, deferredActiveTab, activeTab]);
+  }, [filteredData, isDarkMode, isColorful, deferredActiveTab, activeTab]);
 
   // Update selectedDate when selectedYear changes to a specific date
   React.useEffect(() => {
@@ -836,54 +851,38 @@ const filteredData = useMemo(() => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-                isDarkMode ? colors.primaryDark : colors.primary
-              }`}>Shuffle vs. Normal Play</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-                isDarkMode ? 'bg-black' : 'bg-white'
-              }`}>
-                <ShuffleChart 
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Shuffle vs. Normal Play</h3>
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+                <ShuffleChart
                   data={behaviorData.shuffleData}
                   isDarkMode={isDarkMode}
                   colorTheme={colorTheme}
                 />
               </div>
-    
-              <div className={`text-sm text-center mt-2 ${
-                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-              }`}>
+
+              <div className={`text-sm text-center mt-2 ${modeColors.textLight}`}>
                 You listen in shuffle mode {behaviorData.shufflePercentage}% of the time
               </div>
             </div>
-            
+
             <div>
-              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-                isDarkMode ? 'text-amber-300' : 'text-amber-600'
-              }`}>Track Completion</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-                isDarkMode ? 'bg-black' : 'bg-white'
-              }`}>
-                <CompletionChart 
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Track Completion</h3>
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+                <CompletionChart
                   data={behaviorData.skipData}
                   isDarkMode={isDarkMode}
                   colorTheme={colorTheme}
                 />
               </div>
-              <div className={`text-sm text-center mt-2 ${
-                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-              }`}>
+              <div className={`text-sm text-center mt-2 ${modeColors.textLight}`}>
                 You completed {behaviorData.completedPercentage}% of tracks, skipped {behaviorData.skippedPercentage}%
               </div>
             </div>
           </div>
-          
+
           <div>
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? 'text-amber-300' : 'text-amber-600'
-            }`}>How You Start Tracks</h3>
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-black' : 'bg-white'
-            }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How You Start Tracks</h3>
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.startReasons}
@@ -910,12 +909,8 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>How Tracks End</h3>
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-black' : 'bg-white'
-            }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How Tracks End</h3>
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.endReasons}
@@ -942,12 +937,8 @@ const filteredData = useMemo(() => {
           </div>
           
           <div>
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>Platforms Used</h3>
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-black' : 'bg-white'
-            }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Platforms Used</h3>
+            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.platformData}
@@ -978,47 +969,25 @@ const filteredData = useMemo(() => {
       {activeTab === 'sessions' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className={`p-4 rounded ${
-              isDarkMode ? 'bg-amber-900 border border-amber-800' : 'bg-amber-100'
-            }`}>
-              <h3 className={`font-bold ${
-                isDarkMode ? 'text-amber-300' : 'text-amber-600'
-              }`}>Total Sessions</h3>
-              <p className={`text-3xl ${
-                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-              }`}>{sessionData.totalSessions}</p>
+            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+              <h3 className={`font-bold ${modeColors.text}`}>Total Sessions</h3>
+              <p className={`text-3xl ${modeColors.text}`}>{sessionData.totalSessions}</p>
             </div>
-            
-            <div className={`p-4 rounded ${
-              isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-            }`}>
-              <h3 className={`font-bold ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-              }`}>Avg. Session Length</h3>
-              <p className={`text-3xl ${
-                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-              }`}>{sessionData.averageSessionDuration} min</p>
+
+            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+              <h3 className={`font-bold ${modeColors.text}`}>Avg. Session Length</h3>
+              <p className={`text-3xl ${modeColors.text}`}>{sessionData.averageSessionDuration} min</p>
             </div>
-            
-            <div className={`p-4 rounded ${
-              isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-            }`}>
-              <h3 className={`font-bold ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-              }`}>Avg. Tracks per Session</h3>
-              <p className={`text-3xl ${
-                isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-              }`}>{sessionData.averageTracksPerSession}</p>
+
+            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+              <h3 className={`font-bold ${modeColors.text}`}>Avg. Tracks per Session</h3>
+              <p className={`text-3xl ${modeColors.text}`}>{sessionData.averageTracksPerSession}</p>
             </div>
           </div>
-          
+
           <div>
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>Session Duration Distribution</h3>
-            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              isDarkMode ? 'bg-black' : 'bg-white'
-            }`}>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Duration Distribution</h3>
+            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart key={`pie-session-${isDarkMode}-${colorTheme}`}>
                   <Pie
@@ -1046,23 +1015,13 @@ const filteredData = useMemo(() => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-              }`}>Session Statistics</h3>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Statistics</h3>
               <ul className="space-y-2">
                 {sessionData.longestSession && (
-                  <li className={`p-2 rounded ${
-                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-                  }`}>
-                    <span className={`font-bold ${
-                      isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                    }`}>Longest Session:</span>
-                    <span className={`ml-2 ${
-                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                    }`}>{sessionData.longestSession.durationMinutes} minutes</span>
-                    <div className={`text-sm ${
-                      isDarkMode ? `text-${colors.textLighter}` : `text-${colors.textLighter}`
-                    }`}>
+                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                    <span className={`font-bold ${modeColors.text}`}>Longest Session:</span>
+                    <span className={`ml-2 ${modeColors.text}`}>{sessionData.longestSession.durationMinutes} minutes</span>
+                    <div className={`text-sm ${modeColors.textLight}`}>
                       on {sessionData.longestSession.fullDate.toLocaleDateString(undefined, {
                         weekday: 'long',
                         year: 'numeric',
@@ -1072,20 +1031,12 @@ const filteredData = useMemo(() => {
                     </div>
                   </li>
                 )}
-                
+
                 {sessionData.mostTracksSession && (
-                  <li className={`p-2 rounded ${
-                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-                  }`}>
-                    <span className={`font-bold ${
-                      isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                    }`}>Most Tracks in a Session:</span>
-                    <span className={`ml-2 ${
-                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                    }`}>{sessionData.mostTracksSession.tracksCount} tracks</span>
-                    <div className={`text-sm ${
-                      isDarkMode ? `text-${colors.textLighter}` : `text-${colors.textLighter}`
-                    }`}>
+                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                    <span className={`font-bold ${modeColors.text}`}>Most Tracks in a Session:</span>
+                    <span className={`ml-2 ${modeColors.text}`}>{sessionData.mostTracksSession.tracksCount} tracks</span>
+                    <div className={`text-sm ${modeColors.textLight}`}>
                       on {sessionData.mostTracksSession.fullDate.toLocaleDateString(undefined, {
                         weekday: 'long',
                         year: 'numeric',
@@ -1095,109 +1046,69 @@ const filteredData = useMemo(() => {
                     </div>
                   </li>
                 )}
-                
-                <li className={`p-2 rounded ${
-                  isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-                }`}>
-                  <span className={`font-bold ${
-                    isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                  }`}>Total Listening Time:</span>
-                  <span className={`ml-2 ${
-                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                  }`}>
+
+                <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                  <span className={`font-bold ${modeColors.text}`}>Total Listening Time:</span>
+                  <span className={`ml-2 ${modeColors.text}`}>
                     {formatDuration(sessionData.sessionLengths.reduce((sum, session) => sum + (session.durationMinutes * 60000), 0))}
                   </span>
                 </li>
               </ul>
             </div>
-            
+
             <div>
-              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-                isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-              }`}>Notable Days & Months</h3>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Notable Days & Months</h3>
               <div className="space-y-3">
                 {sessionData.mostActiveDay && (
-                  <div className={`p-3 rounded ${
-                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-                  }`}>
-                    <h4 className={`font-medium ${
-                      isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                    }`}>Most Active Day:</h4>
-                    <div className={`font-bold ${
-                      isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                    }`}>{sessionData.mostActiveDay.displayDate}</div>
-                    <div className={`text-sm ${
-                      isDarkMode ? `text-${colors.textLighter}` : `text-${colors.textLighter}`
-                    }`}>
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                    <h4 className={`font-medium ${modeColors.text}`}>Most Active Day:</h4>
+                    <div className={`font-bold ${modeColors.text}`}>{sessionData.mostActiveDay.displayDate}</div>
+                    <div className={`text-sm ${modeColors.textLight}`}>
                       {sessionData.mostActiveDay.totalPlays} tracks played
                     </div>
                   </div>
                 )}
-                
+
                 {sessionData.longestListeningDay && (
-                  <div className={`p-3 rounded ${
-                    isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-                  }`}>
-                  <h4 className={`font-medium ${
-                    isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                  }`}>Longest Listening Day:</h4>
-                  <div className={`font-bold ${
-                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                  }`}>{sessionData.longestListeningDay.displayDate}</div>
-                  <div className={`text-sm ${
-                    isDarkMode ? `text-${colors.textLighter}` : `text-${colors.textLighter}`
-                  }`}>
-                    {formatDuration(sessionData.longestListeningDay.totalTime)} of listening
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                    <h4 className={`font-medium ${modeColors.text}`}>Longest Listening Day:</h4>
+                    <div className={`font-bold ${modeColors.text}`}>{sessionData.longestListeningDay.displayDate}</div>
+                    <div className={`text-sm ${modeColors.textLight}`}>
+                      {formatDuration(sessionData.longestListeningDay.totalTime)} of listening
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {sessionData.mostActiveMonth && (
-                <div className={`p-3 rounded ${
-                  isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-                }`}>
-                  <h4 className={`font-medium ${
-                    isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-                  }`}>Most Active Month:</h4>
-                  <div className={`font-bold ${
-                    isDarkMode ? `text-${colors.primaryDark}` : `text-${colors.primaryLight}`
-                  }`}>{sessionData.mostActiveMonth.displayDate}</div>
-                  <div className={`text-sm ${
-                    isDarkMode ? `text-${colors.textLighter}` : `text-${colors.textLighter}`
-                  }`}>
-                    {sessionData.mostActiveMonth.totalPlays} tracks played
+                )}
+
+                {sessionData.mostActiveMonth && (
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                    <h4 className={`font-medium ${modeColors.text}`}>Most Active Month:</h4>
+                    <div className={`font-bold ${modeColors.text}`}>{sessionData.mostActiveMonth.displayDate}</div>
+                    <div className={`text-sm ${modeColors.textLight}`}>
+                      {sessionData.mostActiveMonth.totalPlays} tracks played
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Insights</h3>
+            <div className={`p-3 rounded space-y-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+              <p className={modeColors.textLight}>
+                Most of your listening sessions are
+                <span className="font-bold"> {
+                  sessionData.durationGroups.sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
+                }</span>.
+              </p>
+              <p className={modeColors.textLight}>
+                On average, you listen to {sessionData.averageTracksPerSession} tracks per session
+                for about {sessionData.averageSessionDuration} minutes.
+              </p>
             </div>
           </div>
         </div>
-        
-        <div>
-          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
-            isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-          }`}>Session Insights</h3>
-          <div className={`p-3 rounded space-y-2 ${
-            isDarkMode ? 'bg-black border border-gray-700' : `bg-${colors.bgLighter}`
-          }`}>
-            <p className={`${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>
-              Most of your listening sessions are 
-              <span className="font-bold"> {
-                sessionData.durationGroups.sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
-              }</span>.
-            </p>
-            <p className={`${
-              isDarkMode ? `text-${colors.textLight}` : `text-${colors.primary}`
-            }`}>
-              On average, you listen to {sessionData.averageTracksPerSession} tracks per session
-              for about {sessionData.averageSessionDuration} minutes.
-            </p>
-          </div>
-        </div>
-      </div>
-    )}
+      )}
     
     {activeTab === 'artistsTime' && (
       <ArtistByTimeOfDay
