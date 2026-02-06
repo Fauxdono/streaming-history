@@ -901,13 +901,13 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  <Bar name="Count" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
-                  <Bar name="Percentage" dataKey="percentage" fill={isDarkMode ? "#065F46" : "#82ca9d"} unit="%" />
+                  <Bar name="Count" dataKey="count" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
+                  <Bar name="Percentage" dataKey="percentage" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#6B7280" : "#9CA3AF")} unit="%" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
-          
+
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How Tracks End</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
@@ -920,7 +920,7 @@ const filteredData = useMemo(() => {
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
                   <XAxis type="number" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                   <YAxis dataKey="name" type="category" width={100} stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
                     contentStyle={{
                       backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
@@ -929,13 +929,13 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  <Bar name="Count" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
-                  <Bar name="Percentage" dataKey="percentage" fill={isDarkMode ? "#065F46" : "#82ca9d"} unit="%" />
+                  <Bar name="Count" dataKey="count" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
+                  <Bar name="Percentage" dataKey="percentage" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#6B7280" : "#9CA3AF")} unit="%" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
-          
+
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Platforms Used</h3>
             <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
@@ -948,7 +948,7 @@ const filteredData = useMemo(() => {
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
                   <XAxis type="number" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                   <YAxis dataKey="name" type="category" width={150} stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
                     contentStyle={{
                       backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
@@ -957,8 +957,8 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  <Bar name="Count" dataKey="count" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
-                  <Bar name="Percentage" dataKey="percentage" fill={isDarkMode ? "#065F46" : "#82ca9d"} unit="%" />
+                  <Bar name="Count" dataKey="count" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
+                  <Bar name="Percentage" dataKey="percentage" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#6B7280" : "#9CA3AF")} unit="%" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

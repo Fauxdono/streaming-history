@@ -716,11 +716,11 @@ const filteredData = useMemo(() => {
                       </span>
                     )}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="count" 
-                    stroke={isDarkMode ? '#059669' : '#82ca9d'}
-                    name="New Artists Discovered" 
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke={isColorful ? (isDarkMode ? '#059669' : '#82ca9d') : (isDarkMode ? '#9CA3AF' : '#6B7280')}
+                    name="New Artists Discovered"
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     activeDot={{ r: 6 }}
@@ -894,8 +894,8 @@ const filteredData = useMemo(() => {
                       </span>
                     )}
                   />
-                  <Bar name="Unique Tracks" dataKey="uniqueTracks" fill={isDarkMode ? "#065F46" : "#82ca9d"} />
-                  <Bar name="Depth Score" dataKey="depthScore" fill={isDarkMode ? "#4C1D95" : "#8884d8"} />
+                  <Bar name="Unique Tracks" dataKey="uniqueTracks" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
+                  <Bar name="Depth Score" dataKey="depthScore" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#6B7280" : "#9CA3AF")} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -996,11 +996,11 @@ const filteredData = useMemo(() => {
                       </span>
                     )}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="varietyScore" 
-                    stroke={isDarkMode ? "#059669" : "#82ca9d"} 
-                    name="Variety Score" 
+                  <Line
+                    type="monotone"
+                    dataKey="varietyScore"
+                    stroke={isColorful ? (isDarkMode ? "#059669" : "#82ca9d") : (isDarkMode ? "#9CA3AF" : "#6B7280")}
+                    name="Variety Score"
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     activeDot={{ r: 6 }}
