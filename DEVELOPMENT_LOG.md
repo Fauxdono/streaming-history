@@ -88,9 +88,17 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 ## Chart Colors
 
 ### Bar Charts
-- Bars use the **same color as darkest text** in each mode
-- Colorful: `{color}-300` (dark) / `{color}-700` (light)
-- Minimal: white (dark) / black (light)
+- **Colorful mode**: Use vibrant theme colors
+- **Minimal mode**: Use grey shades
+  - Primary bar: `#9CA3AF` (dark) / `#6B7280` (light)
+  - Secondary bar: `#6B7280` (dark) / `#9CA3AF` (light)
+- Pattern: `isColorful ? (isDarkMode ? "#colorDark" : "#colorLight") : (isDarkMode ? "#9CA3AF" : "#6B7280")`
+
+### Line Charts
+- **Colorful mode**: Use vibrant theme colors
+- **Minimal mode**: Use grey
+  - Stroke: `#9CA3AF` (dark) / `#6B7280` (light)
+- Pattern: `isColorful ? (isDarkMode ? "#059669" : "#82ca9d") : (isDarkMode ? "#9CA3AF" : "#6B7280")`
 
 ### Pie Charts
 - **Colorful mode**: Use vibrant theme colors for slices
@@ -105,8 +113,8 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 - Visible in all modes with appropriate contrast
 - Colorful dark: `{color}-700`
 - Colorful light: `{color}-600`
-- Minimal dark: gray-500
-- Minimal light: gray-700
+- Minimal dark: `#4B5563` (gray-600)
+- Minimal light: `#D1D5DB` (gray-300)
 
 ---
 
@@ -128,6 +136,8 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 - [ ] Child components receive `colorMode` prop
 - [ ] No transition classes on cards (instant mode switching)
 - [ ] Pie charts use grey shades in minimal mode (check `isColorful`)
+- [ ] Bar charts use grey fills in minimal mode (check `isColorful`)
+- [ ] Line charts use grey strokes in minimal mode (check `isColorful`)
 - [ ] Chart strokes/legends use white/black in minimal mode
 
 ---
@@ -151,6 +161,20 @@ All tabs now support colorful/minimal mode:
 ---
 
 ## Recent Fixes
+
+### Grey Charts in Minimal Mode (Feb 2026)
+All charts now use grey colors in minimal (b/w) mode instead of vibrant colors:
+
+**Updated components:**
+- **Behavior tab**: Pie charts (shuffle, skip, sessions) + 3 horizontal bar charts
+- **Discovery tab**: Pie chart (loyalty) + bar chart (depth) + 2 line charts
+- **Patterns tab**: Pie charts (time of day, seasons) + bar charts + all chartColors
+- **StreamingByYear**: Service pie charts use grey shades
+
+**Pattern used:**
+```javascript
+fill={isColorful ? (isDarkMode ? "#colorDark" : "#colorLight") : (isDarkMode ? "#9CA3AF" : "#6B7280")}
+```
 
 ### Discovery Tab Color Fix (Feb 2026)
 The Discovery tab had hardcoded green color classes throughout the component instead of using the `modeColors` object. This caused:
