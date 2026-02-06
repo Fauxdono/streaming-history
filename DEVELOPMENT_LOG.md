@@ -202,6 +202,28 @@ The Podcasts tab (podcast-rankings.js) had `modeColors` correctly defined with r
 
 **Lesson:** After defining a modeColors object, search the entire file for hardcoded color classes (e.g., `text-indigo`, `bg-indigo`) to ensure nothing was missed.
 
+### Custom Playlists Tab Color Fix (Feb 2026)
+The Custom Playlists tab (customplaylist.js) had `modeColors` correctly defined with rose theme, but the entire JSX used hardcoded red colors:
+- Labels: `text-red-700` instead of `modeColors.text`
+- Inputs: hardcoded `bg-white`, `text-red-600` instead of `modeColors.bgCard`, `modeColors.text`
+- Dropdowns: `bg-white` instead of `modeColors.bgCard`
+- Buttons: `bg-red-600 text-white` instead of `modeColors.buttonActive`
+- Creation mode tabs: hardcoded `bg-red-50`, `bg-red-100` instead of `modeColors.buttonActive/buttonInactive`
+- Track list rows: `bg-red-50`, `bg-white` alternating instead of `modeColors.bgCard`
+
+**Fix:** Replaced all hardcoded red colors throughout the component:
+- Playlist name input and label
+- Creation mode tabs (Manual Selection / Smart Playlist)
+- Track search input and dropdown
+- Manual track add form
+- Smart playlist rules section (selects, inputs, buttons)
+- Selected tracks list
+- Save/Export buttons
+- Saved playlists tab
+- Export settings tab
+
+**Lesson:** Components that use colorMode should never have hardcoded Tailwind color classes in the JSX - search for `text-{color}`, `bg-{color}`, `border-{color}` patterns to find missed conversions.
+
 ---
 
 ## Common Pitfalls

@@ -1141,24 +1141,24 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
         <div className="space-y-4">
           {/* Playlist Name */}
           <div>
-            <label className="block text-red-700 mb-1">Playlist Name:</label>
+            <label className={`block ${modeColors.text} mb-1`}>Playlist Name:</label>
             <input
               type="text"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
               placeholder="Enter playlist name"
             />
           </div>
-          
+
           {/* Creation Mode Switch */}
-          <div className="flex border-b mb-4">
+          <div className={`flex ${modeColors.border} border-b mb-4`}>
             <button
               onClick={() => setCreationMode('manual')}
               className={`px-4 py-2 font-medium ${
-                creationMode === 'manual' 
-                  ? 'bg-red-50 text-red-600 border-b-2 border-red-600' 
-                  : 'bg-red-100 text-red-600 hover:bg-red-200'
+                creationMode === 'manual'
+                  ? modeColors.buttonActive
+                  : modeColors.buttonInactive
               }`}
             >
               Manual Selection
@@ -1166,9 +1166,9 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <button
               onClick={() => setCreationMode('smart')}
               className={`px-4 py-2 font-medium ${
-                creationMode === 'smart' 
-                  ? 'bg-red-50 text-red-600 border-b-2 border-red-600' 
-                  : 'bg-red-100 text-red-600 hover:bg-red-200'
+                creationMode === 'smart'
+                  ? modeColors.buttonActive
+                  : modeColors.buttonInactive
               }`}
             >
               Smart Playlist
@@ -1180,10 +1180,10 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="block text-red-700">Search for tracks to add:</label>
-                  <button 
+                  <label className={`block ${modeColors.text}`}>Search for tracks to add:</label>
+                  <button
                     onClick={() => setShowManualAdd(!showManualAdd)}
-                    className="flex items-center text-red-600 hover:text-red-800"
+                    className={`flex items-center ${modeColors.textLight} hover:opacity-80`}
                   >
                     <PlusSquare size={16} className="mr-1" />
                     {showManualAdd ? 'Cancel' : 'Add track manually'}
@@ -1194,25 +1194,25 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                     placeholder="Search by track name, artist or album..."
                   />
-                  
+
                   {filteredTracks.length > 0 && !showManualAdd && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto text-red-500">
+                    <div className={`absolute z-10 mt-1 w-full border rounded-md shadow-lg max-h-60 overflow-y-auto ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}>
                       {filteredTracks.map(track => (
-                        <div 
+                        <div
                           key={track.id}
                           onClick={() => addTrack(track)}
-                          className="px-4 py-2 hover:bg-red-50 cursor-pointer flex justify-between items-center"
+                          className="px-4 py-2 hover:opacity-80 cursor-pointer flex justify-between items-center"
                         >
                           <div>
                             <div className="font-medium">{track.trackName}</div>
-                            <div className="text-sm text-red-600">
+                            <div className={`text-sm ${modeColors.textLight}`}>
                               {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
                             </div>
                           </div>
-                          <button className="text-red-600 hover:text-red-800">
+                          <button className={`${modeColors.textLight} hover:opacity-80`}>
                             <Plus size={16} />
                           </button>
                         </div>
@@ -1224,46 +1224,46 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               
               {/* Manual Track Add Form */}
               {showManualAdd && (
-                <div className="border border-red-300 rounded p-4 bg-red-50">
-                  <h4 className="font-bold text-red-700 mb-3">Add Track Manually</h4>
+                <div className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border}`}>
+                  <h4 className={`font-bold ${modeColors.text} mb-3`}>Add Track Manually</h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-red-700 mb-1">Track Name:*</label>
+                      <label className={`block ${modeColors.text} mb-1`}>Track Name:*</label>
                       <input
                         type="text"
                         value={manualTrack.trackName}
                         onChange={(e) => updateManualTrack('trackName', e.target.value)}
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Enter track name"
                       />
                     </div>
                     <div>
-                      <label className="block text-red-700 mb-1">Artist:*</label>
+                      <label className={`block ${modeColors.text} mb-1`}>Artist:*</label>
                       <input
                         type="text"
                         value={manualTrack.artist}
                         onChange={(e) => updateManualTrack('artist', e.target.value)}
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Enter artist name"
                       />
                     </div>
                     <div>
-                      <label className="block text-red-700 mb-1">Album:</label>
+                      <label className={`block ${modeColors.text} mb-1`}>Album:</label>
                       <input
                         type="text"
                         value={manualTrack.albumName}
                         onChange={(e) => updateManualTrack('albumName', e.target.value)}
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Enter album name (optional)"
                       />
                     </div>
                     <div>
-                      <label className="block text-red-700 mb-1">Duration (seconds):</label>
+                      <label className={`block ${modeColors.text} mb-1`}>Duration (seconds):</label>
                       <input
                         type="number"
                         value={Math.round(manualTrack.totalPlayed / 1000)}
                         onChange={(e) => updateManualTrack('totalPlayed', parseInt(e.target.value) * 1000)}
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
+                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Duration in seconds"
                         min="1"
                       />
@@ -1271,7 +1271,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     <div className="flex justify-end">
                       <button
                         onClick={addManualTrack}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        className={`px-4 py-2 rounded hover:opacity-80 ${modeColors.buttonActive}`}
                       >
                         <Plus size={16} className="inline mr-1" /> Add Track
                       </button>
@@ -1282,19 +1282,19 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             </div>
           ) : (
             /* Smart Rules */
-            <div className="space-y-4 border p-4 rounded bg-red-50">
+            <div className={`space-y-4 border p-4 rounded ${modeColors.bgCard} ${modeColors.border}`}>
               <div className="flex justify-between items-center">
-                <h4 className="font-bold text-red-700">Smart Playlist Rules</h4>
-                <div className="text-sm text-red-600">All rules must match (AND logic)</div>
+                <h4 className={`font-bold ${modeColors.text}`}>Smart Playlist Rules</h4>
+                <div className={`text-sm ${modeColors.textLight}`}>All rules must match (AND logic)</div>
               </div>
-              
+
               {smartRules.map((rule) => (
-                <div key={rule.id} className="flex flex-wrap gap-2 items-center border-b border-red-200 pb-3">
+                <div key={rule.id} className={`flex flex-wrap gap-2 items-center border-b ${modeColors.border} pb-3`}>
                   <select
                     value={rule.type}
                     onChange={(e) => updateRule(rule.id, 'type', e.target.value)}
-          className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-600 text-white"
->
+                    className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.buttonActive}`}
+                  >
                     <option value="artist">Artist</option>
                     <option value="album">Album</option>
                     <option value="track">Track Name</option>
@@ -1302,12 +1302,12 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     <option value="playTime">Play Time (minutes)</option>
                     <option value="playDate">Play Date</option>
                   </select>
-                  
+
                   <select
                     value={rule.operator}
                     onChange={(e) => updateRule(rule.id, 'operator', e.target.value)}
-                      className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-600 text-white"
->
+                    className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.buttonActive}`}
+                  >
                     {(rule.type === 'artist' || rule.type === 'album' || rule.type === 'track') ? (
                       <>
                         <option value="contains">contains</option>
@@ -1315,13 +1315,13 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         <option value="startsWith">starts with</option>
                         <option value="endsWith">ends with</option>
                       </>
-  ) : rule.type === 'playDate' ? (
-    <>
-      <option value="after">after</option>
-      <option value="before">before</option>
-      <option value="between">between</option>
-      <option value="on">on</option>
-    </>
+                    ) : rule.type === 'playDate' ? (
+                      <>
+                        <option value="after">after</option>
+                        <option value="before">before</option>
+                        <option value="between">between</option>
+                        <option value="on">on</option>
+                      </>
                     ) : (
                       <>
                         <option value="greaterThan">greater than</option>
@@ -1331,67 +1331,67 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     )}
                   </select>
                   {rule.type === 'playDate' ? (
-  rule.operator === 'between' ? (
-    <div className="flex-1 flex gap-2 items-center">
-      <input
-        type="date"
-        value={rule.value.split('|')[0] || ''}
-        onChange={(e) => {
-          const endDate = rule.value.split('|')[1] || '';
-          updateRule(rule.id, 'value', `${e.target.value}|${endDate}`);
-        }}
-                className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-600 text-white"
-/>
-      <span className="text-red-600">to</span>
-      <input
-        type="date"
-        value={rule.value.split('|')[1] || ''}
-        onChange={(e) => {
-          const startDate = rule.value.split('|')[0] || '';
-          updateRule(rule.id, 'value', `${startDate}|${e.target.value}`);
-        }}
-        className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-600"
-      />
-    </div>
-  ) : (
-    <input
-      type="date"
-      value={rule.value}
-      onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
-         className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-600 text-white"
-    />
-  )
-) : (
-                  <input
-                    type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
-                    value={rule.value}
-                    onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
-                    className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-600 text-white"
-                    placeholder={`Enter ${rule.type} value...`}
-                    min={rule.type === 'playCount' || rule.type === 'playTime' ? "0" : undefined}
-                  />
+                    rule.operator === 'between' ? (
+                      <div className="flex-1 flex gap-2 items-center">
+                        <input
+                          type="date"
+                          value={rule.value.split('|')[0] || ''}
+                          onChange={(e) => {
+                            const endDate = rule.value.split('|')[1] || '';
+                            updateRule(rule.id, 'value', `${e.target.value}|${endDate}`);
+                          }}
+                          className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                        />
+                        <span className={modeColors.textLight}>to</span>
+                        <input
+                          type="date"
+                          value={rule.value.split('|')[1] || ''}
+                          onChange={(e) => {
+                            const startDate = rule.value.split('|')[0] || '';
+                            updateRule(rule.id, 'value', `${startDate}|${e.target.value}`);
+                          }}
+                          className={`flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                        />
+                      </div>
+                    ) : (
+                      <input
+                        type="date"
+                        value={rule.value}
+                        onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
+                        className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                      />
+                    )
+                  ) : (
+                    <input
+                      type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
+                      value={rule.value}
+                      onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
+                      className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                      placeholder={`Enter ${rule.type} value...`}
+                      min={rule.type === 'playCount' || rule.type === 'playTime' ? "0" : undefined}
+                    />
                   )}
-                  <button 
+                  <button
                     onClick={() => removeRule(rule.id)}
-                    className="p-2 text-red-600 hover:text-red-800"
+                    className={`p-2 ${modeColors.textLight} hover:opacity-80`}
                   >
                     <Trash2 size={18} />
                   </button>
                 </div>
               ))}
-              
+
               <div className="flex justify-between">
                 <button
                   onClick={addRule}
-                       className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-red-600 text-white"
->
+                  className={`px-3 py-2 rounded hover:opacity-80 ${modeColors.buttonInactive}`}
+                >
                   <Plus size={16} className="inline mr-1" /> Add Rule
                 </button>
-                
+
                 <button
                   onClick={generateFromRules}
                   disabled={smartRules.every(rule => !rule.value)}
-                  className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
+                  className={`px-4 py-2 rounded hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonActive}`}
                 >
                   <Filter size={16} className="inline mr-1" /> Generate Playlist
                 </button>
@@ -1402,34 +1402,32 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
           {/* Selected Tracks */}
           <div>
             <div className="flex justify-between items-center">
-              <div className="font-bold text-red-700">
+              <div className={`font-bold ${modeColors.text}`}>
                 Selected Tracks ({selectedTracks.filter(t => !['processing', 'no-matches', 'error'].includes(t.id)).length})
               </div>
-              <div className="text-sm text-red-600">
+              <div className={`text-sm ${modeColors.textLight}`}>
                 Total Duration: {formatDuration(totalDuration)}
               </div>
             </div>
-            
+
             {selectedTracks.length > 0 ? (
-              <div className="mt-2 border border-red-200 rounded overflow-hidden">
+              <div className={`mt-2 border rounded overflow-hidden ${modeColors.border}`}>
                 {selectedTracks.map((track, index) => {
                   // Special handling for system messages
                   if (['processing', 'no-matches', 'error'].includes(track.id)) {
                     return (
-                      <div key={track.id} className="p-3 bg-red-50 text-center">
-                        <div className="font-medium text-red-700">{track.trackName}</div>
-                        <div className="text-sm text-red-600">{track.artist}</div>
+                      <div key={track.id} className={`p-3 text-center ${modeColors.bgCard}`}>
+                        <div className={`font-medium ${modeColors.text}`}>{track.trackName}</div>
+                        <div className={`text-sm ${modeColors.textLight}`}>{track.artist}</div>
                       </div>
                     );
                   }
-                  
+
                   // Normal track display
                   return (
-                    <div 
+                    <div
                       key={track.id}
-                      className={`p-2 flex justify-between items-center ${
-                        index % 2 === 0 ? 'bg-red-50' : 'bg-white'
-                      } ${dragOverIndex === index ? 'border-2 border-red-400' : ''}`}
+                      className={`p-2 flex justify-between items-center ${modeColors.bgCard} ${dragOverIndex === index ? `border-2 ${modeColors.border}` : ''}`}
                       draggable={true}
                       onDragStart={() => handleDragStart(index)}
                       onDragOver={(e) => handleDragOver(e, index)}
@@ -1440,10 +1438,10 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                       }}
                     >
                       <div className="flex items-center">
-                        <div className="text-red-500 mr-2">{index + 1}.</div>
+                        <div className={`${modeColors.textLight} mr-2`}>{index + 1}.</div>
                         <div>
-                          <div className="font-medium text-red-700">{track.trackName}</div>
-                          <div className="text-sm text-red-600">
+                          <div className={`font-medium ${modeColors.text}`}>{track.trackName}</div>
+                          <div className={`text-sm ${modeColors.textLight}`}>
                             {track.artist} {track.albumName ? `• ${track.albumName}` : ''}
                           </div>
                         </div>
@@ -1455,54 +1453,54 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                               type="number"
                               value={customTrackPosition}
                               onChange={(e) => setCustomTrackPosition(e.target.value)}
-                              className="w-12 px-1 py-0.5 border rounded text-xs text-red-700 mr-1"
-                              min="1" 
+                              className={`w-12 px-1 py-0.5 border rounded text-xs mr-1 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                              min="1"
                               max={selectedTracks.length}
                             />
-                            <button 
+                            <button
                               onClick={() => moveTrackToPosition(index, customTrackPosition)}
-                              className="p-1 bg-red-100 text-red-700 text-xs rounded hover:bg-red-200"
+                              className={`p-1 text-xs rounded hover:opacity-80 ${modeColors.buttonInactive}`}
                             >
                               Go
                             </button>
-                            <button 
+                            <button
                               onClick={() => setActiveTrackForPosition(null)}
-                              className="p-1 ml-1 bg-red-100 text-red-700 text-xs rounded hover:bg-red-200"
+                              className={`p-1 ml-1 text-xs rounded hover:opacity-80 ${modeColors.buttonInactive}`}
                             >
                               ×
                             </button>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             onClick={() => {
                               setActiveTrackForPosition(index);
                               setCustomTrackPosition(index + 1);
                             }}
-                            className="p-1 text-red-600 hover:text-red-800"
+                            className={`p-1 ${modeColors.textLight} hover:opacity-80`}
                             title="Set position"
                           >
                             #
                           </button>
                         )}
-                        <button 
+                        <button
                           onClick={() => moveTrack(index, 'up')}
                           disabled={index === 0}
-                          className="p-1 text-red-600 hover:text-red-800 disabled:text-red-300"
+                          className={`p-1 ${modeColors.textLight} hover:opacity-80 disabled:opacity-30`}
                           title="Move up"
                         >
                           <ArrowUp size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => moveTrack(index, 'down')}
                           disabled={index === selectedTracks.length - 1}
-                          className="p-1 text-red-600 hover:text-red-800 disabled:text-red-300"
+                          className={`p-1 ${modeColors.textLight} hover:opacity-80 disabled:opacity-30`}
                           title="Move down"
                         >
                           <ArrowDown size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => removeTrack(track.id)}
-                          className="p-1 text-red-600 hover:text-red-800"
+                          className={`p-1 ${modeColors.textLight} hover:opacity-80`}
                           title="Remove track"
                         >
                           <Trash2 size={16} />
@@ -1513,7 +1511,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                 })}
               </div>
             ) : (
-              <div className="mt-2 p-4 text-center text-red-400 border border-dashed border-red-300 rounded">
+              <div className={`mt-2 p-4 text-center border border-dashed rounded ${modeColors.textLighter} ${modeColors.border}`}>
                 No tracks selected. Search for tracks to add them to your playlist.
               </div>
             )}
@@ -1524,7 +1522,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <button
               onClick={savePlaylist}
               disabled={!selectedTracks.some(t => !['processing', 'no-matches', 'error'].includes(t.id))}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
+              className={`flex items-center gap-2 px-4 py-2 rounded hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonActive}`}
             >
               <Save size={16} />
               Save Playlist
@@ -1532,7 +1530,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <button
               onClick={exportPlaylist}
               disabled={!selectedTracks.some(t => !['processing', 'no-matches', 'error'].includes(t.id))}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
+              className={`flex items-center gap-2 px-4 py-2 rounded hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonActive}`}
             >
               <Download size={16} />
               Export as M3U
@@ -1543,33 +1541,33 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       
       {activeTab === 'saved' && (
         <div className="space-y-4">
-          <h3 className="font-bold text-red-700">Saved Playlists</h3>
-          
+          <h3 className={`font-bold ${modeColors.text}`}>Saved Playlists</h3>
+
           {savedPlaylists.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedPlaylists.map(playlist => (
-                <div key={playlist.id} className="border border-red-200 rounded p-4 hover:border-red-400">
+                <div key={playlist.id} className={`border rounded p-4 hover:opacity-80 ${modeColors.bgCard} ${modeColors.border}`}>
                   <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-red-600">{playlist.name}</h4>
-                    <div className="text-sm text-red-500">
+                    <h4 className={`font-bold ${modeColors.text}`}>{playlist.name}</h4>
+                    <div className={`text-sm ${modeColors.textLighter}`}>
                       {new Date(playlist.created).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="text-sm text-red-600 mt-1">
-                    {playlist.tracks.length} tracks • 
-                    {formatDuration(playlist.tracks.reduce((total, track) => 
+                  <div className={`text-sm ${modeColors.textLight} mt-1`}>
+                    {playlist.tracks.length} tracks •
+                    {formatDuration(playlist.tracks.reduce((total, track) =>
                       total + (track.totalPlayed / Math.max(1, track.playCount)), 0))}
                   </div>
                   <div className="mt-3 flex justify-between">
                     <button
                       onClick={() => loadPlaylist(playlist)}
-                      className="text-red-600 hover:text-red-800"
+                      className={`${modeColors.textLight} hover:opacity-80`}
                     >
                       Load
                     </button>
                     <button
                       onClick={() => deletePlaylist(playlist.id)}
-                      className="text-red-600 hover:text-red-800"
+                      className={`${modeColors.textLight} hover:opacity-80`}
                     >
                       Delete
                     </button>
@@ -1578,7 +1576,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center text-red-400 border border-dashed border-red-300 rounded">
+            <div className={`p-4 text-center border border-dashed rounded ${modeColors.textLighter} ${modeColors.border}`}>
               No saved playlists. Create and save a playlist to see it here.
             </div>
           )}
@@ -1588,23 +1586,23 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       {activeTab === 'export' && (
         <div className="space-y-4">
           <div>
-            <label className="block text-red-700 mb-1">Base Music Path:</label>
+            <label className={`block ${modeColors.text} mb-1`}>Base Music Path:</label>
             <input
               type="text"
               value={musicBasePath}
               onChange={(e) => setMusicBasePath(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
               placeholder="e.g. /Music/Downloads or C:/Music"
             />
-            <p className="text-xs text-red-600 mt-1">
+            <p className={`text-xs ${modeColors.textLight} mt-1`}>
               This will be the base path for your music files in the exported playlist.
             </p>
           </div>
-          
+
           <div>
-            <label className="block text-red-700 mb-1">Path Format:</label>
+            <label className={`block ${modeColors.text} mb-1`}>Path Format:</label>
             <div className="flex gap-4 mb-2">
-              <label className="flex items-center text-red-700">
+              <label className={`flex items-center ${modeColors.text}`}>
                 <input
                   type="radio"
                   checked={pathFormat === 'default'}
@@ -1613,7 +1611,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                 />
                 <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
               </label>
-              <label className="flex items-center text-red-700">
+              <label className={`flex items-center ${modeColors.text}`}>
                 <input
                   type="radio"
                   checked={pathFormat === 'custom'}
@@ -1623,17 +1621,17 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                 <span>Custom Format</span>
               </label>
             </div>
-            
+
             {pathFormat === 'custom' && (
               <div className="mt-2">
                 <input
                   type="text"
                   value={customPathFormat}
                   onChange={(e) => setCustomPathFormat(e.target.value)}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                   placeholder="Custom path format"
                 />
-                <div className="text-xs text-red-600 mt-1">
+                <div className={`text-xs ${modeColors.textLight} mt-1`}>
                   <p>Available placeholders:</p>
                   <ul className="list-disc list-inside ml-2">
                     <li>{'{basePath}'} - Your base music path</li>
@@ -1647,13 +1645,13 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               </div>
             )}
           </div>
-          
+
           <div>
-            <label className="block text-red-700 mb-1">File Extension:</label>
+            <label className={`block ${modeColors.text} mb-1`}>File Extension:</label>
             <select
               value={fileExtension}
               onChange={(e) => setFileExtension(e.target.value)}
-              className="px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-red-700"
+              className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
             >
               <option value="mp3">mp3</option>
               <option value="flac">flac</option>
@@ -1662,11 +1660,11 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               <option value="wav">wav</option>
             </select>
           </div>
-          
-          <div className="text-sm text-red-600 p-3 bg-red-50 border border-red-200 rounded">
+
+          <div className={`text-sm p-3 border rounded ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}>
             <p className="font-medium">Path Preview:</p>
             <p className="font-mono mt-1">
-              {pathFormat === 'default' 
+              {pathFormat === 'default'
                 ? `${musicBasePath}/Artist/Artist-Album/Track.${fileExtension}`
                 : customPathFormat
                     .replace('{basePath}', musicBasePath)
