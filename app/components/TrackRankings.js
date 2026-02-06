@@ -43,14 +43,14 @@ const TrackRankings = ({
 
     const backgroundColors = {
       red: {
-        bg: isDarkMode ? 'bg-red-900' : 'bg-red-50', bgHover: isDarkMode ? 'hover:bg-red-800' : 'hover:bg-red-100',
+        bg: isDarkMode ? 'bg-red-900' : 'bg-red-200', bgHover: isDarkMode ? 'hover:bg-red-800' : 'hover:bg-red-100',
         border: isDarkMode ? 'border-red-600' : 'border-red-300',
         borderHover: isDarkMode ? 'border-red-500' : 'border-red-400', bgLight: isDarkMode ? 'bg-red-800' : 'bg-red-100',
         bgButton: isDarkMode ? 'bg-red-700 text-red-100' : 'bg-red-200 text-red-800', bgButtonHover: isDarkMode ? 'hover:bg-red-600' : 'hover:bg-red-300',
         bgButtonLight: isDarkMode ? 'bg-red-800 text-red-200' : 'bg-red-100 text-red-700', bgButtonLightHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-200',
         bgSelected: isDarkMode ? 'bg-red-500 text-white' : 'bg-red-600 text-white', bgSelectedHover: isDarkMode ? 'hover:bg-red-400' : 'hover:bg-red-700',
         focusRing: isDarkMode ? 'focus:ring-red-400' : 'focus:ring-red-400',
-        focus: isDarkMode ? 'border-red-600 bg-red-800 text-red-100' : 'border-red-300 bg-red-50 text-red-800'
+        focus: isDarkMode ? 'border-red-600 bg-red-800 text-red-100' : 'border-red-300 bg-red-100 text-red-800'
       },
       rose: {
         bg: isDarkMode ? 'bg-black' : 'bg-white', border: isDarkMode ? 'border-rose-700' : 'border-rose-200',
@@ -74,23 +74,23 @@ const TrackRankings = ({
         focusRing: isDarkMode ? 'focus:ring-amber-400' : 'focus:ring-amber-400'
       },
       yellow: {
-        bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
+        bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-200',
         bgHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-100',
         border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
         borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400',
-        bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-50',
-        bgButton: isDarkMode ? 'bg-yellow-800 border border-yellow-600 text-yellow-300' : 'bg-yellow-50 border border-yellow-300 text-yellow-700',
-        bgButtonHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-100',
-        bgButtonLight: isDarkMode ? 'bg-yellow-800 border border-yellow-700 text-yellow-400' : 'bg-yellow-50 border border-yellow-400 text-yellow-600',
-        bgButtonLightHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-100',
+        bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+        bgButton: isDarkMode ? 'bg-yellow-800 border border-yellow-600 text-yellow-300' : 'bg-yellow-100 border border-yellow-300 text-yellow-700',
+        bgButtonHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-200',
+        bgButtonLight: isDarkMode ? 'bg-yellow-800 border border-yellow-700 text-yellow-400' : 'bg-yellow-100 border border-yellow-400 text-yellow-600',
+        bgButtonLightHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-200',
         bgSelected: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
         bgSelectedHover: isDarkMode ? 'hover:bg-yellow-500' : 'hover:bg-yellow-600',
         focusRing: isDarkMode ? 'focus:ring-yellow-400' : 'focus:ring-yellow-400',
-        focus: isDarkMode ? 'border-yellow-600 bg-yellow-800 text-yellow-300' : 'border-yellow-300 bg-yellow-50 text-yellow-700'
+        focus: isDarkMode ? 'border-yellow-600 bg-yellow-800 text-yellow-300' : 'border-yellow-300 bg-yellow-100 text-yellow-700'
       }
     };
 
-    // Minimal mode colors
+    // Minimal mode colors - flat design (bgLight same as bg)
     const minimalColors = {
       text: isDarkMode ? 'text-white' : 'text-black',
       textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
@@ -100,7 +100,7 @@ const TrackRankings = ({
       bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
       border: isDarkMode ? 'border-white' : 'border-black',
       borderHover: isDarkMode ? 'border-gray-400' : 'border-gray-600',
-      bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+      bgLight: isDarkMode ? 'bg-black' : 'bg-white',
       bgButton: isDarkMode ? 'bg-black border border-white text-white' : 'bg-white border border-black text-black',
       bgButtonHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
       bgButtonLight: isDarkMode ? 'bg-black border border-gray-600 text-gray-300' : 'bg-white border border-gray-400 text-gray-600',

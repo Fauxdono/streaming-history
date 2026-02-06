@@ -32,16 +32,16 @@ const ListeningPatterns = ({
     text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
     textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
     textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
-    bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-100',
-    bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-50',
-    bgCard: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-50',
-    bgCardAlt: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-50',
+    bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-200',
+    bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    bgCard: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    bgCardAlt: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
     border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
     buttonActive: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-yellow-800 text-yellow-300 border border-yellow-600 hover:bg-yellow-700' : 'bg-yellow-50 text-yellow-700 border border-yellow-300 hover:bg-yellow-100',
-    toggleBg: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-50',
+    buttonInactive: isDarkMode ? 'bg-yellow-800 text-yellow-300 border border-yellow-600 hover:bg-yellow-700' : 'bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200',
+    toggleBg: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
     toggleActive: isDarkMode ? 'bg-yellow-500 text-black' : 'bg-yellow-600 text-white',
-    toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-700' : 'text-yellow-700 hover:bg-yellow-100',
+    toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-700' : 'text-yellow-700 hover:bg-yellow-200',
     barColor: isDarkMode ? '#fde047' : '#a16207', // yellow-300 / yellow-700
     barColorAlt: isDarkMode ? '#facc15' : '#ca8a04', // yellow-400 / yellow-600
     gridColor: isDarkMode ? '#a16207' : '#ca8a04', // yellow-700 / yellow-600

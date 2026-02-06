@@ -2903,7 +2903,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-red-100 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
+              ? 'p-2 sm:p-4 bg-red-200 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <TrackRankings
@@ -2920,7 +2920,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-yellow-100 dark:bg-yellow-900 rounded border-2 border-yellow-300 dark:border-yellow-700'
+              ? 'p-2 sm:p-4 bg-yellow-200 dark:bg-yellow-900 rounded border-2 border-yellow-300 dark:border-yellow-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <ListeningPatterns
@@ -2942,7 +2942,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-green-100 dark:bg-green-900 rounded border-2 border-green-300 dark:border-green-700'
+              ? 'p-2 sm:p-4 bg-green-200 dark:bg-green-900 rounded border-2 border-green-300 dark:border-green-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <CalendarView
@@ -2964,7 +2964,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-amber-100 dark:bg-amber-900 rounded border-2 border-amber-300 dark:border-amber-700'
+              ? 'p-2 sm:p-4 bg-amber-200 dark:bg-amber-900 rounded border-2 border-amber-300 dark:border-amber-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <ListeningBehavior
@@ -2985,7 +2985,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-orange-100 dark:bg-orange-900 rounded border-2 border-orange-300 dark:border-orange-700'
+              ? 'p-2 sm:p-4 bg-orange-200 dark:bg-orange-900 rounded border-2 border-orange-300 dark:border-orange-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <DiscoveryAnalysis
@@ -3006,7 +3006,7 @@ const SpotifyAnalyzer = ({
         return (
           <div id="podcast-rankings" className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-red-100 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
+              ? 'p-2 sm:p-4 bg-red-200 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <PodcastRankings
@@ -3025,7 +3025,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-rose-100 dark:bg-rose-900 rounded border-2 border-rose-300 dark:border-rose-700'
+              ? 'p-2 sm:p-4 bg-rose-200 dark:bg-rose-900 rounded border-2 border-rose-300 dark:border-rose-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} colorMode={colorMode} />
