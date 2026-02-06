@@ -136,3 +136,25 @@ All tabs now support colorful/minimal mode:
 - Discovery (Orange)
 - Podcasts (Red)
 - Playlists (Rose)
+
+---
+
+## Recent Fixes
+
+### Discovery Tab Color Fix (Feb 2026)
+The Discovery tab had hardcoded green color classes throughout the component instead of using the `modeColors` object. This caused:
+- Dark mode: black backgrounds with green text
+- Light mode: green backgrounds instead of orange
+
+**Fix:** Replaced all hardcoded color classes (`bg-green-50`, `text-green-400`, etc.) with `modeColors` references (`modeColors.bgCard`, `modeColors.text`, etc.).
+
+**Lesson:** When adding color mode support to a component, ensure ALL color classes use the modeColors object - don't leave any hardcoded colors in the JSX.
+
+---
+
+## Common Pitfalls
+
+1. **Hardcoded colors in JSX** - Always use the color object (modeColors, themedColors, etc.), never hardcode Tailwind color classes in the template
+2. **Using bgLight for page background** - Page should use `bg`, cards should use `bgCard` or `bgLight`
+3. **Mismatched text themes** - Ensure textTheme matches the tab's color (e.g., Albums uses cyan, not amber)
+4. **Transition classes on cards** - Remove `transition-all` to prevent visible color animations on mode switch
