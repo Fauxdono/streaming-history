@@ -185,6 +185,23 @@ The Discovery tab had hardcoded green color classes throughout the component ins
 
 **Lesson:** When adding color mode support to a component, ensure ALL color classes use the modeColors object - don't leave any hardcoded colors in the JSX.
 
+### Podcasts Tab Color Fix (Feb 2026)
+The Podcasts tab (podcast-rankings.js) had `modeColors` correctly defined with red theme at the top, but the entire JSX used hardcoded indigo colors:
+- Text: `text-indigo-300`, `text-indigo-700` instead of `modeColors.text`
+- Buttons: `bg-black` instead of `modeColors.buttonInactive`
+- Show chips: `bg-indigo-700 text-indigo-200` instead of `modeColors.buttonActive`
+- Inputs: hardcoded colors instead of `modeColors.bgCard`, `modeColors.border`
+
+**Fix:** Replaced all hardcoded indigo colors throughout the component:
+- Table rows (mobile, compact, desktop views)
+- Table headers (all three view modes)
+- Selected show chips and search dropdown
+- Duplicate detection settings and stats panel
+- "Show Stats" button
+- Empty state message
+
+**Lesson:** After defining a modeColors object, search the entire file for hardcoded color classes (e.g., `text-indigo`, `bg-indigo`) to ensure nothing was missed.
+
 ---
 
 ## Common Pitfalls
