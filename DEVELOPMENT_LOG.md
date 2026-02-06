@@ -92,6 +92,15 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 - Colorful: `{color}-300` (dark) / `{color}-700` (light)
 - Minimal: white (dark) / black (light)
 
+### Pie Charts
+- **Colorful mode**: Use vibrant theme colors for slices
+- **Minimal mode**: Use grey shades for all slices
+  - Dark: `#374151`, `#4B5563`, `#6B7280`, `#9CA3AF`, `#D1D5DB`
+  - Light: `#D1D5DB`, `#9CA3AF`, `#6B7280`, `#4B5563`, `#374151`
+- Stroke color: white (dark minimal) / black (light minimal)
+- Text labels: white (dark) / black (light)
+- Legend text: white (dark) / black (light)
+
 ### Grid Lines
 - Visible in all modes with appropriate contrast
 - Colorful dark: `{color}-700`
@@ -118,6 +127,8 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 - [ ] Dark mode variants exist for all colors
 - [ ] Child components receive `colorMode` prop
 - [ ] No transition classes on cards (instant mode switching)
+- [ ] Pie charts use grey shades in minimal mode (check `isColorful`)
+- [ ] Chart strokes/legends use white/black in minimal mode
 
 ---
 
