@@ -132,7 +132,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
   }, [albumTracks]);
 
   return (
-    <div className={`p-3 ${colors.bg} rounded shadow-sm border ${colors.border} hover:${colors.borderHover} transition-all duration-300 relative`}>
+    <div className={`p-3 ${colors.bg} rounded shadow-sm border ${colors.border} hover:${colors.borderHover} relative`}>
       <div className={`font-bold ${colors.text}`}>{album.name}</div>
       
       <div className={`text-sm ${colors.textLight}`}>
