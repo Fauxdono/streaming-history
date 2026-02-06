@@ -2257,8 +2257,8 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded px-2 py-1 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                          : `w-16 border rounded px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                          : `w-16 border rounded-lg px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
@@ -2312,8 +2312,8 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded px-2 py-1 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                          : `w-16 border rounded px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                          : `w-16 border rounded-lg px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
@@ -2646,8 +2646,8 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
-                          : `w-16 border rounded px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded-lg px-2 py-1 bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                          : `w-16 border rounded-lg px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
@@ -2701,8 +2701,8 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
-                          : `w-16 border rounded px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded-lg px-2 py-1 bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                          : `w-16 border rounded-lg px-2 py-1 ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
