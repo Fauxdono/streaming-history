@@ -50,14 +50,18 @@ const DiscoveryAnalysis = ({
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900' : 'bg-white text-black border border-black hover:bg-gray-100',
   };
 
-  // Color theme for legends
+  // Color theme for legends - grey in minimal mode
   const getLegendTextColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000';
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#C4B5FD';
         case 'indigo': return '#A5B4FC';
         case 'green': return '#86EFAC';
         case 'blue': return '#93C5FD';
+        case 'orange': return '#FDBA74';
         default: return '#86EFAC';
       }
     } else {
@@ -66,13 +70,17 @@ const DiscoveryAnalysis = ({
         case 'indigo': return '#3730A3';
         case 'green': return '#14532D';
         case 'blue': return '#1E40AF';
+        case 'orange': return '#9a3412';
         default: return '#14532D';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
 
-  // Color theme for pie chart strokes - use actual hex values for SVG compatibility
+  // Color theme for pie chart strokes - grey in minimal mode
   const getStrokeColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000';
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#d8b4fe';
@@ -106,10 +114,13 @@ const DiscoveryAnalysis = ({
         default: return '#14532d';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
 
-  // Color theme for pie chart text labels - use actual hex values for SVG compatibility
+  // Color theme for pie chart text labels - grey in minimal mode
   const getTextColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000';
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#d8b4fe';
@@ -143,7 +154,7 @@ const DiscoveryAnalysis = ({
         default: return '#14532d';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
   
 // Update the filteredData useMemo in DiscoveryAnalysis.js
 const filteredData = useMemo(() => {
@@ -353,13 +364,13 @@ const filteredData = useMemo(() => {
     const top5PlayTime = top5Artists.reduce((sum, artist) => sum + artist.time, 0);
     const top5Percentage = Math.round((top5PlayTime / totalPlayTime) * 100);
     
-    // Format for loyalty pie chart with darker colors for dark mode
+    // Format for loyalty pie chart - grey in minimal mode
     const otherPlayTime = totalPlayTime - top5PlayTime;
     const loyaltyData = [
-      { name: 'Top 5 Artists', value: top5PlayTime, color: isDarkMode ? '#4C1D95' : '#8884d8' },
-      { name: 'All Other Artists', value: otherPlayTime, color: isDarkMode ? '#065F46' : '#82ca9d' }
+      { name: 'Top 5 Artists', value: top5PlayTime, color: isColorful ? (isDarkMode ? '#4C1D95' : '#8884d8') : (isDarkMode ? '#6B7280' : '#9CA3AF') },
+      { name: 'All Other Artists', value: otherPlayTime, color: isColorful ? (isDarkMode ? '#065F46' : '#82ca9d') : (isDarkMode ? '#374151' : '#D1D5DB') }
     ];
-    
+
     return {
       firstListenDates,
       newArtistsByMonth,
@@ -370,7 +381,7 @@ const filteredData = useMemo(() => {
       uniqueArtistsCount: sortedArtists.length,
       artistPlayCounts
     };
-  }, [filteredData, isDarkMode]);
+  }, [filteredData, isDarkMode, isColorful]);
   
   // Analyze listening depth
   const depthData = useMemo(() => {

@@ -26,9 +26,14 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
   };
 
   const themedColors = colors;
-  
-  // Service colors with dark mode variants
-  const serviceColors = useMemo(() => ({
+
+  // Grey shades for minimal mode
+  const greyShades = isDarkMode
+    ? ['#374151', '#4B5563', '#6B7280', '#9CA3AF', '#D1D5DB', '#E5E7EB', '#F3F4F6', '#F9FAFB']
+    : ['#F9FAFB', '#F3F4F6', '#E5E7EB', '#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563', '#374151'];
+
+  // Service colors with dark mode variants - grey in minimal mode
+  const serviceColors = useMemo(() => (isColorful ? {
     'spotify': isDarkMode ? '#1ED760' : '#1DB954',
     'apple_music': isDarkMode ? '#FF6B6B' : '#FC3C44',
     'youtube_music': isDarkMode ? '#FF4B4B' : '#FF0000',
@@ -37,12 +42,21 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     'tidal': isDarkMode ? '#CCCCCC' : '#000000',
     'cake': isDarkMode ? '#FFB5DA' : '#FF69B4',
     'unknown': isDarkMode ? '#888888' : '#AAAAAA'
-  }), [isDarkMode]);
+  } : {
+    'spotify': greyShades[0],
+    'apple_music': greyShades[1],
+    'youtube_music': greyShades[2],
+    'deezer': greyShades[3],
+    'soundcloud': greyShades[4],
+    'tidal': greyShades[5],
+    'cake': greyShades[6],
+    'unknown': greyShades[7]
+  }), [isDarkMode, isColorful]);
 
-  // Stroke color for pie charts
-  const getStrokeColor = isDarkMode ? '#9CA3AF' : '#6B7280';
+  // Stroke color for pie charts - white/black in minimal mode
+  const getStrokeColor = isColorful ? (isDarkMode ? '#9CA3AF' : '#6B7280') : (isDarkMode ? '#ffffff' : '#000000');
 
-  // Text color for pie chart labels (for readability contrast)
+  // Text color for pie chart labels
   const getTextColor = isDarkMode ? '#ffffff' : '#374151';
 
   // Custom pie chart label renderer
