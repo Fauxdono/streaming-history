@@ -64,24 +64,31 @@ const ListeningPatterns = ({
     gridColor: isDarkMode ? '#6b7280' : '#374151', // gray-500 / gray-700
   };
 
-  // Color theme for legends (similar to year selector)
+  // Color theme for legends - grey in minimal mode
   const getLegendTextColor = useMemo(() => {
-    const color = isDarkMode ? 
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000';
+    }
+    const color = isDarkMode ?
       (colorTheme === 'purple' ? '#C4B5FD' :
        colorTheme === 'indigo' ? '#A5B4FC' :
        colorTheme === 'green' ? '#86EFAC' :
-       colorTheme === 'blue' ? '#93C5FD' : '#C4B5FD') :
+       colorTheme === 'blue' ? '#93C5FD' :
+       colorTheme === 'yellow' ? '#FDE047' : '#C4B5FD') :
       (colorTheme === 'purple' ? '#7C3AED' :
        colorTheme === 'indigo' ? '#3730A3' :
        colorTheme === 'green' ? '#14532D' :
-       colorTheme === 'blue' ? '#1E40AF' : '#7C3AED');
-    
-    console.log('Legend color:', color, 'isDarkMode:', isDarkMode, 'colorTheme:', colorTheme);
+       colorTheme === 'blue' ? '#1E40AF' :
+       colorTheme === 'yellow' ? '#A16207' : '#7C3AED');
+
     return color;
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
 
-  // Color theme for pie chart strokes - use actual hex values for SVG compatibility
+  // Color theme for pie chart strokes - grey in minimal mode
   const getStrokeColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000';
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#d8b4fe';
@@ -115,10 +122,13 @@ const ListeningPatterns = ({
         default: return '#6b21a8';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
 
-  // Color theme for pie chart text labels - use actual hex values for SVG compatibility
+  // Color theme for pie chart text labels - grey in minimal mode
   const getTextColor = useMemo(() => {
+    if (!isColorful) {
+      return isDarkMode ? '#ffffff' : '#000000';
+    }
     if (isDarkMode) {
       switch (colorTheme) {
         case 'purple': return '#d8b4fe';
@@ -152,32 +162,37 @@ const ListeningPatterns = ({
         default: return '#6b21a8';
       }
     }
-  }, [colorTheme, isDarkMode]);
+  }, [colorTheme, isDarkMode, isColorful]);
   
   
   // Removed useEffect that updated exported variables (now handled by SpotifyAnalyzer state)
   
-  // Chart colors that adjust with theme
+  // Chart colors that adjust with theme - grey in minimal mode
   const chartColors = useMemo(() => {
+    // Grey shades for minimal mode
+    const greyShades = isDarkMode
+      ? ['#374151', '#4B5563', '#6B7280', '#9CA3AF', '#D1D5DB']
+      : ['#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563', '#374151'];
+
     return {
       // Time periods
       timePeriods: [
-        { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#059669' : '#8884d8', // darker chart color like seasonal
-          textColor: isDarkMode ? '#8B5CF6' : '#8884d8' }, // brighter text color
-        { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#D97706' : '#82ca9d', // darker chart color like seasonal
-          textColor: isDarkMode ? '#10B981' : '#82ca9d' }, // brighter text color
-        { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#DC2626' : '#ffc658', // darker chart color like seasonal
-          textColor: isDarkMode ? '#F59E0B' : '#ffc658' }, // brighter text color
-        { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0, 
-          color: isDarkMode ? '#1E40AF' : '#4B9CD3', // darker chart color like seasonal
-          textColor: isDarkMode ? '#3B82F6' : '#4B9CD3' } // brighter text color
+        { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0,
+          color: isColorful ? (isDarkMode ? '#059669' : '#8884d8') : greyShades[0],
+          textColor: isColorful ? (isDarkMode ? '#8B5CF6' : '#8884d8') : (isDarkMode ? '#ffffff' : '#000000') },
+        { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0,
+          color: isColorful ? (isDarkMode ? '#D97706' : '#82ca9d') : greyShades[1],
+          textColor: isColorful ? (isDarkMode ? '#10B981' : '#82ca9d') : (isDarkMode ? '#ffffff' : '#000000') },
+        { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0,
+          color: isColorful ? (isDarkMode ? '#DC2626' : '#ffc658') : greyShades[2],
+          textColor: isColorful ? (isDarkMode ? '#F59E0B' : '#ffc658') : (isDarkMode ? '#ffffff' : '#000000') },
+        { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0,
+          color: isColorful ? (isDarkMode ? '#1E40AF' : '#4B9CD3') : greyShades[3],
+          textColor: isColorful ? (isDarkMode ? '#3B82F6' : '#4B9CD3') : (isDarkMode ? '#ffffff' : '#000000') }
       ],
-      
+
       // Days of week
-      dayColors: [
+      dayColors: isColorful ? [
         isDarkMode ? '#DC2626' : '#FF8042', // Sun
         isDarkMode ? '#059669' : '#00C49F', // Mon
         isDarkMode ? '#D97706' : '#FFBB28', // Tue
@@ -185,17 +200,25 @@ const ListeningPatterns = ({
         isDarkMode ? '#2563EB' : '#0088FE', // Thu
         isDarkMode ? '#7C3AED' : '#8884d8', // Fri
         isDarkMode ? '#059669' : '#82ca9d'  // Sat
+      ] : [
+        greyShades[0], greyShades[1], greyShades[2], greyShades[3],
+        greyShades[4], greyShades[0], greyShades[1]
       ],
-      
+
       // Months/seasons
-      seasonColors: {
+      seasonColors: isColorful ? {
         spring: isDarkMode ? '#059669' : '#82ca9d',
         summer: isDarkMode ? '#D97706' : '#ffc658',
         fall: isDarkMode ? '#DC2626' : '#FF8042',
         winter: isDarkMode ? '#1E40AF' : '#4B9CD3'
+      } : {
+        spring: greyShades[0],
+        summer: greyShades[1],
+        fall: greyShades[2],
+        winter: greyShades[3]
       }
     };
-  }, [isDarkMode]);
+  }, [isDarkMode, isColorful]);
 
   // Update the filteredData useMemo in ListeningPatterns.js
   const filteredData = useMemo(() => {
