@@ -692,32 +692,22 @@ const PodcastRankings = ({
     if (isMobile) {
       // True mobile view - very condensed, 2 columns only
       return (
-        <tr key={episode.key} className={`border-b hover:opacity-80 ${
-          isDarkMode 
-            ? 'border-gray-700 hover:bg-black' 
-            : 'border-gray-200 hover:bg-indigo-50'
-        }`}>
-          <td className={`p-2 ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+        <tr key={episode.key} className={`border-b hover:opacity-80 ${modeColors.border}`}>
+          <td className={`p-2 ${modeColors.text}`}>
             <div className="flex flex-col">
               <div className="flex items-center">
-                <span className="font-bold text-xs mr-2 text-indigo-800">{index + 1}.</span>
+                <span className={`font-bold text-xs mr-2 ${modeColors.text}`}>{index + 1}.</span>
                 <div className="font-medium text-sm">{episode.episodeName}</div>
               </div>
-              <div 
-                className={`text-xs cursor-pointer hover:underline ${
-                  isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-800'
-                }`}
+              <div
+                className={`text-xs cursor-pointer hover:underline ${modeColors.textLight}`}
                 onClick={() => addShowFromEpisode(episode.showName)}
               >
                 {episode.showName}
               </div>
             </div>
           </td>
-          <td className={`p-2 align-top text-right ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+          <td className={`p-2 align-top text-right ${modeColors.text}`}>
             <div className="flex flex-col">
               <span className="font-medium text-sm">{formatDuration(episode.totalPlayed)}</span>
               <span className="text-xs">{episode.segmentCount} sessions</span>
@@ -728,49 +718,29 @@ const PodcastRankings = ({
     } else if (isCompactView) {
       // Compact view - all data but smaller table format
       return (
-        <tr key={episode.key} className={`border-b hover:opacity-80 ${
-          isDarkMode 
-            ? 'border-gray-700 hover:bg-black' 
-            : 'border-gray-200 hover:bg-indigo-50'
-        }`}>
-          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>{index + 1}</td>
-          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>{episode.episodeName}</td>
-          <td className={`p-1 sm:p-2 text-xs sm:text-sm cursor-pointer hover:underline ${
-            isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-700 hover:text-indigo-800'
-          }`} 
+        <tr key={episode.key} className={`border-b hover:opacity-80 ${modeColors.border}`}>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${modeColors.text}`}>{index + 1}</td>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${modeColors.text}`}>{episode.episodeName}</td>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm cursor-pointer hover:underline ${modeColors.textLight}`}
               onClick={() => addShowFromEpisode(episode.showName)}
           >
             {episode.showName}
           </td>
-          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
             {formatDuration(episode.totalPlayed)}
           </td>
-          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
             {formatDuration(episode.longestSession)}
           </td>
-          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
             {episode.segmentCount}
           </td>
           {showDuplicateStats && (
-            <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-            }`}>
+            <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
               {episode.duplicatesRemoved}
             </td>
           )}
-          <td className={`p-1 sm:p-2 text-right text-xs ${
-            isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs ${modeColors.textLight}`}>
             {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).slice(0, 2).join(', ')}
           </td>
         </tr>
@@ -778,49 +748,29 @@ const PodcastRankings = ({
     } else {
       // Desktop view - full table
       return (
-        <tr key={episode.key} className={`border-b hover:opacity-80 ${
-          isDarkMode 
-            ? 'border-gray-700 hover:bg-black' 
-            : 'border-gray-200 hover:bg-indigo-50'
-        }`}>
-          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>{index + 1}</td>
-          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>{episode.episodeName}</td>
-          <td className={`p-1 sm:p-2 text-xs sm:text-sm cursor-pointer hover:underline ${
-            isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-700 hover:text-indigo-800'
-          }`} 
+        <tr key={episode.key} className={`border-b hover:opacity-80 ${modeColors.border}`}>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${modeColors.text}`}>{index + 1}</td>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm ${modeColors.text}`}>{episode.episodeName}</td>
+          <td className={`p-1 sm:p-2 text-xs sm:text-sm cursor-pointer hover:underline ${modeColors.textLight}`}
               onClick={() => addShowFromEpisode(episode.showName)}
           >
             {episode.showName}
           </td>
-          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
             {formatDuration(episode.totalPlayed)}
           </td>
-          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
             {formatDuration(episode.longestSession)}
           </td>
-          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-            isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
             {episode.segmentCount}
           </td>
           {showDuplicateStats && (
-            <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-            }`}>
+            <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
               {episode.duplicatesRemoved}
             </td>
           )}
-          <td className={`p-1 sm:p-2 text-right text-xs ${
-            isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-          }`}>
+          <td className={`p-1 sm:p-2 text-right text-xs ${modeColors.textLight}`}>
             {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).join(', ')}
           </td>
         </tr>
@@ -888,44 +838,28 @@ const PodcastRankings = ({
       {/* Duplicate Detection Settings */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2">
-            <label className={`text-xs sm:text-sm font-medium ${
-              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-            }`}>Session gap threshold: </label>
+            <label className={`text-xs sm:text-sm font-medium ${modeColors.text}`}>Session gap threshold: </label>
             <input
               type="number"
               min="1"
               max="1440" // 24 hours max
               value={duplicateThreshold}
               onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
-              className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm focus:border-indigo-400 focus:ring-indigo-400 ${
-                isDarkMode 
-                  ? 'bg-black border-gray-600 text-indigo-300' 
-                  : 'bg-white border-gray-300 text-indigo-700'
-              }`}
+              className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
             />
-            <span className={`text-xs sm:text-sm ${
-              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-            }`}>minutes</span>
+            <span className={`text-xs sm:text-sm ${modeColors.text}`}>minutes</span>
           </div>
-        
-          <button 
+
+          <button
             onClick={() => setShowDuplicateStats(!showDuplicateStats)}
-            className={`px-3 py-1 rounded text-xs sm:text-sm hover:opacity-80 ${
-              isDarkMode 
-                ? 'bg-black text-indigo-300 hover:bg-gray-600' 
-                : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
-            }`}
+            className={`px-3 py-1 rounded text-xs sm:text-sm hover:opacity-80 ${modeColors.buttonInactive}`}
           >
             {showDuplicateStats ? 'Hide Stats' : 'Show Stats'}
           </button>
         </div>
-        
+
         {showDuplicateStats && (
-          <div className={`text-xs sm:text-sm p-2 rounded ${
-            isDarkMode 
-              ? 'bg-black border border-gray-700 text-indigo-300' 
-              : 'bg-indigo-100 text-indigo-700'
-          }`}>
+          <div className={`text-xs sm:text-sm p-2 rounded ${modeColors.bgCard} ${modeColors.border} border ${modeColors.text}`}>
             <div><span className="font-medium">{duplicatesFound}</span> duplicate plays filtered:</div>
             <div>• <span className="font-medium">{duplicateTypes.exact}</span> exact duplicates</div>
             <div>• <span className="font-medium">{duplicateTypes.overlapping}</span> overlapping sessions</div>
@@ -938,20 +872,14 @@ const PodcastRankings = ({
       <div className="relative">
         <div className="flex flex-wrap gap-2 mb-4">
           {selectedShows.map(show => (
-            <div 
-              key={show} 
-              className={`flex items-center px-2 py-1 rounded text-xs sm:text-sm ${
-                isDarkMode 
-                  ? 'bg-indigo-700 text-indigo-200' 
-                  : 'bg-indigo-600 text-white'
-              }`}
+            <div
+              key={show}
+              className={`flex items-center px-2 py-1 rounded text-xs sm:text-sm ${modeColors.buttonActive}`}
             >
               {show}
-              <button 
+              <button
                 onClick={() => removeShow(show)}
-                className={`ml-2 hover:opacity-80 ${
-                  isDarkMode ? 'text-indigo-200' : 'text-white hover:text-indigo-200'
-                }`}
+                className="ml-2 hover:opacity-80"
               >
                 ×
               </button>
@@ -965,27 +893,15 @@ const PodcastRankings = ({
             value={showSearch}
             onChange={(e) => setShowSearch(e.target.value)}
             placeholder="Search shows..."
-            className={`w-full border rounded px-2 py-1 text-xs sm:text-sm focus:border-indigo-400 focus:ring-indigo-400 ${
-              isDarkMode 
-                ? 'bg-black border-gray-600 text-indigo-300 placeholder-gray-500' 
-                : 'bg-white border-gray-300 text-indigo-700'
-            }`}
+            className={`w-full border rounded px-2 py-1 text-xs sm:text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
           />
           {showSearch && filteredShows.length > 0 && (
-            <div className={`absolute z-10 w-full border rounded shadow-lg mt-1 ${
-              isDarkMode 
-                ? 'bg-black border-gray-600' 
-                : 'bg-white border-gray-300'
-            }`}>
+            <div className={`absolute z-10 w-full border rounded shadow-lg mt-1 ${modeColors.bgCard} ${modeColors.border}`}>
               {filteredShows.map(show => (
                 <div
                   key={show}
                   onClick={() => addShow(show)}
-                  className={`px-2 py-1 cursor-pointer text-xs sm:text-sm ${
-                    isDarkMode 
-                      ? 'text-indigo-300 hover:bg-black' 
-                      : 'text-indigo-700 hover:bg-indigo-100'
-                  }`}
+                  className={`px-2 py-1 cursor-pointer text-xs sm:text-sm hover:opacity-80 ${modeColors.text}`}
                 >
                   {show}
                 </div>
@@ -1000,105 +916,69 @@ const PodcastRankings = ({
           <div className={(isMobile || isCompactView) ? "min-w-full" : "min-w-[800px]"}>
             <table className="w-full border-collapse">
               <thead>
-                <tr className={`border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                <tr className={`border-b ${modeColors.border}`}>
                   {isMobile && (
                     <>
-                      <th className={`p-2 text-left text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Episode Info</th>
-                      <th className={`p-2 text-right text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Stats</th>
+                      <th className={`p-2 text-left text-xs sm:text-sm ${modeColors.text}`}>Episode Info</th>
+                      <th className={`p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>Stats</th>
                     </>
                   )}
                   {isCompactView && !isMobile && (
                     <>
-                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Rank</th>
-                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Episode</th>
-                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Show</th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
-                        } ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
+                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${modeColors.text}`}>Rank</th>
+                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${modeColors.text}`}>Episode</th>
+                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${modeColors.text}`}>Show</th>
+                      <th
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('totalPlayed')}
                       >
                         Total Time {sortBy === 'totalPlayed' && '▼'}
                       </th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
-                        } ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
+                      <th
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('longestSession')}
                       >
                         Longest {sortBy === 'longestSession' && '▼'}
                       </th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
-                        } ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
+                      <th
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('segmentCount')}
                       >
                         Sessions {sortBy === 'segmentCount' && '▼'}
                       </th>
                       {showDuplicateStats && (
-                        <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                        }`}>Dupes</th>
+                        <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>Dupes</th>
                       )}
-                      <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Platforms</th>
+                      <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>Platforms</th>
                     </>
                   )}
                   {!isMobile && !isCompactView && (
                     <>
-                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Rank</th>
-                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Episode</th>
-                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Show</th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
-                        } ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
+                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${modeColors.text}`}>Rank</th>
+                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${modeColors.text}`}>Episode</th>
+                      <th className={`p-1 sm:p-2 text-left text-xs sm:text-sm ${modeColors.text}`}>Show</th>
+                      <th
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'totalPlayed' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('totalPlayed')}
                       >
                         Total Time {sortBy === 'totalPlayed' && '▼'}
                       </th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
-                        } ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
+                      <th
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'longestSession' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('longestSession')}
                       >
                         Longest Session {sortBy === 'longestSession' && '▼'}
                       </th>
-                      <th 
-                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${
-                          isDarkMode ? 'text-indigo-300 hover:bg-black' : 'text-indigo-700 hover:bg-indigo-100'
-                        } ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
+                      <th
+                        className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'segmentCount' ? 'font-bold' : ''}`}
                         onClick={() => setSortBy('segmentCount')}
                       >
                         Sessions {sortBy === 'segmentCount' && '▼'}
                       </th>
                       {showDuplicateStats && (
-                        <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                        }`}>Duplicates Removed</th>
+                        <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>Duplicates Removed</th>
                       )}
-                      <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${
-                        isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-                      }`}>Platforms</th>
+                      <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>Platforms</th>
                     </>
                   )}
                 </tr>
@@ -1110,11 +990,9 @@ const PodcastRankings = ({
           </div>
         </div>
       ) : (
-        <div className={`text-center py-4 ${
-          isDarkMode ? 'text-indigo-400' : 'text-indigo-500'
-        }`}>
-          {startDate || endDate || selectedShows.length > 0 
-            ? 'No episodes found matching your filters' 
+        <div className={`text-center py-4 ${modeColors.textLight}`}>
+          {startDate || endDate || selectedShows.length > 0
+            ? 'No episodes found matching your filters'
             : 'Select filters to view episodes'}
         </div>
       )}
