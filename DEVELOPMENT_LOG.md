@@ -28,15 +28,15 @@
 - Minimal dark: black everywhere
 
 **Colorful Mode - Two-Tone Design:**
-- Main page uses base color, cards use lighter shade for visual depth
+- Main page uses darker shade, cards use lighter shade for visual depth
 - Dark colorful:
   - Page background: `{color}-900`
   - Cards/inputs: `{color}-800`
   - Buttons inactive: `{color}-800`
 - Light colorful:
-  - Page background: `{color}-100`
-  - Cards/inputs: `{color}-50`
-  - Buttons inactive: `{color}-50`
+  - Page background: `{color}-200`
+  - Cards/inputs: `{color}-100`
+  - Buttons inactive: `{color}-100`
 
 ### Tab Color Assignments
 | Tab | Color |
@@ -78,8 +78,8 @@
 Every colorful theme must have both dark and light variants:
 ```
 text: isDarkMode ? 'text-{color}-300' : 'text-{color}-700'
-bg: isDarkMode ? 'bg-{color}-900' : 'bg-{color}-100'
-bgCard: isDarkMode ? 'bg-{color}-800' : 'bg-{color}-50'
+bg: isDarkMode ? 'bg-{color}-900' : 'bg-{color}-200'
+bgCard: isDarkMode ? 'bg-{color}-800' : 'bg-{color}-100'
 border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 ```
 
@@ -101,6 +101,14 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 
 ---
 
+## Transitions
+
+- **No transitions on cards** - Color changes should be instant when switching modes
+- Avoid `transition-all` on card containers
+- Buttons can keep `transition-colors` for hover effects only
+
+---
+
 ## Implementation Checklist for New Tabs
 
 - [ ] Container has colorful/minimal conditional styling
@@ -109,6 +117,7 @@ border: isDarkMode ? 'border-{color}-600' : 'border-{color}-300'
 - [ ] Borders have color in colorful mode
 - [ ] Dark mode variants exist for all colors
 - [ ] Child components receive `colorMode` prop
+- [ ] No transition classes on cards (instant mode switching)
 
 ---
 
