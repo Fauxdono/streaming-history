@@ -1415,7 +1415,7 @@ return (
               const nextIndex = (currentIndex + 1) % modes.length;
               setViewMode(modes[nextIndex]);
             }}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+            className={`px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
           >
             {viewMode === 'grid' ? 'Grid' :
              viewMode === 'compact' ? 'Compact' : 'Mobile'}
@@ -1426,7 +1426,7 @@ return (
           <label className={`${colors.text}`}>Sort by</label>
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+            className={`px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
           >
             {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
           </button>
