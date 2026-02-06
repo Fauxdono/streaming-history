@@ -1114,6 +1114,7 @@ const filteredData = useMemo(() => {
       <ArtistByTimeOfDay
         rawPlayData={filteredData}
         formatDuration={formatDuration}
+        colorMode={colorMode}
       />
     )}
     

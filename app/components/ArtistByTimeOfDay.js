@@ -2,23 +2,47 @@ import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useTheme } from './themeprovider.js';
 
-const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
+const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'minimal' }) => {
   const [startTime, setStartTime] = useState(''); // Start time in HH:MM format
   const [endTime, setEndTime] = useState('');   // End time in HH:MM format
   const [artistLimit, setArtistLimit] = useState(5);
-  
+
   // Get the current theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
+
+  // Color system for colorful/minimal modes (Amber theme to match Behavior tab)
+  const modeColors = isColorful ? {
+    text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
+    textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
+    bg: isDarkMode ? 'bg-amber-900' : 'bg-amber-200',
+    bgCard: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
+    border: isDarkMode ? 'border-amber-600' : 'border-amber-300',
+    input: isDarkMode ? 'bg-amber-900 text-amber-200 border-amber-600' : 'bg-amber-50 text-amber-700 border-amber-300',
+    button: isDarkMode ? 'bg-amber-700 text-amber-200 hover:bg-amber-600' : 'bg-amber-200 text-amber-700 hover:bg-amber-300',
+    barColor: isDarkMode ? '#D97706' : '#F59E0B',
+    barColorAlt: isDarkMode ? '#B45309' : '#FBBF24',
+  } : {
+    text: isDarkMode ? 'text-white' : 'text-black',
+    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+    bg: isDarkMode ? 'bg-black' : 'bg-white',
+    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
+    border: isDarkMode ? 'border-white' : 'border-black',
+    input: isDarkMode ? 'bg-black text-white border-white' : 'bg-white text-black border-black',
+    button: isDarkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-200 text-black hover:bg-gray-300',
+    barColor: isDarkMode ? '#9CA3AF' : '#6B7280',
+    barColorAlt: isDarkMode ? '#6B7280' : '#9CA3AF',
+  };
   
   // Analyze artists by time of day
   const artistTimeData = useMemo(() => {
-    // Define time periods with much darker colors for dark mode
+    // Define time periods - grey in minimal mode
     const timePeriods = {
-      morning: { name: 'Morning (5-11)', hours: [5, 6, 7, 8, 9, 10, 11], color: isDarkMode ? '#4C1D95' : '#8884d8' },
-      afternoon: { name: 'Afternoon (12-16)', hours: [12, 13, 14, 15, 16], color: isDarkMode ? '#065F46' : '#82ca9d' },
-      evening: { name: 'Evening (17-21)', hours: [17, 18, 19, 20, 21], color: isDarkMode ? '#D97706' : '#ffc658' },
-      night: { name: 'Night (22-4)', hours: [22, 23, 0, 1, 2, 3, 4], color: isDarkMode ? '#1E40AF' : '#4B9CD3' },
+      morning: { name: 'Morning (5-11)', hours: [5, 6, 7, 8, 9, 10, 11], color: isColorful ? (isDarkMode ? '#4C1D95' : '#8884d8') : (isDarkMode ? '#374151' : '#D1D5DB') },
+      afternoon: { name: 'Afternoon (12-16)', hours: [12, 13, 14, 15, 16], color: isColorful ? (isDarkMode ? '#065F46' : '#82ca9d') : (isDarkMode ? '#4B5563' : '#9CA3AF') },
+      evening: { name: 'Evening (17-21)', hours: [17, 18, 19, 20, 21], color: isColorful ? (isDarkMode ? '#D97706' : '#ffc658') : (isDarkMode ? '#6B7280' : '#6B7280') },
+      night: { name: 'Night (22-4)', hours: [22, 23, 0, 1, 2, 3, 4], color: isColorful ? (isDarkMode ? '#1E40AF' : '#4B9CD3') : (isDarkMode ? '#9CA3AF' : '#4B5563') },
     };
     
     // Create artist plays count by hour
@@ -121,7 +145,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
       periodTopArtists,
       timePeriods
     };
-  }, [rawPlayData, isDarkMode]);
+  }, [rawPlayData, isDarkMode, isColorful]);
   
   // Format period data for display based on time range and artist limit
   const periodChartData = useMemo(() => {
@@ -270,34 +294,26 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
   }, [artistTimeData]);
   
   const TimeFilter = () => (
-    <div className="flex justify-between items-center mb-4">
-      <div className="flex items-center gap-2">
-        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Time range (leave empty for all day):</span>
-        <div className="flex items-center gap-2 mt-2">
+    <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={modeColors.text}>Time range (leave empty for all day):</span>
+        <div className="flex flex-wrap items-center gap-2 mt-2">
           <div className="flex items-center gap-2">
-            <label className={`text-sm ${
-              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-            }`}>From:</label>
+            <label className={`text-sm ${modeColors.text}`}>From:</label>
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                isDarkMode ? 'bg-black text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
-              }`}
+              className={`px-2 py-1 border rounded focus:outline-none ${modeColors.input}`}
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className={`text-sm ${
-              isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-            }`}>To:</label>
+            <label className={`text-sm ${modeColors.text}`}>To:</label>
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className={`px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                isDarkMode ? 'bg-black text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
-              }`}
+              className={`px-2 py-1 border rounded focus:outline-none ${modeColors.input}`}
             />
           </div>
           <button
@@ -305,26 +321,22 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
               setStartTime('');
               setEndTime('');
             }}
-            className={`px-3 py-1 text-sm rounded ${
-              isDarkMode ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-3 py-1 text-sm rounded ${modeColors.button}`}
           >
             Clear
           </button>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2">
-        <span className={isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}>Number of artists (1-99):</span>
+        <span className={modeColors.text}>Number of artists (1-99):</span>
         <input
           type="number"
           min="1"
           max="99"
           value={artistLimit}
           onChange={e => setArtistLimit(Math.min(99, Math.max(1, parseInt(e.target.value) || 5)))}
-          className={`w-16 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDarkMode ? 'bg-black text-gray-200 border-gray-600' : 'bg-white text-indigo-700 border-gray-300'
-          }`}
+          className={`w-16 px-2 py-1 border rounded focus:outline-none ${modeColors.input}`}
         />
       </div>
     </div>
@@ -332,20 +344,14 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
 
   return (
     <div className="space-y-6">
-      <div className={`p-4 rounded ${
-        isDarkMode ? 'bg-black border border-gray-700' : 'bg-indigo-50'
-      }`}>
-        <h3 className={`font-bold mb-4 ${
-          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-        }`}>Top Artists by Time of Day</h3>
-        <p className={`mb-4 ${
-          isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-        }`}>
+      <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+        <h3 className={`font-bold mb-4 ${modeColors.text}`}>Top Artists by Time of Day</h3>
+        <p className={`mb-4 ${modeColors.textLight}`}>
           Discover which artists you listen to most during different parts of the day
         </p>
-        
+
         <TimeFilter />
-        
+
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -355,14 +361,14 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
             >
               <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
               <XAxis type="number" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-              <YAxis 
-                dataKey="name" 
-                type="category" 
+              <YAxis
+                dataKey="name"
+                type="category"
                 width={150}
                 tick={{ fontSize: 12 }}
                 stroke={isDarkMode ? '#9CA3AF' : '#374151'}
               />
-              <Tooltip 
+              <Tooltip
                 formatter={(value, name) => {
                   if (name === 'totalMs') return formatDuration(value);
                   if (name === 'plays') return `${value} plays`;
@@ -370,47 +376,41 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
                 }}
               />
               <Legend />
-              <Bar name="Listening Time" dataKey="totalMs" fill={isDarkMode ? '#4C1D95' : '#8884d8'} />
-              <Bar name="Play Count" dataKey="plays" fill={isDarkMode ? '#065F46' : '#82ca9d'} />
+              <Bar name="Listening Time" dataKey="totalMs" fill={modeColors.barColor} />
+              <Bar name="Play Count" dataKey="plays" fill={modeColors.barColorAlt} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-        
-        <div className={`text-sm text-center mt-2 ${
-          isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-        }`}>
-          {periodChartData.length > 0 
+
+        <div className={`text-sm text-center mt-2 ${modeColors.textLight}`}>
+          {periodChartData.length > 0
             ? (!startTime && !endTime)
               ? `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your total listening time`
               : `These top ${periodChartData.length} artists represent ${topArtistsPercentage}% of your listening time from ${startTime || '00:00'} to ${endTime || '23:59'}`
             : 'No data available for this time range'}
         </div>
       </div>
-      
+
       <div>
-        <h3 className={`font-bold mb-2 ${
-          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-        }`}>Listening by Hour of Day</h3>
-        <p className={`mb-4 ${
-          isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-        }`}>See when during the day you listen to different artists</p>
-        
-        <div className="h-64 w-full">
+        <h3 className={`font-bold mb-2 ${modeColors.text}`}>Listening by Hour of Day</h3>
+        <p className={`mb-4 ${modeColors.textLight}`}>See when during the day you listen to different artists</p>
+
+        <div className={`h-64 w-full rounded border p-2 ${modeColors.bgCard} ${modeColors.border}`}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={hourlyArtistChart}
               margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-              <XAxis 
-                dataKey="displayHour" 
-                angle={-45} 
-                textAnchor="end" 
+              <XAxis
+                dataKey="displayHour"
+                angle={-45}
+                textAnchor="end"
                 height={60}
                 stroke={isDarkMode ? '#9CA3AF' : '#374151'}
               />
               <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-              <Tooltip 
+              <Tooltip
                 formatter={(value, name) => {
                   if (name === 'uniqueArtists') return `${value} unique artists`;
                   if (name === 'totalPlays') return `${value} total plays`;
@@ -419,41 +419,31 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration }) => {
                 labelFormatter={(label) => `Hour: ${label}`}
               />
               <Legend />
-              <Bar name="Total Plays" dataKey="totalPlays" fill={isDarkMode ? '#4C1D95' : '#8884d8'} />
-              <Bar name="Unique Artists" dataKey="uniqueArtists" fill={isDarkMode ? '#065F46' : '#82ca9d'} />
+              <Bar name="Total Plays" dataKey="totalPlays" fill={modeColors.barColor} />
+              <Bar name="Unique Artists" dataKey="uniqueArtists" fill={modeColors.barColorAlt} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
-      
+
       <div>
-        <h3 className={`font-bold mb-2 ${
-          isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-        }`}>Artist Insights by Time</h3>
+        <h3 className={`font-bold mb-2 ${modeColors.text}`}>Artist Insights by Time</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {periodChartData.slice(0, 4).map((artist, index) => (
-            <div key={index} className={`p-3 rounded shadow-sm border hover:border-indigo-400 transition-all duration-300 relative ${
-              isDarkMode ? 'bg-black border-gray-700 dark:hover:border-indigo-500' : 'bg-white border-indigo-200'
-            }`}>
-              <div className={`font-bold ${
-                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-              }`}>
+            <div key={index} className={`p-3 rounded shadow-sm border relative ${modeColors.bgCard} ${modeColors.border}`}>
+              <div className={`font-bold ${modeColors.text}`}>
                 {artist.name}
               </div>
-              
-              <div className={`text-sm ${
-                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-              }`}>
+
+              <div className={`text-sm ${modeColors.textLight}`}>
                 Total Time: <span className="font-bold">{artist.formattedTime}</span>
                 <br/>
                 Plays: <span className="font-bold">{artist.plays}</span> tracks
                 <br/>
                 Average: <span className="font-bold">{formatDuration(artist.avgPlayTime)}</span> per play
               </div>
-              
-              <div className={`absolute top-1 right-3 text-[2rem] ${
-                isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
-              }`}>
+
+              <div className={`absolute top-1 right-3 text-[2rem] ${modeColors.text}`}>
                 {index + 1}
               </div>
             </div>
