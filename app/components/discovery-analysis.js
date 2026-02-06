@@ -585,7 +585,7 @@ const filteredData = useMemo(() => {
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm rounded font-medium flex-1 sm:flex-none ${
+      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${
         activeTab === id ? modeColors.buttonActive : modeColors.buttonInactive
       }`}
     >
