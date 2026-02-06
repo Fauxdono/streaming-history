@@ -2274,8 +2274,8 @@ const SpotifyAnalyzer = ({
                       }}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {artistsViewMode === 'grid' ? 'Grid' :
@@ -2289,8 +2289,8 @@ const SpotifyAnalyzer = ({
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2328,8 +2328,8 @@ const SpotifyAnalyzer = ({
                       }}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {artistsViewMode === 'grid' ? 'Grid' :
@@ -2340,8 +2340,8 @@ const SpotifyAnalyzer = ({
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2663,8 +2663,8 @@ const SpotifyAnalyzer = ({
                       }}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {albumsViewMode === 'grid' ? 'Grid' :
@@ -2678,8 +2678,8 @@ const SpotifyAnalyzer = ({
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2717,8 +2717,8 @@ const SpotifyAnalyzer = ({
                       }}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {albumsViewMode === 'grid' ? 'Grid' :
@@ -2729,8 +2729,8 @@ const SpotifyAnalyzer = ({
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
