@@ -2505,10 +2505,10 @@ const SpotifyAnalyzer = ({
                       className={`
                         ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
                         ${artistsViewMode === 'grid' ?
-                          `p-3 ${cardBg} rounded shadow-sm border ${cardBorder} transition-all duration-300 relative` :
+                          `p-3 ${cardBg} rounded shadow-sm border ${cardBorder} relative` :
                           artistsViewMode === 'compact' ?
-                          `p-3 ${cardBg} rounded-lg shadow-sm border ${cardBorder} transition-all duration-200` :
-                          `p-2 ${cardBg} rounded border ${cardBorder} transition-all duration-150`
+                          `p-3 ${cardBg} rounded-lg shadow-sm border ${cardBorder}` :
+                          `p-2 ${cardBg} rounded border ${cardBorder}`
                         }
                         ${artistSelectionMode
                           ? (colorMode === 'colorful'
@@ -2611,8 +2611,8 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-cyan-200 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700 transition-all duration-300'
-              : `p-2 sm:p-4 rounded border-2 transition-all duration-300 ${isDarkMode ? 'border-white' : 'border-black'}`
+              ? 'p-2 sm:p-4 bg-cyan-200 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
             {/* Title - mobile gets its own row */}
             <div className="block sm:hidden mb-1">
@@ -2828,8 +2828,8 @@ const SpotifyAnalyzer = ({
                         key={`${album.artist}-${album.name}`}
                         className={`
                           ${albumsViewMode === 'compact' ?
-                            `p-3 ${albumCardBg} rounded-lg shadow-sm border ${albumCardBorder} transition-all duration-200` :
-                            `p-2 ${albumCardBg} rounded border ${albumCardBorder} transition-all duration-150`
+                            `p-3 ${albumCardBg} rounded-lg shadow-sm border ${albumCardBorder}` :
+                            `p-2 ${albumCardBg} rounded border ${albumCardBorder}`
                           }
                         `}
                       >
