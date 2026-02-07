@@ -712,7 +712,7 @@ const filteredData = useMemo(() => {
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={80}
+          outerRadius="70%"
           labelLine={false}
           label={renderCustomizedLabel}
           stroke={getStrokeColor}
@@ -722,7 +722,7 @@ const filteredData = useMemo(() => {
             <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
         </Pie>
-        <Tooltip 
+        <Tooltip
           formatter={(value) => value}
           contentStyle={{
             backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
@@ -730,8 +730,8 @@ const filteredData = useMemo(() => {
             color: isDarkMode ? '#ffffff' : '#000000'
           }}
         />
-        <Legend 
-          wrapperStyle={{ 
+        <Legend
+          wrapperStyle={{
             color: getLegendTextColor,
             fontSize: '12px'
           }}
@@ -758,7 +758,7 @@ const filteredData = useMemo(() => {
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={80}
+          outerRadius="70%"
           labelLine={false}
           label={renderCustomizedLabel}
           stroke={getStrokeColor}
@@ -996,7 +996,7 @@ const filteredData = useMemo(() => {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={80}
+                    outerRadius="70%"
                     labelLine={false}
                     label={renderCustomizedLabel}
                     stroke={getStrokeColor}
