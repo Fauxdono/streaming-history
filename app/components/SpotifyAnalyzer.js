@@ -1966,81 +1966,71 @@ const SpotifyAnalyzer = ({
               </div>
             )}
 
-            {/* Full-width How to Use section with two columns */}
-            <div className="mb-6">
+            {/* How to Use + Google Drive - side by side on desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              {/* How to Use section */}
               <div className={`p-4 sm:p-6 border rounded-lg ${uploadCardBg} ${uploadBorder}`}>
                 <h3 className={`font-semibold mb-4 text-sm ${uploadText}`}>How to use:</h3>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left Column */}
-                  <div className="space-y-4">
-                    <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
-                      <div className="flex items-start gap-3 mb-3">
-                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
-                        <span>Download your streaming history from your service</span>
-                      </div>
-                      <div className="flex items-start gap-3 mb-3">
-                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
-                        <span>Upload your file(s) or connect Google Drive for large files</span>
-                      </div>
-                      <div className="flex items-start gap-3 mb-4">
-                        <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
-                        <span>Click "Calculate Statistics" and explore your data</span>
-                      </div>
-                    </div>
+                <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
+                    <span>Download your streaming history from your service</span>
                   </div>
-
-                  {/* Right Column */}
-                  <div className="space-y-4">
-                    <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                      <div className="flex-1">
-                        <button
-                          onClick={handleLoadSampleData}
-                          disabled={isProcessing}
-                          className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
-                        >
-                          <Download size={16} />
-                          Try Demo
-                        </button>
-                        <p className={`text-sm mt-2 ${uploadTextLight}`}>
-                          Want to test the app? Click to load sample streaming history.
-                        </p>
-                      </div>
-
-                      <div className="flex-1">
-                        <div className={
-                          colorMode === 'colorful'
-                            ? 'p-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
-                            : `p-2 rounded border ${isDarkMode ? 'bg-black text-white border-white' : 'bg-white text-black border-black'}`
-                        }>
-                          <p className="font-bold text-xs">📱 Download as Web App!</p>
-                          <p className="text-xs mt-0.5">Install to your device for offline access.</p>
-                        </div>
-                      </div>
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
+                    <span>Upload your file(s) or connect Google Drive for large files</span>
+                  </div>
+                  <div className="flex items-start gap-3 mb-4">
+                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
+                    <span>Click "Calculate Statistics" and explore your data</span>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                  <div className="flex-1">
+                    <button
+                      onClick={handleLoadSampleData}
+                      disabled={isProcessing}
+                      className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
+                    >
+                      <Download size={16} />
+                      Try Demo
+                    </button>
+                    <p className={`text-sm mt-2 ${uploadTextLight}`}>
+                      Want to test the app? Click to load sample streaming history.
+                    </p>
+                  </div>
+                  <div className="flex-1">
+                    <div className={
+                      colorMode === 'colorful'
+                        ? 'p-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
+                        : `p-2 rounded border ${isDarkMode ? 'bg-black text-white border-white' : 'bg-white text-black border-black'}`
+                    }>
+                      <p className="font-bold text-xs">📱 Download as Web App!</p>
+                      <p className="text-xs mt-0.5">Install to your device for offline access.</p>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Google Drive Storage */}
-            <div className="mb-6">
-              <GoogleDriveSync
-                stats={stats}
-                processedData={processedData}
-                topArtists={topArtists}
-                topAlbums={topAlbums}
-                briefObsessions={briefObsessions}
-                songsByYear={songsByYear}
-                rawPlayData={rawPlayData}
-                artistsByYear={artistsByYear}
-                albumsByYear={albumsByYear}
-                uploadedFiles={uploadedFiles}
-                uploadedFileList={uploadedFileList}
-                onDataLoaded={handleDataLoaded}
-                isDarkMode={isDarkMode}
-                colorMode={colorMode}
-              />
+
+              {/* Google Drive Storage */}
+              <div>
+                <GoogleDriveSync
+                  stats={stats}
+                  processedData={processedData}
+                  topArtists={topArtists}
+                  topAlbums={topAlbums}
+                  briefObsessions={briefObsessions}
+                  songsByYear={songsByYear}
+                  rawPlayData={rawPlayData}
+                  artistsByYear={artistsByYear}
+                  albumsByYear={albumsByYear}
+                  uploadedFiles={uploadedFiles}
+                  uploadedFileList={uploadedFileList}
+                  onDataLoaded={handleDataLoaded}
+                  isDarkMode={isDarkMode}
+                  colorMode={colorMode}
+                />
+              </div>
             </div>
               
             <div className={`p-4 rounded-lg border ${uploadCardBg} ${uploadBorder}`}>
