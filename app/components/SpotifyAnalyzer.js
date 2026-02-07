@@ -10,7 +10,7 @@ import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
-import { X, Trash2, Download } from 'lucide-react';
+import { X, Trash2, Download, LayoutGrid, List } from 'lucide-react';
 import YearSelector from './year-selector.js';
 import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
@@ -392,13 +392,12 @@ const SpotifyAnalyzer = ({
     let result;
     if (days > 0) {
       const remainingHours = hours % 24;
-      const remainingMinutes = minutes % 60;
-      result = `${days}d ${remainingHours}h (${minutes.toLocaleString()}min)`;
+      result = `${days}d ${remainingHours}h`;
     } else {
       const remainingMinutes = minutes % 60;
-      result = hours > 0 ? 
-        `${hours}h ${remainingMinutes}min` : 
-        `${remainingMinutes}min`;
+      result = hours > 0 ?
+        `${hours}h ${remainingMinutes}m` :
+        `${remainingMinutes}m`;
     }
     
     // Store in cache for future use
@@ -2263,24 +2262,17 @@ const SpotifyAnalyzer = ({
                     />
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <label>View Mode</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'list'];
-                        const currentIndex = modes.indexOf(artistsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setArtistsViewMode(modes[nextIndex]);
-                      }}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-                      }
-                    >
-                      {artistsViewMode === 'grid' ? 'Grid' : 'List'}
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
+                    className={`p-1 rounded ${
+                      colorMode === 'colorful'
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
+                    }`}
+                    title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+                  >
+                    {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                  </button>
 
                   <div className="flex items-center gap-2">
                     <label>Sort by</label>
@@ -2319,19 +2311,15 @@ const SpotifyAnalyzer = ({
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => {
-                        const modes = ['grid', 'list'];
-                        const currentIndex = modes.indexOf(artistsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setArtistsViewMode(modes[nextIndex]);
-                      }}
-                      className={
+                      onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
+                      className={`p-1 rounded ${
                         colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-                      }
+                          ? 'bg-blue-500 text-white hover:bg-blue-600'
+                          : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
+                      }`}
+                      title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                     >
-                      {artistsViewMode === 'grid' ? 'Grid' : 'List'}
+                      {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
                     </button>
 
                     <button
