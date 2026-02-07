@@ -2245,22 +2245,20 @@ const SpotifyAnalyzer = ({
                   {getArtistsTabLabel()}
                 </h3>
 
-                <div className={`flex items-center gap-4 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
-                  <div className="flex items-center gap-2">
-                    <label>Show Top</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="500"
-                      value={topArtistsCount}
-                      onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1.5 text-xs sm:text-sm bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                          : `w-16 border rounded-lg px-2 py-1.5 text-xs sm:text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
-                      }
-                    />
-                  </div>
+                <div className={`flex items-center gap-3 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
+                  <label className="text-xs sm:text-sm">Show Top</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    value={topArtistsCount}
+                    onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1.5 text-xs sm:text-sm bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                        : `w-16 border rounded-lg px-2 py-1.5 text-xs sm:text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                    }
+                  />
 
                   <button
                     onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
@@ -2274,27 +2272,25 @@ const SpotifyAnalyzer = ({
                     {artistsViewMode === 'grid' ? <List size={18} /> : <LayoutGrid size={18} />}
                   </button>
 
-                  <div className="flex items-center gap-2">
-                    <label>Sort by</label>
-                    <button
-                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-                      }
-                    >
-                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
+                  <label className="text-xs sm:text-sm">Sort by</label>
+                  <button
+                    onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        : `px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                    }
+                  >
+                    {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+                  </button>
                 </div>
               </div>
               
               {/* Mobile controls */}
-              <div className={`block sm:hidden space-y-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
-                <div className="flex items-center justify-between">
+              <div className={`block sm:hidden ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
+                <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <label>Top</label>
+                    <label className="text-xs">Top</label>
                     <input
                       type="number"
                       min="1"
@@ -2303,8 +2299,8 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1.5 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                          : `w-16 border rounded-lg px-2 py-1.5 text-xs ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-14 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1.5 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                          : `w-14 border rounded-lg px-2 py-1.5 text-xs ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
