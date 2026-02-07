@@ -7,6 +7,7 @@ const WheelSelector = ({
   label,
   colorTheme = 'teal',
   textTheme = null, // Add separate textTheme prop for text-only color control
+  colorMode = 'colorful', // Add colorMode for minimal (b&w) vs colorful styling
   displayFormat = (val) => val
 }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -27,6 +28,22 @@ const WheelSelector = ({
   
   // Get color classes based on theme
   const getColors = () => {
+    // Handle minimal (black & white) mode first
+    if (colorMode === 'minimal') {
+      return {
+        border: 'border-black dark:border-white',
+        highlight: 'bg-gray-100 dark:bg-gray-900',
+        text: 'text-black dark:text-white',
+        activeText: 'text-black font-bold dark:text-white',
+        shadow: 'shadow-gray-300 dark:shadow-gray-700',
+        background: 'bg-white dark:bg-black',
+        gradientLight: 'bg-gradient-to-b from-white to-transparent dark:from-black',
+        gradientDark: 'bg-gradient-to-b from-black to-transparent',
+        gradientLightBottom: 'bg-gradient-to-t from-white to-transparent dark:from-black',
+        gradientDarkBottom: 'bg-gradient-to-t from-black to-transparent'
+      };
+    }
+
     switch (colorTheme) {
       case 'pink':
         return {

@@ -1714,6 +1714,7 @@ const YearSelector = ({
                     onChange={handleYearChange}
                     colorTheme={colorTheme}
                     textTheme={textTheme}
+                    colorMode={colorMode}
                     displayFormat={val => val === 'all' ? 'All Time' : val}
                   />
                 </div>
@@ -1774,6 +1775,7 @@ const YearSelector = ({
                         onChange={handleMonthChange}
                         colorTheme={colorTheme}
                         textTheme={textTheme}
+                        colorMode={colorMode}
                         displayFormat={getMonthName}
                       />
                     </div>
@@ -1829,6 +1831,7 @@ const YearSelector = ({
                           onChange={handleDayChange}
                           colorTheme={colorTheme}
                           textTheme={textTheme}
+                          colorMode={colorMode}
                         />
                       )}
                     </div>
@@ -1905,6 +1908,7 @@ const YearSelector = ({
                     }}
                     colorTheme={colorTheme}
                     textTheme={textTheme}
+                    colorMode={colorMode}
                   />
                 </div>
                 
@@ -1924,6 +1928,7 @@ const YearSelector = ({
                     }}
                     colorTheme={colorTheme}
                     textTheme={textTheme}
+                    colorMode={colorMode}
                   />
                 </div>
               </div>
@@ -1991,6 +1996,7 @@ const YearSelector = ({
                             onChange={handleStartMonthChange}
                             colorTheme={colorTheme}
                             textTheme={textTheme}
+                            colorMode={colorMode}
                             displayFormat={getMonthName}
                           />
                         </div>
@@ -2004,6 +2010,7 @@ const YearSelector = ({
                             onChange={handleEndMonthChange}
                             colorTheme={colorTheme}
                             textTheme={textTheme}
+                            colorMode={colorMode}
                             displayFormat={getMonthName}
                           />
                         </div>
@@ -2020,6 +2027,7 @@ const YearSelector = ({
                             onChange={handleStartDayChange}
                             colorTheme={colorTheme}
                             textTheme={textTheme}
+                            colorMode={colorMode}
                           />
                         </div>
                         
@@ -2032,6 +2040,7 @@ const YearSelector = ({
                             onChange={handleEndDayChange}
                             colorTheme={colorTheme}
                             textTheme={textTheme}
+                            colorMode={colorMode}
                           />
                         </div>
                       </div>
