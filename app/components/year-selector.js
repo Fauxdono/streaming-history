@@ -5,23 +5,24 @@ import WheelSelector from './wheelselector.js';
 // Cache for expensive operations
 const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const YearSelector = ({ 
-  artistsByYear, 
+const YearSelector = ({
+  artistsByYear,
   rawPlayData = [], // Add rawPlayData to find first day with data
-  onYearChange, 
-  onYearRangeChange, 
+  onYearChange,
+  onYearRangeChange,
   onExpandChange, // New callback to communicate expanded state to parent
   onPositionChange, // New callback to communicate position changes to parent
   onWidthChange, // New callback to communicate width changes to parent
   onHeightChange, // New callback to communicate height changes to parent
   onTransitionChange, // New callback to communicate transition state to parent
-  initialYear, 
-  initialYearRange, 
-  isRangeMode, 
+  initialYear,
+  initialYearRange,
+  isRangeMode,
   onToggleRangeMode,
-  colorTheme = 'teal', 
+  colorTheme = 'teal',
   textTheme = null, // Add separate textTheme prop for text-only color control
-  position = 'right', 
+  colorMode = 'colorful', // Add colorMode for minimal (b&w) vs colorful styling
+  position = 'right',
   startMinimized = false,
   asSidebar = false,
   activeTab = null, // Add activeTab to determine behavior
@@ -520,6 +521,26 @@ const YearSelector = ({
 
   // Memoized color theme to prevent recalculation
   const colors = useMemo(() => {
+    // Handle minimal (black & white) mode
+    if (colorMode === 'minimal') {
+      return {
+        text: 'text-black dark:text-white',
+        textActive: 'text-white dark:text-black',
+        textBold: 'text-black dark:text-white',
+        bgActive: 'bg-black dark:bg-white',
+        bgHover: 'hover:bg-gray-200 dark:hover:bg-gray-800',
+        bgLighter: 'bg-white dark:bg-black',
+        bgDark: 'bg-black dark:bg-black',
+        sidebarBg: 'bg-white dark:bg-black',
+        glowActive: 'shadow-[0_0_15px_rgba(0,0,0,0.3)] dark:shadow-[0_0_15px_rgba(255,255,255,0.3)]',
+        buttonBg: 'bg-black dark:bg-white',
+        buttonHover: 'hover:bg-gray-800 dark:hover:bg-gray-200',
+        border: 'border-black dark:border-white',
+        bgLight: 'bg-white dark:bg-black',
+        bgMed: 'bg-gray-200 dark:bg-gray-800'
+      };
+    }
+
     // Get base colors from colorTheme (used for backgrounds/borders)
     let baseColors;
     switch (colorTheme) {
@@ -806,7 +827,7 @@ const YearSelector = ({
     }
 
     return baseColors;
-  }, [colorTheme, textTheme]);
+  }, [colorTheme, textTheme, colorMode]);
 
   if (years.length === 0) {
     return <div className={colors.text + " italic"}>No year data available</div>;
