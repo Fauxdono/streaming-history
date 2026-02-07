@@ -766,10 +766,9 @@ const PodcastRankings = ({
             {episode.segmentCount}
           </td>
           <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.textLight}`}>
-            {episode.firstListened ? new Date(episode.firstListened).toLocaleDateString() : '-'}
-          </td>
-          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.textLight}`}>
-            {episode.lastListened ? new Date(episode.lastListened).toLocaleDateString() : '-'}
+            {sortBy === 'firstListened'
+              ? (episode.firstListened ? new Date(episode.firstListened).toLocaleDateString() : '-')
+              : (episode.lastListened ? new Date(episode.lastListened).toLocaleDateString() : '-')}
           </td>
           {showDuplicateStats && (
             <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
@@ -985,16 +984,10 @@ const PodcastRankings = ({
                           Sessions {sortBy === 'segmentCount' && '▼'}
                         </th>
                         <th
-                          className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'firstListened' ? 'font-bold' : ''}`}
-                          onClick={() => setSortBy('firstListened')}
+                          className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${(sortBy === 'firstListened' || sortBy === 'lastListened') ? 'font-bold' : ''}`}
+                          onClick={() => setSortBy(sortBy === 'firstListened' ? 'lastListened' : 'firstListened')}
                         >
-                          First {sortBy === 'firstListened' && '▲'}
-                        </th>
-                        <th
-                          className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'lastListened' ? 'font-bold' : ''}`}
-                          onClick={() => setSortBy('lastListened')}
-                        >
-                          Last {sortBy === 'lastListened' && '▼'}
+                          {sortBy === 'firstListened' ? 'First ▲' : sortBy === 'lastListened' ? 'Last ▼' : 'Date'}
                         </th>
                         {showDuplicateStats && (
                           <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>Dupes</th>
