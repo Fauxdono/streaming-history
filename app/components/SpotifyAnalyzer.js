@@ -255,7 +255,7 @@ const SpotifyAnalyzer = ({
   const [topArtists, setTopArtists] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(10);
-  const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
+  const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'list'
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
@@ -2267,7 +2267,7 @@ const SpotifyAnalyzer = ({
                     <label>View Mode</label>
                     <button
                       onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
+                        const modes = ['grid', 'list'];
                         const currentIndex = modes.indexOf(artistsViewMode);
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
@@ -2278,8 +2278,7 @@ const SpotifyAnalyzer = ({
                           : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
-                      {artistsViewMode === 'grid' ? 'Grid' :
-                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                      {artistsViewMode === 'grid' ? 'Grid' : 'List'}
                     </button>
                   </div>
 
@@ -2321,7 +2320,7 @@ const SpotifyAnalyzer = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
+                        const modes = ['grid', 'list'];
                         const currentIndex = modes.indexOf(artistsViewMode);
                         const nextIndex = (currentIndex + 1) % modes.length;
                         setArtistsViewMode(modes[nextIndex]);
@@ -2332,8 +2331,7 @@ const SpotifyAnalyzer = ({
                           : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
-                      {artistsViewMode === 'grid' ? 'Grid' :
-                       artistsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                      {artistsViewMode === 'grid' ? 'Grid' : 'List'}
                     </button>
 
                     <button
@@ -2460,8 +2458,8 @@ const SpotifyAnalyzer = ({
               
               {/* Artists Display */}
               {displayedArtists && displayedArtists.length > 0 ? (
-                artistsViewMode === 'compact' ? (
-                  // Table-based compact view
+                artistsViewMode === 'list' ? (
+                  // Table-based list view
                   <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
                     <div className="min-w-full">
                       <table className="w-full border-collapse text-sm sm:text-base">
@@ -2471,6 +2469,9 @@ const SpotifyAnalyzer = ({
                             <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Artist</th>
                             <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Time</th>
                             <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Plays</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden md:table-cell`}>Top Song</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>First Song</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>First Listen</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2485,6 +2486,9 @@ const SpotifyAnalyzer = ({
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.name}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{formatDuration(artist.totalPlayed)}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.playCount?.toLocaleString() || 0}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden md:table-cell`}>{artist.mostPlayedSong?.trackName || '-'}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>{artist.firstSong || '-'}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>{artist.firstListen ? new Date(artist.firstListen).toLocaleDateString() : '-'}</td>
                               </tr>
                             ))}
                         </tbody>
@@ -2492,10 +2496,8 @@ const SpotifyAnalyzer = ({
                     </div>
                   </div>
                 ) : (
-                  // Grid or Mobile view
-                  <div className={`
-                    ${artistsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-1'}
-                  `}>
+                  // Grid view
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
                       .slice(0, topArtistsCount)
                       .map((artist, index) => {
@@ -2527,10 +2529,7 @@ const SpotifyAnalyzer = ({
                             onClick={handleArtistClick}
                             className={`
                               ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
-                              ${artistsViewMode === 'grid' ?
-                                `p-3 ${cardBg} rounded shadow-sm border ${cardBorder} relative` :
-                                `p-2 ${cardBg} rounded border ${cardBorder}`
-                              }
+                              p-3 ${cardBg} rounded shadow-sm border ${cardBorder} relative
                               ${artistSelectionMode
                                 ? (colorMode === 'colorful'
                                     ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-100 dark:hover:bg-blue-700'
@@ -2539,38 +2538,23 @@ const SpotifyAnalyzer = ({
                               }
                             `}
                           >
-                            {artistsViewMode === 'grid' ? (
-                              <>
-                                <div className={`font-bold ${cardText}`}>{artist.name}</div>
-                                <div className={`text-sm ${cardTextLight}`}>
-                                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                                  <br/>
-                                  Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
-                                  <br/>
-                                  {artist.mostPlayedSong && (
-                                    <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
-                                  )}
-                                  {artist.firstSong && (
-                                    <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
-                                  )}
-                                  {artist.firstListen && (
-                                    <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
-                                  )}
-                                </div>
-                                <div className={`absolute top-1 right-3 ${cardText} text-[2rem]`}>{index + 1}</div>
-                              </>
-                            ) : (
-                              <div className="flex justify-between items-center text-sm">
-                                <div className="flex-1">
-                                  <div className={`font-bold ${cardText} text-sm`}>{artist.name}</div>
-                                </div>
-                                <span className={`${cardTextLight} font-medium`}>#{index + 1}</span>
-                                <div className={`text-right text-xs ${cardTextLight}`}>
-                                  <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
-                                  <div>{artist.playCount?.toLocaleString() || 0} plays</div>
-                                </div>
-                              </div>
-                            )}
+                            <div className={`font-bold ${cardText}`}>{artist.name}</div>
+                            <div className={`text-sm ${cardTextLight}`}>
+                              Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+                              <br/>
+                              Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
+                              <br/>
+                              {artist.mostPlayedSong && (
+                                <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
+                              )}
+                              {artist.firstSong && (
+                                <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
+                              )}
+                              {artist.firstListen && (
+                                <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
+                              )}
+                            </div>
+                            <div className={`absolute top-1 right-3 ${cardText} text-[2rem]`}>{index + 1}</div>
                           </div>
                         );
                       })}
