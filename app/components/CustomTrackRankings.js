@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
-import { Download, Plus, XCircle, Eye, LayoutGrid, List } from 'lucide-react';
+import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
 
@@ -18,7 +18,8 @@ const CustomTrackRankings = ({
   colorTheme = 'orange',
   textTheme = null,
   backgroundTheme = null,
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  viewMode = 'grid'
 }) => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
@@ -315,7 +316,6 @@ const CustomTrackRankings = ({
   const [playlistName, setPlaylistName] = useState('Custom Date Range Playlist');
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
   const [showOmitDropdown, setShowOmitDropdown] = useState(null); // Track which card's dropdown is open
 
   // Create a ref to hold our normalization cache that persists across renders
@@ -1404,14 +1404,6 @@ return (
           className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
         />
 
-        <button
-          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
-          className={`px-1.5 py-1 rounded ${colors.bgDark} ${colors.bgDarkHover}`}
-          title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-        >
-          {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
-        </button>
-
         <label className={`${colors.text} text-xs`}>Sort by</label>
         <button
           onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
@@ -1438,14 +1430,6 @@ return (
         </div>
 
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
-            className={`px-1.5 py-1 rounded ${colors.bgDark} ${colors.bgDarkHover}`}
-            title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-          >
-            {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
-          </button>
-
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
             className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}

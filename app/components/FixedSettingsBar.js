@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
-import { ArrowLeftRight, FileText, Files, Type } from 'lucide-react';
+import { ArrowLeftRight, FileText, Files, Type, LayoutGrid, List } from 'lucide-react';
 
 const FixedSettingsBar = ({
   togglePosition,
@@ -11,8 +11,25 @@ const FixedSettingsBar = ({
   isMobile,
   isCollapsed,
   colorMode = 'minimal',
-  setColorMode = () => {}
+  setColorMode = () => {},
+  activeTab = '',
+  viewMode = 'grid',
+  setViewMode = () => {}
 }) => {
+  // Tabs that support grid/list view
+  const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts'];
+  const showViewToggle = tabsWithViewMode.includes(activeTab);
+
+  // Artists/albums use 'list', custom/podcasts use 'compact'
+  const getAlternateViewMode = () => {
+    if (activeTab === 'artists' || activeTab === 'albums') return 'list';
+    return 'compact';
+  };
+
+  const toggleViewMode = () => {
+    const alternateMode = getAlternateViewMode();
+    setViewMode(viewMode === 'grid' ? alternateMode : 'grid');
+  };
   const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
   const settingsButtonRef = useRef(null);
 
@@ -49,6 +66,15 @@ const FixedSettingsBar = ({
                 >
                   {colorMode === 'minimal' ? '🎨' : '⬛'}
                 </button>
+                {showViewToggle && (
+                  <button
+                    onClick={toggleViewMode}
+                    className="p-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                    title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+                  >
+                    {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                  </button>
+                )}
                 <button
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
@@ -90,6 +116,17 @@ const FixedSettingsBar = ({
               >
                 <span className="text-xs">{colorMode === 'minimal' ? '🎨' : '⬛'}</span>
               </button>
+
+              {/* View mode toggle - only show for tabs with grid/list */}
+              {showViewToggle && (
+                <button
+                  onClick={toggleViewMode}
+                  className="p-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                  title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+                >
+                  {viewMode === 'grid' ? <List size={14} /> : <LayoutGrid size={14} />}
+                </button>
+              )}
 
               {/* Position toggle button */}
               <button
