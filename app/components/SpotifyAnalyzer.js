@@ -2460,111 +2460,122 @@ const SpotifyAnalyzer = ({
               
               {/* Artists Display */}
               {displayedArtists && displayedArtists.length > 0 ? (
-                <div className={`
-                  ${artistsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 
-                    artistsViewMode === 'compact' ? 'space-y-2' : 'space-y-1'}
-                `}>
-                  {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
-                    .slice(0, topArtistsCount)
-                    .map((artist, index) => {
-                      const handleArtistClick = () => {
-                        if (!artistSelectionMode) {
-                          // Artist selection mode not enabled yet
-                          return;
-                        }
-                        
-                        // Switch to custom tab with this artist selected
-                        setActiveTab('custom');
-                        
-                        // Set the artist in CustomTrackRankings (we'll need to pass this)
-                        // For now, we can use the selectedArtists state
-                        setSelectedArtists([artist.name]);
-                        
-                        // Reset selection mode
-                        setArtistSelectionMode(false);
-                      };
-                      
-                      // Card colors based on colorMode
-                      const cardBg = colorMode === 'colorful'
-                        ? 'bg-blue-100 dark:bg-blue-800'
-                        : (isDarkMode ? 'bg-black' : 'bg-white');
-                      const cardBorder = colorMode === 'colorful'
-                        ? 'border-blue-300 dark:border-blue-600'
-                        : (isDarkMode ? 'border-white' : 'border-black');
-                      const cardText = colorMode === 'colorful'
-                        ? 'text-blue-700 dark:text-blue-200'
-                        : '';
-                      const cardTextLight = colorMode === 'colorful'
-                        ? 'text-blue-600 dark:text-blue-300'
-                        : 'text-gray-600 dark:text-gray-400';
-
-                      return (
-                    <div
-                      key={artist.name}
-                      onClick={handleArtistClick}
-                      className={`
-                        ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
-                        ${artistsViewMode === 'grid' ?
-                          `p-3 ${cardBg} rounded shadow-sm border ${cardBorder} relative` :
-                          artistsViewMode === 'compact' ?
-                          `p-3 ${cardBg} rounded-lg shadow-sm border ${cardBorder}` :
-                          `p-2 ${cardBg} rounded border ${cardBorder}`
-                        }
-                        ${artistSelectionMode
-                          ? (colorMode === 'colorful'
-                              ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-100 dark:hover:bg-blue-700'
-                              : 'ring-2 ring-gray-400 ring-opacity-50 hover:bg-gray-100 dark:hover:bg-gray-800')
-                          : ''
-                        }
-                      `}
-                    >
-                      {artistsViewMode === 'grid' ? (
-                        <>
-                          <div className={`font-bold ${cardText}`}>{artist.name}</div>
-
-                          <div className={`text-sm ${cardTextLight}`}>
-                            Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                            <br/>
-                            Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
-                            <br/>
-                            {artist.mostPlayedSong && (
-                              <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
-                            )}
-                            {artist.firstSong && (
-                              <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
-                            )}
-                            {artist.firstListen && (
-                              <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
-                            )}
-                          </div>
-
-                          <div className={`absolute top-1 right-3 ${cardText} text-[2rem]`}>{index + 1}</div>
-                        </>
-                      ) : (
-                        <div className={`
-                          ${artistsViewMode === 'compact' ? 'flex justify-between items-center' :
-                            'flex justify-between items-center text-sm'}
-                        `}>
-                          <div className="flex-1">
-                            <div className={`font-bold ${cardText} ${
-                              artistsViewMode === 'compact' ? 'text-base' : 'text-sm'
-                            }`}>
-                              {artist.name}
-                            </div>
-                          </div>
-
-                          <span className={`${cardTextLight} font-medium`}>#{index + 1}</span>
-
-                          <div className={`text-right ${artistsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${cardTextLight}`}>
-                            <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
-                            <div>{artist.playCount?.toLocaleString() || 0} plays</div>
-                          </div>
-                        </div>
-                      )}
+                artistsViewMode === 'compact' ? (
+                  // Table-based compact view
+                  <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+                    <div className="min-w-full">
+                      <table className="w-full border-collapse text-sm sm:text-base">
+                        <thead>
+                          <tr className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600' : (isDarkMode ? 'border-white' : 'border-black')}`}>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Rank</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Artist</th>
+                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Time</th>
+                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Plays</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
+                            .slice(0, topArtistsCount)
+                            .map((artist, index) => (
+                              <tr
+                                key={artist.name}
+                                className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-white hover:bg-gray-800' : 'border-black hover:bg-gray-100')}`}
+                              >
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}>{index + 1}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.name}</td>
+                                <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{formatDuration(artist.totalPlayed)}</td>
+                                <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.playCount?.toLocaleString() || 0}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
                     </div>
-                      );
-                    })}
-                </div>
+                  </div>
+                ) : (
+                  // Grid or Mobile view
+                  <div className={`
+                    ${artistsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-1'}
+                  `}>
+                    {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
+                      .slice(0, topArtistsCount)
+                      .map((artist, index) => {
+                        const handleArtistClick = () => {
+                          if (!artistSelectionMode) {
+                            return;
+                          }
+                          setActiveTab('custom');
+                          setSelectedArtists([artist.name]);
+                          setArtistSelectionMode(false);
+                        };
+
+                        const cardBg = colorMode === 'colorful'
+                          ? 'bg-blue-100 dark:bg-blue-800'
+                          : (isDarkMode ? 'bg-black' : 'bg-white');
+                        const cardBorder = colorMode === 'colorful'
+                          ? 'border-blue-300 dark:border-blue-600'
+                          : (isDarkMode ? 'border-white' : 'border-black');
+                        const cardText = colorMode === 'colorful'
+                          ? 'text-blue-700 dark:text-blue-200'
+                          : '';
+                        const cardTextLight = colorMode === 'colorful'
+                          ? 'text-blue-600 dark:text-blue-300'
+                          : 'text-gray-600 dark:text-gray-400';
+
+                        return (
+                          <div
+                            key={artist.name}
+                            onClick={handleArtistClick}
+                            className={`
+                              ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
+                              ${artistsViewMode === 'grid' ?
+                                `p-3 ${cardBg} rounded shadow-sm border ${cardBorder} relative` :
+                                `p-2 ${cardBg} rounded border ${cardBorder}`
+                              }
+                              ${artistSelectionMode
+                                ? (colorMode === 'colorful'
+                                    ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-100 dark:hover:bg-blue-700'
+                                    : 'ring-2 ring-gray-400 ring-opacity-50 hover:bg-gray-100 dark:hover:bg-gray-800')
+                                : ''
+                              }
+                            `}
+                          >
+                            {artistsViewMode === 'grid' ? (
+                              <>
+                                <div className={`font-bold ${cardText}`}>{artist.name}</div>
+                                <div className={`text-sm ${cardTextLight}`}>
+                                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+                                  <br/>
+                                  Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
+                                  <br/>
+                                  {artist.mostPlayedSong && (
+                                    <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
+                                  )}
+                                  {artist.firstSong && (
+                                    <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
+                                  )}
+                                  {artist.firstListen && (
+                                    <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
+                                  )}
+                                </div>
+                                <div className={`absolute top-1 right-3 ${cardText} text-[2rem]`}>{index + 1}</div>
+                              </>
+                            ) : (
+                              <div className="flex justify-between items-center text-sm">
+                                <div className="flex-1">
+                                  <div className={`font-bold ${cardText} text-sm`}>{artist.name}</div>
+                                </div>
+                                <span className={`${cardTextLight} font-medium`}>#{index + 1}</span>
+                                <div className={`text-right text-xs ${cardTextLight}`}>
+                                  <div className="font-medium">{formatDuration(artist.totalPlayed)}</div>
+                                  <div>{artist.playCount?.toLocaleString() || 0} plays</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                )
               ) : (
                 <div className={
                   colorMode === 'colorful'
@@ -2793,75 +2804,91 @@ const SpotifyAnalyzer = ({
               
               {/* Albums Display */}
               {displayedAlbums && displayedAlbums.length > 0 ? (
-                <div className={`
-                  ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' :
-                    albumsViewMode === 'compact' ? 'space-y-2' : 'space-y-1'}
-                `}>
-                  {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
-                    // Card colors based on colorMode
-                    const albumCardBg = colorMode === 'colorful'
-                      ? 'bg-cyan-50 dark:bg-cyan-800'
-                      : (isDarkMode ? 'bg-black' : 'bg-white');
-                    const albumCardBorder = colorMode === 'colorful'
-                      ? 'border-cyan-300 dark:border-cyan-600'
-                      : (isDarkMode ? 'border-white' : 'border-black');
-                    const albumCardText = colorMode === 'colorful'
-                      ? 'text-cyan-700 dark:text-cyan-200'
-                      : '';
-                    const albumCardTextLight = colorMode === 'colorful'
-                      ? 'text-cyan-600 dark:text-cyan-300'
-                      : 'text-gray-600 dark:text-gray-400';
+                albumsViewMode === 'compact' ? (
+                  // Table-based compact view
+                  <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+                    <div className="min-w-full">
+                      <table className="w-full border-collapse text-sm sm:text-base">
+                        <thead>
+                          <tr className={`border-b ${colorMode === 'colorful' ? 'border-cyan-300 dark:border-cyan-600' : (isDarkMode ? 'border-white' : 'border-black')}`}>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Rank</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Album</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Artist</th>
+                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Time</th>
+                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Plays</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
+                            <tr
+                              key={`${album.artist}-${album.name}`}
+                              className={`border-b ${colorMode === 'colorful' ? 'border-cyan-300 dark:border-cyan-600 hover:bg-cyan-100 dark:hover:bg-cyan-700' : (isDarkMode ? 'border-white hover:bg-gray-800' : 'border-black hover:bg-gray-100')}`}
+                            >
+                              <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} font-medium text-xs sm:text-sm`}>{index + 1}</td>
+                              <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{album.name}</td>
+                              <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{album.artist}</td>
+                              <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{formatDuration(album.totalPlayed)}</td>
+                              <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{(album.playCount || 0).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  // Grid or Mobile view
+                  <div className={`
+                    ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-1'}
+                  `}>
+                    {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
+                      const albumCardBg = colorMode === 'colorful'
+                        ? 'bg-cyan-50 dark:bg-cyan-800'
+                        : (isDarkMode ? 'bg-black' : 'bg-white');
+                      const albumCardBorder = colorMode === 'colorful'
+                        ? 'border-cyan-300 dark:border-cyan-600'
+                        : (isDarkMode ? 'border-white' : 'border-black');
+                      const albumCardText = colorMode === 'colorful'
+                        ? 'text-cyan-700 dark:text-cyan-200'
+                        : '';
+                      const albumCardTextLight = colorMode === 'colorful'
+                        ? 'text-cyan-600 dark:text-cyan-300'
+                        : 'text-gray-600 dark:text-gray-400';
 
-                    return albumsViewMode === 'grid' ? (
-                      <AlbumCard
-                        key={`${album.artist}-${album.name}`}
-                        album={{...album, rank: index + 1}}
-                        index={index}
-                        processedData={processedData}
-                        formatDuration={formatDuration}
-                        textTheme={albumTextTheme}
-                        backgroundTheme={albumBackgroundTheme}
-                        colorMode={colorMode}
-                      />
-                    ) : (
-                      <div
-                        key={`${album.artist}-${album.name}`}
-                        className={`
-                          ${albumsViewMode === 'compact' ?
-                            `p-3 ${albumCardBg} rounded-lg shadow-sm border ${albumCardBorder}` :
-                            `p-2 ${albumCardBg} rounded border ${albumCardBorder}`
-                          }
-                        `}
-                      >
-                        <div className={`
-                          ${albumsViewMode === 'compact' ? 'flex justify-between items-center' :
-                            'flex justify-between items-center text-sm'}
-                        `}>
-                          <div className="flex-1">
-                            <div className={`font-bold ${albumCardText} ${
-                              albumsViewMode === 'compact' ? 'text-base' : 'text-sm'
-                            }`}>
-                              #{index + 1} {album.name}
+                      return albumsViewMode === 'grid' ? (
+                        <AlbumCard
+                          key={`${album.artist}-${album.name}`}
+                          album={{...album, rank: index + 1}}
+                          index={index}
+                          processedData={processedData}
+                          formatDuration={formatDuration}
+                          textTheme={albumTextTheme}
+                          backgroundTheme={albumBackgroundTheme}
+                          colorMode={colorMode}
+                        />
+                      ) : (
+                        <div
+                          key={`${album.artist}-${album.name}`}
+                          className={`p-2 ${albumCardBg} rounded border ${albumCardBorder}`}
+                        >
+                          <div className="flex justify-between items-center text-sm">
+                            <div className="flex-1">
+                              <div className={`font-bold ${albumCardText} text-sm`}>
+                                #{index + 1} {album.name}
+                              </div>
+                              <div className={`${albumCardTextLight} text-xs`}>
+                                {album.artist}
+                              </div>
                             </div>
-                            <div className={`${albumCardTextLight} ${
-                              albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'
-                            }`}>
-                              {album.artist}
-                              {albumsViewMode === 'compact' && album.trackCountValue && (
-                                <span className="ml-2">• {album.trackCountValue} tracks</span>
-                              )}
+                            <div className={`text-right text-xs ${albumCardTextLight}`}>
+                              <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
+                              <div>{(album.playCount || 0).toLocaleString()} plays</div>
                             </div>
-                          </div>
-
-                          <div className={`text-right ${albumsViewMode === 'compact' ? 'text-sm' : 'text-xs'} ${albumCardTextLight}`}>
-                            <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
-                            <div>{(album.playCount || 0).toLocaleString()} plays</div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )
               ) : (
                 <div className={
                   colorMode === 'colorful'
