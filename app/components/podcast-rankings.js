@@ -181,29 +181,33 @@ const PodcastRankings = ({
       // All time - use the existing setAllTime function
       if (rawPlayData.length > 0) {
         try {
-          let earliest = new Date(rawPlayData[0].ts);
-          let latest = new Date(rawPlayData[0].ts);
+          // Find first valid date to initialize earliest/latest
+          let earliest = null;
+          let latest = null;
 
           for (const entry of rawPlayData) {
             if (!entry.ts) continue;
-            
+
             try {
               const date = new Date(entry.ts);
               if (!isNaN(date.getTime())) {
-                if (date < earliest) earliest = date;
-                if (date > latest) latest = date;
+                if (!earliest || date < earliest) earliest = date;
+                if (!latest || date > latest) latest = date;
               }
             } catch (e) {
               // Skip invalid dates
             }
           }
-          
-          const startStr = format(earliest, 'yyyy-MM-dd');
-          const endStr = format(latest, 'yyyy-MM-dd');
-          
-          setStartDate(startStr);
-          setEndDate(endStr);
-          
+
+          // Only format if we found valid dates
+          if (earliest && latest && !isNaN(earliest.getTime()) && !isNaN(latest.getTime())) {
+            const startStr = format(earliest, 'yyyy-MM-dd');
+            const endStr = format(latest, 'yyyy-MM-dd');
+
+            setStartDate(startStr);
+            setEndDate(endStr);
+          }
+
           // Update the year selector
           if (onYearChange) onYearChange('all');
           if (onToggleYearRangeMode) onToggleYearRangeMode(false);
@@ -219,28 +223,32 @@ const PodcastRankings = ({
     if ((!startDate || !endDate) && rawPlayData.length > 0) {
       // Initialize with all time data
       try {
-        let earliest = new Date(rawPlayData[0].ts);
-        let latest = new Date(rawPlayData[0].ts);
+        // Find first valid date to initialize earliest/latest
+        let earliest = null;
+        let latest = null;
 
         for (const entry of rawPlayData) {
           if (!entry.ts) continue;
-          
+
           try {
             const date = new Date(entry.ts);
             if (!isNaN(date.getTime())) {
-              if (date < earliest) earliest = date;
-              if (date > latest) latest = date;
+              if (!earliest || date < earliest) earliest = date;
+              if (!latest || date > latest) latest = date;
             }
           } catch (e) {
             // Skip invalid dates
           }
         }
-        
-        const startStr = format(earliest, 'yyyy-MM-dd');
-        const endStr = format(latest, 'yyyy-MM-dd');
-        
-        setStartDate(startStr);
-        setEndDate(endStr);
+
+        // Only format if we found valid dates
+        if (earliest && latest && !isNaN(earliest.getTime()) && !isNaN(latest.getTime())) {
+          const startStr = format(earliest, 'yyyy-MM-dd');
+          const endStr = format(latest, 'yyyy-MM-dd');
+
+          setStartDate(startStr);
+          setEndDate(endStr);
+        }
       } catch (err) {
         console.error("Error setting initial date range:", err);
       }
@@ -374,29 +382,33 @@ const PodcastRankings = ({
   const setAllTime = () => {
     if (rawPlayData.length > 0) {
       try {
-        let earliest = new Date(rawPlayData[0].ts);
-        let latest = new Date(rawPlayData[0].ts);
+        // Find first valid date to initialize earliest/latest
+        let earliest = null;
+        let latest = null;
 
         for (const entry of rawPlayData) {
           if (!entry.ts) continue;
-          
+
           try {
             const date = new Date(entry.ts);
             if (!isNaN(date.getTime())) {
-              if (date < earliest) earliest = date;
-              if (date > latest) latest = date;
+              if (!earliest || date < earliest) earliest = date;
+              if (!latest || date > latest) latest = date;
             }
           } catch (e) {
             // Skip invalid dates
           }
         }
-        
-        const startStr = format(earliest, 'yyyy-MM-dd');
-        const endStr = format(latest, 'yyyy-MM-dd');
-        
-        setStartDate(startStr);
-        setEndDate(endStr);
-        
+
+        // Only format if we found valid dates
+        if (earliest && latest && !isNaN(earliest.getTime()) && !isNaN(latest.getTime())) {
+          const startStr = format(earliest, 'yyyy-MM-dd');
+          const endStr = format(latest, 'yyyy-MM-dd');
+
+          setStartDate(startStr);
+          setEndDate(endStr);
+        }
+
         // Update the year selector
         if (onYearChange) onYearChange('all');
         if (onToggleYearRangeMode) onToggleYearRangeMode(false);
@@ -509,6 +521,10 @@ const PodcastRankings = ({
       // Sort events by timestamp
       episode.events.sort((a, b) => a.timestamp - b.timestamp);
       
+      // Get first and last listen dates from sorted events (as timestamps for sorting)
+      const firstListened = episode.events[0].timestamp.getTime();
+      const lastListened = episode.events[episode.events.length - 1].timestamp.getTime();
+
       // Initialize episode stats
       episodeStats[key] = {
         key,
@@ -520,7 +536,9 @@ const PodcastRankings = ({
         durationMs: episode.durationMs,
         duplicatesRemoved: 0,
         longestSession: 0,
-        uniquePlatforms: new Set()
+        uniquePlatforms: new Set(),
+        firstListened,
+        lastListened
       };
       
       // Track the timeline of listening
