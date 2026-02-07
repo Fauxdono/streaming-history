@@ -2262,14 +2262,14 @@ const SpotifyAnalyzer = ({
 
                   <button
                     onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
-                    className={`p-1 rounded ${
+                    className={`px-1.5 py-1 rounded ${
                       colorMode === 'colorful'
                         ? 'bg-blue-500 text-white hover:bg-blue-600'
                         : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
                     }`}
                     title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                   >
-                    {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                    {artistsViewMode === 'grid' ? <List size={14} /> : <LayoutGrid size={14} />}
                   </button>
 
                   <label className="text-xs">Sort by</label>
@@ -2631,14 +2631,14 @@ const SpotifyAnalyzer = ({
 
                   <button
                     onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
-                    className={`p-1 rounded ${
+                    className={`px-1.5 py-1 rounded ${
                       colorMode === 'colorful'
                         ? 'bg-cyan-500 text-white hover:bg-cyan-600'
                         : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
                     }`}
                     title={albumsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                   >
-                    {albumsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                    {albumsViewMode === 'grid' ? <List size={14} /> : <LayoutGrid size={14} />}
                   </button>
 
                   <label className="text-xs">Sort by</label>
