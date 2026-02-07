@@ -533,12 +533,6 @@ const PodcastRankings = ({
         const eventEnd = new Date(event.timestamp.getTime() + event.duration);
         episodeStats[key].uniquePlatforms.add(event.platform);
 
-        // Find the longest single session
-        episodeStats[key].longestSession = Math.max(
-          episodeStats[key].longestSession,
-          event.duration
-        );
-
         // Skip very short plays (less than 2 minutes)
         if (event.duration < 120000) continue;
 
@@ -601,11 +595,13 @@ const PodcastRankings = ({
         segments.push(currentSegment);
       }
       
-      // Sum up the total play time from segments
+      // Sum up the total play time from segments and find longest
       let totalPlayed = 0;
+      let longestSession = 0;
       segments.forEach(segment => {
         totalPlayed += segment.duration;
-        
+        longestSession = Math.max(longestSession, segment.duration);
+
         // Add to play segments list if over 5 minutes
         if (segment.duration >= 300000) {
           episodeStats[key].playSegments.push({
@@ -615,8 +611,9 @@ const PodcastRankings = ({
           episodeStats[key].segmentCount++;
         }
       });
-      
+
       episodeStats[key].totalPlayed = totalPlayed;
+      episodeStats[key].longestSession = longestSession;
       episodeStats[key].uniquePlatforms = Array.from(episodeStats[key].uniquePlatforms);
     });
 
