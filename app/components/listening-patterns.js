@@ -17,7 +17,8 @@ const ListeningPatterns = ({
   backgroundTheme = null,
   briefObsessions = [],
   songsByYear = {},
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  viewMode = 'grid'
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
@@ -951,6 +952,7 @@ const ListeningPatterns = ({
           textTheme="yellow"
           backgroundTheme="yellow"
           colorMode={colorMode}
+          viewMode={viewMode}
         />
       </div>
     )}

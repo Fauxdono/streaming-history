@@ -18,7 +18,8 @@ const TrackRankings = ({
   colorTheme = 'blue',
   backgroundTheme = null, // Optional separate background theme
   textTheme = null, // Optional separate text theme
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  viewMode = 'grid' // 'grid' or 'list'
 }) => {
   const isColorful = colorMode === 'colorful';
   const [sortBy, setSortBy] = useState('playsInWeek');
@@ -493,14 +494,14 @@ return (
       />
     )}
 
-    {/* Results Table */}
+    {/* Results - Grid or List View */}
     <div className={`border rounded-lg p-3 sm:p-4 ${getThemedColors().bg} ${getThemedColors().border}`}>
       <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
         <div className={`${getThemedColors().text} font-medium text-sm`}>
           {yearRangeMode && yearRange.startYear && yearRange.endYear
             ? `Brief obsessions for ${yearRange.startYear}-${yearRange.endYear}`
-            : initialYear === 'all' 
-              ? 'All-time brief obsessions' 
+            : initialYear === 'all'
+              ? 'All-time brief obsessions'
               : `Brief obsessions for ${initialYear}`}
         </div>
         <div className={`${getThemedColors().text} text-sm`}>
@@ -508,64 +509,103 @@ return (
         </div>
       </div>
 
-      <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-        <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
-          <table className={`w-full border-collapse ${getThemedColors().bg}`}>
-            <thead>
-              <tr className={`border-b ${getThemedColors().border} ${getThemedColors().bg}`}>
-                {!isMobile && <th className={`p-2 text-left ${getThemedColors().text}`}>Rank</th>}
-                <th className={`p-2 text-left ${getThemedColors().text}`}>
-                  {isMobile ? "Track Info" : "Track"}
-                </th>
-                {!isMobile && <th className={`p-2 text-left ${getThemedColors().text}`}>Artist</th>}
-                {!isMobile ? (
-                  <>
-                    <th className={`p-2 text-right ${getThemedColors().text}`}>Peak Week</th>
-                    <th 
-                      className={`p-2 text-right ${getThemedColors().text} cursor-pointer ${getThemedColors().bgHover} ${
-                        sortBy === 'playsInWeek' ? 'font-bold' : ''
-                      }`}
-                      onClick={() => setSortBy('playsInWeek')}
-                    >
-                      Plays in Week {sortBy === 'playsInWeek' && '▼'}
-                    </th>
-                    <th 
-                      className={`p-2 text-right ${getThemedColors().text} cursor-pointer ${getThemedColors().bgHover} ${
-                        sortBy === 'playCount' ? 'font-bold' : ''
-                      }`}
-                      onClick={() => setSortBy('playCount')}
-                    >
-                      Total Plays {sortBy === 'playCount' && '▼'}
-                    </th>
-                  </>
-                ) : (
-                  <th className={`p-2 text-right ${getThemedColors().text}`}>Stats</th>
+      {/* Grid View */}
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
+          {filteredObsessions.length > 0 ? (
+            filteredObsessions.map((obsession, index) => (
+              <div
+                key={obsession.key || `${obsession.trackName}-${obsession.artist}`}
+                className={`p-3 ${getThemedColors().bgLight} rounded shadow-sm border ${getThemedColors().border} relative`}
+              >
+                <div className={`font-bold ${getThemedColors().text} pr-8`}>{obsession.trackName}</div>
+                <div className={`text-sm ${getThemedColors().textLight}`}>{obsession.artist}</div>
+                {obsession.albumName && (
+                  <div className={`text-xs italic ${getThemedColors().textLighter} truncate`}>{obsession.albumName}</div>
                 )}
-              </tr>
-            </thead>
-            <tbody className={getThemedColors().bg}>
-              {filteredObsessions.length > 0 ? (
-                filteredObsessions.map((obsession, index) => (
-                  <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getThemedColors().border} ${getThemedColors().bg} ${getThemedColors().bgHover}`}>
-                    {renderObsessionColumns(obsession, index)}
-                  </tr>
-                ))
-              ) : (
-                <tr className={getThemedColors().bg}>
-                  <td colSpan={isMobile ? 2 : 6} className={`p-4 text-center ${getThemedColors().textLighter} ${getThemedColors().bg}`}>
-                    {yearRangeMode && yearRange.startYear && yearRange.endYear
-                      ? `No brief obsessions found for ${yearRange.startYear}-${yearRange.endYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
-                      : initialYear !== 'all' 
-                        ? `No brief obsessions found for ${initialYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
-                        : `No brief obsessions available${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
-                    }
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                <div className={`border-t ${getThemedColors().border} my-2`}></div>
+                <div className={`text-sm ${getThemedColors().text}`}>
+                  <div><span className="font-bold">{obsession.intensePeriod.playsInWeek}</span> plays in peak week</div>
+                  <div><span className="font-bold">{obsession.playCount}</span> total plays</div>
+                  <div className={`text-xs ${getThemedColors().textLighter} mt-1`}>
+                    Week of {formatDate(obsession.intensePeriod.weekStart)}
+                  </div>
+                </div>
+                <div className={`absolute top-1 right-3 ${getThemedColors().text} text-[2rem]`}>{index + 1}</div>
+              </div>
+            ))
+          ) : (
+            <div className={`col-span-full p-4 text-center ${getThemedColors().textLighter}`}>
+              {yearRangeMode && yearRange.startYear && yearRange.endYear
+                ? `No brief obsessions found for ${yearRange.startYear}-${yearRange.endYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
+                : initialYear !== 'all'
+                  ? `No brief obsessions found for ${initialYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
+                  : `No brief obsessions available${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
+              }
+            </div>
+          )}
         </div>
-      </div>
+      ) : (
+        /* List/Table View */
+        <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+          <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
+            <table className={`w-full border-collapse ${getThemedColors().bg}`}>
+              <thead>
+                <tr className={`border-b ${getThemedColors().border} ${getThemedColors().bg}`}>
+                  {!isMobile && <th className={`p-2 text-left ${getThemedColors().text}`}>Rank</th>}
+                  <th className={`p-2 text-left ${getThemedColors().text}`}>
+                    {isMobile ? "Track Info" : "Track"}
+                  </th>
+                  {!isMobile && <th className={`p-2 text-left ${getThemedColors().text}`}>Artist</th>}
+                  {!isMobile ? (
+                    <>
+                      <th className={`p-2 text-right ${getThemedColors().text}`}>Peak Week</th>
+                      <th
+                        className={`p-2 text-right ${getThemedColors().text} cursor-pointer ${getThemedColors().bgHover} ${
+                          sortBy === 'playsInWeek' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('playsInWeek')}
+                      >
+                        Plays in Week {sortBy === 'playsInWeek' && '▼'}
+                      </th>
+                      <th
+                        className={`p-2 text-right ${getThemedColors().text} cursor-pointer ${getThemedColors().bgHover} ${
+                          sortBy === 'playCount' ? 'font-bold' : ''
+                        }`}
+                        onClick={() => setSortBy('playCount')}
+                      >
+                        Total Plays {sortBy === 'playCount' && '▼'}
+                      </th>
+                    </>
+                  ) : (
+                    <th className={`p-2 text-right ${getThemedColors().text}`}>Stats</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className={getThemedColors().bg}>
+                {filteredObsessions.length > 0 ? (
+                  filteredObsessions.map((obsession, index) => (
+                    <tr key={obsession.key || `${obsession.trackName}-${obsession.artist}`} className={`border-b ${getThemedColors().border} ${getThemedColors().bg} ${getThemedColors().bgHover}`}>
+                      {renderObsessionColumns(obsession, index)}
+                    </tr>
+                  ))
+                ) : (
+                  <tr className={getThemedColors().bg}>
+                    <td colSpan={isMobile ? 2 : 6} className={`p-4 text-center ${getThemedColors().textLighter} ${getThemedColors().bg}`}>
+                      {yearRangeMode && yearRange.startYear && yearRange.endYear
+                        ? `No brief obsessions found for ${yearRange.startYear}-${yearRange.endYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
+                        : initialYear !== 'all'
+                          ? `No brief obsessions found for ${initialYear}${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
+                          : `No brief obsessions available${intensityThreshold > 1 ? ` with at least ${intensityThreshold} plays per week` : ''}`
+                      }
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   </div>
 );
