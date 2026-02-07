@@ -645,8 +645,15 @@ const SpotifyAnalyzer = ({
       const trackName = entry.master_metadata_track_name;
       const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
       const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-      const timestamp = entry._dateObj || new Date(entry.ts);
-      
+
+      // Ensure timestamp is a valid Date object
+      let timestamp = entry._dateObj;
+      if (!(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+        timestamp = new Date(entry.ts);
+      }
+      // Skip if still invalid
+      if (!(timestamp instanceof Date) || isNaN(timestamp.getTime())) return;
+
       // Skip if no valid album info
       if (!albumName || albumName === 'Unknown Album' || !artistName) return;
       
