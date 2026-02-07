@@ -1393,80 +1393,59 @@ return (
         {getPageTitle()}
       </h3>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <label className={`${colors.text}`}>Show Top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-16 border rounded-lg px-2 py-1 text-xs sm:text-sm ${colors.bg} ${colors.border} ${colors.text}`}
-          />
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <label className={`${colors.text}`}>View Mode</label>
-          <button
-            onClick={() => {
-              const modes = ['grid', 'compact', 'mobile'];
-              const currentIndex = modes.indexOf(viewMode);
-              const nextIndex = (currentIndex + 1) % modes.length;
-              setViewMode(modes[nextIndex]);
-            }}
-            className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-          >
-            {viewMode === 'grid' ? 'Grid' :
-             viewMode === 'compact' ? 'Compact' : 'Mobile'}
-          </button>
-        </div>
+      <div className="flex items-center gap-2">
+        <label className={`${colors.text} text-xs`}>Show Top</label>
+        <input
+          type="number"
+          min="1"
+          max="999"
+          value={topN}
+          onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
+          className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
+        />
 
-        <div className="flex items-center gap-2">
-          <label className={`${colors.text}`}>Sort by</label>
-          <button
-            onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-          >
-            {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-          </button>
-        </div>
+        <button
+          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
+          className={`px-1.5 py-1 rounded ${colors.bgDark} ${colors.bgDarkHover}`}
+          title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+        >
+          {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+        </button>
+
+        <label className={`${colors.text} text-xs`}>Sort by</label>
+        <button
+          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+        </button>
       </div>
     </div>
     
     {/* Mobile controls - separate row */}
-    <div className="block sm:hidden mb-4">
-      <div className="flex items-center gap-2 flex-wrap">
+    <div className="block sm:hidden mb-2">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1">
-          <label className={`${colors.text} text-sm`}>Top</label>
+          <label className={`${colors.text} text-xs`}>Top</label>
           <input
             type="number"
             min="1"
             max="999"
             value={topN}
             onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`w-12 border rounded-lg px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-sm`}
+            className={`w-12 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
           />
-        </div>
-        
-        <div className="flex items-center gap-1">
-          <label className={`${colors.text} text-sm`}>View</label>
-          <button
-            onClick={() => {
-              const modes = ['grid', 'compact', 'mobile'];
-              const currentIndex = modes.indexOf(viewMode);
-              const nextIndex = (currentIndex + 1) % modes.length;
-              setViewMode(modes[nextIndex]);
-            }}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-          >
-            {viewMode === 'grid' ? 'Grid' :
-             viewMode === 'compact' ? 'Compact' : 'Mobile'}
-          </button>
         </div>
 
         <div className="flex items-center gap-1">
-          <label className={`${colors.text} text-sm`}>Sort</label>
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
+            className={`px-1.5 py-1 rounded ${colors.bgDark} ${colors.bgDarkHover}`}
+            title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+          >
+            {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+          </button>
+
           <button
             onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
             className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
@@ -1814,9 +1793,9 @@ return (
               </table>
             </div>
           ) : viewMode === 'compact' ? (
-            // Compact view - like artists tab compact
-            <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
-                <div className="min-w-full">
+            // Compact view - list table
+            <div className="overflow-x-auto mt-2">
+                <div className="w-full">
                   <table className="w-full border-collapse text-sm sm:text-base">
                     <thead>
                       <tr className={`border-b ${colors.border} dark:${colors.borderDark}`}>
