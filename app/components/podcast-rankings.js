@@ -530,59 +530,66 @@ const PodcastRankings = ({
       // Process each event
       for (let i = 0; i < episode.events.length; i++) {
         const event = episode.events[i];
+        const eventEnd = new Date(event.timestamp.getTime() + event.duration);
         episodeStats[key].uniquePlatforms.add(event.platform);
-        
+
         // Find the longest single session
         episodeStats[key].longestSession = Math.max(
           episodeStats[key].longestSession,
           event.duration
         );
-        
+
         // Skip very short plays (less than 2 minutes)
         if (event.duration < 120000) continue;
-        
-        // If this is our first segment or there's no overlap with previous
+
+        // If this is our first segment
         if (!currentSegment) {
           currentSegment = {
             start: event.timestamp,
-            end: new Date(event.timestamp.getTime() + event.duration),
+            end: eventEnd,
             duration: event.duration
           };
         } else {
-          // Check if this event overlaps with or continues the current segment
-          // We consider events within the duplicate threshold to be part of the same session
-          const minutesSinceLastEnd = Math.round(
-            (event.timestamp - currentSegment.end) / (60 * 1000)
-          );
-          
-          // If this is within our threshold, extend the current segment
-          if (minutesSinceLastEnd <= duplicateThreshold) {
-            const newEnd = new Date(event.timestamp.getTime() + event.duration);
-            
-            // Only extend if this actually makes the segment longer
-            if (newEnd > currentSegment.end) {
-              currentSegment.end = newEnd;
-              
-              // We count a portion of this as new time, avoiding double counting
-              const overlap = Math.max(0, 
-                currentSegment.end.getTime() - 
-                Math.max(currentSegment.start.getTime(), event.timestamp.getTime())
-              );
-              
-              const newTime = event.duration - overlap;
-              if (newTime > 0) {
-                currentSegment.duration += newTime;
-              }
+          // Check if this event overlaps with the current segment
+          // Overlap occurs if: event starts before segment ends AND event ends after segment starts
+          const eventStartsBeforeSegmentEnds = event.timestamp <= currentSegment.end;
+          const eventEndsAfterSegmentStarts = eventEnd >= currentSegment.start;
+          const hasTimeOverlap = eventStartsBeforeSegmentEnds && eventEndsAfterSegmentStarts;
+
+          // Also check if event starts within threshold after segment ends (continuation)
+          const minutesSinceLastEnd = (event.timestamp - currentSegment.end) / (60 * 1000);
+          const isNearContinuation = minutesSinceLastEnd > 0 && minutesSinceLastEnd <= duplicateThreshold;
+
+          if (hasTimeOverlap || isNearContinuation) {
+            // Merge this event into current segment
+            const newStart = new Date(Math.min(currentSegment.start.getTime(), event.timestamp.getTime()));
+            const newEnd = new Date(Math.max(currentSegment.end.getTime(), eventEnd.getTime()));
+
+            // Calculate actual new listening time (non-overlapping portion only)
+            // If event is entirely within existing segment, add nothing
+            // If event extends beyond segment, add only the extension
+            let additionalTime = 0;
+            if (eventEnd > currentSegment.end) {
+              // Event extends past current segment end
+              additionalTime = eventEnd.getTime() - currentSegment.end.getTime();
             }
-            
+            if (event.timestamp < currentSegment.start) {
+              // Event starts before current segment start
+              additionalTime += currentSegment.start.getTime() - event.timestamp.getTime();
+            }
+
+            currentSegment.start = newStart;
+            currentSegment.end = newEnd;
+            currentSegment.duration += additionalTime;
+
             duplicateStats.overlapping++;
             episodeStats[key].duplicatesRemoved++;
           } else {
-            // This is a new segment
+            // This is a new segment (gap is larger than threshold)
             segments.push(currentSegment);
             currentSegment = {
               start: event.timestamp,
-              end: new Date(event.timestamp.getTime() + event.duration),
+              end: eventEnd,
               duration: event.duration
             };
           }
