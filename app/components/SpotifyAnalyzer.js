@@ -2264,14 +2264,14 @@ const SpotifyAnalyzer = ({
 
                   <button
                     onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
-                    className={`p-1 rounded ${
+                    className={`p-1.5 rounded-lg ${
                       colorMode === 'colorful'
                         ? 'bg-blue-500 text-white hover:bg-blue-600'
                         : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
                     }`}
                     title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                   >
-                    {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                    {artistsViewMode === 'grid' ? <List size={18} /> : <LayoutGrid size={18} />}
                   </button>
 
                   <div className="flex items-center gap-2">
