@@ -1922,6 +1922,14 @@ const SpotifyAnalyzer = ({
 
         return (
           <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder}`}>
+            {/* Title - mobile gets its own row */}
+            <div className="block sm:hidden mb-1">
+              <h3 className={`text-xl ${uploadText}`}>Upload Files</h3>
+            </div>
+            {/* Desktop title */}
+            <div className="hidden sm:block mb-4">
+              <h3 className={`text-xl ${uploadText}`}>Upload Files</h3>
+            </div>
             <div>
             {/* Storage Notification */}
             {storageNotification && (
@@ -2142,11 +2150,22 @@ const SpotifyAnalyzer = ({
               ? 'p-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
               : `p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
-            <h3 className={
-              colorMode === 'colorful'
-                ? 'text-xl mb-4 font-bold text-indigo-700 dark:text-indigo-300'
-                : 'text-xl mb-4'
-            }>Processing Statistics</h3>
+            {/* Title - mobile gets its own row */}
+            <div className="block sm:hidden mb-1">
+              <h3 className={
+                colorMode === 'colorful'
+                  ? 'text-xl text-indigo-700 dark:text-indigo-300'
+                  : 'text-xl'
+              }>Processing Statistics</h3>
+            </div>
+            {/* Desktop title */}
+            <div className="hidden sm:block mb-4">
+              <h3 className={
+                colorMode === 'colorful'
+                  ? 'text-xl text-indigo-700 dark:text-indigo-300'
+                  : 'text-xl'
+              }>Processing Statistics</h3>
+            </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -2976,7 +2995,14 @@ const SpotifyAnalyzer = ({
       case 'updates':
         return (
           <div className={`p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
-            <h3 className="text-xl mb-4">App Updates</h3>
+            {/* Title - mobile gets its own row */}
+            <div className="block sm:hidden mb-1">
+              <h3 className="text-xl">App Updates</h3>
+            </div>
+            {/* Desktop title */}
+            <div className="hidden sm:block mb-4">
+              <h3 className="text-xl">App Updates</h3>
+            </div>
             <UpdatesSection />
           </div>
         );
