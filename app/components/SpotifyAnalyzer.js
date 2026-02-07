@@ -260,7 +260,7 @@ const SpotifyAnalyzer = ({
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
   const [topAlbumsCount, setTopAlbumsCount] = useState(20);
-  const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'compact', 'mobile'
+  const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -2614,64 +2614,52 @@ const SpotifyAnalyzer = ({
                   {getAlbumsTabLabel()}
                 </h3>
 
-                <div className={`flex items-center gap-4 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
-                  <div className="flex items-center gap-2">
-                    <label>Show Top</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="500"
-                      value={topAlbumsCount}
-                      onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded-lg px-2 py-1 text-xs sm:text-sm bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
-                          : `w-16 border rounded-lg px-2 py-1 text-xs sm:text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
-                      }
-                    />
-                  </div>
+                <div className={`flex items-center gap-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
+                  <label className="text-xs">Show Top</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    value={topAlbumsCount}
+                    onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'w-14 border border-cyan-300 dark:border-cyan-600 rounded px-1.5 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                        : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                    }
+                  />
 
-                  <div className="flex items-center gap-2">
-                    <label>View Mode</label>
-                    <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(albumsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setAlbumsViewMode(modes[nextIndex]);
-                      }}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-                      }
-                    >
-                      {albumsViewMode === 'grid' ? 'Grid' :
-                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
+                    className={`p-1 rounded ${
+                      colorMode === 'colorful'
+                        ? 'bg-cyan-500 text-white hover:bg-cyan-600'
+                        : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
+                    }`}
+                    title={albumsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+                  >
+                    {albumsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                  </button>
 
-                  <div className="flex items-center gap-2">
-                    <label>Sort by</label>
-                    <button
-                      onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-                      }
-                    >
-                      {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
+                  <label className="text-xs">Sort by</label>
+                  <button
+                    onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                    }
+                  >
+                    {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+                  </button>
                 </div>
               </div>
-              
+
               {/* Mobile controls */}
-              <div className={`block sm:hidden space-y-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <label>Top</label>
+              <div className={`block sm:hidden ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs">Top</label>
                     <input
                       type="number"
                       min="1"
@@ -2680,36 +2668,31 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-cyan-300 dark:border-cyan-600 rounded-lg px-2 py-1 text-xs sm:text-sm bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
-                          : `w-16 border rounded-lg px-2 py-1 text-xs sm:text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-12 border border-cyan-300 dark:border-cyan-600 rounded px-1 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                          : `w-12 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
-                      onClick={() => {
-                        const modes = ['grid', 'compact', 'mobile'];
-                        const currentIndex = modes.indexOf(albumsViewMode);
-                        const nextIndex = (currentIndex + 1) % modes.length;
-                        setAlbumsViewMode(modes[nextIndex]);
-                      }}
-                      className={
+                      onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
+                      className={`p-1 rounded ${
                         colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-                      }
+                          ? 'bg-cyan-500 text-white hover:bg-cyan-600'
+                          : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
+                      }`}
+                      title={albumsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                     >
-                      {albumsViewMode === 'grid' ? 'Grid' :
-                       albumsViewMode === 'compact' ? 'Compact' : 'Mobile'}
+                      {albumsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
                     </button>
 
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                          : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2772,8 +2755,8 @@ const SpotifyAnalyzer = ({
               
               {/* Albums Display */}
               {displayedAlbums && displayedAlbums.length > 0 ? (
-                albumsViewMode === 'compact' ? (
-                  // Table-based compact view
+                albumsViewMode === 'list' ? (
+                  // Table-based list view
                   <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
                     <div className="min-w-full">
                       <table className="w-full border-collapse text-sm sm:text-base">
