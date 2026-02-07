@@ -2269,7 +2269,7 @@ const SpotifyAnalyzer = ({
                     }`}
                     title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                   >
-                    {artistsViewMode === 'grid' ? <List size={14} /> : <LayoutGrid size={14} />}
+                    {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
                   </button>
 
                   <label className="text-xs">Sort by</label>
@@ -2638,7 +2638,7 @@ const SpotifyAnalyzer = ({
                     }`}
                     title={albumsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                   >
-                    {albumsViewMode === 'grid' ? <List size={14} /> : <LayoutGrid size={14} />}
+                    {albumsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
                   </button>
 
                   <label className="text-xs">Sort by</label>
