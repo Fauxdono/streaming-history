@@ -2256,8 +2256,8 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1 text-xs sm:text-sm bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                          : `w-16 border rounded-lg px-2 py-1 text-xs sm:text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1.5 text-xs sm:text-sm bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                          : `w-16 border rounded-lg px-2 py-1.5 text-xs sm:text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
@@ -2280,8 +2280,8 @@ const SpotifyAnalyzer = ({
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                          : `px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2303,8 +2303,8 @@ const SpotifyAnalyzer = ({
                       onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
                       className={
                         colorMode === 'colorful'
-                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1 text-xs sm:text-sm bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                          : `w-16 border rounded-lg px-2 py-1 text-xs sm:text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-16 border border-blue-300 dark:border-blue-600 rounded-lg px-2 py-1.5 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                          : `w-16 border rounded-lg px-2 py-1.5 text-xs ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                   </div>
@@ -2312,22 +2312,22 @@ const SpotifyAnalyzer = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
-                      className={`p-1 rounded ${
+                      className={`p-1.5 rounded-lg ${
                         colorMode === 'colorful'
                           ? 'bg-blue-500 text-white hover:bg-blue-600'
                           : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
                       }`}
                       title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                     >
-                      {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                      {artistsViewMode === 'grid' ? <List size={18} /> : <LayoutGrid size={18} />}
                     </button>
 
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
                         colorMode === 'colorful'
-                          ? 'px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                          ? 'px-2 py-1.5 rounded-lg text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                          : `px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
                       }
                     >
                       {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
