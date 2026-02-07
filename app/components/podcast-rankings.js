@@ -654,7 +654,14 @@ const PodcastRankings = ({
           Math.round(episode.totalPlayed / episode.segmentCount) : 0,
         estimatedFullLength: Math.max(episode.longestSession, episode.totalPlayed)
       }))
-      .sort((a, b) => b[sortBy] - a[sortBy])
+      .sort((a, b) => {
+        // For firstListened, sort ascending (oldest first)
+        // For everything else, sort descending (highest/most recent first)
+        if (sortBy === 'firstListened') {
+          return a[sortBy] - b[sortBy];
+        }
+        return b[sortBy] - a[sortBy];
+      })
       .slice(0, topN);
   }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows, duplicateThreshold]);
 
@@ -757,6 +764,12 @@ const PodcastRankings = ({
           </td>
           <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
             {episode.segmentCount}
+          </td>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.textLight}`}>
+            {episode.firstListened ? new Date(episode.firstListened).toLocaleDateString() : '-'}
+          </td>
+          <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.textLight}`}>
+            {episode.lastListened ? new Date(episode.lastListened).toLocaleDateString() : '-'}
           </td>
           {showDuplicateStats && (
             <td className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>
@@ -970,6 +983,18 @@ const PodcastRankings = ({
                           onClick={() => setSortBy('segmentCount')}
                         >
                           Sessions {sortBy === 'segmentCount' && '▼'}
+                        </th>
+                        <th
+                          className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'firstListened' ? 'font-bold' : ''}`}
+                          onClick={() => setSortBy('firstListened')}
+                        >
+                          First {sortBy === 'firstListened' && '▲'}
+                        </th>
+                        <th
+                          className={`p-1 sm:p-2 text-right text-xs sm:text-sm cursor-pointer hover:opacity-80 ${modeColors.text} ${sortBy === 'lastListened' ? 'font-bold' : ''}`}
+                          onClick={() => setSortBy('lastListened')}
+                        >
+                          Last {sortBy === 'lastListened' && '▼'}
                         </th>
                         {showDuplicateStats && (
                           <th className={`p-1 sm:p-2 text-right text-xs sm:text-sm ${modeColors.text}`}>Dupes</th>
