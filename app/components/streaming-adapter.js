@@ -304,42 +304,49 @@ function filterDataByDate(data, dateFilter) {
     return data.filter(entry => {
       try {
         // Cache date object on entry to avoid repeated parsing
-        if (!entry._dateObj) entry._dateObj = new Date(entry.ts);
+        // Ensure _dateObj is actually a Date object (not a serialized string)
+        if (!(entry._dateObj instanceof Date) || isNaN(entry._dateObj.getTime())) {
+          entry._dateObj = new Date(entry.ts);
+        }
         return entry._dateObj >= startDate && entry._dateObj <= endDate;
       } catch (err) { return false; }
     });
   }
-  
+
   // Parse year-month format (YYYY-MM)
   if (dateFilter.includes('-') && dateFilter.split('-').length === 2) {
     const [year, month] = dateFilter.split('-').map(Number);
     startDate = new Date(year, month - 1, 1);
     startDate.setHours(0, 0, 0, 0);
-    
+
     // Last day of month
     endDate = new Date(year, month, 0);
     endDate.setHours(23, 59, 59, 999);
-    
+
     return data.filter(entry => {
       try {
-        if (!entry._dateObj) entry._dateObj = new Date(entry.ts);
+        if (!(entry._dateObj instanceof Date) || isNaN(entry._dateObj.getTime())) {
+          entry._dateObj = new Date(entry.ts);
+        }
         return entry._dateObj >= startDate && entry._dateObj <= endDate;
       } catch (err) { return false; }
     });
   }
-  
+
   // Just a year
   const year = parseInt(dateFilter);
   if (!isNaN(year)) {
     startDate = new Date(year, 0, 1);
     startDate.setHours(0, 0, 0, 0);
-    
+
     endDate = new Date(year, 11, 31);
     endDate.setHours(23, 59, 59, 999);
-    
+
     return data.filter(entry => {
       try {
-        if (!entry._dateObj) entry._dateObj = new Date(entry.ts);
+        if (!(entry._dateObj instanceof Date) || isNaN(entry._dateObj.getTime())) {
+          entry._dateObj = new Date(entry.ts);
+        }
         return entry._dateObj >= startDate && entry._dateObj <= endDate;
       } catch (err) { return false; }
     });
@@ -1375,9 +1382,12 @@ function calculateAlbumsByYear(albums, rawPlayData) {
     if (entry.ms_played < 30000 || !entry.master_metadata_album_artist_name) continue;
     
     try {
-      // Skip invalid dates
-      const timestamp = entry._dateObj || new Date(entry.ts);
-      if (isNaN(timestamp.getTime())) continue;
+      // Skip invalid dates - ensure _dateObj is actually a Date object
+      let timestamp = entry._dateObj;
+      if (!(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+        timestamp = new Date(entry.ts);
+      }
+      if (!(timestamp instanceof Date) || isNaN(timestamp.getTime())) continue;
       
       const year = timestamp.getFullYear();
       const artist = entry.master_metadata_album_artist_name;
@@ -1555,8 +1565,12 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
     const artist = entry.master_metadata_album_artist_name;
     let timestamp;
     try {
-      timestamp = entry._dateObj || new Date(entry.ts);
-      if (isNaN(timestamp.getTime()) || timestamp > new Date()) continue;
+      // Ensure _dateObj is actually a Date object
+      timestamp = entry._dateObj;
+      if (!(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+        timestamp = new Date(entry.ts);
+      }
+      if (!(timestamp instanceof Date) || isNaN(timestamp.getTime()) || timestamp > new Date()) continue;
     } catch (e) {
       continue;
     }
@@ -1744,9 +1758,10 @@ async function calculatePlayStats(entries) {
   const albumToTracksMap = new Map();
   
   // Pre-process all entries once - parse dates, etc.
+  // Ensure _dateObj is a valid Date object (handles serialized strings from storage)
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    if (!entry._dateObj && entry.ts) {
+    if (entry.ts && (!(entry._dateObj instanceof Date) || isNaN(entry._dateObj.getTime()))) {
       try {
         entry._dateObj = entry.ts instanceof Date ? entry.ts : new Date(entry.ts);
       } catch (e) {
@@ -1911,15 +1926,20 @@ async function calculatePlayStats(entries) {
     // Create a match key for deduplication
     const enhancedMatchKey = createMatchKey(trackName, primaryArtist);
     
-    // Get timestamp
-    const timestamp = entry._dateObj || new Date();
+    // Get timestamp - ensure _dateObj is actually a Date object
+    let timestamp = entry._dateObj;
+    if (!(timestamp instanceof Date) || isNaN(timestamp.getTime())) {
+      timestamp = entry.ts ? new Date(entry.ts) : new Date();
+    }
 
     // Track play history
     const standardKey = `${trackName}-${artistName}`;
     if (!playHistory[standardKey]) {
       playHistory[standardKey] = [];
     }
-    playHistory[standardKey].push(timestamp.getTime());
+    if (timestamp instanceof Date && !isNaN(timestamp.getTime())) {
+      playHistory[standardKey].push(timestamp.getTime());
+    }
 
     // Artist stats
     if (!artists[artistName]) {
