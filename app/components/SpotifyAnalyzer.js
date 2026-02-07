@@ -3269,6 +3269,7 @@ const SpotifyAnalyzer = ({
             onToggleRangeMode={handleSidebarRangeModeToggle}
             colorTheme={sidebarColorTheme}
             textTheme={sidebarTextTheme}
+            colorMode={colorMode}
             asSidebar={true}
             position="right"
             startMinimized={false}
