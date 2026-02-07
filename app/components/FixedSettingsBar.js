@@ -17,7 +17,7 @@ const FixedSettingsBar = ({
   setViewMode = () => {}
 }) => {
   // Tabs that support grid/list view
-  const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts'];
+  const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns'];
   const showViewToggle = tabsWithViewMode.includes(activeTab);
 
   // Artists/albums use 'list', custom/podcasts use 'compact'

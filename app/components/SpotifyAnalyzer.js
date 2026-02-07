@@ -302,6 +302,7 @@ const SpotifyAnalyzer = ({
   const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
   const [customViewMode, setCustomViewMode] = useState('grid'); // 'grid', 'compact'
   const [podcastViewMode, setPodcastViewMode] = useState('grid'); // 'grid', 'compact'
+  const [patternsViewMode, setPatternsViewMode] = useState('grid'); // 'grid', 'list'
   const [showYearSidebar, setShowYearSidebar] = useState(true);
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
@@ -2883,6 +2884,7 @@ const SpotifyAnalyzer = ({
               briefObsessions={briefObsessions}
               songsByYear={songsByYear}
               colorMode={colorMode}
+              viewMode={patternsViewMode}
             />
           </div>
         );
@@ -3074,7 +3076,8 @@ const SpotifyAnalyzer = ({
     setSelectedArtistYear,
     colorMode,
     customViewMode,
-    podcastViewMode
+    podcastViewMode,
+    patternsViewMode
   ]);
 
   // Get current view mode based on active tab
@@ -3084,6 +3087,7 @@ const SpotifyAnalyzer = ({
       case 'albums': return albumsViewMode;
       case 'custom': return customViewMode;
       case 'podcasts': return podcastViewMode;
+      case 'patterns': return patternsViewMode;
       default: return 'grid';
     }
   };
@@ -3095,6 +3099,7 @@ const SpotifyAnalyzer = ({
       case 'albums': setAlbumsViewMode(mode); break;
       case 'custom': setCustomViewMode(mode); break;
       case 'podcasts': setPodcastViewMode(mode); break;
+      case 'patterns': setPatternsViewMode(mode); break;
     }
   };
 
