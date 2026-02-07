@@ -1168,36 +1168,72 @@ const GoogleDriveSync = ({
         </div>
       ) : (
         <div className="space-y-3 sm:space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className={`p-3 sm:p-4 border rounded-lg ${cardBg}`}>
-              <h4 className={`font-semibold mb-1 sm:mb-2 text-sm sm:text-base ${headerText}`}>💾 Save Analysis</h4>
-              <p className={`text-xs sm:text-sm mb-2 sm:mb-3 hidden sm:block ${subText}`}>
+          {/* Mobile: buttons side by side */}
+          <div className="flex gap-2 sm:hidden">
+            <button
+              onClick={handleSave}
+              disabled={isSaving || !stats || !processedData || processedData.length === 0}
+              className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              {isSaving ? 'Saving...' : '💾 Save'}
+            </button>
+            <button
+              onClick={handleLoad}
+              disabled={isLoading}
+              className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              {isLoading ? 'Loading...' : '📥 Load'}
+            </button>
+          </div>
+
+          {/* Mobile: Progress bars */}
+          <div className="sm:hidden">
+            <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
+            <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
+            {isLoading && loadingStep && (
+              <div className={`p-2 rounded text-xs ${
+                isColorful
+                  ? (isDarkMode ? 'bg-violet-600 text-violet-100' : 'bg-violet-200 text-violet-800')
+                  : (isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700')
+              }`}>
+                🔄 {loadingStep}
+              </div>
+            )}
+            {showCancelButton && (
+              <button
+                onClick={cancelLoad}
+                className="w-full mt-2 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+              >
+                Cancel Loading
+              </button>
+            )}
+          </div>
+
+          {/* Desktop: full cards side by side */}
+          <div className="hidden sm:grid sm:grid-cols-2 gap-4">
+            <div className={`p-4 border rounded-lg ${cardBg}`}>
+              <h4 className={`font-semibold mb-2 text-base ${headerText}`}>💾 Save Analysis</h4>
+              <p className={`text-sm mb-3 ${subText}`}>
                 Save analysis + original files to "cakeculator" folder
-              </p>
-              <p className={`text-xs mb-2 sm:hidden ${subText}`}>
-                Save to Drive
               </p>
               <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
               <button
                 onClick={handleSave}
                 disabled={isSaving || !stats || !processedData || processedData.length === 0}
-                className="w-full px-3 sm:px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
               >
                 {isSaving ? 'Saving...' : 'Save to Drive'}
               </button>
             </div>
 
-            <div className={`p-3 sm:p-4 border rounded-lg ${cardBg}`}>
-              <h4 className={`font-semibold mb-1 sm:mb-2 text-sm sm:text-base ${headerText}`}>📥 Load Analysis</h4>
-              <p className={`text-xs sm:text-sm mb-2 sm:mb-3 hidden sm:block ${subText}`}>
+            <div className={`p-4 border rounded-lg ${cardBg}`}>
+              <h4 className={`font-semibold mb-2 text-base ${headerText}`}>📥 Load Analysis</h4>
+              <p className={`text-sm mb-3 ${subText}`}>
                 Restore saved analysis from Google Drive
-              </p>
-              <p className={`text-xs mb-2 sm:hidden ${subText}`}>
-                Load from Drive
               </p>
               <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
               {isLoading && loadingStep && (
-                <div className={`mb-2 sm:mb-3 p-2 rounded text-xs sm:text-sm ${
+                <div className={`mb-3 p-2 rounded text-sm ${
                   isColorful
                     ? (isDarkMode ? 'bg-violet-600 text-violet-100' : 'bg-violet-200 text-violet-800')
                     : (isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700')
@@ -1209,14 +1245,14 @@ const GoogleDriveSync = ({
                 <button
                   onClick={handleLoad}
                   disabled={isLoading}
-                  className="w-full px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
                 >
                   {isLoading ? 'Loading...' : 'Load from Drive'}
                 </button>
                 {showCancelButton && (
                   <button
                     onClick={cancelLoad}
-                    className="w-full px-3 sm:px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs sm:text-sm"
+                    className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
                   >
                     Cancel Loading
                   </button>
