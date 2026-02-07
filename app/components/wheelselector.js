@@ -328,8 +328,9 @@ const WheelSelector = ({
   };
   
   // Get base colors and override text colors if textTheme is provided
+  // But skip textTheme override in minimal mode to keep black/white text
   const baseColors = getColors();
-  const colors = textTheme && textTheme !== colorTheme
+  const colors = (textTheme && textTheme !== colorTheme && colorMode !== 'minimal')
     ? { ...baseColors, ...getTextColors(textTheme) }
     : baseColors;
   
