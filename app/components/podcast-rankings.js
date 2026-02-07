@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   format, parseISO, isValid
 } from 'date-fns';
-import { LayoutGrid, List } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 
 // Helper to safely parse dates and check validity
@@ -31,7 +30,8 @@ const PodcastRankings = ({
   onYearChange,
   onYearRangeChange,
   onToggleYearRangeMode,
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  viewMode = 'grid'
 }) => {
   // State for filters and sorting
   const [startDate, setStartDate] = useState('');
@@ -45,7 +45,8 @@ const PodcastRankings = ({
   const [duplicatesFound, setDuplicatesFound] = useState(0);
   const [duplicateTypes, setDuplicateTypes] = useState({ exact: 0, overlapping: 0, zeroTime: 0 });
   const [isMobile, setIsMobile] = useState(false);
-  const [isCompactView, setIsCompactView] = useState(false);
+  // Use viewMode prop instead of internal state
+  const isCompactView = viewMode === 'compact';
 
   // Get the current theme
   const { theme } = useTheme();
@@ -793,13 +794,6 @@ const PodcastRankings = ({
           {getPageTitle()}
         </h3>
         <div className={`flex items-center gap-1 sm:gap-2 ${modeColors.text}`}>
-          <button
-            onClick={() => setIsCompactView(!isCompactView)}
-            className={`p-1 rounded ${isCompactView ? modeColors.buttonActive : modeColors.buttonInactive} hover:opacity-80`}
-            title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
-          >
-            {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
-          </button>
           <label className="text-xs sm:text-sm">Show top</label>
           <input
             type="number"
@@ -815,13 +809,6 @@ const PodcastRankings = ({
       {/* Mobile controls - separate row */}
       <div className="block sm:hidden mb-4">
         <div className={`flex items-center gap-1 ${modeColors.text}`}>
-          <button
-            onClick={() => setIsCompactView(!isCompactView)}
-            className={`p-1 rounded ${isCompactView ? modeColors.buttonActive : modeColors.buttonInactive} hover:opacity-80`}
-            title={isCompactView ? 'Switch to expanded view' : 'Switch to compact view'}
-          >
-            {isCompactView ? <List size={16} /> : <LayoutGrid size={16} />}
-          </button>
           <label className="text-xs">Show top</label>
           <input
             type="number"

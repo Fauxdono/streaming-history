@@ -10,7 +10,7 @@ import _ from 'lodash';
 import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
-import { X, Trash2, Download, LayoutGrid, List } from 'lucide-react';
+import { X, Trash2, Download } from 'lucide-react';
 import YearSelector from './year-selector.js';
 import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
@@ -300,6 +300,8 @@ const SpotifyAnalyzer = ({
   const [customTrackYear, setCustomTrackYear] = useState('all');
   const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
   const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
+  const [customViewMode, setCustomViewMode] = useState('grid'); // 'grid', 'compact'
+  const [podcastViewMode, setPodcastViewMode] = useState('grid'); // 'grid', 'compact'
   const [showYearSidebar, setShowYearSidebar] = useState(true);
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
@@ -2260,18 +2262,6 @@ const SpotifyAnalyzer = ({
                     }
                   />
 
-                  <button
-                    onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
-                    className={`px-1.5 py-1 rounded ${
-                      colorMode === 'colorful'
-                        ? 'bg-blue-500 text-white hover:bg-blue-600'
-                        : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
-                    }`}
-                    title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-                  >
-                    {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
-                  </button>
-
                   <label className="text-xs">Sort by</label>
                   <button
                     onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
@@ -2306,18 +2296,6 @@ const SpotifyAnalyzer = ({
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
-                      className={`p-1 rounded ${
-                        colorMode === 'colorful'
-                          ? 'bg-blue-500 text-white hover:bg-blue-600'
-                          : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
-                      }`}
-                      title={artistsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-                    >
-                      {artistsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
-                    </button>
-
                     <button
                       onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
@@ -2629,18 +2607,6 @@ const SpotifyAnalyzer = ({
                     }
                   />
 
-                  <button
-                    onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
-                    className={`px-1.5 py-1 rounded ${
-                      colorMode === 'colorful'
-                        ? 'bg-cyan-500 text-white hover:bg-cyan-600'
-                        : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
-                    }`}
-                    title={albumsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-                  >
-                    {albumsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
-                  </button>
-
                   <label className="text-xs">Sort by</label>
                   <button
                     onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
@@ -2675,18 +2641,6 @@ const SpotifyAnalyzer = ({
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
-                      className={`p-1 rounded ${
-                        colorMode === 'colorful'
-                          ? 'bg-cyan-500 text-white hover:bg-cyan-600'
-                          : isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'
-                      }`}
-                      title={albumsViewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
-                    >
-                      {albumsViewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
-                    </button>
-
                     <button
                       onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
                       className={
@@ -2873,6 +2827,7 @@ const SpotifyAnalyzer = ({
               backgroundTheme={customBackgroundTheme}
               initialArtists={selectedArtists}
               colorMode={colorMode}
+              viewMode={customViewMode}
             />
           </div>
         );
@@ -2995,6 +2950,7 @@ const SpotifyAnalyzer = ({
               yearRangeMode={podcastYearRangeMode}
               colorTheme="red"
               colorMode={colorMode}
+              viewMode={podcastViewMode}
             />
           </div>
         );
@@ -3096,6 +3052,27 @@ const SpotifyAnalyzer = ({
     colorMode
   ]);
 
+  // Get current view mode based on active tab
+  const getCurrentViewMode = () => {
+    switch (activeTab) {
+      case 'artists': return artistsViewMode;
+      case 'albums': return albumsViewMode;
+      case 'custom': return customViewMode;
+      case 'podcasts': return podcastViewMode;
+      default: return 'grid';
+    }
+  };
+
+  // Set view mode for current tab
+  const setCurrentViewMode = (mode) => {
+    switch (activeTab) {
+      case 'artists': setArtistsViewMode(mode); break;
+      case 'albums': setAlbumsViewMode(mode); break;
+      case 'custom': setCustomViewMode(mode); break;
+      case 'podcasts': setPodcastViewMode(mode); break;
+    }
+  };
+
   return (
     <div className="w-full h-full">
       <FixedSettingsBar
@@ -3105,6 +3082,9 @@ const SpotifyAnalyzer = ({
         isCollapsed={topTabsCollapsed}
         colorMode={colorMode}
         setColorMode={setColorMode}
+        activeTab={activeTab}
+        viewMode={getCurrentViewMode()}
+        setViewMode={setCurrentViewMode}
       />
       {TopTabsComponent && (
         <TopTabsComponent
