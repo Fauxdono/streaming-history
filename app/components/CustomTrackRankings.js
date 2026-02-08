@@ -275,8 +275,8 @@ const CustomTrackRankings = ({
   // Minimal mode colors (black/white) - flat design, no contrast
   const getMinimalColors = () => ({
     text: isDarkMode ? 'text-white' : 'text-black',
-    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
-    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
+    textLight: isDarkMode ? 'text-white' : 'text-black',
+    textLighter: isDarkMode ? 'text-white' : 'text-black',
     textDark: isDarkMode ? 'text-white' : 'text-black',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgLight: isDarkMode ? 'bg-black' : 'bg-white',

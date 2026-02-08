@@ -2369,7 +2369,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
-                          : 'absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black dark:hover:text-white'
+                          : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
                       }
                     >
                       ×
@@ -2428,7 +2428,7 @@ const SpotifyAnalyzer = ({
                   <p className={
                     colorMode === 'colorful'
                       ? 'text-sm text-center text-blue-600 dark:text-blue-400'
-                      : 'text-sm text-center text-gray-600 dark:text-gray-400'
+                      : `text-sm text-center ${isDarkMode ? 'text-white' : 'text-black'}`
                   }>
                     👆 Click on any artist below to view their custom track rankings
                   </p>
@@ -2500,7 +2500,7 @@ const SpotifyAnalyzer = ({
                           : '';
                         const cardTextLight = colorMode === 'colorful'
                           ? 'text-blue-600 dark:text-blue-300'
-                          : 'text-gray-600 dark:text-gray-400';
+                          : (isDarkMode ? 'text-white' : 'text-black');
 
                         return (
                           <div
@@ -2553,7 +2553,7 @@ const SpotifyAnalyzer = ({
                   <p className={
                     colorMode === 'colorful'
                       ? 'text-blue-600 dark:text-blue-300 mt-2'
-                      : 'text-gray-600 dark:text-gray-400 mt-2'
+                      : `mt-2 ${isDarkMode ? 'text-white' : 'text-black'}`
                   }>
                     {yearRangeMode
                       ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.`
@@ -2691,7 +2691,7 @@ const SpotifyAnalyzer = ({
                       className={
                         colorMode === 'colorful'
                           ? 'text-cyan-600 dark:text-cyan-400 hover:text-cyan-800 dark:hover:text-cyan-200 text-sm'
-                          : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white text-sm'
+                          : `text-sm hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
                       }
                     >
                       Clear All
@@ -2704,7 +2704,7 @@ const SpotifyAnalyzer = ({
                         className={
                           colorMode === 'colorful'
                             ? 'inline-flex items-center gap-1 px-2 py-1 bg-cyan-100 dark:bg-cyan-700 text-cyan-700 dark:text-cyan-200 rounded-full text-xs'
-                            : `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'}`
+                            : `inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs border ${isDarkMode ? 'border-white text-white' : 'border-black text-black'}`
                         }
                       >
                         {artist}
@@ -2713,7 +2713,7 @@ const SpotifyAnalyzer = ({
                           className={
                             colorMode === 'colorful'
                               ? 'ml-1 text-cyan-500 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-200'
-                              : 'ml-1 text-gray-500 hover:text-black dark:hover:text-white'
+                              : `ml-1 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
                           }
                         >
                           ✕
@@ -2774,7 +2774,7 @@ const SpotifyAnalyzer = ({
                         : '';
                       const albumCardTextLight = colorMode === 'colorful'
                         ? 'text-cyan-600 dark:text-cyan-300'
-                        : 'text-gray-600 dark:text-gray-400';
+                        : (isDarkMode ? 'text-white' : 'text-black');
 
                       return albumsViewMode === 'grid' ? (
                         <AlbumCard
@@ -2815,7 +2815,7 @@ const SpotifyAnalyzer = ({
                 <div className={
                   colorMode === 'colorful'
                     ? 'text-center py-8 text-cyan-600 dark:text-cyan-400'
-                    : 'text-center py-8 text-gray-600 dark:text-gray-400'
+                    : `text-center py-8 ${isDarkMode ? 'text-white' : 'text-black'}`
                 }>
                   {selectedAlbumYear === 'all' ?
                     'No album data available' :

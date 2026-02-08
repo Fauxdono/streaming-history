@@ -16,14 +16,14 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
     if (!isColorful) {
       return {
         text: '',
-        textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
+        textLight: isDarkMode ? 'text-white' : 'text-black',
         bg: isDarkMode ? 'bg-black' : 'bg-white',
         border: isDarkMode ? 'border-white' : 'border-black',
-        borderHover: isDarkMode ? 'border-gray-400' : 'border-gray-600',
-        bgLight: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
-        bgButton: isDarkMode ? 'bg-gray-800' : 'bg-gray-100',
-        bgStripe: isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
-        bgHeader: isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
+        borderHover: isDarkMode ? 'border-white' : 'border-black',
+        bgLight: isDarkMode ? 'bg-black' : 'bg-white',
+        bgButton: isDarkMode ? 'bg-black border border-white' : 'bg-white border border-black',
+        bgStripe: isDarkMode ? 'bg-black' : 'bg-white',
+        bgHeader: isDarkMode ? 'bg-black' : 'bg-white'
       };
     }
 
