@@ -232,3 +232,53 @@ The Custom Playlists tab (customplaylist.js) had `modeColors` correctly defined 
 2. **Using bgLight for page background** - Page should use `bg`, cards should use `bgCard` or `bgLight`
 3. **Mismatched text themes** - Ensure textTheme matches the tab's color (e.g., Albums uses cyan, not amber)
 4. **Transition classes on cards** - Remove `transition-all` to prevent visible color animations on mode switch
+
+---
+
+## Session: February 2026
+
+### Brief Obsessions Grid/List View
+Added grid/list view toggle to Brief Obsessions section in Patterns tab:
+- Added `patternsViewMode` state to SpotifyAnalyzer
+- Added 'patterns' to `tabsWithViewMode` in FixedSettingsBar
+- TrackRankings now accepts `viewMode` prop and renders responsive grid cards
+- Grid uses `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`
+
+### Responsive Pie Charts in Behavior Tab
+Fixed pie charts not scaling on mobile:
+- Changed `outerRadius={80}` (fixed pixels) to `outerRadius="70%"` (percentage-based)
+- Applied to ShuffleChart, CompletionChart, and Session Duration Distribution
+- Now matches Patterns tab pie chart behavior
+
+### Year Selector & Wheel Selector Minimal Mode
+Added black/white styling for minimal mode:
+- Added `colorMode` prop to YearSelector and WheelSelector
+- In minimal mode: black text/borders on white (light), white on black (dark)
+- Fixed textTheme override in WheelSelector to skip in minimal mode
+
+### Wheel Selector Dark Mode Fixes
+Many color themes were missing dark mode variants, causing bright highlights in dark mode:
+- Added `dark:bg-*-900` to highlight for all themes
+- Added `dark:border-*-700`, `dark:text-*-300`, `dark:shadow-*-900`
+- Fixed themes: pink, purple, teal, orange, indigo, red, yellow, cyan, emerald, fuchsia, violet, rose
+
+### TopTabs Position Adjustment for All Tabs
+Fixed tabs without year sidebar not adjusting for TopTabs:
+- Separated TopTabs adjustment from YearSelector visibility check
+- TopTabs width/margin adjustments now apply to ALL tabs
+- Fixes: Updates, Upload, Statistics, Custom, Playlist
+
+### GPU-Accelerated Layout Transitions
+Made sidebar position changes feel instant:
+- Replaced `marginLeft` with `transform: translateX()` (GPU-accelerated)
+- Added `willChange: 'transform'` for browser optimization hints
+- Changed transition from `all 0.3s` to `transform 0.15s ease-out`
+- Width changes happen instantly, only transform animates
+
+### Font Settings Integration
+Fixed conflict between FontSizeDropdown and SettingsPanel:
+- FontSizeDropdown now uses `useTheme()` context instead of direct localStorage
+- Updated CSS class names to match ThemeProvider:
+  - Size: `text-small`, `text-medium`, `text-large`, `text-xlarge`
+  - Family: `font-sans`, `font-serif`, `font-mono`, `font-comic`
+- Both FixedSettingsBar button and SettingsPanel now sync properly
