@@ -7,12 +7,18 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const [fontSize, setFontSize] = useState('medium');
+  const [fontFamily, setFontFamily] = useState('arial');
   const dropdownRef = useRef(null);
 
-  // Load saved font size on component mount
+  // Load saved font size and family on component mount
   useEffect(() => {
     const savedFontSize = localStorage.getItem('app-font-size') || 'medium';
+    const savedFontFamily = localStorage.getItem('app-font-family') || 'arial';
     setFontSize(savedFontSize);
+    setFontFamily(savedFontFamily);
+
+    // Apply saved settings on load
+    applyFontFamily(savedFontFamily);
   }, []);
 
   const applyFontSize = (size) => {
@@ -32,6 +38,36 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
     setFontSize(newSize);
     applyFontSize(newSize);
   };
+
+  const applyFontFamily = (family) => {
+    const root = document.documentElement;
+
+    // Remove existing font family classes
+    root.classList.remove('font-system', 'font-arial', 'font-georgia', 'font-monaco',
+      'font-verdana', 'font-trebuchet', 'font-palatino', 'font-comic');
+
+    // Add new font family class
+    root.classList.add(`font-${family}`);
+
+    // Save to localStorage
+    localStorage.setItem('app-font-family', family);
+  };
+
+  const handleFontFamilyChange = (newFamily) => {
+    setFontFamily(newFamily);
+    applyFontFamily(newFamily);
+  };
+
+  const fontFamilyOptions = [
+    { value: 'system', label: 'System Default', preview: '-apple-system, BlinkMacSystemFont, sans-serif' },
+    { value: 'arial', label: 'Arial', preview: 'Arial, Helvetica, sans-serif' },
+    { value: 'verdana', label: 'Verdana', preview: 'Verdana, Geneva, sans-serif' },
+    { value: 'trebuchet', label: 'Trebuchet', preview: 'Trebuchet MS, Helvetica, sans-serif' },
+    { value: 'georgia', label: 'Georgia', preview: 'Georgia, Times New Roman, serif' },
+    { value: 'palatino', label: 'Palatino', preview: 'Palatino Linotype, Book Antiqua, serif' },
+    { value: 'monaco', label: 'Monaco', preview: 'Monaco, Courier New, monospace' },
+    { value: 'comic', label: 'Comic Sans', preview: 'Comic Sans MS, cursive' }
+  ];
 
   // Handle clicks outside dropdown
   useEffect(() => {
@@ -71,8 +107,8 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
       }
       
       // If dropdown would go below viewport, show it above button
-      if (top + 200 > window.innerHeight) {
-        top = buttonRect.top - 200 - 8;
+      if (top + 320 > window.innerHeight) {
+        top = buttonRect.top - 320 - 8;
       }
       
       setPosition({ top, left });
@@ -180,6 +216,36 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
           >
             A
           </button>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className={`my-3 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
+
+      {/* Font Family Section */}
+      <div>
+        <div className={`text-xs mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Font Family
+        </div>
+        <div className="max-h-32 overflow-y-auto space-y-1">
+          {fontFamilyOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => handleFontFamilyChange(option.value)}
+              className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
+                fontFamily === option.value
+                  ? isDarkMode
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-indigo-100 text-indigo-700'
+                  : isDarkMode
+                    ? 'hover:bg-gray-700 text-gray-300'
+                    : 'hover:bg-gray-100 text-gray-700'
+              }`}
+              style={{ fontFamily: option.preview }}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>

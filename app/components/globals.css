@@ -189,7 +189,64 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--app-font-family, Arial, Helvetica, sans-serif);
+  font-size: var(--app-font-size, 16px);
+}
+
+/* Font Size Classes */
+html.font-small {
+  --app-font-size: 14px;
+}
+
+html.font-medium {
+  --app-font-size: 16px;
+}
+
+html.font-large {
+  --app-font-size: 18px;
+}
+
+html.font-xlarge {
+  --app-font-size: 20px;
+}
+
+/* Font size indicator styles */
+.font-size-indicator-small { font-size: 12px; }
+.font-size-indicator-medium { font-size: 16px; }
+.font-size-indicator-large { font-size: 20px; }
+.font-size-indicator-xlarge { font-size: 24px; }
+
+/* Font Family Classes */
+html.font-system {
+  --app-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html.font-arial {
+  --app-font-family: Arial, Helvetica, sans-serif;
+}
+
+html.font-georgia {
+  --app-font-family: Georgia, 'Times New Roman', serif;
+}
+
+html.font-monaco {
+  --app-font-family: Monaco, 'Courier New', monospace;
+}
+
+html.font-verdana {
+  --app-font-family: Verdana, Geneva, sans-serif;
+}
+
+html.font-trebuchet {
+  --app-font-family: 'Trebuchet MS', Helvetica, sans-serif;
+}
+
+html.font-palatino {
+  --app-font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+}
+
+html.font-comic {
+  --app-font-family: 'Comic Sans MS', cursive, sans-serif;
 }
 
 /* Dark mode class-based styles */
