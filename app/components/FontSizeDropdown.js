@@ -1,71 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from './themeprovider';
 
 const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
-  const { theme } = useTheme();
+  const { theme, fontSize, setFontSize, fontFamily, setFontFamily } = useTheme();
   const isDarkMode = theme === 'dark';
-  const [fontSize, setFontSize] = useState('medium');
-  const [fontFamily, setFontFamily] = useState('arial');
   const dropdownRef = useRef(null);
-
-  // Load saved font size and family on component mount
-  useEffect(() => {
-    const savedFontSize = localStorage.getItem('app-font-size') || 'medium';
-    const savedFontFamily = localStorage.getItem('app-font-family') || 'arial';
-    setFontSize(savedFontSize);
-    setFontFamily(savedFontFamily);
-
-    // Apply saved settings on load
-    applyFontFamily(savedFontFamily);
-  }, []);
-
-  const applyFontSize = (size) => {
-    const root = document.documentElement;
-    
-    // Remove existing font size classes
-    root.classList.remove('font-small', 'font-medium', 'font-large', 'font-xlarge');
-    
-    // Add new font size class
-    root.classList.add(`font-${size}`);
-    
-    // Save to localStorage
-    localStorage.setItem('app-font-size', size);
-  };
 
   const handleFontSizeChange = (newSize) => {
     setFontSize(newSize);
-    applyFontSize(newSize);
-  };
-
-  const applyFontFamily = (family) => {
-    const root = document.documentElement;
-
-    // Remove existing font family classes
-    root.classList.remove('font-system', 'font-arial', 'font-georgia', 'font-monaco',
-      'font-verdana', 'font-trebuchet', 'font-palatino', 'font-comic');
-
-    // Add new font family class
-    root.classList.add(`font-${family}`);
-
-    // Save to localStorage
-    localStorage.setItem('app-font-family', family);
   };
 
   const handleFontFamilyChange = (newFamily) => {
     setFontFamily(newFamily);
-    applyFontFamily(newFamily);
   };
 
   const fontFamilyOptions = [
-    { value: 'system', label: 'System Default', preview: '-apple-system, BlinkMacSystemFont, sans-serif' },
-    { value: 'arial', label: 'Arial', preview: 'Arial, Helvetica, sans-serif' },
-    { value: 'verdana', label: 'Verdana', preview: 'Verdana, Geneva, sans-serif' },
-    { value: 'trebuchet', label: 'Trebuchet', preview: 'Trebuchet MS, Helvetica, sans-serif' },
-    { value: 'georgia', label: 'Georgia', preview: 'Georgia, Times New Roman, serif' },
-    { value: 'palatino', label: 'Palatino', preview: 'Palatino Linotype, Book Antiqua, serif' },
-    { value: 'monaco', label: 'Monaco', preview: 'Monaco, Courier New, monospace' },
+    { value: 'sans', label: 'Sans-serif', preview: '-apple-system, BlinkMacSystemFont, sans-serif' },
+    { value: 'serif', label: 'Serif', preview: 'Georgia, Times New Roman, serif' },
+    { value: 'mono', label: 'Monospace', preview: 'Monaco, Courier New, monospace' },
     { value: 'comic', label: 'Comic Sans', preview: 'Comic Sans MS, cursive' }
   ];
 
