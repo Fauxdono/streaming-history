@@ -3145,10 +3145,31 @@ const SpotifyAnalyzer = ({
       
       <div className="flex h-full w-full justify-start">
         {/* Main content area that adjusts based on year selector state */}
-        <div className="transition-all duration-300" 
-             style={{
+        <div style={{
                ...contentAreaStyles,
-               // Calculate actual width reduction instead of just padding
+               // Use GPU-accelerated transform for smooth positioning
+               transform: (() => {
+                 let translateX = 0;
+
+                 // Add transform for left-positioned TopTabs (always applies)
+                 if (topTabsPosition === 'left') {
+                   translateX += topTabsWidth;
+                 }
+
+                 // Add transform for left-positioned YearSelector (only when sidebar is shown)
+                 if (showYearSidebar && shouldShowSidebar(activeTab)) {
+                   if (yearSelectorPosition === 'left') {
+                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+                     translateX += effectiveWidth;
+                   }
+                 }
+
+                 return translateX > 0 ? `translateX(${translateX}px)` : 'none';
+               })(),
+               // GPU acceleration hints
+               willChange: 'transform',
+               transition: 'transform 0.15s ease-out',
+               // Calculate width to prevent content overflow
                width: (() => {
                  let totalWidthReduction = 0;
 
@@ -3168,25 +3189,6 @@ const SpotifyAnalyzer = ({
                  if (totalWidthReduction === 0) return '100%';
                  return `calc(100% - ${totalWidthReduction}px)`;
                })(),
-               // Use margin to position content away from left-side sidebars
-               marginLeft: (() => {
-                 let totalLeftMargin = 0;
-
-                 // Add margin for left-positioned TopTabs (always applies)
-                 if (topTabsPosition === 'left') {
-                   totalLeftMargin += topTabsWidth;
-                 }
-
-                 // Add margin for left-positioned YearSelector (only when sidebar is shown)
-                 if (showYearSidebar && shouldShowSidebar(activeTab)) {
-                   if (yearSelectorPosition === 'left') {
-                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
-                     totalLeftMargin += effectiveWidth;
-                   }
-                 }
-
-                 return `${totalLeftMargin}px`;
-               })(),
                // Keep original padding for top/bottom spacing
                paddingLeft: (() => {
                  if (yearSelectorPosition === 'left' || topTabsPosition === 'left') return '0px';
@@ -3197,14 +3199,7 @@ const SpotifyAnalyzer = ({
                  return contentAreaStyles.paddingRight;
                })(),
                // Add safe area support on mobile
-               paddingBottom: isMobile ? `calc(${contentAreaStyles.paddingBottom} + env(safe-area-inset-bottom, 0px))` : contentAreaStyles.paddingBottom,
-               // Debug info
-               '--year-selector-width': JSON.stringify(yearSelectorWidth),
-               '--year-selector-height': JSON.stringify(yearSelectorHeight),
-               '--year-selector-position': yearSelectorPosition,
-               '--year-selector-expanded': yearSelectorExpanded,
-               '--top-tabs-position': topTabsPosition,
-               '--top-tabs-height': topTabsHeight
+               paddingBottom: isMobile ? `calc(${contentAreaStyles.paddingBottom} + env(safe-area-inset-bottom, 0px))` : contentAreaStyles.paddingBottom
              }}>
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">
