@@ -2387,84 +2387,83 @@ const SpotifyAnalyzer = ({
                   ))}
                 </div>
 
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={artistSearch}
-                    onChange={(e) => setArtistSearch(e.target.value)}
-                    placeholder="Search artists..."
+                {/* Search bar and View Artist Playlist button on same line */}
+                <div className="flex gap-2 items-center">
+                  <button
+                    onClick={() => {
+                      setArtistSelectionMode(prev => !prev);
+                    }}
                     className={
                       colorMode === 'colorful'
-                        ? 'w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-400 dark:placeholder-blue-500'
-                        : `w-full border rounded px-2 py-1 focus:outline-none ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                        ? `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                            artistSelectionMode
+                              ? 'bg-blue-400 text-white border border-blue-400'
+                              : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
+                          }`
+                        : `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                            artistSelectionMode
+                              ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
+                              : (isDarkMode ? 'border border-white bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
+                          }`
                     }
-                  />
-                  {artistSearch && (
-                    <button
-                      onClick={() => setArtistSearch('')}
+                  >
+                    🎵 {artistSelectionMode ? 'Cancel' : 'View Playlist'}
+                  </button>
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={artistSearch}
+                      onChange={(e) => setArtistSearch(e.target.value)}
+                      placeholder="Search artists..."
                       className={
                         colorMode === 'colorful'
-                          ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
-                          : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                          ? 'w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-400 dark:placeholder-blue-500'
+                          : `w-full border rounded px-2 py-1 focus:outline-none ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
-                    >
-                      ×
-                    </button>
-                  )}
-                  {artistSearch && filteredArtists.length > 0 && (
-                    <div className={
-                      colorMode === 'colorful'
-                        ? 'absolute z-10 w-full bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-blue-600 rounded shadow-lg mt-1'
-                        : `absolute z-10 w-full border rounded shadow-lg mt-1 ${isDarkMode ? 'bg-black border-white' : 'bg-white border-black'}`
-                    }>
-                      {filteredArtists.map(artist => (
-                        <div
-                          key={artist}
-                          onClick={() => {
-                            setSelectedArtists(prev => [...prev, artist]);
-                            setArtistSearch('');
-                          }}
-                          className={
-                            colorMode === 'colorful'
-                              ? 'px-2 py-1 hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 cursor-pointer'
-                              : `px-2 py-1 cursor-pointer ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-gray-100 text-black'}`
-                          }
-                        >
-                          {artist}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    />
+                    {artistSearch && (
+                      <button
+                        onClick={() => setArtistSearch('')}
+                        className={
+                          colorMode === 'colorful'
+                            ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
+                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                        }
+                      >
+                        ×
+                      </button>
+                    )}
+                    {artistSearch && filteredArtists.length > 0 && (
+                      <div className={
+                        colorMode === 'colorful'
+                          ? 'absolute z-10 w-full bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-blue-600 rounded shadow-lg mt-1'
+                          : `absolute z-10 w-full border rounded shadow-lg mt-1 ${isDarkMode ? 'bg-black border-white' : 'bg-white border-black'}`
+                      }>
+                        {filteredArtists.map(artist => (
+                          <div
+                            key={artist}
+                            onClick={() => {
+                              setSelectedArtists(prev => [...prev, artist]);
+                              setArtistSearch('');
+                            }}
+                            className={
+                              colorMode === 'colorful'
+                                ? 'px-2 py-1 hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 cursor-pointer'
+                                : `px-2 py-1 cursor-pointer ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-gray-100 text-black'}`
+                            }
+                          >
+                            {artist}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              
-              {/* View Artist Playlist Button */}
-              <div className="mb-4 flex flex-col items-center gap-2">
-                <button
-                  onClick={() => {
-                    setArtistSelectionMode(prev => !prev);
-                  }}
-                  className={
-                    colorMode === 'colorful'
-                      ? `px-4 py-2 rounded-lg font-medium transition-colors ${
-                          artistSelectionMode
-                            ? 'bg-blue-400 text-white border border-blue-400'
-                            : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
-                        }`
-                      : `px-4 py-2 rounded-lg font-medium transition-colors ${
-                          artistSelectionMode
-                            ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
-                            : (isDarkMode ? 'border border-white bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
-                        }`
-                  }
-                >
-                  🎵 View Artist Playlist
-                </button>
                 {artistSelectionMode && (
                   <p className={
                     colorMode === 'colorful'
-                      ? 'text-sm text-center text-blue-600 dark:text-blue-400'
-                      : `text-sm text-center ${isDarkMode ? 'text-white' : 'text-black'}`
+                      ? 'text-sm text-center text-blue-600 dark:text-blue-400 mt-2'
+                      : `text-sm text-center mt-2 ${isDarkMode ? 'text-white' : 'text-black'}`
                   }>
                     👆 Click on any artist below to view their custom track rankings
                   </p>
@@ -2495,7 +2494,14 @@ const SpotifyAnalyzer = ({
                             .map((artist, index) => (
                               <tr
                                 key={artist.name}
-                                className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-white hover:bg-gray-800' : 'border-black hover:bg-gray-100')}`}
+                                onClick={() => {
+                                  if (artistSelectionMode) {
+                                    setActiveTab('custom');
+                                    setSelectedArtists([artist.name]);
+                                    setArtistSelectionMode(false);
+                                  }
+                                }}
+                                className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-white hover:bg-gray-800' : 'border-black hover:bg-gray-100')} ${artistSelectionMode ? 'cursor-pointer' : ''}`}
                               >
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}>{index + 1}</td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.name}</td>
