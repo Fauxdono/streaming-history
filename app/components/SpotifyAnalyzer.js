@@ -3150,40 +3150,41 @@ const SpotifyAnalyzer = ({
                ...contentAreaStyles,
                // Calculate actual width reduction instead of just padding
                width: (() => {
-                 if (!showYearSidebar || !shouldShowSidebar(activeTab)) return '100%';
-                 
                  let totalWidthReduction = 0;
-                 
-                 // Calculate width reduction from TopTabs
+
+                 // Calculate width reduction from TopTabs (always applies)
                  if (topTabsPosition === 'left' || topTabsPosition === 'right') {
                    totalWidthReduction += topTabsWidth;
                  }
-                 
-                 // Calculate width reduction from YearSelector
-                 if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
-                   const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
-                   totalWidthReduction += effectiveWidth;
+
+                 // Calculate width reduction from YearSelector (only when sidebar is shown)
+                 if (showYearSidebar && shouldShowSidebar(activeTab)) {
+                   if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
+                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+                     totalWidthReduction += effectiveWidth;
+                   }
                  }
-                 
+
+                 if (totalWidthReduction === 0) return '100%';
                  return `calc(100% - ${totalWidthReduction}px)`;
                })(),
                // Use margin to position content away from left-side sidebars
                marginLeft: (() => {
-                 if (!showYearSidebar || !shouldShowSidebar(activeTab)) return '0px';
-                 
                  let totalLeftMargin = 0;
-                 
-                 // Add margin for left-positioned TopTabs
+
+                 // Add margin for left-positioned TopTabs (always applies)
                  if (topTabsPosition === 'left') {
                    totalLeftMargin += topTabsWidth;
                  }
-                 
-                 // Add margin for left-positioned YearSelector
-                 if (yearSelectorPosition === 'left') {
-                   const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
-                   totalLeftMargin += effectiveWidth;
+
+                 // Add margin for left-positioned YearSelector (only when sidebar is shown)
+                 if (showYearSidebar && shouldShowSidebar(activeTab)) {
+                   if (yearSelectorPosition === 'left') {
+                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+                     totalLeftMargin += effectiveWidth;
+                   }
                  }
-                 
+
                  return `${totalLeftMargin}px`;
                })(),
                // Keep original padding for top/bottom spacing
