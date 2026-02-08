@@ -282,3 +282,34 @@ Fixed conflict between FontSizeDropdown and SettingsPanel:
   - Size: `text-small`, `text-medium`, `text-large`, `text-xlarge`
   - Family: `font-sans`, `font-serif`, `font-mono`, `font-comic`
 - Both FixedSettingsBar button and SettingsPanel now sync properly
+
+### Minimal Mode Grey Text Readability (Feb 2026)
+Fixed grey text being hard to read on pure black/white backgrounds in minimal mode:
+
+**Problem:** In minimal mode, text using `text-gray-600 dark:text-gray-400` was hard to read against pure black/white backgrounds.
+
+**Files fixed:**
+- **SpotifyAnalyzer.js (Artists tab)**:
+  - Clear button in artist search
+  - Instruction text below "View Artist Playlist"
+  - Grid card `cardTextLight` variable
+  - "No artists found" message
+- **SpotifyAnalyzer.js (Albums tab)**:
+  - "Clear All" button for filtered artists
+  - Artist filter chips (changed grey bg to border)
+  - Close button on filter chips
+  - `albumCardTextLight` variable
+  - "No album data" message
+- **CustomTrackRankings.js**:
+  - Changed `textLight` and `textLighter` from grey to white/black
+- **albumcard.js**:
+  - Changed `textLight`, `borderHover`, `bgLight`, etc. to pure black/white
+
+**Pattern:**
+```javascript
+// Before (hard to read)
+textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600'
+
+// After (readable)
+textLight: isDarkMode ? 'text-white' : 'text-black'
+```
