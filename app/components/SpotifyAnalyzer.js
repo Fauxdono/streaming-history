@@ -17,6 +17,7 @@ import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
+import ExportButton from './ExportButton.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
@@ -2222,6 +2223,41 @@ const SpotifyAnalyzer = ({
                   )}
                 </div>
               </div>
+
+              {/* Download Data Section */}
+              {stats && processedData.length > 0 && (
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-800'
+                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-white bg-black' : 'border-black bg-white'}`
+                }>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Download size={18} className={colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
+                    <h4 className={
+                      colorMode === 'colorful'
+                        ? 'font-medium text-indigo-700 dark:text-indigo-300'
+                        : 'font-medium'
+                    }>Download Your Data</h4>
+                  </div>
+                  <p className={
+                    colorMode === 'colorful'
+                      ? 'text-sm text-indigo-600 dark:text-indigo-400 mb-3'
+                      : `text-sm mb-3 ${isDarkMode ? 'text-white' : 'text-black'}`
+                  }>
+                    Save your streaming analysis to your device as Excel or JSON.
+                  </p>
+                  <ExportButton
+                    stats={stats}
+                    topArtists={displayedArtists || []}
+                    topAlbums={displayedAlbums || []}
+                    processedData={processedData || []}
+                    briefObsessions={briefObsessions || []}
+                    songsByYear={songsByYear || {}}
+                    rawPlayData={rawPlayData || []}
+                    formatDuration={formatDuration}
+                  />
+                </div>
+              )}
 
               {stats && processedData.length > 0 && (
                 <div className={
