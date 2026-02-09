@@ -1357,14 +1357,14 @@ const YearSelector = ({
     }
   };
 
-  // Fixed settings bar height - this matches the FixedSettingsBar height, scaled by font size
+  // Fixed settings bar height - this matches the FixedSettingsBar height, scaled by font size (min 40px)
   const fontScales = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 };
   const fontScale = fontScales[fontSize] || 1;
-  const settingsBarHeight = isMobile ? 85 : Math.round(40 * fontScale);
+  const settingsBarHeight = isMobile ? 85 : Math.max(40, Math.round(40 * fontScale));
 
   // Dynamic position styles that account for TopTabs (memoized for mobile performance)
   const getPositionStyles = useMemo(() => {
-    const settingsBarHeight = isMobile ? 85 : Math.round(40 * fontScale);
+    const settingsBarHeight = isMobile ? 85 : Math.max(40, Math.round(40 * fontScale));
     // Use actual TopTabs dimensions, with fallbacks for mobile
     const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight : (isMobile ? 44 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);

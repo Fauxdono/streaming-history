@@ -1928,10 +1928,10 @@ const SpotifyAnalyzer = ({
     
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    // Scale settings bar height based on font size
+    // Scale settings bar height based on font size (min 40px to match FixedSettingsBar minHeight)
     const fontScales = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 };
     const fontScale = fontScales[fontSize] || 1;
-    const settingsBarHeight = isMobile ? 85 : Math.round(40 * fontScale);
+    const settingsBarHeight = isMobile ? 85 : Math.max(40, Math.round(40 * fontScale));
     
     let leftSpace = 0;
     let rightSpace = 0;

@@ -52,7 +52,7 @@ const FixedSettingsBar = ({
             height: 'calc(85px + env(safe-area-inset-bottom, 0px))'
           } : {
             top: '0',
-            height: 'auto'
+            minHeight: '40px'
           })
         }}
       >
