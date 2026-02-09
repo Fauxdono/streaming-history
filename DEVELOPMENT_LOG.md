@@ -313,3 +313,66 @@ textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600'
 // After (readable)
 textLight: isDarkMode ? 'text-white' : 'text-black'
 ```
+
+### Streak Statistics Feature (Feb 2026)
+Added comprehensive listening streak statistics to the Statistics tab:
+
+**New Functions in streaming-adapter.js:**
+- `calculateConsecutivePlayStreaks(rawPlayData)` - Finds longest back-to-back plays of same song/artist/album
+- `calculateOverallDailyStreak(rawPlayData)` - Finds longest consecutive days with any listening
+- `calculateTopSongDailyStreak(songs, playHistory)` - Finds song played most consecutive days
+- `calculateTopAlbumDailyStreak(albums, rawPlayData)` - Finds album played most consecutive days
+
+**Statistics Tab UI:**
+- Two-column layout: "Back-to-Back Plays" and "Daily Streaks"
+- Shows song on repeat, artist marathon, album session
+- Shows longest listening streak, most dedicated song, most consistent artist
+- Integrated with YearSelector for year-based filtering
+
+**Google Drive Sync:**
+- Added `streaks` property to saved data structure
+- Added recalculation fallback for older saved data without streaks
+
+### YearSelector for Statistics Tab (Feb 2026)
+Extended YearSelector to filter all Statistics tab data by year:
+
+- Added `selectedStreaksYear` state to SpotifyAnalyzer
+- Added `filteredStats` and `filteredStreaks` useMemo hooks
+- Added 'stats' to `shouldShowSidebar` tabs array
+- Added 'stats' case in `handleSidebarYearChange`
+- Fixed rendering by adding filtered values to renderTabContent dependencies
+
+### Support Button Refactor (Feb 2026)
+Moved SupportOptions from Statistics tab to FixedSettingsBar as a dropdown:
+
+**Changes:**
+- Created `SupportDropdown.js` - Dropdown component matching FontSizeDropdown style
+- Added heart button to FixedSettingsBar (both mobile and desktop)
+- Removed collapse menu button from FixedSettingsBar
+- Removed PayPal, Venmo, and Crypto payment options (kept Ko-fi and Buy Me A Coffee)
+- Deleted `support-options.js`
+
+**Dropdown Features:**
+- Positions relative to button ref
+- Closes on outside click
+- Supports colorful/minimal mode styling
+
+### Font Size Scaling Fixes (Feb 2026)
+Fixed components overlapping/separating when font size changes:
+
+**Problem:** FixedSettingsBar, TopTabs, and YearSelector didn't account for font size changes, causing:
+- Components overlapping at large font sizes
+- Gaps between components at small font sizes
+
+**Solution:** Dynamic `settingsBarHeight` calculation based on font scale:
+```javascript
+const fontScales = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 };
+const fontScale = fontScales[fontSize] || 1;
+const settingsBarHeight = isMobile ? 85 : Math.max(40, Math.round(40 * fontScale));
+```
+
+**Files Updated:**
+- `SpotifyAnalyzer.js` - Added dynamic settingsBarHeight in contentAreaStyles
+- `TopTabs.js` - Added fontSize to useEffect dependency, dynamic height calculation
+- `year-selector.js` - Added fontScale to getPositionStyles
+- `FixedSettingsBar.js` - Added `minHeight: 40px` for desktop to prevent gaps
