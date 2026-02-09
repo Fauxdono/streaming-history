@@ -875,16 +875,7 @@ const GoogleDriveSync = ({
       setShowCancelButton(true);
     }, 5000);
 
-    // Dynamic timeout based on if we find large files
-    let overallTimeout = isMobile ? 120000 : 30000; // 2 minutes on mobile, 30s on desktop
-    let timeoutId = setTimeout(() => {
-      console.error(`⏰ Load operation timed out after ${overallTimeout/1000} seconds`);
-      showMessage('Load timed out. Large files may need more time. Please try again.', true);
-      setIsLoading(false);
-      setShowCancelButton(false);
-      setLoadingStep('');
-      setLoadProgress({ step: 0, total: 0, message: '' });
-    }, overallTimeout);
+    // No overall timeout - user has cancel button if needed
 
     try {
       // Step 1: Look for cakeculator folder
@@ -930,7 +921,6 @@ const GoogleDriveSync = ({
       // Step 3: Validate search results
       setLoadProgress({ step: 3, total: 6, message: 'Validating search results...' });
       if (response.result.files.length === 0) {
-        clearTimeout(timeoutId);
         clearTimeout(cancelTimeout);
         showMessage('No saved analysis found on Google Drive', true);
         setIsLoading(false);
@@ -966,35 +956,10 @@ const GoogleDriveSync = ({
       // Update progress with file size info
       setLoadProgress({ step: 4, total: 6, message: `Downloading ${file.name} (${fileSizeMB}MB)...` });
       
-      // For files over 50MB, use streaming download with longer timeout
-      const isLargeFile = fileSizeBytes > 50 * 1024 * 1024;
-      const downloadTimeout = isLargeFile ? 300000 : (isMobile ? 120000 : 30000); // 5 min large, 2 min mobile, 30s desktop
-      
-      if (isLargeFile) {
-        // Extend overall timeout for large files
-        clearTimeout(timeoutId);
-        overallTimeout = 300000; // 5 minutes total for large files
-        timeoutId = setTimeout(() => {
-          console.error(`⏰ Load operation timed out after ${overallTimeout/1000} seconds`);
-          showMessage(`Large file download timed out after ${overallTimeout/60000} minutes. File size: ${fileSizeMB}MB. Consider processing smaller data sets.`, true);
-          setIsLoading(false);
-          setShowCancelButton(false);
-          setLoadingStep('');
-          setLoadProgress({ step: 0, total: 0, message: '' });
-        }, overallTimeout);
-        
-        console.log(`🐘 Large file detected (${fileSizeMB}MB) - extended timeout to ${overallTimeout/60000} minutes`);
-      } else {
-        console.log(`📁 Standard file (${fileSizeMB}MB) - using ${downloadTimeout/1000}s timeout`);
-      }
-      
+      console.log(`📁 File size: ${fileSizeMB}MB, mobile: ${isMobile}`);
+
       console.log('⬇️ Starting file download...');
-      const fileContent = await Promise.race([
-        downloadFileWithProgress(file.id, fileSizeBytes),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error(`Download timeout after ${downloadTimeout/1000}s - file size: ${fileSizeMB}MB. Try a smaller analysis file or check your internet connection.`)), downloadTimeout)
-        )
-      ]);
+      const fileContent = await downloadFileWithProgress(file.id, fileSizeBytes);
       console.log('✅ File download completed');
 
       // Step 5: Parse analysis data
@@ -1073,7 +1038,6 @@ const GoogleDriveSync = ({
         onDataLoaded(data);
       }
 
-      clearTimeout(timeoutId);
       clearTimeout(cancelTimeout);
       const originalFilesText = data.metadata?.originalFiles?.length > 0 
         ? ` + ${data.metadata.originalFiles.length} original files` 
@@ -1088,7 +1052,6 @@ const GoogleDriveSync = ({
       }, 1000);
       
     } catch (error) {
-      clearTimeout(timeoutId);
       clearTimeout(cancelTimeout);
       console.error('❌ Load failed:', error);
       showMessage(`Load failed: ${error.message}`, true);
