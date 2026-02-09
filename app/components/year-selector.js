@@ -1619,39 +1619,6 @@ const YearSelector = ({
           >
             Range
           </button>
-
-          {/* All Time button - only in horizontal layouts */}
-          {(currentPosition === 'bottom' || currentPosition === 'top') && (
-            <button
-              onClick={(e) => {
-                console.log("All Time button clicked");
-
-                // First update local state
-                setSelectedYear('all');
-                setShowMonthSelector(false);
-                setShowDaySelector(false);
-
-                // Then directly call parent callback - this is key!
-                if (onYearChange) {
-                  console.log("Directly calling parent onYearChange with 'all'");
-                  onYearChange('all');
-                } else {
-                  console.error("onYearChange callback not available!");
-                }
-
-                // Force UI refresh
-                setRefreshCounter(prev => prev + 1);
-              }}
-              className={`px-2 py-1 text-xs rounded transition-colors ${
-                selectedYear === 'all'
-                  ? `${colors.bgActive} ${colors.textActive} font-bold`
-                  : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
-              }`}
-              title="Show all-time data"
-            >
-              All Time
-            </button>
-          )}
         </div>
         
         {/* Content area - horizontal layout for bottom and top positions */}
@@ -1675,38 +1642,38 @@ const YearSelector = ({
                 }`}>YEAR</div>
 
                 <div className={`flex ${(currentPosition === 'bottom' || currentPosition === 'top') ? 'flex-row space-x-2' : 'flex-col'} items-center`}>
-                  {/* Add a quick "All Time" button with direct callback - only for vertical layouts */}
-                  {currentPosition !== 'bottom' && currentPosition !== 'top' && (
-                    <button
-                      onClick={(e) => {
-                        console.log("All Time button clicked");
-                        
-                        // First update local state
-                        setSelectedYear('all');
-                        setShowMonthSelector(false);
-                        setShowDaySelector(false);
-                        
-                        // Then directly call parent callback - this is key!
-                        if (onYearChange) {
-                          console.log("Directly calling parent onYearChange with 'all'");
-                          onYearChange('all');
-                        } else {
-                          console.error("onYearChange callback not available!");
-                        }
-                        
-                        // Force UI refresh
-                        setRefreshCounter(prev => prev + 1);
-                      }}
-                      className={`px-2 py-1 mb-2 text-xs rounded-md transition-colors ${
-                        selectedYear === 'all' 
-                          ? `${colors.bgActive} ${colors.textActive} font-bold` 
-                          : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
-                      }`}
-                      title="Show all-time data"
-                    >
-                      All Time
-                    </button>
-                  )}
+                  {/* All Time button - shown in all layouts */}
+                  <button
+                    onClick={(e) => {
+                      console.log("All Time button clicked");
+
+                      // First update local state
+                      setSelectedYear('all');
+                      setShowMonthSelector(false);
+                      setShowDaySelector(false);
+
+                      // Then directly call parent callback - this is key!
+                      if (onYearChange) {
+                        console.log("Directly calling parent onYearChange with 'all'");
+                        onYearChange('all');
+                      } else {
+                        console.error("onYearChange callback not available!");
+                      }
+
+                      // Force UI refresh
+                      setRefreshCounter(prev => prev + 1);
+                    }}
+                    className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                      (currentPosition === 'bottom' || currentPosition === 'top') ? '' : 'mb-2'
+                    } ${
+                      selectedYear === 'all'
+                        ? `${colors.bgActive} ${colors.textActive} font-bold`
+                        : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
+                    }`}
+                    title="Show all-time data"
+                  >
+                    All Time
+                  </button>
                   
                   <WheelSelector
                     items={['all', ...years]}
@@ -2052,21 +2019,23 @@ const YearSelector = ({
           )}
           </div>
         
-        {/* Position toggle button - different layout for bottom and top positions */}
+        {/* Position toggle button - at right edge for horizontal, bottom center for vertical */}
         {(currentPosition === 'bottom' || currentPosition === 'top') ? (
-          asSidebar && (
-            <button
-              onClick={togglePosition}
-              className={`absolute left-1/2 -translate-x-1/2 ${currentPosition === 'top' ? 'bottom-1' : 'top-1'} p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className={`text-sm ${colors.textActive}`}>⇄</span>
-            </button>
-          )
+          <div className="flex items-center justify-center ml-2">
+            {asSidebar && (
+              <button
+                onClick={togglePosition}
+                className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                aria-label="Toggle sidebar position"
+              >
+                <span className={`text-sm ${colors.textActive}`}>⇄</span>
+              </button>
+            )}
+          </div>
         ) : (
           <div className="absolute bottom-10 left-0 right-0 flex justify-center">
             {asSidebar && (
-              <button 
+              <button
                 onClick={togglePosition}
                 className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
                 aria-label="Toggle sidebar position"
