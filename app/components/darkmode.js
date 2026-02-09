@@ -10,9 +10,9 @@ const DarkModeToggle = ({ className = '' }) => {
   return (
     <button
       onClick={toggleTheme}
-      className={`transition-colors p-2 rounded-full ${
-        theme === 'dark' 
-          ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' 
+      className={`transition-colors p-2 rounded-full flex items-center justify-center ${
+        theme === 'dark'
+          ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
           : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
       } ${className}`}
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
