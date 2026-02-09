@@ -683,7 +683,7 @@ const PodcastRankings = ({
   // Function to get page title based on date selection
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Podcast Rankings (${yearRange.startYear}-${yearRange.endYear})`;
+      return <span>Podcast Rankings <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         const parts = selectedYear.split('-');
@@ -691,11 +691,12 @@ const PodcastRankings = ({
           // Display format for a specific date (YYYY-MM-DD)
           const date = new Date(selectedYear);
           if (!isNaN(date.getTime())) {
-            return `Podcast Rankings for ${date.toLocaleDateString(undefined, {
+            const dateStr = date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
-            })}`;
+            });
+            return <span>Podcast Rankings <span className="text-xs opacity-75">{dateStr}</span></span>;
           }
         } else if (parts.length === 2) {
           // Display format for a specific month (YYYY-MM)
@@ -703,17 +704,18 @@ const PodcastRankings = ({
           const month = parseInt(parts[1]) - 1; // JS months are 0-indexed
           const date = new Date(year, month, 1);
           if (!isNaN(date.getTime())) {
-            return `Podcast Rankings for ${date.toLocaleDateString(undefined, {
+            const dateStr = date.toLocaleDateString(undefined, {
               year: 'numeric',
               month: 'long'
-            })}`;
+            });
+            return <span>Podcast Rankings <span className="text-xs opacity-75">{dateStr}</span></span>;
           }
         }
-        return `Podcast Rankings  (${selectedYear})`;
+        return <span>Podcast Rankings <span className="text-xs opacity-75">{selectedYear}</span></span>;
       }
-      return `Podcast Rankings  (${selectedYear})`;
+      return <span>Podcast Rankings <span className="text-xs opacity-75">{selectedYear}</span></span>;
     } else {
-      return 'Podcast Rankings (All Time)';
+      return <span>Podcast Rankings <span className="text-xs opacity-75">all-time</span></span>;
     }
   };
 

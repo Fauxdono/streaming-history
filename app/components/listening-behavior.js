@@ -809,11 +809,11 @@ const filteredData = useMemo(() => {
   // Function to get title based on year selection mode
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Listening Behavior (${yearRange.startYear}-${yearRange.endYear})`;
+      return <span>Listening Behavior <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
     } else if (selectedYear === 'all') {
-      return 'All-time Listening Behavior';
+      return <span>Listening Behavior <span className="text-xs opacity-75">all-time</span></span>;
     } else {
-      return `Listening Behavior for ${selectedYear}`;
+      return <span>Listening Behavior <span className="text-xs opacity-75">{selectedYear}</span></span>;
     }
   };
 

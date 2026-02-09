@@ -2259,7 +2259,7 @@ const SpotifyAnalyzer = ({
                 colorMode === 'colorful'
                   ? 'text-xl text-indigo-700 dark:text-indigo-300'
                   : 'text-xl'
-              }>Processing Statistics</h3>
+              }>Statistics <span className="text-xs opacity-75">{selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear}</span></h3>
             </div>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
@@ -2267,7 +2267,7 @@ const SpotifyAnalyzer = ({
                 colorMode === 'colorful'
                   ? 'text-xl text-indigo-700 dark:text-indigo-300'
                   : 'text-xl'
-              }>Processing Statistics</h3>
+              }>Statistics <span className="text-xs opacity-75">{selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear}</span></h3>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -666,11 +666,11 @@ const CalendarView = ({
   // Function to get title based on year selection mode
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Calendar View (${yearRange.startYear}-${yearRange.endYear})`;
+      return <span>Calendar View <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
     } else if (selectedYear === 'all') {
-      return 'All-time Calendar View';
+      return <span>Calendar View <span className="text-xs opacity-75">all-time</span></span>;
     } else {
-      return `Calendar View for ${selectedYear}`;
+      return <span>Calendar View <span className="text-xs opacity-75">{selectedYear}</span></span>;
     }
   };
 

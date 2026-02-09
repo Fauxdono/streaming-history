@@ -551,11 +551,11 @@ const ListeningPatterns = ({
   // Function to get title based on year selection mode
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Listening Patterns (${yearRange.startYear}-${yearRange.endYear})`;
+      return <span>Listening Patterns <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
     } else if (selectedYear === 'all') {
-      return 'All-time Listening Patterns';
+      return <span>Listening Patterns <span className="text-xs opacity-75">all-time</span></span>;
     } else {
-      return `Listening Patterns for ${selectedYear}`;
+      return <span>Listening Patterns <span className="text-xs opacity-75">{selectedYear}</span></span>;
     }
   };
 

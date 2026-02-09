@@ -575,11 +575,11 @@ const filteredData = useMemo(() => {
   // Page title based on time range
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Music Discovery (${yearRange.startYear}-${yearRange.endYear})`;
+      return <span>Music Discovery <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
     } else if (selectedYear !== 'all') {
-      return `Music Discovery (${selectedYear})`;
+      return <span>Music Discovery <span className="text-xs opacity-75">{selectedYear}</span></span>;
     }
-    return 'All-time Music Discovery';
+    return <span>Music Discovery <span className="text-xs opacity-75">all-time</span></span>;
   };
 
   const TabButton = ({ id, label }) => (
