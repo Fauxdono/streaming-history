@@ -263,9 +263,12 @@ const GoogleDriveSync = ({
   }, [isInitialized, isInitializing, isConnected]);
   */
 
-  // Validate and refresh token before operations
-  const ensureConnection = async () => {
-    if (!isInitialized) return false;
+  // Restore token before operations - no validation call, just set it
+  const ensureConnection = () => {
+    // If already connected with a live gapi token, just proceed
+    if (isConnected && window.gapi?.client?.getToken()?.access_token) {
+      return true;
+    }
 
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
     const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
@@ -275,40 +278,17 @@ const GoogleDriveSync = ({
       const expiry = parseInt(storedExpiry);
 
       if (now < expiry) {
-        try {
-          // Always re-set token in case gapi lost it
-          window.gapi.client.setToken({ access_token: storedToken });
-          // Quick validation call
-          await window.gapi.client.drive.about.get({ fields: 'user' });
-          if (!isConnected) setIsConnected(true);
-          console.log('✅ Token validated for operation');
-          return true;
-        } catch (error) {
-          console.log('🔄 Token validation failed, clearing stored token');
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('google_drive_token');
-            localStorage.removeItem('google_drive_token_expiry');
-          }
-          setIsConnected(false);
-        }
+        // Just set the token - actual API calls will fail naturally if it's invalid
+        window.gapi.client.setToken({ access_token: storedToken });
+        if (!isConnected) setIsConnected(true);
+        console.log('✅ Token restored for operation');
+        return true;
       } else {
-        console.log('🔄 Token expired, clearing stored token');
+        console.log('🔄 Token expired, clearing');
         if (typeof window !== 'undefined') {
           localStorage.removeItem('google_drive_token');
           localStorage.removeItem('google_drive_token_expiry');
         }
-        setIsConnected(false);
-      }
-    }
-
-    // If already connected but no stored token, try current gapi token
-    if (isConnected && window.gapi?.client?.getToken()?.access_token) {
-      try {
-        await window.gapi.client.drive.about.get({ fields: 'user' });
-        console.log('✅ Current gapi token still valid');
-        return true;
-      } catch (error) {
-        console.log('🔄 Current gapi token invalid');
         setIsConnected(false);
       }
     }
@@ -702,7 +682,7 @@ const GoogleDriveSync = ({
     }
 
     // Try to restore connection if needed
-    const connectionOk = await ensureConnection();
+    const connectionOk = ensureConnection();
     if (!connectionOk && !isConnected) {
       showMessage('Please connect to Google Drive first.', true);
       return;
@@ -863,7 +843,7 @@ const GoogleDriveSync = ({
 
   const handleLoad = async () => {
     // Try to restore connection if needed
-    const connectionOk = await ensureConnection();
+    const connectionOk = ensureConnection();
     if (!connectionOk && !isConnected) {
       showMessage('Please connect to Google Drive first.', true);
       return;
@@ -899,40 +879,62 @@ const GoogleDriveSync = ({
 
     // No overall timeout - user has cancel button if needed
 
+    // Get access token for direct fetch calls
+    const getAccessToken = () => {
+      return window.gapi?.client?.getToken()?.access_token || localStorage.getItem('google_drive_token');
+    };
+
     try {
-      // Step 1: Look for cakeculator folder
+      const accessToken = getAccessToken();
+      if (!accessToken) {
+        throw new Error('No access token available. Please reconnect to Google Drive.');
+      }
+
+      // Step 1: Look for cakeculator folder (using direct fetch instead of gapi.client)
       setLoadProgress({ step: 1, total: 6, message: 'Looking for cakeculator folder...' });
       setLoadingStep('Looking for cakeculator folder...');
       console.log('📁 Step 1: Looking for cakeculator folder...');
       let folderId = null;
       try {
-        folderId = await getCakeCulatorFolder();
-        console.log('✅ Found cakeculator folder:', folderId);
+        const folderQuery = encodeURIComponent("name='cakeculator' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+        const folderRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${folderQuery}&spaces=drive`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        if (folderRes.ok) {
+          const folderData = await folderRes.json();
+          if (folderData.files && folderData.files.length > 0) {
+            folderId = folderData.files[0].id;
+            console.log('✅ Found cakeculator folder:', folderId);
+          }
+        }
       } catch (folderError) {
         console.log('ℹ️ Cakeculator folder not found, searching in root');
       }
 
-      // Step 2: Search for analysis files
+      // Step 2: Search for analysis files (using direct fetch)
       setLoadProgress({ step: 2, total: 6, message: 'Searching for analysis files...' });
       setLoadingStep('Searching for analysis files...');
       console.log('🔍 Step 2: Searching for analysis files...');
       let query = "(name contains 'analysis' or name contains 'streaming-analysis') and trashed=false";
       if (folderId) {
-        query = `parents in '${folderId}' and (name contains 'analysis' or name contains 'streaming-analysis') and trashed=false`;
+        query = `'${folderId}' in parents and (name contains 'analysis' or name contains 'streaming-analysis') and trashed=false`;
       }
-      console.log('🔍 Search query:', query);
 
-      const response = await window.gapi.client.drive.files.list({
-        q: query,
-        orderBy: 'modifiedTime desc',
-        pageSize: 1
+      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&orderBy=modifiedTime+desc&pageSize=1`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
       });
 
-      console.log('📋 Search results:', response.result.files.length, 'files found');
+      if (!searchRes.ok) {
+        const errText = await searchRes.text();
+        throw new Error(`File search failed (${searchRes.status}): ${errText}`);
+      }
+
+      const searchData = await searchRes.json();
+      console.log('📋 Search results:', searchData.files?.length || 0, 'files found');
 
       // Step 3: Validate search results
       setLoadProgress({ step: 3, total: 6, message: 'Validating search results...' });
-      if (response.result.files.length === 0) {
+      if (!searchData.files || searchData.files.length === 0) {
         clearTimeout(cancelTimeout);
         showMessage('No saved analysis found on Google Drive', true);
         setIsLoading(false);
@@ -941,21 +943,21 @@ const GoogleDriveSync = ({
         return;
       }
 
-      const file = response.result.files[0];
+      const file = searchData.files[0];
       console.log('📄 Step 3: Found file to load:', file.name, 'ID:', file.id);
 
-      // Step 4: Download file content (with streaming for large files)
+      // Step 4: Download file content
       setLoadProgress({ step: 4, total: 6, message: `Downloading ${file.name}...` });
       setLoadingStep('Downloading file content...');
       console.log('⬇️ Step 4: Downloading file content...');
-      
-      // Get file metadata first to check size
-      const fileMetadata = await window.gapi.client.drive.files.get({
-        fileId: file.id,
-        fields: 'size,name'
+
+      // Get file metadata to check size (using direct fetch)
+      const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?fields=size,name`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
       });
-      
-      const fileSizeBytes = parseInt(fileMetadata.result.size);
+      const metaData = await metaRes.json();
+
+      const fileSizeBytes = parseInt(metaData.size);
       const fileSizeMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
       console.log(`📊 File size: ${fileSizeMB}MB`);
       
