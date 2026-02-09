@@ -40,15 +40,18 @@ const YearSelector = ({
     category: 'desktop'
   });
   
-  // Simple fixed dimensions for instant calculation  
+  // Simple fixed dimensions for instant calculation
   const getCurrentDimensions = () => {
     if (!expanded) {
       return { width: 32, height: 48 };
     }
-    
+
+    // 50% smaller height when at top or bottom position
+    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
+
     return mode === 'range'
-      ? { width: 180, height: 220 }
-      : { width: 90, height: 180 };
+      ? { width: 180, height: isHorizontal ? 110 : 220 }
+      : { width: 90, height: isHorizontal ? 90 : 180 };
   };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({

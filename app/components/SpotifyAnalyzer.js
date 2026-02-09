@@ -317,8 +317,8 @@ const SpotifyAnalyzer = ({
       return { width: 32, height: 48 };
     }
     return isRangeMode 
-      ? { width: 240, height: 220 }
-      : { width: 120, height: 180 };
+      ? { width: 180, height: 220 }
+      : { width: 90, height: 180 };
   };
 
 
@@ -343,7 +343,7 @@ const SpotifyAnalyzer = ({
   useEffect(() => {
     // Use simple static dimensions - no need for complex caching
     const dimensions = yearSelectorExpanded 
-      ? { width: 240, height: 220 }  // Conservative max size (range mode)
+      ? { width: 180, height: 220 }  // Conservative max size (range mode)
       : { width: 32, height: 48 };   // Collapsed size
     
     setYearSelectorWidth(dimensions.width);
@@ -1838,7 +1838,7 @@ const SpotifyAnalyzer = ({
     
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
       // Simple fixed dimensions for instant calculation
-      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
       
       if (yearSelectorPosition === 'left') {
         leftSpace += effectiveWidth;
@@ -3202,7 +3202,7 @@ const SpotifyAnalyzer = ({
                  // Add transform for left-positioned YearSelector (only when sidebar is shown)
                  if (showYearSidebar && shouldShowSidebar(activeTab)) {
                    if (yearSelectorPosition === 'left') {
-                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
                      translateX += effectiveWidth;
                    }
                  }
@@ -3224,7 +3224,7 @@ const SpotifyAnalyzer = ({
                  // Calculate width reduction from YearSelector (only when sidebar is shown)
                  if (showYearSidebar && shouldShowSidebar(activeTab)) {
                    if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
-                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 240 : 120) : 32;
+                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
                      totalWidthReduction += effectiveWidth;
                    }
                  }
