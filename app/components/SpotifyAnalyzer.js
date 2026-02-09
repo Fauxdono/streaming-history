@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey } from './streaming-adapter.js';
+import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import CalendarView from './CalendarView.js';
@@ -1190,7 +1190,24 @@ const SpotifyAnalyzer = ({
       if (loadedData.rawPlayData) setRawPlayData(loadedData.rawPlayData);
 
       console.log('🔧 Setting streaks...');
-      if (loadedData.streaks) setStreaks(loadedData.streaks);
+      if (loadedData.streaks) {
+        setStreaks(loadedData.streaks);
+      } else if (loadedData.rawPlayData && loadedData.rawPlayData.length > 0) {
+        // Calculate streaks from rawPlayData for older saved data
+        console.log('⚙️ Calculating streaks from rawPlayData...');
+        const consecutivePlays = calculateConsecutivePlayStreaks(loadedData.rawPlayData);
+        const overallDaily = calculateOverallDailyStreak(loadedData.rawPlayData);
+        // topSongDaily requires playHistory which isn't in saved data, so skip it
+        const topAlbumDaily = loadedData.topAlbums ?
+          calculateTopAlbumDailyStreak(loadedData.topAlbums, loadedData.rawPlayData) : null;
+
+        setStreaks({
+          consecutivePlays,
+          overallDaily,
+          topSongDaily: null,
+          topAlbumDaily
+        });
+      }
 
       // Set artistsByYear for YearSelector functionality
       console.log('🔧 Setting artists by year...');
@@ -2031,6 +2048,7 @@ const SpotifyAnalyzer = ({
                   rawPlayData={rawPlayData}
                   artistsByYear={artistsByYear}
                   albumsByYear={albumsByYear}
+                  streaks={streaks}
                   uploadedFiles={uploadedFiles}
                   uploadedFileList={uploadedFileList}
                   onDataLoaded={handleDataLoaded}

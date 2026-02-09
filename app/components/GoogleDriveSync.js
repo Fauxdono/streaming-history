@@ -12,6 +12,7 @@ const GoogleDriveSync = ({
   rawPlayData = [],
   artistsByYear = {},
   albumsByYear = {},
+  streaks = null,
   uploadedFiles = [],
   uploadedFileList = null,
   onDataLoaded,
@@ -768,6 +769,7 @@ const GoogleDriveSync = ({
         rawPlayData,
         artistsByYear,
         albumsByYear,
+        streaks,
         metadata: {
           savedAt: new Date().toISOString(),
           totalTracks: processedData.length,

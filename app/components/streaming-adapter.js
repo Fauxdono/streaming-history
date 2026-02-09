@@ -2674,4 +2674,13 @@ export const streamingProcessor = {
   }
 };
 
-export { normalizeString, createMatchKey, filterDataByDate, normalizeArtistName };
+export {
+  normalizeString,
+  createMatchKey,
+  filterDataByDate,
+  normalizeArtistName,
+  calculateConsecutivePlayStreaks,
+  calculateOverallDailyStreak,
+  calculateTopSongDailyStreak,
+  calculateTopAlbumDailyStreak
+};
