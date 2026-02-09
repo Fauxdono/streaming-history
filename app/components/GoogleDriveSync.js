@@ -263,34 +263,56 @@ const GoogleDriveSync = ({
   }, [isInitialized, isInitializing, isConnected]);
   */
 
-  // Simple manual token restoration for save/load operations
+  // Validate and refresh token before operations
   const ensureConnection = async () => {
-    if (!isInitialized || isConnected) return true;
-    
+    if (!isInitialized) return false;
+
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
     const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
-    
+
     if (storedToken && storedExpiry) {
       const now = Date.now();
       const expiry = parseInt(storedExpiry);
-      
+
       if (now < expiry) {
         try {
+          // Always re-set token in case gapi lost it
           window.gapi.client.setToken({ access_token: storedToken });
-          await window.gapi.client.drive.about.get();
-          setIsConnected(true);
-          console.log('✅ Connection restored for operation');
+          // Quick validation call
+          await window.gapi.client.drive.about.get({ fields: 'user' });
+          if (!isConnected) setIsConnected(true);
+          console.log('✅ Token validated for operation');
           return true;
         } catch (error) {
-          console.log('🔍 ENSURE CONNECTION: 🔄 Stored token invalid - clearing');
+          console.log('🔄 Token validation failed, clearing stored token');
           if (typeof window !== 'undefined') {
             localStorage.removeItem('google_drive_token');
             localStorage.removeItem('google_drive_token_expiry');
           }
+          setIsConnected(false);
         }
+      } else {
+        console.log('🔄 Token expired, clearing stored token');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('google_drive_token');
+          localStorage.removeItem('google_drive_token_expiry');
+        }
+        setIsConnected(false);
       }
     }
-    
+
+    // If already connected but no stored token, try current gapi token
+    if (isConnected && window.gapi?.client?.getToken()?.access_token) {
+      try {
+        await window.gapi.client.drive.about.get({ fields: 'user' });
+        console.log('✅ Current gapi token still valid');
+        return true;
+      } catch (error) {
+        console.log('🔄 Current gapi token invalid');
+        setIsConnected(false);
+      }
+    }
+
     return false;
   };
 
@@ -884,15 +906,10 @@ const GoogleDriveSync = ({
       console.log('📁 Step 1: Looking for cakeculator folder...');
       let folderId = null;
       try {
-        folderId = await Promise.race([
-          getCakeCulatorFolder(),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Folder search timeout')), 5000)
-          )
-        ]);
+        folderId = await getCakeCulatorFolder();
         console.log('✅ Found cakeculator folder:', folderId);
       } catch (folderError) {
-        console.log('ℹ️ Cakeculator folder not found or timeout, searching in root');
+        console.log('ℹ️ Cakeculator folder not found, searching in root');
       }
 
       // Step 2: Search for analysis files
@@ -905,16 +922,11 @@ const GoogleDriveSync = ({
       }
       console.log('🔍 Search query:', query);
 
-      const response = await Promise.race([
-        window.gapi.client.drive.files.list({
-          q: query,
-          orderBy: 'modifiedTime desc',
-          pageSize: 1
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('File search timeout - check your Google Drive permissions')), 8000)
-        )
-      ]);
+      const response = await window.gapi.client.drive.files.list({
+        q: query,
+        orderBy: 'modifiedTime desc',
+        pageSize: 1
+      });
 
       console.log('📋 Search results:', response.result.files.length, 'files found');
 
