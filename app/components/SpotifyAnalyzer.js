@@ -272,6 +272,7 @@ const SpotifyAnalyzer = ({
   const [yearRangeMode, setYearRangeMode] = useState(false);
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [rawPlayData, setRawPlayData] = useState([]);
+  const [streaks, setStreaks] = useState(null);
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -975,6 +976,7 @@ const SpotifyAnalyzer = ({
       setSongsByYear(results.songsByYear);
       setBriefObsessions(results.briefObsessions);
       setRawPlayData(results.rawPlayData);
+      setStreaks(results.streaks);
 
       // Update file list
       const fileNames = Array.from(fileList).map(file => file.name);
@@ -1186,7 +1188,10 @@ const SpotifyAnalyzer = ({
       
       console.log('🔧 Setting raw play data...');
       if (loadedData.rawPlayData) setRawPlayData(loadedData.rawPlayData);
-      
+
+      console.log('🔧 Setting streaks...');
+      if (loadedData.streaks) setStreaks(loadedData.streaks);
+
       // Set artistsByYear for YearSelector functionality
       console.log('🔧 Setting artists by year...');
       if (loadedData.artistsByYear) {
@@ -2256,6 +2261,211 @@ const SpotifyAnalyzer = ({
                     rawPlayData={rawPlayData || []}
                     formatDuration={formatDuration}
                   />
+                </div>
+              )}
+
+              {/* Listening Streaks Section */}
+              {stats && streaks && (
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
+                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-white bg-black' : 'border-black bg-white'}`
+                }>
+                  <h4 className={
+                    colorMode === 'colorful'
+                      ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
+                      : 'text-lg font-semibold mb-4'
+                  }>Listening Streaks</h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Back-to-Back Plays Column */}
+                    <div className={
+                      colorMode === 'colorful'
+                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
+                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
+                    }>
+                      <h5 className={
+                        colorMode === 'colorful'
+                          ? 'font-medium mb-3 text-indigo-600 dark:text-indigo-400'
+                          : 'font-medium mb-3'
+                      }>Back-to-Back Plays</h5>
+
+                      {/* Song on repeat */}
+                      {streaks.consecutivePlays?.song && (
+                        <div className="mb-3">
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
+                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
+                          }>Song on repeat:</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
+                              : 'font-medium'
+                          }>"{streaks.consecutivePlays.song.trackName}"</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
+                              : 'text-sm text-gray-600 dark:text-gray-400'
+                          }>by {streaks.consecutivePlays.song.artist}</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
+                              : 'text-sm font-semibold'
+                          }>{streaks.consecutivePlays.song.count} plays in a row</div>
+                        </div>
+                      )}
+
+                      {/* Artist marathon */}
+                      {streaks.consecutivePlays?.artist && (
+                        <div className="mb-3">
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
+                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
+                          }>Artist marathon:</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
+                              : 'font-medium'
+                          }>{streaks.consecutivePlays.artist.name}</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
+                              : 'text-sm font-semibold'
+                          }>{streaks.consecutivePlays.artist.count} consecutive plays</div>
+                        </div>
+                      )}
+
+                      {/* Album session */}
+                      {streaks.consecutivePlays?.album && (
+                        <div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
+                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
+                          }>Album session:</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
+                              : 'font-medium'
+                          }>{streaks.consecutivePlays.album.name}</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
+                              : 'text-sm text-gray-600 dark:text-gray-400'
+                          }>by {streaks.consecutivePlays.album.artist}</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
+                              : 'text-sm font-semibold'
+                          }>{streaks.consecutivePlays.album.count} tracks in a row</div>
+                        </div>
+                      )}
+
+                      {!streaks.consecutivePlays?.song && !streaks.consecutivePlays?.artist && !streaks.consecutivePlays?.album && (
+                        <div className={
+                          colorMode === 'colorful'
+                            ? 'text-sm text-indigo-500 dark:text-indigo-400'
+                            : 'text-sm text-gray-500'
+                        }>No consecutive play streaks found</div>
+                      )}
+                    </div>
+
+                    {/* Daily Streaks Column */}
+                    <div className={
+                      colorMode === 'colorful'
+                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
+                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
+                    }>
+                      <h5 className={
+                        colorMode === 'colorful'
+                          ? 'font-medium mb-3 text-indigo-600 dark:text-indigo-400'
+                          : 'font-medium mb-3'
+                      }>Daily Streaks</h5>
+
+                      {/* Overall listening streak */}
+                      {streaks.overallDaily && (
+                        <div className="mb-3">
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
+                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
+                          }>Longest listening streak:</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
+                              : 'font-medium'
+                          }>{streaks.overallDaily.count} consecutive days</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
+                              : 'text-sm text-gray-600 dark:text-gray-400'
+                          }>{new Date(streaks.overallDaily.startDate).toLocaleDateString()} - {new Date(streaks.overallDaily.endDate).toLocaleDateString()}</div>
+                        </div>
+                      )}
+
+                      {/* Most dedicated song */}
+                      {streaks.topSongDaily && (
+                        <div className="mb-3">
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
+                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
+                          }>Most dedicated song:</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
+                              : 'font-medium'
+                          }>"{streaks.topSongDaily.trackName}"</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
+                              : 'text-sm text-gray-600 dark:text-gray-400'
+                          }>by {streaks.topSongDaily.artist}</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
+                              : 'text-sm font-semibold'
+                          }>{streaks.topSongDaily.count} days in a row</div>
+                        </div>
+                      )}
+
+                      {/* Most consistent album */}
+                      {streaks.topAlbumDaily && (
+                        <div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
+                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
+                          }>Most consistent album:</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
+                              : 'font-medium'
+                          }>{streaks.topAlbumDaily.name}</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
+                              : 'text-sm text-gray-600 dark:text-gray-400'
+                          }>by {streaks.topAlbumDaily.artist}</div>
+                          <div className={
+                            colorMode === 'colorful'
+                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
+                              : 'text-sm font-semibold'
+                          }>{streaks.topAlbumDaily.count} consecutive days</div>
+                        </div>
+                      )}
+
+                      {!streaks.overallDaily && !streaks.topSongDaily && !streaks.topAlbumDaily && (
+                        <div className={
+                          colorMode === 'colorful'
+                            ? 'text-sm text-indigo-500 dark:text-indigo-400'
+                            : 'text-sm text-gray-500'
+                        }>No daily streaks found</div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
