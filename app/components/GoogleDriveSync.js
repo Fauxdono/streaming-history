@@ -876,8 +876,8 @@ const GoogleDriveSync = ({
     }, 5000);
 
     // Dynamic timeout based on if we find large files
-    let overallTimeout = 30000; // Start with 30 seconds, will extend if large file detected
-    const timeout = setTimeout(() => {
+    let overallTimeout = isMobile ? 120000 : 30000; // 2 minutes on mobile, 30s on desktop
+    let timeoutId = setTimeout(() => {
       console.error(`⏰ Load operation timed out after ${overallTimeout/1000} seconds`);
       showMessage('Load timed out. Large files may need more time. Please try again.', true);
       setIsLoading(false);
@@ -930,7 +930,7 @@ const GoogleDriveSync = ({
       // Step 3: Validate search results
       setLoadProgress({ step: 3, total: 6, message: 'Validating search results...' });
       if (response.result.files.length === 0) {
-        clearTimeout(timeout);
+        clearTimeout(timeoutId);
         clearTimeout(cancelTimeout);
         showMessage('No saved analysis found on Google Drive', true);
         setIsLoading(false);
@@ -968,13 +968,13 @@ const GoogleDriveSync = ({
       
       // For files over 50MB, use streaming download with longer timeout
       const isLargeFile = fileSizeBytes > 50 * 1024 * 1024;
-      const downloadTimeout = isLargeFile ? 180000 : 15000; // 3 minutes for large files, 15s for small
+      const downloadTimeout = isLargeFile ? 300000 : (isMobile ? 120000 : 30000); // 5 min large, 2 min mobile, 30s desktop
       
       if (isLargeFile) {
         // Extend overall timeout for large files
-        clearTimeout(timeout);
-        overallTimeout = 240000; // 4 minutes total for large files
-        setTimeout(() => {
+        clearTimeout(timeoutId);
+        overallTimeout = 300000; // 5 minutes total for large files
+        timeoutId = setTimeout(() => {
           console.error(`⏰ Load operation timed out after ${overallTimeout/1000} seconds`);
           showMessage(`Large file download timed out after ${overallTimeout/60000} minutes. File size: ${fileSizeMB}MB. Consider processing smaller data sets.`, true);
           setIsLoading(false);
@@ -1073,7 +1073,7 @@ const GoogleDriveSync = ({
         onDataLoaded(data);
       }
 
-      clearTimeout(timeout);
+      clearTimeout(timeoutId);
       clearTimeout(cancelTimeout);
       const originalFilesText = data.metadata?.originalFiles?.length > 0 
         ? ` + ${data.metadata.originalFiles.length} original files` 
@@ -1088,7 +1088,7 @@ const GoogleDriveSync = ({
       }, 1000);
       
     } catch (error) {
-      clearTimeout(timeout);
+      clearTimeout(timeoutId);
       clearTimeout(cancelTimeout);
       console.error('❌ Load failed:', error);
       showMessage(`Load failed: ${error.message}`, true);
