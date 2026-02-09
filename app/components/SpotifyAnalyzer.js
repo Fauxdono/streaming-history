@@ -12,7 +12,6 @@ import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
 import { X, Trash2, Download } from 'lucide-react';
 import YearSelector from './year-selector.js';
-import SupportOptions from './support-options.js';
 import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
@@ -2573,15 +2572,6 @@ const SpotifyAnalyzer = ({
                 </div>
               )}
 
-              {stats && processedData.length > 0 && (
-                <div className={
-                  colorMode === 'colorful'
-                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
-                    : 'mt-4'
-                }>
-                  <SupportOptions className="h-full" colorMode={colorMode} />
-                </div>
-              )}
             </div>
           </div>
         ) : null;

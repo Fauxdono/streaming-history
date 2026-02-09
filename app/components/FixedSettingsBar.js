@@ -3,7 +3,8 @@
 import React, { useState, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
-import { ArrowLeftRight, FileText, Files, Type, LayoutGrid, List } from 'lucide-react';
+import SupportOptions from './support-options.js';
+import { ArrowLeftRight, FileText, Files, Type, LayoutGrid, List, Heart, X } from 'lucide-react';
 
 const FixedSettingsBar = ({
   togglePosition,
@@ -31,6 +32,7 @@ const FixedSettingsBar = ({
     setViewMode(viewMode === 'grid' ? alternateMode : 'grid');
   };
   const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const settingsButtonRef = useRef(null);
 
   return (
@@ -82,6 +84,13 @@ const FixedSettingsBar = ({
                   title="Font Size Settings"
                 >
                   <Type size={16} />
+                </button>
+                <button
+                  onClick={() => setShowSupportModal(true)}
+                  className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                  title="Support"
+                >
+                  <Heart size={16} fill="white" />
                 </button>
               </div>
 
@@ -147,6 +156,15 @@ const FixedSettingsBar = ({
                 <Type size={14} />
               </button>
 
+              {/* Support button */}
+              <button
+                onClick={() => setShowSupportModal(true)}
+                className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                title="Support"
+              >
+                <Heart size={14} fill="white" />
+              </button>
+
               {/* Collapse toggle button - only show on mobile */}
               {isMobile && (
                 <button 
@@ -163,11 +181,32 @@ const FixedSettingsBar = ({
       </div>
       
       {/* Font Size Dropdown */}
-      <FontSizeDropdown 
+      <FontSizeDropdown
         isOpen={showFontSizeDropdown}
         onClose={() => setShowFontSizeDropdown(false)}
         buttonRef={settingsButtonRef}
       />
+
+      {/* Support Modal */}
+      {showSupportModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50"
+          onClick={() => setShowSupportModal(false)}
+        >
+          <div
+            className="relative max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowSupportModal(false)}
+              className="absolute -top-2 -right-2 p-1.5 rounded-full bg-gray-800 text-white hover:bg-gray-700 transition-colors shadow-lg z-10"
+            >
+              <X size={16} />
+            </button>
+            <SupportOptions colorMode={colorMode} />
+          </div>
+        </div>
+      )}
     </>
   );
 };
