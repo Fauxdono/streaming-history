@@ -377,15 +377,16 @@ const GoogleDriveSync = ({
   };
 
   // Download entire file at once for desktop (maximum speed)
-  const downloadWholeFile = async (fileId, fileSizeBytes) => {
+  const downloadWholeFile = async (fileId, fileSizeBytes, accessToken) => {
     const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
     console.log(`💻 Downloading entire ${totalMB}MB file in one request...`);
-    
+
     try {
       const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
         method: 'GET',
+        cache: 'no-store',
         headers: {
-          'Authorization': `Bearer ${window.gapi.client.getToken().access_token}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
 
@@ -441,15 +442,15 @@ const GoogleDriveSync = ({
   };
 
   // Download file - chunked for mobile safety, whole file for desktop speed
-  const downloadFileWithProgress = async (fileId, fileSizeBytes) => {
+  const downloadFileWithProgress = async (fileId, fileSizeBytes, accessToken) => {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const isLargeFile = fileSizeBytes > 50 * 1024 * 1024; // 50MB+
-    
+
     // Desktop: download whole file for maximum speed
     // Mobile: use chunks to prevent crashes
     if (!isMobile) {
       console.log('💻 Desktop detected - downloading entire file at once for maximum speed...');
-      return await downloadWholeFile(fileId, fileSizeBytes);
+      return await downloadWholeFile(fileId, fileSizeBytes, accessToken);
     }
     
     console.log('📱 Mobile detected - using chunked download for safety...');
@@ -476,134 +477,105 @@ const GoogleDriveSync = ({
     });
     
     try {
-      let textResult = '';
+      const textChunks = []; // Use array instead of string concat for memory efficiency
       let downloadedBytes = 0;
       const textDecoder = new TextDecoder();
-      
+
       // Download file chunk by chunk with retry logic
       for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
         const startByte = chunkIndex * chunkSize;
         const endByte = Math.min(startByte + chunkSize - 1, fileSizeBytes - 1);
-        
+
         console.log(`📦 Downloading chunk ${chunkIndex + 1}/${totalChunks} (${startByte}-${endByte})`);
-        
+
         // Update progress before downloading chunk
         const progressPercent = Math.round((chunkIndex / totalChunks) * 100);
-        setLoadProgress({ 
-          step: 4, 
-          total: 6, 
-          message: `Downloading chunk ${chunkIndex + 1}/${totalChunks} (${progressPercent}%)...` 
+        setLoadProgress({
+          step: 4,
+          total: 6,
+          message: `Downloading chunk ${chunkIndex + 1}/${totalChunks} (${progressPercent}%)...`
         });
-        
+
         let chunkArrayBuffer;
         let retryCount = 0;
         const maxRetries = 3;
-        
+
         // Retry logic for failed chunks
         while (retryCount <= maxRetries) {
           try {
-            // Download individual chunk using Range header
             const chunkResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
               method: 'GET',
+              cache: 'no-store',
               headers: {
-                'Authorization': `Bearer ${window.gapi.client.getToken().access_token}`,
+                'Authorization': `Bearer ${accessToken}`,
                 'Range': `bytes=${startByte}-${endByte}`
               }
             });
-            
+
             if (!chunkResponse.ok) {
               throw new Error(`HTTP ${chunkResponse.status}: ${chunkResponse.statusText}`);
             }
-            
+
             chunkArrayBuffer = await chunkResponse.arrayBuffer();
-            break; // Success - exit retry loop
-            
+            break;
+
           } catch (chunkError) {
             retryCount++;
             console.warn(`❌ Chunk ${chunkIndex + 1} attempt ${retryCount}/${maxRetries + 1} failed:`, chunkError.message);
-            
+
             if (retryCount > maxRetries) {
               throw new Error(`Chunk ${chunkIndex + 1} failed after ${maxRetries + 1} attempts: ${chunkError.message}`);
             }
-            
-            // Exponential backoff: 1s, 2s, 4s
+
             const delay = Math.pow(2, retryCount - 1) * 1000;
             console.log(`⏳ Retrying chunk ${chunkIndex + 1} in ${delay}ms...`);
-            
-            setLoadProgress({ 
-              step: 4, 
-              total: 6, 
-              message: `Retrying chunk ${chunkIndex + 1}/${totalChunks} (attempt ${retryCount + 1}/${maxRetries + 1})...` 
+
+            setLoadProgress({
+              step: 4,
+              total: 6,
+              message: `Retrying chunk ${chunkIndex + 1}/${totalChunks} (attempt ${retryCount + 1}/${maxRetries + 1})...`
             });
-            
+
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
-        
-        // Process chunk data immediately
-        const chunkUint8Array = new Uint8Array(chunkArrayBuffer);
-        const chunkText = textDecoder.decode(chunkUint8Array, { stream: chunkIndex < totalChunks - 1 });
-        
-        textResult += chunkText;
-        downloadedBytes += chunkUint8Array.length;
-        
-        console.log(`✅ Chunk ${chunkIndex + 1}/${totalChunks} complete (${(chunkUint8Array.length / 1024 / 1024).toFixed(1)}MB)`);
-        
-        // Mobile-specific memory management
-        if (isMobile && chunkIndex % 2 === 0) { // Check every 2 chunks on mobile
-          if ('memory' in performance) {
-            const memInfo = performance.memory;
-            const memoryPercent = (memInfo.usedJSHeapSize / memInfo.jsHeapSizeLimit) * 100;
-            
-            console.log(`📱 Memory usage after chunk ${chunkIndex + 1}: ${memoryPercent.toFixed(1)}%`);
-            
-            if (memoryPercent > 80) {
-              console.warn('📱 High memory usage - triggering cleanup');
-              
-              // Trigger garbage collection if available
-              if (window.gc) {
-                try {
-                  window.gc();
-                  console.log('📱 Garbage collection triggered');
-                } catch (e) {}
-              }
-              
-              // Add delay to let memory settle
-              await new Promise(resolve => setTimeout(resolve, 200));
-            }
-            
-            if (memoryPercent > 90) {
-              throw new Error(`Critical memory usage (${memoryPercent.toFixed(1)}%) after chunk ${chunkIndex + 1}. File too large for device.`);
-            }
-          }
-          
-          // Always yield to browser on mobile between chunks
-          await new Promise(resolve => setTimeout(resolve, isMobile ? 100 : 50));
-        }
+
+        // Decode and store in array (avoids string concat memory doubling)
+        const chunkText = textDecoder.decode(new Uint8Array(chunkArrayBuffer), { stream: chunkIndex < totalChunks - 1 });
+        textChunks.push(chunkText);
+        downloadedBytes += chunkArrayBuffer.byteLength;
+        chunkArrayBuffer = null; // Free immediately
+
+        console.log(`✅ Chunk ${chunkIndex + 1}/${totalChunks} complete`);
+
+        // Yield to browser between chunks on mobile
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
-      
-      // Finalize any remaining bytes
+
+      // Finalize decoder
       const finalChunk = textDecoder.decode();
-      if (finalChunk) textResult += finalChunk;
-      
+      if (finalChunk) textChunks.push(finalChunk);
+
+      // Join all chunks at once (single allocation)
+      const textResult = textChunks.join('');
+
       console.log(`✅ Chunked download complete: ${totalMB}MB in ${totalChunks} chunks`);
       return { body: textResult };
       
     } catch (error) {
       console.error('❌ Chunked download failed:', error);
       
-      // For smaller files, try fallback to standard download
+      // For smaller files, try fallback to single download
       if (fileSizeBytes < 50 * 1024 * 1024) {
-        console.log('🔄 Falling back to standard download for smaller file...');
+        console.log('🔄 Falling back to single download for smaller file...');
         try {
-          const fallbackResponse = await window.gapi.client.drive.files.get({
-            fileId: fileId,
-            alt: 'media'
+          const fallbackResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+            cache: 'no-store',
+            headers: { 'Authorization': `Bearer ${accessToken}` }
           });
-          
-          return {
-            body: fallbackResponse.body || fallbackResponse.result?.body || fallbackResponse
-          };
+          if (fallbackResponse.ok) {
+            return { body: await fallbackResponse.text() };
+          }
         } catch (fallbackError) {
           console.error('❌ Fallback download also failed:', fallbackError);
         }
@@ -898,6 +870,7 @@ const GoogleDriveSync = ({
       try {
         const folderQuery = encodeURIComponent("name='cakeculator' and mimeType='application/vnd.google-apps.folder' and trashed=false");
         const folderRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${folderQuery}&spaces=drive`, {
+          cache: 'no-store',
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         if (folderRes.ok) {
@@ -921,6 +894,7 @@ const GoogleDriveSync = ({
       }
 
       const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&orderBy=modifiedTime+desc&pageSize=1`, {
+        cache: 'no-store',
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
 
@@ -953,6 +927,7 @@ const GoogleDriveSync = ({
 
       // Get file metadata to check size (using direct fetch)
       const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?fields=size,name`, {
+        cache: 'no-store',
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
       const metaData = await metaRes.json();
@@ -973,7 +948,7 @@ const GoogleDriveSync = ({
       console.log(`📁 File size: ${fileSizeMB}MB, mobile: ${isMobile}`);
 
       console.log('⬇️ Starting file download...');
-      const fileContent = await downloadFileWithProgress(file.id, fileSizeBytes);
+      const fileContent = await downloadFileWithProgress(file.id, fileSizeBytes, accessToken);
       console.log('✅ File download completed');
 
       // Step 5: Parse analysis data
@@ -988,16 +963,20 @@ const GoogleDriveSync = ({
         keys: Object.keys(fileContent || {})
       });
       
-      // Handle different response structures
+      // Handle different response structures - free fileContent ref after extracting
       let jsonContent = fileContent.body || fileContent.result?.body || fileContent;
+      // Free the wrapper object
+      if (fileContent.body) fileContent.body = null;
+
       if (typeof jsonContent !== 'string') {
         console.warn('⚠️ Unexpected content type, attempting to stringify');
         jsonContent = JSON.stringify(jsonContent);
       }
-      
+
       let data;
       try {
         data = JSON.parse(jsonContent);
+        jsonContent = null; // Free the string after parsing
       } catch (parseError) {
         console.error('❌ JSON parsing failed:', parseError);
         console.log('📝 Content preview (first 500 chars):', jsonContent?.toString().substring(0, 500));
