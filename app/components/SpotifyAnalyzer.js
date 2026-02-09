@@ -82,8 +82,8 @@ const SpotifyAnalyzer = ({
   discoveryTextTheme = 'emerald',
   discoveryBackgroundTheme = 'orange'
 }) => {
-  // Get the current theme
-  const { theme } = useTheme();
+  // Get the current theme and font size
+  const { theme, fontSize } = useTheme();
   const isDarkMode = theme === 'dark';
   
   // Helper function to get themed colors
@@ -1928,7 +1928,10 @@ const SpotifyAnalyzer = ({
     
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    const settingsBarHeight = isMobile ? 85 : 40;
+    // Scale settings bar height based on font size
+    const fontScales = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 };
+    const fontScale = fontScales[fontSize] || 1;
+    const settingsBarHeight = isMobile ? 85 : Math.round(40 * fontScale);
     
     let leftSpace = 0;
     let rightSpace = 0;
@@ -1977,7 +1980,7 @@ const SpotifyAnalyzer = ({
       paddingLeft: `${leftSpace}px`,
       paddingRight: `${rightSpace}px`,
     };
-  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorExpanded, showYearSidebar, customYearRangeMode, isMobile, yearSelectorHeight]);
+  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorExpanded, showYearSidebar, customYearRangeMode, isMobile, yearSelectorHeight, fontSize]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
