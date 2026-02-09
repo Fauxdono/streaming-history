@@ -273,6 +273,7 @@ const SpotifyAnalyzer = ({
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [rawPlayData, setRawPlayData] = useState([]);
   const [streaks, setStreaks] = useState(null);
+  const [selectedStreaksYear, setSelectedStreaksYear] = useState('all');
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -455,6 +456,36 @@ const SpotifyAnalyzer = ({
   const sortedYears = useMemo(() => {
     return Object.keys(artistsByYear).sort((a, b) => a - b);
   }, [artistsByYear]);
+
+  // Calculate filtered streaks based on selected year
+  const filteredStreaks = useMemo(() => {
+    if (selectedStreaksYear === 'all') {
+      return streaks;
+    }
+    if (!rawPlayData || rawPlayData.length === 0) {
+      return null;
+    }
+    // Filter rawPlayData by selected year
+    const filteredData = rawPlayData.filter(play => {
+      if (!play.ts) return false;
+      const playYear = new Date(play.ts).getFullYear().toString();
+      return playYear === selectedStreaksYear;
+    });
+    if (filteredData.length === 0) {
+      return null;
+    }
+    // Recalculate streaks for filtered data
+    const consecutivePlays = calculateConsecutivePlayStreaks(filteredData);
+    const overallDaily = calculateOverallDailyStreak(filteredData);
+    const topAlbumDaily = topAlbums ?
+      calculateTopAlbumDailyStreak(topAlbums, filteredData) : null;
+    return {
+      consecutivePlays,
+      overallDaily,
+      topSongDaily: null, // Would need playHistory which we don't have for filtered data
+      topAlbumDaily
+    };
+  }, [selectedStreaksYear, streaks, rawPlayData, topAlbums]);
 
   // Toggle year range mode with useCallback to prevent recreation
   const toggleYearRangeMode = useCallback((value) => {
@@ -2283,17 +2314,33 @@ const SpotifyAnalyzer = ({
               )}
 
               {/* Listening Streaks Section */}
-              {stats && streaks && (
+              {stats && (streaks || rawPlayData?.length > 0) && (
                 <div className={
                   colorMode === 'colorful'
                     ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
                     : `mt-4 p-4 border rounded ${isDarkMode ? 'border-white bg-black' : 'border-black bg-white'}`
                 }>
-                  <h4 className={
-                    colorMode === 'colorful'
-                      ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
-                      : 'text-lg font-semibold mb-4'
-                  }>Listening Streaks</h4>
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className={
+                      colorMode === 'colorful'
+                        ? 'text-lg font-semibold text-indigo-700 dark:text-indigo-300'
+                        : 'text-lg font-semibold'
+                    }>Listening Streaks</h4>
+                    <select
+                      value={selectedStreaksYear}
+                      onChange={(e) => setSelectedStreaksYear(e.target.value)}
+                      className={
+                        colorMode === 'colorful'
+                          ? 'px-2 py-1 rounded border border-indigo-300 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm'
+                          : `px-2 py-1 rounded border text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                      }
+                    >
+                      <option value="all">All Time</option>
+                      {sortedYears.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Back-to-Back Plays Column */}
@@ -2309,7 +2356,7 @@ const SpotifyAnalyzer = ({
                       }>Back-to-Back Plays</h5>
 
                       {/* Song on repeat */}
-                      {streaks.consecutivePlays?.song && (
+                      {filteredStreaks?.consecutivePlays?.song && (
                         <div className="mb-3">
                           <div className={
                             colorMode === 'colorful'
@@ -2320,22 +2367,22 @@ const SpotifyAnalyzer = ({
                             colorMode === 'colorful'
                               ? 'font-medium text-indigo-700 dark:text-indigo-300'
                               : 'font-medium'
-                          }>"{streaks.consecutivePlays.song.trackName}"</div>
+                          }>"{filteredStreaks.consecutivePlays.song.trackName}"</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm text-indigo-600 dark:text-indigo-400'
                               : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {streaks.consecutivePlays.song.artist}</div>
+                          }>by {filteredStreaks.consecutivePlays.song.artist}</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
                               : 'text-sm font-semibold'
-                          }>{streaks.consecutivePlays.song.count} plays in a row</div>
+                          }>{filteredStreaks.consecutivePlays.song.count} plays in a row</div>
                         </div>
                       )}
 
                       {/* Artist marathon */}
-                      {streaks.consecutivePlays?.artist && (
+                      {filteredStreaks?.consecutivePlays?.artist && (
                         <div className="mb-3">
                           <div className={
                             colorMode === 'colorful'
@@ -2346,17 +2393,17 @@ const SpotifyAnalyzer = ({
                             colorMode === 'colorful'
                               ? 'font-medium text-indigo-700 dark:text-indigo-300'
                               : 'font-medium'
-                          }>{streaks.consecutivePlays.artist.name}</div>
+                          }>{filteredStreaks.consecutivePlays.artist.name}</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
                               : 'text-sm font-semibold'
-                          }>{streaks.consecutivePlays.artist.count} consecutive plays</div>
+                          }>{filteredStreaks.consecutivePlays.artist.count} consecutive plays</div>
                         </div>
                       )}
 
                       {/* Album session */}
-                      {streaks.consecutivePlays?.album && (
+                      {filteredStreaks?.consecutivePlays?.album && (
                         <div>
                           <div className={
                             colorMode === 'colorful'
@@ -2367,21 +2414,21 @@ const SpotifyAnalyzer = ({
                             colorMode === 'colorful'
                               ? 'font-medium text-indigo-700 dark:text-indigo-300'
                               : 'font-medium'
-                          }>{streaks.consecutivePlays.album.name}</div>
+                          }>{filteredStreaks.consecutivePlays.album.name}</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm text-indigo-600 dark:text-indigo-400'
                               : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {streaks.consecutivePlays.album.artist}</div>
+                          }>by {filteredStreaks.consecutivePlays.album.artist}</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
                               : 'text-sm font-semibold'
-                          }>{streaks.consecutivePlays.album.count} tracks in a row</div>
+                          }>{filteredStreaks.consecutivePlays.album.count} tracks in a row</div>
                         </div>
                       )}
 
-                      {!streaks.consecutivePlays?.song && !streaks.consecutivePlays?.artist && !streaks.consecutivePlays?.album && (
+                      {!filteredStreaks?.consecutivePlays?.song && !filteredStreaks?.consecutivePlays?.artist && !filteredStreaks?.consecutivePlays?.album && (
                         <div className={
                           colorMode === 'colorful'
                             ? 'text-sm text-indigo-500 dark:text-indigo-400'
@@ -2403,7 +2450,7 @@ const SpotifyAnalyzer = ({
                       }>Daily Streaks</h5>
 
                       {/* Overall listening streak */}
-                      {streaks.overallDaily && (
+                      {filteredStreaks?.overallDaily && (
                         <div className="mb-3">
                           <div className={
                             colorMode === 'colorful'
@@ -2414,17 +2461,17 @@ const SpotifyAnalyzer = ({
                             colorMode === 'colorful'
                               ? 'font-medium text-indigo-700 dark:text-indigo-300'
                               : 'font-medium'
-                          }>{streaks.overallDaily.count} consecutive days</div>
+                          }>{filteredStreaks.overallDaily.count} consecutive days</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm text-indigo-600 dark:text-indigo-400'
                               : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>{new Date(streaks.overallDaily.startDate).toLocaleDateString()} - {new Date(streaks.overallDaily.endDate).toLocaleDateString()}</div>
+                          }>{new Date(filteredStreaks.overallDaily.startDate).toLocaleDateString()} - {new Date(filteredStreaks.overallDaily.endDate).toLocaleDateString()}</div>
                         </div>
                       )}
 
                       {/* Most dedicated song */}
-                      {streaks.topSongDaily && (
+                      {filteredStreaks?.topSongDaily && (
                         <div className="mb-3">
                           <div className={
                             colorMode === 'colorful'
@@ -2435,22 +2482,22 @@ const SpotifyAnalyzer = ({
                             colorMode === 'colorful'
                               ? 'font-medium text-indigo-700 dark:text-indigo-300'
                               : 'font-medium'
-                          }>"{streaks.topSongDaily.trackName}"</div>
+                          }>"{filteredStreaks.topSongDaily.trackName}"</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm text-indigo-600 dark:text-indigo-400'
                               : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {streaks.topSongDaily.artist}</div>
+                          }>by {filteredStreaks.topSongDaily.artist}</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
                               : 'text-sm font-semibold'
-                          }>{streaks.topSongDaily.count} days in a row</div>
+                          }>{filteredStreaks.topSongDaily.count} days in a row</div>
                         </div>
                       )}
 
                       {/* Most consistent album */}
-                      {streaks.topAlbumDaily && (
+                      {filteredStreaks?.topAlbumDaily && (
                         <div>
                           <div className={
                             colorMode === 'colorful'
@@ -2461,21 +2508,21 @@ const SpotifyAnalyzer = ({
                             colorMode === 'colorful'
                               ? 'font-medium text-indigo-700 dark:text-indigo-300'
                               : 'font-medium'
-                          }>{streaks.topAlbumDaily.name}</div>
+                          }>{filteredStreaks.topAlbumDaily.name}</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm text-indigo-600 dark:text-indigo-400'
                               : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {streaks.topAlbumDaily.artist}</div>
+                          }>by {filteredStreaks.topAlbumDaily.artist}</div>
                           <div className={
                             colorMode === 'colorful'
                               ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
                               : 'text-sm font-semibold'
-                          }>{streaks.topAlbumDaily.count} consecutive days</div>
+                          }>{filteredStreaks.topAlbumDaily.count} consecutive days</div>
                         </div>
                       )}
 
-                      {!streaks.overallDaily && !streaks.topSongDaily && !streaks.topAlbumDaily && (
+                      {!filteredStreaks?.overallDaily && !filteredStreaks?.topSongDaily && !filteredStreaks?.topAlbumDaily && (
                         <div className={
                           colorMode === 'colorful'
                             ? 'text-sm text-indigo-500 dark:text-indigo-400'
