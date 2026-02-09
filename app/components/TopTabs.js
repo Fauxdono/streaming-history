@@ -227,8 +227,8 @@ const TopTabs = ({
       // Minimal mode: black/white only
       if (colorMode === 'minimal') {
         return activeTab === tabId
-          ? 'bg-white text-black border-b-2 border-white dark:bg-black dark:text-white dark:border-black'
-          : 'bg-gray-800 text-white hover:bg-gray-700 dark:bg-gray-200 dark:text-black dark:hover:bg-gray-300';
+          ? 'bg-black text-white border-b-2 border-black dark:bg-white dark:text-black dark:border-white'
+          : 'bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700';
       }
 
       // Colorful mode
@@ -353,10 +353,10 @@ const TopTabs = ({
     // Faster transitions on mobile to reduce lag
     const transitionClass = isMobile ? 'transition-all duration-150' : 'transition-all duration-300';
     const bgStyles = colorMode === 'minimal'
-      ? 'bg-black dark:bg-white'
+      ? 'bg-white dark:bg-black'
       : 'bg-white dark:bg-black';
     const borderColor = colorMode === 'minimal'
-      ? 'border-white dark:border-black'
+      ? 'border-black dark:border-white'
       : 'border-violet-200 dark:border-gray-600';
     const baseStyles = `${bgStyles} ${borderColor} ${transitionClass}`;
 
