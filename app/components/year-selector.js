@@ -1,6 +1,7 @@
 // Optimized YearSelector.js with performance improvements
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import WheelSelector from './wheelselector.js';
+import { useTheme } from './themeprovider';
 
 // Cache for expensive operations
 const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -72,6 +73,9 @@ const YearSelector = ({
   // UI state
   const [isMobile, setIsMobile] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+
+  // Get font size for dynamic settings bar height
+  const { fontSize } = useTheme();
   const [refreshCounter, setRefreshCounter] = useState(0);
   const [isPositionTransitioning, setIsPositionTransitioning] = useState(false);
   
@@ -1353,12 +1357,14 @@ const YearSelector = ({
     }
   };
 
-  // Fixed settings bar height - this matches the FixedSettingsBar height
-  const settingsBarHeight = isMobile ? 85 : 40;
+  // Fixed settings bar height - this matches the FixedSettingsBar height, scaled by font size
+  const fontScales = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 };
+  const fontScale = fontScales[fontSize] || 1;
+  const settingsBarHeight = isMobile ? 85 : Math.round(40 * fontScale);
 
-  // Dynamic position styles that account for TopTabs (memoized for mobile performance)  
+  // Dynamic position styles that account for TopTabs (memoized for mobile performance)
   const getPositionStyles = useMemo(() => {
-    const settingsBarHeight = isMobile ? 85 : 40;
+    const settingsBarHeight = isMobile ? 85 : Math.round(40 * fontScale);
     // Use actual TopTabs dimensions, with fallbacks for mobile
     const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight : (isMobile ? 44 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
@@ -1450,7 +1456,7 @@ const YearSelector = ({
       className: 'fixed right-0 top-20 bottom-0 z-[90]',
       style: {}
     };
-  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile]);
+  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, fontScale]);
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
