@@ -637,11 +637,11 @@ const SpotifyAnalyzer = ({
   // Memoized tab labels to avoid recalculation
   const getAlbumsTabLabel = useCallback(() => {
     if (selectedAlbumYear === 'all') {
-      return 'All-time Albums';
+      return <span>Albums <span className="text-xs opacity-75">all-time</span></span>;
     } else if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
-      return `Albums - ${albumYearRange.startYear}-${albumYearRange.endYear}`;
+      return <span>Albums <span className="text-xs opacity-75">{albumYearRange.startYear}-{albumYearRange.endYear}</span></span>;
     }
-    return `Albums - ${selectedAlbumYear}`;
+    return <span>Albums <span className="text-xs opacity-75">{selectedAlbumYear}</span></span>;
   }, [selectedAlbumYear, albumYearRangeMode, albumYearRange]);
 
   // useEffect to set album date ranges when year changes (like CustomTrackRankings)
@@ -1453,65 +1453,65 @@ const SpotifyAnalyzer = ({
 
   const getArtistsTabLabel = useCallback(() => {
     if (selectedArtistYear === 'all') {
-      return 'All-time Artists';
+      return <span>Artists <span className="text-xs opacity-75">all-time</span></span>;
     } else if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
-      return `Artists - ${yearRange.startYear}-${yearRange.endYear}`;
+      return <span>Artists <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
     }
-    return `Artists - ${selectedArtistYear}`;
+    return <span>Artists <span className="text-xs opacity-75">{selectedArtistYear}</span></span>;
   }, [selectedArtistYear, yearRangeMode, yearRange]);
 
   const getCustomTabLabel = useCallback(() => {
     if (customYearRangeMode && customYearRange.startYear && customYearRange.endYear) {
-      return `Songs - ${customYearRange.startYear}-${customYearRange.endYear}`;
+      return <span>Songs <span className="text-xs opacity-75">{customYearRange.startYear}-{customYearRange.endYear}</span></span>;
     } else if (customTrackYear === 'all') {
-      return 'All-time Songs';
+      return <span>Songs <span className="text-xs opacity-75">all-time</span></span>;
     }
-    return `Songs - ${customTrackYear}`;
+    return <span>Songs <span className="text-xs opacity-75">{customTrackYear}</span></span>;
   }, [customYearRangeMode, customYearRange, customTrackYear]);
 
   const getPatternsTabLabel = useCallback(() => {
     if (patternYearRangeMode && patternYearRange.startYear && patternYearRange.endYear) {
-      return `Patterns - ${patternYearRange.startYear}-${patternYearRange.endYear}`;
+      return <span>Patterns <span className="text-xs opacity-75">{patternYearRange.startYear}-{patternYearRange.endYear}</span></span>;
     } else if (selectedPatternYear === 'all') {
-      return 'All-time Patterns';
+      return <span>Patterns <span className="text-xs opacity-75">all-time</span></span>;
     }
-    return `Patterns - ${selectedPatternYear}`;
+    return <span>Patterns <span className="text-xs opacity-75">{selectedPatternYear}</span></span>;
   }, [patternYearRangeMode, patternYearRange, selectedPatternYear]);
 
   const getBehaviorTabLabel = useCallback(() => {
     if (behaviorYearRangeMode && behaviorYearRange.startYear && behaviorYearRange.endYear) {
-      return `Behavior - ${behaviorYearRange.startYear}-${behaviorYearRange.endYear}`;
+      return <span>Behavior <span className="text-xs opacity-75">{behaviorYearRange.startYear}-{behaviorYearRange.endYear}</span></span>;
     } else if (selectedBehaviorYear === 'all') {
-      return 'All-time Behavior';
+      return <span>Behavior <span className="text-xs opacity-75">all-time</span></span>;
     }
-    return `Behavior - ${selectedBehaviorYear}`;
+    return <span>Behavior <span className="text-xs opacity-75">{selectedBehaviorYear}</span></span>;
   }, [behaviorYearRangeMode, behaviorYearRange, selectedBehaviorYear]);
 
   const getCalendarTabLabel = useCallback(() => {
     if (calendarYearRangeMode && calendarYearRange.startYear && calendarYearRange.endYear) {
-      return `Calendar - ${calendarYearRange.startYear}-${calendarYearRange.endYear}`;
+      return <span>Calendar <span className="text-xs opacity-75">{calendarYearRange.startYear}-{calendarYearRange.endYear}</span></span>;
     } else if (selectedCalendarYear === 'all') {
-      return 'All-time Calendar';
+      return <span>Calendar <span className="text-xs opacity-75">all-time</span></span>;
     }
-    return `Calendar - ${selectedCalendarYear}`;
+    return <span>Calendar <span className="text-xs opacity-75">{selectedCalendarYear}</span></span>;
   }, [calendarYearRangeMode, calendarYearRange, selectedCalendarYear]);
 
   const getDiscoveryTabLabel = useCallback(() => {
     if (discoveryYearRangeMode && discoveryYearRange.startYear && discoveryYearRange.endYear) {
-      return `Discovery - ${discoveryYearRange.startYear}-${discoveryYearRange.endYear}`;
+      return <span>Discovery <span className="text-xs opacity-75">{discoveryYearRange.startYear}-{discoveryYearRange.endYear}</span></span>;
     } else if (selectedDiscoveryYear === 'all') {
-      return 'All-time Discovery';
+      return <span>Discovery <span className="text-xs opacity-75">all-time</span></span>;
     }
-    return `Discovery - ${selectedDiscoveryYear}`;
+    return <span>Discovery <span className="text-xs opacity-75">{selectedDiscoveryYear}</span></span>;
   }, [discoveryYearRangeMode, discoveryYearRange, selectedDiscoveryYear]);
 
   const getPodcastsTabLabel = useCallback(() => {
     if (podcastYearRangeMode && podcastYearRange.startYear && podcastYearRange.endYear) {
-      return `Podcasts - ${podcastYearRange.startYear}-${podcastYearRange.endYear}`;
+      return <span>Podcasts <span className="text-xs opacity-75">{podcastYearRange.startYear}-{podcastYearRange.endYear}</span></span>;
     } else if (selectedPodcastYear === 'all') {
-      return 'All-time Podcasts';
+      return <span>Podcasts <span className="text-xs opacity-75">all-time</span></span>;
     }
-    return `Podcasts - ${selectedPodcastYear}`;
+    return <span>Podcasts <span className="text-xs opacity-75">{selectedPodcastYear}</span></span>;
   }, [podcastYearRangeMode, podcastYearRange, selectedPodcastYear]);
 
   // Handle loading sample data with useCallback
