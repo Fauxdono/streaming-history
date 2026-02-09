@@ -153,9 +153,11 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
         <div className={`font-medium ${colors.text}`}>Top Track:</div>
         {topTrack ? (
           <div className={`text-sm ${colors.textLight} p-1 ${colors.bgLight} rounded`}>
-            {topTrack.trackName}
-            <div className={`flex justify-between text-xs ${colors.textLight}`}>
-              <span>{formatDuration(topTrack.totalPlayed)}</span>
+            <div className="flex justify-between items-center">
+              <span>{topTrack.trackName}</span>
+              <span className="text-xs">{formatDuration(topTrack.totalPlayed)}</span>
+            </div>
+            <div className="text-right text-xs">
               <span>{topTrack.playCount} plays</span>
             </div>
           </div>
@@ -191,20 +193,22 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
               `Showing all ${otherTracks.length} remaining tracks`}
           </div>
           {otherTracks.map((track, trackIndex) => (
-            <div 
+            <div
               key={`${track.trackName || 'unknown'}-${trackIndex}`}
               className={`p-1 ${trackIndex % 2 === 0 ? colors.bgStripe : colors.bg}`}
             >
-              <div className={colors.text}>
-                {track.trackName || 'Unknown Track'}
-                {track.variations && track.variations.length > 1 && (
-                  <span className={`text-xs ${colors.textLight} ml-1`}>
-                    ({track.variations.length} versions)
-                  </span>
-                )}
+              <div className={`flex justify-between items-center ${colors.text}`}>
+                <span>
+                  {track.trackName || 'Unknown Track'}
+                  {track.variations && track.variations.length > 1 && (
+                    <span className={`text-xs ${colors.textLight} ml-1`}>
+                      ({track.variations.length} versions)
+                    </span>
+                  )}
+                </span>
+                <span className={`text-xs ${colors.textLight}`}>{formatDuration(track.totalPlayed || 0)}</span>
               </div>
-              <div className={`flex justify-between ${colors.textLight}`}>
-                <span>{formatDuration(track.totalPlayed || 0)}</span>
+              <div className={`text-right text-xs ${colors.textLight}`}>
                 <span>{track.playCount || 0} plays</span>
               </div>
             </div>
