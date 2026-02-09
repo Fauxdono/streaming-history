@@ -228,7 +228,7 @@ const TopTabs = ({
       if (colorMode === 'minimal') {
         return activeTab === tabId
           ? 'bg-black text-white border-b-2 border-black dark:bg-white dark:text-black dark:border-white'
-          : 'bg-gray-200 text-black hover:bg-gray-300 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700';
+          : 'bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-900';
       }
 
       // Colorful mode
@@ -301,7 +301,7 @@ const TopTabs = ({
           isCollapsed && isMobile
             ? 'p-2 text-base'
             : 'px-2 sm:px-4 py-2 text-sm sm:text-base'
-        } font-medium ${getTabColor(id)}`}
+        } font-medium ${getTabColor(id)} ${isMobile && !isCollapsed ? '[&>span]:flex [&>span]:flex-col [&>span]:items-center [&>span]:leading-tight [&>span>span]:text-[10px]' : ''}`}
         title={isCollapsed && isMobile ? label : undefined}
       >
         {isCollapsed && isMobile ? getTabIcon(id) : label}
@@ -406,7 +406,7 @@ const TopTabs = ({
 
   // Tabs component for reuse
   const TabsContainer = () => (
-    <div className="flex gap-0 min-w-max text-sm sm:text-base px-2">
+    <div className="flex gap-0 min-w-max text-sm sm:text-base">
       {stats && <TabButton id="updates" label="Updates" />}
       <TabButton id="upload" label="Upload" />
       {stats && <TabButton id="stats" label="Statistics" />}
@@ -454,7 +454,7 @@ const TopTabs = ({
       >
         {currentPosition === 'top' || currentPosition === 'bottom' ? (
           // Horizontal layout for top and bottom positions
-          <div className={`overflow-x-auto main-tabs-scrollbar ${currentPosition === 'top' ? '' : 'py-2'}`}>
+          <div className="overflow-x-auto main-tabs-scrollbar">
             <TabsContainer />
           </div>
         ) : (
