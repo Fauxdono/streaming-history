@@ -719,7 +719,7 @@ const CalendarView = ({
             
             {/* Monthly View - Containers with Table Content */}
             {!isMonthView && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {calendarData.map((monthData, index) => (
                   <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
 
@@ -926,7 +926,7 @@ const CalendarView = ({
                   )}
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {dailyCalendarData.map((dayData, index) => {
                   const handleDayClick = () => {
                     if (!daySelectionMode) {
