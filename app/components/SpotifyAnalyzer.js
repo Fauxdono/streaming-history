@@ -3119,7 +3119,8 @@ const SpotifyAnalyzer = ({
     colorMode,
     customViewMode,
     podcastViewMode,
-    patternsViewMode
+    patternsViewMode,
+    artistSelectionMode
   ]);
 
   // Get current view mode based on active tab
