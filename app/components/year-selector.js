@@ -46,9 +46,9 @@ const YearSelector = ({
       return { width: 32, height: 48 };
     }
     
-    return mode === 'range' 
-      ? { width: 240, height: 220 }
-      : { width: 120, height: 180 };
+    return mode === 'range'
+      ? { width: 180, height: 220 }
+      : { width: 90, height: 180 };
   };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -817,15 +817,8 @@ const YearSelector = ({
         break;
     }
 
-    // If textTheme is provided, override text colors while keeping background colors from colorTheme
-    if (textTheme && textTheme !== colorTheme) {
-      const textOverrides = getTextColorsForTheme(textTheme);
-      return {
-        ...baseColors, // Keep background colors from colorTheme
-        ...textOverrides // Override text colors with textTheme
-      };
-    }
-
+    // In colorful mode, text should match the page color (colorTheme), not a separate textTheme
+    // This creates visual harmony between the year selector and the page it's on
     return baseColors;
   }, [colorTheme, textTheme, colorMode]);
 

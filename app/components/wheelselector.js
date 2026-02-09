@@ -327,12 +327,10 @@ const WheelSelector = ({
     }
   };
   
-  // Get base colors and override text colors if textTheme is provided
-  // But skip textTheme override in minimal mode to keep black/white text
+  // Get base colors - text now matches page color (colorTheme) for visual harmony
+  // In minimal mode, colors are black/white
   const baseColors = getColors();
-  const colors = (textTheme && textTheme !== colorTheme && colorMode !== 'minimal')
-    ? { ...baseColors, ...getTextColors(textTheme) }
-    : baseColors;
+  const colors = baseColors;
   
   // If no value is selected or item not found, default to first item if available
   useEffect(() => {
