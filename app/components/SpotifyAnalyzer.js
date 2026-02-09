@@ -3455,8 +3455,31 @@ const SpotifyAnalyzer = ({
     }
   };
 
+  // Get page background class based on colorMode and activeTab
+  const getPageBackground = () => {
+    if (colorMode !== 'colorful') return '';
+
+    const tabColors = {
+      upload: isDarkMode ? 'bg-violet-900' : 'bg-violet-200',
+      stats: isDarkMode ? 'bg-indigo-900' : 'bg-indigo-200',
+      artists: isDarkMode ? 'bg-blue-900' : 'bg-blue-200',
+      albums: isDarkMode ? 'bg-cyan-900' : 'bg-cyan-200',
+      custom: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-200',
+      tracks: isDarkMode ? 'bg-red-900' : 'bg-red-200',
+      calendar: isDarkMode ? 'bg-green-900' : 'bg-green-200',
+      patterns: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-200',
+      behavior: isDarkMode ? 'bg-amber-900' : 'bg-amber-200',
+      discovery: isDarkMode ? 'bg-orange-900' : 'bg-orange-200',
+      podcasts: isDarkMode ? 'bg-red-900' : 'bg-red-200',
+      playlists: isDarkMode ? 'bg-rose-900' : 'bg-rose-200',
+      updates: isDarkMode ? 'bg-purple-900' : 'bg-purple-200'
+    };
+
+    return tabColors[activeTab] || '';
+  };
+
   return (
-    <div className="w-full h-full">
+    <div className={`w-full h-full min-h-screen ${getPageBackground()}`}>
       <FixedSettingsBar
         togglePosition={togglePosition}
         toggleCollapsed={toggleCollapsed}
