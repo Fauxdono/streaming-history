@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useTheme } from './themeprovider';
 
 const TopTabs = ({
   activeTab,
@@ -47,8 +48,10 @@ const TopTabs = ({
     }
   }, [externalIsCollapsed, isCollapsed]);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  
+
+  // Get font size for re-measuring when it changes
+  const { fontSize } = useTheme();
+
   // Check for mobile viewport
   const [isMobile, setIsMobile] = useState(false);
   
@@ -301,7 +304,7 @@ const TopTabs = ({
   // Settings bar height calculation - measure actual height on desktop
   const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? '85px' : '40px');
   
-  // Measure actual SettingsBar height on desktop
+  // Measure actual SettingsBar height on desktop - re-measure when font size changes
   useEffect(() => {
     if (!isMobile) {
       const measureSettingsBarHeight = () => {
@@ -311,14 +314,14 @@ const TopTabs = ({
           setSettingsBarHeight(`${actualHeight}px`);
         }
       };
-      
+
       // Measure after component mounts and after a brief delay
       measureSettingsBarHeight();
       const timer = setTimeout(measureSettingsBarHeight, 100);
-      
+
       return () => clearTimeout(timer);
     }
-  }, [isMobile]);
+  }, [isMobile, fontSize]);
 
   // Position styles for different placements - now accounts for fixed settings bar
   const getPositionStyles = () => {
