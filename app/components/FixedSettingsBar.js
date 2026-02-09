@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportOptions from './support-options.js';
-import { ArrowLeftRight, FileText, Files, Type, LayoutGrid, List, Heart, X } from 'lucide-react';
+import { ArrowLeftRight, Type, LayoutGrid, List, Heart, X } from 'lucide-react';
 
 const FixedSettingsBar = ({
   togglePosition,
@@ -96,14 +96,7 @@ const FixedSettingsBar = ({
 
               {/* Right side buttons */}
               <div className="flex items-center gap-4">
-                <button 
-                  onClick={toggleCollapsed}
-                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
-                  title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-                >
-                  {isCollapsed ? <FileText size={16} /> : <Files size={16} />}
-                </button>
-                <button 
+                <button
                   onClick={togglePosition}
                   className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
                   title="Change tab position"
@@ -164,17 +157,6 @@ const FixedSettingsBar = ({
               >
                 <Heart size={14} fill="white" />
               </button>
-
-              {/* Collapse toggle button - only show on mobile */}
-              {isMobile && (
-                <button 
-                  onClick={toggleCollapsed}
-                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-8 h-8"
-                  title={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-                >
-                  <span className="text-xs">{isCollapsed ? '📄' : '📋'}</span>
-                </button>
-              )}
             </div>
           )}
         </div>

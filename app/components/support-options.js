@@ -1,35 +1,17 @@
 import React, { useState } from 'react';
-import { Heart, Coffee, CreditCard, DollarSign, Copy, Check } from 'lucide-react';
+import { Heart, Coffee } from 'lucide-react';
 import { Card, CardContent } from './ui/Card';
 
 const SupportOptions = ({ className = "", colorMode = "minimal" }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [activePlatform, setActivePlatform] = useState('ko-fi');
-  const [copied, setCopied] = useState(false);
 
   const isColorful = colorMode === 'colorful';
 
   const accounts = {
     'ko-fi': 'fauxdono',
-    'buymeacoffee': 'fauxdono', 
-    'paypal': 'youremail@example.com',
-    'venmo': '@your-username',
-    'crypto': 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'
+    'buymeacoffee': 'fauxdono'
   };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const codeBg = isColorful
-    ? 'bg-indigo-200 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-100'
-    : 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white';
-  const copyBtnColor = isColorful
-    ? 'text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200'
-    : 'text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white';
 
   const renderPlatformContent = () => {
     switch (activePlatform) {
@@ -61,65 +43,6 @@ const SupportOptions = ({ className = "", colorMode = "minimal" }) => {
               <Coffee className="inline mr-2" size={16} />
               Buy me a coffee
             </a>
-          </div>
-        );
-      case 'paypal':
-        return (
-          <div className="text-center space-y-3">
-            <div className="text-blue-700 font-medium">Send via PayPal</div>
-            <div className="flex items-center justify-center space-x-2">
-              <code className={`px-2 py-1 rounded ${codeBg}`}>{accounts['paypal']}</code>
-              <button
-                onClick={() => copyToClipboard(accounts['paypal'])}
-                className={`p-1 ${copyBtnColor}`}
-                title="Copy email"
-              >
-                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-              </button>
-            </div>
-            <a
-              href={`https://paypal.me/${accounts['paypal'].split('@')[0]}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <DollarSign className="inline mr-2" size={16} />
-              PayPal.me
-            </a>
-          </div>
-        );
-      case 'venmo':
-        return (
-          <div className="text-center space-y-3">
-            <div className="text-blue-500 font-medium">Send via Venmo</div>
-            <div className="flex items-center justify-center space-x-2">
-              <code className={`px-2 py-1 rounded ${codeBg}`}>{accounts['venmo']}</code>
-              <button
-                onClick={() => copyToClipboard(accounts['venmo'])}
-                className={`p-1 ${copyBtnColor}`}
-                title="Copy username"
-              >
-                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-              </button>
-            </div>
-          </div>
-        );
-      case 'crypto':
-        return (
-          <div className="text-center space-y-3">
-            <div className="text-purple-700 font-medium">Bitcoin Address</div>
-            <div className="flex items-center justify-center space-x-2">
-              <code className={`px-2 py-1 rounded text-xs sm:text-sm truncate max-w-[250px] ${codeBg}`}>
-                {accounts['crypto']}
-              </code>
-              <button
-                onClick={() => copyToClipboard(accounts['crypto'])}
-                className={`p-1 ${copyBtnColor}`}
-                title="Copy address"
-              >
-                {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-              </button>
-            </div>
           </div>
         );
       default:
@@ -170,7 +93,7 @@ const SupportOptions = ({ className = "", colorMode = "minimal" }) => {
       {showOptions && (
         <CardContent>
           <div className="flex flex-wrap gap-2 justify-center mb-4">
-            {['ko-fi', 'buymeacoffee', 'paypal', 'venmo', 'crypto'].map(platform => (
+            {['ko-fi', 'buymeacoffee'].map(platform => (
               <button
                 key={platform}
                 onClick={() => setActivePlatform(platform)}
