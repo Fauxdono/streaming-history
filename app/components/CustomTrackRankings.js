@@ -1685,46 +1685,38 @@ return (
               {filteredTracks.map((song, index) => (
                 <div
                   key={song.key}
-                  className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} shadow-sm hover:shadow-md transition-shadow`}
+                  className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} shadow-sm hover:shadow-md transition-shadow relative`}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center">
-                      {song.isFeatured && (
-                        <span className={`inline-block px-1 py-0.5 mr-2 ${colors.bgMed} ${colors.text} rounded text-xs`}>
-                          FEAT
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="mb-2">
-                    <div className={`font-medium ${colors.textDark} text-sm leading-tight mb-1 flex items-center justify-between`}>
-                      <span>{song.displayName || song.trackName}</span>
-                      <span className={`font-bold text-sm ${colors.textDark}`}>{index + 1}</span>
-                    </div>
-                    <div 
-                      className={`text-sm ${colors.textLight} cursor-pointer hover:underline`}
+                  {song.isFeatured && (
+                    <span className={`inline-block px-1 py-0.5 mb-2 ${colors.bgMed} ${colors.text} rounded text-xs`}>
+                      FEAT
+                    </span>
+                  )}
+
+                  <div className={`font-bold ${colors.text}`}>{song.displayName || song.trackName}</div>
+                  <div className={`text-sm ${colors.textLight}`}>
+                    Artist: <span
+                      className="font-bold cursor-pointer hover:underline"
                       onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
                     >
                       {song.displayArtist || song.artist}
-                    </div>
-                    <div 
-                      className={`text-xs ${colors.textLighter} cursor-pointer hover:underline mt-1`}
+                    </span>
+                    <br/>
+                    Album: <span
+                      className="font-bold cursor-pointer hover:underline"
                       onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
                     >
                       {song.albumName}
-                    </div>
+                    </span>
+                    <br/>
+                    Total Time: <span className="font-bold">{formatDuration(song.totalPlayed)}</span>
+                    <br/>
+                    Plays: <span className="font-bold">{song.playCount}</span>
                   </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <div className={`text-sm font-medium ${colors.text}`}>
-                        {formatDuration(song.totalPlayed)}
-                      </div>
-                      <div className={`text-xs ${colors.textLight}`}>
-                        {song.playCount} plays
-                      </div>
-                    </div>
+
+                  <div className={`absolute top-1 right-3 ${colors.text} text-[2rem]`}>{index + 1}</div>
+
+                  <div className="mt-2">
                     <div className="flex justify-center relative">
                       <button
                         onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
