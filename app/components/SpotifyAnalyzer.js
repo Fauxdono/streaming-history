@@ -487,6 +487,57 @@ const SpotifyAnalyzer = ({
     };
   }, [selectedStreaksYear, streaks, rawPlayData, topAlbums]);
 
+  // Calculate filtered stats based on selected year
+  const filteredStats = useMemo(() => {
+    if (!stats) return null;
+    if (selectedStreaksYear === 'all') {
+      return stats;
+    }
+    if (!rawPlayData || rawPlayData.length === 0) {
+      return stats;
+    }
+    // Filter rawPlayData by selected year
+    const filteredData = rawPlayData.filter(play => {
+      if (!play.ts) return false;
+      const playYear = new Date(play.ts).getFullYear().toString();
+      return playYear === selectedStreaksYear;
+    });
+
+    // Calculate filtered stats
+    const totalListeningTime = filteredData
+      .filter(play => play.ms_played >= 30000)
+      .reduce((sum, play) => sum + (play.ms_played || 0), 0);
+
+    const shortPlays = filteredData.filter(play => play.ms_played < 30000).length;
+
+    // Calculate unique songs for filtered data
+    const uniqueSongs = new Set(
+      filteredData
+        .filter(play => play.master_metadata_track_name)
+        .map(play => `${play.master_metadata_track_name}|||${play.master_metadata_album_artist_name}`)
+    ).size;
+
+    // Calculate service listening time
+    const serviceListeningTime = {};
+    filteredData.forEach(play => {
+      if (play.ms_played >= 30000) {
+        const service = play._source || 'Unknown';
+        serviceListeningTime[service] = (serviceListeningTime[service] || 0) + play.ms_played;
+      }
+    });
+
+    return {
+      ...stats,
+      totalEntries: filteredData.length,
+      processedSongs: filteredData.filter(play => play.master_metadata_track_name).length,
+      uniqueSongs,
+      shortPlays,
+      totalListeningTime,
+      serviceListeningTime,
+      nullTrackNames: filteredData.filter(e => !e.master_metadata_track_name).length
+    };
+  }, [selectedStreaksYear, stats, rawPlayData]);
+
   // Toggle year range mode with useCallback to prevent recreation
   const toggleYearRangeMode = useCallback((value) => {
     // If value is provided, use it directly; otherwise toggle the current state
@@ -1545,7 +1596,7 @@ const SpotifyAnalyzer = ({
 
   // Determine if sidebar should be shown based on current tab
   const shouldShowSidebar = useCallback((tabName) => {
-    const sidebarTabs = ['artists', 'albums', 'patterns', 'calendar', 'behavior', 'custom', 'discovery', 'podcasts'];
+    const sidebarTabs = ['stats', 'artists', 'albums', 'patterns', 'calendar', 'behavior', 'custom', 'discovery', 'podcasts'];
     return sidebarTabs.includes(tabName);
   }, []);
 
@@ -1708,6 +1759,10 @@ const SpotifyAnalyzer = ({
     console.log("handleSidebarYearChange called with:", { year, activeTab });
     
     switch(activeTab) {
+      case 'stats':
+        console.log("Setting selectedStatsYear to:", year);
+        setSelectedStreaksYear(year);
+        break;
       case 'artists':
         console.log("Setting selectedArtistYear to:", year);
         setSelectedArtistYear(year);
@@ -2221,11 +2276,11 @@ const SpotifyAnalyzer = ({
                       : 'space-y-1'
                   }>
                     <li>Files processed: {stats.totalFiles}</li>
-                    <li>Total entries: {stats.totalEntries}</li>
-                    <li>Processed songs: {stats.processedSongs}</li>
-                    <li>Unique songs: {stats.uniqueSongs || 0}</li>
-                    <li>Entries with no track name: {stats.nullTrackNames}</li>
-                    <li>Plays under 30s: {stats.shortPlays}</li>
+                    <li>Total entries: {filteredStats?.totalEntries || 0}</li>
+                    <li>Processed songs: {filteredStats?.processedSongs || 0}</li>
+                    <li>Unique songs: {filteredStats?.uniqueSongs || 0}</li>
+                    <li>Entries with no track name: {filteredStats?.nullTrackNames || 0}</li>
+                    <li>Plays under 30s: {filteredStats?.shortPlays || 0}</li>
                   </ul>
                 </div>
                 <div className={
@@ -2242,7 +2297,7 @@ const SpotifyAnalyzer = ({
                     colorMode === 'colorful'
                       ? 'text-2xl text-indigo-700 dark:text-indigo-300'
                       : 'text-2xl'
-                  }>{formatDuration(stats.totalListeningTime)}</div>
+                  }>{formatDuration(filteredStats?.totalListeningTime || 0)}</div>
                   <div className={
                     colorMode === 'colorful'
                       ? 'text-sm text-indigo-600 dark:text-indigo-400'
@@ -2250,7 +2305,7 @@ const SpotifyAnalyzer = ({
                   }>(only counting plays over 30 seconds)</div>
 
                   {/* Service breakdown */}
-                  {stats.serviceListeningTime && Object.keys(stats.serviceListeningTime).length > 0 && (
+                  {filteredStats?.serviceListeningTime && Object.keys(filteredStats.serviceListeningTime).length > 0 && (
                     <div className={
                       colorMode === 'colorful'
                         ? 'mt-4 pt-3 border-t border-indigo-300 dark:border-indigo-700'
@@ -2266,7 +2321,7 @@ const SpotifyAnalyzer = ({
                           ? 'space-y-1 text-indigo-700 dark:text-indigo-300'
                           : 'space-y-1'
                       }>
-                        {Object.entries(stats.serviceListeningTime).map(([service, time]) => (
+                        {Object.entries(filteredStats.serviceListeningTime).map(([service, time]) => (
                           <li key={service} className="flex justify-between items-center">
                             <span>{service}:</span>
                             <span>{formatDuration(time)}</span>
@@ -2320,27 +2375,11 @@ const SpotifyAnalyzer = ({
                     ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
                     : `mt-4 p-4 border rounded ${isDarkMode ? 'border-white bg-black' : 'border-black bg-white'}`
                 }>
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className={
-                      colorMode === 'colorful'
-                        ? 'text-lg font-semibold text-indigo-700 dark:text-indigo-300'
-                        : 'text-lg font-semibold'
-                    }>Listening Streaks</h4>
-                    <select
-                      value={selectedStreaksYear}
-                      onChange={(e) => setSelectedStreaksYear(e.target.value)}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded border border-indigo-300 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm'
-                          : `px-2 py-1 rounded border text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
-                      }
-                    >
-                      <option value="all">All Time</option>
-                      {sortedYears.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <h4 className={
+                    colorMode === 'colorful'
+                      ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
+                      : 'text-lg font-semibold mb-4'
+                  }>Listening Streaks</h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Back-to-Back Plays Column */}
@@ -3550,6 +3589,7 @@ const SpotifyAnalyzer = ({
             topTabsHeight={topTabsHeight}
             topTabsWidth={topTabsWidth}
             initialYear={
+              activeTab === 'stats' ? selectedStreaksYear :
               activeTab === 'artists' ? selectedArtistYear :
               activeTab === 'albums' ? selectedAlbumYear :
               activeTab === 'custom' ? customTrackYear :
@@ -3560,8 +3600,9 @@ const SpotifyAnalyzer = ({
               activeTab === 'podcasts' ? selectedPodcastYear : 'all'
             }
             initialYearRange={
+              activeTab === 'stats' ? { startYear: '', endYear: '' } :
               activeTab === 'artists' ? yearRange :
-              activeTab === 'albums' ? albumYearRange : 
+              activeTab === 'albums' ? albumYearRange :
               activeTab === 'custom' ? customYearRange :
               activeTab === 'patterns' ? patternYearRange :
               activeTab === 'calendar' ? calendarYearRange :
