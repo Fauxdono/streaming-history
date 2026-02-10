@@ -1728,17 +1728,8 @@ return (
         )}
       </div>
     ) : (
-      /* Results section with date range info */
-      <div className={`border rounded-lg p-3 sm:p-4 ${colors.bg} ${colors.border}`}>
-        <div className="flex justify-between items-center flex-wrap gap-2">
-          <div className={`${colors.text} font-medium text-sm`}>
-            Date Range: <span className={`${colors.textDark}`}>{getFormattedDateRange()}</span>
-          </div>
-          <div className={`${colors.text} text-sm`}>
-            Found <span className="font-bold">{filteredTracks.length}</span> tracks
-          </div>
-        </div>
-
+      /* Results section */
+      <div>
         {filteredTracks.length > 0 ? (
           viewMode === 'grid' ? (
             // Grid view - like artists tab grid
