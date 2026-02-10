@@ -794,117 +794,161 @@ const PodcastRankings = ({
         </h3>
       </div>
 
-      {/* Desktop layout - title and controls on same row */}
-      <div className="hidden sm:flex justify-between items-center mb-2">
-        <h3 className={`text-xl ${modeColors.text}`}>
+      {/* Desktop layout - title, controls, and search on same row */}
+      <div className={`hidden sm:flex justify-between items-center gap-2 mb-2 ${modeColors.text}`}>
+        <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
           {getPageTitle()}
         </h3>
-        <div className={`flex items-center gap-1 sm:gap-2 ${modeColors.text}`}>
-          <label className="text-xs sm:text-sm">Show top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            defaultValue={topN}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-            className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-          />
-        </div>
-      </div>
-
-      {/* Mobile controls - separate row */}
-      <div className="block sm:hidden mb-4">
-        <div className={`flex items-center gap-1 ${modeColors.text}`}>
-          <label className="text-xs">Show top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            defaultValue={topN}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-            className={`border rounded w-16 px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-          />
-        </div>
-      </div>
-     
-
-      {/* Duplicate Detection Settings */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <div className="flex items-center gap-2">
-            <label className={`text-xs sm:text-sm font-medium ${modeColors.text}`}>Session gap threshold: </label>
+        <div className="flex items-center gap-2 flex-1">
+          <div className="relative flex-1">
             <input
-              type="number"
-              min="1"
-              max="1440" // 24 hours max
-              value={duplicateThreshold}
-              onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
-              className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              type="text"
+              value={showSearch}
+              onChange={(e) => setShowSearch(e.target.value)}
+              placeholder="Search shows..."
+              className={`w-full border rounded px-2 py-1 text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
             />
-            <span className={`text-xs sm:text-sm ${modeColors.text}`}>minutes</span>
+            {showSearch && (
+              <button
+                onClick={() => setShowSearch('')}
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${modeColors.text}`}
+              >
+                ×
+              </button>
+            )}
+            {showSearch && filteredShows.length > 0 && (
+              <div className={`absolute z-10 w-full border rounded shadow-lg mt-1 ${modeColors.bgCard} ${modeColors.border}`}>
+                {filteredShows.map(show => (
+                  <div
+                    key={show}
+                    onClick={() => addShow(show)}
+                    className={`px-2 py-1 cursor-pointer text-sm hover:opacity-80 ${modeColors.text}`}
+                  >
+                    {show}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-
+          <label className="text-xs whitespace-nowrap">Gap</label>
+          <input
+            type="number"
+            min="1"
+            max="1440"
+            value={duplicateThreshold}
+            onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
+            className={`border rounded w-12 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          />
+          <span className="text-xs">min</span>
           <button
             onClick={() => setShowDuplicateStats(!showDuplicateStats)}
-            className={`px-3 py-1 rounded text-xs sm:text-sm hover:opacity-80 ${modeColors.buttonInactive}`}
+            className={`px-2 py-1 rounded text-xs hover:opacity-80 whitespace-nowrap ${modeColors.buttonInactive}`}
           >
-            {showDuplicateStats ? 'Hide Stats' : 'Show Stats'}
+            {showDuplicateStats ? 'Hide Stats' : 'Stats'}
           </button>
+          <label className="text-xs whitespace-nowrap">Show Top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            defaultValue={topN}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
+            className={`border rounded w-14 px-1.5 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          />
         </div>
+      </div>
 
-        {showDuplicateStats && (
-          <div className={`text-xs sm:text-sm p-2 rounded ${modeColors.bgCard} ${modeColors.border} border ${modeColors.text}`}>
-            <div><span className="font-medium">{duplicatesFound}</span> duplicate plays filtered:</div>
-            <div>• <span className="font-medium">{duplicateTypes.exact}</span> exact duplicates</div>
-            <div>• <span className="font-medium">{duplicateTypes.overlapping}</span> overlapping sessions</div>
-            <div>• <span className="font-medium">{duplicateTypes.zeroTime}</span> zero-duration entries</div>
+      {/* Mobile controls - single row with search */}
+      <div className={`block sm:hidden mb-2 ${modeColors.text}`}>
+        <div className="flex items-center gap-1">
+          <label className="text-xs">Top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            defaultValue={topN}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
+            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          />
+          <label className="text-xs">Gap</label>
+          <input
+            type="number"
+            min="1"
+            max="1440"
+            value={duplicateThreshold}
+            onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
+            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          />
+          <button
+            onClick={() => setShowDuplicateStats(!showDuplicateStats)}
+            className={`px-1.5 py-1 rounded text-xs hover:opacity-80 whitespace-nowrap ${modeColors.buttonInactive}`}
+          >
+            {showDuplicateStats ? 'Hide' : 'Stats'}
+          </button>
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={showSearch}
+              onChange={(e) => setShowSearch(e.target.value)}
+              placeholder="Search..."
+              className={`w-full border rounded px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+            />
+            {showSearch && (
+              <button
+                onClick={() => setShowSearch('')}
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${modeColors.text}`}
+              >
+                ×
+              </button>
+            )}
+            {showSearch && filteredShows.length > 0 && (
+              <div className={`absolute z-10 w-full border rounded shadow-lg mt-1 ${modeColors.bgCard} ${modeColors.border}`}>
+                {filteredShows.map(show => (
+                  <div
+                    key={show}
+                    onClick={() => addShow(show)}
+                    className={`px-2 py-1 cursor-pointer text-xs hover:opacity-80 ${modeColors.text}`}
+                  >
+                    {show}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-    
+        </div>
+      </div>
 
-      {/* Show Selection */}
-      <div className="relative">
-        <div className="flex flex-wrap gap-2 mb-4">
+      {/* Duplicate stats panel */}
+      {showDuplicateStats && (
+        <div className={`text-xs sm:text-sm p-2 rounded mb-2 ${modeColors.bgCard} ${modeColors.border} border ${modeColors.text}`}>
+          <div><span className="font-medium">{duplicatesFound}</span> duplicate plays filtered:</div>
+          <div>• <span className="font-medium">{duplicateTypes.exact}</span> exact duplicates</div>
+          <div>• <span className="font-medium">{duplicateTypes.overlapping}</span> overlapping sessions</div>
+          <div>• <span className="font-medium">{duplicateTypes.zeroTime}</span> zero-duration entries</div>
+        </div>
+      )}
+
+      {/* Selected show filter chips */}
+      {selectedShows.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1 mb-2">
           {selectedShows.map(show => (
-            <div
+            <span
               key={show}
-              className={`flex items-center px-2 py-1 rounded text-xs sm:text-sm ${modeColors.buttonActive}`}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${modeColors.buttonActive}`}
             >
               {show}
               <button
                 onClick={() => removeShow(show)}
-                className="ml-2 hover:opacity-80"
+                className="hover:opacity-70"
               >
-                ×
+                ✕
               </button>
-            </div>
+            </span>
           ))}
         </div>
-
-        <div className="relative">
-          <input
-            type="text"
-            value={showSearch}
-            onChange={(e) => setShowSearch(e.target.value)}
-            placeholder="Search shows..."
-            className={`w-full border rounded px-2 py-1 text-xs sm:text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-          />
-          {showSearch && filteredShows.length > 0 && (
-            <div className={`absolute z-10 w-full border rounded shadow-lg mt-1 ${modeColors.bgCard} ${modeColors.border}`}>
-              {filteredShows.map(show => (
-                <div
-                  key={show}
-                  onClick={() => addShow(show)}
-                  className={`px-2 py-1 cursor-pointer text-xs sm:text-sm hover:opacity-80 ${modeColors.text}`}
-                >
-                  {show}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      )}
 
       {filteredEpisodes.length > 0 ? (
         viewMode === 'grid' ? (
