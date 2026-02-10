@@ -2962,6 +2962,9 @@ const SpotifyAnalyzer = ({
                               {artist.mostPlayedSong && (
                                 <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
                               )}
+                              {artist.mostPlayedAlbum && (
+                                <>Top Album: <span className="font-bold">{artist.mostPlayedAlbum.albumName}</span> ({artist.mostPlayedAlbum.playCount} plays)<br/></>
+                              )}
                               {artist.firstSong && (
                                 <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
                               )}

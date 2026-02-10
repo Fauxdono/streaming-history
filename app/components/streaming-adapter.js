@@ -1845,6 +1845,7 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
         totalPlayed: 0,
         playCount: 0,
         trackPlays: new Map(), // Track plays per song
+        albumPlays: new Map(), // Track plays per album
         // Track first play info
         firstPlay: {
           timestamp: timestamp.getTime(),
@@ -1871,7 +1872,14 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
       const count = artistData.trackPlays.get(entry.master_metadata_track_name) || 0;
       artistData.trackPlays.set(entry.master_metadata_track_name, count + 1);
     }
-    
+
+    // Track album plays
+    const albumName = entry.master_metadata_album_album_name;
+    if (albumName && albumName !== 'Unknown Album') {
+      const albumCount = artistData.albumPlays.get(albumName) || 0;
+      artistData.albumPlays.set(albumName, albumCount + 1);
+    }
+
     artistData.totalPlayed += entry.ms_played;
     artistData.playCount++;
   }
@@ -1914,9 +1922,15 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
       const sortedTracks = Array.from(trackCounts.entries())
         .sort((a, b) => b[1] - a[1]);
       
-      const mostPlayedSong = sortedTracks.length > 0 ? 
-        { trackName: sortedTracks[0][0], playCount: sortedTracks[0][1] } : 
+      const mostPlayedSong = sortedTracks.length > 0 ?
+        { trackName: sortedTracks[0][0], playCount: sortedTracks[0][1] } :
         { trackName: 'Unknown', playCount: 0 };
+
+      // Find most played album
+      const sortedAlbums = Array.from(data.albumPlays.entries())
+        .sort((a, b) => b[1] - a[1]);
+      const mostPlayedAlbum = sortedAlbums.length > 0 ?
+        { albumName: sortedAlbums[0][0], playCount: sortedAlbums[0][1] } : null;
       
       // Calculate streaks by using dates from the timestamps
       const playDates = [...new Set(
@@ -1971,6 +1985,7 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
         firstSong,
         firstSongPlayCount,
         mostPlayedSong,
+        mostPlayedAlbum,
         longestStreak,
         currentStreak: activeStreak,
         streakStart,
