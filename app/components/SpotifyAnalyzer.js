@@ -2951,10 +2951,9 @@ const SpotifyAnalyzer = ({
                   </button>
                 </div>
               )}
-            </div>
           </div>
         );
-      
+
       case 'albums':
         return (
           <div className={
