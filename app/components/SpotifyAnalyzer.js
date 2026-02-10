@@ -2574,17 +2574,84 @@ const SpotifyAnalyzer = ({
               ? 'p-2 sm:p-4 bg-blue-200 dark:bg-blue-900 rounded border-2 border-blue-300 dark:border-blue-700'
               : `p-2 sm:p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
-            {/* Desktop layout - title and controls on same row */}
-            <div className="hidden sm:flex justify-between items-center mb-2">
+            {/* Desktop layout - title, controls, and search on same row */}
+            <div className={`hidden sm:flex justify-between items-center gap-2 mb-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
                 <h3 className={
                   colorMode === 'colorful'
-                    ? 'text-xl text-blue-700 dark:text-blue-300'
-                    : 'text-xl'
+                    ? 'text-xl text-blue-700 dark:text-blue-300 whitespace-nowrap'
+                    : 'text-xl whitespace-nowrap'
                 }>
                   {getArtistsTabLabel()}
                 </h3>
 
-                <div className={`flex items-center gap-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
+                <div className="flex items-center gap-2 flex-1">
+                  <button
+                    onClick={() => setArtistSelectionMode(prev => !prev)}
+                    className={
+                      colorMode === 'colorful'
+                        ? `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                            artistSelectionMode
+                              ? 'bg-blue-400 text-white border border-blue-400'
+                              : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
+                          }`
+                        : `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                            artistSelectionMode
+                              ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
+                              : (isDarkMode ? 'border border-white bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
+                          }`
+                    }
+                  >
+                    🎵 {artistSelectionMode ? 'Cancel' : 'View Playlist'}
+                  </button>
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={artistSearch}
+                      onChange={(e) => setArtistSearch(e.target.value)}
+                      placeholder="Search artists..."
+                      className={
+                        colorMode === 'colorful'
+                          ? 'w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 text-sm bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-400 dark:placeholder-blue-500'
+                          : `w-full border rounded px-2 py-1 text-sm focus:outline-none ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                      }
+                    />
+                    {artistSearch && (
+                      <button
+                        onClick={() => setArtistSearch('')}
+                        className={
+                          colorMode === 'colorful'
+                            ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
+                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                        }
+                      >
+                        ×
+                      </button>
+                    )}
+                    {artistSearch && filteredArtists.length > 0 && (
+                      <div className={
+                        colorMode === 'colorful'
+                          ? 'absolute z-10 w-full bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-blue-600 rounded shadow-lg mt-1'
+                          : `absolute z-10 w-full border rounded shadow-lg mt-1 ${isDarkMode ? 'bg-black border-white' : 'bg-white border-black'}`
+                      }>
+                        {filteredArtists.map(artist => (
+                          <div
+                            key={artist}
+                            onClick={() => {
+                              setSelectedArtists(prev => [...prev, artist]);
+                              setArtistSearch('');
+                            }}
+                            className={
+                              colorMode === 'colorful'
+                                ? 'px-2 py-1 hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 cursor-pointer'
+                                : `px-2 py-1 cursor-pointer ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-gray-100 text-black'}`
+                            }
+                          >
+                            {artist}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <label className="text-xs">Show Top</label>
                   <input
                     type="number"
@@ -2720,87 +2787,18 @@ const SpotifyAnalyzer = ({
                 )}
               </div>
 
-              {/* Desktop search bar and View Playlist button */}
-              <div className={`hidden sm:block mb-4 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
-                <div className="flex gap-2 items-center">
-                  <button
-                    onClick={() => setArtistSelectionMode(prev => !prev)}
-                    className={
-                      colorMode === 'colorful'
-                        ? `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                            artistSelectionMode
-                              ? 'bg-blue-400 text-white border border-blue-400'
-                              : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
-                          }`
-                        : `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                            artistSelectionMode
-                              ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
-                              : (isDarkMode ? 'border border-white bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
-                          }`
-                    }
-                  >
-                    🎵 {artistSelectionMode ? 'Cancel' : 'View Playlist'}
-                  </button>
-                  <div className="relative flex-1">
-                    <input
-                      type="text"
-                      value={artistSearch}
-                      onChange={(e) => setArtistSearch(e.target.value)}
-                      placeholder="Search artists..."
-                      className={
-                        colorMode === 'colorful'
-                          ? 'w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-400 dark:placeholder-blue-500'
-                          : `w-full border rounded px-2 py-1 focus:outline-none ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
-                      }
-                    />
-                    {artistSearch && (
-                      <button
-                        onClick={() => setArtistSearch('')}
-                        className={
-                          colorMode === 'colorful'
-                            ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
-                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
-                        }
-                      >
-                        ×
-                      </button>
-                    )}
-                    {artistSearch && filteredArtists.length > 0 && (
-                      <div className={
-                        colorMode === 'colorful'
-                          ? 'absolute z-10 w-full bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-blue-600 rounded shadow-lg mt-1'
-                          : `absolute z-10 w-full border rounded shadow-lg mt-1 ${isDarkMode ? 'bg-black border-white' : 'bg-white border-black'}`
-                      }>
-                        {filteredArtists.map(artist => (
-                          <div
-                            key={artist}
-                            onClick={() => {
-                              setSelectedArtists(prev => [...prev, artist]);
-                              setArtistSearch('');
-                            }}
-                            className={
-                              colorMode === 'colorful'
-                                ? 'px-2 py-1 hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 cursor-pointer'
-                                : `px-2 py-1 cursor-pointer ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-gray-100 text-black'}`
-                            }
-                          >
-                            {artist}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {artistSelectionMode && (
+              {/* Desktop artist selection mode hint */}
+              {artistSelectionMode && (
+                <div className="hidden sm:block">
                   <p className={
                     colorMode === 'colorful'
-                      ? 'text-sm text-center text-blue-600 dark:text-blue-400 mt-2'
-                      : `text-sm text-center mt-2 ${isDarkMode ? 'text-white' : 'text-black'}`
+                      ? 'text-sm text-center text-blue-600 dark:text-blue-400 mb-2'
+                      : `text-sm text-center mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`
                   }>
                     👆 Click on any artist below to view their custom track rankings
                   </p>
-                )}
-              </div>
+                </div>
+              )}
               
               {/* Artists Display */}
               {displayedArtists && displayedArtists.length > 0 ? (

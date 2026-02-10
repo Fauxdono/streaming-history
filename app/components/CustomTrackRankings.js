@@ -1389,13 +1389,73 @@ return (
       </h3>
     </div>
 
-    {/* Desktop layout - title and controls on same row */}
-    <div className="hidden sm:flex justify-between items-center mb-2">
-      <h3 className={`text-xl ${colors.text}`}>
+    {/* Desktop layout - title, controls, and search on same row */}
+    <div className="hidden sm:flex justify-between items-center gap-2 mb-2">
+      <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
         {getPageTitle()}
       </h3>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-1">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={unifiedSearch}
+            onChange={(e) => {
+              setUnifiedSearch(e.target.value);
+              setArtistSearch(e.target.value);
+              setAlbumSearch(e.target.value);
+            }}
+            placeholder="Search artists or albums..."
+            className={`w-full border rounded px-2 py-1 text-sm ${colors.bg} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+          />
+          {unifiedSearch && (
+            <button
+              onClick={() => { setUnifiedSearch(''); setArtistSearch(''); setAlbumSearch(''); }}
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${colors.text} hover:opacity-70`}
+            >
+              ×
+            </button>
+          )}
+          {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
+            <div className={`absolute z-10 mt-1 w-full ${colors.bg} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
+              {filteredArtists.length > 0 && (
+                <div>
+                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
+                  {filteredArtists.map(artist => (
+                    <div
+                      key={artist}
+                      onClick={() => {
+                        addArtistFromTrack(artist);
+                        setUnifiedSearch('');
+                      }}
+                      className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
+                    >
+                      <span className="mr-1">👤</span> {artist}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {filteredAlbums.length > 0 && (
+                <div>
+                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
+                  {filteredAlbums.map(album => (
+                    <div
+                      key={album.key}
+                      onClick={() => {
+                        addAlbumFromTrack(album.name, album.artist);
+                        setUnifiedSearch('');
+                      }}
+                      className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
+                    >
+                      <span className="mr-1">💿</span> {album.name} <span className={`text-xs ${colors.textLight}`}>({album.artist})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <label className={`${colors.text} text-xs`}>Show Top</label>
         <input
           type="number"
@@ -1416,90 +1476,88 @@ return (
         </button>
       </div>
     </div>
-    
-    {/* Mobile controls - separate row */}
-    <div className="block sm:hidden mb-2">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1">
-          <label className={`${colors.text} text-xs`}>Top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            defaultValue={topN}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-            className={`w-12 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
-          />
-        </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-          >
-            {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-          </button>
+    {/* Mobile controls - single row with search */}
+    <div className="block sm:hidden mb-2">
+      <div className="flex items-center gap-1">
+        <label className={`${colors.text} text-xs`}>Top</label>
+        <input
+          type="number"
+          min="1"
+          max="999"
+          defaultValue={topN}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
+          className={`w-10 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
+        />
+        <button
+          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+        </button>
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={unifiedSearch}
+            onChange={(e) => {
+              setUnifiedSearch(e.target.value);
+              setArtistSearch(e.target.value);
+              setAlbumSearch(e.target.value);
+            }}
+            placeholder="Search..."
+            className={`w-full border rounded px-2 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+          />
+          {unifiedSearch && (
+            <button
+              onClick={() => { setUnifiedSearch(''); setArtistSearch(''); setAlbumSearch(''); }}
+              className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${colors.text} hover:opacity-70`}
+            >
+              ×
+            </button>
+          )}
+          {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
+            <div className={`absolute z-10 mt-1 w-full ${colors.bg} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
+              {filteredArtists.length > 0 && (
+                <div>
+                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
+                  {filteredArtists.map(artist => (
+                    <div
+                      key={artist}
+                      onClick={() => {
+                        addArtistFromTrack(artist);
+                        setUnifiedSearch('');
+                      }}
+                      className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
+                    >
+                      <span className="mr-1">👤</span> {artist}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {filteredAlbums.length > 0 && (
+                <div>
+                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
+                  {filteredAlbums.map(album => (
+                    <div
+                      key={album.key}
+                      onClick={() => {
+                        addAlbumFromTrack(album.name, album.artist);
+                        setUnifiedSearch('');
+                      }}
+                      className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
+                    >
+                      <span className="mr-1">💿</span> {album.name} <span className={`text-xs ${colors.textLight}`}>({album.artist})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
-   
 
-    {/* Search input */}
-      <div className="relative mt-4">
-        <input
-          type="text"
-          value={unifiedSearch}
-          onChange={(e) => {
-            setUnifiedSearch(e.target.value);
-            setArtistSearch(e.target.value);
-            setAlbumSearch(e.target.value);
-          }}
-          placeholder="Search artists or albums..."
-          className={`w-full border rounded px-2 py-1 ${colors.bg} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
-        />
-        
-        {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-          <div className={`absolute z-10 mt-1 w-full ${colors.bg} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
-            {filteredArtists.length > 0 && (
-              <div>
-                <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
-                {filteredArtists.map(artist => (
-                  <div
-                    key={artist}
-                    onClick={() => {
-                      addArtistFromTrack(artist);
-                      setUnifiedSearch('');
-                    }}
-                    className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
-                  >
-                    <span className="mr-1">👤</span> {artist}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {filteredAlbums.length > 0 && (
-              <div>
-                <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
-                {filteredAlbums.map(album => (
-                  <div
-                    key={album.key}
-                    onClick={() => {
-                      addAlbumFromTrack(album.name, album.artist);
-                      setUnifiedSearch('');
-                    }}
-                    className={`px-2 py-1 ${colors.text} ${colors.hoverBg} cursor-pointer`}
-                  >
-                    <span className="mr-1">💿</span> {album.name} <span className={`text-xs ${colors.textLight}`}>({album.artist})</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-     
-      
       {/* Selected filters display */}
       <div className="flex flex-wrap gap-2 mt-2">
         {selectedArtists.map(artist => (
@@ -1556,7 +1614,6 @@ return (
         )}
 
       </div>
-    </div>
 
     {/* Playlist Exporter */}
     {showPlaylistExporter && (
