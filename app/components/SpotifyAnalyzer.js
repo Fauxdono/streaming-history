@@ -2614,71 +2614,117 @@ const SpotifyAnalyzer = ({
                 </div>
               </div>
               
-              {/* Mobile controls */}
-              <div className={`block sm:hidden ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1">
-                    <label className="text-xs">Top</label>
+              {/* Mobile controls - single row */}
+              <div className={`block sm:hidden mb-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
+                <div className="flex items-center gap-1">
+                  <label className="text-xs">Top</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    defaultValue={topArtistsCount}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopArtistsCount(v); else e.target.value = topArtistsCount; }}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'w-10 border border-blue-300 dark:border-blue-600 rounded px-1 py-1 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                        : `w-10 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                    }
+                  />
+                  <button
+                    onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                    }
+                  >
+                    {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+                  </button>
+                  <button
+                    onClick={() => setArtistSelectionMode(prev => !prev)}
+                    className={
+                      colorMode === 'colorful'
+                        ? `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
+                            artistSelectionMode
+                              ? 'bg-blue-400 text-white border border-blue-400'
+                              : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
+                          }`
+                        : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
+                            artistSelectionMode
+                              ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
+                              : (isDarkMode ? 'border border-white bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
+                          }`
+                    }
+                  >
+                    🎵
+                  </button>
+                  <div className="relative flex-1">
                     <input
-                      type="number"
-                      min="1"
-                      max="500"
-                      defaultValue={topArtistsCount}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-                      onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopArtistsCount(v); else e.target.value = topArtistsCount; }}
+                      type="text"
+                      value={artistSearch}
+                      onChange={(e) => setArtistSearch(e.target.value)}
+                      placeholder="Search..."
                       className={
                         colorMode === 'colorful'
-                          ? 'w-12 border border-blue-300 dark:border-blue-600 rounded px-1 py-1 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                          : `w-12 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-400 dark:placeholder-blue-500'
+                          : `w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                          : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-                      }
-                    >
-                      {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-            <div className="space-y-4">
-              {/* Artist Selection */}
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedArtists.map(artist => (
-                    <div
-                      key={artist}
-                      className={
-                        colorMode === 'colorful'
-                          ? 'flex items-center border border-blue-500 bg-blue-500 text-white px-2 py-1 rounded text-sm'
-                          : `flex items-center border px-2 py-1 rounded text-sm ${isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'}`
-                      }
-                    >
-                      {artist}
+                    {artistSearch && (
                       <button
-                        onClick={() => setSelectedArtists(prev => prev.filter(a => a !== artist))}
-                        className={colorMode === 'colorful' ? 'ml-2 text-white hover:text-blue-200' : 'ml-2 hover:opacity-70'}
+                        onClick={() => setArtistSearch('')}
+                        className={
+                          colorMode === 'colorful'
+                            ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
+                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                        }
                       >
                         ×
                       </button>
-                    </div>
-                  ))}
+                    )}
+                    {artistSearch && filteredArtists.length > 0 && (
+                      <div className={
+                        colorMode === 'colorful'
+                          ? 'absolute z-10 w-full bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-blue-600 rounded shadow-lg mt-1'
+                          : `absolute z-10 w-full border rounded shadow-lg mt-1 ${isDarkMode ? 'bg-black border-white' : 'bg-white border-black'}`
+                      }>
+                        {filteredArtists.map(artist => (
+                          <div
+                            key={artist}
+                            onClick={() => {
+                              setSelectedArtists(prev => [...prev, artist]);
+                              setArtistSearch('');
+                            }}
+                            className={
+                              colorMode === 'colorful'
+                                ? 'px-2 py-1 hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 cursor-pointer'
+                                : `px-2 py-1 cursor-pointer ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-gray-100 text-black'}`
+                            }
+                          >
+                            {artist}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {artistSelectionMode && (
+                  <p className={
+                    colorMode === 'colorful'
+                      ? 'text-xs text-center text-blue-600 dark:text-blue-400 mt-1'
+                      : `text-xs text-center mt-1 ${isDarkMode ? 'text-white' : 'text-black'}`
+                  }>
+                    👆 Tap any artist below to view their tracks
+                  </p>
+                )}
+              </div>
 
-                {/* Search bar and View Artist Playlist button on same line */}
+              {/* Desktop search bar and View Playlist button */}
+              <div className={`hidden sm:block mb-4 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
                 <div className="flex gap-2 items-center">
                   <button
-                    onClick={() => {
-                      setArtistSelectionMode(prev => !prev);
-                    }}
+                    onClick={() => setArtistSelectionMode(prev => !prev)}
                     className={
                       colorMode === 'colorful'
                         ? `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
