@@ -1401,8 +1401,9 @@ return (
           type="number"
           min="1"
           max="999"
-          value={topN}
-          onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value) || 1)))}
+          defaultValue={topN}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
           className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
         />
 

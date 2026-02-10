@@ -805,8 +805,9 @@ const PodcastRankings = ({
             type="number"
             min="1"
             max="999"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
+            defaultValue={topN}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
             className={`border rounded w-16 px-2 py-1 text-xs sm:text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
           />
         </div>
@@ -820,8 +821,9 @@ const PodcastRankings = ({
             type="number"
             min="1"
             max="999"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(999, Math.max(1, parseInt(e.target.value))))}
+            defaultValue={topN}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
             className={`border rounded w-16 px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
           />
         </div>

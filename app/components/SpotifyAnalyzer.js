@@ -254,7 +254,7 @@ const SpotifyAnalyzer = ({
   const [processedData, setProcessedData] = useState([]);
   const [topArtists, setTopArtists] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
-  const [topArtistsCount, setTopArtistsCount] = useState(10);
+  const [topArtistsCount, setTopArtistsCount] = useState(50);
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'list'
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
@@ -2590,8 +2590,9 @@ const SpotifyAnalyzer = ({
                     type="number"
                     min="1"
                     max="500"
-                    value={topArtistsCount}
-                    onChange={(e) => setTopArtistsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 10)))}
+                    defaultValue={topArtistsCount}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopArtistsCount(v); else e.target.value = topArtistsCount; }}
                     className={
                       colorMode === 'colorful'
                         ? 'w-14 border border-blue-300 dark:border-blue-600 rounded px-1.5 py-1 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
@@ -2930,8 +2931,9 @@ const SpotifyAnalyzer = ({
                     type="number"
                     min="1"
                     max="500"
-                    value={topAlbumsCount}
-                    onChange={(e) => setTopAlbumsCount(Math.min(500, Math.max(1, parseInt(e.target.value) || 20)))}
+                    defaultValue={topAlbumsCount}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopAlbumsCount(v); else e.target.value = topAlbumsCount; }}
                     className={
                       colorMode === 'colorful'
                         ? 'w-14 border border-cyan-300 dark:border-cyan-600 rounded px-1.5 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'

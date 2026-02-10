@@ -415,8 +415,9 @@ return (
             type="number"
             min="1"
             max="250"
-            value={topN}
-            onChange={(e) => setTopN(Math.min(250, Math.max(1, parseInt(e.target.value) || 1)))}
+            defaultValue={topN}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 250) setTopN(v); else e.target.value = topN; }}
             className={`border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 ${getThemedColors().text} ${getThemedColors().focus}`}
           />
       </div>
