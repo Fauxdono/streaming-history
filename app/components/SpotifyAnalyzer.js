@@ -2034,10 +2034,6 @@ const SpotifyAnalyzer = ({
 
         return (
           <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder}`}>
-            {/* Title - mobile gets its own row */}
-            <div className="block sm:hidden mb-1">
-              <h3 className={`text-xl ${uploadText}`}>Upload Files</h3>
-            </div>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
               <h3 className={`text-xl ${uploadText}`}>Upload Files</h3>
@@ -2250,17 +2246,9 @@ const SpotifyAnalyzer = ({
         return stats ? (
           <div className={
             colorMode === 'colorful'
-              ? 'p-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
-              : `p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
+              ? 'p-2 sm:p-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
+              : `p-2 sm:p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
-            {/* Title - mobile gets its own row */}
-            <div className="block sm:hidden mb-1">
-              <h3 className={
-                colorMode === 'colorful'
-                  ? 'text-xl text-indigo-700 dark:text-indigo-300'
-                  : 'text-xl'
-              }>Statistics <span className="text-xs opacity-75">{selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear}</span></h3>
-            </div>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
               <h3 className={
@@ -2583,20 +2571,9 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-4 bg-blue-200 dark:bg-blue-900 rounded border-2 border-blue-300 dark:border-blue-700'
-              : `p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
+              ? 'p-2 sm:p-4 bg-blue-200 dark:bg-blue-900 rounded border-2 border-blue-300 dark:border-blue-700'
+              : `p-2 sm:p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
-            {/* Title - mobile gets its own row */}
-            <div className="block sm:hidden mb-1">
-              <h3 className={
-                colorMode === 'colorful'
-                  ? 'text-xl text-blue-700 dark:text-blue-300'
-                  : 'text-xl'
-              }>
-                {getArtistsTabLabel()}
-              </h3>
-            </div>
-            
             {/* Desktop layout - title and controls on same row */}
             <div className="hidden sm:flex justify-between items-center mb-2">
                 <h3 className={
@@ -2937,17 +2914,6 @@ const SpotifyAnalyzer = ({
               ? 'p-2 sm:p-4 bg-cyan-200 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white' : 'border-black'}`
           }>
-            {/* Title - mobile gets its own row */}
-            <div className="block sm:hidden mb-1">
-              <h3 className={
-                colorMode === 'colorful'
-                  ? 'text-xl text-cyan-700 dark:text-cyan-300'
-                  : 'text-xl'
-              }>
-                {getAlbumsTabLabel()}
-              </h3>
-            </div>
-
             {/* Desktop layout - title and controls on same row */}
             <div className="hidden sm:flex justify-between items-center mb-2">
                 <h3 className={
@@ -3335,11 +3301,7 @@ const SpotifyAnalyzer = ({
       
       case 'updates':
         return (
-          <div className={`p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
-            {/* Title - mobile gets its own row */}
-            <div className="block sm:hidden mb-1">
-              <h3 className="text-xl">App Updates</h3>
-            </div>
+          <div className={`p-2 sm:p-4 border ${isDarkMode ? 'border-white' : 'border-black'}`}>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
               <h3 className="text-xl">App Updates</h3>

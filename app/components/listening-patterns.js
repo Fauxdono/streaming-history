@@ -562,7 +562,7 @@ const ListeningPatterns = ({
   return (
    <div className={`w-full ${colors.text}`}>
     {/* Title - mobile gets its own row */}
-    <div className="block sm:hidden mb-1">
+    <div className="hidden">
       <h3 className={`text-xl ${colors.text}`}>
         {getPageTitle()}
       </h3>

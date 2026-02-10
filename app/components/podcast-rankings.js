@@ -788,7 +788,7 @@ const PodcastRankings = ({
   return (
     <div className={`w-full ${modeColors.text}`}>
       {/* Title - mobile gets its own row */}
-      <div className="block sm:hidden mb-1">
+      <div className="hidden">
         <h3 className={`text-xl ${modeColors.text}`}>
           {getPageTitle()}
         </h3>
