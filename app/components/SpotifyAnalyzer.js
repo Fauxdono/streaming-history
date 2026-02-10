@@ -2864,7 +2864,9 @@ const SpotifyAnalyzer = ({
                         <tbody>
                           {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
                             .slice(0, topArtistsCount)
-                            .map((artist, index) => (
+                            .map((artist) => {
+                              const originalRank = displayedArtists.indexOf(artist) + 1;
+                              return (
                               <tr
                                 key={artist.name}
                                 onClick={() => {
@@ -2876,7 +2878,7 @@ const SpotifyAnalyzer = ({
                                 }}
                                 className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-white hover:bg-gray-800' : 'border-black hover:bg-gray-100')} ${artistSelectionMode ? 'cursor-pointer' : ''}`}
                               >
-                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}>{index + 1}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}>{originalRank}</td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.name}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{formatDuration(artist.totalPlayed)}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.playCount?.toLocaleString() || 0}</td>
@@ -2884,7 +2886,8 @@ const SpotifyAnalyzer = ({
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>{artist.firstSong || '-'}</td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>{artist.firstListen ? new Date(artist.firstListen).toLocaleDateString() : '-'}</td>
                               </tr>
-                            ))}
+                              );
+                            })}
                         </tbody>
                       </table>
                     </div>
@@ -2894,7 +2897,8 @@ const SpotifyAnalyzer = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
                       .slice(0, topArtistsCount)
-                      .map((artist, index) => {
+                      .map((artist) => {
+                        const originalRank = displayedArtists.indexOf(artist) + 1;
                         const handleArtistClick = () => {
                           if (!artistSelectionMode) {
                             return;
@@ -2948,7 +2952,7 @@ const SpotifyAnalyzer = ({
                                 <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
                               )}
                             </div>
-                            <div className={`absolute top-1 right-3 ${cardText} text-[2rem]`}>{index + 1}</div>
+                            <div className={`absolute top-1 right-3 ${cardText} text-[2rem]`}>{originalRank}</div>
                           </div>
                         );
                       })}
