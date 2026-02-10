@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Download, AlertTriangle, Settings, Cpu, FileText } from 'lucide-react';
+import { useTheme } from './themeprovider.js';
 
-const ExportButton = ({ 
-  stats, 
-  topArtists, 
-  topAlbums, 
-  processedData, 
+const ExportButton = ({
+  stats,
+  topArtists,
+  topAlbums,
+  processedData,
   briefObsessions,
   songsByYear,
   formatDuration,
-  rawPlayData 
+  rawPlayData,
+  colorMode = 'minimal'
 }) => {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [error, setError] = useState(null);
@@ -736,7 +741,11 @@ const ExportButton = ({
       <button
         onClick={handleExportStart}
         disabled={isExporting}
-        className="flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors"
+        className={
+          isColorful
+            ? 'flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors'
+            : `flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+        }
       >
         {exportFormat === 'json' ? <FileText size={16} /> : <Download size={16} />}
         {isExporting ? 'Exporting...' : `Export to ${exportFormat.toUpperCase()}`}

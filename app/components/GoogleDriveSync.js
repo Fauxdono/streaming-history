@@ -67,7 +67,7 @@ const GoogleDriveSync = ({
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div 
-            className={`h-2 rounded-full transition-all duration-300 ease-out ${isCompleted ? 'bg-green-600' : 'bg-blue-600'}`}
+            className={`h-2 rounded-full transition-all duration-300 ease-out ${isColorful ? (isCompleted ? 'bg-green-600' : 'bg-blue-600') : (isDarkMode ? 'bg-white' : 'bg-black')}`}
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
@@ -1070,6 +1070,7 @@ const GoogleDriveSync = ({
   const cardBg = isColorful
     ? (isDarkMode ? 'bg-violet-700 border-violet-500' : 'bg-violet-100 border-violet-300')
     : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300');
+  const minBtn = isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100';
 
   return (
     <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg}`}>
@@ -1106,20 +1107,23 @@ const GoogleDriveSync = ({
           <button
             onClick={handleConnect}
             disabled={isConnecting || isInitializing}
-            className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm"
+            className={isColorful
+              ? 'px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm'
+              : `px-3 sm:px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm ${minBtn}`
+            }
           >
             {isInitializing ? 'Initializing...' : isConnecting ? 'Connecting...' : 'Connect Google Drive'}
           </button>
-          <p className={`text-xs mt-2 sm:mt-3 ${isColorful ? 'text-blue-600' : (isDarkMode ? 'text-blue-400' : 'text-blue-600')}`}>
+          <p className={`text-xs mt-2 sm:mt-3 ${isColorful ? 'text-blue-600' : (isDarkMode ? 'text-white' : 'text-black')}`}>
             Your data stays private - saved to YOUR Google Drive
           </p>
           {!isInitialized && !isInitializing && (
-            <p className="text-xs text-orange-600 mt-1 sm:mt-2">
+            <p className={`text-xs mt-1 sm:mt-2 ${isColorful ? 'text-orange-600' : (isDarkMode ? 'text-white' : 'text-black')}`}>
               ⚡ APIs will load when you first connect
             </p>
           )}
           {isInitialized && (
-            <p className="text-xs text-green-600 mt-1 sm:mt-2">
+            <p className={`text-xs mt-1 sm:mt-2 ${isColorful ? 'text-green-600' : (isDarkMode ? 'text-white' : 'text-black')}`}>
               ✅ Ready to connect
             </p>
           )}
@@ -1131,14 +1135,20 @@ const GoogleDriveSync = ({
             <button
               onClick={handleSave}
               disabled={isSaving || !stats || !processedData || processedData.length === 0}
-              className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className={isColorful
+                ? 'flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm'
+                : `flex-1 px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm ${minBtn}`
+              }
             >
               {isSaving ? 'Saving...' : '💾 Save'}
             </button>
             <button
               onClick={handleLoad}
               disabled={isLoading}
-              className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className={isColorful
+                ? 'flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm'
+                : `flex-1 px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm ${minBtn}`
+              }
             >
               {isLoading ? 'Loading...' : '📥 Load'}
             </button>
@@ -1160,7 +1170,10 @@ const GoogleDriveSync = ({
             {showCancelButton && (
               <button
                 onClick={cancelLoad}
-                className="w-full mt-2 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+                className={isColorful
+                  ? 'w-full mt-2 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs'
+                  : `w-full mt-2 px-3 py-2 rounded text-xs ${minBtn}`
+                }
               >
                 Cancel Loading
               </button>
@@ -1178,7 +1191,10 @@ const GoogleDriveSync = ({
               <button
                 onClick={handleSave}
                 disabled={isSaving || !stats || !processedData || processedData.length === 0}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                className={isColorful
+                  ? 'w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base'
+                  : `w-full px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-base ${minBtn}`
+                }
               >
                 {isSaving ? 'Saving...' : 'Save to Drive'}
               </button>
@@ -1203,14 +1219,20 @@ const GoogleDriveSync = ({
                 <button
                   onClick={handleLoad}
                   disabled={isLoading}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                  className={isColorful
+                    ? 'w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-base'
+                    : `w-full px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-base ${minBtn}`
+                  }
                 >
                   {isLoading ? 'Loading...' : 'Load from Drive'}
                 </button>
                 {showCancelButton && (
                   <button
                     onClick={cancelLoad}
-                    className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                    className={isColorful
+                      ? 'w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm'
+                      : `w-full px-4 py-2 rounded text-sm ${minBtn}`
+                    }
                   >
                     Cancel Loading
                   </button>

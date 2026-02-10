@@ -2098,7 +2098,11 @@ const SpotifyAnalyzer = ({
                     <button
                       onClick={handleLoadSampleData}
                       disabled={isProcessing}
-                      className="flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm"
+                      className={
+                        colorMode === 'colorful'
+                          ? 'flex items-center gap-1 px-3 py-2 bg-yellow-400 text-black rounded-lg hover:bg-yellow-500 transition-colors font-medium shadow-sm text-sm'
+                          : `flex items-center gap-1 px-3 py-2 rounded-lg transition-colors font-medium shadow-sm text-sm ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
+                      }
                     >
                       <Download size={16} />
                       Try Demo
@@ -2156,9 +2160,14 @@ const SpotifyAnalyzer = ({
                 onChange={handleFileUpload}
                 className={`block w-full text-sm transition-colors
                   file:mr-4 file:py-2 file:px-4 file:rounded-lg
-                  file:border-2 file:border-yellow-400 file:text-sm
-                  file:font-semibold file:bg-yellow-300
-                  file:text-yellow-800 hover:file:bg-yellow-400 file:cursor-pointer
+                  file:border-2 file:text-sm
+                  file:font-semibold file:cursor-pointer
+                  ${colorMode === 'colorful'
+                    ? 'file:border-yellow-400 file:bg-yellow-300 file:text-yellow-800 hover:file:bg-yellow-400'
+                    : isDarkMode
+                      ? 'file:border-white file:bg-black file:text-white hover:file:bg-gray-800'
+                      : 'file:border-black file:bg-white file:text-black hover:file:bg-gray-100'
+                  }
                   ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
               />
             </div>
@@ -2203,7 +2212,11 @@ const SpotifyAnalyzer = ({
                       </span>
                       <button
                         onClick={() => handleDeleteFile(index)}
-                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0"
+                        className={
+                          colorMode === 'colorful'
+                            ? 'p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0'
+                            : `p-2 rounded-lg transition-colors shrink-0 ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                        }
                         title="Remove file"
                       >
                         <Trash2 size={16} />
@@ -2220,8 +2233,11 @@ const SpotifyAnalyzer = ({
                 <button
                   onClick={handleProcessFiles}
                   disabled={isProcessing}
-                  className="mt-4 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg
-                    hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg"
+                  className={
+                    colorMode === 'colorful'
+                      ? 'mt-4 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg'
+                      : `mt-4 w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg disabled:cursor-not-allowed ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800 disabled:opacity-50' : 'bg-white text-black border border-black hover:bg-gray-100 disabled:opacity-50'}`
+                  }
                 >
                   {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}
                 </button>
@@ -2354,6 +2370,7 @@ const SpotifyAnalyzer = ({
                     songsByYear={songsByYear || {}}
                     rawPlayData={rawPlayData || []}
                     formatDuration={formatDuration}
+                    colorMode={colorMode}
                   />
                 </div>
               )}
