@@ -952,46 +952,33 @@ const PodcastRankings = ({
 
       {filteredEpisodes.length > 0 ? (
         viewMode === 'grid' ? (
-          // Grid view - card layout
+          // Grid view - card layout matching artists/albums style
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
             {filteredEpisodes.map((episode, index) => (
               <div
                 key={episode.key}
-                className={`p-3 border rounded-lg ${modeColors.bgCard} ${modeColors.border} shadow-sm hover:shadow-md transition-shadow`}
+                className={`p-3 ${modeColors.bgCard} rounded shadow-sm border ${modeColors.border} relative`}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <span className={`font-bold text-sm ${modeColors.text}`}>#{index + 1}</span>
-                  <span className={`text-xs ${modeColors.textLight}`}>
-                    {episode.segmentCount} sessions
-                  </span>
-                </div>
-
-                <div className="mb-2">
-                  <div className={`font-medium ${modeColors.text} text-sm leading-tight mb-1`}>
-                    {episode.episodeName}
-                  </div>
-                  <div
-                    className={`text-sm ${modeColors.textLight} cursor-pointer hover:underline`}
+                <div className={`font-bold ${modeColors.text}`}>{episode.episodeName}</div>
+                <div className={`text-sm ${modeColors.textLight}`}>
+                  Show: <span
+                    className="font-bold cursor-pointer hover:underline"
                     onClick={() => addShowFromEpisode(episode.showName)}
-                  >
-                    {episode.showName}
-                  </div>
+                  >{episode.showName}</span>
+                  <br/>
+                  Total Time: <span className="font-bold">{formatDuration(episode.totalPlayed)}</span>
+                  <br/>
+                  Sessions: <span className="font-bold">{episode.segmentCount}</span>
+                  <br/>
+                  Longest: <span className="font-bold">{formatDuration(episode.longestSession)}</span>
+                  {episode.uniquePlatforms && episode.uniquePlatforms.length > 0 && (
+                    <>
+                      <br/>
+                      Platform: <span className="font-bold">{episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).slice(0, 2).join(', ')}</span>
+                    </>
+                  )}
                 </div>
-
-                <div className="flex justify-between items-center">
-                  <div className={`text-sm font-medium ${modeColors.text}`}>
-                    {formatDuration(episode.totalPlayed)}
-                  </div>
-                  <div className={`text-xs ${modeColors.textLight}`}>
-                    longest: {formatDuration(episode.longestSession)}
-                  </div>
-                </div>
-
-                {episode.uniquePlatforms && episode.uniquePlatforms.length > 0 && (
-                  <div className={`text-xs ${modeColors.textLighter} mt-2`}>
-                    {episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).slice(0, 2).join(', ')}
-                  </div>
-                )}
+                <div className={`absolute top-1 right-3 ${modeColors.text} text-[2rem]`}>{index + 1}</div>
               </div>
             ))}
           </div>
