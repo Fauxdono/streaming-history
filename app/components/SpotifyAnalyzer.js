@@ -3002,7 +3002,7 @@ const SpotifyAnalyzer = ({
               </div>
 
               {/* Mobile controls */}
-              <div className={`block sm:hidden ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
+              <div className={`block sm:hidden mb-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <label className="text-xs">Top</label>
