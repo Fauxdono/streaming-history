@@ -1370,7 +1370,7 @@ const YearSelector = ({
   const getPositionStyles = useMemo(() => {
     const settingsBarHeight = isMobile ? (isLandscape ? 64 : 85) : Math.max(40, Math.round(40 * fontScale));
     // Use actual TopTabs dimensions, with fallbacks for mobile
-    const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight : (isMobile ? 44 : 56);
+    const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight + (isMobile ? 4 : 0) : (isMobile ? 48 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
     
     if (topTabsPosition === currentPosition) {
