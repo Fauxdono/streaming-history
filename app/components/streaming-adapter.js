@@ -2582,13 +2582,28 @@ export const streamingProcessor = {
         songsByArtist.get(normalizedName).push(song);
       });
 
+      // Pre-build a map of albums by normalized artist name for mostPlayedAlbum
+      const albumsByArtist = new Map();
+      Object.values(stats.albums).forEach(album => {
+        const normalizedName = normalizeArtistName(album.artist);
+        if (!albumsByArtist.has(normalizedName)) {
+          albumsByArtist.set(normalizedName, []);
+        }
+        albumsByArtist.get(normalizedName).push(album);
+      });
+
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const normalizedArtistName = normalizeArtistName(artist.name);
           const artistSongs = songsByArtist.get(normalizedArtistName) || [];
-          
+
           const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
-          
+
+          // Find most played album for this artist
+          const artistAlbums = albumsByArtist.get(normalizedArtistName) || [];
+          const topAlbum = _.maxBy(artistAlbums, 'playCount');
+          const mostPlayedAlbum = topAlbum ? { albumName: topAlbum.name, playCount: topAlbum.playCount } : null;
+
           // Get all play timestamps for this artist
           const artistPlays = [];
           artistSongs.forEach(song => {
@@ -2602,6 +2617,7 @@ export const streamingProcessor = {
           return {
             ...artist,
             mostPlayedSong: mostPlayed,
+            mostPlayedAlbum,
             ...streaks
           };
         })
