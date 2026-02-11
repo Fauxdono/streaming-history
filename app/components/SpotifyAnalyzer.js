@@ -1251,8 +1251,26 @@ const SpotifyAnalyzer = ({
       }
       
       console.log('🔧 Setting top artists...');
-      if (loadedData.topArtists) setTopArtists(loadedData.topArtists);
-      
+      if (loadedData.topArtists) {
+        // Enrich artists with mostPlayedAlbum if missing (for data saved before this feature)
+        if (loadedData.topAlbums && loadedData.topArtists.length > 0 && !loadedData.topArtists[0].mostPlayedAlbum) {
+          const albumsByArtist = {};
+          loadedData.topAlbums.forEach(album => {
+            const key = (album.artist || '').toLowerCase().trim();
+            if (!albumsByArtist[key] || album.playCount > albumsByArtist[key].playCount) {
+              albumsByArtist[key] = { albumName: album.name, playCount: album.playCount };
+            }
+          });
+          loadedData.topArtists.forEach(artist => {
+            const key = (artist.name || '').toLowerCase().trim();
+            if (albumsByArtist[key]) {
+              artist.mostPlayedAlbum = albumsByArtist[key];
+            }
+          });
+        }
+        setTopArtists(loadedData.topArtists);
+      }
+
       console.log('🔧 Setting top albums...');
       if (loadedData.topAlbums) setTopAlbums(loadedData.topAlbums);
       
