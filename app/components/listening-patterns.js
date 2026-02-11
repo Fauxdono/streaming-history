@@ -18,7 +18,8 @@ const ListeningPatterns = ({
   briefObsessions = [],
   songsByYear = {},
   colorMode = 'minimal',
-  viewMode = 'grid'
+  viewMode = 'grid',
+  setViewMode = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
@@ -573,12 +574,18 @@ const ListeningPatterns = ({
       <h3 className={`text-xl ${colors.text}`}>
         {getPageTitle()}
       </h3>
-      <div className="flex flex-wrap gap-1 sm:gap-2">
+      <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
         <TabButton id="obsessions" label="Obsessions" />
         <TabButton id="streaming" label="Streaming" />
+        <button
+          onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {viewMode === 'grid' ? '☰' : '▦'}
+        </button>
       </div>
     </div>
 
@@ -590,6 +597,12 @@ const ListeningPatterns = ({
         <TabButton id="seasonal" label="Season" />
         <TabButton id="obsessions" label="Obsess" />
         <TabButton id="streaming" label="Stream" />
+        <button
+          onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          className={`px-1.5 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {viewMode === 'grid' ? '☰' : '▦'}
+        </button>
       </div>
     </div>
 

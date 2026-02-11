@@ -19,7 +19,8 @@ const CustomTrackRankings = ({
   textTheme = null,
   backgroundTheme = null,
   colorMode = 'minimal',
-  viewMode = 'grid'
+  viewMode = 'grid',
+  setViewMode = () => {}
 }) => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
@@ -1474,6 +1475,12 @@ return (
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
+        <button
+          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {viewMode === 'grid' ? '☰' : '▦'}
+        </button>
       </div>
     </div>
 
@@ -1495,6 +1502,12 @@ return (
           className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+        </button>
+        <button
+          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
+          className={`px-1.5 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {viewMode === 'grid' ? '☰' : '▦'}
         </button>
         <div className="relative flex-1">
           <input

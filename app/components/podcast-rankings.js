@@ -31,7 +31,8 @@ const PodcastRankings = ({
   onYearRangeChange,
   onToggleYearRangeMode,
   colorMode = 'minimal',
-  viewMode = 'grid'
+  viewMode = 'grid',
+  setViewMode = () => {}
 }) => {
   // State for filters and sorting
   const [startDate, setStartDate] = useState('');
@@ -856,6 +857,12 @@ const PodcastRankings = ({
             onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
             className={`border rounded w-14 px-1.5 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
           />
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
+            className={`px-2 py-1 rounded text-xs font-medium hover:opacity-80 whitespace-nowrap ${modeColors.buttonInactive}`}
+          >
+            {viewMode === 'grid' ? '☰' : '▦'}
+          </button>
         </div>
       </div>
 
@@ -886,6 +893,12 @@ const PodcastRankings = ({
             className={`px-1.5 py-1 rounded text-xs hover:opacity-80 whitespace-nowrap ${modeColors.buttonInactive}`}
           >
             {showDuplicateStats ? 'Hide' : 'Stats'}
+          </button>
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
+            className={`px-1.5 py-1 rounded text-xs font-medium hover:opacity-80 ${modeColors.buttonInactive}`}
+          >
+            {viewMode === 'grid' ? '☰' : '▦'}
           </button>
           <div className="relative flex-1">
             <input

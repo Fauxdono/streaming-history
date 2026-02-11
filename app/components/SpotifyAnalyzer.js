@@ -2695,9 +2695,19 @@ const SpotifyAnalyzer = ({
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                   </button>
+                  <button
+                    onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                    }
+                  >
+                    {artistsViewMode === 'grid' ? '☰' : '▦'}
+                  </button>
                 </div>
               </div>
-              
+
               {/* Mobile controls - single row */}
               <div className={`block sm:hidden mb-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
                 <div className="flex items-center gap-1">
@@ -2724,6 +2734,16 @@ const SpotifyAnalyzer = ({
                     }
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+                  </button>
+                  <button
+                    onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-1.5 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                    }
+                  >
+                    {artistsViewMode === 'grid' ? '☰' : '▦'}
                   </button>
                   <button
                     onClick={() => setArtistSelectionMode(prev => !prev)}
@@ -3112,6 +3132,16 @@ const SpotifyAnalyzer = ({
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                   </button>
+                  <button
+                    onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                    }
+                  >
+                    {albumsViewMode === 'grid' ? '☰' : '▦'}
+                  </button>
                 </div>
               </div>
 
@@ -3141,6 +3171,16 @@ const SpotifyAnalyzer = ({
                     }
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+                  </button>
+                  <button
+                    onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-1.5 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                        : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                    }
+                  >
+                    {albumsViewMode === 'grid' ? '☰' : '▦'}
                   </button>
                   <div className="relative flex-1">
                     <input
@@ -3357,6 +3397,7 @@ const SpotifyAnalyzer = ({
               initialArtists={selectedArtists}
               colorMode={colorMode}
               viewMode={customViewMode}
+              setViewMode={setCustomViewMode}
             />
           </div>
         );
@@ -3397,6 +3438,7 @@ const SpotifyAnalyzer = ({
               songsByYear={songsByYear}
               colorMode={colorMode}
               viewMode={patternsViewMode}
+              setViewMode={setPatternsViewMode}
             />
           </div>
         );
@@ -3481,10 +3523,11 @@ const SpotifyAnalyzer = ({
               colorTheme="red"
               colorMode={colorMode}
               viewMode={podcastViewMode}
+              setViewMode={setPodcastViewMode}
             />
           </div>
         );
-      
+
       case 'playlists':
         return (
           <div className={
@@ -3591,29 +3634,6 @@ const SpotifyAnalyzer = ({
     filteredStreaks
   ]);
 
-  // Get current view mode based on active tab
-  const getCurrentViewMode = () => {
-    switch (activeTab) {
-      case 'artists': return artistsViewMode;
-      case 'albums': return albumsViewMode;
-      case 'custom': return customViewMode;
-      case 'podcasts': return podcastViewMode;
-      case 'patterns': return patternsViewMode;
-      default: return 'grid';
-    }
-  };
-
-  // Set view mode for current tab
-  const setCurrentViewMode = (mode) => {
-    switch (activeTab) {
-      case 'artists': setArtistsViewMode(mode); break;
-      case 'albums': setAlbumsViewMode(mode); break;
-      case 'custom': setCustomViewMode(mode); break;
-      case 'podcasts': setPodcastViewMode(mode); break;
-      case 'patterns': setPatternsViewMode(mode); break;
-    }
-  };
-
   // Get page background class based on colorMode and activeTab
   const getPageBackground = () => {
     if (colorMode !== 'colorful') return '';
@@ -3646,9 +3666,6 @@ const SpotifyAnalyzer = ({
         isCollapsed={topTabsCollapsed}
         colorMode={colorMode}
         setColorMode={setColorMode}
-        activeTab={activeTab}
-        viewMode={getCurrentViewMode()}
-        setViewMode={setCurrentViewMode}
       />
       {TopTabsComponent && (
         <TopTabsComponent
