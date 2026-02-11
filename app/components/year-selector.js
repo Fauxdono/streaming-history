@@ -140,7 +140,9 @@ const YearSelector = ({
       let isMobile = false;
       let isTablet = false;
       
-      if (width < 640) {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isLandscapeMobile = isTouch && height < 500;
+      if (width < 640 || isLandscapeMobile) {
         category = 'mobile';
         isMobile = true;
       } else if (width < 1024) {
@@ -1360,11 +1362,12 @@ const YearSelector = ({
   // Fixed settings bar height - this matches the FixedSettingsBar height, scaled by font size (min 40px)
   const fontScales = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 };
   const fontScale = fontScales[fontSize] || 1;
-  const settingsBarHeight = isMobile ? 85 : Math.max(40, Math.round(40 * fontScale));
+  const isLandscapeMobileBar = isMobile && isLandscape;
+  const settingsBarHeight = isMobile ? (isLandscapeMobileBar ? 64 : 85) : Math.max(40, Math.round(40 * fontScale));
 
   // Dynamic position styles that account for TopTabs (memoized for mobile performance)
   const getPositionStyles = useMemo(() => {
-    const settingsBarHeight = isMobile ? 85 : Math.max(40, Math.round(40 * fontScale));
+    const settingsBarHeight = isMobile ? (isLandscape ? 64 : 85) : Math.max(40, Math.round(40 * fontScale));
     // Use actual TopTabs dimensions, with fallbacks for mobile
     const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight : (isMobile ? 44 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
@@ -1456,7 +1459,7 @@ const YearSelector = ({
       className: 'fixed right-0 top-20 bottom-0 z-[90]',
       style: {}
     };
-  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, fontScale]);
+  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, fontScale]);
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {

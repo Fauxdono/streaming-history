@@ -54,15 +54,20 @@ const TopTabs = ({
 
   // Check for mobile viewport
   const [isMobile, setIsMobile] = useState(false);
-  
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
+
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+      const isNarrow = window.innerWidth < 640;
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const landscapeMobile = isTouch && window.innerHeight < 500;
+      setIsMobile(isNarrow || landscapeMobile);
+      setIsLandscapeMobile(landscapeMobile && !isNarrow);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
@@ -310,11 +315,14 @@ const TopTabs = ({
   }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon, colorMode]);
 
   // Settings bar height calculation - measure actual height on desktop
-  const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? '85px' : '40px');
+  const mobileBarHeight = isLandscapeMobile ? 64 : 85;
+  const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? `${mobileBarHeight}px` : '40px');
   
-  // Measure actual SettingsBar height on desktop - re-measure when font size changes
+  // Measure actual SettingsBar height on desktop, use fixed value on mobile
   useEffect(() => {
-    if (!isMobile) {
+    if (isMobile) {
+      setSettingsBarHeight(`${mobileBarHeight}px`);
+    } else {
       const measureSettingsBarHeight = () => {
         const settingsBarElement = document.querySelector('.fixed.left-0.right-0.w-full.z-\\[100\\]');
         if (settingsBarElement) {
@@ -323,13 +331,12 @@ const TopTabs = ({
         }
       };
 
-      // Measure after component mounts and after a brief delay
       measureSettingsBarHeight();
       const timer = setTimeout(measureSettingsBarHeight, 100);
 
       return () => clearTimeout(timer);
     }
-  }, [isMobile, fontSize]);
+  }, [isMobile, isLandscapeMobile, mobileBarHeight, fontSize]);
 
   // Position styles for different placements - now accounts for fixed settings bar
   const getPositionStyles = () => {
@@ -436,7 +443,7 @@ const TopTabs = ({
             transform: isMobile ? 'translateZ(0)' : undefined // Hardware acceleration on mobile
           }),
           ...(currentPosition === 'bottom' && isMobile && {
-            bottom: '85px',
+            bottom: `${mobileBarHeight}px`,
             transform: 'translateZ(0)' // Hardware acceleration
           }),
           ...(currentPosition === 'bottom' && !isMobile && {

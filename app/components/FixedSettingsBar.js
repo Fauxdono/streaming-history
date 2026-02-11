@@ -10,6 +10,7 @@ const FixedSettingsBar = ({
   togglePosition,
   toggleCollapsed,
   isMobile,
+  isLandscapeMobile = false,
   isCollapsed,
   colorMode = 'minimal',
   setColorMode = () => {},
@@ -17,6 +18,7 @@ const FixedSettingsBar = ({
   viewMode = 'grid',
   setViewMode = () => {}
 }) => {
+  const mobileBarHeight = isLandscapeMobile ? 64 : 85;
   // Tabs that support grid/list view (mobile only)
   const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns'];
   const showViewToggle = isMobile && tabsWithViewMode.includes(activeTab);
@@ -49,18 +51,18 @@ const FixedSettingsBar = ({
           willChange: 'auto',
           ...(isMobile ? {
             bottom: 'calc(-1 * env(safe-area-inset-bottom, 0px))',
-            height: 'calc(85px + env(safe-area-inset-bottom, 0px))'
+            height: `calc(${mobileBarHeight}px + env(safe-area-inset-bottom, 0px))`
           } : {
             top: '0',
             minHeight: '40px'
           })
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center pt-2'}`} style={{height: isMobile ? '85px' : 'auto'}}>
+        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center pt-2'}`} style={{height: isMobile ? `${mobileBarHeight}px` : 'auto'}}>
           {isMobile ? (
             <>
               {/* Left side buttons */}
-              <div className="flex items-center gap-4">
+              <div className={`flex items-center ${isLandscapeMobile ? 'gap-3' : 'gap-4'}`}>
                 <DarkModeToggle className="!p-1.5 !rounded-full !w-[33px] !h-[33px]" />
                 <button
                   onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}

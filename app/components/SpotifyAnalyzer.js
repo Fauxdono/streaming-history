@@ -339,6 +339,7 @@ const SpotifyAnalyzer = ({
   
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
 
   // Update dimensions when YearSelector expands/collapses (simplified - no loops)
   useEffect(() => {
@@ -355,9 +356,10 @@ const SpotifyAnalyzer = ({
     const checkMobile = () => {
       const isNarrow = window.innerWidth < 640;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isLandscapeMobile = isTouch && window.innerHeight < 500;
-      const isMobileNow = isNarrow || isLandscapeMobile;
+      const landscapeMobile = isTouch && window.innerHeight < 500;
+      const isMobileNow = isNarrow || landscapeMobile;
       setIsMobile(isMobileNow);
+      setIsLandscapeMobile(landscapeMobile && !isNarrow);
       
       // Allow user to manually control position on both mobile and desktop
       // Remove auto-positioning to prevent oscillation between bottom and top on desktop
@@ -3686,6 +3688,7 @@ const SpotifyAnalyzer = ({
         togglePosition={togglePosition}
         toggleCollapsed={toggleCollapsed}
         isMobile={isMobile}
+        isLandscapeMobile={isLandscapeMobile}
         isCollapsed={topTabsCollapsed}
         colorMode={colorMode}
         setColorMode={setColorMode}
