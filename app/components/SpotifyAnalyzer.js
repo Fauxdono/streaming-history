@@ -353,7 +353,10 @@ const SpotifyAnalyzer = ({
   
   useEffect(() => {
     const checkMobile = () => {
-      const isMobileNow = window.innerWidth < 640;
+      const isNarrow = window.innerWidth < 640;
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isLandscapeMobile = isTouch && window.innerHeight < 500;
+      const isMobileNow = isNarrow || isLandscapeMobile;
       setIsMobile(isMobileNow);
       
       // Allow user to manually control position on both mobile and desktop
