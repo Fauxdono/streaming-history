@@ -677,6 +677,50 @@ const SpotifyAnalyzer = ({
     }
   }, [selectedAlbumYear]);
 
+  // Convert yearRange to artistStartDate/artistEndDate when in range mode
+  useEffect(() => {
+    if (!yearRangeMode || !yearRange.startYear || !yearRange.endYear) return;
+    const parseRangeValue = (val, isEnd) => {
+      const str = String(val);
+      const parts = str.split('-');
+      if (parts.length === 3) return str; // YYYY-MM-DD
+      if (parts.length === 2) {
+        // YYYY-MM
+        if (isEnd) {
+          const lastDay = new Date(parseInt(parts[0]), parseInt(parts[1]), 0).getDate();
+          return `${parts[0]}-${parts[1]}-${lastDay.toString().padStart(2, '0')}`;
+        }
+        return `${parts[0]}-${parts[1]}-01`;
+      }
+      // YYYY only
+      return isEnd ? `${str}-12-31` : `${str}-01-01`;
+    };
+    setSelectedArtistYear('range'); // non-'all' value to trigger date filtering
+    setArtistStartDate(parseRangeValue(yearRange.startYear, false));
+    setArtistEndDate(parseRangeValue(yearRange.endYear, true));
+  }, [yearRangeMode, yearRange]);
+
+  // Convert albumYearRange to albumStartDate/albumEndDate when in range mode
+  useEffect(() => {
+    if (!albumYearRangeMode || !albumYearRange.startYear || !albumYearRange.endYear) return;
+    const parseRangeValue = (val, isEnd) => {
+      const str = String(val);
+      const parts = str.split('-');
+      if (parts.length === 3) return str;
+      if (parts.length === 2) {
+        if (isEnd) {
+          const lastDay = new Date(parseInt(parts[0]), parseInt(parts[1]), 0).getDate();
+          return `${parts[0]}-${parts[1]}-${lastDay.toString().padStart(2, '0')}`;
+        }
+        return `${parts[0]}-${parts[1]}-01`;
+      }
+      return isEnd ? `${str}-12-31` : `${str}-01-01`;
+    };
+    setSelectedAlbumYear('range');
+    setAlbumStartDate(parseRangeValue(albumYearRange.startYear, false));
+    setAlbumEndDate(parseRangeValue(albumYearRange.endYear, true));
+  }, [albumYearRangeMode, albumYearRange]);
+
   // Albums filtering using same logic as streaming adapter
   const displayedAlbums = useMemo(() => {
     
@@ -1715,6 +1759,7 @@ const SpotifyAnalyzer = ({
 
   // Convert selectedArtistYear to date range (like CustomTrackRankings)
   useEffect(() => {
+    if (yearRangeMode) return; // Range mode handles its own dates
     if (selectedArtistYear !== 'all') {
       if (selectedArtistYear.includes('-')) {
         const parts = selectedArtistYear.split('-');
@@ -1745,6 +1790,7 @@ const SpotifyAnalyzer = ({
 
   // Convert selectedAlbumYear to date range (like CustomTrackRankings)
   useEffect(() => {
+    if (albumYearRangeMode) return; // Range mode handles its own dates
     if (selectedAlbumYear !== 'all') {
       if (selectedAlbumYear.includes('-')) {
         const parts = selectedAlbumYear.split('-');

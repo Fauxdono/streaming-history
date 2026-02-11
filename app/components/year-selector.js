@@ -54,9 +54,10 @@ const YearSelector = ({
     if (mode === 'range') {
       if (isMobilePortraitHz) {
         // Dynamic height based on which selectors are shown
-        let h = 90; // base: year row only
-        if (showRangeMonthDaySelectors) h = 155; // year + month rows
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 220; // all three rows
+        // Each row: wheel (63px) + label (14px) + gaps
+        let h = 90; // base: year row + M toggle
+        if (showRangeMonthDaySelectors) h = 170; // year + month rows + D toggle
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250; // all three rows
         return { width: 180, height: h };
       }
       return { width: 180, height: isHorizontal ? 110 : 220 };
