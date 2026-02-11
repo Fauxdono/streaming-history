@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportDropdown from './SupportDropdown.js';
-import { ArrowLeftRight, Type, Heart } from 'lucide-react';
+import { ArrowLeftRight, Type, LayoutGrid, List, Heart } from 'lucide-react';
 
 const FixedSettingsBar = ({
   togglePosition,
@@ -12,8 +12,25 @@ const FixedSettingsBar = ({
   isMobile,
   isCollapsed,
   colorMode = 'minimal',
-  setColorMode = () => {}
+  setColorMode = () => {},
+  activeTab = '',
+  viewMode = 'grid',
+  setViewMode = () => {}
 }) => {
+  // Tabs that support grid/list view (mobile only)
+  const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns'];
+  const showViewToggle = isMobile && tabsWithViewMode.includes(activeTab);
+
+  const getAlternateViewMode = () => {
+    if (activeTab === 'artists' || activeTab === 'albums') return 'list';
+    return 'compact';
+  };
+
+  const toggleViewMode = () => {
+    const alternateMode = getAlternateViewMode();
+    setViewMode(viewMode === 'grid' ? alternateMode : 'grid');
+  };
+
   const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
   const [showSupportDropdown, setShowSupportDropdown] = useState(false);
   const settingsButtonRef = useRef(null);
@@ -52,6 +69,15 @@ const FixedSettingsBar = ({
                 >
                   {colorMode === 'minimal' ? '🎨' : '⬛'}
                 </button>
+                {showViewToggle && (
+                  <button
+                    onClick={toggleViewMode}
+                    className="p-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                    title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+                  >
+                    {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
+                  </button>
+                )}
                 <button
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}

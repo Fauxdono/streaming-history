@@ -1503,12 +1503,6 @@ return (
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
-        <button
-          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
-          className={`px-1.5 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-        >
-          {viewMode === 'grid' ? '☰' : '▦'}
-        </button>
         <div className="relative flex-1">
           <input
             type="text"

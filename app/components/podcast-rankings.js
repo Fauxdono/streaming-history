@@ -894,12 +894,6 @@ const PodcastRankings = ({
           >
             {showDuplicateStats ? 'Hide' : 'Stats'}
           </button>
-          <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
-            className={`px-1.5 py-1 rounded text-xs font-medium hover:opacity-80 ${modeColors.buttonInactive}`}
-          >
-            {viewMode === 'grid' ? '☰' : '▦'}
-          </button>
           <div className="relative flex-1">
             <input
               type="text"
