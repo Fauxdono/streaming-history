@@ -717,18 +717,6 @@ const CalendarView = ({
       {activeTab === 'calendar' && (
         <div className="space-y-6">
           <div>
-            {/* Dynamic header based on view mode */}
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>
-              {isMonthView ?
-                `Daily Calendar - ${selectedYear.split('-')[1]}/${selectedYear.split('-')[0]}` :
-                'Yearly Calendar Overview'}
-            </h3>
-            <p className={`mb-4 ${modeColors.textLight}`}>
-              {isMonthView ?
-                'Daily breakdown showing your top artist, album, and new discoveries for each day' :
-                'Monthly insights showing your top artist, album, and new discoveries for each month'}
-            </p>
-            
             {/* Monthly View - Grid */}
             {!isMonthView && viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
