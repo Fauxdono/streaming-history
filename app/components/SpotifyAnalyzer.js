@@ -2190,12 +2190,12 @@ const SpotifyAnalyzer = ({
                 Upload your streaming history files:
               </p>
               <p className={`mb-3 text-xs sm:text-sm ${uploadTextLight}`}>
-                Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), Cake (.xlsx/.json)
+                Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), iPod/Rockbox (.log), Cake (.xlsx/.json)
               </p>
               <input
                 type="file"
                 multiple
-                accept=".json,.csv,.xlsx"
+                accept=".json,.csv,.xlsx,.log"
                 onChange={handleFileUpload}
                 className={`block w-full text-sm transition-colors
                   file:mr-4 file:py-2 file:px-4 file:rounded-lg
