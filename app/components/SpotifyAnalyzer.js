@@ -674,21 +674,21 @@ const SpotifyAnalyzer = ({
 
   // Albums filtering using same logic as streaming adapter
   const displayedAlbums = useMemo(() => {
-    
-    // If all-time, use the existing topAlbums but apply artist filtering if needed
-    if (selectedAlbumYear === 'all') {
+
+    // If all-time (and not in range mode), use the existing topAlbums
+    if (!albumYearRangeMode && selectedAlbumYear === 'all') {
       let filteredAlbums = [...topAlbums];
-      
+
       // Apply artist filtering if any artists are selected
       if (selectedArtists.length > 0) {
-        const normalizedSelectedArtists = selectedArtists.map(artist => 
+        const normalizedSelectedArtists = selectedArtists.map(artist =>
           normalizeArtistName(artist)
         );
-        filteredAlbums = filteredAlbums.filter(album => 
+        filteredAlbums = filteredAlbums.filter(album =>
           normalizedSelectedArtists.includes(normalizeArtistName(album.artist))
         );
       }
-      
+
       return filteredAlbums.sort((a, b) => {
         if (albumsSortBy === 'playCount') {
           return b.playCount - a.playCount;
@@ -697,12 +697,22 @@ const SpotifyAnalyzer = ({
         }
       });
     }
-    
+
+    // Compute dates - use albumYearRange directly when in range mode
+    let startDateStr, endDateStr;
+    if (albumYearRangeMode && albumYearRange.startYear && albumYearRange.endYear) {
+      startDateStr = parseRangeValue(albumYearRange.startYear, false);
+      endDateStr = parseRangeValue(albumYearRange.endYear, true);
+    } else {
+      startDateStr = albumStartDate;
+      endDateStr = albumEndDate;
+    }
+
     // Use date range filtering approach with streaming adapter logic
-    const isAllTime = (!albumStartDate || albumStartDate === "") && (!albumEndDate || albumEndDate === "");
-    const start = isAllTime ? new Date(0) : new Date(albumStartDate);
+    const isAllTime = (!startDateStr || startDateStr === "") && (!endDateStr || endDateStr === "");
+    const start = isAllTime ? new Date(0) : new Date(startDateStr);
     start.setHours(0, 0, 0, 0);
-    const end = isAllTime ? new Date() : new Date(albumEndDate);
+    const end = isAllTime ? new Date() : new Date(endDateStr);
     end.setHours(23, 59, 59, 999);
     
     // Filter raw data by date range and 30-second minimum
@@ -838,7 +848,7 @@ const SpotifyAnalyzer = ({
         return b.totalPlayed - a.totalPlayed;
       }
     });
-  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists, albumsSortBy]);
+  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists, albumsSortBy, albumYearRangeMode, albumYearRange, parseRangeValue]);
 
 
 
@@ -872,9 +882,9 @@ const SpotifyAnalyzer = ({
 
   // Simple displayedArtists logic using CustomTrackRankings pattern
   const displayedArtists = useMemo(() => {
-    
-    // If all-time, use the existing topArtists but sort according to artistsSortBy
-    if (selectedArtistYear === 'all') {
+
+    // If all-time (and not in range mode), use the existing topArtists
+    if (!yearRangeMode && selectedArtistYear === 'all') {
       return [...topArtists].sort((a, b) => {
         if (artistsSortBy === 'playCount') {
           return b.playCount - a.playCount;
@@ -883,12 +893,22 @@ const SpotifyAnalyzer = ({
         }
       });
     }
-    
+
+    // Compute dates - use yearRange directly when in range mode
+    let startDateStr, endDateStr;
+    if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
+      startDateStr = parseRangeValue(yearRange.startYear, false);
+      endDateStr = parseRangeValue(yearRange.endYear, true);
+    } else {
+      startDateStr = artistStartDate;
+      endDateStr = artistEndDate;
+    }
+
     // Use date range filtering approach
-    const isAllTime = (!artistStartDate || artistStartDate === "") && (!artistEndDate || artistEndDate === "");
-    const start = isAllTime ? new Date(0) : new Date(artistStartDate);
+    const isAllTime = (!startDateStr || startDateStr === "") && (!endDateStr || endDateStr === "");
+    const start = isAllTime ? new Date(0) : new Date(startDateStr);
     start.setHours(0, 0, 0, 0);
-    const end = isAllTime ? new Date() : new Date(artistEndDate);
+    const end = isAllTime ? new Date() : new Date(endDateStr);
     end.setHours(23, 59, 59, 999);
     
     // Filter raw data by date range and 30-second minimum (like CustomTrackRankings)
@@ -1010,7 +1030,7 @@ const SpotifyAnalyzer = ({
         return b.totalPlayed - a.totalPlayed;
       }
     });
-  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData, artistsSortBy]);
+  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData, artistsSortBy, yearRangeMode, yearRange, parseRangeValue]);
 
   // Filtered displayed artists - memoized to prevent recalculation
   const filteredDisplayedArtists = useMemo(() => {
