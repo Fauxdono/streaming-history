@@ -2959,7 +2959,7 @@ const SpotifyAnalyzer = ({
                   </div>
                 ) : (
                   // Grid view
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                     {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
                       .slice(0, topArtistsCount)
                       .map((artist) => {
@@ -3331,7 +3331,7 @@ const SpotifyAnalyzer = ({
                 ) : (
                   // Grid or Mobile view
                   <div className={`
-                    ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-1'}
+                    ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4' : 'space-y-1'}
                   `}>
                     {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
                       const albumCardBg = colorMode === 'colorful'
