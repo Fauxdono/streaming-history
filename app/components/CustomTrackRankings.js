@@ -1626,7 +1626,7 @@ return (
       </div>
       
       {/* Feature Toggles + Sort Controls in one row */}
-      <div className="flex flex-wrap justify-between items-center mt-3">
+      <div className="flex flex-wrap justify-between items-center mt-1">
         {/* Feature Toggles */}
         {selectedArtists.length > 0 && (
           <label className={`flex items-center cursor-pointer ${onlyFeatures ? 'opacity-50' : ''}`}>
@@ -1658,8 +1658,6 @@ return (
         colorTheme={colorTheme}
       />
     )}
-
-    <div className="mt-4"></div>
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
