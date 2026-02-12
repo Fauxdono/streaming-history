@@ -690,9 +690,23 @@ const CalendarView = ({
         <h3 className={`text-xl ${modeColors.text}`}>
           {getPageTitle()}
         </h3>
-        <div className="flex flex-wrap gap-1 sm:gap-2">
+        <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
           <TabButton id="calendar" label="Calendar" />
           <TabButton id="history" label="Daily History" />
+          {activeTab === 'calendar' && isMonthView && (
+            <button
+              onClick={() => setDaySelectionMode(!daySelectionMode)}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                daySelectionMode
+                  ? modeColors.buttonActive
+                  : isColorful
+                    ? 'bg-green-500 text-black hover:bg-green-600'
+                    : `${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+              }`}
+            >
+              {daySelectionMode ? 'Cancel Selection' : 'View in Daily History'}
+            </button>
+          )}
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
             className={
@@ -708,9 +722,21 @@ const CalendarView = ({
 
       {/* Mobile controls - separate row */}
       <div className="block sm:hidden mb-4">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 items-center">
           <TabButton id="calendar" label="Calendar" />
           <TabButton id="history" label="History" />
+          {activeTab === 'calendar' && isMonthView && (
+            <button
+              onClick={() => setDaySelectionMode(!daySelectionMode)}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                daySelectionMode
+                  ? modeColors.buttonActive
+                  : modeColors.buttonInactive
+              }`}
+            >
+              {daySelectionMode ? 'Cancel' : 'Daily History'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -783,24 +809,11 @@ const CalendarView = ({
             {/* Daily View - Grid */}
             {isMonthView && viewMode === 'grid' && (
               <>
-                {/* View in Daily History Button */}
-                <div className="mb-4 flex flex-col items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setDaySelectionMode(true);
-                    }}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      daySelectionMode ? modeColors.buttonActive : modeColors.buttonInactive
-                    }`}
-                  >
-                    View in Daily History
-                  </button>
-                  {daySelectionMode && (
-                    <p className={`text-sm text-center ${modeColors.textLight}`}>
-                      Click on any day below to view its detailed history
-                    </p>
-                  )}
-                </div>
+                {daySelectionMode && (
+                  <p className={`text-sm text-center mb-2 ${modeColors.textLight}`}>
+                    Click on any day below to view its detailed history
+                  </p>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {dailyCalendarData.map((dayData, index) => {
