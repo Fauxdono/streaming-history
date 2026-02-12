@@ -1481,12 +1481,26 @@ return (
         >
           {viewMode === 'grid' ? '☰' : '▦'}
         </button>
+        <button
+          onClick={() => setShowOmittedTab(!showOmittedTab)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgLight} ${colors.text} border ${colors.border} hover:${colors.bgMed}`}`}
+        >
+          <Eye size={12} />
+          {showOmittedTab ? 'Results' : `Omitted (${omittedSongs.length + omittedArtists.length})`}
+        </button>
+        <button
+          onClick={() => setShowPlaylistExporter(true)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          <Download size={12} />
+          M3U
+        </button>
       </div>
     </div>
 
     {/* Mobile controls - single row with search */}
     <div className="block sm:hidden mb-2">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-wrap">
         <label className={`${colors.text} text-xs`}>Top</label>
         <input
           type="number"
@@ -1502,6 +1516,19 @@ return (
           className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+        </button>
+        <button
+          onClick={() => setShowOmittedTab(!showOmittedTab)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgLight} ${colors.text} border ${colors.border}`}`}
+        >
+          <Eye size={10} />
+          {showOmittedTab ? 'Results' : `Omit (${omittedSongs.length + omittedArtists.length})`}
+        </button>
+        <button
+          onClick={() => setShowPlaylistExporter(true)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          M3U
         </button>
         <div className="relative flex-1">
           <input
@@ -1632,39 +1659,7 @@ return (
       />
     )}
 
-    {/* Tabs for switching between main content and omitted content */}
-    <div className="flex justify-between items-center mt-4 mb-4">
-      <div className="flex gap-2">
-        <button
-          onClick={() => setShowOmittedTab(false)}
-          className={`px-4 py-2 rounded-t text-sm ${
-            !showOmittedTab
-              ? colors.bgDark
-              : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
-          }`}
-        >
-          Track Results
-        </button>
-        <button
-          onClick={() => setShowOmittedTab(true)}
-          className={`px-4 py-2 rounded-t text-sm flex items-center gap-1 ${
-            showOmittedTab
-              ? colors.bgDark
-              : `${colors.bgLight} ${colors.text} hover:${colors.bgMed}`
-          }`}
-        >
-          <Eye size={14} />
-          Omitted Content ({omittedSongs.length + omittedArtists.length})
-        </button>
-      </div>
-      <button
-        onClick={() => setShowPlaylistExporter(true)}
-        className={`flex items-center gap-1 px-3 py-1 ${colors.bgDark} rounded text-sm ${colors.bgDarkHover} transition-colors`}
-      >
-        <Download size={14} className="hidden sm:inline" />
-        Export M3u
-      </button>
-    </div>
+    <div className="mt-4"></div>
 
     {/* Show either omitted content tab or normal results */}
     {showOmittedTab ? (
