@@ -1194,6 +1194,38 @@ const YearSelector = ({
     }
   }, [selectedYear, selectedMonth, activeTab, onYearChange]);
   
+  // Unified function to update parent with date range
+  const updateParentWithDateRange = useCallback((startYear, startM, startD, endYear, endM, endD) => {
+    if (!onYearRangeChange) return;
+
+    const sYear = startYear || yearRange.startYear;
+    const sMonth = startM || startMonth;
+    const sDay = startD || startDay;
+    const eYear = endYear || yearRange.endYear;
+    const eMonth = endM || endMonth;
+    const eDay = endD || endDay;
+
+    if (!sYear || !eYear) return;
+
+    let startValue, endValue;
+
+    if (showRangeMonthDaySelectors && showRangeDaySelectors) {
+      startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
+      endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
+    } else if (showRangeMonthDaySelectors) {
+      startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}`;
+      endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}`;
+    } else {
+      startValue = sYear;
+      endValue = eYear;
+    }
+
+    onYearRangeChange({
+      startYear: startValue,
+      endYear: endValue
+    });
+  }, [onYearRangeChange, yearRange, startMonth, startDay, endMonth, endDay, showRangeMonthDaySelectors, showRangeDaySelectors]);
+
   // Handle start month change in range mode
   const handleStartMonthChange = useCallback((month) => {
     setStartMonth(month);
@@ -1274,38 +1306,6 @@ const YearSelector = ({
     }
   };
 
-  // Unified function to update parent with date range
-  const updateParentWithDateRange = useCallback((startYear, startM, startD, endYear, endM, endD) => {
-    if (!onYearRangeChange) return;
-
-    const sYear = startYear || yearRange.startYear;
-    const sMonth = startM || startMonth;
-    const sDay = startD || startDay;
-    const eYear = endYear || yearRange.endYear;
-    const eMonth = endM || endMonth;
-    const eDay = endD || endDay;
-
-    if (!sYear || !eYear) return;
-
-    let startValue, endValue;
-
-    if (showRangeMonthDaySelectors && showRangeDaySelectors) {
-      startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
-      endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
-    } else if (showRangeMonthDaySelectors) {
-      startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}`;
-      endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}`;
-    } else {
-      startValue = sYear;
-      endValue = eYear;
-    }
-
-    onYearRangeChange({
-      startYear: startValue,
-      endYear: endValue
-    });
-  }, [onYearRangeChange, yearRange, startMonth, startDay, endMonth, endDay, showRangeMonthDaySelectors, showRangeDaySelectors]);
-  
   // Handler for year range change in range mode
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
     const newYearRange = { startYear, endYear };
