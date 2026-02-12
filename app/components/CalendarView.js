@@ -701,7 +701,7 @@ const CalendarView = ({
           {activeTab === 'calendar' && isMonthView && (
             <button
               onClick={() => setDaySelectionMode(!daySelectionMode)}
-              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+              className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${
                 daySelectionMode
                   ? modeColors.buttonActive
                   : isColorful
