@@ -542,44 +542,52 @@ const SpotifyAnalyzer = ({
     };
   }, [selectedStreaksYear, stats, rawPlayData]);
 
+  // Parse range value to a date string
+  const parseRangeValue = useCallback((val, isEnd) => {
+    const str = String(val);
+    const parts = str.split('-');
+    if (parts.length === 3) return str; // YYYY-MM-DD
+    if (parts.length === 2) {
+      if (isEnd) {
+        const lastDay = new Date(parseInt(parts[0]), parseInt(parts[1]), 0).getDate();
+        return `${parts[0]}-${parts[1]}-${lastDay.toString().padStart(2, '0')}`;
+      }
+      return `${parts[0]}-${parts[1]}-01`;
+    }
+    return isEnd ? `${str}-12-31` : `${str}-01-01`;
+  }, []);
+
   // Toggle year range mode with useCallback to prevent recreation
   const toggleYearRangeMode = useCallback((value) => {
-    // If value is provided, use it directly; otherwise toggle the current state
     const newMode = typeof value === 'boolean' ? value : !yearRangeMode;
-    
-    // Update the state
     setYearRangeMode(newMode);
-    
-    // Reset selected year when switching to range mode
+
     if (newMode) {
-      setSelectedArtistYear('all');
-      
-      // If we're switching to range mode, set a default range
       if (Object.keys(artistsByYear).length > 0) {
         const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
         if (years.length > 0) {
-          setYearRange({
-            startYear: years[0],
-            endYear: years[years.length - 1]
-          });
+          setYearRange({ startYear: years[0], endYear: years[years.length - 1] });
+          setSelectedArtistYear('range');
+          setArtistStartDate(`${years[0]}-01-01`);
+          setArtistEndDate(`${years[years.length - 1]}-12-31`);
         }
       }
+    } else {
+      setSelectedArtistYear('all');
+      setArtistStartDate('');
+      setArtistEndDate('');
     }
   }, [yearRangeMode, artistsByYear]);
 
   // Handle album year range changes with useCallback
   const handleAlbumYearRangeChange = useCallback(({ startYear, endYear }) => {
-    // Validate the years
-    if (!startYear || !endYear) {
-      return;
-    }
-    
-    // Ensure we're in year range mode
+    if (!startYear || !endYear) return;
     setAlbumYearRangeMode(true);
-    
-    // Update the year range state
     setAlbumYearRange({ startYear, endYear });
-  }, []);
+    setSelectedAlbumYear('range');
+    setAlbumStartDate(parseRangeValue(startYear, false));
+    setAlbumEndDate(parseRangeValue(endYear, true));
+  }, [parseRangeValue]);
 
   // Calendar year handlers
   const handleCalendarYearChange = useCallback((year) => {
@@ -604,38 +612,25 @@ const SpotifyAnalyzer = ({
 
   // Toggle album year range mode with useCallback
   const toggleAlbumYearRangeMode = useCallback((value) => {
-    // If value is provided, use it directly; otherwise toggle the current state
     const newMode = typeof value === 'boolean' ? value : !albumYearRangeMode;
-    
-    // Only update if the mode is actually changing
-    if (newMode === albumYearRangeMode) {
-      return; // No change needed
-    }
-    
-    console.log("toggleAlbumYearRangeMode: changing from", albumYearRangeMode, "to", newMode);
-    
-    // Update the state
+    if (newMode === albumYearRangeMode) return;
+
     setAlbumYearRangeMode(newMode);
-    
-    // Reset selected year when switching to range mode
+
     if (newMode) {
-      console.log("toggleAlbumYearRangeMode: resetting selectedAlbumYear to 'all' (range mode)");
-      setSelectedAlbumYear('all');
-      
-      // Set a default range
       if (Object.keys(artistsByYear).length > 0) {
         const years = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
         if (years.length > 0) {
-          setAlbumYearRange({
-            startYear: years[0],
-            endYear: years[years.length - 1]
-          });
+          setAlbumYearRange({ startYear: years[0], endYear: years[years.length - 1] });
+          setSelectedAlbumYear('range');
+          setAlbumStartDate(`${years[0]}-01-01`);
+          setAlbumEndDate(`${years[years.length - 1]}-12-31`);
         }
       }
     } else {
-      // When switching back to single mode, reset to "all"
-      console.log("toggleAlbumYearRangeMode: resetting selectedAlbumYear to 'all' (single mode)");
       setSelectedAlbumYear('all');
+      setAlbumStartDate('');
+      setAlbumEndDate('');
     }
   }, [albumYearRangeMode, artistsByYear]);
 
@@ -676,50 +671,6 @@ const SpotifyAnalyzer = ({
       setAlbumEndDate(`${selectedAlbumYear}-12-31`);
     }
   }, [selectedAlbumYear]);
-
-  // Convert yearRange to artistStartDate/artistEndDate when in range mode
-  useEffect(() => {
-    if (!yearRangeMode || !yearRange.startYear || !yearRange.endYear) return;
-    const parseRangeValue = (val, isEnd) => {
-      const str = String(val);
-      const parts = str.split('-');
-      if (parts.length === 3) return str; // YYYY-MM-DD
-      if (parts.length === 2) {
-        // YYYY-MM
-        if (isEnd) {
-          const lastDay = new Date(parseInt(parts[0]), parseInt(parts[1]), 0).getDate();
-          return `${parts[0]}-${parts[1]}-${lastDay.toString().padStart(2, '0')}`;
-        }
-        return `${parts[0]}-${parts[1]}-01`;
-      }
-      // YYYY only
-      return isEnd ? `${str}-12-31` : `${str}-01-01`;
-    };
-    setSelectedArtistYear('range'); // non-'all' value to trigger date filtering
-    setArtistStartDate(parseRangeValue(yearRange.startYear, false));
-    setArtistEndDate(parseRangeValue(yearRange.endYear, true));
-  }, [yearRangeMode, yearRange]);
-
-  // Convert albumYearRange to albumStartDate/albumEndDate when in range mode
-  useEffect(() => {
-    if (!albumYearRangeMode || !albumYearRange.startYear || !albumYearRange.endYear) return;
-    const parseRangeValue = (val, isEnd) => {
-      const str = String(val);
-      const parts = str.split('-');
-      if (parts.length === 3) return str;
-      if (parts.length === 2) {
-        if (isEnd) {
-          const lastDay = new Date(parseInt(parts[0]), parseInt(parts[1]), 0).getDate();
-          return `${parts[0]}-${parts[1]}-${lastDay.toString().padStart(2, '0')}`;
-        }
-        return `${parts[0]}-${parts[1]}-01`;
-      }
-      return isEnd ? `${str}-12-31` : `${str}-01-01`;
-    };
-    setSelectedAlbumYear('range');
-    setAlbumStartDate(parseRangeValue(albumYearRange.startYear, false));
-    setAlbumEndDate(parseRangeValue(albumYearRange.endYear, true));
-  }, [albumYearRangeMode, albumYearRange]);
 
   // Albums filtering using same logic as streaming adapter
   const displayedAlbums = useMemo(() => {
@@ -1503,18 +1454,16 @@ const SpotifyAnalyzer = ({
 
   // Handle year range change with useCallback
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
-    // Validate the years
     if (!startYear || !endYear) {
       console.warn("Invalid year range:", { startYear, endYear });
       return;
     }
-    
-    // Ensure we're in year range mode
     setYearRangeMode(true);
-    
-    // Update the year range state
     setYearRange({ startYear, endYear });
-  }, []);
+    setSelectedArtistYear('range');
+    setArtistStartDate(parseRangeValue(startYear, false));
+    setArtistEndDate(parseRangeValue(endYear, true));
+  }, [parseRangeValue]);
 
   // Tab label functions with useCallback to prevent recreation
 
@@ -1759,7 +1708,7 @@ const SpotifyAnalyzer = ({
 
   // Convert selectedArtistYear to date range (like CustomTrackRankings)
   useEffect(() => {
-    if (yearRangeMode) return; // Range mode handles its own dates
+    if (selectedArtistYear === 'range') return; // Range mode sets dates directly
     if (selectedArtistYear !== 'all') {
       if (selectedArtistYear.includes('-')) {
         const parts = selectedArtistYear.split('-');
@@ -1790,7 +1739,7 @@ const SpotifyAnalyzer = ({
 
   // Convert selectedAlbumYear to date range (like CustomTrackRankings)
   useEffect(() => {
-    if (albumYearRangeMode) return; // Range mode handles its own dates
+    if (selectedAlbumYear === 'range') return; // Range mode sets dates directly
     if (selectedAlbumYear !== 'all') {
       if (selectedAlbumYear.includes('-')) {
         const parts = selectedAlbumYear.split('-');
