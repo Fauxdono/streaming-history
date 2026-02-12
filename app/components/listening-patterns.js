@@ -1050,11 +1050,11 @@ const ListeningPatterns = ({
 
           {locationData.length > 0 ? (
             <>
-              <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center`}>
+              <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center overflow-x-auto`}>
                 <WorldMap
                   color={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
                   valueSuffix=" plays"
-                  size="responsive"
+                  size="xxl"
                   data={locationData}
                   backgroundColor={isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#000000' : '#ffffff')}
                   tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
