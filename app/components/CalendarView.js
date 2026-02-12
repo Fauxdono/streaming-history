@@ -693,18 +693,16 @@ const CalendarView = ({
         <div className="flex flex-wrap gap-1 sm:gap-2">
           <TabButton id="calendar" label="Calendar" />
           <TabButton id="history" label="Daily History" />
-          {activeTab === 'calendar' && (
-            <button
-              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className={
-                isColorful
-                  ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-green-500 text-black hover:bg-green-600'
-                  : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
-              }
-            >
-              {viewMode === 'grid' ? '☰' : '▦'}
-            </button>
-          )}
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            className={
+              isColorful
+                ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-green-500 text-black hover:bg-green-600'
+                : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            }
+          >
+            {viewMode === 'grid' ? '☰' : '▦'}
+          </button>
         </div>
       </div>
 
