@@ -736,8 +736,8 @@ const CalendarView = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {calendarData.map((monthData, index) => (
                   <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
-                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[1.33rem]`}>{monthData.fullName}</div>
-                    <div className={`text-sm ${modeColors.textLight}`}>
+                    <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem]`}>{monthData.fullName}</div>
+                    <div className={`text-sm ${modeColors.text}`}>
                       Total Time: <span className="font-bold">{formatDuration(monthData.totalTime)}</span>
                       <br/>
                       Plays: <span className="font-bold">{monthData.totalPlays.toLocaleString()}</span>
@@ -847,10 +847,10 @@ const CalendarView = ({
                             : 'hover:bg-gray-100 ring-2 ring-black ring-opacity-30'
                         : ''
                     }`}>
-                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[1.33rem]`}>
+                    <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem]`}>
                       <span className="opacity-50">{monthName}</span>{' '}{day}{suffix}
                     </div>
-                    <div className={`text-sm ${modeColors.textLight}`}>
+                    <div className={`text-sm ${modeColors.text}`}>
                       Total Time: <span className="font-bold">{formatDuration(dayData.totalTime)}</span>
                       <br/>
                       Plays: <span className="font-bold">{dayData.totalPlays.toLocaleString()}</span>
@@ -962,49 +962,66 @@ const CalendarView = ({
 
           <div>
             <h4 className={`font-bold mb-3 sm:mb-4 text-sm sm:text-base ${modeColors.text}`}>Chronological Track List ({historyData.tracks.length} tracks)</h4>
-            
+
             {historyData.tracks.length === 0 ? (
               <div className={`text-center py-8 ${modeColors.textLight}`}>
                 No listening data found for this date.
               </div>
-            ) : (
-              <div className={`max-h-96 sm:max-h-96 md:max-h-[70vh] overflow-y-auto border rounded ${modeColors.borderLight} ${modeColors.bgCard}`}>
-                <div className="space-y-1 p-1 sm:p-2">
-                  {historyData.tracks.map((track, index) => (
-                    <div key={index} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 sm:p-3 rounded text-sm hover:opacity-80 transition-colors gap-2 sm:gap-0 ${modeColors.bgCardAlt}`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                          <span className={`text-xs font-mono px-1.5 py-0.5 rounded w-fit ${modeColors.bgLight} ${modeColors.textLight}`}>
-                            {track.formattedTime}
-                          </span>
-                          <span className={`font-medium truncate ${modeColors.text}`}>
-                            {track.master_metadata_track_name || 'Unknown Track'}
-                          </span>
-                        </div>
-                        <div className={`text-xs mt-1 truncate ${modeColors.textLighter}`}>
-                          {track.master_metadata_album_artist_name || 'Unknown Artist'}
-                          {track.master_metadata_album_album_name && ` • ${track.master_metadata_album_album_name}`}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between sm:justify-start gap-3 sm:ml-4">
-                        <div className={`text-xs ${modeColors.textLighter}`}>
-                          {track.formattedDuration}
-                        </div>
-                        {track.reason_end === 'trackdone' && (
-                          <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">
-                            ✓ Completed
-                          </span>
-                        )}
-                        {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && (
-                          <span className="text-xs text-orange-600 bg-orange-100 px-2 py-0.5 rounded">
-                            ⏭ Skipped
-                          </span>
-                        )}
-                      </div>
+            ) : viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                {historyData.tracks.map((track, index) => (
+                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
+                    <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem] font-mono`}>{track.formattedTime}</div>
+                    <div className={`font-bold ${modeColors.text} pr-20 truncate`}>{track.master_metadata_track_name || 'Unknown Track'}</div>
+                    <div className={`text-sm ${modeColors.text}`}>
+                      Artist: <span className="font-bold">{track.master_metadata_album_artist_name || 'Unknown Artist'}</span>
+                      <br/>
+                      {track.master_metadata_album_album_name && (
+                        <>Album: <span className="font-bold">{track.master_metadata_album_album_name}</span><br/></>
+                      )}
+                      Duration: <span className="font-bold">{track.formattedDuration}</span>
+                      <br/>
+                      {track.reason_end === 'trackdone' && (
+                        <span className="text-green-600">Completed</span>
+                      )}
+                      {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && (
+                        <span className="text-orange-600">Skipped</span>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={`overflow-x-auto border rounded ${modeColors.border} ${modeColors.bgCard}`}>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className={`border-b ${modeColors.border}`}>
+                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>#</th>
+                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Time</th>
+                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Track</th>
+                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Artist</th>
+                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Album</th>
+                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Duration</th>
+                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyData.tracks.map((track, index) => (
+                      <tr key={index} className={`border-b ${modeColors.border} hover:opacity-80 transition-colors`}>
+                        <td className={`px-3 py-2 ${modeColors.textLight}`}>{index + 1}</td>
+                        <td className={`px-3 py-2 font-mono text-xs ${modeColors.textLight}`}>{track.formattedTime}</td>
+                        <td className={`px-3 py-2 font-medium ${modeColors.text} truncate max-w-[200px]`}>{track.master_metadata_track_name || 'Unknown Track'}</td>
+                        <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{track.master_metadata_album_artist_name || 'Unknown Artist'}</td>
+                        <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{track.master_metadata_album_album_name || '—'}</td>
+                        <td className={`px-3 py-2 text-right ${modeColors.text}`}>{track.formattedDuration}</td>
+                        <td className="px-3 py-2">
+                          {track.reason_end === 'trackdone' && <span className="text-xs text-green-600">Completed</span>}
+                          {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && <span className="text-xs text-orange-600">Skipped</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
