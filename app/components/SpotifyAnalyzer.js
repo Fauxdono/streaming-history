@@ -305,6 +305,7 @@ const SpotifyAnalyzer = ({
   const [customViewMode, setCustomViewMode] = useState('grid'); // 'grid', 'compact'
   const [podcastViewMode, setPodcastViewMode] = useState('grid'); // 'grid', 'compact'
   const [patternsViewMode, setPatternsViewMode] = useState('grid'); // 'grid', 'list'
+  const [calendarViewMode, setCalendarViewMode] = useState('grid'); // 'grid', 'list'
   const [showYearSidebar, setShowYearSidebar] = useState(true);
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
@@ -3479,6 +3480,8 @@ const SpotifyAnalyzer = ({
               backgroundTheme={calendarBackgroundTheme}
               onYearChange={setSelectedCalendarYear}
               colorMode={colorMode}
+              viewMode={calendarViewMode}
+              setViewMode={setCalendarViewMode}
             />
           </div>
         );
@@ -3660,6 +3663,7 @@ const SpotifyAnalyzer = ({
       case 'custom': return customViewMode;
       case 'podcasts': return podcastViewMode;
       case 'patterns': return patternsViewMode;
+      case 'calendar': return calendarViewMode;
       default: return 'grid';
     }
   };
@@ -3671,6 +3675,7 @@ const SpotifyAnalyzer = ({
       case 'custom': setCustomViewMode(mode); break;
       case 'podcasts': setPodcastViewMode(mode); break;
       case 'patterns': setPatternsViewMode(mode); break;
+      case 'calendar': setCalendarViewMode(mode); break;
     }
   };
 

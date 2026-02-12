@@ -20,11 +20,11 @@ const FixedSettingsBar = ({
 }) => {
   const mobileBarHeight = isLandscapeMobile ? 64 : 85;
   // Tabs that support grid/list view (mobile only)
-  const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns'];
+  const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns', 'calendar'];
   const showViewToggle = isMobile && tabsWithViewMode.includes(activeTab);
 
   const getAlternateViewMode = () => {
-    if (activeTab === 'artists' || activeTab === 'albums') return 'list';
+    if (activeTab === 'artists' || activeTab === 'albums' || activeTab === 'calendar') return 'list';
     return 'compact';
   };
 
