@@ -214,7 +214,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
                       nameKey="service"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius="70%"
                       labelLine={false}
                       label={renderCustomizedLabel}
                       stroke={getStrokeColor}
@@ -295,7 +295,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
                         nameKey="service"
                         cx="50%"
                         cy="50%"
-                        outerRadius={60}
+                        outerRadius="60%"
                         labelLine={false}
                         label={renderCustomizedLabel}
                         stroke={getStrokeColor}

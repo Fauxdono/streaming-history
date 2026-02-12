@@ -775,7 +775,7 @@ const filteredData = useMemo(() => {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius={80}
+                      outerRadius="70%"
                       label={renderCustomizedLabel}
                       stroke={getStrokeColor}
                       strokeWidth={2}
