@@ -736,8 +736,7 @@ const CalendarView = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {calendarData.map((monthData, index) => (
                   <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
-                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[2rem]`}>{monthData.name}</div>
-                    <div className={`font-bold ${modeColors.text}`}>{monthData.fullName}</div>
+                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[1.33rem]`}>{monthData.fullName}</div>
                     <div className={`text-sm ${modeColors.textLight}`}>
                       Total Time: <span className="font-bold">{formatDuration(monthData.totalTime)}</span>
                       <br/>
@@ -848,10 +847,8 @@ const CalendarView = ({
                             : 'hover:bg-gray-100 ring-2 ring-black ring-opacity-30'
                         : ''
                     }`}>
-                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[2rem]`}>{day}{suffix}</div>
-                    <div className={`font-bold ${modeColors.text}`}>
-                      <span className="opacity-50">{monthName}</span>{' '}
-                      <span>{day}{suffix}</span>
+                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[1.33rem]`}>
+                      <span className="opacity-50">{monthName}</span>{' '}{day}{suffix}
                     </div>
                     <div className={`text-sm ${modeColors.textLight}`}>
                       Total Time: <span className="font-bold">{formatDuration(dayData.totalTime)}</span>
