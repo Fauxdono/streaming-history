@@ -1212,43 +1212,33 @@ const YearSelector = ({
       // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [yearRange, startDay, endMonth, endDay, getDaysInMonth]);
-  
+  }, [yearRange, startDay, endMonth, endDay, getDaysInMonth, updateParentWithDateRange]);
+
   // Handle start day change in range mode
   const handleStartDayChange = useCallback((day) => {
     setStartDay(day);
-    
-    // Update parent with the new range
     updateParentWithDateRange(yearRange.startYear, startMonth, day, yearRange.endYear, endMonth, endDay);
-  }, [yearRange, startMonth, endMonth, endDay]);
-  
+  }, [yearRange, startMonth, endMonth, endDay, updateParentWithDateRange]);
+
   // Handle end month change in range mode
   const handleEndMonthChange = useCallback((month) => {
     setEndMonth(month);
-    
-    // Make sure day is valid for this month
     if (yearRange.endYear) {
       const daysInMonth = getDaysInMonth(yearRange.endYear, month);
       const validDay = Math.min(endDay, daysInMonth);
       if (validDay !== endDay) {
         setEndDay(validDay);
       }
-      
-      // Update parent with the new range
       updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, month, validDay);
-      
-      // Force UI refresh
       setRefreshCounter(prev => prev + 1);
     }
-  }, [yearRange, startMonth, startDay, endDay, getDaysInMonth]);
-  
+  }, [yearRange, startMonth, startDay, endDay, getDaysInMonth, updateParentWithDateRange]);
+
   // Handle end day change in range mode
   const handleEndDayChange = useCallback((day) => {
     setEndDay(day);
-    
-    // Update parent with the new range
     updateParentWithDateRange(yearRange.startYear, startMonth, startDay, yearRange.endYear, endMonth, day);
-  }, [yearRange, startMonth, startDay, endMonth]);
+  }, [yearRange, startMonth, startDay, endMonth, updateParentWithDateRange]);
   
   // Unified function to update parent with date - explicit format control
   const updateParentWithDate = (year, month, day, forceFormat = null) => {
@@ -1285,44 +1275,36 @@ const YearSelector = ({
   };
 
   // Unified function to update parent with date range
-  const updateParentWithDateRange = (startYear, startM, startD, endYear, endM, endD) => {
-    // Only proceed if we have the callback function
+  const updateParentWithDateRange = useCallback((startYear, startM, startD, endYear, endM, endD) => {
     if (!onYearRangeChange) return;
-    
-    // Use provided values or fall back to state
+
     const sYear = startYear || yearRange.startYear;
     const sMonth = startM || startMonth;
     const sDay = startD || startDay;
     const eYear = endYear || yearRange.endYear;
     const eMonth = endM || endMonth;
     const eDay = endD || endDay;
-    
+
     if (!sYear || !eYear) return;
-    
-    // Format dates based on whether month/day selectors are shown
+
     let startValue, endValue;
-    
+
     if (showRangeMonthDaySelectors && showRangeDaySelectors) {
-      // Format with month and day
       startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}-${sDay.toString().padStart(2, '0')}`;
       endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}-${eDay.toString().padStart(2, '0')}`;
     } else if (showRangeMonthDaySelectors) {
-      // Format with month only
       startValue = `${sYear}-${sMonth.toString().padStart(2, '0')}`;
       endValue = `${eYear}-${eMonth.toString().padStart(2, '0')}`;
     } else {
-      // Year-only format
       startValue = sYear;
       endValue = eYear;
     }
-    
-    // IMPORTANT: Always call onYearRangeChange when in range mode
-    // Let the parent component decide what to do with the values
+
     onYearRangeChange({
       startYear: startValue,
       endYear: endValue
     });
-  };
+  }, [onYearRangeChange, yearRange, startMonth, startDay, endMonth, endDay, showRangeMonthDaySelectors, showRangeDaySelectors]);
   
   // Handler for year range change in range mode
   const handleYearRangeChange = useCallback(({ startYear, endYear }) => {
@@ -1349,8 +1331,8 @@ const YearSelector = ({
     
     // Force UI refresh
     setRefreshCounter(prev => prev + 1);
-  }, [startMonth, startDay, endMonth, endDay, getDaysInMonth]);
-  
+  }, [startMonth, startDay, endMonth, endDay, getDaysInMonth, updateParentWithDateRange]);
+
   // Get the label to display for the current date/range
   const getYearLabel = () => {
     if (mode === 'single') {
