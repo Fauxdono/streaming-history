@@ -3650,6 +3650,7 @@ const SpotifyAnalyzer = ({
     customViewMode,
     podcastViewMode,
     patternsViewMode,
+    calendarViewMode,
     artistSelectionMode,
     filteredStats,
     filteredStreaks

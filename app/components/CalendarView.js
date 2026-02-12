@@ -736,56 +736,27 @@ const CalendarView = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {calendarData.map((monthData, index) => (
                   <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
-
-                    {/* Month abbreviation in top-right */}
-                    <div className="flex justify-end">
-                      <span className={`text-sm opacity-50 ${modeColors.text}`}>{monthData.name}</span>
-                    </div>
-
-                    {/* Table content inside container */}
-                    <div>
-                      <table className="w-full">
-                        <tbody>
-                          <tr>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{monthData.totalPlays}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Total Plays</div>
-                            </td>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{monthData.uniqueSongCount}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Songs</div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{monthData.uniqueArtistCount}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Artists</div>
-                            </td>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{monthData.firstListens.length}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>New Songs</div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center py-2" colSpan="2">
-                              <div className={`text-sm font-bold ${modeColors.text}`}>{monthData.topArtist.name || 'No data'}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Top Artist</div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center py-2" colSpan="2">
-                              <div className={`text-sm font-bold ${modeColors.text}`}>{monthData.topAlbum.name || 'No data'}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Top Album</div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center py-2" colSpan="2">
-                              <div className={`text-sm font-bold ${modeColors.text}`}>{monthData.topSong.name || 'No data'}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Top Song</div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[2rem]`}>{monthData.name}</div>
+                    <div className={`font-bold ${modeColors.text}`}>{monthData.fullName}</div>
+                    <div className={`text-sm ${modeColors.textLight}`}>
+                      Total Time: <span className="font-bold">{formatDuration(monthData.totalTime)}</span>
+                      <br/>
+                      Plays: <span className="font-bold">{monthData.totalPlays.toLocaleString()}</span>
+                      <br/>
+                      Songs: <span className="font-bold">{monthData.uniqueSongCount}</span>
+                      <br/>
+                      Artists: <span className="font-bold">{monthData.uniqueArtistCount}</span>
+                      <br/>
+                      {monthData.topArtist.name && (
+                        <>Top Artist: <span className="font-bold">{monthData.topArtist.name}</span> ({monthData.topArtist.playCount} plays)<br/></>
+                      )}
+                      {monthData.topAlbum.name && (
+                        <>Top Album: <span className="font-bold">{monthData.topAlbum.name}</span> ({monthData.topAlbum.playCount} plays)<br/></>
+                      )}
+                      {monthData.topSong.name && (
+                        <>Top Song: <span className="font-bold">{monthData.topSong.name}</span> ({monthData.topSong.playCount} plays)<br/></>
+                      )}
+                      New Songs: <span className="font-bold">{monthData.firstListens.length}</span>
                     </div>
                   </div>
                 ))}
@@ -866,7 +837,7 @@ const CalendarView = ({
                   <div
                     key={index}
                     onClick={handleDayClick}
-                    className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 ${
+                    className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
                     } ${modeColors.border} ${
                       daySelectionMode
@@ -877,53 +848,27 @@ const CalendarView = ({
                             : 'hover:bg-gray-100 ring-2 ring-black ring-opacity-30'
                         : ''
                     }`}>
-
-                    {/* Date: gray month name + bold highlighted number */}
-                    <div className={`text-center pb-3 border-b ${modeColors.border} mb-3`}>
-                      <div>
-                        <span className={`opacity-50 ${modeColors.text}`}>{monthName}</span>{' '}
-                        <span className={`text-xl font-bold ${modeColors.text}`}>{day}{suffix}</span>
-                      </div>
+                    <div className={`absolute top-1 right-3 ${modeColors.text} text-[2rem]`}>{day}{suffix}</div>
+                    <div className={`font-bold ${modeColors.text}`}>
+                      <span className="opacity-50">{monthName}</span>{' '}
+                      <span>{day}{suffix}</span>
                     </div>
-
-                    {/* Table content inside container */}
-                    <div>
-                      <table className="w-full">
-                        <tbody>
-                          <tr>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{dayData.totalPlays}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Total Plays</div>
-                            </td>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{dayData.uniqueSongCount}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Songs</div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{dayData.uniqueArtistCount}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Artists</div>
-                            </td>
-                            <td className="text-center py-2">
-                              <div className={`text-xl font-bold ${modeColors.text}`}>{dayData.firstListens.length}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>New Songs</div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center py-2" colSpan="2">
-                              <div className={`text-sm font-bold ${modeColors.text}`}>{dayData.topArtist.name || 'No data'}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Top Artist</div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-center py-2" colSpan="2">
-                              <div className={`text-sm font-bold ${modeColors.text}`}>{dayData.topAlbum.name || 'No data'}</div>
-                              <div className={`text-xs ${modeColors.textLight}`}>Top Album</div>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <div className={`text-sm ${modeColors.textLight}`}>
+                      Total Time: <span className="font-bold">{formatDuration(dayData.totalTime)}</span>
+                      <br/>
+                      Plays: <span className="font-bold">{dayData.totalPlays.toLocaleString()}</span>
+                      <br/>
+                      Songs: <span className="font-bold">{dayData.uniqueSongCount}</span>
+                      <br/>
+                      Artists: <span className="font-bold">{dayData.uniqueArtistCount}</span>
+                      <br/>
+                      {dayData.topArtist.name && (
+                        <>Top Artist: <span className="font-bold">{dayData.topArtist.name}</span> ({dayData.topArtist.playCount} plays)<br/></>
+                      )}
+                      {dayData.topAlbum.name && (
+                        <>Top Album: <span className="font-bold">{dayData.topAlbum.name}</span> ({dayData.topAlbum.playCount} plays)<br/></>
+                      )}
+                      New Songs: <span className="font-bold">{dayData.firstListens.length}</span>
                     </div>
                   </div>
                   );
