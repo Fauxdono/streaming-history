@@ -545,7 +545,10 @@ const ListeningPatterns = ({
     const matched = [];
     const unmatched = [];
 
+    const ignoredCodes = new Set(['ZZ']);
+
     Object.entries(countryMap).forEach(([code, d]) => {
+      if (ignoredCodes.has(code)) return;
       let name;
       try { const n = countryNames.of(code); name = (n && !n.toLowerCase().includes('unknown')) ? n : null; } catch { name = null; }
 
