@@ -687,9 +687,14 @@ const CalendarView = ({
 
       {/* Desktop layout - title and controls on same row */}
       <div className="hidden sm:flex justify-between items-center mb-2">
-        <h3 className={`text-xl ${modeColors.text}`}>
-          {getPageTitle()}
-        </h3>
+        <div className="flex items-center gap-3">
+          <h3 className={`text-xl ${modeColors.text}`}>
+            {getPageTitle()}
+          </h3>
+          {activeTab === 'history' && (
+            <span className={`text-sm ${modeColors.textLight}`}>Use the year selector to pick a specific date</span>
+          )}
+        </div>
         <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
           <TabButton id="calendar" label="Calendar" />
           <TabButton id="history" label="Daily History" />
@@ -927,8 +932,6 @@ const CalendarView = ({
         <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
           <div className="flex flex-col gap-4">
             <div>
-              <h3 className={`text-lg font-bold ${modeColors.text}`}>Daily Listening History</h3>
-              <p className={`text-sm ${modeColors.textLight}`}>Use the year selector to pick a specific date and see what you listened to in chronological order</p>
               {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
                 <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border}`}>
                   Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
