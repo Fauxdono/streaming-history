@@ -726,7 +726,7 @@ const CalendarView = ({
       </div>
 
       {/* Mobile controls - separate row */}
-      <div className="block sm:hidden mb-4">
+      <div className="block sm:hidden mb-2">
         <div className="flex flex-wrap gap-1 items-center">
           <TabButton id="calendar" label="Calendar" />
           <TabButton id="history" label="History" />

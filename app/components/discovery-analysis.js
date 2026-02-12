@@ -649,7 +649,7 @@ const filteredData = useMemo(() => {
       </div>
 
       {/* Mobile controls - separate row */}
-      <div className="block sm:hidden mb-4">
+      <div className="block sm:hidden mb-2">
         <div className="flex flex-wrap gap-1">
           <TabButton id="discovery" label="Discovery" />
           <TabButton id="loyalty" label="Loyalty" />
