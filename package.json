@@ -20,6 +20,7 @@
     "papaparse": "^5.5.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-svg-worldmap": "^2.0.0-alpha.16",
     "recharts": "^2.15.0",
     "xlsx": "^0.18.5"
   },

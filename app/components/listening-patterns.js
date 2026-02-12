@@ -1,8 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
 import TrackRankings from './TrackRankings.js';
 import { useTheme } from './themeprovider.js'; // Import the theme hook
+
+const WorldMap = dynamic(() => import('react-svg-worldmap').then(mod => mod.WorldMap ? { default: mod.WorldMap } : mod), { ssr: false });
+
+const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
 // Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
@@ -514,7 +519,38 @@ const ListeningPatterns = ({
     return { months, seasons };
   }, [filteredData, chartColors.seasonColors]);
 
+  // Location data aggregation from conn_country
+  const locationData = useMemo(() => {
+    const countryMap = {};
 
+    filteredData.forEach(entry => {
+      if (entry.ms_played >= 30000 && entry.conn_country) {
+        const code = entry.conn_country.toUpperCase();
+        if (!countryMap[code]) {
+          countryMap[code] = { country: code.toLowerCase(), plays: 0, totalMs: 0, artists: new Set(), songs: new Set() };
+        }
+        countryMap[code].plays += 1;
+        countryMap[code].totalMs += entry.ms_played;
+        if (entry.master_metadata_album_artist_name) countryMap[code].artists.add(entry.master_metadata_album_artist_name);
+        if (entry.master_metadata_track_name) countryMap[code].songs.add(entry.master_metadata_track_name);
+      }
+    });
+
+    const sorted = Object.entries(countryMap)
+      .map(([code, d]) => ({
+        country: d.country,
+        code,
+        name: (() => { try { return countryNames.of(code) || code; } catch { return code; } })(),
+        value: d.plays,
+        plays: d.plays,
+        totalMs: d.totalMs,
+        artists: d.artists.size,
+        songs: d.songs.size,
+      }))
+      .sort((a, b) => b.plays - a.plays);
+
+    return sorted;
+  }, [filteredData]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -580,6 +616,7 @@ const ListeningPatterns = ({
         <TabButton id="seasonal" label="Seasonal" />
         <TabButton id="obsessions" label="Obsessions" />
         <TabButton id="streaming" label="Streaming" />
+        <TabButton id="locations" label="Locations" />
         <button
           onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
           className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
@@ -597,6 +634,7 @@ const ListeningPatterns = ({
         <TabButton id="seasonal" label="Season" />
         <TabButton id="obsessions" label="Obsess" />
         <TabButton id="streaming" label="Stream" />
+        <TabButton id="locations" label="Map" />
       </div>
     </div>
 
@@ -973,6 +1011,79 @@ const ListeningPatterns = ({
         backgroundTheme="yellow"
         colorMode={colorMode}
       />
+    )}
+
+    {activeTab === 'locations' && (
+      <div className="space-y-6">
+        <div>
+          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${colors.text}`}>Listening Locations</h3>
+          <p className={`mb-4 ${colors.textLight}`}>Countries where you've listened to Spotify</p>
+
+          {locationData.length > 0 ? (
+            <>
+              <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center`}>
+                <WorldMap
+                  color={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#9CA3AF' : '#6B7280')}
+                  valueSuffix=" plays"
+                  size="responsive"
+                  data={locationData}
+                  backgroundColor={isDarkMode ? '#000000' : '#ffffff'}
+                  tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
+                  tooltipTextColor={isDarkMode ? '#ffffff' : '#000000'}
+                  borderColor={isDarkMode ? '#374151' : '#d1d5db'}
+                  strokeOpacity={0.4}
+                />
+              </div>
+
+              {viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mt-4">
+                  {locationData.map((loc, index) => (
+                    <div key={loc.code} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
+                      <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{index + 1}</div>
+                      <h4 className={`font-bold ${colors.text}`}>{loc.name}</h4>
+                      <div className={`text-sm ${colors.textLight}`}>
+                        <div>{loc.plays.toLocaleString()} plays</div>
+                        <div>{formatDuration(loc.totalMs)}</div>
+                        <div>{loc.artists.toLocaleString()} artists</div>
+                        <div>{loc.songs.toLocaleString()} songs</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={`mt-4 overflow-x-auto rounded border ${colors.border}`}>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className={`${colors.bgCard} border-b ${colors.border}`}>
+                        <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>#</th>
+                        <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>Country</th>
+                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Plays</th>
+                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Time</th>
+                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Artists</th>
+                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Songs</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {locationData.map((loc, index) => (
+                        <tr key={loc.code} className={`border-b ${colors.border} ${colors.bgCardAlt}`}>
+                          <td className={`px-3 py-2 ${colors.textLighter}`}>{index + 1}</td>
+                          <td className={`px-3 py-2 font-medium ${colors.text}`}>{loc.name}</td>
+                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.plays.toLocaleString()}</td>
+                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{formatDuration(loc.totalMs)}</td>
+                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.artists.toLocaleString()}</td>
+                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.songs.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className={`${colors.textLight}`}>No location data available. The conn_country field was not found in your streaming data.</p>
+          )}
+        </div>
+      </div>
     )}
   </div>
 );
