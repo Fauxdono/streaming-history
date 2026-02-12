@@ -1027,11 +1027,11 @@ const ListeningPatterns = ({
                   valueSuffix=" plays"
                   size="responsive"
                   data={locationData}
-                  backgroundColor={isDarkMode ? '#000000' : '#ffffff'}
+                  backgroundColor={isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#000000' : '#ffffff')}
                   tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
                   tooltipTextColor={isDarkMode ? '#ffffff' : '#000000'}
-                  borderColor={isDarkMode ? '#374151' : '#d1d5db'}
-                  strokeOpacity={0.4}
+                  borderColor={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#374151' : '#d1d5db')}
+                  strokeOpacity={isColorful ? 0.6 : 0.4}
                 />
               </div>
 
