@@ -953,12 +953,11 @@ const YearSelector = ({
       // If we have a specific date in single mode, preserve it in range mode
       if (mode === 'single' && showMonthSelector && showDaySelector && selectedYear !== 'all') {
         // Convert single date to same start/end range
-        const formattedDate = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-        
-        setYearRange({
+        const newRange = {
           startYear: selectedYear,
           endYear: selectedYear
-        });
+        };
+        setYearRange(newRange);
         setStartMonth(selectedMonth);
         setEndMonth(selectedMonth);
         setStartDay(selectedDay);
@@ -966,23 +965,41 @@ const YearSelector = ({
         setShowRangeMonthDaySelectors(true);
         setShowRangeDaySelectors(true);
 
-        // For identical date ranges, actually use the single date callback
-        if (onYearChange) {
-          onYearChange(formattedDate);
+        const startStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+        const endStr = startStr;
+        if (onYearRangeChange) {
+          onYearRangeChange({ startYear: startStr, endYear: endStr });
         }
-      } 
+      }
       // If we have a year-only selection in single mode
       else if (mode === 'single' && !showMonthSelector && selectedYear !== 'all') {
         // Convert single year to same start/end range
-        setYearRange({
+        const newRange = {
           startYear: selectedYear,
           endYear: selectedYear
-        });
+        };
+        setYearRange(newRange);
         setShowRangeMonthDaySelectors(false);
-        
-        // For identical year ranges, use the single year callback
-        if (onYearChange) {
-          onYearChange(selectedYear);
+
+        if (onYearRangeChange) {
+          onYearRangeChange(newRange);
+        }
+      }
+      // If we have a year+month selection in single mode
+      else if (mode === 'single' && showMonthSelector && !showDaySelector && selectedYear !== 'all') {
+        const newRange = {
+          startYear: selectedYear,
+          endYear: selectedYear
+        };
+        setYearRange(newRange);
+        setStartMonth(selectedMonth);
+        setEndMonth(selectedMonth);
+        setShowRangeMonthDaySelectors(true);
+        setShowRangeDaySelectors(false);
+
+        const monthStr = selectedMonth.toString().padStart(2, '0');
+        if (onYearRangeChange) {
+          onYearRangeChange({ startYear: `${selectedYear}-${monthStr}`, endYear: `${selectedYear}-${monthStr}` });
         }
       }
       else {
