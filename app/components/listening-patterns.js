@@ -520,12 +520,18 @@ const ListeningPatterns = ({
   }, [filteredData, chartColors.seasonColors]);
 
   // Location data aggregation from conn_country
-  const locationData = useMemo(() => {
+  const { locationData, unmatchedCodes } = useMemo(() => {
     const countryMap = {};
+    const invalidCodes = {};
 
     filteredData.forEach(entry => {
       if (entry.ms_played >= 30000 && entry.conn_country) {
-        const code = entry.conn_country.toUpperCase();
+        const raw = entry.conn_country.trim();
+        const code = raw.toUpperCase();
+        if (code.length !== 2 || !/^[A-Z]{2}$/.test(code)) {
+          invalidCodes[raw] = (invalidCodes[raw] || 0) + 1;
+          return;
+        }
         if (!countryMap[code]) {
           countryMap[code] = { country: code.toLowerCase(), plays: 0, totalMs: 0, artists: new Set(), songs: new Set() };
         }
@@ -536,20 +542,40 @@ const ListeningPatterns = ({
       }
     });
 
-    const sorted = Object.entries(countryMap)
-      .map(([code, d]) => ({
+    const matched = [];
+    const unmatched = [];
+
+    Object.entries(countryMap).forEach(([code, d]) => {
+      let name;
+      try { const n = countryNames.of(code); name = (n && !n.toLowerCase().includes('unknown')) ? n : null; } catch { name = null; }
+
+      const entry = {
         country: d.country,
         code,
-        name: (() => { try { return countryNames.of(code) || code; } catch { return code; } })(),
+        name: name || code,
         value: d.plays,
         plays: d.plays,
         totalMs: d.totalMs,
         artists: d.artists.size,
         songs: d.songs.size,
-      }))
-      .sort((a, b) => b.plays - a.plays);
+      };
 
-    return sorted;
+      if (name) {
+        matched.push(entry);
+      } else {
+        unmatched.push(entry);
+      }
+    });
+
+    // Also add fully invalid codes to unmatched
+    Object.entries(invalidCodes).forEach(([raw, plays]) => {
+      unmatched.push({ code: raw, name: raw, plays, totalMs: 0, artists: 0, songs: 0, country: raw.toLowerCase(), value: plays });
+    });
+
+    matched.sort((a, b) => b.plays - a.plays);
+    unmatched.sort((a, b) => b.plays - a.plays);
+
+    return { locationData: matched, unmatchedCodes: unmatched };
   }, [filteredData]);
 
   // Custom pie chart label renderer - just show the percentage inside
@@ -1081,6 +1107,19 @@ const ListeningPatterns = ({
             </>
           ) : (
             <p className={`${colors.textLight}`}>No location data available. The conn_country field was not found in your streaming data.</p>
+          )}
+
+          {unmatchedCodes.length > 0 && (
+            <div className={`mt-6 p-3 rounded border ${colors.border} ${colors.bgCard}`}>
+              <h4 className={`text-sm font-bold mb-2 ${colors.textLight}`}>Unrecognized region codes</h4>
+              <div className={`text-xs space-y-1 ${colors.textLighter}`}>
+                {unmatchedCodes.map(u => (
+                  <div key={u.code}>
+                    <span className="font-mono font-bold">{u.code}</span> — {u.plays.toLocaleString()} play{u.plays !== 1 ? 's' : ''}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
