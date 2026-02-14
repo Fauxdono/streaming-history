@@ -2195,7 +2195,7 @@ const SpotifyAnalyzer = ({
               <input
                 type="file"
                 multiple
-                accept=".json,.csv,.xlsx,.log"
+                accept=".json,.csv,.xlsx,.log,.scrobbler.log,*/*"
                 onChange={handleFileUpload}
                 className={`block w-full text-sm transition-colors
                   file:mr-4 file:py-2 file:px-4 file:rounded-lg
