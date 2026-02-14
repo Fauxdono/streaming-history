@@ -41,6 +41,7 @@ const ListeningPatterns = ({
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
+  const [selectedCountry, setSelectedCountry] = useState(null);
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
@@ -554,8 +555,9 @@ const ListeningPatterns = ({
   }, [filteredData, chartColors.seasonColors, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Location data aggregation from conn_country
-  const { locationData, unmatchedCodes } = useMemo(() => {
+  const { locationData, unmatchedCodes, regionData } = useMemo(() => {
     const countryMap = {};
+    const regionMap = {};
     const invalidCodes = {};
 
     const passesFilters = (entry) => {
@@ -589,6 +591,33 @@ const ListeningPatterns = ({
         countryMap[code].totalMs += entry.ms_played;
         if (entry.master_metadata_album_artist_name) countryMap[code].artists.add(entry.master_metadata_album_artist_name);
         if (entry.master_metadata_track_name) countryMap[code].songs.add(entry.master_metadata_track_name);
+
+        // Collect region/city data (Tidal entries have region and city fields)
+        const regionName = entry.region;
+        const cityName = entry.city;
+        if (regionName || cityName) {
+          if (!regionMap[code]) regionMap[code] = { regions: {}, cities: {} };
+          if (regionName) {
+            if (!regionMap[code].regions[regionName]) {
+              regionMap[code].regions[regionName] = { plays: 0, totalMs: 0, artists: new Set(), songs: new Set() };
+            }
+            const r = regionMap[code].regions[regionName];
+            r.plays += 1;
+            r.totalMs += entry.ms_played;
+            if (entry.master_metadata_album_artist_name) r.artists.add(entry.master_metadata_album_artist_name);
+            if (entry.master_metadata_track_name) r.songs.add(entry.master_metadata_track_name);
+          }
+          if (cityName) {
+            if (!regionMap[code].cities[cityName]) {
+              regionMap[code].cities[cityName] = { plays: 0, totalMs: 0, artists: new Set(), songs: new Set() };
+            }
+            const c = regionMap[code].cities[cityName];
+            c.plays += 1;
+            c.totalMs += entry.ms_played;
+            if (entry.master_metadata_album_artist_name) c.artists.add(entry.master_metadata_album_artist_name);
+            if (entry.master_metadata_track_name) c.songs.add(entry.master_metadata_track_name);
+          }
+        }
       }
     });
 
@@ -628,7 +657,20 @@ const ListeningPatterns = ({
     matched.sort((a, b) => b.plays - a.plays);
     unmatched.sort((a, b) => b.plays - a.plays);
 
-    return { locationData: matched, unmatchedCodes: unmatched };
+    // Convert regionMap sets to counts for serialization
+    const regionDataFinal = {};
+    Object.entries(regionMap).forEach(([code, data]) => {
+      regionDataFinal[code] = {
+        regions: Object.entries(data.regions)
+          .map(([name, r]) => ({ name, plays: r.plays, totalMs: r.totalMs, artists: r.artists.size, songs: r.songs.size }))
+          .sort((a, b) => b.plays - a.plays),
+        cities: Object.entries(data.cities)
+          .map(([name, c]) => ({ name, plays: c.plays, totalMs: c.totalMs, artists: c.artists.size, songs: c.songs.size }))
+          .sort((a, b) => b.plays - a.plays),
+      };
+    });
+
+    return { locationData: matched, unmatchedCodes: unmatched, regionData: regionDataFinal };
   }, [filteredData, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Custom pie chart label renderer - just show the percentage inside
@@ -1096,66 +1138,243 @@ const ListeningPatterns = ({
       <div className="space-y-6">
         <div>
           <h3 className={`text-sm sm:text-lg font-bold mb-2 ${colors.text}`}>Listening Locations</h3>
-          <p className={`mb-4 ${colors.textLight}`}>Countries where you've listened to Spotify</p>
+          <p className={`mb-4 ${colors.textLight}`}>
+            {selectedCountry ? (
+              <>
+                <button
+                  onClick={() => setSelectedCountry(null)}
+                  className={`inline-flex items-center gap-1 mr-2 px-2 py-0.5 rounded text-xs font-bold border ${colors.border} ${colors.bgCard} ${colors.text} hover:opacity-80`}
+                >
+                  ← Back to world
+                </button>
+                {selectedCountry.name}
+              </>
+            ) : (
+              'Countries where you\'ve listened to music'
+            )}
+          </p>
 
           {locationData.length > 0 ? (
             <>
-              <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center overflow-x-auto`}>
-                <WorldMap
-                  color={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
-                  valueSuffix=" plays"
-                  size="xxl"
-                  data={locationData}
-                  backgroundColor={isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#000000' : '#ffffff')}
-                  tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
-                  tooltipTextColor={isDarkMode ? '#ffffff' : '#000000'}
-                  borderColor={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
-                  strokeOpacity={isColorful ? 0.6 : 0.3}
-                />
-              </div>
+              {!selectedCountry && (
+                <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center overflow-x-auto`}>
+                  <WorldMap
+                    color={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
+                    valueSuffix=" plays"
+                    size="xxl"
+                    data={locationData}
+                    backgroundColor={isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#000000' : '#ffffff')}
+                    tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
+                    tooltipTextColor={isDarkMode ? '#ffffff' : '#000000'}
+                    borderColor={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
+                    strokeOpacity={isColorful ? 0.6 : 0.3}
+                    richInteraction
+                    onClickFunction={({ countryCode, countryName }) => {
+                      const code = countryCode.toUpperCase();
+                      const loc = locationData.find(l => l.code === code);
+                      if (loc) setSelectedCountry({ code, name: loc.name });
+                    }}
+                    styleFunction={({ countryCode, color, minValue, maxValue, countryValue }) => ({
+                      fill: countryValue ? color : isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#1a1a1a' : '#f0f0f0'),
+                      stroke: isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000'),
+                      strokeWidth: 0.5,
+                      strokeOpacity: isColorful ? 0.6 : 0.3,
+                      cursor: countryValue ? 'pointer' : 'default',
+                    })}
+                  />
+                </div>
+              )}
 
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mt-4">
-                  {locationData.map((loc, index) => (
-                    <div key={loc.code} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
-                      <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{index + 1}</div>
-                      <h4 className={`font-bold ${colors.text}`}>{loc.name}</h4>
-                      <div className={`text-sm ${colors.textLight}`}>
-                        <div>{loc.plays.toLocaleString()} plays</div>
-                        <div>{formatDuration(loc.totalMs)}</div>
-                        <div>{loc.artists.toLocaleString()} artists</div>
-                        <div>{loc.songs.toLocaleString()} songs</div>
+              {selectedCountry ? (() => {
+                const countryLoc = locationData.find(l => l.code === selectedCountry.code);
+                const rd = regionData[selectedCountry.code];
+                return (
+                  <div className="space-y-4">
+                    {/* Country summary */}
+                    <div className={`p-4 rounded border ${colors.bgCard} ${colors.border}`}>
+                      <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 text-center`}>
+                        <div>
+                          <div className={`text-lg font-bold ${colors.text}`}>{countryLoc?.plays.toLocaleString() || 0}</div>
+                          <div className={`text-xs ${colors.textLighter}`}>plays</div>
+                        </div>
+                        <div>
+                          <div className={`text-lg font-bold ${colors.text}`}>{countryLoc ? formatDuration(countryLoc.totalMs) : '0s'}</div>
+                          <div className={`text-xs ${colors.textLighter}`}>listening time</div>
+                        </div>
+                        <div>
+                          <div className={`text-lg font-bold ${colors.text}`}>{countryLoc?.artists.toLocaleString() || 0}</div>
+                          <div className={`text-xs ${colors.textLighter}`}>artists</div>
+                        </div>
+                        <div>
+                          <div className={`text-lg font-bold ${colors.text}`}>{countryLoc?.songs.toLocaleString() || 0}</div>
+                          <div className={`text-xs ${colors.textLighter}`}>songs</div>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className={`mt-4 overflow-x-auto rounded border ${colors.border}`}>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className={`${colors.bgCard} border-b ${colors.border}`}>
-                        <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>#</th>
-                        <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>Country</th>
-                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Plays</th>
-                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Time</th>
-                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Artists</th>
-                        <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Songs</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+
+                    {rd ? (
+                      <>
+                        {/* Regions */}
+                        {rd.regions.length > 0 && (
+                          <div>
+                            <h4 className={`text-sm font-bold mb-2 ${colors.text}`}>Regions / States</h4>
+                            {viewMode === 'grid' ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                                {rd.regions.map((r, i) => (
+                                  <div key={r.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
+                                    <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
+                                    <h4 className={`font-bold ${colors.text}`}>{r.name}</h4>
+                                    <div className={`text-sm ${colors.textLight}`}>
+                                      <div>{r.plays.toLocaleString()} plays</div>
+                                      <div>{formatDuration(r.totalMs)}</div>
+                                      <div>{r.artists.toLocaleString()} artists</div>
+                                      <div>{r.songs.toLocaleString()} songs</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className={`overflow-x-auto rounded border ${colors.border}`}>
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className={`${colors.bgCard} border-b ${colors.border}`}>
+                                      <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>#</th>
+                                      <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>Region</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Plays</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Time</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Artists</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Songs</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {rd.regions.map((r, i) => (
+                                      <tr key={r.name} className={`border-b ${colors.border} ${colors.bgCardAlt}`}>
+                                        <td className={`px-3 py-2 ${colors.textLighter}`}>{i + 1}</td>
+                                        <td className={`px-3 py-2 font-medium ${colors.text}`}>{r.name}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{r.plays.toLocaleString()}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{formatDuration(r.totalMs)}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{r.artists.toLocaleString()}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{r.songs.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Cities */}
+                        {rd.cities.length > 0 && (
+                          <div>
+                            <h4 className={`text-sm font-bold mb-2 ${colors.text}`}>Cities</h4>
+                            {viewMode === 'grid' ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                                {rd.cities.map((c, i) => (
+                                  <div key={c.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
+                                    <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
+                                    <h4 className={`font-bold ${colors.text}`}>{c.name}</h4>
+                                    <div className={`text-sm ${colors.textLight}`}>
+                                      <div>{c.plays.toLocaleString()} plays</div>
+                                      <div>{formatDuration(c.totalMs)}</div>
+                                      <div>{c.artists.toLocaleString()} artists</div>
+                                      <div>{c.songs.toLocaleString()} songs</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className={`overflow-x-auto rounded border ${colors.border}`}>
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className={`${colors.bgCard} border-b ${colors.border}`}>
+                                      <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>#</th>
+                                      <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>City</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Plays</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Time</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Artists</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Songs</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {rd.cities.map((c, i) => (
+                                      <tr key={c.name} className={`border-b ${colors.border} ${colors.bgCardAlt}`}>
+                                        <td className={`px-3 py-2 ${colors.textLighter}`}>{i + 1}</td>
+                                        <td className={`px-3 py-2 font-medium ${colors.text}`}>{c.name}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{c.plays.toLocaleString()}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{formatDuration(c.totalMs)}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{c.artists.toLocaleString()}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{c.songs.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className={`p-4 rounded border ${colors.border} ${colors.bgCard}`}>
+                        <p className={`text-sm ${colors.textLight}`}>Regional data is only available for Tidal plays. This country only has country-level data from Spotify.</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })() : (
+                <>
+                  {viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mt-4">
                       {locationData.map((loc, index) => (
-                        <tr key={loc.code} className={`border-b ${colors.border} ${colors.bgCardAlt}`}>
-                          <td className={`px-3 py-2 ${colors.textLighter}`}>{index + 1}</td>
-                          <td className={`px-3 py-2 font-medium ${colors.text}`}>{loc.name}</td>
-                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.plays.toLocaleString()}</td>
-                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{formatDuration(loc.totalMs)}</td>
-                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.artists.toLocaleString()}</td>
-                          <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.songs.toLocaleString()}</td>
-                        </tr>
+                        <div
+                          key={loc.code}
+                          className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} cursor-pointer hover:opacity-80 transition-opacity`}
+                          onClick={() => setSelectedCountry({ code: loc.code, name: loc.name })}
+                        >
+                          <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{index + 1}</div>
+                          <h4 className={`font-bold ${colors.text}`}>{loc.name}</h4>
+                          <div className={`text-sm ${colors.textLight}`}>
+                            <div>{loc.plays.toLocaleString()} plays</div>
+                            <div>{formatDuration(loc.totalMs)}</div>
+                            <div>{loc.artists.toLocaleString()} artists</div>
+                            <div>{loc.songs.toLocaleString()} songs</div>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </div>
+                  ) : (
+                    <div className={`mt-4 overflow-x-auto rounded border ${colors.border}`}>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className={`${colors.bgCard} border-b ${colors.border}`}>
+                            <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>#</th>
+                            <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>Country</th>
+                            <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Plays</th>
+                            <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Time</th>
+                            <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Artists</th>
+                            <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Songs</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {locationData.map((loc, index) => (
+                            <tr
+                              key={loc.code}
+                              className={`border-b ${colors.border} ${colors.bgCardAlt} cursor-pointer hover:opacity-80 transition-opacity`}
+                              onClick={() => setSelectedCountry({ code: loc.code, name: loc.name })}
+                            >
+                              <td className={`px-3 py-2 ${colors.textLighter}`}>{index + 1}</td>
+                              <td className={`px-3 py-2 font-medium ${colors.text}`}>{loc.name}</td>
+                              <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.plays.toLocaleString()}</td>
+                              <td className={`px-3 py-2 text-right ${colors.textLight}`}>{formatDuration(loc.totalMs)}</td>
+                              <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.artists.toLocaleString()}</td>
+                              <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.songs.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
               )}
             </>
           ) : (
