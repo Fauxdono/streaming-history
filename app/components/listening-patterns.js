@@ -555,9 +555,10 @@ const ListeningPatterns = ({
   }, [filteredData, chartColors.seasonColors, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Location data aggregation from conn_country
-  const { locationData, unmatchedCodes, regionData } = useMemo(() => {
+  const { locationData, unmatchedCodes, regionData, countrySongs } = useMemo(() => {
     const countryMap = {};
     const regionMap = {};
+    const songMap = {};
     const invalidCodes = {};
 
     const passesFilters = (entry) => {
@@ -618,6 +619,17 @@ const ListeningPatterns = ({
             if (entry.master_metadata_track_name) c.songs.add(entry.master_metadata_track_name);
           }
         }
+
+        // Collect per-country song data for countries without regional info
+        const track = entry.master_metadata_track_name;
+        const artist = entry.master_metadata_album_artist_name;
+        if (track && artist) {
+          if (!songMap[code]) songMap[code] = {};
+          const key = `${track}\0${artist}`;
+          if (!songMap[code][key]) songMap[code][key] = { track, artist, plays: 0, totalMs: 0 };
+          songMap[code][key].plays += 1;
+          songMap[code][key].totalMs += entry.ms_played;
+        }
       }
     });
 
@@ -670,7 +682,13 @@ const ListeningPatterns = ({
       };
     });
 
-    return { locationData: matched, unmatchedCodes: unmatched, regionData: regionDataFinal };
+    // Convert songMap to sorted arrays
+    const countrySongsFinal = {};
+    Object.entries(songMap).forEach(([code, songs]) => {
+      countrySongsFinal[code] = Object.values(songs).sort((a, b) => b.plays - a.plays);
+    });
+
+    return { locationData: matched, unmatchedCodes: unmatched, regionData: regionDataFinal, countrySongs: countrySongsFinal };
   }, [filteredData, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Custom pie chart label renderer - just show the percentage inside
@@ -1315,8 +1333,57 @@ const ListeningPatterns = ({
                         )}
                       </>
                     ) : (
-                      <div className={`p-4 rounded border ${colors.border} ${colors.bgCard}`}>
-                        <p className={`text-sm ${colors.textLight}`}>Regional data is only available for Tidal plays. This country only has country-level data from Spotify.</p>
+                      <div className="space-y-4">
+                        <div className={`p-4 rounded border ${colors.border} ${colors.bgCard}`}>
+                          <p className={`text-sm ${colors.textLight}`}>Regional data is only available for Tidal plays. This country only has country-level data from Spotify.</p>
+                        </div>
+
+                        {countrySongs[selectedCountry.code]?.length > 0 && (
+                          <div>
+                            <h4 className={`text-sm font-bold mb-2 ${colors.text}`}>Top Songs</h4>
+                            {viewMode === 'grid' ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
+                                {countrySongs[selectedCountry.code].slice(0, 50).map((s, i) => (
+                                  <div key={`${s.track}-${s.artist}`} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
+                                    <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
+                                    <h4 className={`font-bold text-sm ${colors.text} pr-8`}>{s.track}</h4>
+                                    <div className={`text-xs ${colors.textLight}`}>{s.artist}</div>
+                                    <div className={`text-sm mt-1 ${colors.textLight}`}>
+                                      <span>{s.plays.toLocaleString()} plays</span>
+                                      <span className="mx-1">&middot;</span>
+                                      <span>{formatDuration(s.totalMs)}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className={`overflow-x-auto rounded border ${colors.border}`}>
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className={`${colors.bgCard} border-b ${colors.border}`}>
+                                      <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>#</th>
+                                      <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>Song</th>
+                                      <th className={`px-3 py-2 text-left font-bold ${colors.text}`}>Artist</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Plays</th>
+                                      <th className={`px-3 py-2 text-right font-bold ${colors.text}`}>Time</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {countrySongs[selectedCountry.code].slice(0, 50).map((s, i) => (
+                                      <tr key={`${s.track}-${s.artist}`} className={`border-b ${colors.border} ${colors.bgCardAlt}`}>
+                                        <td className={`px-3 py-2 ${colors.textLighter}`}>{i + 1}</td>
+                                        <td className={`px-3 py-2 font-medium ${colors.text}`}>{s.track}</td>
+                                        <td className={`px-3 py-2 ${colors.textLight}`}>{s.artist}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{s.plays.toLocaleString()}</td>
+                                        <td className={`px-3 py-2 text-right ${colors.textLight}`}>{formatDuration(s.totalMs)}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
