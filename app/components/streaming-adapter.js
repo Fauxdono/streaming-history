@@ -1470,24 +1470,20 @@ function calculateBriefObsessions(songs, songPlayHistory) {
         timestamps.sort((a, b) => a - b);
         
         let maxPlaysInWeek = 0;
-        let bestWeekStart = null;
-        
-        for (let i = 0; i < timestamps.length; i++) {
-          const weekEnd = new Date(timestamps[i]);
-          const weekStart = new Date(weekEnd);
-          weekStart.setDate(weekStart.getDate() - 7);
-          
-          // Count plays in this week
-          let playsInWeek = 0;
-          for (let j = 0; j < timestamps.length; j++) {
-            if (timestamps[j] >= weekStart && timestamps[j] <= weekEnd) {
-              playsInWeek++;
-            }
+        let bestWeekEnd = null;
+
+        // Sliding window: two pointers on sorted timestamps
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        let left = 0;
+        for (let right = 0; right < timestamps.length; right++) {
+          // Advance left pointer when window exceeds 7 days
+          while (timestamps[right] - timestamps[left] > SEVEN_DAYS_MS) {
+            left++;
           }
-          
+          const playsInWeek = right - left + 1;
           if (playsInWeek > maxPlaysInWeek) {
             maxPlaysInWeek = playsInWeek;
-            bestWeekStart = weekStart;
+            bestWeekEnd = timestamps[right];
           }
         }
         
@@ -1495,7 +1491,7 @@ function calculateBriefObsessions(songs, songPlayHistory) {
           briefObsessionsArray.push({
             ...song,
             intensePeriod: {
-              weekStart: bestWeekStart,
+              weekStart: new Date(bestWeekEnd - SEVEN_DAYS_MS),
               playsInWeek: maxPlaysInWeek
             }
           });
@@ -1513,7 +1509,8 @@ function calculateBriefObsessions(songs, songPlayHistory) {
 
 function calculateSongsByYear(songs, songPlayHistory) {
   const songsByYear = {};
-  
+  const now = Date.now();
+
   for (const song of songs) {
     const timestamps = songPlayHistory[song.key] || [];
     if (timestamps.length > 0) {
@@ -1523,7 +1520,7 @@ function calculateSongsByYear(songs, songPlayHistory) {
       for (const ts of timestamps) {
         try {
           const date = new Date(ts);
-          if (isNaN(date.getTime()) || date > new Date()) continue;
+          if (isNaN(date.getTime()) || ts > now) continue;
           
           const year = date.getFullYear();
           yearCounts.set(year, (yearCounts.get(year) || 0) + 1);
@@ -1630,7 +1627,7 @@ function calculateAlbumsByYear(albums, rawPlayData, minPlayDuration = 30000) {
   const normalizedToOriginalTrack = {};
   const trackToAlbumMap = new Map();
   
-  // First pass: build normalized track mappings
+  // Single pass: build normalized track mappings AND track-to-album mappings
   for (const entry of rawPlayData) {
     if (entry.ms_played < minPlayDuration || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
       continue;
@@ -1640,6 +1637,7 @@ function calculateAlbumsByYear(albums, rawPlayData, minPlayDuration = 30000) {
     const artist = entry.master_metadata_album_artist_name;
     const normalizedTrack = createMatchKey(trackName, artist);
 
+    // Build normalized track mappings (was pass 1)
     if (normalizedTrack) {
       if (!normalizedToOriginalTrack[normalizedTrack]) {
         normalizedToOriginalTrack[normalizedTrack] = [trackName];
@@ -1647,40 +1645,28 @@ function calculateAlbumsByYear(albums, rawPlayData, minPlayDuration = 30000) {
         normalizedToOriginalTrack[normalizedTrack].push(trackName);
       }
     }
-  }
 
-  // Second pass: build track-to-album mappings
-  for (const entry of rawPlayData) {
-    if (entry.ms_played < minPlayDuration || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
-      continue;
-    }
-    
-    const artist = entry.master_metadata_album_artist_name;
-    const trackName = entry.master_metadata_track_name;
-    const normalizedTrack = createMatchKey(trackName, artist);
+    // Build track-to-album mappings (was pass 2)
     const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
-    
-    // Skip unknown albums
-    if (albumName === 'Unknown Album') continue;
-    
-    const trackKey = `${artist}:::${normalizedTrack}`.toLowerCase();
-    
-    if (!trackToAlbumMap.has(trackKey)) {
-      trackToAlbumMap.set(trackKey, []);
-    }
-    
-    // Add album to the list if not already present
-    const albumList = trackToAlbumMap.get(trackKey);
-    const existingIndex = albumList.findIndex(a => a.name.toLowerCase() === albumName.toLowerCase());
-    
-    if (existingIndex >= 0) {
-      albumList[existingIndex].count++;
-    } else {
-      albumList.push({ 
-        name: albumName, 
-        count: 1,
-        source: entry.source || 'unknown'
-      });
+    if (albumName !== 'Unknown Album') {
+      const trackKey = `${artist}:::${normalizedTrack}`.toLowerCase();
+
+      if (!trackToAlbumMap.has(trackKey)) {
+        trackToAlbumMap.set(trackKey, []);
+      }
+
+      const albumList = trackToAlbumMap.get(trackKey);
+      const existingIndex = albumList.findIndex(a => a.name.toLowerCase() === albumName.toLowerCase());
+
+      if (existingIndex >= 0) {
+        albumList[existingIndex].count++;
+      } else {
+        albumList.push({
+          name: albumName,
+          count: 1,
+          source: entry.source || 'unknown'
+        });
+      }
     }
   }
   
@@ -1973,35 +1959,13 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData, minPlayDura
       const sortedTimestamps = data.timestamps.sort((a, b) => a - b);
       const firstListen = sortedTimestamps[0];
       
-      // Find most played song
-      const trackCounts = new Map();
-      
-      // Get all songs for this artist and count plays in this specific year
-      songs.filter(song => song.artist === artist).forEach(song => {
-        // Get play timestamps for this song
-        const allTimestamps = songPlayHistory[song.key] || [];
-        
-        // Count plays in this specific year
-        let playsInYear = 0;
-        for (const ts of allTimestamps) {
-          const tsDate = new Date(ts);
-          if (tsDate.getFullYear() === year) {
-            playsInYear++;
-          }
+      // Find most played song directly from trackPlays (already built per artist per year)
+      let mostPlayedSong = { trackName: 'Unknown', playCount: 0 };
+      for (const [trackName, playCount] of data.trackPlays) {
+        if (playCount > mostPlayedSong.playCount) {
+          mostPlayedSong = { trackName, playCount };
         }
-        
-        if (playsInYear > 0) {
-          trackCounts.set(song.trackName, playsInYear);
-        }
-      });
-      
-      // Sort by play count
-      const sortedTracks = Array.from(trackCounts.entries())
-        .sort((a, b) => b[1] - a[1]);
-      
-      const mostPlayedSong = sortedTracks.length > 0 ?
-        { trackName: sortedTracks[0][0], playCount: sortedTracks[0][1] } :
-        { trackName: 'Unknown', playCount: 0 };
+      }
 
       // Find most played album
       const sortedAlbums = Array.from(data.albumPlays.entries())
@@ -2009,40 +1973,37 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData, minPlayDura
       const mostPlayedAlbum = sortedAlbums.length > 0 ?
         { albumName: sortedAlbums[0][0], playCount: sortedAlbums[0][1] } : null;
       
-      // Calculate streaks by using dates from the timestamps
-      const playDates = [...new Set(
-        sortedTimestamps.map(timestamp => new Date(timestamp).toISOString().split('T')[0])
-      )].sort();
-      
-      // Calculate streaks
+      // Calculate streaks using day-numbers (no Date objects needed)
+      const MS_PER_DAY = 86400000;
+      const playDayNumbers = [...new Set(
+        sortedTimestamps.map(ts => Math.floor(ts / MS_PER_DAY))
+      )].sort((a, b) => a - b);
+
       let currentStreak = 0;
       let longestStreak = 0;
-      let streakStart = null;
-      let streakEnd = null;
-      
-      for (let i = 0; i < playDates.length; i++) {
-        const currentDate = new Date(playDates[i]);
-        const previousDate = i > 0 ? new Date(playDates[i - 1]) : null;
-        
-        if (!previousDate || 
-            (currentDate - previousDate) / (1000 * 60 * 60 * 24) === 1) {
-          // Continuing streak
+      let streakStartDay = null;
+      let streakEndDay = null;
+
+      for (let i = 0; i < playDayNumbers.length; i++) {
+        if (i === 0 || playDayNumbers[i] - playDayNumbers[i - 1] === 1) {
           currentStreak++;
           if (currentStreak > longestStreak) {
             longestStreak = currentStreak;
-            streakEnd = currentDate;
-            streakStart = new Date(playDates[i - currentStreak + 1]);
+            streakEndDay = playDayNumbers[i];
+            streakStartDay = playDayNumbers[i - currentStreak + 1];
           }
         } else {
-          // Break in streak
           currentStreak = 1;
         }
       }
-      
+
+      const streakStart = streakStartDay != null ? new Date(streakStartDay * MS_PER_DAY) : null;
+      const streakEnd = streakEndDay != null ? new Date(streakEndDay * MS_PER_DAY) : null;
+
       // Check if current streak is still active
-      const lastPlay = playDates.length > 0 ? new Date(playDates[playDates.length - 1]) : null;
-      const now = new Date();
-      const daysSinceLastPlay = lastPlay ? Math.floor((now - lastPlay) / (1000 * 60 * 60 * 24)) : 999;
+      const todayDayNumber = Math.floor(Date.now() / MS_PER_DAY);
+      const lastPlayDay = playDayNumbers.length > 0 ? playDayNumbers[playDayNumbers.length - 1] : -999;
+      const daysSinceLastPlay = todayDayNumber - lastPlayDay;
       const activeStreak = daysSinceLastPlay <= 1 ? currentStreak : 0;
       
       // Calculate sort score
@@ -2525,7 +2486,7 @@ export const streamingProcessor = {
   async processFiles(files) {
     console.time('processFiles');
     try {
-      let allProcessedData = [];
+      const allProcessedArrays = [];
       
       // Process files in smaller batches to prevent memory issues
       const batchSize = Math.min(3, files.length); // Reduce batch size for better memory management
@@ -2624,16 +2585,19 @@ export const streamingProcessor = {
           })
         );
         
-        // Combine batch results more efficiently
+        // Collect batch results (flatten at the end to avoid O(n²) spread)
         batchResults.forEach(dataArray => {
           if (dataArray && dataArray.length > 0) {
-            allProcessedData.push(...dataArray);
+            allProcessedArrays.push(dataArray);
           }
         });
         
         // Yield between batches to prevent UI blocking
         await new Promise(resolve => setTimeout(resolve, 10));
       }
+      // Flatten all batch arrays into a single array
+      const allProcessedData = allProcessedArrays.flat();
+
       // Process ISRC codes from Deezer data
       allProcessedData.forEach(item => {
         if (item.source === 'deezer' && item.isrc) {
