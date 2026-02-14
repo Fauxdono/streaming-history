@@ -9,6 +9,19 @@ const WorldMap = dynamic(() => import('react-svg-worldmap').then(mod => mod.Worl
 
 const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
+// Build reverse lookup: country name → ISO code (for Tidal full country names)
+const countryNameToCode = (() => {
+  const map = {};
+  const codes = 'AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW'.split(' ');
+  for (const code of codes) {
+    try {
+      const name = countryNames.of(code);
+      if (name) map[name.toLowerCase()] = code;
+    } catch {}
+  }
+  return map;
+})();
+
 // Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
 const ListeningPatterns = ({
@@ -553,10 +566,19 @@ const ListeningPatterns = ({
     };
 
     filteredData.forEach(entry => {
-      if (passesFilters(entry) && entry.conn_country) {
-        const raw = entry.conn_country.trim();
-        const code = raw.toUpperCase();
-        if (code.length !== 2 || !/^[A-Z]{2}$/.test(code)) {
+      // Support both Spotify (conn_country: 2-letter code) and Tidal (country: full name)
+      const rawCountry = entry.conn_country || entry.country;
+      if (passesFilters(entry) && rawCountry) {
+        const raw = rawCountry.trim();
+        // Try as 2-letter ISO code first, then look up full country name
+        let code;
+        const upper = raw.toUpperCase();
+        if (upper.length === 2 && /^[A-Z]{2}$/.test(upper)) {
+          code = upper;
+        } else {
+          code = countryNameToCode[raw.toLowerCase()];
+        }
+        if (!code) {
           invalidCodes[raw] = (invalidCodes[raw] || 0) + 1;
           return;
         }
