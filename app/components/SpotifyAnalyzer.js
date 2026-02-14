@@ -2293,10 +2293,15 @@ const SpotifyAnalyzer = ({
                 <p className="text-sm">{error}</p>
               </div>
             )}
+            <div className={`mt-6 text-center text-xs ${uploadTextLight}`}>
+              <a href="/privacy" className="underline hover:opacity-70">Privacy Policy</a>
+              {' · '}
+              <a href="/terms" className="underline hover:opacity-70">Terms of Service</a>
+            </div>
             </div>
           </div>
         );
-      
+
       case 'stats':
         return stats ? (
           <div className={
