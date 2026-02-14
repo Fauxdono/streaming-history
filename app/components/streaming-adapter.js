@@ -936,7 +936,11 @@ function processRockboxScrobblerLog(content) {
 
     // Rockbox .scrobbler.log format (tab-separated):
     // artist \t album \t track \t track_number \t duration \t rating \t timestamp \t MusicBrainzID
-    const fields = trimmed.split('\t');
+    let fields = trimmed.split('\t');
+    // Fallback: if tab split doesn't produce enough fields, try multiple spaces
+    if (fields.length < 6) {
+      fields = trimmed.split(/  +/);
+    }
     if (fields.length < 6) continue;
 
     const [artist, album, track, trackNumber, durationSecs, rating, timestamp, mbid] = fields;
@@ -956,7 +960,7 @@ function processRockboxScrobblerLog(content) {
 
     transformedData.push({
       ts: ts.toISOString(),
-      ms_played: durationMs,
+      ms_played: skipped ? Math.min(durationMs, 15000) : durationMs,
       master_metadata_track_name: String(track),
       master_metadata_album_artist_name: String(artist),
       master_metadata_album_album_name: String(album || 'Unknown Album'),
