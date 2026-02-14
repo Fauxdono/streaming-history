@@ -683,8 +683,9 @@ const SpotifyAnalyzer = ({
   // Albums filtering using same logic as streaming adapter
   const displayedAlbums = useMemo(() => {
 
-    // If all-time (and not in range mode), use the existing topAlbums
-    if (!albumYearRangeMode && selectedAlbumYear === 'all') {
+    // If all-time (and not in range mode) and using default filters, use the existing topAlbums
+    const usingDefaultFilters = minPlayDuration === 30000 && !skipFilter && !fullListenOnly;
+    if (!albumYearRangeMode && selectedAlbumYear === 'all' && usingDefaultFilters) {
       let filteredAlbums = [...topAlbums];
 
       // Apply artist filtering if any artists are selected
@@ -898,8 +899,9 @@ const SpotifyAnalyzer = ({
   // Simple displayedArtists logic using CustomTrackRankings pattern
   const displayedArtists = useMemo(() => {
 
-    // If all-time (and not in range mode), use the existing topArtists
-    if (!yearRangeMode && selectedArtistYear === 'all') {
+    // If all-time (and not in range mode) and using default filters, use the existing topArtists
+    const usingDefaultFilters = minPlayDuration === 30000 && !skipFilter && !fullListenOnly;
+    if (!yearRangeMode && selectedArtistYear === 'all' && usingDefaultFilters) {
       return [...topArtists].sort((a, b) => {
         if (artistsSortBy === 'playCount') {
           return b.playCount - a.playCount;
