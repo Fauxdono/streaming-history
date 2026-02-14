@@ -28,7 +28,7 @@ const ListeningBehavior = ({
   });
 
   // Get the current theme
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -567,8 +567,14 @@ const filteredData = useMemo(() => {
     const dayStats = {};
     const monthStats = {};
     
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
     sortedEntries.forEach(entry => {
-      if (entry.ms_played < 30000) return; // Only count meaningful plays
+      if (!passesFilters(entry)) return;
       
       const date = new Date(entry.ts);
       const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -667,7 +673,7 @@ const filteredData = useMemo(() => {
       longestListeningDay,
       mostActiveMonth
     };
-  }, [filteredData, isDarkMode, isColorful, deferredActiveTab, activeTab]);
+  }, [filteredData, isDarkMode, isColorful, deferredActiveTab, activeTab, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Update selectedDate when selectedYear changes to a specific date
   React.useEffect(() => {

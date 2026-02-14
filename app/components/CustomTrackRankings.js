@@ -22,7 +22,7 @@ const CustomTrackRankings = ({
   viewMode = 'grid',
   setViewMode = () => {}
 }) => {
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -393,7 +393,7 @@ const CustomTrackRankings = ({
     // Only iterate through rawPlayData once by using a for loop instead of forEach
     for (let i = 0; i < rawPlayData.length; i++) {
       const entry = rawPlayData[i];
-      if (entry && entry.ts && entry.ms_played >= 30000) {
+      if (entry && entry.ts && entry.ms_played >= minPlayDuration) {
         try {
           const date = new Date(entry.ts);
           if (!isNaN(date.getTime())) {
@@ -406,7 +406,7 @@ const CustomTrackRankings = ({
     }
     
     return Array.from(yearsSet).sort();
-  }, [rawPlayData]);
+  }, [rawPlayData, minPlayDuration]);
   
   // Add useEffect to log when selectedYear changes
   useEffect(() => {
@@ -700,7 +700,10 @@ const CustomTrackRankings = ({
     }
     
     // Check if we need to reprocess the data
-    if (processedDataRef.current && previousRawDataLength.current === rawPlayData.length) {
+    if (processedDataRef.current && previousRawDataLength.current === rawPlayData.length &&
+        processedDataRef.current._minPlayDuration === minPlayDuration &&
+        processedDataRef.current._skipFilter === skipFilter &&
+        processedDataRef.current._fullListenOnly === fullListenOnly) {
       return processedDataRef.current;
     }
 
@@ -716,8 +719,10 @@ const CustomTrackRankings = ({
       
       try {
         // Skip invalid entries
-        if (!entry.ts || !entry.master_metadata_track_name || 
-            !entry.master_metadata_album_artist_name || entry.ms_played < 30000) {
+        if (!entry.ts || !entry.master_metadata_track_name ||
+            !entry.master_metadata_album_artist_name || entry.ms_played < minPlayDuration ||
+            (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) ||
+            (fullListenOnly && entry.reason_end !== 'trackdone')) {
           continue;
         }
         
@@ -755,14 +760,14 @@ const CustomTrackRankings = ({
     }
     
     // Store result in ref for future renders and update length
-    const result = { trackVersions, validEntries };
+    const result = { trackVersions, validEntries, _minPlayDuration: minPlayDuration, _skipFilter: skipFilter, _fullListenOnly: fullListenOnly };
     processedDataRef.current = result;
     previousRawDataLength.current = rawPlayData.length;
     
     console.timeEnd('preprocessRawData');
     
     return result;
-  }, [rawPlayData]);
+  }, [rawPlayData, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Extract feature artists efficiently
   const extractFeatureArtists = (trackName, artistName) => {

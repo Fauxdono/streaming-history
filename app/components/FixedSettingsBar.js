@@ -4,7 +4,8 @@ import React, { useState, useRef } from 'react';
 import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportDropdown from './SupportDropdown.js';
-import { ArrowLeftRight, Type, LayoutGrid, List, Heart } from 'lucide-react';
+import AnalysisSettingsDropdown from './AnalysisSettingsDropdown.js';
+import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings } from 'lucide-react';
 
 const FixedSettingsBar = ({
   togglePosition,
@@ -35,8 +36,10 @@ const FixedSettingsBar = ({
 
   const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
   const [showSupportDropdown, setShowSupportDropdown] = useState(false);
+  const [showAnalysisSettings, setShowAnalysisSettings] = useState(false);
   const settingsButtonRef = useRef(null);
   const supportButtonRef = useRef(null);
+  const analysisButtonRef = useRef(null);
 
   return (
     <>
@@ -87,6 +90,14 @@ const FixedSettingsBar = ({
                   title="Font Size Settings"
                 >
                   <Type size={16} />
+                </button>
+                <button
+                  ref={analysisButtonRef}
+                  onClick={() => setShowAnalysisSettings(!showAnalysisSettings)}
+                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                  title="Analysis Settings"
+                >
+                  <Settings size={16} />
                 </button>
                 <button
                   ref={supportButtonRef}
@@ -142,6 +153,16 @@ const FixedSettingsBar = ({
                 <Type size={14} />
               </button>
 
+              {/* Analysis Settings button */}
+              <button
+                ref={analysisButtonRef}
+                onClick={() => setShowAnalysisSettings(!showAnalysisSettings)}
+                className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                title="Analysis Settings"
+              >
+                <Settings size={14} />
+              </button>
+
               {/* Support button */}
               <button
                 ref={supportButtonRef}
@@ -161,6 +182,13 @@ const FixedSettingsBar = ({
         isOpen={showFontSizeDropdown}
         onClose={() => setShowFontSizeDropdown(false)}
         buttonRef={settingsButtonRef}
+      />
+
+      {/* Analysis Settings Dropdown */}
+      <AnalysisSettingsDropdown
+        isOpen={showAnalysisSettings}
+        onClose={() => setShowAnalysisSettings(false)}
+        buttonRef={analysisButtonRef}
       />
 
       {/* Support Dropdown */}

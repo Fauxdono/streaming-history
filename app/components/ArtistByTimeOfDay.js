@@ -8,7 +8,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'mini
   const [artistLimit, setArtistLimit] = useState(5);
 
   // Get the current theme
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -55,8 +55,15 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'mini
       all: {}
     };
     
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     rawPlayData.forEach(entry => {
-      if (entry.ms_played >= 30000 && entry.master_metadata_album_artist_name) { // Only significant plays
+      if (passesFilters(entry) && entry.master_metadata_album_artist_name) {
         const date = new Date(entry.ts);
         const hour = date.getHours();
         const artist = entry.master_metadata_album_artist_name;
@@ -145,7 +152,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'mini
       periodTopArtists,
       timePeriods
     };
-  }, [rawPlayData, isDarkMode, isColorful]);
+  }, [rawPlayData, isDarkMode, isColorful, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Format period data for display based on time range and artist limit
   const periodChartData = useMemo(() => {

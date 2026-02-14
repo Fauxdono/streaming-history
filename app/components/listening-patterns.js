@@ -30,7 +30,7 @@ const ListeningPatterns = ({
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
 
   // Get the current theme
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -377,20 +377,27 @@ const ListeningPatterns = ({
     
     const hourlyData = [...hours];
     
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) { // Only count plays of at least 30 seconds
+      if (passesFilters(entry)) {
         const date = new Date(entry.ts);
         const hour = date.getHours();
-        
+
         hourlyData[hour].count += 1;
         hourlyData[hour].totalMs += entry.ms_played;
       }
     });
-    
+
     // Group into time periods for better visualization
     // Use the chartColors timePeriods as the template
     const timePeriods = JSON.parse(JSON.stringify(chartColors.timePeriods));
-    
+
     hourlyData.forEach((hour) => {
       if (hour.hour >= 5 && hour.hour <= 11) {
         timePeriods[0].count += hour.count;
@@ -406,9 +413,9 @@ const ListeningPatterns = ({
         timePeriods[3].totalMs += hour.totalMs;
       }
     });
-    
+
     return { hourly: hourlyData, periods: timePeriods };
-  }, [filteredData, chartColors.timePeriods]);
+  }, [filteredData, chartColors.timePeriods, minPlayDuration, skipFilter, fullListenOnly]);
 
   const dayOfWeekData = useMemo(() => {
     const days = [
@@ -421,50 +428,57 @@ const ListeningPatterns = ({
       { name: 'Sat', fullName: 'Saturday', dayNum: 6, count: 0, totalMs: 0, color: chartColors.dayColors[6] }
     ];
     
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
+      if (passesFilters(entry)) {
         const date = new Date(entry.ts);
         const day = date.getDay();
-        
+
         days[day].count += 1;
         days[day].totalMs += entry.ms_played;
       }
     });
-    
+
     // Calculate average time per day
     const totalDays = {};
-    
+
     filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
+      if (passesFilters(entry)) {
         const date = new Date(entry.ts);
         const day = date.getDay();
         const dateString = date.toISOString().split('T')[0];
-        
+
         if (!totalDays[day]) {
           totalDays[day] = new Set();
         }
-        
+
         totalDays[day].add(dateString);
       }
     });
-    
+
     days.forEach((day, index) => {
       const uniqueDayCount = totalDays[index] ? totalDays[index].size : 0;
       day.avgPerDay = uniqueDayCount > 0 ? day.count / uniqueDayCount : 0;
     });
-    
+
     // Find the day with most listens (both by total and by average)
     const maxPlaysDay = [...days].sort((a, b) => b.count - a.count)[0];
     const maxAvgDay = [...days].sort((a, b) => b.avgPerDay - a.avgPerDay)[0];
-    
+
     // Mark the top days with a star
     days.forEach(day => {
       day.isTopByCount = day.fullName === maxPlaysDay.fullName;
       day.isTopByAverage = day.fullName === maxAvgDay.fullName;
     });
-    
+
     return days;
-  }, [filteredData, chartColors.dayColors]);
+  }, [filteredData, chartColors.dayColors, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Monthly/seasonal analysis
   const monthlyData = useMemo(() => {
@@ -491,14 +505,21 @@ const ListeningPatterns = ({
       { name: 'Winter', fullName: 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: chartColors.seasonColors.winter }
     ];
     
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
+      if (passesFilters(entry)) {
         const date = new Date(entry.ts);
         const month = date.getMonth();
-        
+
         months[month].count += 1;
         months[month].totalMs += entry.ms_played;
-        
+
         // Add to seasons
         if (month >= 2 && month <= 4) {
           seasons[0].count += 1;
@@ -515,17 +536,24 @@ const ListeningPatterns = ({
         }
       }
     });
-    
+
     return { months, seasons };
-  }, [filteredData, chartColors.seasonColors]);
+  }, [filteredData, chartColors.seasonColors, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Location data aggregation from conn_country
   const { locationData, unmatchedCodes } = useMemo(() => {
     const countryMap = {};
     const invalidCodes = {};
 
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000 && entry.conn_country) {
+      if (passesFilters(entry) && entry.conn_country) {
         const raw = entry.conn_country.trim();
         const code = raw.toUpperCase();
         if (code.length !== 2 || !/^[A-Z]{2}$/.test(code)) {
@@ -579,7 +607,7 @@ const ListeningPatterns = ({
     unmatched.sort((a, b) => b.plays - a.plays);
 
     return { locationData: matched, unmatchedCodes: unmatched };
-  }, [filteredData]);
+  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {

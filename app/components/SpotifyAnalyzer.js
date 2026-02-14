@@ -83,7 +83,7 @@ const SpotifyAnalyzer = ({
   discoveryBackgroundTheme = 'orange'
 }) => {
   // Get the current theme and font size
-  const { theme, fontSize } = useTheme();
+  const { theme, fontSize, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   
   // Helper function to get themed colors
@@ -508,12 +508,19 @@ const SpotifyAnalyzer = ({
       return playYear === selectedStreaksYear;
     });
 
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     // Calculate filtered stats
     const totalListeningTime = filteredData
-      .filter(play => play.ms_played >= 30000)
+      .filter(play => passesFilters(play))
       .reduce((sum, play) => sum + (play.ms_played || 0), 0);
 
-    const shortPlays = filteredData.filter(play => play.ms_played < 30000).length;
+    const shortPlays = filteredData.filter(play => play.ms_played < minPlayDuration).length;
 
     // Calculate unique songs for filtered data
     const uniqueSongs = new Set(
@@ -525,7 +532,7 @@ const SpotifyAnalyzer = ({
     // Calculate service listening time
     const serviceListeningTime = {};
     filteredData.forEach(play => {
-      if (play.ms_played >= 30000) {
+      if (passesFilters(play)) {
         const service = play._source || 'Unknown';
         serviceListeningTime[service] = (serviceListeningTime[service] || 0) + play.ms_played;
       }
@@ -541,7 +548,7 @@ const SpotifyAnalyzer = ({
       serviceListeningTime,
       nullTrackNames: filteredData.filter(e => !e.master_metadata_track_name).length
     };
-  }, [selectedStreaksYear, stats, rawPlayData]);
+  }, [selectedStreaksYear, stats, rawPlayData, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Parse range value to a date string
   const parseRangeValue = useCallback((val, isEnd) => {
@@ -716,26 +723,33 @@ const SpotifyAnalyzer = ({
     const end = isAllTime ? new Date() : new Date(endDateStr);
     end.setHours(23, 59, 59, 999);
     
-    // Filter raw data by date range and 30-second minimum
-    const dateFilteredEntries = isAllTime 
-      ? rawPlayData.filter(entry => entry.ms_played >= 30000)
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
+    // Filter raw data by date range and minimum duration
+    const dateFilteredEntries = isAllTime
+      ? rawPlayData.filter(entry => passesFilters(entry))
       : rawPlayData.filter(entry => {
           try {
-            if (entry.ms_played < 30000) return false;
+            if (!passesFilters(entry)) return false;
             const timestamp = new Date(entry.ts);
             return timestamp >= start && timestamp <= end;
           } catch (err) {
             return false;
           }
         });
-    
+
     // Initialize albums object (like streaming adapter)
     const albums = {};
-    
+
     // Process entries using streaming adapter logic
     dateFilteredEntries.forEach(entry => {
       const playTime = entry.ms_played;
-      if (!entry.master_metadata_track_name || playTime < 30000) return;
+      if (!entry.master_metadata_track_name || playTime < minPlayDuration) return;
       
       const trackName = entry.master_metadata_track_name;
       const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
@@ -849,7 +863,7 @@ const SpotifyAnalyzer = ({
         return b.totalPlayed - a.totalPlayed;
       }
     });
-  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists, albumsSortBy, albumYearRangeMode, albumYearRange, parseRangeValue]);
+  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists, albumsSortBy, albumYearRangeMode, albumYearRange, parseRangeValue, minPlayDuration, skipFilter, fullListenOnly]);
 
 
 
@@ -912,14 +926,19 @@ const SpotifyAnalyzer = ({
     const end = isAllTime ? new Date() : new Date(endDateStr);
     end.setHours(23, 59, 59, 999);
     
-    // Filter raw data by date range and 30-second minimum (like CustomTrackRankings)
-    const dateFilteredEntries = isAllTime 
-      ? rawPlayData.filter(entry => entry.ms_played >= 30000) // Apply 30-second filter
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
+    // Filter raw data by date range and minimum duration
+    const dateFilteredEntries = isAllTime
+      ? rawPlayData.filter(entry => passesFilters(entry))
       : rawPlayData.filter(entry => {
           try {
-            // Skip plays shorter than 30 seconds (like CustomTrackRankings)
-            if (entry.ms_played < 30000) return false;
-            
+            if (!passesFilters(entry)) return false;
             const timestamp = new Date(entry.ts);
             return timestamp >= start && timestamp <= end;
           } catch (err) {
@@ -1031,7 +1050,7 @@ const SpotifyAnalyzer = ({
         return b.totalPlayed - a.totalPlayed;
       }
     });
-  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData, artistsSortBy, yearRangeMode, yearRange, parseRangeValue]);
+  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData, artistsSortBy, yearRangeMode, yearRange, parseRangeValue, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Filtered displayed artists - memoized to prevent recalculation
   const filteredDisplayedArtists = useMemo(() => {

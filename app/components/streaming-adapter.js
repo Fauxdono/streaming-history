@@ -1557,7 +1557,7 @@ function calculateSongsByYear(songs, songPlayHistory) {
   return songsByYear;
 }
 
-function calculateAlbumsByYear(albums, rawPlayData) {
+function calculateAlbumsByYear(albums, rawPlayData, minPlayDuration = 30000) {
   // Create album ID mapping from all-time data
   const albumMapping = {};
   
@@ -1632,14 +1632,14 @@ function calculateAlbumsByYear(albums, rawPlayData) {
   
   // First pass: build normalized track mappings
   for (const entry of rawPlayData) {
-    if (entry.ms_played < 30000 || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
+    if (entry.ms_played < minPlayDuration || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
       continue;
     }
-    
+
     const trackName = entry.master_metadata_track_name;
     const artist = entry.master_metadata_album_artist_name;
     const normalizedTrack = createMatchKey(trackName, artist);
-    
+
     if (normalizedTrack) {
       if (!normalizedToOriginalTrack[normalizedTrack]) {
         normalizedToOriginalTrack[normalizedTrack] = [trackName];
@@ -1648,10 +1648,10 @@ function calculateAlbumsByYear(albums, rawPlayData) {
       }
     }
   }
-  
+
   // Second pass: build track-to-album mappings
   for (const entry of rawPlayData) {
-    if (entry.ms_played < 30000 || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
+    if (entry.ms_played < minPlayDuration || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name) {
       continue;
     }
     
@@ -1712,7 +1712,7 @@ function calculateAlbumsByYear(albums, rawPlayData) {
   const yearCache = new Map();
   
   for (const entry of rawPlayData) {
-    if (entry.ms_played < 30000 || !entry.master_metadata_album_artist_name) continue;
+    if (entry.ms_played < minPlayDuration || !entry.master_metadata_album_artist_name) continue;
     
     try {
       // Skip invalid dates - ensure _dateObj is actually a Date object
@@ -1886,14 +1886,14 @@ function calculateAlbumsByYear(albums, rawPlayData) {
   return result;
 }
 
-function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
+function calculateArtistsByYear(songs, songPlayHistory, rawPlayData, minPlayDuration = 30000) {
   const artistsByYear = {};
   
   // Pre-process and index raw data for more efficient lookups
   const dateIndex = new Map(); // Map artist -> year -> timestamps
   
   for (const entry of rawPlayData) {
-    if (!entry.master_metadata_album_artist_name || entry.ms_played < 30000) continue;
+    if (!entry.master_metadata_album_artist_name || entry.ms_played < minPlayDuration) continue;
     
     const artist = entry.master_metadata_album_artist_name;
     let timestamp;
@@ -2080,7 +2080,7 @@ function calculateArtistsByYear(songs, songPlayHistory, rawPlayData) {
   return artistsByYear;
 }
 
-async function calculatePlayStats(entries) {
+async function calculatePlayStats(entries, minPlayDuration = 30000) {
   if (!entries || entries.length === 0) {
     return { songs: [], artists: {}, albums: {}, playHistory: {}, totalListeningTime: 0, 
              serviceListeningTime: {}, processedSongs: 0, shortPlays: 0 };
@@ -2188,8 +2188,8 @@ async function calculatePlayStats(entries) {
     const playTime = entry.ms_played;
     
     // Skip invalid entries
-    if (!entry.master_metadata_track_name || playTime < 30000) {
-      if (playTime < 30000) shortPlays++;
+    if (!entry.master_metadata_track_name || playTime < minPlayDuration) {
+      if (playTime < minPlayDuration) shortPlays++;
       continue;
     }
 

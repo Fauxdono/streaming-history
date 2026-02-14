@@ -19,7 +19,7 @@ const DiscoveryAnalysis = ({
   const [timeframe, setTimeframe] = useState('all');
 
   // Get the current theme
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -297,7 +297,13 @@ const filteredData = useMemo(() => {
   // Analyze artist discovery and loyalty
   const discoveryData = useMemo(() => {
     // Sort all entries by timestamp
-    const sortedEntries = [...filteredData].filter(entry => entry.ms_played >= 30000)
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+    const sortedEntries = [...filteredData].filter(entry => passesFilters(entry))
                               .sort((a, b) => new Date(a.ts) - new Date(b.ts));
     
     if (sortedEntries.length === 0) {
@@ -381,7 +387,7 @@ const filteredData = useMemo(() => {
       uniqueArtistsCount: sortedArtists.length,
       artistPlayCounts
     };
-  }, [filteredData, isDarkMode, isColorful]);
+  }, [filteredData, isDarkMode, isColorful, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Analyze listening depth
   const depthData = useMemo(() => {
@@ -390,7 +396,13 @@ const filteredData = useMemo(() => {
     const trackPlays = {};
     
     // Get the earliest and latest dates for filtering
-    const filteredEntries = [...filteredData].filter(entry => entry.ms_played >= 30000);
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+    const filteredEntries = [...filteredData].filter(entry => passesFilters(entry));
     if (filteredEntries.length === 0) return { artistDepths: [], averageDepth: 0, replayValue: [] };
     
     // Process all tracks
@@ -445,7 +457,7 @@ const filteredData = useMemo(() => {
       averageDepth,
       replayValue
     };
-  }, [filteredData, discoveryData.artistPlayCounts]);
+  }, [filteredData, discoveryData.artistPlayCounts, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Analyze music variety
   const varietyData = useMemo(() => {
@@ -454,7 +466,13 @@ const filteredData = useMemo(() => {
     const uniqueTracks = {};
     const timeframes = {};
     
-    filteredData.filter(entry => entry.ms_played >= 30000).forEach(entry => {
+    const passesFilters2 = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+    filteredData.filter(entry => passesFilters2(entry)).forEach(entry => {
       if (!entry.master_metadata_track_name) return;
       
       const date = new Date(entry.ts);
@@ -551,7 +569,7 @@ const filteredData = useMemo(() => {
       avgWeeklyVariety,
       avgMonthlyVariety
     };
-  }, [filteredData]);
+  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Helper function to get ISO week number
   function getWeekNumber(date) {

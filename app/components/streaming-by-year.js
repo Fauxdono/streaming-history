@@ -4,7 +4,7 @@ import { useTheme } from './themeprovider.js'; // Add theme import if not passed
 
 const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple', textTheme = null, backgroundTheme = null, colorMode = 'minimal' }) => {
   // Use the theme if not explicitly passed as prop
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = propIsDarkMode !== undefined ? propIsDarkMode : theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -96,8 +96,15 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     const yearlyServiceStats = {};
     
     // Process each entry
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     rawPlayData.forEach(entry => {
-      if (entry.ms_played < 30000) return; // Skip very short plays
+      if (!passesFilters(entry)) return;
       
       try {
         // Get service from source or infer from platform
@@ -178,7 +185,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     });
     
     return { total: totalServiceData, byYear: yearlyData };
-  }, [rawPlayData, serviceColors]);
+  }, [rawPlayData, serviceColors, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Get available years
   const availableYears = useMemo(() => {

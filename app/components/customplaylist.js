@@ -9,7 +9,7 @@ const CustomPlaylistCreator = ({
   colorMode = 'minimal'
 }) => {
   // Get the current theme
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -76,9 +76,16 @@ const trackMap = useMemo(() => {
   // First process raw data to calculate accurate play counts
   const playCountMap = new Map();
   
+  const passesFilters = (entry) => {
+    if (entry.ms_played < minPlayDuration) return false;
+    if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+    if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+    return true;
+  };
+
   // Count occurrences in raw data first
   rawPlayData.forEach(entry => {
-    if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && entry.ms_played >= 30000) {
+    if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && passesFilters(entry)) {
       const key = `${entry.master_metadata_track_name.toLowerCase()}-${entry.master_metadata_album_artist_name.toLowerCase()}`;
       
       if (!playCountMap.has(key)) {
@@ -163,10 +170,10 @@ const createDateFilterIndex = (rawData) => {
   
   // Then add tracks from raw data that aren't already in our map
   rawPlayData.forEach(entry => {
-    if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && entry.ms_played >= 30000) {
+    if (entry.master_metadata_track_name && entry.master_metadata_album_artist_name && passesFilters(entry)) {
       try {
         const key = `${entry.master_metadata_track_name.toLowerCase()}-${entry.master_metadata_album_artist_name.toLowerCase()}`;
-        
+
         if (!map.has(key)) {
           // Get the play count from our calculation
           const playData = playCountMap.get(key) || { count: 1, totalPlayed: entry.ms_played };
@@ -221,7 +228,7 @@ const createDateFilterIndex = (rawData) => {
   );
   
   return map;
-}, [processedData, rawPlayData]);
+}, [processedData, rawPlayData, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Helper function to normalize track titles for better matching
   function normalizeTrackTitle(title) {

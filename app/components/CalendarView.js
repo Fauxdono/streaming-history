@@ -19,7 +19,7 @@ const CalendarView = ({
   const [daySelectionMode, setDaySelectionMode] = useState(false);
 
   // Get the current theme
-  const { theme } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -341,8 +341,8 @@ const CalendarView = ({
           hour12: true
         }),
         formattedDuration: formatDuration(entry.ms_played),
-        completionRate: entry.master_metadata_track_name ? 
-          Math.min(100, Math.round((entry.ms_played / 30000) * 100)) : 0
+        completionRate: entry.master_metadata_track_name ?
+          Math.min(100, Math.round((entry.ms_played / (minPlayDuration || 30000)) * 100)) : 0
       }));
 
     // Calculate day statistics
@@ -390,7 +390,7 @@ const CalendarView = ({
         day: 'numeric'
       })
     };
-  }, [filteredData, selectedYear, formatDuration, activeTab]);
+  }, [filteredData, selectedYear, formatDuration, activeTab, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Daily data for when a specific month is selected
   const dailyCalendarData = useMemo(() => {
@@ -417,11 +417,18 @@ const CalendarView = ({
     const dailyAlbums = Array.from({ length: daysInMonth }, () => new Map());
     const dailySongs = Array.from({ length: daysInMonth }, () => new Set());
     
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
+      if (passesFilters(entry)) {
         const date = new Date(entry.ts);
         const dayIndex = date.getDate() - 1; // 0-based index
-        
+
         if (dayIndex >= 0 && dayIndex < daysInMonth) {
           const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
           const albumName = entry.master_metadata_album_album_name || 'Unknown Album';
@@ -510,7 +517,7 @@ const CalendarView = ({
     });
 
     return daysData;
-  }, [filteredData, selectedYear, isMonthView]);
+  }, [filteredData, selectedYear, isMonthView, minPlayDuration, skipFilter, fullListenOnly]);
 
   // Calendar view data - monthly insights with top artist, album, and first listens
   const calendarData = useMemo(() => {
@@ -537,8 +544,15 @@ const CalendarView = ({
     const monthlySongs = Array.from({ length: 12 }, () => new Set());
     const monthlyTrackedSongs = Array.from({ length: 12 }, () => new Map());
     
+    const passesFilters2 = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     filteredData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
+      if (passesFilters2(entry)) {
         const date = new Date(entry.ts);
         const month = date.getMonth(); // 0-based
         const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
@@ -652,7 +666,7 @@ const CalendarView = ({
     });
 
     return monthsData;
-  }, [filteredData, isMonthView, monthNamesShort]);
+  }, [filteredData, isMonthView, monthNamesShort, minPlayDuration, skipFilter, fullListenOnly]);
   
   const TabButton = ({ id, label }) => (
     <button

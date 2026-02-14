@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronUp } from 'lucide-react';
+import { useTheme } from './themeprovider.js';
 
 const MonthDaySelector = ({
   startDate,
@@ -9,6 +10,7 @@ const MonthDaySelector = ({
   formatDuration = (ms) => `${Math.floor(ms / 60000)}min`,
   colorTheme = 'orange'
 }) => {
+  const { minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   // Parse start and end dates
   const [currentStartDate, setCurrentStartDate] = useState(startDate || '');
   const [currentEndDate, setCurrentEndDate] = useState(endDate || '');
@@ -45,8 +47,15 @@ const MonthDaySelector = ({
     const timeByDate = {};
     
     // Process raw data
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     rawPlayData.forEach(entry => {
-      if (entry.ms_played >= 30000) {
+      if (passesFilters(entry)) {
         try {
           const date = new Date(entry.ts);
           if (isNaN(date.getTime())) return; // Skip invalid dates
@@ -88,7 +97,7 @@ const MonthDaySelector = ({
       maxDate,
       hasData: sortedDates.length > 0
     };
-  }, [rawPlayData]);
+  }, [rawPlayData, minPlayDuration, skipFilter, fullListenOnly]);
   
   // Calculate statistics for the selected range
   const rangeStatistics = useMemo(() => {
