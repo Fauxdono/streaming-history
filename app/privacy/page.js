@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function PrivacyPolicy() {
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--text,#000)] p-6 sm:p-12 max-w-3xl mx-auto">
+    <main className="min-h-screen bg-white dark:bg-black text-black dark:text-white p-6 sm:p-12 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
       <p className="mb-4 opacity-75">Last updated: February 2025</p>
 
