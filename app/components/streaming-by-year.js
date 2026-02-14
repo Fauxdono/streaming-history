@@ -41,6 +41,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     'soundcloud': isDarkMode ? '#FF8C54' : '#FF5500',
     'tidal': isDarkMode ? '#CCCCCC' : '#000000',
     'cake': isDarkMode ? '#FFB5DA' : '#FF69B4',
+    'ipod': isDarkMode ? '#B8B8B8' : '#8C8C8C',
     'unknown': isDarkMode ? '#888888' : '#AAAAAA'
   } : {
     'spotify': greyShades[0],
@@ -50,6 +51,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     'soundcloud': greyShades[4],
     'tidal': greyShades[5],
     'cake': greyShades[6],
+    'ipod': greyShades[7],
     'unknown': greyShades[7]
   }), [isDarkMode, isColorful]);
 

@@ -11,7 +11,8 @@ export const STREAMING_TYPES = {
   TIDAL: 'tidal',
   DEEZER: 'deezer',
   SOUNDCLOUD: 'soundcloud',
-  CAKE: 'cake'
+  CAKE: 'cake',
+  IPOD: 'ipod'
 };
 
 export const STREAMING_SERVICES = {
@@ -56,6 +57,12 @@ export const STREAMING_SERVICES = {
     downloadUrl: '#',
     instructions: 'In the statitics page you can download an excel.',
     acceptedFormats: '.xlsx,.json'
+  },
+  [STREAMING_TYPES.IPOD]: {
+    name: 'iPod',
+    downloadUrl: 'https://www.rockbox.org/',
+    instructions: 'Connect your iPod and find the .scrobbler.log file in the root of your iPod drive. This file is created by Rockbox firmware.',
+    acceptedFormats: '.log'
   }
 };
 
@@ -426,11 +433,28 @@ function detectFileType(filename, content) {
     return 'apple_music';
   }
   
+  // Rockbox scrobbler log detection
+  if (filename.endsWith('.log') || filename === '.scrobbler.log') {
+    const firstLine = content.split('\n')[0]?.trim() || '';
+    if (firstLine.startsWith('#AUDIOSCROBBLER')) {
+      return 'ipod';
+    }
+    // Also detect by tab-separated content that looks like scrobbler data
+    const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+    if (lines.length > 0) {
+      const fields = lines[0].split('\t');
+      // Rockbox scrobbler log has 8 tab-separated fields
+      if (fields.length >= 6 && fields.length <= 8) {
+        return 'ipod';
+      }
+    }
+  }
+
   // For XLSX files, we'll need to check content after opening
   if (filename.endsWith('.xlsx')) {
     return 'excel'; // Will be further detected in processing
   }
-  
+
   return 'unknown';
 }
 
@@ -899,6 +923,55 @@ async function processTidalCSV(content) {
       }
     });
   });
+}
+
+function processRockboxScrobblerLog(content) {
+  const lines = content.split('\n');
+  const transformedData = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Skip empty lines and header/comment lines
+    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('//')) continue;
+
+    // Rockbox .scrobbler.log format (tab-separated):
+    // artist \t album \t track \t track_number \t duration \t rating \t timestamp \t MusicBrainzID
+    const fields = trimmed.split('\t');
+    if (fields.length < 6) continue;
+
+    const [artist, album, track, trackNumber, durationSecs, rating, timestamp, mbid] = fields;
+
+    // Skip entries without essential data
+    if (!artist || !track) continue;
+
+    // Parse timestamp - Rockbox uses Unix epoch seconds
+    const ts = timestamp ? new Date(parseInt(timestamp) * 1000) : new Date();
+    if (isNaN(ts.getTime())) continue;
+
+    // Duration is in seconds in the scrobbler log, convert to ms
+    const durationMs = parseInt(durationSecs) * 1000 || 210000;
+
+    // Rating: L = loved, B = banned, S = skipped, empty = normal
+    const skipped = rating === 'S';
+
+    transformedData.push({
+      ts: ts.toISOString(),
+      ms_played: durationMs,
+      master_metadata_track_name: String(track),
+      master_metadata_album_artist_name: String(artist),
+      master_metadata_album_album_name: String(album || 'Unknown Album'),
+      reason_start: 'trackdone',
+      reason_end: skipped ? 'fwdbtn' : 'trackdone',
+      shuffle: false,
+      skipped: skipped,
+      platform: 'iPod',
+      source: 'ipod',
+      offline: true
+    });
+  }
+
+  console.log(`Transformed ${transformedData.length} iPod/Rockbox scrobbler entries`);
+  return transformedData;
 }
 
 async function processCakeExcelFile(file) {
@@ -2522,7 +2595,10 @@ export const streamingProcessor = {
                   
                 case 'tidal':
                   return await processTidalCSV(content);
-                  
+
+                case 'ipod':
+                  return processRockboxScrobblerLog(content);
+
                 case 'youtube_music':
                   // TODO: Add YouTube Music processing
                   console.log(`YouTube Music format detected but not yet supported: ${file.name}`);
