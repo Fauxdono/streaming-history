@@ -2254,15 +2254,15 @@ const SpotifyAnalyzer = ({
             )}
                 
             {uploadedFiles.length > 0 && (
-              <div className={`mt-6 p-4 rounded-lg border ${
+              <div className={`mt-4 p-2 rounded-lg border max-w-sm ${
                 colorMode === 'colorful'
                   ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
                   : (isDarkMode ? 'bg-black border-white' : 'bg-gray-50 border-black')
               }`}>
-                <h4 className={`font-semibold mb-3 text-lg ${uploadText}`}>Uploaded Files:</h4>
-                <ul className="space-y-2">
+                <h4 className={`font-semibold mb-1 text-lg ${uploadText}`}>Uploaded Files:</h4>
+                <ul className="space-y-1">
                   {uploadedFiles.map((fileName, index) => (
-                    <li key={index} className={`flex items-center justify-between p-3 rounded-lg ${
+                    <li key={index} className={`flex items-center justify-between px-2 py-1 rounded ${
                       colorMode === 'colorful'
                         ? 'bg-violet-100 dark:bg-violet-700'
                         : (isDarkMode ? 'bg-gray-900' : 'bg-white')
