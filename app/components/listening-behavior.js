@@ -888,16 +888,15 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How You Start Tracks</h3>
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.startReasons}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  layout="vertical"
+                  margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis type="number" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <YAxis dataKey="name" type="category" width={100} stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                  <XAxis dataKey="name" stroke={isDarkMode ? '#9CA3AF' : '#374151'} angle={-45} textAnchor="end" height={80} />
+                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                   <Tooltip 
                     formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
                     contentStyle={{
@@ -916,16 +915,15 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How Tracks End</h3>
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.endReasons}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  layout="vertical"
+                  margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis type="number" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <YAxis dataKey="name" type="category" width={100} stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                  <XAxis dataKey="name" stroke={isDarkMode ? '#9CA3AF' : '#374151'} angle={-45} textAnchor="end" height={80} />
+                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                   <Tooltip
                     formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
                     contentStyle={{
@@ -944,16 +942,15 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Platforms Used</h3>
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.platformData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  layout="vertical"
+                  margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis type="number" stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <YAxis dataKey="name" type="category" width={150} stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                  <XAxis dataKey="name" stroke={isDarkMode ? '#9CA3AF' : '#374151'} angle={-45} textAnchor="end" height={80} />
+                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
                   <Tooltip
                     formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
                     contentStyle={{
