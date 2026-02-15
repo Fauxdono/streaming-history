@@ -1026,7 +1026,7 @@ const filteredData = useMemo(() => {
                     type="number"
                     dataKey="date"
                     domain={['dataMin', 'dataMax']}
-                    tickFormatter={(ts) => { const d = new Date(ts); return `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`; }}
+                    tickFormatter={(ts) => new Date(ts).getFullYear()}
                     stroke={isDarkMode ? '#9CA3AF' : '#374151'}
                     name="Date"
                   />
