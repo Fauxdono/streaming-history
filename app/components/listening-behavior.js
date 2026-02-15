@@ -1026,6 +1026,15 @@ const filteredData = useMemo(() => {
                     type="number"
                     dataKey="date"
                     domain={['dataMin', 'dataMax']}
+                    ticks={(() => {
+                      const pts = behaviorData.platformTimeline || [];
+                      if (!pts.length) return [];
+                      let minY = Infinity, maxY = -Infinity;
+                      pts.forEach(p => { const y = new Date(p.date).getFullYear(); if (y < minY) minY = y; if (y > maxY) maxY = y; });
+                      const ticks = [];
+                      for (let y = minY; y <= maxY; y++) ticks.push(new Date(y, 0, 1).getTime());
+                      return ticks;
+                    })()}
                     tickFormatter={(ts) => new Date(ts).getFullYear()}
                     stroke={isDarkMode ? '#9CA3AF' : '#374151'}
                     name="Date"
