@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, ScatterChart, Scatter, ZAxis, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 import { useTheme } from './themeprovider.js';
 
@@ -475,7 +475,32 @@ const filteredData = useMemo(() => {
       count,
       percentage: Math.round((count / totalTracks) * 100)
     })).sort((a, b) => b.count - a.count);
-    
+
+    // Build platform timeline data (scatter plot: dots per day per platform)
+    const platformNames = Object.entries(platforms)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name]) => name);
+    const platformIndexMap = {};
+    platformNames.forEach((name, i) => { platformIndexMap[name] = i; });
+
+    const dayPlatformCounts = {};
+    filteredData.forEach(entry => {
+      if (entry.ms_played >= 1000) {
+        const platform = entry.platform || 'Unknown';
+        const d = new Date(entry.ts);
+        const dayKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        const key = `${dayKey}|${platform}`;
+        if (!dayPlatformCounts[key]) {
+          dayPlatformCounts[key] = { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(), platform, count: 0 };
+        }
+        dayPlatformCounts[key].count++;
+      }
+    });
+    const platformTimeline = Object.values(dayPlatformCounts).map(d => ({
+      ...d,
+      platformIndex: platformIndexMap[d.platform]
+    }));
+
     return {
       totalTracks,
       skippedTracks,
@@ -488,7 +513,9 @@ const filteredData = useMemo(() => {
       startReasons,
       shuffleData,
       skipData,
-      platformData
+      platformData,
+      platformTimeline,
+      platformNames
     };
   }, [filteredData, deferredActiveTab, activeTab, isDarkMode, isColorful]);
   
@@ -942,27 +969,68 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Platforms Used</h3>
-            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-72 sm:h-96 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={behaviorData.platformData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
-                >
+                <ScatterChart margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis dataKey="name" stroke={isDarkMode ? '#9CA3AF' : '#374151'} angle={-45} textAnchor="end" height={80} />
-                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
+                  <XAxis
+                    type="number"
+                    dataKey="date"
+                    domain={['dataMin', 'dataMax']}
+                    tickFormatter={(ts) => { const d = new Date(ts); return `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`; }}
+                    stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                    name="Date"
+                  />
+                  <YAxis
+                    type="number"
+                    dataKey="platformIndex"
+                    domain={[-0.5, (behaviorData.platformNames?.length || 1) - 0.5]}
+                    ticks={behaviorData.platformNames?.map((_, i) => i) || []}
+                    tickFormatter={(i) => behaviorData.platformNames?.[i] || ''}
+                    stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                    width={80}
+                    name="Platform"
+                  />
+                  <ZAxis type="number" dataKey="count" range={[20, 200]} name="Plays" />
                   <Tooltip
-                    formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                      color: isDarkMode ? '#ffffff' : '#000000'
+                    cursor={{ strokeDasharray: '3 3' }}
+                    content={({ payload }) => {
+                      if (!payload || !payload.length) return null;
+                      const d = payload[0].payload;
+                      const date = new Date(d.date);
+                      return (
+                        <div style={{
+                          backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                          border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+                          color: isDarkMode ? '#ffffff' : '#000000',
+                          padding: '8px 12px',
+                          borderRadius: '4px',
+                          fontSize: '12px'
+                        }}>
+                          <div style={{ fontWeight: 'bold' }}>{d.platform}</div>
+                          <div>{date.toLocaleDateString()}</div>
+                          <div>{d.count} play{d.count !== 1 ? 's' : ''}</div>
+                        </div>
+                      );
                     }}
                   />
                   <Legend />
-                  <Bar name="Count" dataKey="count" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
-                  <Bar name="Percentage" dataKey="percentage" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#6B7280" : "#9CA3AF")} unit="%" />
-                </BarChart>
+                  {behaviorData.platformNames?.map((platform, i) => {
+                    const scatterColors = isColorful
+                      ? ['#8884d8', '#82ca9d', '#ff8042', '#00C49F', '#FFBB28', '#FF6B6B', '#4ECDC4', '#A855F7']
+                      : isDarkMode
+                        ? ['#9CA3AF', '#6B7280', '#D1D5DB', '#4B5563', '#E5E7EB', '#374151', '#F3F4F6', '#1F2937']
+                        : ['#6B7280', '#9CA3AF', '#374151', '#D1D5DB', '#4B5563', '#E5E7EB', '#1F2937', '#F3F4F6'];
+                    return (
+                      <Scatter
+                        key={platform}
+                        name={platform}
+                        data={behaviorData.platformTimeline?.filter(d => d.platformIndex === i) || []}
+                        fill={scatterColors[i % scatterColors.length]}
+                      />
+                    );
+                  })}
+                </ScatterChart>
               </ResponsiveContainer>
             </div>
           </div>
