@@ -5,6 +5,34 @@ import { useTheme } from './themeprovider.js';
 
 // Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
+const IPHONE_MODELS = {
+  'iPhone1,1': 'iPhone', 'iPhone1,2': 'iPhone 3G',
+  'iPhone2,1': 'iPhone 3GS',
+  'iPhone3,1': 'iPhone 4', 'iPhone3,2': 'iPhone 4', 'iPhone3,3': 'iPhone 4',
+  'iPhone4,1': 'iPhone 4S',
+  'iPhone5,1': 'iPhone 5', 'iPhone5,2': 'iPhone 5', 'iPhone5,3': 'iPhone 5c', 'iPhone5,4': 'iPhone 5c',
+  'iPhone6,1': 'iPhone 5s', 'iPhone6,2': 'iPhone 5s',
+  'iPhone7,1': 'iPhone 6 Plus', 'iPhone7,2': 'iPhone 6',
+  'iPhone8,1': 'iPhone 6s', 'iPhone8,2': 'iPhone 6s Plus', 'iPhone8,4': 'iPhone SE',
+  'iPhone9,1': 'iPhone 7', 'iPhone9,2': 'iPhone 7 Plus', 'iPhone9,3': 'iPhone 7', 'iPhone9,4': 'iPhone 7 Plus',
+  'iPhone10,1': 'iPhone 8', 'iPhone10,2': 'iPhone 8 Plus', 'iPhone10,3': 'iPhone X',
+  'iPhone10,4': 'iPhone 8', 'iPhone10,5': 'iPhone 8 Plus', 'iPhone10,6': 'iPhone X',
+  'iPhone11,2': 'iPhone XS', 'iPhone11,4': 'iPhone XS Max', 'iPhone11,6': 'iPhone XS Max', 'iPhone11,8': 'iPhone XR',
+  'iPhone12,1': 'iPhone 11', 'iPhone12,3': 'iPhone 11 Pro', 'iPhone12,5': 'iPhone 11 Pro Max', 'iPhone12,8': 'iPhone SE 2',
+  'iPhone13,1': 'iPhone 12 mini', 'iPhone13,2': 'iPhone 12', 'iPhone13,3': 'iPhone 12 Pro', 'iPhone13,4': 'iPhone 12 Pro Max',
+  'iPhone14,2': 'iPhone 13 Pro', 'iPhone14,3': 'iPhone 13 Pro Max', 'iPhone14,4': 'iPhone 13 mini', 'iPhone14,5': 'iPhone 13',
+  'iPhone14,6': 'iPhone SE 3', 'iPhone14,7': 'iPhone 14', 'iPhone14,8': 'iPhone 14 Plus',
+  'iPhone15,2': 'iPhone 14 Pro', 'iPhone15,3': 'iPhone 14 Pro Max', 'iPhone15,4': 'iPhone 15', 'iPhone15,5': 'iPhone 15 Plus',
+  'iPhone16,1': 'iPhone 15 Pro', 'iPhone16,2': 'iPhone 15 Pro Max',
+};
+
+function extractIPhoneModel(raw) {
+  if (!raw) return null;
+  const match = raw.match(/\((iPhone\d+,\d+)\)/);
+  if (match) return IPHONE_MODELS[match[1]] || match[1];
+  return null;
+}
+
 function categorizePlatform(raw) {
   if (!raw) return 'Unknown';
   const p = raw.toLowerCase();
@@ -533,17 +561,25 @@ const filteredData = useMemo(() => {
     platformNames.forEach((name, i) => { platformIndexMap[name] = i; });
 
     const dayPlatformCounts = {};
+    const iphoneModelsSet = new Set();
     filteredData.forEach(entry => {
       if (entry.ms_played >= 1000) {
         const platform = categorizePlatform(entry.platform);
+        const model = platform === 'iPhone' ? (extractIPhoneModel(entry.platform) || 'iPhone') : null;
+        if (model) iphoneModelsSet.add(model);
         const d = new Date(entry.ts);
         const dayKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-        const key = `${dayKey}|${platform}`;
+        const key = model ? `${dayKey}|${model}` : `${dayKey}|${platform}`;
         if (!dayPlatformCounts[key]) {
-          dayPlatformCounts[key] = { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(), platform, count: 0 };
+          dayPlatformCounts[key] = { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(), platform, count: 0, model };
         }
         dayPlatformCounts[key].count++;
       }
+    });
+    const iphoneModels = [...iphoneModelsSet].sort((a, b) => {
+      const na = a.match(/\d+/) ? parseInt(a.match(/\d+/)[0]) : 0;
+      const nb = b.match(/\d+/) ? parseInt(b.match(/\d+/)[0]) : 0;
+      return na - nb || a.localeCompare(b);
     });
     const platformTimeline = Object.values(dayPlatformCounts).map(d => ({
       ...d,
@@ -564,7 +600,8 @@ const filteredData = useMemo(() => {
       skipData,
       platformData,
       platformTimeline,
-      platformNames
+      platformNames,
+      iphoneModels
     };
   }, [filteredData, deferredActiveTab, activeTab, isDarkMode, isColorful]);
   
@@ -1065,7 +1102,7 @@ const filteredData = useMemo(() => {
                           borderRadius: '4px',
                           fontSize: '12px'
                         }}>
-                          <div style={{ fontWeight: 'bold' }}>{d.platform}</div>
+                          <div style={{ fontWeight: 'bold' }}>{d.model || d.platform}</div>
                           <div>{date.toLocaleDateString()}</div>
                           <div>{d.count} play{d.count !== 1 ? 's' : ''}</div>
                         </div>
@@ -1073,21 +1110,45 @@ const filteredData = useMemo(() => {
                     }}
                   />
                   <Legend />
-                  {behaviorData.platformNames?.map((platform, i) => {
+                  {(() => {
                     const scatterColors = isColorful
                       ? ['#8884d8', '#82ca9d', '#ff8042', '#00C49F', '#FFBB28', '#FF6B6B', '#4ECDC4', '#A855F7']
                       : isDarkMode
                         ? ['#9CA3AF', '#6B7280', '#D1D5DB', '#4B5563', '#E5E7EB', '#374151', '#F3F4F6', '#1F2937']
                         : ['#6B7280', '#9CA3AF', '#374151', '#D1D5DB', '#4B5563', '#E5E7EB', '#1F2937', '#F3F4F6'];
-                    return (
-                      <Scatter
-                        key={platform}
-                        name={platform}
-                        data={behaviorData.platformTimeline?.filter(d => d.platformIndex === i) || []}
-                        fill={scatterColors[i % scatterColors.length]}
-                      />
-                    );
-                  })}
+                    const iphoneColors = isColorful
+                      ? ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899', '#F43F5E', '#14B8A6']
+                      : isDarkMode
+                        ? ['#F9FAFB', '#E5E7EB', '#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563', '#374151', '#1F2937', '#F3F4F6', '#111827']
+                        : ['#111827', '#1F2937', '#374151', '#4B5563', '#6B7280', '#9CA3AF', '#D1D5DB', '#E5E7EB', '#F3F4F6', '#F9FAFB'];
+                    const scatters = [];
+                    let colorIdx = 0;
+                    behaviorData.platformNames?.forEach((platform, i) => {
+                      if (platform === 'iPhone') {
+                        (behaviorData.iphoneModels || []).forEach((model, mi) => {
+                          scatters.push(
+                            <Scatter
+                              key={model}
+                              name={model}
+                              data={behaviorData.platformTimeline?.filter(d => d.model === model) || []}
+                              fill={iphoneColors[mi % iphoneColors.length]}
+                            />
+                          );
+                        });
+                      } else {
+                        scatters.push(
+                          <Scatter
+                            key={platform}
+                            name={platform}
+                            data={behaviorData.platformTimeline?.filter(d => d.platformIndex === i) || []}
+                            fill={scatterColors[colorIdx % scatterColors.length]}
+                          />
+                        );
+                        colorIdx++;
+                      }
+                    });
+                    return scatters;
+                  })()}
                 </ScatterChart>
               </ResponsiveContainer>
             </div>
