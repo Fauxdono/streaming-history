@@ -5,6 +5,55 @@ import { useTheme } from './themeprovider.js';
 
 // Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
+function categorizePlatform(raw) {
+  if (!raw) return 'Unknown';
+  const p = raw.toLowerCase();
+
+  // "iOS 15.5 (iPhone14,5)" / "iOS 14.6 (iPad8,11)" / "iOS 12.4.9 (iPod7,1)"
+  // Extract the device type from parentheses
+  if (p.startsWith('ios ')) {
+    const match = raw.match(/\((iPhone|iPad|iPod)/i);
+    if (match) return match[1].startsWith('iPhone') ? 'iPhone' : match[1].startsWith('iPad') ? 'iPad' : 'iPod';
+    return 'iPhone'; // bare "iOS x.x" without device → likely iPhone
+  }
+
+  // "Android OS 9 API 28 (motorola, ...)" / "Android-tablet OS ..."
+  if (p.startsWith('android')) return 'Android';
+
+  // "Windows 10 (...)" / "Windows XP (...)"
+  if (p.startsWith('windows')) return 'Windows';
+
+  // "OS X 10.12.6 [x86 4]"
+  if (p.startsWith('os x') || p.startsWith('macos')) return 'Mac';
+
+  // "web_player windows 10;chrome 83..." / "WebPlayer (websocket RFC6455)"
+  if (p.startsWith('web_player') || p.startsWith('webplayer')) return 'Web Player';
+
+  // "Partner google cast_tv;Chromecast;;" / "Partner SCEI sony_tv;ps4;;" / etc.
+  if (p.startsWith('partner ')) {
+    if (p.includes('cast_tv') || p.includes('chromecast')) return 'Chromecast';
+    if (p.includes('scei') || p.includes('ps4') || p.includes('playstation')) return 'PlayStation';
+    if (p.includes('applewatch')) return 'Apple Watch';
+    if (p.includes('denon') || p.includes('marantz') || p.includes('heos')) return 'Denon/Marantz';
+    if (p.includes('android_tv')) return 'Smart TV';
+    if (p.includes('spotify')) return 'Web Player';
+    if (p.includes('ios_sdk')) return 'iPhone';
+    return 'Other';
+  }
+
+  // Simple keyword matches
+  const keywords = {
+    'ios': 'iPhone', 'osx': 'Mac', 'cast': 'Chromecast',
+    'playstation': 'PlayStation', 'ipod': 'iPod',
+    'tidal': 'Tidal', 'soundcloud': 'SoundCloud',
+    'not_applicable': 'Other', 'unknown': 'Unknown',
+  };
+  if (keywords[p]) return keywords[p];
+  if (p.startsWith('deezer')) return 'Deezer';
+
+  return 'Other';
+}
+
 const ListeningBehavior = ({
   rawPlayData = [],
   formatDuration,
@@ -415,8 +464,8 @@ const filteredData = useMemo(() => {
       if (entry.ms_played >= 1000) { // Only analyze meaningful plays (more than 1 second)
         totalTracks++;
         
-        // Count platform usage
-        const platform = entry.platform || 'Unknown';
+        // Count platform usage (categorized)
+        const platform = categorizePlatform(entry.platform);
         platforms[platform] = (platforms[platform] || 0) + 1;
         
         // Count shuffle vs. normal plays
@@ -486,7 +535,7 @@ const filteredData = useMemo(() => {
     const dayPlatformCounts = {};
     filteredData.forEach(entry => {
       if (entry.ms_played >= 1000) {
-        const platform = entry.platform || 'Unknown';
+        const platform = categorizePlatform(entry.platform);
         const d = new Date(entry.ts);
         const dayKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
         const key = `${dayKey}|${platform}`;
