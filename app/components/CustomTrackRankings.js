@@ -282,7 +282,7 @@ const CustomTrackRankings = ({
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgLight: isDarkMode ? 'bg-black' : 'bg-white',
     bgMed: isDarkMode ? 'bg-black' : 'bg-white',
-    bgDark: isDarkMode ? 'bg-black text-white border border-white' : 'bg-white text-black border border-black',
+    bgDark: isDarkMode ? 'bg-black text-white border border-white shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black shadow-[2px_2px_0_0_black]',
     bgDarkHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderDark: isDarkMode ? 'border-white' : 'border-black',
