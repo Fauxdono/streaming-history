@@ -75,7 +75,7 @@ const ListeningPatterns = ({
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-white text-black shadow-[1px_1px_0_0_rgba(255,255,255,0.3)]' : 'bg-black text-white shadow-[1px_1px_0_0_rgba(0,0,0,0.3)]',
+    buttonActive: isDarkMode ? 'bg-white text-black border border-white translate-x-[2px] translate-y-[2px]' : 'bg-black text-white border border-black translate-x-[2px] translate-y-[2px]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900 shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
     toggleBg: isDarkMode ? 'bg-black' : 'bg-white',
     toggleActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
