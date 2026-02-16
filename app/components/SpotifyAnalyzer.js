@@ -3019,7 +3019,8 @@ const SpotifyAnalyzer = ({
                             onClick={handleArtistClick}
                             className={`
                               ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
-                              p-3 ${cardBg} rounded shadow-sm border ${cardBorder} relative
+                              p-3 ${cardBg} rounded border ${cardBorder} relative
+                              ${colorMode === 'minimal' ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}
                               ${artistSelectionMode
                                 ? (colorMode === 'colorful'
                                     ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-100 dark:hover:bg-blue-700'

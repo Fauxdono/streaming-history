@@ -132,7 +132,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
   }, [albumTracks]);
 
   return (
-    <div className={`p-3 ${colors.bg} rounded shadow-sm border ${colors.border} hover:${colors.borderHover} relative`}>
+    <div className={`p-3 ${colors.bg} rounded border ${colors.border} hover:${colors.borderHover} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
       <div className={`font-bold ${colors.text}`}>{album.name}</div>
       
       <div className={`text-sm ${colors.textLight}`}>
