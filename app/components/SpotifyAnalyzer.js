@@ -2011,7 +2011,8 @@ const SpotifyAnalyzer = ({
     
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
       // Simple fixed dimensions for instant calculation
-      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
+      const ysScale = isMobile ? 1 : 1.5;
+      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? Math.round(180 * ysScale) : Math.round(90 * ysScale)) : Math.round(32 * ysScale);
       
       if (yearSelectorPosition === 'left') {
         leftSpace += effectiveWidth;
@@ -3790,7 +3791,8 @@ const SpotifyAnalyzer = ({
                  // Add transform for left-positioned YearSelector (only when sidebar is shown)
                  if (showYearSidebar && shouldShowSidebar(activeTab)) {
                    if (yearSelectorPosition === 'left') {
-                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
+                     const ysScale = isMobile ? 1 : 1.5;
+      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? Math.round(180 * ysScale) : Math.round(90 * ysScale)) : Math.round(32 * ysScale);
                      translateX += effectiveWidth;
                    }
                  }
@@ -3812,7 +3814,8 @@ const SpotifyAnalyzer = ({
                  // Calculate width reduction from YearSelector (only when sidebar is shown)
                  if (showYearSidebar && shouldShowSidebar(activeTab)) {
                    if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
-                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
+                     const ysScale = isMobile ? 1 : 1.5;
+      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? Math.round(180 * ysScale) : Math.round(90 * ysScale)) : Math.round(32 * ysScale);
                      totalWidthReduction += effectiveWidth;
                    }
                  }

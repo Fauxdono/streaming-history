@@ -84,11 +84,12 @@ const YearSelector = ({
   const [endDay, setEndDay] = useState(31);
 
   // Simple fixed dimensions for instant calculation
-  // Desktop gets 1.5x scale
+  // Desktop gets 1.5x scale via CSS transform; container uses base dimensions
+  // but we report scaled dimensions to the parent for layout spacing
   const desktopScale = isMobile ? 1 : 1.5;
-  const getCurrentDimensions = () => {
+  const getBaseDimensions = () => {
     if (!expanded) {
-      return { width: Math.round(32 * desktopScale), height: Math.round(48 * desktopScale) };
+      return { width: 32, height: 48 };
     }
 
     // 50% smaller height when at top or bottom position
@@ -97,16 +98,19 @@ const YearSelector = ({
     const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
     if (mode === 'range') {
       if (isMobilePortraitHz) {
-        // Dynamic height based on which selectors are shown
-        // Each row: wheel (63px) + label (14px) + gaps
-        let h = 90; // base: year row + M toggle
-        if (showRangeMonthDaySelectors) h = 170; // year + month rows + D toggle
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250; // all three rows
+        let h = 90;
+        if (showRangeMonthDaySelectors) h = 170;
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250;
         return { width: 180, height: h };
       }
-      return { width: Math.round(180 * desktopScale), height: isHorizontal ? Math.round(110 * desktopScale) : Math.round(220 * desktopScale) };
+      return { width: 180, height: isHorizontal ? 110 : 220 };
     }
-    return { width: Math.round(90 * desktopScale), height: isHorizontal ? Math.round(90 * desktopScale) : Math.round(180 * desktopScale) };
+    return { width: 90, height: isHorizontal ? 90 : 180 };
+  };
+  // Scaled dimensions for parent layout calculations
+  const getCurrentDimensions = () => {
+    const base = getBaseDimensions();
+    return { width: Math.round(base.width * desktopScale), height: Math.round(base.height * desktopScale) };
   };
 
   // Extract years from artistsByYear and memoize result
@@ -1582,13 +1586,14 @@ const YearSelector = ({
   
   // Container with dynamic positioning and fixed dimensions
   const positionConfig = asSidebar ? getPositionStyles : null;
-  const dimensions = getCurrentDimensions();
-  
-  const containerClass = asSidebar 
-    ? `${positionConfig.className} max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
+  const baseDims = getBaseDimensions();
+  const dimensions = getCurrentDimensions(); // scaled dims for parent reporting
+
+  const containerClass = asSidebar
+    ? `${positionConfig.className} max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-visible ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
-  
-  // Use fixed dimensions instead of responsive classes
+
+  // Container uses scaled dimensions so it reserves the right amount of space
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
     width: currentPosition === 'bottom' || currentPosition === 'top' ? 'auto' : `${dimensions.width}px`,
@@ -1623,8 +1628,13 @@ const YearSelector = ({
           isHorizontal
             ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3 py-3' : 'p-3'} pr-12`
             : 'h-full flex flex-col justify-between pt-4 pb-8'
-        } origin-top-left`}
-        style={!isMobile ? { transform: `scale(${desktopScale})` } : undefined}
+        }`}
+        style={!isMobile ? {
+          transform: `scale(${desktopScale})`,
+          transformOrigin: currentPosition === 'right' ? 'top right' : currentPosition === 'bottom' ? 'bottom left' : 'top left',
+          width: `${baseDims.width}px`,
+          height: currentPosition === 'top' || currentPosition === 'bottom' ? `${baseDims.height}px` : undefined
+        } : undefined}
       >
 
         {/* Mode toggle buttons */}
