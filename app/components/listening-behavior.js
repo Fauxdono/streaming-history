@@ -132,7 +132,7 @@ const ListeningBehavior = ({
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderLight: isDarkMode ? 'border-white' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-white text-black border border-white translate-x-[2px] translate-y-[2px]' : 'bg-black text-white border border-black translate-x-[2px] translate-y-[2px]',
+    buttonActive: isDarkMode ? 'bg-black text-white border-2 border-white translate-x-[2px] translate-y-[2px] ring-2 ring-inset ring-white' : 'bg-white text-black border-2 border-black translate-x-[2px] translate-y-[2px] ring-2 ring-inset ring-black',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900 shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
 
@@ -971,7 +971,7 @@ const filteredData = useMemo(() => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Shuffle vs. Normal Play</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                 <ShuffleChart
                   data={behaviorData.shuffleData}
                   isDarkMode={isDarkMode}
@@ -986,7 +986,7 @@ const filteredData = useMemo(() => {
 
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Track Completion</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                 <CompletionChart
                   data={behaviorData.skipData}
                   isDarkMode={isDarkMode}
@@ -1001,7 +1001,7 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How You Start Tracks</h3>
-            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.startReasons}
@@ -1028,7 +1028,7 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How Tracks End</h3>
-            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.endReasons}
@@ -1055,7 +1055,7 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Platforms Used</h3>
-            <div className={`h-72 sm:h-96 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-72 sm:h-96 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
@@ -1159,17 +1159,17 @@ const filteredData = useMemo(() => {
       {activeTab === 'sessions' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <h3 className={`font-bold ${modeColors.text}`}>Total Sessions</h3>
               <p className={`text-3xl ${modeColors.text}`}>{sessionData.totalSessions}</p>
             </div>
 
-            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <h3 className={`font-bold ${modeColors.text}`}>Avg. Session Length</h3>
               <p className={`text-3xl ${modeColors.text}`}>{sessionData.averageSessionDuration} min</p>
             </div>
 
-            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <h3 className={`font-bold ${modeColors.text}`}>Avg. Tracks per Session</h3>
               <p className={`text-3xl ${modeColors.text}`}>{sessionData.averageTracksPerSession}</p>
             </div>
@@ -1177,7 +1177,7 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Duration Distribution</h3>
-            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart key={`pie-session-${isDarkMode}-${colorTheme}`}>
                   <Pie
@@ -1208,7 +1208,7 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Statistics</h3>
               <ul className="space-y-2">
                 {sessionData.longestSession && (
-                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                     <span className={`font-bold ${modeColors.text}`}>Longest Session:</span>
                     <span className={`ml-2 ${modeColors.text}`}>{sessionData.longestSession.durationMinutes} minutes</span>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1223,7 +1223,7 @@ const filteredData = useMemo(() => {
                 )}
 
                 {sessionData.mostTracksSession && (
-                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                     <span className={`font-bold ${modeColors.text}`}>Most Tracks in a Session:</span>
                     <span className={`ml-2 ${modeColors.text}`}>{sessionData.mostTracksSession.tracksCount} tracks</span>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1237,7 +1237,7 @@ const filteredData = useMemo(() => {
                   </li>
                 )}
 
-                <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                   <span className={`font-bold ${modeColors.text}`}>Total Listening Time:</span>
                   <span className={`ml-2 ${modeColors.text}`}>
                     {formatDuration(sessionData.sessionLengths.reduce((sum, session) => sum + (session.durationMinutes * 60000), 0))}
@@ -1250,7 +1250,7 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Notable Days & Months</h3>
               <div className="space-y-3">
                 {sessionData.mostActiveDay && (
-                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                     <h4 className={`font-medium ${modeColors.text}`}>Most Active Day:</h4>
                     <div className={`font-bold ${modeColors.text}`}>{sessionData.mostActiveDay.displayDate}</div>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1260,7 +1260,7 @@ const filteredData = useMemo(() => {
                 )}
 
                 {sessionData.longestListeningDay && (
-                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                     <h4 className={`font-medium ${modeColors.text}`}>Longest Listening Day:</h4>
                     <div className={`font-bold ${modeColors.text}`}>{sessionData.longestListeningDay.displayDate}</div>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1270,7 +1270,7 @@ const filteredData = useMemo(() => {
                 )}
 
                 {sessionData.mostActiveMonth && (
-                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                     <h4 className={`font-medium ${modeColors.text}`}>Most Active Month:</h4>
                     <div className={`font-bold ${modeColors.text}`}>{sessionData.mostActiveMonth.displayDate}</div>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1284,7 +1284,7 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Insights</h3>
-            <div className={`p-3 rounded space-y-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`p-3 rounded space-y-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <p className={modeColors.textLight}>
                 Most of your listening sessions are
                 <span className="font-bold"> {

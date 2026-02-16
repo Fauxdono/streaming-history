@@ -75,7 +75,7 @@ const ListeningPatterns = ({
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-white text-black border border-white translate-x-[2px] translate-y-[2px]' : 'bg-black text-white border border-black translate-x-[2px] translate-y-[2px]',
+    buttonActive: isDarkMode ? 'bg-black text-white border-2 border-white translate-x-[2px] translate-y-[2px] ring-2 ring-inset ring-white' : 'bg-white text-black border-2 border-black translate-x-[2px] translate-y-[2px] ring-2 ring-inset ring-black',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900 shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
     toggleBg: isDarkMode ? 'bg-black' : 'bg-white',
     toggleActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
@@ -1209,7 +1209,7 @@ const ListeningPatterns = ({
                 return (
                   <div className="space-y-4">
                     {/* Country summary */}
-                    <div className={`p-4 rounded border ${colors.bgCard} ${colors.border}`}>
+                    <div className={`p-4 rounded border ${colors.bgCard} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                       <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 text-center`}>
                         <div>
                           <div className={`text-lg font-bold ${colors.text}`}>{countryLoc?.plays.toLocaleString() || 0}</div>
@@ -1239,7 +1239,7 @@ const ListeningPatterns = ({
                             {viewMode === 'grid' ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                                 {rd.regions.map((r, i) => (
-                                  <div key={r.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
+                                  <div key={r.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                                     <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
                                     <h4 className={`font-bold ${colors.text}`}>{r.name}</h4>
                                     <div className={`text-sm ${colors.textLight}`}>
@@ -1289,7 +1289,7 @@ const ListeningPatterns = ({
                             {viewMode === 'grid' ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                                 {rd.cities.map((c, i) => (
-                                  <div key={c.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
+                                  <div key={c.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                                     <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
                                     <h4 className={`font-bold ${colors.text}`}>{c.name}</h4>
                                     <div className={`text-sm ${colors.textLight}`}>
@@ -1334,7 +1334,7 @@ const ListeningPatterns = ({
                       </>
                     ) : (
                       <div className="space-y-4">
-                        <div className={`p-4 rounded border ${colors.border} ${colors.bgCard}`}>
+                        <div className={`p-4 rounded border ${colors.border} ${colors.bgCard} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                           <p className={`text-sm ${colors.textLight}`}>Regional data is only available for Tidal plays. This country only has country-level data from Spotify.</p>
                         </div>
 
@@ -1344,7 +1344,7 @@ const ListeningPatterns = ({
                             {viewMode === 'grid' ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                                 {countrySongs[selectedCountry.code].slice(0, 50).map((s, i) => (
-                                  <div key={`${s.track}-${s.artist}`} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border}`}>
+                                  <div key={`${s.track}-${s.artist}`} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                                     <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
                                     <h4 className={`font-bold text-sm ${colors.text} pr-8`}>{s.track}</h4>
                                     <div className={`text-xs ${colors.textLight}`}>{s.artist}</div>
@@ -1449,7 +1449,7 @@ const ListeningPatterns = ({
           )}
 
           {unmatchedCodes.length > 0 && (
-            <div className={`mt-6 p-3 rounded border ${colors.border} ${colors.bgCard}`}>
+            <div className={`mt-6 p-3 rounded border ${colors.border} ${colors.bgCard} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <h4 className={`text-sm font-bold mb-2 ${colors.textLight}`}>Unrecognized region codes</h4>
               <div className={`text-xs space-y-1 ${colors.textLighter}`}>
                 {unmatchedCodes.map(u => (

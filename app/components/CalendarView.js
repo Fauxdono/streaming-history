@@ -46,7 +46,7 @@ const CalendarView = ({
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderLight: isDarkMode ? 'border-white' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-black text-white border border-white translate-x-[2px] translate-y-[2px]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px]',
+    buttonActive: isDarkMode ? 'bg-black text-white border-2 border-white translate-x-[2px] translate-y-[2px] ring-2 ring-inset ring-white' : 'bg-white text-black border-2 border-black translate-x-[2px] translate-y-[2px] ring-2 ring-inset ring-black',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900 shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
 
@@ -947,14 +947,14 @@ const CalendarView = ({
           <div className="flex flex-col gap-4">
             <div>
               {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
-                <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border}`}>
+                <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                   Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className={`p-3 sm:p-4 rounded ${modeColors.bgCard} border ${modeColors.borderLight}`}>
+          <div className={`p-3 sm:p-4 rounded ${modeColors.bgCard} border ${modeColors.borderLight} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
             <h4 className={`font-bold mb-3 sm:mb-2 text-sm sm:text-base ${modeColors.text}`}>Summary for {historyData.formattedDate}</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
               <div>
