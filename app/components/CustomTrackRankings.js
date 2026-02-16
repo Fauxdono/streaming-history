@@ -1742,7 +1742,7 @@ return (
               {filteredTracks.map((song, index) => (
                 <div
                   key={song.key}
-                  className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} shadow-sm hover:shadow-md transition-shadow relative`}
+                  className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white] hover:shadow-[2px_2px_0_0_white]' : 'shadow-[1px_1px_0_0_black] hover:shadow-[2px_2px_0_0_black]') : 'shadow-sm hover:shadow-md'} transition-shadow`}
                 >
                   {song.isFeatured && (
                     <span className={`inline-block px-1 py-0.5 mb-2 ${colors.bgMed} ${colors.text} rounded text-xs`}>

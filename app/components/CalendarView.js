@@ -46,7 +46,7 @@ const CalendarView = ({
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderLight: isDarkMode ? 'border-white' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-white text-black border border-white translate-x-[2px] translate-y-[2px]' : 'bg-black text-white border border-black translate-x-[2px] translate-y-[2px]',
+    buttonActive: isDarkMode ? 'bg-black text-white border border-white translate-x-[2px] translate-y-[2px]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900 shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
 
@@ -766,7 +766,7 @@ const CalendarView = ({
             {!isMonthView && viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
+                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
                     <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem]`}>{monthData.fullName}</div>
                     <div className={`text-sm ${modeColors.text}`}>
                       Total Time: <span className="font-bold">{formatDuration(monthData.totalTime)}</span>
@@ -854,9 +854,9 @@ const CalendarView = ({
                   <div
                     key={index}
                     onClick={handleDayClick}
-                    className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${
+                    className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
-                    } ${modeColors.border} ${
+                    } ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'} ${
                       daySelectionMode
                         ? isColorful
                           ? 'hover:opacity-80 ring-2 ring-green-500 ring-opacity-50'
@@ -986,7 +986,7 @@ const CalendarView = ({
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {historyData.tracks.map((track, index) => (
-                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded shadow-sm border transition-all duration-300 relative ${modeColors.border}`}>
+                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
                     <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem] font-mono`}>{track.formattedTime}</div>
                     <div className={`font-bold ${modeColors.text} pr-20 truncate`}>{track.master_metadata_track_name || 'Unknown Track'}</div>
                     <div className={`text-sm ${modeColors.text}`}>

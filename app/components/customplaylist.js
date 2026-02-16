@@ -36,7 +36,7 @@ const CustomPlaylistCreator = ({
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderLight: isDarkMode ? 'border-white' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-white text-black border border-white translate-x-[2px] translate-y-[2px]' : 'bg-black text-white border border-black translate-x-[2px] translate-y-[2px]',
+    buttonActive: isDarkMode ? 'bg-black text-white border border-white translate-x-[2px] translate-y-[2px]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900 shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
   const [playlistName, setPlaylistName] = useState('My Custom Playlist');
@@ -1553,7 +1553,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
           {savedPlaylists.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedPlaylists.map(playlist => (
-                <div key={playlist.id} className={`border rounded p-4 hover:opacity-80 ${modeColors.bgCard} ${modeColors.border}`}>
+                <div key={playlist.id} className={`border rounded p-4 hover:opacity-80 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                   <div className="flex justify-between items-center">
                     <h4 className={`font-bold ${modeColors.text}`}>{playlist.name}</h4>
                     <div className={`text-sm ${modeColors.textLighter}`}>

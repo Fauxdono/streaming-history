@@ -77,7 +77,7 @@ const PodcastRankings = ({
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderLight: isDarkMode ? 'border-white' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-white text-black border border-white translate-x-[2px] translate-y-[2px]' : 'bg-black text-white border border-black translate-x-[2px] translate-y-[2px]',
+    buttonActive: isDarkMode ? 'bg-black text-white border border-white translate-x-[2px] translate-y-[2px]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-900 shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
 
@@ -964,7 +964,7 @@ const PodcastRankings = ({
             {filteredEpisodes.map((episode, index) => (
               <div
                 key={episode.key}
-                className={`p-3 ${modeColors.bgCard} rounded shadow-sm border ${modeColors.border} relative`}
+                className={`p-3 ${modeColors.bgCard} rounded border ${modeColors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
               >
                 <div className={`font-bold ${modeColors.text}`}>{episode.episodeName}</div>
                 <div className={`text-sm ${modeColors.textLight}`}>
