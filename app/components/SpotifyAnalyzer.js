@@ -1,5 +1,8 @@
 "use client";
 
+// Normalize strings for loose search matching (strips punctuation and collapses spaces)
+const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
@@ -448,10 +451,10 @@ const SpotifyAnalyzer = ({
     // Skip filtering if search is empty or if already selected
     if (!artistSearch.trim()) return [];
     
-    const searchLower = artistSearch.toLowerCase();
+    const searchNorm = normalizeForSearch(artistSearch);
     return allArtists
-      .filter(artist => 
-        artist.toLowerCase().includes(searchLower) &&
+      .filter(artist =>
+        normalizeForSearch(artist).includes(searchNorm) &&
         !selectedArtists.includes(artist)
       )
       .slice(0, 10); // Limit to 10 results for performance
@@ -1067,9 +1070,9 @@ const SpotifyAnalyzer = ({
     
     // Otherwise, apply search term filter if search exists
     if (artistSearch.trim()) {
-      const searchLower = artistSearch.toLowerCase();
-      return displayedArtists.filter(artist => 
-        artist.name.toLowerCase().includes(searchLower)
+      const searchNorm = normalizeForSearch(artistSearch);
+      return displayedArtists.filter(artist =>
+        normalizeForSearch(artist.name).includes(searchNorm)
       );
     }
     

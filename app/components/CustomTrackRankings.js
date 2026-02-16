@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
+
+const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
 import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
@@ -588,13 +590,13 @@ const CustomTrackRankings = ({
     // Skip if no search or if all artists are already selected
     if (!artistSearch.trim() || allArtists.length === 0) return [];
     
-    const searchLower = artistSearch.toLowerCase();
+    const searchNorm = normalizeForSearch(artistSearch);
     const results = [];
-    
+
     // Loop through artists once, collect up to 10 matches
     for (let i = 0; i < allArtists.length && results.length < 10; i++) {
       const artist = allArtists[i];
-      if (artist.toLowerCase().includes(searchLower) && !selectedArtists.includes(artist)) {
+      if (normalizeForSearch(artist).includes(searchNorm) && !selectedArtists.includes(artist)) {
         results.push(artist);
       }
     }
@@ -606,14 +608,14 @@ const CustomTrackRankings = ({
     // Skip if no search or no albums
     if ((!albumSearch.trim() && !unifiedSearch.trim()) || allAlbums.length === 0) return [];
     
-    const searchLower = (albumSearch || unifiedSearch).toLowerCase();
+    const searchNorm = normalizeForSearch(albumSearch || unifiedSearch);
     const results = [];
-    
+
     // Loop through albums once, collect up to 10 matches
     for (let i = 0; i < allAlbums.length && results.length < 10; i++) {
       const album = allAlbums[i];
-      if ((album.name.toLowerCase().includes(searchLower) || 
-           album.artist.toLowerCase().includes(searchLower)) &&
+      if ((normalizeForSearch(album.name).includes(searchNorm) ||
+           normalizeForSearch(album.artist).includes(searchNorm)) &&
           !selectedAlbums.some(a => a.key === album.key)) {
         results.push(album);
       }
