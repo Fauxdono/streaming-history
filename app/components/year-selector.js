@@ -41,31 +41,6 @@ const YearSelector = ({
     category: 'desktop'
   });
   
-  // Simple fixed dimensions for instant calculation
-  // Desktop gets 1.5x scale
-  const desktopScale = isMobile ? 1 : 1.5;
-  const getCurrentDimensions = () => {
-    if (!expanded) {
-      return { width: Math.round(32 * desktopScale), height: Math.round(48 * desktopScale) };
-    }
-
-    // 50% smaller height when at top or bottom position
-    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
-
-    const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
-    if (mode === 'range') {
-      if (isMobilePortraitHz) {
-        // Dynamic height based on which selectors are shown
-        // Each row: wheel (63px) + label (14px) + gaps
-        let h = 90; // base: year row + M toggle
-        if (showRangeMonthDaySelectors) h = 170; // year + month rows + D toggle
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250; // all three rows
-        return { width: 180, height: h };
-      }
-      return { width: Math.round(180 * desktopScale), height: isHorizontal ? Math.round(110 * desktopScale) : Math.round(220 * desktopScale) };
-    }
-    return { width: Math.round(90 * desktopScale), height: isHorizontal ? Math.round(90 * desktopScale) : Math.round(180 * desktopScale) };
-  };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
     last: position,
@@ -107,7 +82,33 @@ const YearSelector = ({
   const [startDay, setStartDay] = useState(1);
   const [endMonth, setEndMonth] = useState(12);
   const [endDay, setEndDay] = useState(31);
-  
+
+  // Simple fixed dimensions for instant calculation
+  // Desktop gets 1.5x scale
+  const desktopScale = isMobile ? 1 : 1.5;
+  const getCurrentDimensions = () => {
+    if (!expanded) {
+      return { width: Math.round(32 * desktopScale), height: Math.round(48 * desktopScale) };
+    }
+
+    // 50% smaller height when at top or bottom position
+    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
+
+    const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
+    if (mode === 'range') {
+      if (isMobilePortraitHz) {
+        // Dynamic height based on which selectors are shown
+        // Each row: wheel (63px) + label (14px) + gaps
+        let h = 90; // base: year row + M toggle
+        if (showRangeMonthDaySelectors) h = 170; // year + month rows + D toggle
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250; // all three rows
+        return { width: 180, height: h };
+      }
+      return { width: Math.round(180 * desktopScale), height: isHorizontal ? Math.round(110 * desktopScale) : Math.round(220 * desktopScale) };
+    }
+    return { width: Math.round(90 * desktopScale), height: isHorizontal ? Math.round(90 * desktopScale) : Math.round(180 * desktopScale) };
+  };
+
   // Extract years from artistsByYear and memoize result
   const years = useMemo(() => {
     // Check if artistsByYear is available
