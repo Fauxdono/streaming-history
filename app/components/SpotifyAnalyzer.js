@@ -1,7 +1,7 @@
 "use client";
 
-// Normalize strings for loose search matching (strips punctuation and collapses spaces)
-const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+// Normalize strings for loose search matching (strips all non-alphanumeric characters)
+const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { normalizeString, createMatchKey } from './streaming-adapter.js';
 
-const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
