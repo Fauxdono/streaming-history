@@ -42,9 +42,11 @@ const YearSelector = ({
   });
   
   // Simple fixed dimensions for instant calculation
+  // Desktop gets 1.5x scale
+  const desktopScale = isMobile ? 1 : 1.5;
   const getCurrentDimensions = () => {
     if (!expanded) {
-      return { width: 32, height: 48 };
+      return { width: Math.round(32 * desktopScale), height: Math.round(48 * desktopScale) };
     }
 
     // 50% smaller height when at top or bottom position
@@ -60,9 +62,9 @@ const YearSelector = ({
         if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250; // all three rows
         return { width: 180, height: h };
       }
-      return { width: 180, height: isHorizontal ? 110 : 220 };
+      return { width: Math.round(180 * desktopScale), height: isHorizontal ? Math.round(110 * desktopScale) : Math.round(220 * desktopScale) };
     }
-    return { width: 90, height: isHorizontal ? 90 : 180 };
+    return { width: Math.round(90 * desktopScale), height: isHorizontal ? Math.round(90 * desktopScale) : Math.round(180 * desktopScale) };
   };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -1615,11 +1617,14 @@ const YearSelector = ({
         </button>
       )}
       
-      <div className={`${
-        isHorizontal
-          ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3 py-3' : 'p-3'} pr-12`
-          : 'h-full flex flex-col justify-between pt-4 pb-8'
-      }`}>
+      <div
+        className={`${
+          isHorizontal
+            ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3 py-3' : 'p-3'} pr-12`
+            : 'h-full flex flex-col justify-between pt-4 pb-8'
+        } origin-top-left`}
+        style={!isMobile ? { transform: `scale(${desktopScale})` } : undefined}
+      >
 
         {/* Mode toggle buttons */}
         <div className={`${
