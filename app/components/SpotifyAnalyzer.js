@@ -316,17 +316,6 @@ const SpotifyAnalyzer = ({
   const [yearSelectorHeight, setYearSelectorHeight] = useState(48);
   const [yearSelectorTransitioning, setYearSelectorTransitioning] = useState(false);
   
-  // Fixed dimensions for YearSelector (no caching needed)
-  const getYearSelectorDimensions = (expanded, isRangeMode) => {
-    if (!expanded) {
-      return { width: 32, height: 48 };
-    }
-    return isRangeMode 
-      ? { width: 180, height: 220 }
-      : { width: 90, height: 180 };
-  };
-
-
   const [sidebarColorTheme, setSidebarColorTheme] = useState('teal');
   const [sidebarTextTheme, setSidebarTextTheme] = useState(null);
 
@@ -345,16 +334,8 @@ const SpotifyAnalyzer = ({
   const [isMobile, setIsMobile] = useState(false);
   const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
 
-  // Update dimensions when YearSelector expands/collapses (simplified - no loops)
-  useEffect(() => {
-    // Use simple static dimensions - no need for complex caching
-    const dimensions = yearSelectorExpanded 
-      ? { width: 180, height: 220 }  // Conservative max size (range mode)
-      : { width: 32, height: 48 };   // Collapsed size
-    
-    setYearSelectorWidth(dimensions.width);
-    setYearSelectorHeight(dimensions.height);
-  }, [yearSelectorExpanded]);
+  // Note: YearSelector reports its own dimensions via onWidthChange/onHeightChange callbacks.
+  // No need to duplicate dimension logic here — the callbacks handle all mode/position changes.
   
   useEffect(() => {
     const checkMobile = () => {
