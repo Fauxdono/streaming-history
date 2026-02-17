@@ -1744,7 +1744,7 @@ return (
               {filteredTracks.map((song, index) => (
                 <div
                   key={song.key}
-                  className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white] hover:shadow-[2px_2px_0_0_white]' : 'shadow-[1px_1px_0_0_black] hover:shadow-[2px_2px_0_0_black]') : 'shadow-sm hover:shadow-md'} transition-shadow`}
+                  className={`p-3 pb-2 border rounded-lg ${colors.bgLight} ${colors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white] hover:shadow-[2px_2px_0_0_white]' : 'shadow-[1px_1px_0_0_black] hover:shadow-[2px_2px_0_0_black]') : 'shadow-sm hover:shadow-md'} transition-shadow`}
                 >
                   {song.isFeatured && (
                     <span className={`inline-block px-1 py-0.5 mb-2 ${colors.bgMed} ${colors.text} rounded text-xs`}>
@@ -1775,39 +1775,42 @@ return (
 
                   <div className={`absolute top-1 right-3 ${colors.text} text-[2rem]`}>{index + 1}</div>
 
-                  <div className="mt-2">
-                    <div className="flex justify-center relative">
-                      <button
-                        onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
-                        className={`p-1 ${colors.textLight} hover:${colors.textDark} rounded`}
-                        title="Omit options"
-                      >
-                        <XCircle size={12} />
-                      </button>
-                      
-                      {showOmitDropdown === song.key && (
-                        <div className={`absolute bottom-full mb-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
-                          <button
-                            onClick={() => {
-                              omitSong(song);
-                              setShowOmitDropdown(null);
-                            }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg}`}
-                          >
-                            Omit song
-                          </button>
-                          <button
-                            onClick={() => {
-                              omitArtist(song.artist);
-                              setShowOmitDropdown(null);
-                            }}
-                            className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg} border-t ${colors.border}`}
-                          >
-                            Omit artist
-                          </button>
-                        </div>
-                      )}
+                  {/* Tear-off coupon corner - omit button */}
+                  <div className={`absolute bottom-0 right-0 ${colors.text}`}>
+                    <div className="w-10 h-10" style={{ opacity: 0.3 }}>
+                      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 40 40">
+                        <line x1="0" y1="40" x2="40" y2="0" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
+                      </svg>
                     </div>
+                    <button
+                      onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
+                      className="absolute bottom-[10px] right-[10px] opacity-40 hover:opacity-100"
+                      title="Omit options"
+                    >
+                      <XCircle size={11} />
+                    </button>
+                    {showOmitDropdown === song.key && (
+                      <div className={`absolute bottom-full right-0 mb-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+                        <button
+                          onClick={() => {
+                            omitSong(song);
+                            setShowOmitDropdown(null);
+                          }}
+                          className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg}`}
+                        >
+                          Omit song
+                        </button>
+                        <button
+                          onClick={() => {
+                            omitArtist(song.artist);
+                            setShowOmitDropdown(null);
+                          }}
+                          className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg} border-t ${colors.border}`}
+                        >
+                          Omit artist
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
