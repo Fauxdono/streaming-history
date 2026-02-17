@@ -51,37 +51,6 @@ const YearSelector = ({
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ mousePos: 0, scale: 1 });
 
-  // Base dimensions before scaling
-  const getBaseDimensions = () => {
-    if (!expanded) {
-      return { width: 32, height: 48 };
-    }
-
-    // 50% smaller height when at top or bottom position
-    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
-
-    const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
-    if (mode === 'range') {
-      if (isMobilePortraitHz) {
-        let h = 90;
-        if (showRangeMonthDaySelectors) h = 170;
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250;
-        return { width: 180, height: h };
-      }
-      return { width: 180, height: isHorizontal ? 110 : 220 };
-    }
-    return { width: 90, height: isHorizontal ? 90 : 180 };
-  };
-
-  // Scaled dimensions for parent layout calculations
-  const effectiveScale = isMobile ? 1 : userScale;
-  const getCurrentDimensions = () => {
-    const base = getBaseDimensions();
-    return {
-      width: Math.round(base.width * effectiveScale),
-      height: Math.round(base.height * effectiveScale)
-    };
-  };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
     last: position,
@@ -123,7 +92,36 @@ const YearSelector = ({
   const [startDay, setStartDay] = useState(1);
   const [endMonth, setEndMonth] = useState(12);
   const [endDay, setEndDay] = useState(31);
-  
+
+  // Base dimensions before scaling (must be after all state declarations)
+  const getBaseDimensions = () => {
+    if (!expanded) {
+      return { width: 32, height: 48 };
+    }
+    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
+    const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
+    if (mode === 'range') {
+      if (isMobilePortraitHz) {
+        let h = 90;
+        if (showRangeMonthDaySelectors) h = 170;
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250;
+        return { width: 180, height: h };
+      }
+      return { width: 180, height: isHorizontal ? 110 : 220 };
+    }
+    return { width: 90, height: isHorizontal ? 90 : 180 };
+  };
+
+  // Scaled dimensions for parent layout calculations
+  const effectiveScale = isMobile ? 1 : userScale;
+  const getCurrentDimensions = () => {
+    const base = getBaseDimensions();
+    return {
+      width: Math.round(base.width * effectiveScale),
+      height: Math.round(base.height * effectiveScale)
+    };
+  };
+
   // Extract years from artistsByYear and memoize result
   const years = useMemo(() => {
     // Check if artistsByYear is available
