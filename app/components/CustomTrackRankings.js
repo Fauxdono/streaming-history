@@ -1795,7 +1795,7 @@ return (
                     </div>
                     <button
                       onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
-                      className="absolute bottom-[10px] right-[10px] opacity-40 hover:opacity-100"
+                      className="absolute bottom-[7px] right-[7px] opacity-40 hover:opacity-100"
                       title="Omit options"
                     >
                       <XCircle size={11} />
