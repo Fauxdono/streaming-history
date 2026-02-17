@@ -41,15 +41,22 @@ const YearSelector = ({
     category: 'desktop'
   });
   
-  // User-controlled scale with localStorage persistence
-  const [userScale, setUserScale] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return parseFloat(localStorage.getItem('yearSelectorScale') || '1');
-    }
-    return 1;
+  // Floating mode state (desktop only) with localStorage persistence
+  const [isFloating, setIsFloating] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const stored = localStorage.getItem('yearSelectorFloating');
+    return stored === null ? true : stored === 'true';
   });
-  const isDraggingRef = useRef(false);
-  const dragStartRef = useRef({ mousePos: 0, scale: 1 });
+  const [floatPos, setFloatPos] = useState(() => {
+    if (typeof window === 'undefined') return { x: 800, y: 100 };
+    try {
+      const stored = localStorage.getItem('yearSelectorFloatPos');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return { x: Math.max(0, window.innerWidth - 200), y: 100 };
+  });
+  const isDraggingFloatRef = useRef(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -112,14 +119,8 @@ const YearSelector = ({
     return { width: 90, height: isHorizontal ? 90 : 180 };
   };
 
-  // Scaled dimensions for parent layout calculations
-  const effectiveScale = isMobile ? 1 : userScale;
   const getCurrentDimensions = () => {
-    const base = getBaseDimensions();
-    return {
-      width: Math.round(base.width * effectiveScale),
-      height: Math.round(base.height * effectiveScale)
-    };
+    return getBaseDimensions();
   };
 
   // Extract years from artistsByYear and memoize result
@@ -190,6 +191,7 @@ const YearSelector = ({
       // Update legacy state for compatibility
       setIsMobile(isMobile);
       setIsLandscape(isLandscape);
+      if (isMobile) setIsFloating(false);
     };
     
     // Initial check
@@ -206,6 +208,26 @@ const YearSelector = ({
     };
   }, []);
 
+  // Persist floating state to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yearSelectorFloating', String(isFloating));
+    }
+  }, [isFloating]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yearSelectorFloatPos', JSON.stringify(floatPos));
+    }
+  }, [floatPos]);
+
+  // Clean up old scaling localStorage key
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('yearSelectorScale');
+    }
+  }, []);
+
   // Force re-render when positioning needs to update
   const [positionKey, setPositionKey] = useState(0);
   
@@ -219,12 +241,18 @@ const YearSelector = ({
   // Communicate all state changes to parent using preset dimensions
   useEffect(() => {
     if (asSidebar) {
-      const dimensions = getCurrentDimensions();
-      
       // Report all states atomically
       if (onExpandChange) onExpandChange(expanded);
       if (onPositionChange) onPositionChange(currentPosition);
-      
+
+      // Floating desktop mode: report 0 dims so content uses full width
+      if (!isMobile && isFloating) {
+        if (onWidthChange) onWidthChange(0);
+        if (onHeightChange) onHeightChange(0);
+        return;
+      }
+
+      const dimensions = getCurrentDimensions();
       // Report dimensions based on current position - always check if callbacks exist
       if (currentPosition === 'left' || currentPosition === 'right') {
         if (onWidthChange) onWidthChange(dimensions.width);
@@ -234,7 +262,7 @@ const YearSelector = ({
         if (onWidthChange) onWidthChange(0);
       }
     }
-  }, [expanded, currentPosition, mode, asSidebar, userScale]);
+  }, [expanded, currentPosition, mode, asSidebar, isMobile, isFloating]);
 
   
   // When isRangeMode prop changes, update our internal mode state
@@ -906,53 +934,68 @@ const YearSelector = ({
     }
   }, [currentPosition, isMobile, onTransitionChange]);
 
-  // Drag-resize handlers
-  const handleDragStart = useCallback((e) => {
-    if (isMobile) return;
+  // Drag-to-move handler for floating mode
+  const handleFloatDragStart = useCallback((e) => {
+    if (isMobile || !isFloating) return;
     e.preventDefault();
-    const isHz = currentPosition === 'top' || currentPosition === 'bottom';
-    const clientPos = e.touches ? e.touches[0][isHz ? 'clientY' : 'clientX'] : e[isHz ? 'clientY' : 'clientX'];
-    isDraggingRef.current = true;
-    dragStartRef.current = { mousePos: clientPos, scale: userScale };
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    isDraggingFloatRef.current = true;
+    dragOffsetRef.current = { x: cx - floatPos.x, y: cy - floatPos.y };
 
-    const handleDragMove = (moveEvent) => {
-      if (!isDraggingRef.current) return;
-      const pos = moveEvent.touches
-        ? moveEvent.touches[0][isHz ? 'clientY' : 'clientX']
-        : moveEvent[isHz ? 'clientY' : 'clientX'];
-      const delta = pos - dragStartRef.current.mousePos;
-      // Map px delta to scale change: ~200px of drag = 1.0 scale change
-      let scaleDelta = delta / 200;
-      // Invert direction so dragging toward page center = bigger
-      if (currentPosition === 'right' || currentPosition === 'bottom') {
-        scaleDelta = -scaleDelta;
+    const onMove = (me) => {
+      if (!isDraggingFloatRef.current) return;
+      const mx = me.touches ? me.touches[0].clientX : me.clientX;
+      const my = me.touches ? me.touches[0].clientY : me.clientY;
+      setFloatPos({
+        x: Math.max(0, Math.min(window.innerWidth - 50, mx - dragOffsetRef.current.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 50, my - dragOffsetRef.current.y))
+      });
+    };
+    const onEnd = () => {
+      isDraggingFloatRef.current = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchend', onEnd);
+  }, [isMobile, isFloating, floatPos]);
+
+  // Toggle between floating and snapped modes
+  const toggleFloating = useCallback(() => {
+    setIsFloating(prev => {
+      if (prev) {
+        // Floating -> Snapped: snap to nearest edge
+        const { x, y } = floatPos;
+        const dists = { left: x, right: window.innerWidth - x, top: y, bottom: window.innerHeight - y };
+        const nearest = Object.entries(dists).reduce((a, b) => b[1] < a[1] ? b : a)[0];
+        setCurrentPosition(nearest);
+      } else {
+        // Snapped -> Floating: report 0 dims
+        if (onWidthChange) onWidthChange(0);
+        if (onHeightChange) onHeightChange(0);
       }
-      const newScale = Math.min(2.0, Math.max(0.75, dragStartRef.current.scale + scaleDelta));
-      setUserScale(newScale);
-    };
+      return !prev;
+    });
+  }, [floatPos, onWidthChange, onHeightChange]);
 
-    const handleDragEnd = () => {
-      if (!isDraggingRef.current) return;
-      isDraggingRef.current = false;
-      localStorage.setItem('yearSelectorScale', String(userScale));
-      window.removeEventListener('mousemove', handleDragMove);
-      window.removeEventListener('mouseup', handleDragEnd);
-      window.removeEventListener('touchmove', handleDragMove);
-      window.removeEventListener('touchend', handleDragEnd);
-    };
-
-    window.addEventListener('mousemove', handleDragMove);
-    window.addEventListener('mouseup', handleDragEnd);
-    window.addEventListener('touchmove', handleDragMove);
-    window.addEventListener('touchend', handleDragEnd);
-  }, [currentPosition, userScale, isMobile]);
-
-  // Persist scale to localStorage whenever it changes
+  // Clamp floating position on window resize
   useEffect(() => {
-    if (typeof window !== 'undefined' && !isMobile) {
-      localStorage.setItem('yearSelectorScale', String(userScale));
-    }
-  }, [userScale, isMobile]);
+    const handleResize = () => {
+      if (!isMobile && isFloating) {
+        setFloatPos(prev => ({
+          x: Math.min(prev.x, window.innerWidth - 50),
+          y: Math.min(prev.y, window.innerHeight - 50)
+        }));
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobile, isFloating]);
 
   // Handle mode changes efficiently
   const handleModeChange = useCallback((newMode) => {
@@ -1458,7 +1501,15 @@ const YearSelector = ({
     // Use actual TopTabs dimensions, with fallbacks for mobile
     const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight + (isMobile ? 4 : 0) : (isMobile ? 48 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
-    
+
+    // Floating mode: absolute position from saved coordinates
+    if (!isMobile && isFloating) {
+      return {
+        className: 'fixed z-[100]',
+        style: { left: `${floatPos.x}px`, top: `${floatPos.y}px` }
+      };
+    }
+
     if (topTabsPosition === currentPosition) {
       // Same side - position after TopTabs
       switch (currentPosition) {
@@ -1546,41 +1597,52 @@ const YearSelector = ({
       className: 'fixed right-0 top-20 bottom-0 z-[90]',
       style: {}
     };
-  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, fontScale]);
+  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, fontScale, isFloating, floatPos]);
 
   // If not expanded, show a mini sidebar
   if (!expanded && asSidebar) {
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
-    
+    const desktopFloating = !isMobile && isFloating;
+
     const positionConfig = getPositionStyles;
-    const collapsedDimensions = getCurrentDimensions(); // This should be collapsed dimensions
-    
+    const collapsedDimensions = getCurrentDimensions();
+
     return (
-      <div 
+      <div
         className={`${positionConfig.className} max-h-screen ${
-          isBottom || isTop 
-            ? 'flex items-center justify-center py-2' 
+          !desktopFloating && (isBottom || isTop)
+            ? 'flex items-center justify-center py-2'
             : ''
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
         style={{
           ...positionConfig.style,
-          width: isBottom || isTop ? 'auto' : `${collapsedDimensions.width}px`,
-          height: isBottom || isTop ? `${collapsedDimensions.height}px` : 'auto'
+          width: !desktopFloating && (isBottom || isTop) ? 'auto' : `${collapsedDimensions.width}px`,
+          height: !desktopFloating && (isBottom || isTop) ? `${collapsedDimensions.height}px` : 'auto'
         }}
       >
-        {/* Horizontal layout container for bottom and top positions */}
-        {isBottom || isTop ? (
+        {/* Drag bar for floating mode */}
+        {desktopFloating && (
+          <div
+            className={`flex items-center justify-center py-1 cursor-grab active:cursor-grabbing ${colors.bgMed} rounded-t-lg`}
+            onMouseDown={handleFloatDragStart}
+            onTouchStart={handleFloatDragStart}
+          >
+            <div className="w-8 h-1 rounded-full bg-current opacity-30" />
+          </div>
+        )}
+        {/* Horizontal layout container for bottom and top positions (snapped only) */}
+        {!desktopFloating && (isBottom || isTop) ? (
           <div className="flex flex-row items-center justify-center">
             {/* Expand button */}
-            <button 
+            <button
               onClick={toggleExpanded}
               className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
               <span className={colors.textActive}>{isTop ? '↓' : '↑'}</span>
             </button>
-            
+
             {/* Text container */}
             <div className={`flex flex-row items-center space-x-2 ${colors.text}`}>
               <div className="text-xs opacity-70">
@@ -1590,27 +1652,38 @@ const YearSelector = ({
                 {getYearLabel()}
               </div>
             </div>
-            
+
             {/* Position toggle button */}
-            <button 
+            <button
               onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-8 w-8 h-8 flex items-center justify-center`}
+              className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-4 w-8 h-8 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
               <span className={`text-xs ${colors.textActive}`}>⇄</span>
             </button>
+            {/* Float button (desktop snapped only) */}
+            {!isMobile && (
+              <button
+                onClick={toggleFloating}
+                className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-2 w-8 h-8 flex items-center justify-center`}
+                aria-label="Float panel"
+                title="Detach as floating panel"
+              >
+                <span className={`text-xs ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+              </button>
+            )}
           </div>
         ) : (
           <>
-            {/* Vertical layout - keep original structure */}
-            <button 
+            {/* Vertical layout */}
+            <button
               onClick={toggleExpanded}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+              className={`absolute ${desktopFloating ? 'left-1' : (currentPosition === 'left' ? 'right-1' : 'left-1')} bottom-20 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
-              <span className={colors.textActive}>{currentPosition === 'left' ? '→' : '←'}</span>
+              <span className={colors.textActive}>{desktopFloating ? '↓' : (currentPosition === 'left' ? '→' : '←')}</span>
             </button>
-            
+
             <div className={`h-full ${isMobile ? 'pt-4' : 'pt-16'} pb-16 flex flex-col items-center justify-center ${colors.text}`}>
               <div className="writing-mode-vertical text-xs opacity-70">
                 {mode === 'single' ? 'Year' : 'Year Range'}
@@ -1619,17 +1692,43 @@ const YearSelector = ({
                 {getYearLabel()}
               </div>
             </div>
-            
-            <button 
-              onClick={togglePosition}
-              className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
-              aria-label="Toggle sidebar position"
-            >
-              <span className={`text-xs ${colors.textActive}`}>⇄</span>
-            </button>
+
+            {desktopFloating ? (
+              /* Floating: dock button */
+              <button
+                onClick={toggleFloating}
+                className={`absolute left-1 bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                aria-label="Dock panel"
+                title="Dock to edge"
+              >
+                <span className={`text-xs ${colors.textActive}`} style={{fontSize: '10px'}}>&#x1F4CC;</span>
+              </button>
+            ) : (
+              <>
+                {/* Snapped: position cycle button */}
+                <button
+                  onClick={togglePosition}
+                  className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                  aria-label="Toggle sidebar position"
+                >
+                  <span className={`text-xs ${colors.textActive}`}>⇄</span>
+                </button>
+                {/* Float button (desktop snapped only) */}
+                {!isMobile && (
+                  <button
+                    onClick={toggleFloating}
+                    className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-2 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                    aria-label="Float panel"
+                    title="Detach as floating panel"
+                  >
+                    <span className={`text-xs ${colors.textActive}`} style={{fontSize: '10px'}}>&#x29C9;</span>
+                  </button>
+                )}
+              </>
+            )}
           </>
         )}
-        
+
         <style jsx>{`
           .writing-mode-vertical {
             writing-mode: vertical-rl;
@@ -1643,83 +1742,33 @@ const YearSelector = ({
   
   // Container with dynamic positioning and fixed dimensions
   const positionConfig = asSidebar ? getPositionStyles : null;
-  const baseDims = getBaseDimensions();
   const dimensions = getCurrentDimensions();
+  const desktopFloating = !isMobile && isFloating;
 
   const containerClass = asSidebar
-    ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
+    ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  // Outer wrapper reserves scaled space; inner container is transform-scaled
-  const wrapperStyle = asSidebar ? {
+  const containerStyle = asSidebar ? {
     ...positionConfig.style,
-    width: currentPosition === 'bottom' || currentPosition === 'top' ? 'auto' : `${dimensions.width}px`,
-    height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
+    width: isHorizontal && !desktopFloating ? 'auto' : `${dimensions.width}px`,
+    height: isHorizontal && !desktopFloating ? `${dimensions.height}px` : 'auto',
+    maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
   } : {};
-
-  const containerStyle = asSidebar && !isMobile ? {
-    transform: `scale(${effectiveScale})`,
-    transformOrigin: currentPosition === 'right' ? 'top right' : currentPosition === 'bottom' ? 'bottom left' : 'top left',
-    width: `${baseDims.width}px`,
-    height: currentPosition === 'bottom' || currentPosition === 'top' ? `${baseDims.height}px` : undefined,
-    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
-  } : asSidebar ? {
-    width: '100%',
-    height: '100%',
-    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '200px' : 'none'
-  } : {};
-
-  // Drag handle position based on year selector position (on the inner edge)
-  const isHz = currentPosition === 'top' || currentPosition === 'bottom';
-  const dragHandleStyle = isHz ? {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: '4px',
-    cursor: 'row-resize',
-    ...(currentPosition === 'top' ? { bottom: 0 } : { top: 0 }),
-  } : {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: '4px',
-    cursor: 'col-resize',
-    ...(currentPosition === 'right' ? { left: 0 } : { right: 0 }),
-  };
 
   return (
     <div
-      className={`year-selector-sidebar ${asSidebar ? positionConfig.className : ''}`}
-      style={wrapperStyle}
-    >
-    <div
-      className={`year-selector-container ${containerClass}`}
+      className={`year-selector-container ${asSidebar ? positionConfig.className : ''} ${containerClass}`}
       style={containerStyle}
     >
-      {/* Drag resize handle (desktop only) */}
-      {asSidebar && !isMobile && (
+      {/* Drag bar for floating mode */}
+      {desktopFloating && asSidebar && (
         <div
-          style={dragHandleStyle}
-          className="z-20 group"
-          onMouseDown={handleDragStart}
-          onTouchStart={handleDragStart}
+          className={`flex items-center justify-center py-1 cursor-grab active:cursor-grabbing ${colors.bgMed} rounded-t-lg`}
+          onMouseDown={handleFloatDragStart}
+          onTouchStart={handleFloatDragStart}
         >
-          <div
-            className="absolute opacity-30 group-hover:opacity-60 transition-opacity bg-current rounded-full"
-            style={isHz ? {
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '24px',
-              height: '2px',
-            } : {
-              left: '50%',
-              top: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: '2px',
-              height: '24px',
-            }}
-          />
+          <div className="w-8 h-1 rounded-full bg-current opacity-30" />
         </div>
       )}
       {/* Collapse button for sidebar */}
@@ -2334,34 +2383,78 @@ const YearSelector = ({
           )}
           </div>
         
-        {/* Position toggle button - at right edge for horizontal, bottom center for vertical */}
+        {/* Position toggle / float-dock buttons */}
         {isHorizontal ? (
-          <div className="flex items-center justify-center ml-2">
-            {asSidebar && (
+          <div className="flex items-center justify-center ml-2 gap-1">
+            {asSidebar && desktopFloating ? (
+              /* Floating: dock button */
               <button
-                onClick={togglePosition}
+                onClick={toggleFloating}
                 className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
-                aria-label="Toggle sidebar position"
+                aria-label="Dock panel"
+                title="Dock to edge"
               >
-                <span className={`text-sm ${colors.textActive}`}>⇄</span>
+                <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
               </button>
+            ) : asSidebar && (
+              <>
+                <button
+                  onClick={togglePosition}
+                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  aria-label="Toggle sidebar position"
+                >
+                  <span className={`text-sm ${colors.textActive}`}>⇄</span>
+                </button>
+                {!isMobile && (
+                  <button
+                    onClick={toggleFloating}
+                    className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                    aria-label="Float panel"
+                    title="Detach as floating panel"
+                  >
+                    <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
         ) : (
-          <div className="absolute bottom-10 left-0 right-0 flex justify-center">
-            {asSidebar && (
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+            {asSidebar && desktopFloating ? (
+              /* Floating: dock button */
               <button
-                onClick={togglePosition}
+                onClick={toggleFloating}
                 className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
-                aria-label="Toggle sidebar position"
+                aria-label="Dock panel"
+                title="Dock to edge"
               >
-                <span className={`text-sm ${colors.textActive}`}>⇄</span>
+                <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
               </button>
+            ) : asSidebar && (
+              <>
+                <button
+                  onClick={togglePosition}
+                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  aria-label="Toggle sidebar position"
+                >
+                  <span className={`text-sm ${colors.textActive}`}>⇄</span>
+                </button>
+                {!isMobile && (
+                  <button
+                    onClick={toggleFloating}
+                    className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                    aria-label="Float panel"
+                    title="Detach as floating panel"
+                  >
+                    <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}
       </div>
-      
+
       <style jsx>{`
         .scrollbar-thin::-webkit-scrollbar {
           width: 6px;
@@ -2374,7 +2467,6 @@ const YearSelector = ({
           opacity: 0.3;
         }
       `}</style>
-    </div>
     </div>
   );
 };
