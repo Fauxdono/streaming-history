@@ -1,5 +1,5 @@
 // Optimized YearSelector.js with performance improvements
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import WheelSelector from './wheelselector.js';
 import { useTheme } from './themeprovider';
 
@@ -41,8 +41,18 @@ const YearSelector = ({
     category: 'desktop'
   });
   
-  // Simple fixed dimensions for instant calculation
-  const getCurrentDimensions = () => {
+  // User-controlled scale with localStorage persistence
+  const [userScale, setUserScale] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return parseFloat(localStorage.getItem('yearSelectorScale') || '1');
+    }
+    return 1;
+  });
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef({ mousePos: 0, scale: 1 });
+
+  // Base dimensions before scaling
+  const getBaseDimensions = () => {
     if (!expanded) {
       return { width: 32, height: 48 };
     }
@@ -53,16 +63,24 @@ const YearSelector = ({
     const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
     if (mode === 'range') {
       if (isMobilePortraitHz) {
-        // Dynamic height based on which selectors are shown
-        // Each row: wheel (63px) + label (14px) + gaps
-        let h = 90; // base: year row + M toggle
-        if (showRangeMonthDaySelectors) h = 170; // year + month rows + D toggle
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250; // all three rows
+        let h = 90;
+        if (showRangeMonthDaySelectors) h = 170;
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250;
         return { width: 180, height: h };
       }
       return { width: 180, height: isHorizontal ? 110 : 220 };
     }
     return { width: 90, height: isHorizontal ? 90 : 180 };
+  };
+
+  // Scaled dimensions for parent layout calculations
+  const effectiveScale = isMobile ? 1 : userScale;
+  const getCurrentDimensions = () => {
+    const base = getBaseDimensions();
+    return {
+      width: Math.round(base.width * effectiveScale),
+      height: Math.round(base.height * effectiveScale)
+    };
   };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -218,7 +236,7 @@ const YearSelector = ({
         if (onWidthChange) onWidthChange(0);
       }
     }
-  }, [expanded, currentPosition, mode, asSidebar]);
+  }, [expanded, currentPosition, mode, asSidebar, userScale]);
 
   
   // When isRangeMode prop changes, update our internal mode state
@@ -889,6 +907,54 @@ const YearSelector = ({
       }, 300);
     }
   }, [currentPosition, isMobile, onTransitionChange]);
+
+  // Drag-resize handlers
+  const handleDragStart = useCallback((e) => {
+    if (isMobile) return;
+    e.preventDefault();
+    const isHz = currentPosition === 'top' || currentPosition === 'bottom';
+    const clientPos = e.touches ? e.touches[0][isHz ? 'clientY' : 'clientX'] : e[isHz ? 'clientY' : 'clientX'];
+    isDraggingRef.current = true;
+    dragStartRef.current = { mousePos: clientPos, scale: userScale };
+
+    const handleDragMove = (moveEvent) => {
+      if (!isDraggingRef.current) return;
+      const pos = moveEvent.touches
+        ? moveEvent.touches[0][isHz ? 'clientY' : 'clientX']
+        : moveEvent[isHz ? 'clientY' : 'clientX'];
+      const delta = pos - dragStartRef.current.mousePos;
+      // Map px delta to scale change: ~200px of drag = 1.0 scale change
+      let scaleDelta = delta / 200;
+      // Invert direction so dragging toward page center = bigger
+      if (currentPosition === 'right' || currentPosition === 'bottom') {
+        scaleDelta = -scaleDelta;
+      }
+      const newScale = Math.min(2.0, Math.max(0.75, dragStartRef.current.scale + scaleDelta));
+      setUserScale(newScale);
+    };
+
+    const handleDragEnd = () => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      localStorage.setItem('yearSelectorScale', String(userScale));
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('touchmove', handleDragMove);
+      window.removeEventListener('touchend', handleDragEnd);
+    };
+
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('mouseup', handleDragEnd);
+    window.addEventListener('touchmove', handleDragMove);
+    window.addEventListener('touchend', handleDragEnd);
+  }, [currentPosition, userScale, isMobile]);
+
+  // Persist scale to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isMobile) {
+      localStorage.setItem('yearSelectorScale', String(userScale));
+    }
+  }, [userScale, isMobile]);
 
   // Handle mode changes efficiently
   const handleModeChange = useCallback((newMode) => {
@@ -1579,28 +1645,88 @@ const YearSelector = ({
   
   // Container with dynamic positioning and fixed dimensions
   const positionConfig = asSidebar ? getPositionStyles : null;
+  const baseDims = getBaseDimensions();
   const dimensions = getCurrentDimensions();
-  
-  const containerClass = asSidebar 
-    ? `${positionConfig.className} max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
+
+  const containerClass = asSidebar
+    ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
-  
-  // Use fixed dimensions instead of responsive classes
-  const containerStyle = asSidebar ? {
+
+  // Outer wrapper reserves scaled space; inner container is transform-scaled
+  const wrapperStyle = asSidebar ? {
     ...positionConfig.style,
     width: currentPosition === 'bottom' || currentPosition === 'top' ? 'auto' : `${dimensions.width}px`,
     height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
-    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? (isMobile ? '200px' : '50vh') : 'none'
   } : {};
 
+  const containerStyle = asSidebar && !isMobile ? {
+    transform: `scale(${effectiveScale})`,
+    transformOrigin: currentPosition === 'right' ? 'top right' : currentPosition === 'bottom' ? 'bottom left' : 'top left',
+    width: `${baseDims.width}px`,
+    height: currentPosition === 'bottom' || currentPosition === 'top' ? `${baseDims.height}px` : undefined,
+    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
+  } : asSidebar ? {
+    width: '100%',
+    height: '100%',
+    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '200px' : 'none'
+  } : {};
+
+  // Drag handle position based on year selector position (on the inner edge)
+  const isHz = currentPosition === 'top' || currentPosition === 'bottom';
+  const dragHandleStyle = isHz ? {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: '4px',
+    cursor: 'row-resize',
+    ...(currentPosition === 'top' ? { bottom: 0 } : { top: 0 }),
+  } : {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: '4px',
+    cursor: 'col-resize',
+    ...(currentPosition === 'right' ? { left: 0 } : { right: 0 }),
+  };
+
   return (
-    <div 
-      className={`year-selector-sidebar year-selector-container ${containerClass}`}
+    <div
+      className={`year-selector-sidebar ${asSidebar ? positionConfig.className : ''}`}
+      style={wrapperStyle}
+    >
+    <div
+      className={`year-selector-container ${containerClass}`}
       style={containerStyle}
     >
+      {/* Drag resize handle (desktop only) */}
+      {asSidebar && !isMobile && (
+        <div
+          style={dragHandleStyle}
+          className="z-20 group"
+          onMouseDown={handleDragStart}
+          onTouchStart={handleDragStart}
+        >
+          <div
+            className="absolute opacity-30 group-hover:opacity-60 transition-opacity bg-current rounded-full"
+            style={isHz ? {
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '24px',
+              height: '2px',
+            } : {
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '2px',
+              height: '24px',
+            }}
+          />
+        </div>
+      )}
       {/* Collapse button for sidebar */}
       {asSidebar && (
-        <button 
+        <button
           onClick={toggleExpanded}
           className={`${
             currentPosition === 'bottom'
@@ -2250,6 +2376,7 @@ const YearSelector = ({
           opacity: 0.3;
         }
       `}</style>
+    </div>
     </div>
   );
 };

@@ -2010,13 +2010,10 @@ const SpotifyAnalyzer = ({
     }
     
     if (showYearSidebar && shouldShowSidebar(activeTab)) {
-      // Simple fixed dimensions for instant calculation
-      const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
-      
       if (yearSelectorPosition === 'left') {
-        leftSpace += effectiveWidth;
+        leftSpace += yearSelectorWidth;
       } else if (yearSelectorPosition === 'right') {
-        rightSpace += effectiveWidth;
+        rightSpace += yearSelectorWidth;
       }
     }
     
@@ -2043,7 +2040,7 @@ const SpotifyAnalyzer = ({
       paddingLeft: `${leftSpace}px`,
       paddingRight: `${rightSpace}px`,
     };
-  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorExpanded, showYearSidebar, customYearRangeMode, isMobile, yearSelectorHeight, fontSize]);
+  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorWidth, showYearSidebar, isMobile, yearSelectorHeight, fontSize]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
@@ -3790,8 +3787,7 @@ const SpotifyAnalyzer = ({
                  // Add transform for left-positioned YearSelector (only when sidebar is shown)
                  if (showYearSidebar && shouldShowSidebar(activeTab)) {
                    if (yearSelectorPosition === 'left') {
-                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
-                     translateX += effectiveWidth;
+                     translateX += yearSelectorWidth;
                    }
                  }
 
@@ -3812,8 +3808,7 @@ const SpotifyAnalyzer = ({
                  // Calculate width reduction from YearSelector (only when sidebar is shown)
                  if (showYearSidebar && shouldShowSidebar(activeTab)) {
                    if (yearSelectorPosition === 'left' || yearSelectorPosition === 'right') {
-                     const effectiveWidth = yearSelectorExpanded ? (customYearRangeMode ? 180 : 90) : 32;
-                     totalWidthReduction += effectiveWidth;
+                     totalWidthReduction += yearSelectorWidth;
                    }
                  }
 
