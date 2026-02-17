@@ -55,8 +55,18 @@ const YearSelector = ({
     } catch (e) {}
     return { x: Math.max(0, window.innerWidth - 200), y: 100 };
   });
+  const [floatOrientation, setFloatOrientation] = useState(() => {
+    if (typeof window === 'undefined') return 'vertical';
+    return localStorage.getItem('yearSelectorFloatOrientation') || 'vertical';
+  });
+  const [floatScale, setFloatScale] = useState(() => {
+    if (typeof window === 'undefined') return 1;
+    return parseFloat(localStorage.getItem('yearSelectorFloatScale') || '1');
+  });
   const isDraggingFloatRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const isResizingRef = useRef(false);
+  const resizeStartRef = useRef({ mouseX: 0, mouseY: 0, scale: 1 });
 
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -77,7 +87,9 @@ const YearSelector = ({
   // UI state
   const [isMobile, setIsMobile] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
-  const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
+  const isHorizontal = (!isMobile && isFloating)
+    ? floatOrientation === 'horizontal'
+    : (currentPosition === 'top' || currentPosition === 'bottom');
 
   // Get font size for dynamic settings bar height
   const { fontSize } = useTheme();
@@ -105,7 +117,9 @@ const YearSelector = ({
     if (!expanded) {
       return { width: 32, height: 48 };
     }
-    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
+    const isHorizontal = (!isMobile && isFloating)
+      ? floatOrientation === 'horizontal'
+      : (currentPosition === 'top' || currentPosition === 'bottom');
     const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
     if (mode === 'range') {
       if (isMobilePortraitHz) {
@@ -221,6 +235,18 @@ const YearSelector = ({
     }
   }, [floatPos]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yearSelectorFloatOrientation', floatOrientation);
+    }
+  }, [floatOrientation]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yearSelectorFloatScale', String(floatScale));
+    }
+  }, [floatScale]);
+
   // Clean up old scaling localStorage key
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -273,6 +299,9 @@ const YearSelector = ({
   // Communicate height changes to parent (for top/bottom positions)
   useEffect(() => {
     if (onHeightChange) {
+      // Skip DOM measurement in floating mode — dims already reported as 0
+      if (!isMobile && isFloating) return;
+
       if (currentPosition === 'top' || currentPosition === 'bottom') {
         // Measure actual height dynamically
         const measureHeight = () => {
@@ -282,18 +311,18 @@ const YearSelector = ({
             onHeightChange(actualHeight);
           }
         };
-        
+
         // Measure immediately and after a brief delay to ensure rendering is complete
         measureHeight();
         const timer = setTimeout(measureHeight, 100);
-        
+
         return () => clearTimeout(timer);
       } else {
         // Reset height to 0 when not on top/bottom sides
         onHeightChange(0);
       }
     }
-  }, [currentPosition, onHeightChange, expanded, mode]);
+  }, [currentPosition, onHeightChange, expanded, mode, isMobile, isFloating]);
   
   // Update yearRange when initialYearRange changes - improved
   useEffect(() => {
@@ -965,6 +994,39 @@ const YearSelector = ({
     window.addEventListener('touchend', onEnd);
   }, [isMobile, isFloating, floatPos]);
 
+  // Drag-to-resize handler for floating mode scale
+  const handleFloatResizeStart = useCallback((e) => {
+    if (isMobile || !isFloating) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    isResizingRef.current = true;
+    resizeStartRef.current = { mouseX: cx, mouseY: cy, scale: floatScale };
+
+    const onMove = (me) => {
+      if (!isResizingRef.current) return;
+      const mx = me.touches ? me.touches[0].clientX : me.clientX;
+      const my = me.touches ? me.touches[0].clientY : me.clientY;
+      const dx = mx - resizeStartRef.current.mouseX;
+      const dy = my - resizeStartRef.current.mouseY;
+      const delta = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+      const newScale = Math.min(2.5, Math.max(0.5, resizeStartRef.current.scale + delta / 200));
+      setFloatScale(newScale);
+    };
+    const onEnd = () => {
+      isResizingRef.current = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onEnd);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchend', onEnd);
+  }, [isMobile, isFloating, floatScale]);
+
   // Toggle between floating and snapped modes
   const toggleFloating = useCallback(() => {
     setIsFloating(prev => {
@@ -1618,7 +1680,11 @@ const YearSelector = ({
         style={{
           ...positionConfig.style,
           width: !desktopFloating && (isBottom || isTop) ? 'auto' : `${collapsedDimensions.width}px`,
-          height: !desktopFloating && (isBottom || isTop) ? `${collapsedDimensions.height}px` : 'auto'
+          height: !desktopFloating && (isBottom || isTop) ? `${collapsedDimensions.height}px` : 'auto',
+          ...(desktopFloating ? {
+            transform: `scale(${floatScale})`,
+            transformOrigin: 'top left',
+          } : {}),
         }}
       >
         {/* Drag bar for floating mode */}
@@ -1694,15 +1760,25 @@ const YearSelector = ({
             </div>
 
             {desktopFloating ? (
-              /* Floating: dock button */
-              <button
-                onClick={toggleFloating}
-                className={`absolute left-1 bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
-                aria-label="Dock panel"
-                title="Dock to edge"
-              >
-                <span className={`text-xs ${colors.textActive}`} style={{fontSize: '10px'}}>&#x1F4CC;</span>
-              </button>
+              /* Floating: dock + orientation buttons */
+              <>
+                <button
+                  onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
+                  className={`absolute left-1 bottom-[4.5rem] p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                  aria-label="Toggle orientation"
+                  title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
+                >
+                  <span className={`text-xs ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                </button>
+                <button
+                  onClick={toggleFloating}
+                  className={`absolute left-1 bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                  aria-label="Dock panel"
+                  title="Dock to edge"
+                >
+                  <span className={`text-xs ${colors.textActive}`} style={{fontSize: '10px'}}>&#x1F4CC;</span>
+                </button>
+              </>
             ) : (
               <>
                 {/* Snapped: position cycle button */}
@@ -1729,6 +1805,19 @@ const YearSelector = ({
           </>
         )}
 
+        {/* Resize grip for floating mode */}
+        {desktopFloating && (
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-30 flex items-end justify-end pr-0.5 pb-0.5 opacity-40 hover:opacity-70"
+            onMouseDown={handleFloatResizeStart}
+            onTouchStart={handleFloatResizeStart}
+          >
+            <svg width="8" height="8" viewBox="0 0 8 8">
+              <path d="M8 0L0 8M8 3L3 8M8 6L6 8" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+          </div>
+        )}
+
         <style jsx>{`
           .writing-mode-vertical {
             writing-mode: vertical-rl;
@@ -1739,7 +1828,7 @@ const YearSelector = ({
       </div>
     );
   }
-  
+
   // Container with dynamic positioning and fixed dimensions
   const positionConfig = asSidebar ? getPositionStyles : null;
   const dimensions = getCurrentDimensions();
@@ -1754,6 +1843,10 @@ const YearSelector = ({
     width: isHorizontal && !desktopFloating ? 'auto' : `${dimensions.width}px`,
     height: isHorizontal && !desktopFloating ? `${dimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
+    ...(desktopFloating ? {
+      transform: `scale(${floatScale})`,
+      transformOrigin: 'top left',
+    } : {}),
   } : {};
 
   return (
@@ -2387,15 +2480,25 @@ const YearSelector = ({
         {isHorizontal ? (
           <div className="flex items-center justify-center ml-2 gap-1">
             {asSidebar && desktopFloating ? (
-              /* Floating: dock button */
-              <button
-                onClick={toggleFloating}
-                className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
-                aria-label="Dock panel"
-                title="Dock to edge"
-              >
-                <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
-              </button>
+              /* Floating: dock + orientation buttons */
+              <>
+                <button
+                  onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
+                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  aria-label="Toggle orientation"
+                  title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
+                >
+                  <span className={`text-sm ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                </button>
+                <button
+                  onClick={toggleFloating}
+                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  aria-label="Dock panel"
+                  title="Dock to edge"
+                >
+                  <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                </button>
+              </>
             ) : asSidebar && (
               <>
                 <button
@@ -2421,15 +2524,25 @@ const YearSelector = ({
         ) : (
           <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
             {asSidebar && desktopFloating ? (
-              /* Floating: dock button */
-              <button
-                onClick={toggleFloating}
-                className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
-                aria-label="Dock panel"
-                title="Dock to edge"
-              >
-                <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
-              </button>
+              /* Floating: dock + orientation buttons */
+              <>
+                <button
+                  onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
+                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  aria-label="Toggle orientation"
+                  title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
+                >
+                  <span className={`text-sm ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                </button>
+                <button
+                  onClick={toggleFloating}
+                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  aria-label="Dock panel"
+                  title="Dock to edge"
+                >
+                  <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                </button>
+              </>
             ) : asSidebar && (
               <>
                 <button
@@ -2454,6 +2567,19 @@ const YearSelector = ({
           </div>
         )}
       </div>
+
+      {/* Resize grip for floating mode */}
+      {desktopFloating && asSidebar && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-30 flex items-end justify-end pr-0.5 pb-0.5 opacity-40 hover:opacity-70"
+          onMouseDown={handleFloatResizeStart}
+          onTouchStart={handleFloatResizeStart}
+        >
+          <svg width="8" height="8" viewBox="0 0 8 8">
+            <path d="M8 0L0 8M8 3L3 8M8 6L6 8" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+        </div>
+      )}
 
       <style jsx>{`
         .scrollbar-thin::-webkit-scrollbar {
