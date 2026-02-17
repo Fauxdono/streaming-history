@@ -1773,7 +1773,18 @@ return (
                     Plays: <span className="font-bold">{song.playCount}</span>
                   </div>
 
-                  <div className={`absolute top-1 right-3 ${colors.text} text-[2rem]`}>{index + 1}</div>
+                  <div
+                    className="absolute top-1 right-3 text-[2rem] font-bold"
+                    style={{
+                      color: 'transparent',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                      textShadow: isDarkMode
+                        ? '0px 2px 3px rgba(255,255,255,0.15), 0px -1px 1px rgba(0,0,0,0.6)'
+                        : '0px 2px 3px rgba(255,255,255,0.9), 0px -1px 1px rgba(0,0,0,0.2)',
+                    }}
+                  >{index + 1}</div>
 
                   {/* Tear-off coupon corner - omit button */}
                   <div className={`absolute bottom-0 right-0 ${colors.text}`}>
