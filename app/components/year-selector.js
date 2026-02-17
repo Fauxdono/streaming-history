@@ -1590,25 +1590,40 @@ const YearSelector = ({
   const dimensions = getCurrentDimensions(); // scaled dims for parent reporting
 
   const containerClass = asSidebar
-    ? `${positionConfig.className} max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-visible ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
+    ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  // Container uses scaled dimensions so it reserves the right amount of space
-  const containerStyle = asSidebar ? {
+  // Outer wrapper reserves scaled space; inner container is transform-scaled
+  const wrapperStyle = asSidebar ? {
     ...positionConfig.style,
     width: currentPosition === 'bottom' || currentPosition === 'top' ? 'auto' : `${dimensions.width}px`,
     height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
-    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? (isMobile ? '200px' : '50vh') : 'none'
+  } : {};
+
+  const containerStyle = asSidebar && !isMobile ? {
+    transform: `scale(${desktopScale})`,
+    transformOrigin: currentPosition === 'right' ? 'top right' : currentPosition === 'bottom' ? 'bottom left' : 'top left',
+    width: `${baseDims.width}px`,
+    height: currentPosition === 'bottom' || currentPosition === 'top' ? `${baseDims.height}px` : undefined,
+    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
+  } : asSidebar ? {
+    width: '100%',
+    height: '100%',
+    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '200px' : 'none'
   } : {};
 
   return (
-    <div 
-      className={`year-selector-sidebar year-selector-container ${containerClass}`}
+    <div
+      className={`year-selector-sidebar ${asSidebar ? positionConfig.className : ''}`}
+      style={wrapperStyle}
+    >
+    <div
+      className={`year-selector-container ${containerClass}`}
       style={containerStyle}
     >
       {/* Collapse button for sidebar */}
       {asSidebar && (
-        <button 
+        <button
           onClick={toggleExpanded}
           className={`${
             currentPosition === 'bottom'
@@ -1622,19 +1637,13 @@ const YearSelector = ({
           <span className={colors.textActive}>{currentPosition === 'bottom' ? '↓' : currentPosition === 'top' ? '↑' : currentPosition === 'left' ? '←' : '→'}</span>
         </button>
       )}
-      
+
       <div
         className={`${
           isHorizontal
             ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3 py-3' : 'p-3'} pr-12`
             : 'h-full flex flex-col justify-between pt-4 pb-8'
         }`}
-        style={!isMobile ? {
-          transform: `scale(${desktopScale})`,
-          transformOrigin: currentPosition === 'right' ? 'top right' : currentPosition === 'bottom' ? 'bottom left' : 'top left',
-          width: `${baseDims.width}px`,
-          height: currentPosition === 'top' || currentPosition === 'bottom' ? `${baseDims.height}px` : undefined
-        } : undefined}
       >
 
         {/* Mode toggle buttons */}
@@ -2266,6 +2275,7 @@ const YearSelector = ({
           opacity: 0.3;
         }
       `}</style>
+    </div>
     </div>
   );
 };
