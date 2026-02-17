@@ -41,6 +41,29 @@ const YearSelector = ({
     category: 'desktop'
   });
   
+  // Simple fixed dimensions for instant calculation
+  const getCurrentDimensions = () => {
+    if (!expanded) {
+      return { width: 32, height: 48 };
+    }
+
+    // 50% smaller height when at top or bottom position
+    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
+
+    const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
+    if (mode === 'range') {
+      if (isMobilePortraitHz) {
+        // Dynamic height based on which selectors are shown
+        // Each row: wheel (63px) + label (14px) + gaps
+        let h = 90; // base: year row + M toggle
+        if (showRangeMonthDaySelectors) h = 170; // year + month rows + D toggle
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250; // all three rows
+        return { width: 180, height: h };
+      }
+      return { width: 180, height: isHorizontal ? 110 : 220 };
+    }
+    return { width: 90, height: isHorizontal ? 90 : 180 };
+  };
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
     last: position,
@@ -82,37 +105,7 @@ const YearSelector = ({
   const [startDay, setStartDay] = useState(1);
   const [endMonth, setEndMonth] = useState(12);
   const [endDay, setEndDay] = useState(31);
-
-  // Simple fixed dimensions for instant calculation
-  // Desktop gets 1.5x scale via CSS transform; container uses base dimensions
-  // but we report scaled dimensions to the parent for layout spacing
-  const desktopScale = isMobile ? 1 : 1.5;
-  const getBaseDimensions = () => {
-    if (!expanded) {
-      return { width: 32, height: 48 };
-    }
-
-    // 50% smaller height when at top or bottom position
-    const isHorizontal = currentPosition === 'top' || currentPosition === 'bottom';
-
-    const isMobilePortraitHz = isHorizontal && isMobile && !isLandscape;
-    if (mode === 'range') {
-      if (isMobilePortraitHz) {
-        let h = 90;
-        if (showRangeMonthDaySelectors) h = 170;
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = 250;
-        return { width: 180, height: h };
-      }
-      return { width: 180, height: isHorizontal ? 110 : 220 };
-    }
-    return { width: 90, height: isHorizontal ? 90 : 180 };
-  };
-  // Scaled dimensions for parent layout calculations
-  const getCurrentDimensions = () => {
-    const base = getBaseDimensions();
-    return { width: Math.round(base.width * desktopScale), height: Math.round(base.height * desktopScale) };
-  };
-
+  
   // Extract years from artistsByYear and memoize result
   const years = useMemo(() => {
     // Check if artistsByYear is available
@@ -1586,44 +1579,28 @@ const YearSelector = ({
   
   // Container with dynamic positioning and fixed dimensions
   const positionConfig = asSidebar ? getPositionStyles : null;
-  const baseDims = getBaseDimensions();
-  const dimensions = getCurrentDimensions(); // scaled dims for parent reporting
-
-  const containerClass = asSidebar
-    ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
+  const dimensions = getCurrentDimensions();
+  
+  const containerClass = asSidebar 
+    ? `${positionConfig.className} max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
-
-  // Outer wrapper reserves scaled space; inner container is transform-scaled
-  const wrapperStyle = asSidebar ? {
+  
+  // Use fixed dimensions instead of responsive classes
+  const containerStyle = asSidebar ? {
     ...positionConfig.style,
     width: currentPosition === 'bottom' || currentPosition === 'top' ? 'auto' : `${dimensions.width}px`,
     height: currentPosition === 'bottom' || currentPosition === 'top' ? `${dimensions.height}px` : 'auto',
-  } : {};
-
-  const containerStyle = asSidebar && !isMobile ? {
-    transform: `scale(${desktopScale})`,
-    transformOrigin: currentPosition === 'right' ? 'top right' : currentPosition === 'bottom' ? 'bottom left' : 'top left',
-    width: `${baseDims.width}px`,
-    height: currentPosition === 'bottom' || currentPosition === 'top' ? `${baseDims.height}px` : undefined,
-    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '50vh' : 'none'
-  } : asSidebar ? {
-    width: '100%',
-    height: '100%',
-    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? '200px' : 'none'
+    maxHeight: currentPosition === 'bottom' || currentPosition === 'top' ? (isMobile ? '200px' : '50vh') : 'none'
   } : {};
 
   return (
-    <div
-      className={`year-selector-sidebar ${asSidebar ? positionConfig.className : ''}`}
-      style={wrapperStyle}
-    >
-    <div
-      className={`year-selector-container ${containerClass}`}
+    <div 
+      className={`year-selector-sidebar year-selector-container ${containerClass}`}
       style={containerStyle}
     >
       {/* Collapse button for sidebar */}
       {asSidebar && (
-        <button
+        <button 
           onClick={toggleExpanded}
           className={`${
             currentPosition === 'bottom'
@@ -1637,14 +1614,12 @@ const YearSelector = ({
           <span className={colors.textActive}>{currentPosition === 'bottom' ? '↓' : currentPosition === 'top' ? '↑' : currentPosition === 'left' ? '←' : '→'}</span>
         </button>
       )}
-
-      <div
-        className={`${
-          isHorizontal
-            ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3 py-3' : 'p-3'} pr-12`
-            : 'h-full flex flex-col justify-between pt-4 pb-8'
-        }`}
-      >
+      
+      <div className={`${
+        isHorizontal
+          ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3 py-3' : 'p-3'} pr-12`
+          : 'h-full flex flex-col justify-between pt-4 pb-8'
+      }`}>
 
         {/* Mode toggle buttons */}
         <div className={`${
@@ -2275,7 +2250,6 @@ const YearSelector = ({
           opacity: 0.3;
         }
       `}</style>
-    </div>
     </div>
   );
 };
