@@ -1673,14 +1673,14 @@ const YearSelector = ({
     return (
       <div
         className={`${positionConfig.className} max-h-screen ${
-          !desktopFloating && (isBottom || isTop)
+          isHorizontal
             ? 'flex items-center justify-center py-2'
             : ''
         } ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${colors.border}`}
         style={{
           ...positionConfig.style,
-          width: !desktopFloating && (isBottom || isTop) ? 'auto' : `${collapsedDimensions.width}px`,
-          height: !desktopFloating && (isBottom || isTop) ? `${collapsedDimensions.height}px` : 'auto',
+          width: isHorizontal ? 'auto' : `${collapsedDimensions.width}px`,
+          height: isHorizontal ? `${collapsedDimensions.height}px` : 'auto',
           ...(desktopFloating ? {
             transform: `scale(${floatScale})`,
             transformOrigin: 'top left',
@@ -1697,8 +1697,8 @@ const YearSelector = ({
             <div className="w-8 h-1 rounded-full bg-current opacity-30" />
           </div>
         )}
-        {/* Horizontal layout container for bottom and top positions (snapped only) */}
-        {!desktopFloating && (isBottom || isTop) ? (
+        {/* Horizontal layout container for horizontal orientation */}
+        {isHorizontal ? (
           <div className="flex flex-row items-center justify-center">
             {/* Expand button */}
             <button
@@ -1840,8 +1840,8 @@ const YearSelector = ({
 
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
-    width: isHorizontal && !desktopFloating ? 'auto' : `${dimensions.width}px`,
-    height: isHorizontal && !desktopFloating ? `${dimensions.height}px` : 'auto',
+    width: isHorizontal ? 'auto' : `${dimensions.width}px`,
+    height: isHorizontal ? `${dimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
     ...(desktopFloating ? {
       transform: `scale(${floatScale})`,
