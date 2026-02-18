@@ -129,7 +129,7 @@ const YearSelector = ({
         // Height is max of sections, not sum
         let h = 44; // base: mode buttons row + year row
         if (showMonthSelector) h = Math.max(h, 56); // 12 months in 1 row
-        if (showDaySelector) h = Math.max(h, 70); // 31 days in 2 rows
+        if (showDaySelector) h = Math.max(h, 56); // 31 days in 1 row
         return { width: 200, height: h };
       }
       const cols = isMobilePortraitHz ? 3 : 2;
@@ -2118,30 +2118,34 @@ const YearSelector = ({
                     All Time
                   </button>
                   
-                  {/* Year grid + Month/Day grids inline for mobile portrait horizontal */}
+                  {/* Year/Month/Day as horizontal columns for mobile portrait horizontal */}
                   {isMobile && !isLandscape && isHorizontal ? (
-                    <div className="flex flex-col items-center gap-1">
-                      {renderYearGrid(3)}
-                      {selectedYear !== 'all' && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className={`text-[10px] font-medium ${colors.text}`}>M</div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked={showMonthSelector} onChange={() => {
-                              const nv = !showMonthSelector;
-                              setShowMonthSelector(nv);
-                              const isHistoryTab = activeTab === 'history';
-                              if (!isHistoryTab) setUserEnabledSelectors(nv);
-                              if (!nv) { setShowDaySelector(false); if (onYearChange && selectedYear !== 'all') onYearChange(selectedYear); }
-                              else { if (onYearChange && selectedYear !== 'all') onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
-                              setRefreshCounter(prev => prev + 1);
-                            }} className="sr-only" />
-                            <div className={`w-7 h-4 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
-                            <div className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-3' : ''}`}></div>
-                          </label>
-                        </div>
-                      )}
+                    <div className="flex flex-row items-start gap-2">
+                      {/* Column 1: Year grid */}
+                      <div className="flex flex-col items-center">
+                        {renderYearGrid(2)}
+                        {selectedYear !== 'all' && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <div className={`text-[10px] font-medium ${colors.text}`}>M</div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input type="checkbox" checked={showMonthSelector} onChange={() => {
+                                const nv = !showMonthSelector;
+                                setShowMonthSelector(nv);
+                                const isHistoryTab = activeTab === 'history';
+                                if (!isHistoryTab) setUserEnabledSelectors(nv);
+                                if (!nv) { setShowDaySelector(false); if (onYearChange && selectedYear !== 'all') onYearChange(selectedYear); }
+                                else { if (onYearChange && selectedYear !== 'all') onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
+                                setRefreshCounter(prev => prev + 1);
+                              }} className="sr-only" />
+                              <div className={`w-7 h-4 rounded-full ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}></div>
+                              <div className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition-transform ${showMonthSelector ? 'transform translate-x-3' : ''}`}></div>
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                      {/* Column 2: Month grid */}
                       {selectedYear !== 'all' && showMonthSelector && (
-                        <>
+                        <div className="flex flex-col items-center">
                           {renderMonthGrid(selectedMonth, handleMonthChange, 3)}
                           <div className="flex items-center gap-1 mt-1">
                             <div className={`text-[10px] font-medium ${colors.text}`}>D</div>
@@ -2159,8 +2163,9 @@ const YearSelector = ({
                               <div className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition-transform ${showDaySelector ? 'transform translate-x-3' : ''}`}></div>
                             </label>
                           </div>
-                        </>
+                        </div>
                       )}
+                      {/* Column 3: Day grid */}
                       {selectedYear !== 'all' && showMonthSelector && showDaySelector && (
                         renderDayGrid(days, selectedDay, handleDayChange, 5)
                       )}
@@ -2268,7 +2273,7 @@ const YearSelector = ({
                       
                       {/* Day grid selector - only shown when day toggle is on */}
                       {showDaySelector && (
-                        renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 16 : 4)
+                        renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 31 : 4)
                       )}
                     </div>
                   )}
@@ -2327,44 +2332,48 @@ const YearSelector = ({
             // Range mode
             <>
               {isMobile && !isLandscape && isHorizontal ? (
-                /* Mobile portrait horizontal: shared year grid + month/day grids */
-                <div className="flex flex-col items-center gap-1">
-                  {renderRangeYearGrid(3)}
-                  {yearRange.startYear && yearRange.endYear && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className={`text-[10px] font-medium ${colors.text}`}>M</div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked={showRangeMonthDaySelectors} onChange={() => {
-                          const nv = !showRangeMonthDaySelectors;
-                          setShowRangeMonthDaySelectors(nv);
-                          if (!nv) {
-                            setShowRangeDaySelectors(false);
-                            if (onYearRangeChange) onYearRangeChange({ startYear: yearRange.startYear, endYear: yearRange.endYear });
-                          } else {
-                            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
-                            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
-                            if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                          }
-                          setRefreshCounter(prev => prev + 1);
-                        }} className="sr-only" />
-                        <div className={`w-7 h-4 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
-                        <div className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-3' : ''}`}></div>
-                      </label>
-                    </div>
-                  )}
+                /* Mobile portrait horizontal: columns — year grid | months | days */
+                <div className="flex flex-row items-start gap-2">
+                  {/* Column 1: Range year grid + M toggle */}
+                  <div className="flex flex-col items-center">
+                    {renderRangeYearGrid(2)}
+                    {yearRange.startYear && yearRange.endYear && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <div className={`text-[10px] font-medium ${colors.text}`}>M</div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" checked={showRangeMonthDaySelectors} onChange={() => {
+                            const nv = !showRangeMonthDaySelectors;
+                            setShowRangeMonthDaySelectors(nv);
+                            if (!nv) {
+                              setShowRangeDaySelectors(false);
+                              if (onYearRangeChange) onYearRangeChange({ startYear: yearRange.startYear, endYear: yearRange.endYear });
+                            } else {
+                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
+                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
+                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                            }
+                            setRefreshCounter(prev => prev + 1);
+                          }} className="sr-only" />
+                          <div className={`w-7 h-4 rounded-full ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}></div>
+                          <div className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition-transform ${showRangeMonthDaySelectors ? 'transform translate-x-3' : ''}`}></div>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                  {/* Column 2: Start/End month grids + D toggle */}
                   {showRangeMonthDaySelectors && (
-                    <>
-                      <div className="flex flex-row gap-2 w-full">
-                        <div className="flex-1">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex flex-row gap-1">
+                        <div>
                           <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
                           {renderMonthGrid(startMonth, handleStartMonthChange, 3)}
                         </div>
-                        <div className="flex-1">
+                        <div>
                           <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
                           {renderMonthGrid(endMonth, handleEndMonthChange, 3)}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 mt-1">
+                      <div className="flex items-center gap-1">
                         <div className={`text-[10px] font-medium ${colors.text}`}>D</div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" checked={showRangeDaySelectors} onChange={() => {
@@ -2385,15 +2394,16 @@ const YearSelector = ({
                           <div className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition-transform ${showRangeDaySelectors ? 'transform translate-x-3' : ''}`}></div>
                         </label>
                       </div>
-                    </>
+                    </div>
                   )}
+                  {/* Column 3: Start/End day grids */}
                   {showRangeMonthDaySelectors && showRangeDaySelectors && (
-                    <div className="flex flex-row gap-2 w-full">
-                      <div className="flex-1">
+                    <div className="flex flex-row gap-1">
+                      <div>
                         <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SD</div>
                         {renderDayGrid(startDays, startDay, handleStartDayChange, 5)}
                       </div>
-                      <div className="flex-1">
+                      <div>
                         <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>ED</div>
                         {renderDayGrid(endDays, endDay, handleEndDayChange, 5)}
                       </div>
@@ -2477,11 +2487,11 @@ const YearSelector = ({
                       <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
                         <div className="flex-1">
                           <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>SD</div>
-                          {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 11 : 4)}
+                          {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 16 : 4)}
                         </div>
                         <div className="flex-1">
                           <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>ED</div>
-                          {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 11 : 4)}
+                          {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 16 : 4)}
                         </div>
                       </div>
                     </div>
