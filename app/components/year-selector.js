@@ -124,22 +124,37 @@ const YearSelector = ({
     const yearCount = years.length || 6;
 
     if (mode === 'single') {
-      const cols = isMobilePortraitHz ? 3 : (isHorizontal ? 4 : 2);
+      if (isHorizontal && !isMobilePortraitHz) {
+        // Desktop horizontal: years in one row, month/day grids are side-by-side (flex-row)
+        // Height is max of sections, not sum
+        let h = 44; // base: mode buttons row + year row
+        if (showMonthSelector) h = Math.max(h, 56); // 12 months in 1 row
+        if (showDaySelector) h = Math.max(h, 70); // 31 days in 2 rows
+        return { width: 200, height: h };
+      }
+      const cols = isMobilePortraitHz ? 3 : 2;
       const yearRows = Math.ceil(yearCount / cols);
       let h = 30 + (yearRows * 26) + 8;
       if (showMonthSelector) h += 110;
       if (showDaySelector) h += 140;
-      const w = isHorizontal ? 200 : 90;
-      return { width: w, height: Math.max(isHorizontal ? 90 : 120, h) };
+      const w = isMobilePortraitHz ? 200 : 90;
+      return { width: w, height: Math.max(120, h) };
     }
 
     if (mode === 'range') {
-      const cols = isMobilePortraitHz ? 3 : (isHorizontal ? 4 : 2);
+      if (isHorizontal && !isMobilePortraitHz) {
+        // Desktop horizontal: year grid in one row, month/day grids side-by-side
+        let h = 50; // base: mode buttons + year row + instruction label
+        if (showRangeMonthDaySelectors) h = Math.max(h, 80); // month grids 2 rows
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 100); // day grids 3 rows
+        return { width: 300, height: h };
+      }
+      const cols = isMobilePortraitHz ? 3 : 2;
       const yearRows = Math.ceil(yearCount / cols);
       let h = (yearRows * 26) + 30;
       if (showRangeMonthDaySelectors) h += 200;
       if (showRangeMonthDaySelectors && showRangeDaySelectors) h += 200;
-      return { width: isHorizontal ? 300 : 180, height: Math.max(isHorizontal ? 110 : 180, h) };
+      return { width: isMobilePortraitHz ? 180 : 180, height: Math.max(180, h) };
     }
   };
 
@@ -1875,16 +1890,21 @@ const YearSelector = ({
     } : {}),
   } : {};
 
-  // Tailwind JIT-safe grid column classes
-  const gridColsClass = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-5', 6: 'grid-cols-6', 7: 'grid-cols-7' };
+  // Tailwind JIT-safe grid column classes (1-12 are standard Tailwind)
+  const gridColsClass = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-5', 6: 'grid-cols-6', 7: 'grid-cols-7', 8: 'grid-cols-8', 9: 'grid-cols-9', 10: 'grid-cols-10', 11: 'grid-cols-11', 12: 'grid-cols-12' };
+
+  // Grid container props: use Tailwind class when available, inline style for larger counts
+  const gridProps = (cols) => gridColsClass[cols]
+    ? { className: `grid ${gridColsClass[cols]} gap-1` }
+    : { className: 'grid gap-1', style: { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } };
 
   const renderYearGrid = (cols) => (
-    <div className={`grid ${gridColsClass[cols]} gap-1`}>
+    <div {...gridProps(cols)}>
       {years.map(year => (
         <button
           key={year}
           onClick={() => handleYearChange(year)}
-          className={`px-1 py-0.5 text-xs rounded transition-colors ${
+          className={`px-1 py-0.5 text-xs rounded transition-colors whitespace-nowrap ${
             selectedYear === year
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -1905,7 +1925,7 @@ const YearSelector = ({
             ? 'Tap start year'
             : 'Tap end year'}
       </div>
-      <div className={`grid ${gridColsClass[cols]} gap-1`}>
+      <div {...gridProps(cols)}>
         {years.map(year => {
           const isStart = year === yearRange.startYear;
           const isEnd = year === yearRange.endYear;
@@ -1916,7 +1936,7 @@ const YearSelector = ({
             <button
               key={year}
               onClick={() => handleRangeYearGridTap(year)}
-              className={`px-1 py-0.5 text-xs rounded transition-colors ${
+              className={`px-1 py-0.5 text-xs rounded transition-colors whitespace-nowrap ${
                 isStart || isEnd
                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                   : isBetween
@@ -1933,7 +1953,7 @@ const YearSelector = ({
   );
 
   const renderMonthGrid = (selectedValue, onSelect, cols) => (
-    <div className={`grid ${gridColsClass[cols]} gap-1`}>
+    <div {...gridProps(cols)}>
       {months.map(month => (
         <button
           key={month}
@@ -1951,7 +1971,7 @@ const YearSelector = ({
   );
 
   const renderDayGrid = (daysArray, selectedValue, onSelect, cols) => (
-    <div className={`grid ${gridColsClass[cols]} gap-1`}>
+    <div {...gridProps(cols)}>
       {daysArray.map(day => (
         <button
           key={day}
@@ -2147,7 +2167,7 @@ const YearSelector = ({
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
-                      {renderYearGrid(isHorizontal ? 4 : 2)}
+                      {renderYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
                     </div>
                   )}
                 </div>
@@ -2201,7 +2221,7 @@ const YearSelector = ({
                         </label>
                       </div>
 
-                      {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 4 : 3)}
+                      {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
                     </div>
                   )}
                   
@@ -2248,7 +2268,7 @@ const YearSelector = ({
                       
                       {/* Day grid selector - only shown when day toggle is on */}
                       {showDaySelector && (
-                        renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 7 : 4)
+                        renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 16 : 4)
                       )}
                     </div>
                   )}
@@ -2383,7 +2403,7 @@ const YearSelector = ({
               ) : (
                 /* Desktop / landscape / sidebar: shared range year grid */
                 <div className="w-full">
-                  {renderRangeYearGrid(isHorizontal ? 4 : 2)}
+                  {renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
                 </div>
               )}
 
@@ -2445,11 +2465,11 @@ const YearSelector = ({
                       <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
                         <div className="flex-1">
                           <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>SM</div>
-                          {renderMonthGrid(startMonth, handleStartMonthChange, isHorizontal ? 4 : 3)}
+                          {renderMonthGrid(startMonth, handleStartMonthChange, isHorizontal ? 6 : 3)}
                         </div>
                         <div className="flex-1">
                           <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>EM</div>
-                          {renderMonthGrid(endMonth, handleEndMonthChange, isHorizontal ? 4 : 3)}
+                          {renderMonthGrid(endMonth, handleEndMonthChange, isHorizontal ? 6 : 3)}
                         </div>
                       </div>
 
@@ -2457,11 +2477,11 @@ const YearSelector = ({
                       <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
                         <div className="flex-1">
                           <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>SD</div>
-                          {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 7 : 4)}
+                          {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 11 : 4)}
                         </div>
                         <div className="flex-1">
                           <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>ED</div>
-                          {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 7 : 4)}
+                          {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 11 : 4)}
                         </div>
                       </div>
                     </div>
