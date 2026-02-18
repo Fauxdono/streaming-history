@@ -1779,7 +1779,16 @@ return (
                       color: 'transparent',
                       backgroundClip: 'text',
                       WebkitBackgroundClip: 'text',
-                      backgroundColor: isDarkMode ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)',
+                      backgroundColor: (() => {
+                        const theme = isColorful ? (textTheme || colorTheme || 'orange') : null;
+                        const rgb = {
+                          orange: isDarkMode ? '253,186,116' : '194,65,12',
+                          emerald: isDarkMode ? '110,231,183' : '4,120,87',
+                          red: isDarkMode ? '252,165,165' : '185,28,28',
+                          violet: isDarkMode ? '196,181,253' : '109,40,217',
+                        }[theme] || (isDarkMode ? '255,255,255' : '0,0,0');
+                        return `rgba(${rgb},0.1)`;
+                      })(),
                       textShadow: isDarkMode
                         ? '0px 2px 3px rgba(255,255,255,0.15), 0px -1px 1px rgba(0,0,0,0.6)'
                         : '0px 2px 3px rgba(255,255,255,0.9), 0px -1px 1px rgba(0,0,0,0.2)',
