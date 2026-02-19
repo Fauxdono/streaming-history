@@ -66,6 +66,7 @@ const YearSelector = ({
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const isResizingRef = useRef(false);
   const resizeStartRef = useRef({ mouseX: 0, mouseY: 0, scale: 1 });
+  const prevInitialYearRef = useRef(initialYear);
 
   // Position memory - remember last position for each component
   const [positionMemory, setPositionMemory] = useState({
@@ -431,22 +432,26 @@ const YearSelector = ({
   }, [initialYearRange]);
   
   // Handle initialYear changes - improved parsing
+  // Only process when initialYear actually changes (not on onToggleRangeMode identity changes)
   useEffect(() => {
+    if (initialYear === prevInitialYearRef.current) return;
+    prevInitialYearRef.current = initialYear;
+
     if (initialYear) {
       // Check if initialYear contains month/day info
       if (initialYear !== 'all' && initialYear.includes('-')) {
         const parts = initialYear.split('-');
-        
+
         // Set the year part
         setSelectedYear(parts[0]);
-        
+
         // If we have at least year-month format
         if (parts.length >= 2) {
           const monthPart = parseInt(parts[1]);
           if (!isNaN(monthPart) && monthPart >= 1 && monthPart <= 12) {
             setSelectedMonth(monthPart);
             setShowMonthSelector(true); // Show month selector
-            
+
             // If we have year-month-day format
             if (parts.length >= 3) {
               const dayPart = parseInt(parts[2]);
@@ -462,7 +467,7 @@ const YearSelector = ({
       } else {
         // Just a simple year or "all"
         setSelectedYear(initialYear);
-        
+
         // If switching to "all", hide selectors and reset user preference
         if (initialYear === 'all') {
           setShowMonthSelector(false);
@@ -473,7 +478,7 @@ const YearSelector = ({
           // This avoids conflicts between initialYear and activeTab logic
         }
       }
-      
+
       // Ensure the mode is consistent
       if (initialYear !== 'all' && initialYear.includes('-')) {
         setMode('single');
@@ -482,7 +487,7 @@ const YearSelector = ({
         }
       }
     }
-    
+
     // Refresh UI to update selectors
     setRefreshCounter(prev => prev + 1);
   }, [initialYear, onToggleRangeMode]);
