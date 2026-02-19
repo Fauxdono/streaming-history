@@ -2143,7 +2143,7 @@ const YearSelector = ({
                               }}
                               className={`relative w-9 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}
                             >
-                              <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[14px]' : ''}`}>
+                              <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[14px]' : ''}`}>
                                 <span className="text-[9px] font-bold text-gray-700 skew-x-[12deg]">M</span>
                               </div>
                             </div>
@@ -2167,7 +2167,7 @@ const YearSelector = ({
                               }}
                               className={`relative w-9 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}
                             >
-                              <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[14px]' : ''}`}>
+                              <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[14px]' : ''}`}>
                                 <span className="text-[9px] font-bold text-gray-700 skew-x-[12deg]">D</span>
                               </div>
                             </div>
@@ -2220,7 +2220,7 @@ const YearSelector = ({
                           }}
                           className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[30px]' : ''}`}>
+                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[30px]' : ''}`}>
                             <span className="text-[10px] font-bold text-gray-700 skew-x-[12deg]">MONTH</span>
                           </div>
                         </div>
@@ -2257,7 +2257,7 @@ const YearSelector = ({
                           }}
                           className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[30px]' : ''}`}>
+                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[30px]' : ''}`}>
                             <span className="text-[10px] font-bold text-gray-700 skew-x-[12deg]">DAY</span>
                           </div>
                         </div>
@@ -2301,7 +2301,7 @@ const YearSelector = ({
                           }}
                           className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[30px]' : ''}`}>
+                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[30px]' : ''}`}>
                             <span className="text-[10px] font-bold text-gray-700 skew-x-[12deg]">MONTH</span>
                           </div>
                         </div>
@@ -2338,7 +2338,7 @@ const YearSelector = ({
                           }}
                           className={`relative w-9 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[14px]' : ''}`}>
+                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[14px]' : ''}`}>
                             <span className="text-[9px] font-bold text-gray-700 skew-x-[12deg]">M</span>
                           </div>
                         </div>
@@ -2376,7 +2376,7 @@ const YearSelector = ({
                           }}
                           className={`relative w-9 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showRangeDaySelectors ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
+                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
                             <span className="text-[9px] font-bold text-gray-700 skew-x-[12deg]">D</span>
                           </div>
                         </div>
@@ -2433,7 +2433,7 @@ const YearSelector = ({
                         }}
                         className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}
                       >
-                        <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[30px]' : ''}`}>
+                        <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[30px]' : ''}`}>
                           <span className="text-[10px] font-bold text-gray-700 skew-x-[12deg]">M/D</span>
                         </div>
                       </div>
