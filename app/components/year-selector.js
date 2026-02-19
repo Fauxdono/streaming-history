@@ -2028,7 +2028,7 @@ const YearSelector = ({
       <div className={`${
         isHorizontal
           ? `flex flex-row items-center ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3 py-3' : 'p-3'} pr-12`
-          : 'h-full flex flex-col justify-between pt-4 pb-8'
+          : 'h-full flex flex-col pt-4 pb-8'
       }`}>
 
         {/* Mode toggle buttons */}
