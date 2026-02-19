@@ -454,11 +454,15 @@ const SpotifyAnalyzer = ({
     if (!rawPlayData || rawPlayData.length === 0) {
       return null;
     }
-    // Filter rawPlayData by selected year
+    // Filter rawPlayData by selected year (supports YYYY, YYYY-MM, YYYY-MM-DD)
+    const parts = selectedStreaksYear.split('-');
     const filteredData = rawPlayData.filter(play => {
       if (!play.ts) return false;
-      const playYear = new Date(play.ts).getFullYear().toString();
-      return playYear === selectedStreaksYear;
+      const d = new Date(play.ts);
+      if (d.getFullYear().toString() !== parts[0]) return false;
+      if (parts.length >= 2 && (d.getMonth() + 1) !== parseInt(parts[1])) return false;
+      if (parts.length >= 3 && d.getDate() !== parseInt(parts[2])) return false;
+      return true;
     });
     if (filteredData.length === 0) {
       return null;
@@ -485,11 +489,15 @@ const SpotifyAnalyzer = ({
     if (!rawPlayData || rawPlayData.length === 0) {
       return stats;
     }
-    // Filter rawPlayData by selected year
+    // Filter rawPlayData by selected year (supports YYYY, YYYY-MM, YYYY-MM-DD)
+    const statsParts = selectedStreaksYear.split('-');
     const filteredData = rawPlayData.filter(play => {
       if (!play.ts) return false;
-      const playYear = new Date(play.ts).getFullYear().toString();
-      return playYear === selectedStreaksYear;
+      const d = new Date(play.ts);
+      if (d.getFullYear().toString() !== statsParts[0]) return false;
+      if (statsParts.length >= 2 && (d.getMonth() + 1) !== parseInt(statsParts[1])) return false;
+      if (statsParts.length >= 3 && d.getDate() !== parseInt(statsParts[2])) return false;
+      return true;
     });
 
     const passesFilters = (entry) => {
