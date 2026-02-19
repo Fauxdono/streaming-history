@@ -2047,23 +2047,23 @@ const YearSelector = ({
           )}
           <button
             onClick={() => handleModeChange('single')}
-            className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
+            className={`px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${
               mode === 'single'
                 ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}`
                 : `${colors.text} ${colors.bgLighter}`
             }`}
           >
-            Single
+            <span className="skew-x-[12deg] inline-block">Single</span>
           </button>
           <button
             onClick={() => handleModeChange('range')}
-            className={`px-2 py-1 rounded text-xs text-center w-14 transition-all duration-200 ${
+            className={`px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${
               mode === 'range'
                 ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}`
                 : `${colors.text} ${colors.bgLighter}`
             }`}
           >
-            Range
+            <span className="skew-x-[12deg] inline-block">Range</span>
           </button>
         </div>
 
