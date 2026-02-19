@@ -18,10 +18,10 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
         text: '',
         textLight: isDarkMode ? 'text-white' : 'text-black',
         bg: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-white' : 'border-black',
-        borderHover: isDarkMode ? 'border-white' : 'border-black',
+        border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
+        borderHover: isDarkMode ? 'border-[#4169E1]' : 'border-black',
         bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-        bgButton: isDarkMode ? 'bg-black border border-white' : 'bg-white border border-black',
+        bgButton: isDarkMode ? 'bg-black border border-[#4169E1]' : 'bg-white border border-black',
         bgStripe: isDarkMode ? 'bg-black' : 'bg-white',
         bgHeader: isDarkMode ? 'bg-black' : 'bg-white'
       };

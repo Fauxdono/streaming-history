@@ -15,7 +15,7 @@ export function Card({ children, className = "" }: CardProps) {
   const hasCustomBg = className.includes('bg-');
   const hasCustomBorder = /border-(?!$)/.test(className);
   const defaultBg = hasCustomBg ? '' : (isDark ? 'bg-black' : 'bg-white');
-  const defaultBorder = hasCustomBorder ? '' : (isDark ? 'border-white' : 'border-black');
+  const defaultBorder = hasCustomBorder ? '' : (isDark ? 'border-[#4169E1]' : 'border-black');
 
   return (
     <div className={`border p-4 ${defaultBorder} ${defaultBg} ${className}`}>

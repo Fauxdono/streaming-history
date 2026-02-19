@@ -11,7 +11,7 @@ export const Table = ({ children, className = '' }) => {
   const isDark = theme === 'dark';
 
   return (
-    <table className={`w-full border-collapse ${isDark ? 'border-white' : 'border-black'} ${className}`}>
+    <table className={`w-full border-collapse ${isDark ? 'border-[#4169E1]' : 'border-black'} ${className}`}>
       {children}
     </table>
   );
@@ -22,7 +22,7 @@ export const TableHeader = ({ children }) => {
   const isDark = theme === 'dark';
 
   return (
-    <thead className={`border-b-2 ${isDark ? 'border-white' : 'border-black'}`}>
+    <thead className={`border-b-2 ${isDark ? 'border-[#4169E1]' : 'border-black'}`}>
       {children}
     </thead>
   );

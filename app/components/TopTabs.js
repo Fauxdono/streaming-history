@@ -232,7 +232,7 @@ const TopTabs = ({
       // Minimal mode: black/white only
       if (colorMode === 'minimal') {
         return activeTab === tabId
-          ? 'bg-black text-white border-b-2 border-black dark:bg-white dark:text-black dark:border-white'
+          ? 'bg-black text-white border-b-2 border-black dark:bg-white dark:text-black dark:border-[#4169E1]'
           : 'bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-900';
       }
 
@@ -363,7 +363,7 @@ const TopTabs = ({
       ? 'bg-white dark:bg-black'
       : 'bg-white dark:bg-black';
     const borderColor = colorMode === 'minimal'
-      ? 'border-black dark:border-white'
+      ? 'border-black dark:border-[#4169E1]'
       : 'border-violet-200 dark:border-gray-600';
     const baseStyles = `${bgStyles} ${borderColor} ${transitionClass}`;
 

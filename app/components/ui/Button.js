@@ -22,11 +22,11 @@ export const Button = ({
 
     const variants = {
       default: isDark
-        ? 'bg-black text-white border border-white hover:bg-gray-800'
+        ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800'
         : 'bg-white text-black border border-black hover:bg-gray-100',
 
       primary: isDark
-        ? 'bg-black text-white border border-white hover:bg-gray-800'
+        ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800'
         : 'bg-white text-black border border-black hover:bg-gray-100',
 
       ghost: isDark

@@ -99,17 +99,17 @@ const TrackRankings = ({
       textDark: isDarkMode ? 'text-white' : 'text-black',
       bg: isDarkMode ? 'bg-black' : 'bg-white',
       bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
-      border: isDarkMode ? 'border-white' : 'border-black',
+      border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
       borderHover: isDarkMode ? 'border-gray-400' : 'border-gray-600',
       bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-      bgButton: isDarkMode ? 'bg-black border border-white text-white' : 'bg-white border border-black text-black',
+      bgButton: isDarkMode ? 'bg-black border border-[#4169E1] text-white' : 'bg-white border border-black text-black',
       bgButtonHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
       bgButtonLight: isDarkMode ? 'bg-black border border-gray-600 text-gray-300' : 'bg-white border border-gray-400 text-gray-600',
       bgButtonLightHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
-      bgSelected: isDarkMode ? 'bg-white text-black border border-white' : 'bg-black text-white border border-black',
+      bgSelected: isDarkMode ? 'bg-white text-black border border-[#4169E1]' : 'bg-black text-white border border-black',
       bgSelectedHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
       focusRing: 'focus:ring-gray-400',
-      focus: isDarkMode ? 'border-white bg-black text-white' : 'border-black bg-white text-black'
+      focus: isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'
     };
 
     // Return minimal colors if not in colorful mode

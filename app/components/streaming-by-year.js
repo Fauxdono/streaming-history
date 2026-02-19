@@ -22,7 +22,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
-    border: isDarkMode ? 'border-white' : 'border-black',
+    border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
   };
 
   const themedColors = colors;

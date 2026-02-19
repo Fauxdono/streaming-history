@@ -286,11 +286,11 @@ const CustomTrackRankings = ({
     bgMed: isDarkMode ? 'bg-black' : 'bg-white',
     bgDark: isDarkMode ? 'bg-black text-white border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black shadow-[2px_2px_0_0_black]',
     bgDarkHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
-    border: isDarkMode ? 'border-white' : 'border-black',
-    borderDark: isDarkMode ? 'border-white' : 'border-black',
+    border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
+    borderDark: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     hoverBg: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
     hoverBgDark: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
-    focusBorder: isDarkMode ? 'focus:border-white' : 'focus:border-black',
+    focusBorder: isDarkMode ? 'focus:border-[#4169E1]' : 'focus:border-black',
     focusRing: 'focus:ring-gray-400',
     hoverText: isDarkMode ? 'hover:text-gray-300' : 'hover:text-gray-700'
   });

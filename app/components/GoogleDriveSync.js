@@ -1060,7 +1060,7 @@ const GoogleDriveSync = ({
   // Container styling based on colorMode - use violet to match Upload tab
   const containerBg = isColorful
     ? (isDarkMode ? 'bg-violet-800 border-violet-600' : 'bg-violet-50 border-violet-300')
-    : (isDarkMode ? 'bg-black border-white' : 'bg-white border-black');
+    : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-white border-black');
   const headerText = isColorful
     ? (isDarkMode ? 'text-violet-100' : 'text-violet-800')
     : '';
@@ -1070,7 +1070,7 @@ const GoogleDriveSync = ({
   const cardBg = isColorful
     ? (isDarkMode ? 'bg-violet-700 border-violet-500' : 'bg-violet-100 border-violet-300')
     : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300');
-  const minBtn = isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100';
+  const minBtn = isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100';
 
   return (
     <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg}`}>

@@ -11,7 +11,7 @@ export default function MinimalTabs({ activeTab, setActiveTab, tabs }) {
   const isDark = theme === 'dark';
 
   return (
-    <div className={`border-b ${isDark ? 'border-white' : 'border-black'} overflow-x-auto`}>
+    <div className={`border-b ${isDark ? 'border-[#4169E1]' : 'border-black'} overflow-x-auto`}>
       <div className="flex gap-4 min-w-max px-4">
         {tabs.map((tab) => (
           <button

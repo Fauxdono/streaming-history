@@ -72,7 +72,7 @@ export default function SettingsPanel() {
               onChange={(e) => setFontFamily(e.target.value)}
               className={`border p-2 w-full ${
                 isDark
-                  ? 'bg-black border-white text-white'
+                  ? 'bg-black border-[#4169E1] text-white'
                   : 'bg-white border-black text-black'
               }`}
             >
@@ -95,7 +95,7 @@ export default function SettingsPanel() {
               onChange={(e) => setFontSize(e.target.value)}
               className={`border p-2 w-full ${
                 isDark
-                  ? 'bg-black border-white text-white'
+                  ? 'bg-black border-[#4169E1] text-white'
                   : 'bg-white border-black text-black'
               }`}
             >
@@ -119,7 +119,7 @@ export default function SettingsPanel() {
                     accentColor === color.value
                       ? 'border-[var(--accent-color)] scale-110'
                       : isDark
-                      ? 'border-white'
+                      ? 'border-[#4169E1]'
                       : 'border-black'
                   } transition-transform`}
                   style={{ backgroundColor: color.value }}
@@ -141,7 +141,7 @@ export default function SettingsPanel() {
           </div>
 
           {/* Preview */}
-          <div className={`border p-4 mt-4 ${isDark ? 'border-white' : 'border-black'}`}>
+          <div className={`border p-4 mt-4 ${isDark ? 'border-[#4169E1]' : 'border-black'}`}>
             <Label className="block mb-2">Preview</Label>
             <p className="mb-2">This is how your text will look.</p>
             <Button variant="accent" className="mb-2">

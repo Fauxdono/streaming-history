@@ -659,7 +659,7 @@ const YearSelector = ({
         glowActive: 'shadow-[0_0_15px_rgba(0,0,0,0.3)] dark:shadow-[0_0_15px_rgba(255,255,255,0.3)]',
         buttonBg: 'bg-black dark:bg-white',
         buttonHover: 'hover:bg-gray-800 dark:hover:bg-gray-200',
-        border: 'border-black dark:border-white',
+        border: 'border-black dark:border-[#4169E1]',
         bgLight: 'bg-white dark:bg-black',
         bgMed: 'bg-gray-200 dark:bg-gray-800'
       };

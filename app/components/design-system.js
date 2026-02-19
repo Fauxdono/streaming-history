@@ -12,7 +12,7 @@ export const useDesignSystem = (isDarkMode) => {
     // Base colors
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     fg: isDarkMode ? 'text-white' : 'text-black',
-    border: isDarkMode ? 'border-white' : 'border-black',
+    border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
 
     // Subtle backgrounds (for tables, cards)
     bgSubtle: isDarkMode ? 'bg-[#0a0a0a]' : 'bg-[#fafafa]',
@@ -67,13 +67,13 @@ export const getButtonClasses = (variant = 'default', isDarkMode = false) => {
 
   const variants = {
     default: isDarkMode
-      ? 'border-white text-white hover:bg-white hover:text-black'
+      ? 'border-[#4169E1] text-white hover:bg-white hover:text-black'
       : 'border-black text-black hover:bg-black hover:text-white',
 
     accent: 'border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-white',
 
     ghost: isDarkMode
-      ? 'border-transparent text-white hover:border-white'
+      ? 'border-transparent text-white hover:border-[#4169E1]'
       : 'border-transparent text-black hover:border-black',
   };
 
@@ -85,8 +85,8 @@ export const getButtonClasses = (variant = 'default', isDarkMode = false) => {
  */
 export const getTableClasses = (isDarkMode = false) => {
   return {
-    table: `w-full border-collapse ${isDarkMode ? 'border-white' : 'border-black'}`,
-    header: `border-b-2 text-left p-2 ${isDarkMode ? 'border-white' : 'border-black'}`,
+    table: `w-full border-collapse ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`,
+    header: `border-b-2 text-left p-2 ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`,
     cell: 'border-b p-2',
     row: 'hover:bg-[var(--bg-subtle)] transition-colors',
   };
@@ -96,5 +96,5 @@ export const getTableClasses = (isDarkMode = false) => {
  * Get card classes for minimal design
  */
 export const getCardClasses = (isDarkMode = false) => {
-  return `border p-4 ${isDarkMode ? 'border-white bg-black' : 'border-black bg-white'}`;
+  return `border p-4 ${isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white'}`;
 };

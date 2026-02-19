@@ -744,7 +744,7 @@ const ExportButton = ({
         className={
           isColorful
             ? 'flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors'
-            : `flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-white border border-white hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            : `flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
         }
       >
         {exportFormat === 'json' ? <FileText size={16} /> : <Download size={16} />}
