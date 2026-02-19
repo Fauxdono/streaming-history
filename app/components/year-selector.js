@@ -2131,7 +2131,7 @@ const YearSelector = ({
                         {renderYearGrid(2)}
                         {selectedYear !== 'all' && (
                           <div className="mt-1">
-                            <button
+                            <div
                               onClick={() => {
                                 const nv = !showMonthSelector;
                                 setShowMonthSelector(nv);
@@ -2141,10 +2141,11 @@ const YearSelector = ({
                                 else { if (onYearChange && selectedYear !== 'all') onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
                                 setRefreshCounter(prev => prev + 1);
                               }}
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${showMonthSelector ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                              className={`relative w-10 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}
                             >
-                              M
-                            </button>
+                              <div className={`absolute top-[3px] left-[3px] w-2.5 h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 ${showMonthSelector ? 'translate-x-[22px]' : ''}`} />
+                              <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showMonthSelector ? colors.textActive : 'text-gray-600'}`}>M</span>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -2153,7 +2154,7 @@ const YearSelector = ({
                         <div className="flex flex-col items-center">
                           {renderMonthGrid(selectedMonth, handleMonthChange, 3)}
                           <div className="mt-1">
-                            <button
+                            <div
                               onClick={() => {
                                 const nv = !showDaySelector;
                                 setShowDaySelector(nv);
@@ -2163,10 +2164,11 @@ const YearSelector = ({
                                 else { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
                                 setRefreshCounter(prev => prev + 1);
                               }}
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${showDaySelector ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                              className={`relative w-10 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}
                             >
-                              D
-                            </button>
+                              <div className={`absolute top-[3px] left-[3px] w-2.5 h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 ${showDaySelector ? 'translate-x-[22px]' : ''}`} />
+                              <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showDaySelector ? colors.textActive : 'text-gray-600'}`}>D</span>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -2188,9 +2190,9 @@ const YearSelector = ({
                   {/* Month Selector - hidden on mobile portrait horizontal (toggle is under year wheel) */}
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
                     <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
-                      {/* Month toggle button */}
+                      {/* Month toggle */}
                       <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
-                        <button
+                        <div
                           onClick={() => {
                               const newMonthValue = !showMonthSelector;
                               setShowMonthSelector(newMonthValue);
@@ -2214,10 +2216,11 @@ const YearSelector = ({
 
                               setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${showMonthSelector ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                          className={`relative w-[68px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          MONTH
-                        </button>
+                          <div className={`absolute top-[3px] left-[3px] w-3 h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 ${showMonthSelector ? 'translate-x-[50px]' : ''}`} />
+                          <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showMonthSelector ? colors.textActive : 'text-gray-600'}`}>MONTH</span>
+                        </div>
                       </div>
 
                       {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
@@ -2227,9 +2230,9 @@ const YearSelector = ({
                   {/* Day Toggle and Selector - hidden on mobile portrait horizontal */}
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
                     <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
-                      {/* Day toggle button */}
+                      {/* Day toggle */}
                       <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
-                        <button
+                        <div
                           onClick={() => {
                               const newDayValue = !showDaySelector;
                               setShowDaySelector(newDayValue);
@@ -2249,10 +2252,11 @@ const YearSelector = ({
 
                               setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${showDaySelector ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                          className={`relative w-[68px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showDaySelector ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          DAY
-                        </button>
+                          <div className={`absolute top-[3px] left-[3px] w-3 h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 ${showDaySelector ? 'translate-x-[50px]' : ''}`} />
+                          <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showDaySelector ? colors.textActive : 'text-gray-600'}`}>DAY</span>
+                        </div>
                       </div>
                       
                       {/* Day grid selector - only shown when day toggle is on */}
@@ -2265,9 +2269,9 @@ const YearSelector = ({
                   {/* Show month toggle separately if month selector is off - hidden on mobile portrait horizontal */}
                   {!showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
                     <div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col space-y-2'} ${isHorizontal ? '' : 'w-full mb-4'}`}>
-                      {/* Month toggle button */}
+                      {/* Month toggle */}
                       <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
-                        <button
+                        <div
                           onClick={() => {
                               const newMonthValue = !showMonthSelector;
                               setShowMonthSelector(newMonthValue);
@@ -2291,10 +2295,11 @@ const YearSelector = ({
 
                               setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${showMonthSelector ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                          className={`relative w-[68px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showMonthSelector ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          MONTH
-                        </button>
+                          <div className={`absolute top-[3px] left-[3px] w-3 h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 ${showMonthSelector ? 'translate-x-[50px]' : ''}`} />
+                          <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showMonthSelector ? colors.textActive : 'text-gray-600'}`}>MONTH</span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -2312,7 +2317,7 @@ const YearSelector = ({
                     {renderRangeYearGrid(2)}
                     {yearRange.startYear && yearRange.endYear && (
                       <div className="mt-1">
-                        <button
+                        <div
                           onClick={() => {
                             const nv = !showRangeMonthDaySelectors;
                             setShowRangeMonthDaySelectors(nv);
@@ -2326,10 +2331,11 @@ const YearSelector = ({
                             }
                             setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${showRangeMonthDaySelectors ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                          className={`relative w-10 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          M
-                        </button>
+                          <div className={`absolute top-[3px] left-[3px] w-2.5 h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 ${showRangeMonthDaySelectors ? 'translate-x-[22px]' : ''}`} />
+                          <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showRangeMonthDaySelectors ? colors.textActive : 'text-gray-600'}`}>M</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -2347,7 +2353,7 @@ const YearSelector = ({
                         </div>
                       </div>
                       <div>
-                        <button
+                        <div
                           onClick={() => {
                             const nv = !showRangeDaySelectors;
                             setShowRangeDaySelectors(nv);
@@ -2362,10 +2368,11 @@ const YearSelector = ({
                             }
                             setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${showRangeDaySelectors ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                          className={`relative w-10 h-5 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showRangeDaySelectors ? colors.bgActive : 'bg-gray-300'}`}
                         >
-                          D
-                        </button>
+                          <div className={`absolute top-[3px] left-[3px] w-2.5 h-3.5 rounded-sm bg-white shadow-sm transition-transform duration-200 ${showRangeDaySelectors ? 'translate-x-[22px]' : ''}`} />
+                          <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showRangeDaySelectors ? colors.textActive : 'text-gray-600'}`}>D</span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -2396,7 +2403,7 @@ const YearSelector = ({
                   {/* Month/Day toggle */}
                   <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col space-y-2'} ${isHorizontal ? 'items-center' : 'w-full mb-4'}`}>
                     <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
-                      <button
+                      <div
                         onClick={() => {
                             const newValue = !showRangeMonthDaySelectors;
                             setShowRangeMonthDaySelectors(newValue);
@@ -2417,10 +2424,11 @@ const YearSelector = ({
 
                             setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${showRangeMonthDaySelectors ? `${colors.bgActive} ${colors.textActive}` : 'bg-gray-300 text-gray-600'}`}
+                        className={`relative w-[68px] h-6 rounded-sm cursor-pointer transition-colors skew-x-[-12deg] ${showRangeMonthDaySelectors ? colors.bgActive : 'bg-gray-300'}`}
                       >
-                        M/D
-                      </button>
+                        <div className={`absolute top-[3px] left-[3px] w-3 h-[18px] rounded-sm bg-white shadow-sm transition-transform duration-200 ${showRangeMonthDaySelectors ? 'translate-x-[50px]' : ''}`} />
+                        <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold pointer-events-none skew-x-[12deg] ${showRangeMonthDaySelectors ? colors.textActive : 'text-gray-600'}`}>M/D</span>
+                      </div>
                     </div>
                   </div>
                   
