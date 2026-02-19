@@ -2226,7 +2226,9 @@ const YearSelector = ({
                         </div>
                       </div>
 
-                      {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
+                      <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
+                        {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
+                      </div>
                     </div>
                   )}
                   
