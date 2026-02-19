@@ -681,11 +681,11 @@ const filteredData = useMemo(() => {
           <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-4 ${modeColors.text}`}>Artist Discovery Stats</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
+              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
                 <div className={`text-sm ${modeColors.textLight}`}>Total Unique Artists</div>
                 <div className={`text-3xl font-bold ${modeColors.text}`}>{discoveryData.uniqueArtistsCount}</div>
               </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
+              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
                 <div className={`text-sm ${modeColors.textLight}`}>Average New Artists per Month</div>
                 <div className={`text-3xl font-bold ${modeColors.text}`}>
                   {discoveryData.newArtistsByMonth.length > 0 ?
@@ -853,12 +853,12 @@ const filteredData = useMemo(() => {
           <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-4 ${modeColors.text}`}>Artist Catalog Exploration</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
+              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
                 <div className={`text-sm ${modeColors.textLight}`}>Average Listening Depth Score</div>
                 <div className={`text-3xl font-bold ${modeColors.text}`}>{depthData.averageDepth} / 100</div>
                 <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Higher scores indicate deeper exploration of artists' catalogs</div>
               </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
+              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
                 <div className={`text-sm ${modeColors.textLight}`}>Most Explored Artist</div>
                 <div className={`text-3xl font-bold ${modeColors.text}`}>
                   {depthData.artistDepths[0]?.name || "N/A"}
@@ -948,17 +948,17 @@ const filteredData = useMemo(() => {
           <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-4 ${modeColors.text}`}>Music Variety Overview</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
+              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
                 <div className={`text-sm ${modeColors.textLight}`}>Daily Variety Score</div>
                 <div className={`text-3xl font-bold ${modeColors.text}`}>{Math.round(varietyData.avgDailyVariety)}%</div>
                 <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Average percentage of unique tracks in a day</div>
               </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
+              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
                 <div className={`text-sm ${modeColors.textLight}`}>Weekly Variety Score</div>
                 <div className={`text-3xl font-bold ${modeColors.text}`}>{Math.round(varietyData.avgWeeklyVariety)}%</div>
                 <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Average percentage of unique tracks in a week</div>
               </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
+              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
                 <div className={`text-sm ${modeColors.textLight}`}>Monthly Variety Score</div>
                 <div className={`text-3xl font-bold ${modeColors.text}`}>{Math.round(varietyData.avgMonthlyVariety)}%</div>
                 <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Average percentage of unique tracks in a month</div>

@@ -964,7 +964,7 @@ const PodcastRankings = ({
             {filteredEpisodes.map((episode, index) => (
               <div
                 key={episode.key}
-                className={`p-3 ${modeColors.bgCard} rounded border ${modeColors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                className={`p-3 ${modeColors.bgCard} rounded border ${modeColors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
               >
                 <div className={`font-bold ${modeColors.text}`}>{episode.episodeName}</div>
                 <div className={`text-sm ${modeColors.textLight}`}>

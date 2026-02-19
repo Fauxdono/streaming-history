@@ -2082,7 +2082,7 @@ const SpotifyAnalyzer = ({
           : (isDarkMode ? 'bg-black' : 'bg-white');
 
         return (
-          <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+          <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
               <h3 className={`text-xl ${uploadText}`}>Upload Files</h3>
@@ -2126,7 +2126,7 @@ const SpotifyAnalyzer = ({
             {/* How to Use + Google Drive - side by side on desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               {/* How to Use section */}
-              <div className={`p-4 sm:p-6 border rounded-lg ${uploadCardBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+              <div className={`p-4 sm:p-6 border rounded-lg ${uploadCardBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                 <h3 className={`font-semibold mb-4 text-sm ${uploadText}`}>How to use:</h3>
                 <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                   <div className="flex items-start gap-3 mb-3">
@@ -2195,7 +2195,7 @@ const SpotifyAnalyzer = ({
               </div>
             </div>
               
-            <div className={`p-4 rounded-lg border ${uploadCardBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+            <div className={`p-4 rounded-lg border ${uploadCardBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <p className={`mb-3 font-semibold text-sm ${uploadText}`}>
                 Upload your streaming history files:
               </p>
@@ -2317,7 +2317,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
-              : `p-2 sm:p-4 border ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
@@ -2346,7 +2346,7 @@ const SpotifyAnalyzer = ({
                 <div className={
                   colorMode === 'colorful'
                     ? 'p-4 border space-y-2 bg-indigo-100 dark:bg-indigo-900 border-indigo-300 dark:border-indigo-700 rounded text-indigo-700 dark:text-indigo-300'
-                    : `p-4 border space-y-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+                    : `p-4 border space-y-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
                 }>
                   <div className={
                     colorMode === 'colorful'
@@ -2398,7 +2398,7 @@ const SpotifyAnalyzer = ({
                 <div className={
                   colorMode === 'colorful'
                     ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-800'
-                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-white bg-black shadow-[1px_1px_0_0_white]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
+                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
                 }>
                   <div className="flex items-center gap-2 mb-3">
                     <Download size={18} className={colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
@@ -2434,7 +2434,7 @@ const SpotifyAnalyzer = ({
                 <div className={
                   colorMode === 'colorful'
                     ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
-                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-white bg-black shadow-[1px_1px_0_0_white]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
+                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
                 }>
                   <h4 className={
                     colorMode === 'colorful'
@@ -3009,7 +3009,7 @@ const SpotifyAnalyzer = ({
                             className={`
                               ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
                               p-3 ${cardBg} rounded border ${cardBorder} relative
-                              ${colorMode === 'minimal' ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}
+                              ${colorMode === 'minimal' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}
                               ${artistSelectionMode
                                 ? (colorMode === 'colorful'
                                     ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-100 dark:hover:bg-blue-700'
@@ -3047,7 +3047,7 @@ const SpotifyAnalyzer = ({
                 <div className={
                   colorMode === 'colorful'
                     ? 'p-6 text-center bg-blue-100 dark:bg-blue-800 rounded border-2 border-blue-300 dark:border-blue-600'
-                    : `p-6 text-center rounded border-2 ${isDarkMode ? 'bg-black border-white shadow-[1px_1px_0_0_white]' : 'bg-white border-black shadow-[1px_1px_0_0_black]'}`
+                    : `p-6 text-center rounded border-2 ${isDarkMode ? 'bg-black border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white border-black shadow-[1px_1px_0_0_black]'}`
                 }>
                   <h4 className={
                     colorMode === 'colorful'
@@ -3089,7 +3089,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-cyan-200 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             {/* Desktop layout - title, controls, and search on same row */}
             <div className={`hidden sm:flex justify-between items-center gap-2 mb-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
@@ -3419,7 +3419,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-emerald-200 dark:bg-emerald-900 rounded border-2 border-emerald-300 dark:border-emerald-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <CustomTrackRankings
               rawPlayData={rawPlayData}
@@ -3442,7 +3442,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-red-200 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <TrackRankings
               processedData={processedData}
@@ -3459,7 +3459,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-yellow-200 dark:bg-yellow-900 rounded border-2 border-yellow-300 dark:border-yellow-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <ListeningPatterns
               rawPlayData={rawPlayData}
@@ -3483,7 +3483,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-green-200 dark:bg-green-900 rounded border-2 border-green-300 dark:border-green-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <CalendarView
               rawPlayData={rawPlayData}
@@ -3507,7 +3507,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-amber-200 dark:bg-amber-900 rounded border-2 border-amber-300 dark:border-amber-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <ListeningBehavior
               rawPlayData={rawPlayData}
@@ -3528,7 +3528,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-orange-200 dark:bg-orange-900 rounded border-2 border-orange-300 dark:border-orange-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <DiscoveryAnalysis
               rawPlayData={rawPlayData}
@@ -3549,7 +3549,7 @@ const SpotifyAnalyzer = ({
           <div id="podcast-rankings" className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-red-200 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <PodcastRankings
               rawPlayData={rawPlayData}
@@ -3570,7 +3570,7 @@ const SpotifyAnalyzer = ({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-rose-200 dark:bg-rose-900 rounded border-2 border-rose-300 dark:border-rose-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-white shadow-[1px_1px_0_0_white]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
             <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} colorMode={colorMode} />
           </div>

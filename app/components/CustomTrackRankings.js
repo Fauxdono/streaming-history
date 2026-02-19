@@ -284,7 +284,7 @@ const CustomTrackRankings = ({
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgLight: isDarkMode ? 'bg-black' : 'bg-white',
     bgMed: isDarkMode ? 'bg-black' : 'bg-white',
-    bgDark: isDarkMode ? 'bg-black text-white border border-white shadow-[2px_2px_0_0_white]' : 'bg-white text-black border border-black shadow-[2px_2px_0_0_black]',
+    bgDark: isDarkMode ? 'bg-black text-white border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black shadow-[2px_2px_0_0_black]',
     bgDarkHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
     border: isDarkMode ? 'border-white' : 'border-black',
     borderDark: isDarkMode ? 'border-white' : 'border-black',
@@ -1744,7 +1744,7 @@ return (
               {filteredTracks.map((song, index) => (
                 <div
                   key={song.key}
-                  className={`p-3 pb-2 border rounded-lg ${colors.bgLight} ${colors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white] hover:shadow-[2px_2px_0_0_white]' : 'shadow-[1px_1px_0_0_black] hover:shadow-[2px_2px_0_0_black]') : 'shadow-sm hover:shadow-md'} transition-shadow`}
+                  className={`p-3 pb-2 border rounded-lg ${colors.bgLight} ${colors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1] hover:shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black] hover:shadow-[2px_2px_0_0_black]') : 'shadow-sm hover:shadow-md'} transition-shadow`}
                 >
                   {song.isFeatured && (
                     <span className={`inline-block px-1 py-0.5 mb-2 ${colors.bgMed} ${colors.text} rounded text-xs`}>

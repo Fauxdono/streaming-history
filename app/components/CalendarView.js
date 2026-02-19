@@ -766,7 +766,7 @@ const CalendarView = ({
             {!isMonthView && viewMode === 'grid' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
                     <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem]`}>{monthData.fullName}</div>
                     <div className={`text-sm ${modeColors.text}`}>
                       Total Time: <span className="font-bold">{formatDuration(monthData.totalTime)}</span>
@@ -856,7 +856,7 @@ const CalendarView = ({
                     onClick={handleDayClick}
                     className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
-                    } ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'} ${
+                    } ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'} ${
                       daySelectionMode
                         ? isColorful
                           ? 'hover:opacity-80 ring-2 ring-green-500 ring-opacity-50'
@@ -947,14 +947,14 @@ const CalendarView = ({
           <div className="flex flex-col gap-4">
             <div>
               {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
-                <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                   Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className={`p-3 sm:p-4 rounded ${modeColors.bgCard} border ${modeColors.borderLight} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+          <div className={`p-3 sm:p-4 rounded ${modeColors.bgCard} border ${modeColors.borderLight} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
             <h4 className={`font-bold mb-3 sm:mb-2 text-sm sm:text-base ${modeColors.text}`}>Summary for {historyData.formattedDate}</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
               <div>
@@ -986,7 +986,7 @@ const CalendarView = ({
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {historyData.tracks.map((track, index) => (
-                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
                     <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem] font-mono`}>{track.formattedTime}</div>
                     <div className={`font-bold ${modeColors.text} pr-20 truncate`}>{track.master_metadata_track_name || 'Unknown Track'}</div>
                     <div className={`text-sm ${modeColors.text}`}>

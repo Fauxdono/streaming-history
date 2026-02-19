@@ -1553,7 +1553,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
           {savedPlaylists.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedPlaylists.map(playlist => (
-                <div key={playlist.id} className={`border rounded p-4 hover:opacity-80 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_white]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <div key={playlist.id} className={`border rounded p-4 hover:opacity-80 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                   <div className="flex justify-between items-center">
                     <h4 className={`font-bold ${modeColors.text}`}>{playlist.name}</h4>
                     <div className={`text-sm ${modeColors.textLighter}`}>
