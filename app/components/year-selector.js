@@ -2267,7 +2267,9 @@ const YearSelector = ({
                       
                       {/* Day grid selector - only shown when day toggle is on */}
                       {showDaySelector && (
-                        renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 31 : 4)
+                        <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
+                          {renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 31 : 4)}
+                        </div>
                       )}
                     </div>
                   )}
