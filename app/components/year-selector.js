@@ -479,8 +479,8 @@ const YearSelector = ({
         }
       }
 
-      // Ensure the mode is consistent
-      if (initialYear !== 'all' && initialYear.includes('-')) {
+      // Ensure the mode is consistent — only notify parent if actually changing mode
+      if (initialYear !== 'all' && initialYear.includes('-') && mode !== 'single') {
         setMode('single');
         if (onToggleRangeMode) {
           onToggleRangeMode(false);
