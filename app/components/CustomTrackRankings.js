@@ -1802,7 +1802,7 @@ return (
                       className="opacity-30 hover:opacity-100 transition-opacity"
                       title="Omit options"
                     >
-                      <XCircle size={22} />
+                      <XCircle size={16} />
                     </button>
                     {showOmitDropdown === song.key && (
                       <div className={`absolute top-full right-0 mt-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
