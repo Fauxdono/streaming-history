@@ -3,8 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from './themeprovider';
 
-const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
-  const { theme, fontSize, setFontSize, fontFamily, setFontFamily } = useTheme();
+const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode, setColorMode }) => {
+  const { theme, fontSize, setFontSize, fontFamily, setFontFamily, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
   const dropdownRef = useRef(null);
 
@@ -96,9 +96,36 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
       style={{
         top: position.top,
         left: position.left,
-        minWidth: '200px'
+        minWidth: '240px'
       }}
     >
+      {/* Theme & Color Mode Toggles */}
+      <div className="flex gap-2 mb-3">
+        <button
+          onClick={toggleTheme}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            isDarkMode
+              ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          {isDarkMode ? '🌙' : '☀️'} {isDarkMode ? 'Dark' : 'Light'}
+        </button>
+        <button
+          onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            isDarkMode
+              ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          {colorMode === 'minimal' ? '⬛' : '🎨'} {colorMode === 'minimal' ? 'Minimal' : 'Colorful'}
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className={`mb-3 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
+
       {/* Slider */}
       <div>
         <input

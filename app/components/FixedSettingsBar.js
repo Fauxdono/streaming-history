@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import DarkModeToggle from './darkmode.js';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportDropdown from './SupportDropdown.js';
 import AnalysisSettingsDropdown from './AnalysisSettingsDropdown.js';
@@ -66,14 +65,6 @@ const FixedSettingsBar = ({
             <>
               {/* Left side buttons */}
               <div className={`flex items-center ${isLandscapeMobile ? 'gap-3' : 'gap-4'}`}>
-                <DarkModeToggle className="!p-1.5 !rounded-full !w-[33px] !h-[33px]" />
-                <button
-                  onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
-                  className="p-1.5 rounded-full bg-pink-600 text-white hover:bg-pink-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
-                  title={colorMode === 'minimal' ? 'Switch to Colorful Mode' : 'Switch to Minimal Mode'}
-                >
-                  {colorMode === 'minimal' ? '🎨' : '⬛'}
-                </button>
                 {showViewToggle && (
                   <button
                     onClick={toggleViewMode}
@@ -122,18 +113,6 @@ const FixedSettingsBar = ({
             </>
           ) : (
             <div className="flex items-center gap-1 px-2">
-              {/* Dark mode toggle */}
-              <DarkModeToggle className="!p-1.5 !rounded-full !w-8 !h-8" />
-
-              {/* Color mode toggle */}
-              <button
-                onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
-                className="p-1.5 rounded-full bg-pink-600 text-white hover:bg-pink-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
-                title={colorMode === 'minimal' ? 'Switch to Colorful Mode' : 'Switch to Minimal Mode'}
-              >
-                <span className="text-xs">{colorMode === 'minimal' ? '🎨' : '⬛'}</span>
-              </button>
-
               {/* Position toggle button */}
               <button
                 onClick={togglePosition}
@@ -182,6 +161,8 @@ const FixedSettingsBar = ({
         isOpen={showFontSizeDropdown}
         onClose={() => setShowFontSizeDropdown(false)}
         buttonRef={settingsButtonRef}
+        colorMode={colorMode}
+        setColorMode={setColorMode}
       />
 
       {/* Analysis Settings Dropdown */}
