@@ -1795,22 +1795,17 @@ return (
                     }}
                   >{index + 1}</div>
 
-                  {/* Tear-off coupon corner - omit button */}
-                  <div className={`absolute bottom-0 right-0 ${colors.text}`}>
-                    <div className="w-10 h-10" style={{ opacity: 0.3 }}>
-                      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 40 40">
-                        <line x1="0" y1="40" x2="40" y2="0" stroke="currentColor" strokeWidth="1" strokeDasharray="3,3" />
-                      </svg>
-                    </div>
+                  {/* Omit button - centered on top-right corner */}
+                  <div className={`absolute top-0 right-0 ${colors.text}`} style={{ transform: 'translate(50%, -50%)', zIndex: 10 }}>
                     <button
                       onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
-                      className="absolute bottom-[7px] right-[7px] opacity-40 hover:opacity-100"
+                      className="opacity-30 hover:opacity-100 transition-opacity"
                       title="Omit options"
                     >
-                      <XCircle size={11} />
+                      <XCircle size={22} />
                     </button>
                     {showOmitDropdown === song.key && (
-                      <div className={`absolute bottom-full right-0 mb-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+                      <div className={`absolute top-full right-0 mt-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
                         <button
                           onClick={() => {
                             omitSong(song);
