@@ -163,7 +163,7 @@ const YearSelector = ({
 
   const getCurrentDimensions = () => {
     const base = getBaseDimensions();
-    return { width: Math.round(base.width * dimFontScale), height: Math.round(base.height * dimFontScale) };
+    return { width: Math.round(base.width * dimFontScale), height: base.height };
   };
 
   // Extract years from artistsByYear and memoize result
@@ -1895,7 +1895,7 @@ const YearSelector = ({
     height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
     ...(combinedScale !== 1 ? {
-      transform: `scale(${combinedScale})`,
+      transform: `scaleX(${combinedScale})`,
       transformOrigin: desktopFloating ? 'top left' : (currentPosition === 'right' ? 'top right' : 'top left'),
     } : {}),
   } : {};
