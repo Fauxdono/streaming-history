@@ -24,7 +24,7 @@ const CustomTrackRankings = ({
   viewMode = 'grid',
   setViewMode = () => {}
 }) => {
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, fontSize, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -1802,7 +1802,7 @@ return (
                       className="opacity-30 hover:opacity-100 transition-opacity"
                       title="Omit options"
                     >
-                      <XCircle size={16} />
+                      <XCircle size={{ small: 14, medium: 16, large: 18, xlarge: 20 }[fontSize] || 16} />
                     </button>
                     {showOmitDropdown === song.key && (
                       <div className={`absolute top-full right-0 mt-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
