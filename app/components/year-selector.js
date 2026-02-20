@@ -159,8 +159,11 @@ const YearSelector = ({
     }
   };
 
+  const dimFontScale = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 }[fontSize] || 1;
+
   const getCurrentDimensions = () => {
-    return getBaseDimensions();
+    const base = getBaseDimensions();
+    return { width: Math.round(base.width * dimFontScale), height: Math.round(base.height * dimFontScale) };
   };
 
   // Extract years from artistsByYear and memoize result
@@ -314,7 +317,7 @@ const YearSelector = ({
         if (onWidthChange) onWidthChange(0);
       }
     }
-  }, [expanded, currentPosition, mode, asSidebar, isMobile, isFloating, years.length, showMonthSelector, showDaySelector, showRangeMonthDaySelectors, showRangeDaySelectors]);
+  }, [expanded, currentPosition, mode, asSidebar, isMobile, isFloating, years.length, showMonthSelector, showDaySelector, showRangeMonthDaySelectors, showRangeDaySelectors, fontSize]);
 
 
   // When isRangeMode prop changes, update our internal mode state
@@ -348,7 +351,7 @@ const YearSelector = ({
         onHeightChange(0);
       }
     }
-  }, [currentPosition, onHeightChange, expanded, mode, isMobile, isFloating, years.length, showMonthSelector, showDaySelector, showRangeMonthDaySelectors, showRangeDaySelectors]);
+  }, [currentPosition, onHeightChange, expanded, mode, isMobile, isFloating, years.length, showMonthSelector, showDaySelector, showRangeMonthDaySelectors, showRangeDaySelectors, fontSize]);
   
   // Update yearRange when initialYearRange changes - improved
   useEffect(() => {
@@ -1884,14 +1887,15 @@ const YearSelector = ({
     ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
+  const combinedScale = desktopFloating ? floatScale * dimFontScale : dimFontScale;
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
     width: isHorizontal ? 'auto' : `${dimensions.width}px`,
     height: isHorizontal ? `${dimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
-    ...(desktopFloating ? {
-      transform: `scale(${floatScale})`,
-      transformOrigin: 'top left',
+    ...(combinedScale !== 1 ? {
+      transform: `scale(${combinedScale})`,
+      transformOrigin: desktopFloating ? 'top left' : (currentPosition === 'right' ? 'top right' : 'top left'),
     } : {}),
   } : {};
 
