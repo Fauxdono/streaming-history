@@ -1881,6 +1881,7 @@ const YearSelector = ({
   // Container with dynamic positioning and fixed dimensions
   const positionConfig = asSidebar ? getPositionStyles : null;
   const dimensions = getCurrentDimensions();
+  const baseDimensions = getBaseDimensions();
   const desktopFloating = !isMobile && isFloating;
 
   const containerClass = asSidebar
@@ -1890,8 +1891,8 @@ const YearSelector = ({
   const combinedScale = desktopFloating ? floatScale * dimFontScale : dimFontScale;
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
-    width: isHorizontal ? 'auto' : `${dimensions.width}px`,
-    height: isHorizontal ? `${dimensions.height}px` : 'auto',
+    width: isHorizontal ? 'auto' : `${baseDimensions.width}px`,
+    height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
     ...(combinedScale !== 1 ? {
       transform: `scale(${combinedScale})`,
