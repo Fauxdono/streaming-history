@@ -1796,7 +1796,7 @@ return (
                   >{index + 1}</div>
 
                   {/* Omit button - centered on top-right corner */}
-                  <div className={`absolute top-0 right-0 ${colors.text}`} style={{ transform: 'translate(10%, -10%)', zIndex: 10 }}>
+                  <div className={`absolute top-0 right-0 ${colors.text}`} style={{ transform: 'translate(14%, -14%)', zIndex: 10 }}>
                     <button
                       onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
                       className="opacity-30 hover:opacity-100 transition-opacity"
