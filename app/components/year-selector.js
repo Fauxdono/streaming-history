@@ -1890,6 +1890,7 @@ const YearSelector = ({
 
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
+    fontSize: '16px',
     width: isHorizontal ? 'auto' : `${baseDimensions.width}px`,
     height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
