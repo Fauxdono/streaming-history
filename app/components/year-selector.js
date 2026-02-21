@@ -1234,7 +1234,7 @@ const YearSelector = ({
     return (
       <button
         onClick={onClick}
-        className={`px-2 py-1 mb-2 text-xs rounded-md transition-colors ${
+        className={`px-2 py-1 mb-2 text-[12px] rounded-md transition-colors ${
           selectedYear === 'all' 
             ? 'bg-current text-white font-bold' 
             : 'bg-current/20 hover:bg-current/30 text-current'
@@ -1760,10 +1760,10 @@ const YearSelector = ({
 
             {/* Text container */}
             <div className={`flex flex-row items-center space-x-2 ${colors.text}`}>
-              <div className="text-xs opacity-70">
+              <div className="text-[12px] opacity-70">
                 {mode === 'single' ? 'Year' : 'Year Range'}
               </div>
-              <div className="text-xs font-bold">
+              <div className="text-[12px] font-bold">
                 {getYearLabel()}
               </div>
             </div>
@@ -1774,7 +1774,7 @@ const YearSelector = ({
               className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-4 w-8 h-8 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
-              <span className={`text-xs ${colors.textActive}`}>⇄</span>
+              <span className={`text-[12px] ${colors.textActive}`}>⇄</span>
             </button>
             {/* Float button (desktop snapped only) */}
             {!isMobile && (
@@ -1784,7 +1784,7 @@ const YearSelector = ({
                 aria-label="Float panel"
                 title="Detach as floating panel"
               >
-                <span className={`text-xs ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                <span className={`text-[12px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
               </button>
             )}
           </div>
@@ -1800,10 +1800,10 @@ const YearSelector = ({
             </button>
 
             <div className={`h-full ${isMobile ? 'pt-4' : 'pt-16'} pb-16 flex flex-col items-center justify-center ${colors.text}`}>
-              <div className="writing-mode-vertical text-xs opacity-70">
+              <div className="writing-mode-vertical text-[12px] opacity-70">
                 {mode === 'single' ? 'Year' : 'Year Range'}
               </div>
-              <div className="writing-mode-vertical text-xs font-bold my-2">
+              <div className="writing-mode-vertical text-[12px] font-bold my-2">
                 {getYearLabel()}
               </div>
             </div>
@@ -1817,7 +1817,7 @@ const YearSelector = ({
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className={`text-xs ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className={`text-[12px] ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
@@ -1825,7 +1825,7 @@ const YearSelector = ({
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className={`text-xs ${colors.textActive}`} style={{fontSize: '10px'}}>&#x1F4CC;</span>
+                  <span className={`text-[12px] ${colors.textActive}`} style={{fontSize: '10px'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : (
@@ -1836,7 +1836,7 @@ const YearSelector = ({
                   className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className={`text-xs ${colors.textActive}`}>⇄</span>
+                  <span className={`text-[12px] ${colors.textActive}`}>⇄</span>
                 </button>
                 {/* Float button (desktop snapped only) */}
                 {!isMobile && (
@@ -1846,7 +1846,7 @@ const YearSelector = ({
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className={`text-xs ${colors.textActive}`} style={{fontSize: '10px'}}>&#x29C9;</span>
+                    <span className={`text-[12px] ${colors.textActive}`} style={{fontSize: '10px'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
@@ -1890,7 +1890,6 @@ const YearSelector = ({
 
   const containerStyle = asSidebar ? {
     ...positionConfig.style,
-    fontSize: '12px',
     width: isHorizontal ? 'auto' : `${baseDimensions.width}px`,
     height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
@@ -1911,7 +1910,7 @@ const YearSelector = ({
         <button
           key={year}
           onClick={() => handleYearChange(year)}
-          className={`px-1 py-0.5 text-xs rounded transition-colors whitespace-nowrap ${
+          className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
             selectedYear === year
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -1943,7 +1942,7 @@ const YearSelector = ({
             <button
               key={year}
               onClick={() => handleRangeYearGridTap(year)}
-              className={`px-1 py-0.5 text-xs rounded transition-colors whitespace-nowrap ${
+              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
                 isStart || isEnd
                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                   : isBetween
@@ -1965,7 +1964,7 @@ const YearSelector = ({
         <button
           key={month}
           onClick={() => onSelect(month)}
-          className={`px-1 py-0.5 text-xs rounded transition-colors ${
+          className={`px-1 py-0.5 text-[12px] rounded transition-colors ${
             selectedValue === month
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -1983,7 +1982,7 @@ const YearSelector = ({
         <button
           key={day}
           onClick={() => onSelect(day)}
-          className={`px-1 py-0.5 text-xs rounded transition-colors ${
+          className={`px-1 py-0.5 text-[12px] rounded transition-colors ${
             selectedValue === day
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2043,7 +2042,7 @@ const YearSelector = ({
         }`}>
 
           {!(isMobile && !isLandscape && isHorizontal) && (
-            <div className={`text-xs font-medium ${colors.text} ${
+            <div className={`text-[12px] font-medium ${colors.text} ${
               isHorizontal ? 'mr-1' : 'mb-1'
             }`}>MODE</div>
           )}
@@ -2086,7 +2085,7 @@ const YearSelector = ({
               {/* Year selection */}
               <div className={`flex ${isHorizontal ? (isMobile && !isLandscape ? 'flex-col items-center' : 'flex-row items-center') : 'flex-col items-center'}`}>
                 {!(isMobile && !isLandscape && isHorizontal) && (
-                  <div className={`text-xs font-medium ${colors.text} ${
+                  <div className={`text-[12px] font-medium ${colors.text} ${
                     isHorizontal ? 'mr-2' : 'mb-1'
                   }`}>YEAR</div>
                 )}
@@ -2113,7 +2112,7 @@ const YearSelector = ({
                       // Force UI refresh
                       setRefreshCounter(prev => prev + 1);
                     }}
-                    className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                    className={`px-2 py-1 text-[12px] rounded-md transition-colors ${
                       isHorizontal ? '' : 'mb-2'
                     } ${
                       selectedYear === 'all'
@@ -2452,11 +2451,11 @@ const YearSelector = ({
                       {/* Month grids */}
                       <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
                         <div className="flex-1">
-                          <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>SM</div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
                           {renderMonthGrid(startMonth, handleStartMonthChange, isHorizontal ? 6 : 3)}
                         </div>
                         <div className="flex-1">
-                          <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>EM</div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
                           {renderMonthGrid(endMonth, handleEndMonthChange, isHorizontal ? 6 : 3)}
                         </div>
                       </div>
@@ -2464,11 +2463,11 @@ const YearSelector = ({
                       {/* Day grids */}
                       <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
                         <div className="flex-1">
-                          <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>SD</div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
                           {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 16 : 4)}
                         </div>
                         <div className="flex-1">
-                          <div className={`text-xs font-medium ${colors.text} text-center mb-1`}>ED</div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
                           {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 16 : 4)}
                         </div>
                       </div>
@@ -2492,7 +2491,7 @@ const YearSelector = ({
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className={`text-sm ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className={`text-[14px] ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
@@ -2500,7 +2499,7 @@ const YearSelector = ({
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                  <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : asSidebar && (
@@ -2510,7 +2509,7 @@ const YearSelector = ({
                   className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className={`text-sm ${colors.textActive}`}>⇄</span>
+                  <span className={`text-[14px] ${colors.textActive}`}>⇄</span>
                 </button>
                 {!isMobile && (
                   <button
@@ -2519,7 +2518,7 @@ const YearSelector = ({
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                    <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
@@ -2536,7 +2535,7 @@ const YearSelector = ({
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className={`text-sm ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className={`text-[14px] ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
@@ -2544,7 +2543,7 @@ const YearSelector = ({
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                  <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : asSidebar && (
@@ -2554,7 +2553,7 @@ const YearSelector = ({
                   className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className={`text-sm ${colors.textActive}`}>⇄</span>
+                  <span className={`text-[14px] ${colors.textActive}`}>⇄</span>
                 </button>
                 {!isMobile && (
                   <button
@@ -2563,7 +2562,7 @@ const YearSelector = ({
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className={`text-sm ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                    <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
