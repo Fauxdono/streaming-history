@@ -44,6 +44,7 @@ const PlaylistExporter = ({
     buttonDisabled: `bg-${ct}-800 text-${ct}-500`,
     darkest: `text-${ct}-200`,
     input: `bg-${ct}-800 border-${ct}-600 text-${ct}-200`,
+    option: `bg-${ct}-800 text-${ct}-200`,
     error: 'text-red-400 border-red-700 bg-red-900/50'
   } : {
     primary: `text-${ct}-700`,
@@ -56,6 +57,7 @@ const PlaylistExporter = ({
     buttonDisabled: `bg-${ct}-300 text-${ct}-500`,
     darkest: `text-${ct}-800`,
     input: `bg-white border-${ct}-200 text-${ct}-700`,
+    option: `bg-${ct}-50 text-${ct}-700`,
     error: 'text-red-500 border-red-200 bg-red-50'
   }) : (isDarkMode ? {
     primary: 'text-white',
@@ -68,6 +70,7 @@ const PlaylistExporter = ({
     buttonDisabled: 'bg-gray-900 text-gray-600',
     darkest: 'text-white',
     input: 'bg-black border-[#4169E1] text-white',
+    option: 'bg-black text-white',
     error: 'text-red-400 border-red-700 bg-red-900/50'
   } : {
     primary: 'text-black',
@@ -80,6 +83,7 @@ const PlaylistExporter = ({
     buttonDisabled: 'bg-gray-100 text-gray-400',
     darkest: 'text-black',
     input: 'bg-white border-black text-black',
+    option: 'bg-white text-black',
     error: 'text-red-500 border-red-200 bg-red-50'
   });
 
@@ -229,7 +233,7 @@ const PlaylistExporter = ({
 
           // For all-time, show top 250, otherwise show top X of the year
           tracks = selectedYear === 'all'
-            ? processedData.slice(0, exportCount === 250 ? 250 : 100)
+            ? processedData.slice(0, exportCount)
             : (songsByYear[selectedYear] || []).slice(0, exportCount);
         } else {
           // For obsessions
@@ -274,7 +278,7 @@ const PlaylistExporter = ({
 
           // Also create an all-time playlist if requested
           if (processedData.length > 0) {
-            const allTimeTracks = processedData.slice(0, exportCount === 250 ? 250 : 100);
+            const allTimeTracks = processedData.slice(0, exportCount);
             const playlistContent = createM3UContent(allTimeTracks, 'all-time');
             const filename = `top-tracks-all-time-${timestamp}.m3u`;
             downloadQueueRef.current.push({ content: playlistContent, filename });
@@ -389,24 +393,27 @@ const PlaylistExporter = ({
             onChange={(e) => setFileExtension(e.target.value)}
             className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
           >
-            <option value="mp3">mp3</option>
-            <option value="flac">flac</option>
-            <option value="m4a">m4a</option>
-            <option value="ogg">ogg</option>
-            <option value="wav">wav</option>
+            <option value="mp3" className={modeColors.option}>mp3</option>
+            <option value="flac" className={modeColors.option}>flac</option>
+            <option value="m4a" className={modeColors.option}>m4a</option>
+            <option value="ogg" className={modeColors.option}>ogg</option>
+            <option value="wav" className={modeColors.option}>wav</option>
           </select>
         </div>
 
         <div>
           <label className={`block ${modeColors.primary} mb-1`}>Max Tracks to Export:</label>
-          <select
+          <input
+            type="number"
+            min="1"
+            max="69420"
             value={exportCount}
-            onChange={(e) => setExportCount(parseInt(e.target.value))}
-            className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
-          >
-            <option value="100">Top 100</option>
-            <option value="250">Top 250 (All-time only)</option>
-          </select>
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              if (!isNaN(val)) setExportCount(Math.min(Math.max(val, 1), 69420));
+            }}
+            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
+          />
         </div>
 
         <div>
@@ -416,8 +423,8 @@ const PlaylistExporter = ({
             onChange={(e) => setSortMethod(e.target.value)}
             className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
           >
-            <option value="totalPlayed">Total Listening Time</option>
-            <option value="playCount">Play Count</option>
+            <option value="totalPlayed" className={modeColors.option}>Total Listening Time</option>
+            <option value="playCount" className={modeColors.option}>Play Count</option>
           </select>
         </div>
       </div>
@@ -507,7 +514,7 @@ const PlaylistExporter = ({
         <p className={`mt-2 ${modeColors.primary}`}>
           {exportMode === 'current' ? (
             <>
-              The playlist will include the {exportCount === 250 && selectedYear === 'all' ? 'top 250' : 'top 100'} tracks from {selectedYear === 'all' ? 'all time' : selectedYear}
+              The playlist will include the top {exportCount} tracks from {selectedYear === 'all' ? 'all time' : selectedYear}
               {playlistType === 'obsessions' ? ' or your brief obsessions' : ''}, sorted by {sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.
             </>
           ) : (
