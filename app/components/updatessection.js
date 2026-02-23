@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
-import { Mail, Check, Clock, Sparkles, BugIcon, ThumbsUp, ThumbsDown, Send } from 'lucide-react';
+import { Mail, Check, Clock, Sparkles, BugIcon, ThumbsUp, ThumbsDown, Send, Shield } from 'lucide-react';
 import { useTheme } from './themeprovider';
 import { collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -11,9 +11,6 @@ const UpdatesSection = () => {
 
   // Past Updates
   const pastUpdates = [];
-
-  // Planned Updates
-  const plannedUpdates = [];
 
   // Contact information
   const contactEmail = "phionnancake@gmail.com";
@@ -32,6 +29,12 @@ const UpdatesSection = () => {
   const [submitting, setSubmitting] = useState(false);
   const [votedPosts, setVotedPosts] = useState({});
   const [error, setError] = useState(null);
+  const [showPINInput, setShowPINInput] = useState(null);
+  const [adminPIN, setAdminPIN] = useState('');
+  const [pinError, setPinError] = useState(null);
+
+  // Planned Updates — derived from promoted suggestions
+  const plannedUpdates = useMemo(() => posts.filter((p) => p.status === 'planned'), [posts]);
 
   // Load saved username and voted posts from localStorage
   useEffect(() => {
@@ -91,6 +94,7 @@ const UpdatesSection = () => {
         username,
         category: newPostCategory,
         votes: 0,
+        status: 'open',
         createdAt: serverTimestamp(),
       });
       localStorage.setItem('suggestion_username', username);
@@ -121,7 +125,12 @@ const UpdatesSection = () => {
         newDirection = direction;
       }
       const newVotes = (currentVotes || 0) + delta;
-      await updateDoc(doc(db, 'suggestions', postId), { votes: newVotes });
+      const post = posts.find((p) => p.id === postId);
+      const updateData = { votes: newVotes };
+      if (newVotes >= 10 && (!post?.status || post.status === 'open')) {
+        updateData.status = 'planned';
+      }
+      await updateDoc(doc(db, 'suggestions', postId), updateData);
       const updated = { ...votedPosts };
       if (newDirection) {
         updated[postId] = newDirection;
@@ -132,6 +141,25 @@ const UpdatesSection = () => {
       localStorage.setItem('voted_posts', JSON.stringify(updated));
     } catch (err) {
       console.error('Failed to vote:', err);
+    }
+  };
+
+  const handlePromote = async (postId) => {
+    if (adminPIN !== 'cake') {
+      setPinError(postId);
+      setTimeout(() => setPinError(null), 2000);
+      return;
+    }
+    try {
+      const post = posts.find((p) => p.id === postId);
+      await updateDoc(doc(db, 'suggestions', postId), {
+        votes: post?.votes || 0,
+        status: 'planned',
+      });
+      setShowPINInput(null);
+      setAdminPIN('');
+    } catch (err) {
+      console.error('Failed to promote:', err);
     }
   };
 
@@ -231,15 +259,32 @@ const UpdatesSection = () => {
       {activeTab === 'planned-updates' && (
         <div className="space-y-4">
           <h3 className={`font-bold text-lg ${headingColor}`}>Upcoming Features</h3>
-          {plannedUpdates.map((update, index) => (
-            <div key={index} className={`p-4 rounded-lg border transition-colors ${cardBg}`}>
-              <div className="flex justify-between items-center mb-2">
-                <h4 className={`font-bold ${headingColor}`}>{update.title}</h4>
-                {renderPriorityBadge(update.priority)}
+          {plannedUpdates.length === 0 ? (
+            <div className={`text-center py-8 ${mutedText}`}>No planned updates yet. Suggestions with 10+ votes are automatically promoted!</div>
+          ) : (
+            plannedUpdates.map((post) => (
+              <div key={post.id} className={`p-4 rounded-lg border transition-colors ${cardBg}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className={`font-medium text-sm ${headingColor}`}>{post.username}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[post.category] || ''}`}>
+                        {categoryLabels[post.category] || post.category}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                        Planned
+                      </span>
+                    </div>
+                    <p className={`text-sm ${textColor} whitespace-pre-wrap break-words`}>{post.text}</p>
+                  </div>
+                  <div className={`flex items-center gap-1 shrink-0 px-2 py-1.5 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                    <ThumbsUp size={14} className={mutedText} />
+                    <span className={`text-xs font-medium ${mutedText}`}>{post.votes || 0}</span>
+                  </div>
+                </div>
               </div>
-              <p className={textColor}>{update.description}</p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
@@ -383,8 +428,57 @@ const UpdatesSection = () => {
                         <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[post.category] || ''}`}>
                           {categoryLabels[post.category] || post.category}
                         </span>
+                        {post.status === 'planned' && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                            Planned
+                          </span>
+                        )}
                       </div>
                       <p className={`text-sm ${textColor} whitespace-pre-wrap break-words`}>{post.text}</p>
+                      {/* Admin promote UI */}
+                      {(!post.status || post.status === 'open') && (
+                        <div className="mt-2">
+                          {showPINInput === post.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="password"
+                                placeholder="PIN"
+                                value={showPINInput === post.id ? adminPIN : ''}
+                                onChange={(e) => setAdminPIN(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handlePromote(post.id);
+                                  if (e.key === 'Escape') { setShowPINInput(null); setAdminPIN(''); }
+                                }}
+                                onBlur={() => { setShowPINInput(null); setAdminPIN(''); }}
+                                autoFocus
+                                className={`w-20 px-2 py-1 rounded text-xs border ${
+                                  isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-800'
+                                }`}
+                              />
+                              <button
+                                onMouseDown={(e) => { e.preventDefault(); handlePromote(post.id); }}
+                                className={`text-xs px-2 py-1 rounded ${isDarkMode ? 'bg-green-700 text-green-200 hover:bg-green-600' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                              >
+                                Confirm
+                              </button>
+                              {pinError === post.id && (
+                                <span className="text-xs text-red-500">Wrong PIN</span>
+                              )}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => { setShowPINInput(post.id); setAdminPIN(''); setPinError(null); }}
+                              className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                                isDarkMode ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                              }`}
+                              title="Promote to planned"
+                            >
+                              <Shield size={12} />
+                              Promote
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
