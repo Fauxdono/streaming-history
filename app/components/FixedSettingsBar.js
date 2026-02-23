@@ -4,7 +4,8 @@ import React, { useState, useRef } from 'react';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportDropdown from './SupportDropdown.js';
 import AnalysisSettingsDropdown from './AnalysisSettingsDropdown.js';
-import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings } from 'lucide-react';
+import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings, Sun, Moon, Palette } from 'lucide-react';
+import { useTheme } from './themeprovider.js';
 
 const FixedSettingsBar = ({
   togglePosition,
@@ -18,6 +19,8 @@ const FixedSettingsBar = ({
   viewMode = 'grid',
   setViewMode = () => {}
 }) => {
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === 'dark';
   const mobileBarHeight = isLandscapeMobile ? 64 : 85;
   // Tabs that support grid/list view (mobile only)
   const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns', 'calendar'];
@@ -150,6 +153,34 @@ const FixedSettingsBar = ({
                 title="Support"
               >
                 <Heart size={14} fill="white" />
+              </button>
+
+              {/* Dark mode toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`p-1.5 rounded-full transition-colors shadow-lg w-8 h-8 flex items-center justify-center ${
+                  isDarkMode
+                    ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
+                    : 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
+                }`}
+                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+              </button>
+
+              {/* Color mode toggle */}
+              <button
+                onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
+                className={`p-1.5 rounded-full transition-colors shadow-lg w-8 h-8 flex items-center justify-center ${
+                  colorMode === 'colorful'
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
+                    : isDarkMode
+                      ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                }`}
+                title={colorMode === 'minimal' ? 'Switch to colorful mode' : 'Switch to minimal mode'}
+              >
+                <Palette size={14} />
               </button>
             </div>
           )}
