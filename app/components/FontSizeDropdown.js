@@ -3,8 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from './themeprovider';
 
-const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode, setColorMode }) => {
-  const { theme, fontSize, setFontSize, fontFamily, setFontFamily, toggleTheme } = useTheme();
+const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
+  const { theme, fontSize, setFontSize, fontFamily, setFontFamily, minPlayDuration, setMinPlayDuration, skipFilter, setSkipFilter, fullListenOnly, setFullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const dropdownRef = useRef(null);
 
@@ -61,8 +61,8 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode, setColorMode 
       }
       
       // If dropdown would go below viewport, show it above button
-      if (top + 320 > window.innerHeight) {
-        top = buttonRect.top - 320 - 8;
+      if (top + 520 > window.innerHeight) {
+        top = buttonRect.top - 520 - 8;
       }
       
       setPosition({ top, left });
@@ -99,34 +99,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode, setColorMode 
         minWidth: '240px'
       }}
     >
-      {/* Theme & Color Mode Toggles */}
-      <div className="flex gap-2 mb-3">
-        <button
-          onClick={toggleTheme}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            isDarkMode
-              ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          {isDarkMode ? '🌙' : '☀️'} {isDarkMode ? 'Dark' : 'Light'}
-        </button>
-        <button
-          onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            isDarkMode
-              ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          {colorMode === 'minimal' ? '⬛' : '🎨'} {colorMode === 'minimal' ? 'Minimal' : 'Colorful'}
-        </button>
-      </div>
-
-      {/* Divider */}
-      <div className={`mb-3 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
-
-      {/* Slider */}
+      {/* Font Size Slider */}
       <div>
         <input
           type="range"
@@ -229,6 +202,84 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode, setColorMode 
           ))}
         </div>
       </div>
+
+      {/* Divider */}
+      <div className={`my-3 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
+
+      {/* Analysis Settings */}
+      <div>
+        <div className={`text-xs mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Minimum Play Duration
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="120"
+          value={Math.round(minPlayDuration / 1000)}
+          onChange={(e) => setMinPlayDuration(parseInt(e.target.value, 10) * 1000)}
+          className={`w-full h-2 rounded-lg appearance-none cursor-pointer slider
+            ${isDarkMode ? 'bg-black' : 'bg-gray-200'}`}
+          style={{
+            background: isDarkMode
+              ? `linear-gradient(to right, #6366f1 0%, #6366f1 ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #374151 ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #374151 100%)`
+              : `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #e5e7eb ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #e5e7eb 100%)`
+          }}
+        />
+        <div className={`text-center text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {Math.round(minPlayDuration / 1000)}s
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className={`my-3 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}></div>
+
+      {/* Skip Filter Toggle */}
+      <label className="flex items-center justify-between cursor-pointer py-1">
+        <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          Exclude skipped tracks
+        </span>
+        <div className="relative">
+          <input
+            type="checkbox"
+            checked={skipFilter}
+            onChange={(e) => setSkipFilter(e.target.checked)}
+            className="sr-only"
+          />
+          <div className={`w-10 h-5 rounded-full transition-colors ${
+            skipFilter
+              ? 'bg-indigo-500'
+              : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'
+          }`}>
+            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+              skipFilter ? 'translate-x-5' : ''
+            }`}></div>
+          </div>
+        </div>
+      </label>
+
+      {/* Full Listen Only Toggle */}
+      <label className="flex items-center justify-between cursor-pointer py-1 mt-1">
+        <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          Only count completed plays
+        </span>
+        <div className="relative">
+          <input
+            type="checkbox"
+            checked={fullListenOnly}
+            onChange={(e) => setFullListenOnly(e.target.checked)}
+            className="sr-only"
+          />
+          <div className={`w-10 h-5 rounded-full transition-colors ${
+            fullListenOnly
+              ? 'bg-indigo-500'
+              : isDarkMode ? 'bg-gray-600' : 'bg-gray-300'
+          }`}>
+            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+              fullListenOnly ? 'translate-x-5' : ''
+            }`}></div>
+          </div>
+        </div>
+      </label>
     </div>
   );
 };
