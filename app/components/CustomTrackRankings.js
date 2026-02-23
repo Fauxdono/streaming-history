@@ -1496,7 +1496,7 @@ return (
           {showOmittedTab ? 'Results' : `Omitted (${omittedSongs.length + omittedArtists.length})`}
         </button>
         <button
-          onClick={() => setShowPlaylistExporter(true)}
+          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
           className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
         >
           <Download size={12} />
@@ -1532,7 +1532,7 @@ return (
           {showOmittedTab ? 'Results' : `Omit (${omittedSongs.length + omittedArtists.length})`}
         </button>
         <button
-          onClick={() => setShowPlaylistExporter(true)}
+          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
           className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
         >
           M3U
@@ -1663,6 +1663,7 @@ return (
         songsByYear={songsByYear}
         selectedYear={selectedYear !== 'all' ? selectedYear : 'all'}
         colorTheme={colorTheme}
+        colorMode={colorMode}
       />
     )}
 
