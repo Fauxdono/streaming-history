@@ -7,7 +7,8 @@ import { db } from '../lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 
 const UpdatesSection = ({ colorMode = 'minimal' }) => {
-  const { isDarkMode } = useTheme();
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
   // Contact information
