@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
-import { Mail, Check, Clock, Sparkles, BugIcon, ThumbsUp, Send } from 'lucide-react';
+import { Mail, Check, Clock, Sparkles, BugIcon, ThumbsUp, ThumbsDown, Send } from 'lucide-react';
 import { useTheme } from './themeprovider';
 import { collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -30,7 +30,7 @@ const UpdatesSection = () => {
   const [newPostUsername, setNewPostUsername] = useState('');
   const [newPostCategory, setNewPostCategory] = useState('feature-request');
   const [submitting, setSubmitting] = useState(false);
-  const [votedPosts, setVotedPosts] = useState([]);
+  const [votedPosts, setVotedPosts] = useState({});
   const [error, setError] = useState(null);
 
   // Load saved username and voted posts from localStorage
@@ -38,8 +38,16 @@ const UpdatesSection = () => {
     try {
       const savedUsername = localStorage.getItem('suggestion_username');
       if (savedUsername) setNewPostUsername(savedUsername);
-      const saved = JSON.parse(localStorage.getItem('voted_posts') || '[]');
-      setVotedPosts(saved);
+      const saved = JSON.parse(localStorage.getItem('voted_posts') || '{}');
+      // Migrate from old array format
+      if (Array.isArray(saved)) {
+        const migrated = {};
+        saved.forEach((id) => { migrated[id] = 'up'; });
+        setVotedPosts(migrated);
+        localStorage.setItem('voted_posts', JSON.stringify(migrated));
+      } else {
+        setVotedPosts(saved);
+      }
     } catch {}
   }, []);
 
@@ -94,16 +102,32 @@ const UpdatesSection = () => {
     setSubmitting(false);
   };
 
-  const handleVote = async (postId, currentVotes) => {
-    const hasVoted = votedPosts.includes(postId);
+  const handleVote = async (postId, currentVotes, direction) => {
+    const existing = votedPosts[postId]; // 'up', 'down', or undefined
     try {
-      const newVotes = hasVoted
-        ? Math.max((currentVotes || 0) - 1, 0)
-        : (currentVotes || 0) + 1;
+      let delta = 0;
+      let newDirection = null;
+      if (existing === direction) {
+        // Undo: clicking the same button again
+        delta = direction === 'up' ? -1 : 1;
+        newDirection = null;
+      } else if (existing) {
+        // Switch: was up, now down (or vice versa) — swing by 2
+        delta = direction === 'up' ? 2 : -2;
+        newDirection = direction;
+      } else {
+        // Fresh vote
+        delta = direction === 'up' ? 1 : -1;
+        newDirection = direction;
+      }
+      const newVotes = (currentVotes || 0) + delta;
       await updateDoc(doc(db, 'suggestions', postId), { votes: newVotes });
-      const updated = hasVoted
-        ? votedPosts.filter((id) => id !== postId)
-        : [...votedPosts, postId];
+      const updated = { ...votedPosts };
+      if (newDirection) {
+        updated[postId] = newDirection;
+      } else {
+        delete updated[postId];
+      }
       setVotedPosts(updated);
       localStorage.setItem('voted_posts', JSON.stringify(updated));
     } catch (err) {
@@ -359,18 +383,31 @@ const UpdatesSection = () => {
                       </div>
                       <p className={`text-sm ${textColor} whitespace-pre-wrap break-words`}>{post.text}</p>
                     </div>
-                    <button
-                      onClick={() => handleVote(post.id, post.votes)}
-                      className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer ${
-                        votedPosts.includes(post.id)
-                          ? isDarkMode ? 'bg-violet-900/40 text-violet-400 hover:bg-gray-700 hover:text-gray-400' : 'bg-violet-100 text-violet-600 hover:bg-gray-100 hover:text-gray-500'
-                          : isDarkMode ? 'bg-gray-700 text-gray-400 hover:bg-violet-900/40 hover:text-violet-400' : 'bg-gray-100 text-gray-500 hover:bg-violet-100 hover:text-violet-600'
-                      }`}
-                      title={votedPosts.includes(post.id) ? 'Remove vote' : 'Upvote'}
-                    >
-                      <ThumbsUp size={14} />
-                      <span className="text-xs font-medium">{post.votes || 0}</span>
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleVote(post.id, post.votes, 'up')}
+                        className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                          votedPosts[post.id] === 'up'
+                            ? isDarkMode ? 'bg-violet-900/40 text-violet-400' : 'bg-violet-100 text-violet-600'
+                            : isDarkMode ? 'bg-gray-700 text-gray-400 hover:bg-violet-900/40 hover:text-violet-400' : 'bg-gray-100 text-gray-500 hover:bg-violet-100 hover:text-violet-600'
+                        }`}
+                        title={votedPosts[post.id] === 'up' ? 'Remove upvote' : 'Upvote'}
+                      >
+                        <ThumbsUp size={14} />
+                      </button>
+                      <span className={`text-xs font-medium min-w-[1.5rem] text-center ${mutedText}`}>{post.votes || 0}</span>
+                      <button
+                        onClick={() => handleVote(post.id, post.votes, 'down')}
+                        className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                          votedPosts[post.id] === 'down'
+                            ? isDarkMode ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-600'
+                            : isDarkMode ? 'bg-gray-700 text-gray-400 hover:bg-red-900/40 hover:text-red-400' : 'bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600'
+                        }`}
+                        title={votedPosts[post.id] === 'down' ? 'Remove downvote' : 'Downvote'}
+                      >
+                        <ThumbsDown size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
