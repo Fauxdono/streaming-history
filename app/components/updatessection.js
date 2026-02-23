@@ -31,6 +31,7 @@ const UpdatesSection = () => {
   const [newPostCategory, setNewPostCategory] = useState('feature-request');
   const [submitting, setSubmitting] = useState(false);
   const [votedPosts, setVotedPosts] = useState([]);
+  const [error, setError] = useState(null);
 
   // Load saved username and voted posts from localStorage
   useEffect(() => {
@@ -49,7 +50,10 @@ const UpdatesSection = () => {
       const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       setPosts(data);
       setLoading(false);
-    }, () => {
+      setError(null);
+    }, (err) => {
+      console.error('Firestore listener error:', err);
+      setError('Failed to load suggestions: ' + err.message);
       setLoading(false);
     });
     return unsub;
@@ -85,6 +89,7 @@ const UpdatesSection = () => {
       setNewPostText('');
     } catch (err) {
       console.error('Failed to submit:', err);
+      setError('Failed to post: ' + err.message);
     }
     setSubmitting(false);
   };
@@ -210,6 +215,12 @@ const UpdatesSection = () => {
       {activeTab === 'community-suggestions' && (
         <div className="space-y-4">
           <h3 className={`font-bold text-lg ${headingColor}`}>Community Suggestions</h3>
+
+          {error && (
+            <div className="p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Sort & Filter Bar */}
           <div className="flex flex-wrap items-center gap-2">
