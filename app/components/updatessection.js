@@ -95,10 +95,15 @@ const UpdatesSection = () => {
   };
 
   const handleVote = async (postId, currentVotes) => {
-    if (votedPosts.includes(postId)) return;
+    const hasVoted = votedPosts.includes(postId);
     try {
-      await updateDoc(doc(db, 'suggestions', postId), { votes: (currentVotes || 0) + 1 });
-      const updated = [...votedPosts, postId];
+      const newVotes = hasVoted
+        ? Math.max((currentVotes || 0) - 1, 0)
+        : (currentVotes || 0) + 1;
+      await updateDoc(doc(db, 'suggestions', postId), { votes: newVotes });
+      const updated = hasVoted
+        ? votedPosts.filter((id) => id !== postId)
+        : [...votedPosts, postId];
       setVotedPosts(updated);
       localStorage.setItem('voted_posts', JSON.stringify(updated));
     } catch (err) {
@@ -356,13 +361,12 @@ const UpdatesSection = () => {
                     </div>
                     <button
                       onClick={() => handleVote(post.id, post.votes)}
-                      disabled={votedPosts.includes(post.id)}
-                      className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors shrink-0 ${
+                      className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer ${
                         votedPosts.includes(post.id)
-                          ? isDarkMode ? 'bg-violet-900/40 text-violet-400' : 'bg-violet-100 text-violet-600'
+                          ? isDarkMode ? 'bg-violet-900/40 text-violet-400 hover:bg-gray-700 hover:text-gray-400' : 'bg-violet-100 text-violet-600 hover:bg-gray-100 hover:text-gray-500'
                           : isDarkMode ? 'bg-gray-700 text-gray-400 hover:bg-violet-900/40 hover:text-violet-400' : 'bg-gray-100 text-gray-500 hover:bg-violet-100 hover:text-violet-600'
                       }`}
-                      title={votedPosts.includes(post.id) ? 'Already voted' : 'Upvote'}
+                      title={votedPosts.includes(post.id) ? 'Remove vote' : 'Upvote'}
                     >
                       <ThumbsUp size={14} />
                       <span className="text-xs font-medium">{post.votes || 0}</span>
