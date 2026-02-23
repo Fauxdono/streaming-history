@@ -3578,12 +3578,16 @@ const SpotifyAnalyzer = ({
       
       case 'updates':
         return (
-          <div className={`p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`}>
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-violet-200 dark:bg-violet-900 rounded border-2 border-violet-300 dark:border-violet-700'
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+          }>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
               <h3 className="text-xl">App Updates</h3>
             </div>
-            <UpdatesSection />
+            <UpdatesSection colorMode={colorMode} />
           </div>
         );
 
