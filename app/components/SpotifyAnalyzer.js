@@ -3580,7 +3580,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-violet-200 dark:bg-violet-900 rounded border-2 border-violet-300 dark:border-violet-700'
+              ? 'p-2 sm:p-4 bg-fuchsia-200 dark:bg-fuchsia-900 rounded border-2 border-fuchsia-300 dark:border-fuchsia-700'
               : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             {/* Desktop title */}
@@ -3717,7 +3717,7 @@ const SpotifyAnalyzer = ({
       discovery: isDarkMode ? 'bg-orange-900' : 'bg-orange-200',
       podcasts: isDarkMode ? 'bg-red-900' : 'bg-red-200',
       playlists: isDarkMode ? 'bg-rose-900' : 'bg-rose-200',
-      updates: isDarkMode ? 'bg-purple-900' : 'bg-purple-200'
+      updates: isDarkMode ? 'bg-fuchsia-900' : 'bg-fuchsia-200'
     };
 
     return tabColors[activeTab] || '';
