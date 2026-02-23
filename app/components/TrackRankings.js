@@ -491,7 +491,8 @@ return (
         songsByYear={songsByYear}
         selectedYear={yearRangeMode ? `${yearRange.startYear}-${yearRange.endYear}` : initialYear}
         briefObsessions={briefObsessions}
-        colorTheme={colorTheme} // Pass the colorTheme prop to match the tab's color
+        colorTheme={colorTheme}
+        colorMode={colorMode}
       />
     )}
 

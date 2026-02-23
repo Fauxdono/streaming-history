@@ -3429,6 +3429,7 @@ const SpotifyAnalyzer = ({
               yearRange={customYearRange}
               textTheme={customTextTheme}
               backgroundTheme={customBackgroundTheme}
+              colorTheme="emerald"
               initialArtists={selectedArtists}
               colorMode={colorMode}
               viewMode={customViewMode}

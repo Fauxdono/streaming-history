@@ -1135,6 +1135,7 @@ const ListeningPatterns = ({
           yearRangeMode={yearRangeMode}
           textTheme="yellow"
           backgroundTheme="yellow"
+          colorTheme="amber"
           colorMode={colorMode}
           viewMode={viewMode}
         />
