@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
-import { Mail, Check, Clock, Sparkles, BugIcon } from 'lucide-react';
+"use client";
+import React, { useState, useEffect, useMemo } from 'react';
+import { Mail, Check, Clock, Sparkles, BugIcon, ThumbsUp, Send } from 'lucide-react';
+import { useTheme } from './themeprovider';
+import { collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, limit } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { formatDistanceToNow } from 'date-fns';
 
 const UpdatesSection = () => {
-  // Past Updates - a log of changes and improvements
-  const pastUpdates = [
-    
-  ];
+  const { isDarkMode } = useTheme();
 
-  // Planned Updates - future improvements and features
-  const plannedUpdates = [
-   
-  ];
+  // Past Updates
+  const pastUpdates = [];
 
-  // Suggestions/Problems - placeholder for future feature
-  const [communitySuggestions, setCommunitySuggestions] = useState([
-    
-  ]);
+  // Planned Updates
+  const plannedUpdates = [];
 
   // Contact information
   const contactEmail = "phionnancake@gmail.com";
@@ -23,8 +21,120 @@ const UpdatesSection = () => {
   // Active tab state
   const [activeTab, setActiveTab] = useState('past-updates');
 
+  // Community Suggestions state
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('newest');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [newPostText, setNewPostText] = useState('');
+  const [newPostUsername, setNewPostUsername] = useState('');
+  const [newPostCategory, setNewPostCategory] = useState('feature-request');
+  const [submitting, setSubmitting] = useState(false);
+  const [votedPosts, setVotedPosts] = useState([]);
+
+  // Load saved username and voted posts from localStorage
+  useEffect(() => {
+    try {
+      const savedUsername = localStorage.getItem('suggestion_username');
+      if (savedUsername) setNewPostUsername(savedUsername);
+      const saved = JSON.parse(localStorage.getItem('voted_posts') || '[]');
+      setVotedPosts(saved);
+    } catch {}
+  }, []);
+
+  // Firestore real-time listener
+  useEffect(() => {
+    const q = query(collection(db, 'suggestions'), orderBy('createdAt', 'desc'), limit(100));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setPosts(data);
+      setLoading(false);
+    }, () => {
+      setLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  // Sorted and filtered posts
+  const displayPosts = useMemo(() => {
+    let filtered = posts;
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter((p) => p.category === filterCategory);
+    }
+    if (sortBy === 'most-voted') {
+      filtered = [...filtered].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    }
+    return filtered;
+  }, [posts, sortBy, filterCategory]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const text = newPostText.trim();
+    const username = newPostUsername.trim() || 'Anonymous';
+    if (!text || submitting) return;
+    setSubmitting(true);
+    try {
+      await addDoc(collection(db, 'suggestions'), {
+        text,
+        username,
+        category: newPostCategory,
+        votes: 0,
+        createdAt: serverTimestamp(),
+      });
+      localStorage.setItem('suggestion_username', username);
+      setNewPostText('');
+    } catch (err) {
+      console.error('Failed to submit:', err);
+    }
+    setSubmitting(false);
+  };
+
+  const handleVote = async (postId, currentVotes) => {
+    if (votedPosts.includes(postId)) return;
+    try {
+      await updateDoc(doc(db, 'suggestions', postId), { votes: (currentVotes || 0) + 1 });
+      const updated = [...votedPosts, postId];
+      setVotedPosts(updated);
+      localStorage.setItem('voted_posts', JSON.stringify(updated));
+    } catch (err) {
+      console.error('Failed to vote:', err);
+    }
+  };
+
+  const categories = [
+    { value: 'all', label: 'All' },
+    { value: 'feature-request', label: 'Feature' },
+    { value: 'bug-report', label: 'Bug' },
+    { value: 'general', label: 'General' },
+  ];
+
+  const categoryColors = {
+    'feature-request': 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+    'bug-report': 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+    'general': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+  };
+
+  const categoryLabels = { 'feature-request': 'Feature', 'bug-report': 'Bug', 'general': 'General' };
+
+  // Shared style helpers
+  const tabClass = (tab) =>
+    `px-4 py-2 font-medium ${
+      activeTab === tab
+        ? isDarkMode
+          ? 'text-violet-400 border-b-2 border-violet-400'
+          : 'text-violet-600 border-b-2 border-violet-600'
+        : isDarkMode
+        ? 'text-gray-400 hover:text-violet-300'
+        : 'text-gray-500 hover:text-violet-700'
+    }`;
+
+  const headingColor = isDarkMode ? 'text-violet-300' : 'text-violet-700';
+  const cardBg = isDarkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-violet-50 border-violet-200 hover:border-violet-300';
+  const textColor = isDarkMode ? 'text-gray-300' : 'text-violet-600';
+  const mutedText = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+
   const renderIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'release': return <Check className="text-green-500" />;
       case 'feature': return <Sparkles className="text-blue-500" />;
       case 'bug-fix': return <BugIcon className="text-red-500" />;
@@ -33,14 +143,14 @@ const UpdatesSection = () => {
   };
 
   const renderPriorityBadge = (priority) => {
-    switch(priority) {
-      case 'high': 
+    switch (priority) {
+      case 'high':
         return <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">High Priority</span>;
-      case 'medium': 
+      case 'medium':
         return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Medium Priority</span>;
-      case 'low': 
+      case 'low':
         return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Low Priority</span>;
-      default: 
+      default:
         return null;
     }
   };
@@ -48,56 +158,31 @@ const UpdatesSection = () => {
   return (
     <div className="space-y-4">
       {/* Tabs */}
-      <div className="flex border-b mb-4">
-   <button
-          onClick={() => setActiveTab('community-suggestions')}
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'community-suggestions' 
-              ? 'text-violet-600 border-b-2 border-violet-600' 
-              : 'text-gray-500 hover:text-violet-700'
-          }`}
-        >
+      <div className={`flex border-b mb-4 ${isDarkMode ? 'border-gray-700' : ''}`}>
+        <button onClick={() => setActiveTab('community-suggestions')} className={tabClass('community-suggestions')}>
           Suggestions/Bugs
         </button>
-        <button
-          onClick={() => setActiveTab('past-updates')}
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'past-updates' 
-              ? 'text-violet-600 border-b-2 border-violet-600' 
-              : 'text-gray-500 hover:text-violet-700'
-          }`}
-        >
+        <button onClick={() => setActiveTab('past-updates')} className={tabClass('past-updates')}>
           Past Updates
         </button>
-        <button
-          onClick={() => setActiveTab('planned-updates')}
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'planned-updates' 
-              ? 'text-violet-600 border-b-2 border-violet-600' 
-              : 'text-gray-500 hover:text-violet-700'
-          }`}
-        >
+        <button onClick={() => setActiveTab('planned-updates')} className={tabClass('planned-updates')}>
           Planned Updates
         </button>
-     
       </div>
 
       {activeTab === 'past-updates' && (
         <div className="space-y-4">
-          <h3 className="font-bold text-violet-700 text-lg">Version History</h3>
+          <h3 className={`font-bold text-lg ${headingColor}`}>Version History</h3>
           {pastUpdates.map((update, index) => (
-            <div 
-              key={index} 
-              className="bg-violet-50 p-4 rounded-lg border border-violet-200 hover:border-violet-300 transition-colors"
-            >
+            <div key={index} className={`p-4 rounded-lg border transition-colors ${cardBg}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   {renderIcon(update.type)}
-                  <span className="font-medium text-violet-700">Version {update.version}</span>
+                  <span className={`font-medium ${headingColor}`}>Version {update.version}</span>
                 </div>
-                <span className="text-sm text-violet-600">{update.date}</span>
+                <span className={`text-sm ${textColor}`}>{update.date}</span>
               </div>
-              <ul className="list-disc list-inside text-violet-600 space-y-1">
+              <ul className={`list-disc list-inside space-y-1 ${textColor}`}>
                 {update.changes.map((change, changeIndex) => (
                   <li key={changeIndex}>{change}</li>
                 ))}
@@ -109,17 +194,14 @@ const UpdatesSection = () => {
 
       {activeTab === 'planned-updates' && (
         <div className="space-y-4">
-          <h3 className="font-bold text-violet-700 text-lg">Upcoming Features</h3>
+          <h3 className={`font-bold text-lg ${headingColor}`}>Upcoming Features</h3>
           {plannedUpdates.map((update, index) => (
-            <div 
-              key={index} 
-              className="bg-violet-50 p-4 rounded-lg border border-violet-200 hover:border-violet-300 transition-colors"
-            >
+            <div key={index} className={`p-4 rounded-lg border transition-colors ${cardBg}`}>
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-bold text-violet-700">{update.title}</h4>
+                <h4 className={`font-bold ${headingColor}`}>{update.title}</h4>
                 {renderPriorityBadge(update.priority)}
               </div>
-              <p className="text-violet-600">{update.description}</p>
+              <p className={textColor}>{update.description}</p>
             </div>
           ))}
         </div>
@@ -127,49 +209,158 @@ const UpdatesSection = () => {
 
       {activeTab === 'community-suggestions' && (
         <div className="space-y-4">
-          <h3 className="font-bold text-violet-700 text-lg">Community Wishlist</h3>
-          {communitySuggestions.map((suggestion) => (
-            <div 
-              key={suggestion.id} 
-              className="bg-violet-50 p-4 rounded-lg border border-violet-200 hover:border-violet-300 transition-colors"
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-bold text-violet-700">{suggestion.suggestion}</h4>
-                <div className="flex items-center space-x-2">
-                  <span className="text-violet-600">{suggestion.votes} votes</span>
-                  <span 
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      suggestion.status === 'under-review' 
-                        ? 'bg-yellow-100 text-yellow-800' 
-                        : suggestion.status === 'planned'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {suggestion.status === 'under-review' ? 'Under Review' : 'Planned'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-          
-          <div className="bg-violet-50 p-4 rounded-lg border border-violet-200">
-            <h4 className="font-bold text-violet-700 mb-2 flex items-center">
-              <Mail className="mr-2 text-violet-600" /> Have a Suggestion?
-            </h4>
-            <p className="text-violet-600 mb-3">
-              We love hearing from our users! Share your ideas, feature requests, or report bugs.
-            </p>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-violet-700">Contact:</span>
-              <a 
-                href={`mailto:${contactEmail}`} 
-                className="text-violet-600 hover:text-violet-800 underline"
+          <h3 className={`font-bold text-lg ${headingColor}`}>Community Suggestions</h3>
+
+          {/* Sort & Filter Bar */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+              <button
+                onClick={() => setSortBy('newest')}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  sortBy === 'newest'
+                    ? isDarkMode ? 'bg-violet-600 text-white' : 'bg-violet-500 text-white'
+                    : isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
               >
-                {contactEmail}
-              </a>
+                Newest
+              </button>
+              <button
+                onClick={() => setSortBy('most-voted')}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  sortBy === 'most-voted'
+                    ? isDarkMode ? 'bg-violet-600 text-white' : 'bg-violet-500 text-white'
+                    : isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Most Voted
+              </button>
+            </div>
+            <div className="flex gap-1.5 ml-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => setFilterCategory(cat.value)}
+                  className={`px-3 py-1.5 text-sm rounded-full font-medium transition-colors ${
+                    filterCategory === cat.value
+                      ? isDarkMode ? 'bg-violet-600 text-white' : 'bg-violet-500 text-white'
+                      : isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
           </div>
+
+          {/* Post Form */}
+          <form onSubmit={handleSubmit} className={`p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-violet-50 border-violet-200'}`}>
+            <div className="flex flex-wrap gap-3 mb-3">
+              <input
+                type="text"
+                placeholder="Username (optional)"
+                value={newPostUsername}
+                onChange={(e) => setNewPostUsername(e.target.value.slice(0, 30))}
+                className={`px-3 py-2 rounded-lg border text-sm w-40 ${
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'
+                }`}
+              />
+              <div className="flex gap-1.5 items-center">
+                {[
+                  { value: 'feature-request', label: 'Feature' },
+                  { value: 'bug-report', label: 'Bug' },
+                  { value: 'general', label: 'General' },
+                ].map((cat) => (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => setNewPostCategory(cat.value)}
+                    className={`px-3 py-1.5 text-sm rounded-full font-medium transition-colors ${
+                      newPostCategory === cat.value
+                        ? isDarkMode ? 'bg-violet-600 text-white' : 'bg-violet-500 text-white'
+                        : isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <textarea
+                placeholder="Share a suggestion or report a bug..."
+                value={newPostText}
+                onChange={(e) => setNewPostText(e.target.value.slice(0, 500))}
+                rows={3}
+                className={`w-full px-3 py-2 rounded-lg border text-sm resize-none ${
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'
+                }`}
+              />
+              <span className={`absolute bottom-2 right-2 text-xs ${mutedText}`}>
+                {newPostText.length}/500
+              </span>
+            </div>
+            <div className="flex justify-end mt-2">
+              <button
+                type="submit"
+                disabled={!newPostText.trim() || submitting}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  !newPostText.trim() || submitting
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
+                    : isDarkMode
+                    ? 'bg-violet-600 text-white hover:bg-violet-500'
+                    : 'bg-violet-500 text-white hover:bg-violet-600'
+                }`}
+              >
+                <Send size={14} />
+                {submitting ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+          </form>
+
+          {/* Post List */}
+          {loading ? (
+            <div className={`text-center py-8 ${mutedText}`}>Loading suggestions...</div>
+          ) : displayPosts.length === 0 ? (
+            <div className={`text-center py-8 ${mutedText}`}>
+              {filterCategory !== 'all' ? 'No posts in this category yet.' : 'No suggestions yet. Be the first!'}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {displayPosts.map((post) => (
+                <div key={post.id} className={`p-4 rounded-lg border transition-colors ${cardBg}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className={`font-medium text-sm ${headingColor}`}>{post.username}</span>
+                        <span className={`text-xs ${mutedText}`}>
+                          {post.createdAt?.toDate
+                            ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })
+                            : 'just now'}
+                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[post.category] || ''}`}>
+                          {categoryLabels[post.category] || post.category}
+                        </span>
+                      </div>
+                      <p className={`text-sm ${textColor} whitespace-pre-wrap break-words`}>{post.text}</p>
+                    </div>
+                    <button
+                      onClick={() => handleVote(post.id, post.votes)}
+                      disabled={votedPosts.includes(post.id)}
+                      className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors shrink-0 ${
+                        votedPosts.includes(post.id)
+                          ? isDarkMode ? 'bg-violet-900/40 text-violet-400' : 'bg-violet-100 text-violet-600'
+                          : isDarkMode ? 'bg-gray-700 text-gray-400 hover:bg-violet-900/40 hover:text-violet-400' : 'bg-gray-100 text-gray-500 hover:bg-violet-100 hover:text-violet-600'
+                      }`}
+                      title={votedPosts.includes(post.id) ? 'Already voted' : 'Upvote'}
+                    >
+                      <ThumbsUp size={14} />
+                      <span className="text-xs font-medium">{post.votes || 0}</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
