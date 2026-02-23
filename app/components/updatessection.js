@@ -19,7 +19,7 @@ const UpdatesSection = () => {
   const contactEmail = "phionnancake@gmail.com";
 
   // Active tab state
-  const [activeTab, setActiveTab] = useState('past-updates');
+  const [activeTab, setActiveTab] = useState('community-suggestions');
 
   // Community Suggestions state
   const [posts, setPosts] = useState([]);
