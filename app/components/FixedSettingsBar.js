@@ -139,45 +139,6 @@ const FixedSettingsBar = ({
             </>
           ) : (
             <div className="flex items-center gap-1 px-2">
-              {/* Position toggle button */}
-              <button
-                onClick={togglePosition}
-                className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
-                title="Change tab position"
-              >
-                <ArrowLeftRight size={14} />
-              </button>
-
-              {/* Settings button */}
-              <button
-                ref={settingsButtonRef}
-                onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
-                title="Font Size Settings"
-              >
-                <Type size={14} />
-              </button>
-
-              {/* Analysis Settings button */}
-              <button
-                ref={analysisButtonRef}
-                onClick={() => setShowAnalysisSettings(!showAnalysisSettings)}
-                className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
-                title="Analysis Settings"
-              >
-                <Settings size={14} />
-              </button>
-
-              {/* Support button */}
-              <button
-                ref={supportButtonRef}
-                onClick={() => setShowSupportDropdown(!showSupportDropdown)}
-                className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
-                title="Support"
-              >
-                <Heart size={14} fill="white" />
-              </button>
-
               {/* Dark mode toggle */}
               <button
                 onClick={toggleTheme}
@@ -204,6 +165,45 @@ const FixedSettingsBar = ({
                 title={colorMode === 'minimal' ? 'Switch to colorful mode' : 'Switch to minimal mode'}
               >
                 <Palette size={14} />
+              </button>
+
+              {/* Settings button */}
+              <button
+                ref={settingsButtonRef}
+                onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
+                className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                title="Font & Display Settings"
+              >
+                <Type size={14} />
+              </button>
+
+              {/* Support button */}
+              <button
+                ref={supportButtonRef}
+                onClick={() => setShowSupportDropdown(!showSupportDropdown)}
+                className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                title="Support"
+              >
+                <Heart size={14} fill="white" />
+              </button>
+
+              {/* Analysis Settings button */}
+              <button
+                ref={analysisButtonRef}
+                onClick={() => setShowAnalysisSettings(!showAnalysisSettings)}
+                className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                title="Analysis Settings"
+              >
+                <Settings size={14} />
+              </button>
+
+              {/* Position toggle button */}
+              <button
+                onClick={togglePosition}
+                className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                title="Change tab position"
+              >
+                <ArrowLeftRight size={14} />
               </button>
             </div>
           )}
