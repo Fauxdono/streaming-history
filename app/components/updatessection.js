@@ -9,9 +9,6 @@ import { formatDistanceToNow } from 'date-fns';
 const UpdatesSection = () => {
   const { isDarkMode } = useTheme();
 
-  // Past Updates
-  const pastUpdates = [];
-
   // Contact information
   const contactEmail = "phionnancake@gmail.com";
 
@@ -32,9 +29,20 @@ const UpdatesSection = () => {
   const [showPINInput, setShowPINInput] = useState(null);
   const [adminPIN, setAdminPIN] = useState('');
   const [pinError, setPinError] = useState(null);
+  const [completeNotes, setCompleteNotes] = useState('');
 
   // Planned Updates — derived from promoted suggestions
   const plannedUpdates = useMemo(() => posts.filter((p) => p.status === 'planned'), [posts]);
+
+  // Past Updates — completed suggestions
+  const pastUpdates = useMemo(() =>
+    [...posts.filter((p) => p.status === 'completed')].sort((a, b) => {
+      const aTime = a.completedAt?.toDate?.() || new Date(0);
+      const bTime = b.completedAt?.toDate?.() || new Date(0);
+      return bTime - aTime;
+    }),
+    [posts]
+  );
 
   // Load saved username and voted posts from localStorage
   useEffect(() => {
@@ -163,6 +171,28 @@ const UpdatesSection = () => {
     }
   };
 
+  const handleComplete = async (postId) => {
+    if (adminPIN !== 'cake') {
+      setPinError(postId);
+      setTimeout(() => setPinError(null), 2000);
+      return;
+    }
+    try {
+      const post = posts.find((p) => p.id === postId);
+      await updateDoc(doc(db, 'suggestions', postId), {
+        status: 'completed',
+        completedNotes: completeNotes.trim(),
+        completedAt: serverTimestamp(),
+        votes: post?.votes || 0,
+      });
+      setShowPINInput(null);
+      setAdminPIN('');
+      setCompleteNotes('');
+    } catch (err) {
+      console.error('Failed to complete:', err);
+    }
+  };
+
   const categories = [
     { value: 'all', label: 'All' },
     { value: 'feature-request', label: 'Feature' },
@@ -236,23 +266,43 @@ const UpdatesSection = () => {
 
       {activeTab === 'past-updates' && (
         <div className="space-y-4">
-          <h3 className={`font-bold text-lg ${headingColor}`}>Version History</h3>
-          {pastUpdates.map((update, index) => (
-            <div key={index} className={`p-4 rounded-lg border transition-colors ${cardBg}`}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  {renderIcon(update.type)}
-                  <span className={`font-medium ${headingColor}`}>Version {update.version}</span>
+          <h3 className={`font-bold text-lg ${headingColor}`}>Past Updates</h3>
+          {pastUpdates.length === 0 ? (
+            <div className={`text-center py-8 ${mutedText}`}>No completed updates yet.</div>
+          ) : (
+            pastUpdates.map((post) => (
+              <div key={post.id} className={`p-4 rounded-lg border transition-colors ${cardBg}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className={`font-medium text-sm ${headingColor}`}>{post.username}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[post.category] || ''}`}>
+                        {categoryLabels[post.category] || post.category}
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300">
+                        Completed
+                      </span>
+                      {post.completedAt?.toDate && (
+                        <span className={`text-xs ${mutedText}`}>
+                          {formatDistanceToNow(post.completedAt.toDate(), { addSuffix: true })}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-sm ${textColor} whitespace-pre-wrap break-words`}>{post.text}</p>
+                    {post.completedNotes && (
+                      <div className={`mt-2 p-2 rounded text-sm ${isDarkMode ? 'bg-gray-700/50 text-gray-300' : 'bg-violet-100/50 text-violet-700'}`}>
+                        <span className="font-medium">Notes:</span> {post.completedNotes}
+                      </div>
+                    )}
+                  </div>
+                  <div className={`flex items-center gap-1 shrink-0 px-2 py-1.5 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                    <ThumbsUp size={14} className={mutedText} />
+                    <span className={`text-xs font-medium ${mutedText}`}>{post.votes || 0}</span>
+                  </div>
                 </div>
-                <span className={`text-sm ${textColor}`}>{update.date}</span>
               </div>
-              <ul className={`list-disc list-inside space-y-1 ${textColor}`}>
-                {update.changes.map((change, changeIndex) => (
-                  <li key={changeIndex}>{change}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 
@@ -276,6 +326,64 @@ const UpdatesSection = () => {
                       </span>
                     </div>
                     <p className={`text-sm ${textColor} whitespace-pre-wrap break-words`}>{post.text}</p>
+                    {/* Admin complete UI */}
+                    <div className="mt-2">
+                      {showPINInput === `complete-${post.id}` ? (
+                        <div className="flex flex-col gap-2">
+                          <textarea
+                            placeholder="Notes on what was implemented..."
+                            value={completeNotes}
+                            onChange={(e) => setCompleteNotes(e.target.value.slice(0, 500))}
+                            rows={2}
+                            className={`w-full px-2 py-1 rounded text-xs border resize-none ${
+                              isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'
+                            }`}
+                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="password"
+                              placeholder="PIN"
+                              value={adminPIN}
+                              onChange={(e) => setAdminPIN(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleComplete(post.id);
+                                if (e.key === 'Escape') { setShowPINInput(null); setAdminPIN(''); setCompleteNotes(''); }
+                              }}
+                              autoFocus
+                              className={`w-20 px-2 py-1 rounded text-xs border ${
+                                isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-800'
+                              }`}
+                            />
+                            <button
+                              onMouseDown={(e) => { e.preventDefault(); handleComplete(post.id); }}
+                              className={`text-xs px-2 py-1 rounded ${isDarkMode ? 'bg-violet-700 text-violet-200 hover:bg-violet-600' : 'bg-violet-100 text-violet-700 hover:bg-violet-200'}`}
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onMouseDown={(e) => { e.preventDefault(); setShowPINInput(null); setAdminPIN(''); setCompleteNotes(''); }}
+                              className={`text-xs px-2 py-1 rounded ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                              Cancel
+                            </button>
+                            {pinError === post.id && (
+                              <span className="text-xs text-red-500">Wrong PIN</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => { setShowPINInput(`complete-${post.id}`); setAdminPIN(''); setCompleteNotes(''); setPinError(null); }}
+                          className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                            isDarkMode ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                          }`}
+                          title="Mark as completed"
+                        >
+                          <Check size={12} />
+                          Complete
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className={`flex items-center gap-1 shrink-0 px-2 py-1.5 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                     <ThumbsUp size={14} className={mutedText} />
@@ -433,9 +541,14 @@ const UpdatesSection = () => {
                             Planned
                           </span>
                         )}
+                        {post.status === 'completed' && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300">
+                            Completed
+                          </span>
+                        )}
                       </div>
                       <p className={`text-sm ${textColor} whitespace-pre-wrap break-words`}>{post.text}</p>
-                      {/* Admin promote UI */}
+                      {/* Admin promote UI — hidden for planned and completed */}
                       {(!post.status || post.status === 'open') && (
                         <div className="mt-2">
                           {showPINInput === post.id ? (
