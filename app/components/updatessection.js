@@ -140,15 +140,17 @@ const UpdatesSection = () => {
     { value: 'feature-request', label: 'Feature' },
     { value: 'bug-report', label: 'Bug' },
     { value: 'general', label: 'General' },
+    { value: 'random', label: 'Random' },
   ];
 
   const categoryColors = {
     'feature-request': 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
     'bug-report': 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
     'general': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+    'random': 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
   };
 
-  const categoryLabels = { 'feature-request': 'Feature', 'bug-report': 'Bug', 'general': 'General' };
+  const categoryLabels = { 'feature-request': 'Feature', 'bug-report': 'Bug', 'general': 'General', 'random': 'Random' };
 
   // Shared style helpers
   const tabClass = (tab) =>
@@ -309,6 +311,7 @@ const UpdatesSection = () => {
                   { value: 'feature-request', label: 'Feature' },
                   { value: 'bug-report', label: 'Bug' },
                   { value: 'general', label: 'General' },
+                  { value: 'random', label: 'Random' },
                 ].map((cat) => (
                   <button
                     key={cat.value}
