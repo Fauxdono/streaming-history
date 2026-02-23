@@ -414,7 +414,7 @@ const TopTabs = ({
   // Tabs component for reuse
   const TabsContainer = () => (
     <div className="flex gap-0 min-w-max text-sm sm:text-base">
-      {stats && <TabButton id="updates" label="Updates" />}
+      <TabButton id="updates" label="Updates" />
       <TabButton id="upload" label="Upload" />
       {stats && <TabButton id="stats" label="Statistics" />}
       {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
@@ -468,7 +468,7 @@ const TopTabs = ({
           // Vertical layout for left and right positions
           <div className="overflow-y-auto main-tabs-scrollbar max-h-full py-4">
             <div className="flex flex-col gap-0 min-h-max text-sm sm:text-base">
-              {stats && <TabButton id="updates" label="Updates" />}
+              <TabButton id="updates" label="Updates" />
               <TabButton id="upload" label="Upload" />
               {stats && <TabButton id="stats" label="Statistics" />}
               {topArtists.length > 0 && <TabButton id="artists" label={getArtistsTabLabel()} />}
