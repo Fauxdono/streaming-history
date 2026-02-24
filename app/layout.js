@@ -75,7 +75,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} ${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${spaceGrotesk.variable} ${outfit.variable} ${dmSans.variable} ${sora.variable} ${lexend.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="application-name" content="Cake" />
@@ -148,7 +148,7 @@ export default function RootLayout({ children }) {
         }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} ${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${spaceGrotesk.variable} ${outfit.variable} ${dmSans.variable} ${sora.variable} ${lexend.variable} antialiased`}
+        className="antialiased"
       >
         <ThemeProvider>
           {children}
