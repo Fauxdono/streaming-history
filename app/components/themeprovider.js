@@ -162,7 +162,12 @@ export const ThemeProvider = ({ children }) => {
     const root = window.document.documentElement;
 
     // Remove all font family classes
-    root.classList.remove('font-sans', 'font-serif', 'font-mono', 'font-comic');
+    root.classList.remove(
+      'font-sans', 'font-serif', 'font-mono', 'font-comic',
+      'font-inter', 'font-jetbrains-mono', 'font-playfair', 'font-space-grotesk',
+      'font-outfit', 'font-dm-sans', 'font-sora', 'font-lexend',
+      'font-cursive', 'font-system-ui', 'font-fantasy'
+    );
 
     // Add current font family class
     root.classList.add(`font-${fontFamily}`);
