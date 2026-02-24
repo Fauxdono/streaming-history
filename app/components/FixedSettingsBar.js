@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportDropdown from './SupportDropdown.js';
 import AnalysisSettingsDropdown from './AnalysisSettingsDropdown.js';
-import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings, Sun, Moon, Palette, RotateCcw } from 'lucide-react';
+import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings, Sun, Moon, Palette } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 
 const FixedSettingsBar = ({
@@ -34,15 +34,6 @@ const FixedSettingsBar = ({
   const toggleViewMode = () => {
     const alternateMode = getAlternateViewMode();
     setViewMode(viewMode === 'grid' ? alternateMode : 'grid');
-  };
-
-  const resetYearSelector = () => {
-    localStorage.removeItem('yearSelectorFloating');
-    localStorage.removeItem('yearSelectorFloatPos');
-    localStorage.removeItem('yearSelectorFloatScale');
-    localStorage.removeItem('yearSelectorFloatOrientation');
-    localStorage.removeItem('yearSelectorPosition');
-    window.location.reload();
   };
 
   const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
@@ -138,13 +129,6 @@ const FixedSettingsBar = ({
                   </button>
                 )}
                 <button
-                  onClick={resetYearSelector}
-                  className="p-1.5 rounded-full bg-amber-600 text-white hover:bg-amber-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
-                  title="Reset year selector position"
-                >
-                  <RotateCcw size={16} />
-                </button>
-                <button
                   onClick={togglePosition}
                   className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
                   title="Change tab position"
@@ -211,15 +195,6 @@ const FixedSettingsBar = ({
                 title="Analysis Settings"
               >
                 <Settings size={14} />
-              </button>
-
-              {/* Reset year selector button */}
-              <button
-                onClick={resetYearSelector}
-                className="p-1.5 rounded-full bg-amber-600 text-white hover:bg-amber-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
-                title="Reset year selector position"
-              >
-                <RotateCcw size={14} />
               </button>
 
               {/* Position toggle button */}
