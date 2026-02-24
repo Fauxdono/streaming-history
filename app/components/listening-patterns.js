@@ -6,6 +6,7 @@ import TrackRankings from './TrackRankings.js';
 import { useTheme } from './themeprovider.js'; // Import the theme hook
 
 const WorldMap = dynamic(() => import('react-svg-worldmap').then(mod => mod.WorldMap ? { default: mod.WorldMap } : mod), { ssr: false });
+const HologramGlobe = dynamic(() => import('./HologramGlobe.js'), { ssr: false });
 
 const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
@@ -42,6 +43,7 @@ const ListeningPatterns = ({
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [mapView, setMapView] = useState('flat');
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
@@ -1176,32 +1178,58 @@ const ListeningPatterns = ({
           {locationData.length > 0 ? (
             <>
               {!selectedCountry && (
-                <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center overflow-x-auto`}>
-                  <WorldMap
-                    color={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
-                    valueSuffix=" plays"
-                    size="xxl"
-                    data={locationData}
-                    backgroundColor={isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#000000' : '#ffffff')}
-                    tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
-                    tooltipTextColor={isDarkMode ? '#ffffff' : '#000000'}
-                    borderColor={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
-                    strokeOpacity={isColorful ? 0.6 : 0.3}
-                    richInteraction
-                    onClickFunction={({ countryCode, countryName }) => {
-                      const code = countryCode.toUpperCase();
-                      const loc = locationData.find(l => l.code === code);
-                      if (loc) setSelectedCountry({ code, name: loc.name });
-                    }}
-                    styleFunction={({ countryCode, color, minValue, maxValue, countryValue }) => ({
-                      fill: countryValue ? color : isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#1a1a1a' : '#f0f0f0'),
-                      stroke: isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000'),
-                      strokeWidth: 0.5,
-                      strokeOpacity: isColorful ? 0.6 : 0.3,
-                      cursor: countryValue ? 'pointer' : 'default',
-                    })}
-                  />
-                </div>
+                <>
+                  <div className="flex justify-end mb-2">
+                    <button
+                      onClick={() => setMapView(mapView === 'flat' ? 'globe' : 'flat')}
+                      className={`px-3 py-1 text-xs font-bold rounded border transition-all ${colors.buttonInactive}`}
+                    >
+                      {mapView === 'flat' ? 'Globe' : 'Map'}
+                    </button>
+                  </div>
+                  {mapView === 'flat' ? (
+                    <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center overflow-x-auto`}>
+                      <WorldMap
+                        color={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
+                        valueSuffix=" plays"
+                        size="xxl"
+                        data={locationData}
+                        backgroundColor={isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#000000' : '#ffffff')}
+                        tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
+                        tooltipTextColor={isDarkMode ? '#ffffff' : '#000000'}
+                        borderColor={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
+                        strokeOpacity={isColorful ? 0.6 : 0.3}
+                        richInteraction
+                        onClickFunction={({ countryCode, countryName }) => {
+                          const code = countryCode.toUpperCase();
+                          const loc = locationData.find(l => l.code === code);
+                          if (loc) setSelectedCountry({ code, name: loc.name });
+                        }}
+                        styleFunction={({ countryCode, color, minValue, maxValue, countryValue }) => ({
+                          fill: countryValue ? color : isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#1a1a1a' : '#f0f0f0'),
+                          stroke: isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000'),
+                          strokeWidth: 0.5,
+                          strokeOpacity: isColorful ? 0.6 : 0.3,
+                          cursor: countryValue ? 'pointer' : 'default',
+                        })}
+                      />
+                    </div>
+                  ) : (
+                    <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center`}>
+                      <HologramGlobe
+                        locationData={locationData}
+                        onCountryClick={({ countryCode, countryName }) => {
+                          const code = countryCode.toUpperCase();
+                          const loc = locationData.find(l => l.code === code);
+                          if (loc) setSelectedCountry({ code, name: loc.name });
+                        }}
+                        isDarkMode={isDarkMode}
+                        isColorful={isColorful}
+                        colors={colors}
+                      />
+                    </div>
+                  )}
+                </>
               )}
 
               {selectedCountry ? (() => {
