@@ -49,10 +49,10 @@ const HologramGlobe = ({ locationData = [], onCountryClick, isDarkMode, isColorf
       hoverGlow: '#facc15', tooltipBg: '#1F2937', tooltipText: '#ffffff'
     };
     if (isColorful && !isDarkMode) return {
-      glow: '#a16207', glowRgb: '161,98,7', grid: '#ca8a04', gridOpacity: 0.25,
-      border: '#a16207', countryBase: '#fef9c3', countryFill: '#a16207',
-      ocean: '#fffbeb', outline: '#a16207', scanline: '#a16207', bg: 'transparent',
-      hoverGlow: '#ca8a04', tooltipBg: '#ffffff', tooltipText: '#000000'
+      glow: '#854d0e', glowRgb: '133,77,14', grid: '#92400e', gridOpacity: 0.35,
+      border: '#854d0e', countryBase: '#fef3c7', countryFill: '#78350f',
+      ocean: '#fef9c3', outline: '#854d0e', scanline: '#854d0e', bg: 'transparent',
+      hoverGlow: '#92400e', tooltipBg: '#ffffff', tooltipText: '#000000'
     };
     if (!isColorful && isDarkMode) return {
       glow: '#00ffcc', glowRgb: '0,255,204', grid: '#00ffcc', gridOpacity: 0.2,
@@ -62,10 +62,10 @@ const HologramGlobe = ({ locationData = [], onCountryClick, isDarkMode, isColorf
     };
     // minimal light
     return {
-      glow: '#0d6e5e', glowRgb: '13,110,94', grid: '#0d6e5e', gridOpacity: 0.2,
-      border: '#0d6e5e', countryBase: '#f0fdf9', countryFill: '#0d6e5e',
-      ocean: '#ffffff', outline: '#0d6e5e', scanline: '#0d6e5e', bg: 'transparent',
-      hoverGlow: '#0f766e', tooltipBg: '#ffffff', tooltipText: '#000000'
+      glow: '#000000', glowRgb: '0,0,0', grid: '#000000', gridOpacity: 0.2,
+      border: '#000000', countryBase: '#f0f0f0', countryFill: '#000000',
+      ocean: '#ffffff', outline: '#000000', scanline: '#000000', bg: 'transparent',
+      hoverGlow: '#333333', tooltipBg: '#ffffff', tooltipText: '#000000'
     };
   }, [isDarkMode, isColorful]);
 
