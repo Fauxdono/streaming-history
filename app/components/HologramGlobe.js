@@ -232,7 +232,7 @@ const HologramGlobe = ({ locationData = [], onCountryClick, isDarkMode, isColorf
       <svg
         ref={svgRef}
         viewBox={`0 0 ${size} ${size}`}
-        className="hologram-globe w-full max-w-[600px]"
+        className="hologram-globe w-full max-w-[900px]"
         style={{ cursor: isDragging ? 'grabbing' : 'grab', background: theme.bg }}
         onMouseDown={handlePointerDown}
         onTouchStart={handlePointerDown}
