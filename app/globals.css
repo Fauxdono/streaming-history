@@ -58,6 +58,50 @@ body {
   font-family: 'Comic Neue', 'Comic Sans MS', cursive;
 }
 
+.font-inter {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+}
+
+.font-jetbrains-mono {
+  font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+}
+
+.font-playfair {
+  font-family: var(--font-playfair), 'Playfair Display', serif;
+}
+
+.font-space-grotesk {
+  font-family: var(--font-space-grotesk), 'Space Grotesk', sans-serif;
+}
+
+.font-outfit {
+  font-family: var(--font-outfit), 'Outfit', sans-serif;
+}
+
+.font-dm-sans {
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+.font-sora {
+  font-family: var(--font-sora), 'Sora', sans-serif;
+}
+
+.font-lexend {
+  font-family: var(--font-lexend), 'Lexend', sans-serif;
+}
+
+.font-cursive {
+  font-family: 'Brush Script MT', 'Segoe Script', cursive;
+}
+
+.font-system-ui {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.font-fantasy {
+  font-family: Papyrus, fantasy;
+}
+
 /* ============================================
    FONT SIZE SYSTEM
    ============================================ */

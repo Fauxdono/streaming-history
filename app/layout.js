@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Comic_Neue } from "next/font/google";
+import { Geist, Geist_Mono, Comic_Neue, Inter, JetBrains_Mono, Playfair_Display, Space_Grotesk, Outfit, DM_Sans, Sora, Lexend } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { ThemeProvider } from "./components/themeprovider.js";
@@ -15,6 +15,38 @@ const comicNeue = Comic_Neue({
   weight: ['700'],
   subsets: ['latin'],
   variable: '--font-comic-neue',
+});
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+});
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+});
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+});
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+});
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+});
+const sora = Sora({
+  subsets: ['latin'],
+  variable: '--font-sora',
+});
+const lexend = Lexend({
+  subsets: ['latin'],
+  variable: '--font-lexend',
 });
 
 export const metadata = {
@@ -101,7 +133,7 @@ export default function RootLayout({ children }) {
         }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} ${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${spaceGrotesk.variable} ${outfit.variable} ${dmSans.variable} ${sora.variable} ${lexend.variable} antialiased`}
       >
         <ThemeProvider>
           {children}

@@ -20,7 +20,18 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
     { value: 'sans', label: 'Sans-serif', preview: '-apple-system, BlinkMacSystemFont, sans-serif' },
     { value: 'serif', label: 'Serif', preview: 'Georgia, Times New Roman, serif' },
     { value: 'mono', label: 'Monospace', preview: 'Monaco, Courier New, monospace' },
-    { value: 'comic', label: 'Comic Sans', preview: 'Comic Sans MS, cursive' }
+    { value: 'comic', label: 'Comic Sans', preview: 'Comic Sans MS, cursive' },
+    { value: 'inter', label: 'Inter', preview: 'var(--font-inter), Inter, sans-serif' },
+    { value: 'jetbrains-mono', label: 'JetBrains Mono', preview: 'var(--font-jetbrains-mono), JetBrains Mono, monospace' },
+    { value: 'playfair', label: 'Playfair Display', preview: 'var(--font-playfair), Playfair Display, serif' },
+    { value: 'space-grotesk', label: 'Space Grotesk', preview: 'var(--font-space-grotesk), Space Grotesk, sans-serif' },
+    { value: 'outfit', label: 'Outfit', preview: 'var(--font-outfit), Outfit, sans-serif' },
+    { value: 'dm-sans', label: 'DM Sans', preview: 'var(--font-dm-sans), DM Sans, sans-serif' },
+    { value: 'sora', label: 'Sora', preview: 'var(--font-sora), Sora, sans-serif' },
+    { value: 'lexend', label: 'Lexend', preview: 'var(--font-lexend), Lexend, sans-serif' },
+    { value: 'cursive', label: 'Cursive', preview: 'Brush Script MT, Segoe Script, cursive' },
+    { value: 'system-ui', label: 'System UI', preview: 'system-ui, -apple-system, sans-serif' },
+    { value: 'fantasy', label: 'Fantasy', preview: 'Papyrus, fantasy' }
   ];
 
   // Handle clicks outside dropdown
@@ -181,7 +192,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
         <div className={`text-xs mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           Font Family
         </div>
-        <div className="max-h-32 overflow-y-auto space-y-1">
+        <div className="max-h-48 overflow-y-auto space-y-1">
           {fontFamilyOptions.map((option) => (
             <button
               key={option.value}
