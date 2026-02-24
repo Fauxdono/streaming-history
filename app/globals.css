@@ -26,6 +26,11 @@
   --bg-subtle: #0a0a0a;
 }
 
+/* Prevent double-tap zoom on mobile */
+* {
+  touch-action: manipulation;
+}
+
 body {
   color: var(--fg);
   background: var(--bg);

@@ -67,12 +67,34 @@ export default function RootLayout({ children }) {
           __html: `
             (function() {
               try {
-                const savedFontSize = localStorage.getItem('app-font-size') || 'medium';
+                var savedFontSize = localStorage.getItem('app-font-size') || 'medium';
                 document.documentElement.classList.remove('font-small', 'font-medium', 'font-large', 'font-xlarge');
                 document.documentElement.classList.add('font-' + savedFontSize);
               } catch (e) {
-                // Fallback if localStorage is not available
                 document.documentElement.classList.add('font-medium');
+              }
+
+              // Prevent pinch-to-zoom on iOS Safari (ignores viewport meta)
+              document.addEventListener('touchmove', function(e) {
+                if (e.touches.length > 1) e.preventDefault();
+              }, { passive: false });
+              document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+              document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+              document.addEventListener('gestureend', function(e) { e.preventDefault(); });
+
+              // Snap back if zoom somehow occurs (e.g. double-tap, iOS accessibility)
+              if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', function() {
+                  if (window.visualViewport.scale > 1) {
+                    document.body.style.transform = 'scale(' + (1 / window.visualViewport.scale) + ')';
+                    document.body.style.transformOrigin = '0 0';
+                    document.body.style.width = (window.visualViewport.scale * 100) + '%';
+                  } else {
+                    document.body.style.transform = '';
+                    document.body.style.transformOrigin = '';
+                    document.body.style.width = '';
+                  }
+                });
               }
             })();
           `
