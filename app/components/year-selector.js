@@ -1015,10 +1015,10 @@ const YearSelector = ({
       if (!isDraggingFloatRef.current) return;
       const mx = me.touches ? me.touches[0].clientX : me.clientX;
       const my = me.touches ? me.touches[0].clientY : me.clientY;
-      setFloatPos({
-        x: Math.max(0, Math.min(window.innerWidth - 50, mx - dragOffsetRef.current.x)),
-        y: Math.max(0, Math.min(window.innerHeight - 50, my - dragOffsetRef.current.y))
-      });
+      setFloatPos(clampFloatPos({
+        x: mx - dragOffsetRef.current.x,
+        y: my - dragOffsetRef.current.y
+      }));
     };
     const onEnd = () => {
       isDraggingFloatRef.current = false;
@@ -1084,19 +1084,32 @@ const YearSelector = ({
     });
   }, [floatPos, onWidthChange, onHeightChange]);
 
+  // Clamp floating position to keep panel visible within viewport
+  const clampFloatPos = useCallback((pos) => {
+    if (typeof window === 'undefined') return pos;
+    return {
+      x: Math.max(0, Math.min(pos.x, window.innerWidth - 120)),
+      y: Math.max(0, Math.min(pos.y, window.innerHeight - 60))
+    };
+  }, []);
+
+  // Recover floating panel if off-screen on mount or when entering floating mode
+  useEffect(() => {
+    if (!isMobile && isFloating) {
+      setFloatPos(prev => clampFloatPos(prev));
+    }
+  }, [isMobile, isFloating, clampFloatPos]);
+
   // Clamp floating position on window resize
   useEffect(() => {
     const handleResize = () => {
       if (!isMobile && isFloating) {
-        setFloatPos(prev => ({
-          x: Math.min(prev.x, window.innerWidth - 50),
-          y: Math.min(prev.y, window.innerHeight - 50)
-        }));
+        setFloatPos(prev => clampFloatPos(prev));
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isMobile, isFloating]);
+  }, [isMobile, isFloating, clampFloatPos]);
 
   // Handle mode changes efficiently
   const handleModeChange = useCallback((newMode) => {
