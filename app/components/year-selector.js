@@ -953,16 +953,16 @@ const YearSelector = ({
     return <div className={colors.text + " italic"}>No year data available</div>;
   }
   
-  // When horizontal, always force expanded
+  // When horizontal or floating, always force expanded
   useEffect(() => {
-    if (isHorizontal) setExpanded(true);
-  }, [isHorizontal]);
+    if (isHorizontal || isFloating) setExpanded(true);
+  }, [isHorizontal, isFloating]);
 
-  // Toggle sidebar expand/collapse (disabled when horizontal - always expanded)
+  // Toggle sidebar expand/collapse (disabled when horizontal or floating)
   const toggleExpanded = useCallback(() => {
-    if (isHorizontal) return;
+    if (isHorizontal || isFloating) return;
     setExpanded(prev => !prev);
-  }, [isHorizontal]);
+  }, [isHorizontal, isFloating]);
   
   // Toggle sidebar position - cycles through right, bottom, left, top with memory
   const togglePosition = useCallback(() => {
@@ -1729,8 +1729,8 @@ const YearSelector = ({
     };
   }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, fontScale, isFloating, floatPos]);
 
-  // If not expanded, show a mini sidebar
-  if (!expanded && asSidebar) {
+  // If not expanded, show a mini sidebar (never collapse when floating or horizontal)
+  if (!expanded && asSidebar && !isFloating && !isHorizontal) {
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
     const desktopFloating = !isMobile && isFloating;
@@ -2028,8 +2028,8 @@ const YearSelector = ({
           <div className="w-8 h-1 rounded-full bg-current opacity-30" />
         </div>
       )}
-      {/* Collapse button for sidebar (hidden when horizontal - always expanded) */}
-      {asSidebar && !isHorizontal && (
+      {/* Collapse button for sidebar (hidden when horizontal or floating - always expanded) */}
+      {asSidebar && !isHorizontal && !isFloating && (
         <button
           onClick={toggleExpanded}
           className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
