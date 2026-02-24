@@ -112,6 +112,27 @@ const SimpleGoogleDrive = ({
     setError('');
 
     try {
+      // Strip rawPlayData to only fields the app actually uses
+      const strippedRawPlayData = rawPlayData.map(entry => {
+        const slim = {
+          ts: entry.ts,
+          ms_played: entry.ms_played,
+          master_metadata_track_name: entry.master_metadata_track_name,
+          master_metadata_album_artist_name: entry.master_metadata_album_artist_name,
+          master_metadata_album_album_name: entry.master_metadata_album_album_name,
+          reason_end: entry.reason_end,
+        };
+        if (entry.reason_start) slim.reason_start = entry.reason_start;
+        if (entry.shuffle) slim.shuffle = entry.shuffle;
+        if (entry.platform) slim.platform = entry.platform;
+        if (entry.conn_country) slim.conn_country = entry.conn_country;
+        if (entry.country) slim.country = entry.country;
+        if (entry.episode_name) slim.episode_name = entry.episode_name;
+        if (entry.episode_show_name) slim.episode_show_name = entry.episode_show_name;
+        if (entry.source) slim.source = entry.source;
+        return slim;
+      });
+
       const saveData = {
         stats,
         processedTracks: processedData,
@@ -119,14 +140,14 @@ const SimpleGoogleDrive = ({
         topAlbums,
         briefObsessions,
         songsByYear,
-        rawPlayData,
+        rawPlayData: strippedRawPlayData,
         metadata: {
           savedAt: new Date().toISOString(),
           totalTracks: processedData.length
         }
       };
 
-      const jsonString = JSON.stringify(saveData, null, 2);
+      const jsonString = JSON.stringify(saveData);
       const fileName = `streaming-analysis-${new Date().toISOString().split('T')[0]}.json`;
       
       // Create file in Google Drive

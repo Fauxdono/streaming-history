@@ -733,6 +733,27 @@ const GoogleDriveSync = ({
       setSaveProgress({ step: totalSteps, total: totalSteps, message: 'Uploading analysis file...' });
       
       // Prepare the analysis data with additional metadata
+      // Strip rawPlayData to only fields the app actually uses (saves ~60-70% size)
+      const strippedRawPlayData = rawPlayData.map(entry => {
+        const slim = {
+          ts: entry.ts,
+          ms_played: entry.ms_played,
+          master_metadata_track_name: entry.master_metadata_track_name,
+          master_metadata_album_artist_name: entry.master_metadata_album_artist_name,
+          master_metadata_album_album_name: entry.master_metadata_album_album_name,
+          reason_end: entry.reason_end,
+        };
+        if (entry.reason_start) slim.reason_start = entry.reason_start;
+        if (entry.shuffle) slim.shuffle = entry.shuffle;
+        if (entry.platform) slim.platform = entry.platform;
+        if (entry.conn_country) slim.conn_country = entry.conn_country;
+        if (entry.country) slim.country = entry.country;
+        if (entry.episode_name) slim.episode_name = entry.episode_name;
+        if (entry.episode_show_name) slim.episode_show_name = entry.episode_show_name;
+        if (entry.source) slim.source = entry.source;
+        return slim;
+      });
+
       const saveData = {
         stats,
         processedTracks: processedData,
@@ -740,21 +761,21 @@ const GoogleDriveSync = ({
         topAlbums,
         briefObsessions,
         songsByYear,
-        rawPlayData,
+        rawPlayData: strippedRawPlayData,
         artistsByYear,
         albumsByYear,
         streaks,
         metadata: {
           savedAt: new Date().toISOString(),
           totalTracks: processedData.length,
-          version: '1.1', // Increment version since we're adding year data
+          version: '1.2',
           originalFiles: originalFiles.map(f => ({ name: f.name, size: f.size })),
           folderStructure: 'cakeculator',
           includesYearData: true
         }
       };
 
-      const jsonString = JSON.stringify(saveData, null, 2);
+      const jsonString = JSON.stringify(saveData);
       const fileName = `analysis-${new Date().toISOString().split('T')[0]}.json`;
       const sizeInMB = (jsonString.length / (1024 * 1024)).toFixed(2);
 
