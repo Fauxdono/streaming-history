@@ -1912,7 +1912,12 @@ const YearSelector = ({
     width: isHorizontal ? 'auto' : `${baseDimensions.width}px`,
     height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
-    zoom: desktopFloating ? floatScale * dimFontScale : dimFontScale,
+    ...(desktopFloating ? {
+      transform: `scale(${floatScale * dimFontScale})`,
+      transformOrigin: 'top left',
+    } : {
+      zoom: dimFontScale,
+    }),
   } : {};
 
   // Tailwind JIT-safe grid column classes (1-12 are standard Tailwind)
