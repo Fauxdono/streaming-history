@@ -322,7 +322,7 @@ const SpotifyAnalyzer = ({
   // TopTabs position state - initialize based on screen size
   const [topTabsPosition, setTopTabsPosition] = useState(() => {
     if (typeof window !== 'undefined') {
-      return window.innerWidth < 640 ? 'bottom' : 'top';
+      return 'top';
     }
     return 'top'; // SSR fallback
   });
