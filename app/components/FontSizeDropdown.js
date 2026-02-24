@@ -7,6 +7,14 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
   const { theme, fontSize, setFontSize, fontFamily, setFontFamily, minPlayDuration, setMinPlayDuration, skipFilter, setSkipFilter, fullListenOnly, setFullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
   const dropdownRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const handleFontSizeChange = (newSize) => {
     setFontSize(newSize);
@@ -60,7 +68,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const dropdownWidth = 280;
+      const dropdownWidth = window.innerWidth >= 768 ? 560 : 280;
       
       let left = buttonRect.left + buttonRect.width / 2 - dropdownWidth / 2;
       let top = buttonRect.bottom + 8;
@@ -107,7 +115,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
       style={{
         top: position.top,
         left: position.left,
-        minWidth: '240px'
+        minWidth: isMobile ? '240px' : '540px'
       }}
     >
       {/* Font Size Slider */}
@@ -192,7 +200,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
         <div className={`text-xs mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           Font Family
         </div>
-        <div className="max-h-48 overflow-y-auto space-y-1">
+        <div className={isMobile ? "max-h-48 overflow-y-auto space-y-1" : "grid grid-cols-4 gap-1"}>
           {fontFamilyOptions.map((option) => (
             <button
               key={option.value}
