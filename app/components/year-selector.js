@@ -127,8 +127,8 @@ const YearSelector = ({
     if (mode === 'single') {
       if (isHorizontal && !isMobilePortraitHz) {
         // Desktop horizontal: years in one row, month/day grids are side-by-side (flex-row)
-        // Height is max of sections, not sum
-        let h = 44; // base: mode buttons row + year row
+        // Height is max of sections, not sum; minimum 48 to match collapsed bar height
+        let h = 48; // base: at least as tall as collapsed bar
         if (showMonthSelector) h = Math.max(h, 56); // 12 months in 1 row
         if (showDaySelector) h = Math.max(h, 56); // 31 days in 1 row
         return { width: 200, height: h };
@@ -145,7 +145,7 @@ const YearSelector = ({
     if (mode === 'range') {
       if (isHorizontal && !isMobilePortraitHz) {
         // Desktop horizontal: year grid in one row, month/day grids side-by-side
-        let h = 50; // base: mode buttons + year row + instruction label
+        let h = 50; // base: mode buttons + year row + instruction label (min 48 for collapsed bar)
         if (showRangeMonthDaySelectors) h = Math.max(h, 80); // month grids 2 rows
         if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 100); // day grids 3 rows
         return { width: 300, height: h };
@@ -953,10 +953,16 @@ const YearSelector = ({
     return <div className={colors.text + " italic"}>No year data available</div>;
   }
   
-  // Toggle sidebar expand/collapse
+  // When horizontal, always force expanded
+  useEffect(() => {
+    if (isHorizontal) setExpanded(true);
+  }, [isHorizontal]);
+
+  // Toggle sidebar expand/collapse (disabled when horizontal - always expanded)
   const toggleExpanded = useCallback(() => {
+    if (isHorizontal) return;
     setExpanded(prev => !prev);
-  }, []);
+  }, [isHorizontal]);
   
   // Toggle sidebar position - cycles through right, bottom, left, top with memory
   const togglePosition = useCallback(() => {
@@ -2009,20 +2015,14 @@ const YearSelector = ({
           <div className="w-8 h-1 rounded-full bg-current opacity-30" />
         </div>
       )}
-      {/* Collapse button for sidebar */}
-      {asSidebar && (
+      {/* Collapse button for sidebar (hidden when horizontal - always expanded) */}
+      {asSidebar && !isHorizontal && (
         <button
           onClick={toggleExpanded}
-          className={`${
-            currentPosition === 'bottom'
-              ? 'absolute right-2 top-1/2 -translate-y-8'
-              : currentPosition === 'top'
-              ? 'absolute right-2 bottom-1/2 translate-y-8'
-              : `absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20`
-          } p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Collapse sidebar"
         >
-          <span className={colors.textActive}>{currentPosition === 'bottom' ? '↓' : currentPosition === 'top' ? '↑' : currentPosition === 'left' ? '←' : '→'}</span>
+          <span className={colors.textActive}>{currentPosition === 'left' ? '←' : '→'}</span>
         </button>
       )}
       
