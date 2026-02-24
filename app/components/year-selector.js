@@ -2543,7 +2543,7 @@ const YearSelector = ({
             )}
           </div>
         ) : (
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+          <div className={`${desktopFloating ? 'mt-2 pb-2' : 'absolute bottom-2'} left-0 right-0 flex justify-center gap-2`}>
             {asSidebar && desktopFloating ? (
               /* Floating: dock + orientation buttons */
               <>
