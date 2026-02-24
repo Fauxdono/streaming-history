@@ -128,6 +128,21 @@ export default function RootLayout({ children }) {
                   }
                 });
               }
+
+              // Force viewport reset on orientation change (fixes iPad zoom-on-rotate)
+              window.addEventListener('orientationchange', function() {
+                var viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                  var content = viewport.getAttribute('content');
+                  viewport.setAttribute('content', 'width=device-width');
+                  setTimeout(function() {
+                    viewport.setAttribute('content', content);
+                    document.body.style.transform = '';
+                    document.body.style.transformOrigin = '';
+                    document.body.style.width = '';
+                  }, 100);
+                }
+              });
             })();
           `
         }} />
