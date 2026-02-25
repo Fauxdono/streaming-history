@@ -399,11 +399,11 @@ return (
   <div className="w-full">
 
     <div className="flex justify-between items-center mb-2">
-      <h3 className={`text-xl font-normal ${getThemedColors().text}`}>
+      <h3 className={`text-xl font-normal sm:hidden ${getThemedColors().text}`}>
         {yearRangeMode && yearRange.startYear && yearRange.endYear
           ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
-          : initialYear === 'all' 
-            ? 'Brief Obsessions (All Time)' 
+          : initialYear === 'all'
+            ? 'Brief Obsessions (All Time)'
             : `Brief Obsessions (${initialYear})`}
       </h3>
       
@@ -442,45 +442,18 @@ return (
   <div className="flex items-center gap-2">
         <button
           onClick={() => setShowExporter(!showExporter)}
-          className={`flex items-center gap-1 px-2 py-1 ${getThemedColors().bgButton} rounded ${getThemedColors().bgButtonHover} text-xs`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''}`}
         >
-          <Download size={14} className="hidden sm:inline" />
-          {showExporter ? "Hide" : "Export M3u"}
+          <Download size={12} />
+          M3U
         </button>
 
-        <div className="flex items-center gap-1 sm:gap-2">
-          <span className={`${getThemedColors().text} text-sm`}>Sort:</span>
-          <button
-            onClick={() => setSortBy('playsInWeek')}
-            className={`px-2 py-1 rounded text-xs ${
-              sortBy === 'playsInWeek'
-                ? getThemedColors().bgButton
-                : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
-            }`}
-          >
-            Weekly Plays
-          </button>
-          <button
-            onClick={() => setSortBy('playCount')}
-            className={`px-2 py-1 rounded text-xs ${
-              sortBy === 'playCount'
-                ? getThemedColors().bgButton
-                : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
-            }`}
-          >
-            Total Plays
-          </button>
-          <button
-            onClick={() => setSortBy('weekStart')}
-            className={`px-2 py-1 rounded text-xs ${
-              sortBy === 'weekStart'
-                ? getThemedColors().bgButton
-                : `${getThemedColors().bgButtonLight} ${getThemedColors().text} ${getThemedColors().bgButtonLightHover}`
-            }`}
-          >
-            Recent First
-          </button>
-        </div>
+        <button
+          onClick={() => setSortBy(sortBy === 'playsInWeek' ? 'playCount' : sortBy === 'playCount' ? 'weekStart' : 'playsInWeek')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''}`}
+        >
+          {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[sortBy]}
+        </button>
       </div>
     </div>
     
