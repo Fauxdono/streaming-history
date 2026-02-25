@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { Download } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
 import TrackRankings from './TrackRankings.js';
@@ -44,6 +45,10 @@ const ListeningPatterns = ({
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [mapView, setMapView] = useState('flat');
+  const [obsTopN, setObsTopN] = useState(100);
+  const [obsIntensityThreshold, setObsIntensityThreshold] = useState(5);
+  const [obsSortBy, setObsSortBy] = useState('playsInWeek');
+  const [obsShowExporter, setObsShowExporter] = useState(false);
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
@@ -746,22 +751,12 @@ const ListeningPatterns = ({
       </h3>
     </div>
 
-    {/* Desktop layout - title, centered tabs, and controls */}
-    <div className="hidden sm:block mb-2">
-      <div className="flex justify-between items-center">
-        <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
-          {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ timeOfDay: 'Time of Day', dayOfWeek: 'Day of Week', seasonal: 'Seasonal', obsessions: 'Obsessions', streaming: 'Streaming', locations: 'Locations' }[activeTab]}</span>
-        </h3>
-        {activeTab === 'locations' && (
-          <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
-          >
-            {viewMode === 'grid' ? '☰' : '⊞'}
-          </button>
-        )}
-      </div>
-      <div className="flex justify-center gap-1 sm:gap-2 mt-1">
+    {/* Desktop layout - title, tabs, and controls all on one row */}
+    <div className="hidden sm:flex items-center mb-2 gap-2">
+      <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
+        {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ timeOfDay: 'Time of Day', dayOfWeek: 'Day of Week', seasonal: 'Seasonal', obsessions: 'Obsessions', streaming: 'Streaming', locations: 'Locations' }[activeTab]}</span>
+      </h3>
+      <div className="flex flex-wrap gap-1 items-center justify-center flex-1">
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
@@ -769,6 +764,61 @@ const ListeningPatterns = ({
         <TabButton id="streaming" label="Streaming" />
         <TabButton id="locations" label="Locations" />
       </div>
+      {activeTab === 'obsessions' && (
+        <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-1 ${colors.text}`}>
+            <label className="text-xs">Top</label>
+            <input
+              type="number"
+              min="1"
+              max="250"
+              defaultValue={obsTopN}
+              key={`topn-${obsTopN}`}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+              onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 250) setObsTopN(v); else e.target.value = obsTopN; }}
+              className={`border rounded w-14 px-1 py-1 text-xs ${colors.text} ${isColorful ? (isDarkMode ? 'border-yellow-600 bg-yellow-800' : 'border-yellow-300 bg-yellow-100') : (isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white')}`}
+            />
+          </div>
+          <div className={`flex items-center gap-1 ${colors.text}`}>
+            <label className="text-xs">Min/wk</label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={obsIntensityThreshold}
+              onChange={(e) => setObsIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
+              className={`border rounded w-14 px-1 py-1 text-xs ${colors.text} ${isColorful ? (isDarkMode ? 'border-yellow-600 bg-yellow-800' : 'border-yellow-300 bg-yellow-100') : (isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white')}`}
+            />
+          </div>
+          <button
+            onClick={() => setObsShowExporter(!obsShowExporter)}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+          >
+            <Download size={12} />
+            M3U
+          </button>
+          <button
+            onClick={() => setObsSortBy(obsSortBy === 'playsInWeek' ? 'playCount' : obsSortBy === 'playCount' ? 'weekStart' : 'playsInWeek')}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+          >
+            {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[obsSortBy]}
+          </button>
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+          >
+            {viewMode === 'grid' ? '☰' : '⊞'}
+          </button>
+        </div>
+      )}
+      {activeTab === 'locations' && (
+        <button
+          onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+        >
+          {viewMode === 'grid' ? '☰' : '⊞'}
+        </button>
+      )}
     </div>
 
     {/* Mobile controls - separate row */}
@@ -1144,6 +1194,16 @@ const ListeningPatterns = ({
           colorTheme="amber"
           colorMode={colorMode}
           viewMode={viewMode}
+          externalControls={{
+            topN: obsTopN,
+            setTopN: setObsTopN,
+            intensityThreshold: obsIntensityThreshold,
+            setIntensityThreshold: setObsIntensityThreshold,
+            sortBy: obsSortBy,
+            setSortBy: setObsSortBy,
+            showExporter: obsShowExporter,
+            setShowExporter: setObsShowExporter
+          }}
           gridToggle={
             <button
               onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}

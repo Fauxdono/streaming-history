@@ -20,14 +20,25 @@ const TrackRankings = ({
   textTheme = null, // Optional separate text theme
   colorMode = 'minimal',
   viewMode = 'grid', // 'grid' or 'list'
-  gridToggle = null
+  gridToggle = null,
+  externalControls = null
 }) => {
   const isColorful = colorMode === 'colorful';
-  const [sortBy, setSortBy] = useState('playsInWeek');
-  const [showExporter, setShowExporter] = useState(false);
+  const [_sortBy, _setSortBy] = useState('playsInWeek');
+  const [_showExporter, _setShowExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [topN, setTopN] = useState(100);
-  const [intensityThreshold, setIntensityThreshold] = useState(5); // Minimum plays per week to qualify
+  const [_topN, _setTopN] = useState(100);
+  const [_intensityThreshold, _setIntensityThreshold] = useState(5);
+
+  // Use external controls if provided (desktop controls in parent header), otherwise internal state
+  const topN = externalControls?.topN ?? _topN;
+  const setTopN = externalControls?.setTopN ?? _setTopN;
+  const intensityThreshold = externalControls?.intensityThreshold ?? _intensityThreshold;
+  const setIntensityThreshold = externalControls?.setIntensityThreshold ?? _setIntensityThreshold;
+  const sortBy = externalControls?.sortBy ?? _sortBy;
+  const setSortBy = externalControls?.setSortBy ?? _setSortBy;
+  const showExporter = externalControls?.showExporter ?? _showExporter;
+  const setShowExporter = externalControls?.setShowExporter ?? _setShowExporter;
   
   // Get the current theme
   const { theme } = useTheme();
@@ -408,8 +419,8 @@ return (
           : `Brief Obsessions (${initialYear})`}
     </h3>
 
-    {/* Controls - single row on desktop, wrapped on mobile */}
-    <div className="flex flex-wrap gap-2 items-center mb-2">
+    {/* Controls - hidden on desktop when externally controlled, shown on mobile */}
+    <div className={`flex flex-wrap gap-2 items-center mb-2${externalControls ? ' sm:hidden' : ''}`}>
       <div className={`flex items-center gap-1 ${getThemedColors().text}`}>
         <label className={`text-xs sm:text-sm ${getThemedColors().text}`}>Top</label>
         <input
