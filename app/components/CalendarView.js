@@ -731,10 +731,10 @@ const CalendarView = ({
             className={
               isColorful
                 ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-green-500 text-black hover:bg-green-600'
-                : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
             }
           >
-            {viewMode === 'grid' ? '☰' : '▦'}
+            {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
         </div>
       </div>

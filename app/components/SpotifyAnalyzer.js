@@ -2757,7 +2757,7 @@ const SpotifyAnalyzer = ({
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
                     }
                   >
-                    {artistsViewMode === 'grid' ? '☰' : '▦'}
+                    {artistsViewMode === 'grid' ? '☰' : '⊞'}
                   </button>
                 </div>
               </div>
@@ -3185,7 +3185,7 @@ const SpotifyAnalyzer = ({
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
                     }
                   >
-                    {albumsViewMode === 'grid' ? '☰' : '▦'}
+                    {albumsViewMode === 'grid' ? '☰' : '⊞'}
                   </button>
                 </div>
               </div>

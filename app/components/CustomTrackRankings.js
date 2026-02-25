@@ -1486,7 +1486,7 @@ return (
           onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
           className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
         >
-          {viewMode === 'grid' ? '☰' : '▦'}
+          {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
         <button
           onClick={() => setShowOmittedTab(!showOmittedTab)}

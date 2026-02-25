@@ -758,12 +758,14 @@ const ListeningPatterns = ({
         <TabButton id="obsessions" label="Obsessions" />
         <TabButton id="streaming" label="Streaming" />
         <TabButton id="locations" label="Locations" />
-        <button
-          onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
-        >
-          {viewMode === 'grid' ? '☰' : '⊞'}
-        </button>
+        {(activeTab === 'locations' || activeTab === 'obsessions') && (
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+          >
+            {viewMode === 'grid' ? '☰' : '⊞'}
+          </button>
+        )}
       </div>
     </div>
 

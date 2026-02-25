@@ -861,7 +861,7 @@ const PodcastRankings = ({
             onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
             className={`px-2 py-1 rounded text-xs font-medium hover:opacity-80 whitespace-nowrap ${modeColors.buttonInactive}`}
           >
-            {viewMode === 'grid' ? '☰' : '▦'}
+            {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
         </div>
       </div>
