@@ -702,8 +702,8 @@ const CalendarView = ({
       {/* Desktop layout - title and controls on same row */}
       <div className="hidden sm:flex justify-between items-center mb-2">
         <div className="flex items-center gap-3">
-          <h3 className={`text-xl ${modeColors.text}`}>
-            {getPageTitle()}
+          <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
+            {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ calendar: 'Calendar', history: 'Daily History' }[activeTab]}</span>
           </h3>
           {activeTab === 'history' && (
             <span className={`text-sm ${modeColors.textLight}`}>Use the year selector to pick a specific date</span>

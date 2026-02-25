@@ -746,10 +746,10 @@ const ListeningPatterns = ({
       </h3>
     </div>
 
-    {/* Desktop layout - title and controls on same row */}
+    {/* Desktop layout - title with active tab and controls on same row */}
     <div className="hidden sm:flex justify-between items-center mb-2">
-      <h3 className={`text-xl ${colors.text}`}>
-        {getPageTitle()}
+      <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
+        {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ timeOfDay: 'Time of Day', dayOfWeek: 'Day of Week', seasonal: 'Seasonal', obsessions: 'Obsessions', streaming: 'Streaming', locations: 'Locations' }[activeTab]}</span>
       </h3>
       <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
         <TabButton id="timeOfDay" label="Time of Day" />

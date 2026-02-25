@@ -947,8 +947,8 @@ const filteredData = useMemo(() => {
 
       {/* Desktop layout - title and controls on same row */}
       <div className="hidden sm:flex justify-between items-center mb-2">
-        <h3 className={`text-xl ${modeColors.text}`}>
-          {getPageTitle()}
+        <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
+          {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ behavior: 'Behavior', sessions: 'Sessions', artistsTime: 'Artists by Time' }[activeTab]}</span>
         </h3>
         <div className="flex flex-wrap gap-1 sm:gap-2">
           <TabButton id="behavior" label="Behavior" />
