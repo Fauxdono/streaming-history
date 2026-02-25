@@ -19,7 +19,8 @@ const TrackRankings = ({
   backgroundTheme = null, // Optional separate background theme
   textTheme = null, // Optional separate text theme
   colorMode = 'minimal',
-  viewMode = 'grid' // 'grid' or 'list'
+  viewMode = 'grid', // 'grid' or 'list'
+  gridToggle = null
 }) => {
   const isColorful = colorMode === 'colorful';
   const [sortBy, setSortBy] = useState('playsInWeek');
@@ -398,63 +399,54 @@ const filteredObsessions = useMemo(() => {
 return (
   <div className="w-full">
 
-    <div className="flex justify-between items-center mb-2">
-      <h3 className={`text-xl font-normal sm:hidden ${getThemedColors().text}`}>
-        {yearRangeMode && yearRange.startYear && yearRange.endYear
-          ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
-          : initialYear === 'all'
-            ? 'Brief Obsessions (All Time)'
-            : `Brief Obsessions (${initialYear})`}
-      </h3>
-      
-    
+    {/* Mobile title */}
+    <h3 className={`text-xl font-normal sm:hidden mb-2 ${getThemedColors().text}`}>
+      {yearRangeMode && yearRange.startYear && yearRange.endYear
+        ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
+        : initialYear === 'all'
+          ? 'Brief Obsessions (All Time)'
+          : `Brief Obsessions (${initialYear})`}
+    </h3>
 
-        <div className={`flex items-center gap-1 sm:gap-2 ${getThemedColors().text} ml-2`}>
-      <label className={`${getThemedColors().text} ml-2`}>Show Top</label>
-          <input
-            type="number"
-            min="1"
-            max="250"
-            defaultValue={topN}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 250) setTopN(v); else e.target.value = topN; }}
-            className={`border rounded w-14 sm:w-16 px-1 sm:px-2 py-1 ${getThemedColors().text} ${getThemedColors().focus}`}
-          />
+    {/* Controls - single row on desktop, wrapped on mobile */}
+    <div className="flex flex-wrap gap-2 items-center mb-2">
+      <div className={`flex items-center gap-1 ${getThemedColors().text}`}>
+        <label className={`text-xs sm:text-sm ${getThemedColors().text}`}>Top</label>
+        <input
+          type="number"
+          min="1"
+          max="250"
+          defaultValue={topN}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 250) setTopN(v); else e.target.value = topN; }}
+          className={`border rounded w-14 px-1 py-1 text-xs ${getThemedColors().text} ${getThemedColors().focus}`}
+        />
       </div>
-    </div>
-
-    {/* Controls Section */}
- 
-      {/* Second line: Controls in a clean row */}
-      <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
-        <div className={`flex items-center gap-1 sm:gap-2 ${getThemedColors().text}`}>
-          <label className={`text-sm ${getThemedColors().text}`}>Min plays/week</label>
-          <input
-            type="number"
-            min="1"
-            max="20"
-            value={intensityThreshold}
-            onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
-            className={`border rounded w-14 px-1 sm:px-2 py-1 ${getThemedColors().text} ${getThemedColors().focus}`}
-          />
-        </div>
-
-  <div className="flex items-center gap-2">
-        <button
-          onClick={() => setShowExporter(!showExporter)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''}`}
-        >
-          <Download size={12} />
-          M3U
-        </button>
-
-        <button
-          onClick={() => setSortBy(sortBy === 'playsInWeek' ? 'playCount' : sortBy === 'playCount' ? 'weekStart' : 'playsInWeek')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''}`}
-        >
-          {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[sortBy]}
-        </button>
+      <div className={`flex items-center gap-1 ${getThemedColors().text}`}>
+        <label className={`text-xs sm:text-sm ${getThemedColors().text}`}>Min/wk</label>
+        <input
+          type="number"
+          min="1"
+          max="20"
+          value={intensityThreshold}
+          onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
+          className={`border rounded w-14 px-1 py-1 text-xs ${getThemedColors().text} ${getThemedColors().focus}`}
+        />
       </div>
+      <button
+        onClick={() => setShowExporter(!showExporter)}
+        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''}`}
+      >
+        <Download size={12} />
+        M3U
+      </button>
+      <button
+        onClick={() => setSortBy(sortBy === 'playsInWeek' ? 'playCount' : sortBy === 'playCount' ? 'weekStart' : 'playsInWeek')}
+        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''}`}
+      >
+        {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[sortBy]}
+      </button>
+      {gridToggle}
     </div>
     
     {/* Playlist Exporter */}

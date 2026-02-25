@@ -746,19 +746,13 @@ const ListeningPatterns = ({
       </h3>
     </div>
 
-    {/* Desktop layout - title with active tab and controls on same row */}
-    <div className="hidden sm:flex justify-between items-center mb-2">
-      <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
-        {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ timeOfDay: 'Time of Day', dayOfWeek: 'Day of Week', seasonal: 'Seasonal', obsessions: 'Obsessions', streaming: 'Streaming', locations: 'Locations' }[activeTab]}</span>
-      </h3>
-      <div className="flex flex-wrap gap-1 sm:gap-2 items-center">
-        <TabButton id="timeOfDay" label="Time of Day" />
-        <TabButton id="dayOfWeek" label="Day of Week" />
-        <TabButton id="seasonal" label="Seasonal" />
-        <TabButton id="obsessions" label="Obsessions" />
-        <TabButton id="streaming" label="Streaming" />
-        <TabButton id="locations" label="Locations" />
-        {(activeTab === 'locations' || activeTab === 'obsessions') && (
+    {/* Desktop layout - title, centered tabs, and controls */}
+    <div className="hidden sm:block mb-2">
+      <div className="flex justify-between items-center">
+        <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
+          {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ timeOfDay: 'Time of Day', dayOfWeek: 'Day of Week', seasonal: 'Seasonal', obsessions: 'Obsessions', streaming: 'Streaming', locations: 'Locations' }[activeTab]}</span>
+        </h3>
+        {activeTab === 'locations' && (
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
             className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
@@ -766,6 +760,14 @@ const ListeningPatterns = ({
             {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
         )}
+      </div>
+      <div className="flex justify-center gap-1 sm:gap-2 mt-1">
+        <TabButton id="timeOfDay" label="Time of Day" />
+        <TabButton id="dayOfWeek" label="Day of Week" />
+        <TabButton id="seasonal" label="Seasonal" />
+        <TabButton id="obsessions" label="Obsessions" />
+        <TabButton id="streaming" label="Streaming" />
+        <TabButton id="locations" label="Locations" />
       </div>
     </div>
 
@@ -1142,6 +1144,14 @@ const ListeningPatterns = ({
           colorTheme="amber"
           colorMode={colorMode}
           viewMode={viewMode}
+          gridToggle={
+            <button
+              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+            >
+              {viewMode === 'grid' ? '☰' : '⊞'}
+            </button>
+          }
         />
       </div>
     )}
