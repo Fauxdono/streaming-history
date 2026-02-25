@@ -762,16 +762,7 @@ const ListeningPatterns = ({
           onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
           className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
         >
-          {viewMode === 'grid' ? (
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <line x1="1" y1="3" x2="15" y2="3"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="13" x2="15" y2="13"/>
-            </svg>
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-              <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
-              <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
-            </svg>
-          )}
+          {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
       </div>
     </div>
