@@ -195,7 +195,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
   return (
     <div className="space-y-6">
       <div>
-        <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+        <h3 className={`text-sm font-bold mb-2 sm:hidden ${
           themedColors.text
         }`}>Streaming Services</h3>
         <p className={`mb-4 ${
