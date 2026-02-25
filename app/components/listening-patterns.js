@@ -784,7 +784,7 @@ const ListeningPatterns = ({
     {activeTab === 'timeOfDay' && (
       <div className="space-y-6">
         <div>
-          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+          <h3 className={`text-sm font-bold mb-2 sm:hidden ${
             colors.text
           }`}>Listening by Time of Day</h3>
           <p className={`mb-4 ${
@@ -911,7 +911,7 @@ const ListeningPatterns = ({
         <div>
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className={`text-sm sm:text-lg font-bold ${
+              <h3 className={`text-sm font-bold sm:hidden ${
                 colors.text
               }`}>Listening by Day of Week</h3>
               <p className={`${
@@ -1009,7 +1009,7 @@ const ListeningPatterns = ({
     {activeTab === 'seasonal' && (
       <div className="space-y-6">
         <div>
-          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
+          <h3 className={`text-sm font-bold mb-2 sm:hidden ${
             colors.text
           }`}>Listening by Month</h3>
           <p className={`mb-4 ${
@@ -1160,7 +1160,7 @@ const ListeningPatterns = ({
     {activeTab === 'locations' && (
       <div className="space-y-6">
         <div>
-          <h3 className={`text-sm sm:text-lg font-bold mb-2 ${colors.text}`}>Listening Locations</h3>
+          <h3 className={`text-sm font-bold mb-2 sm:hidden ${colors.text}`}>Listening Locations</h3>
           <p className={`mb-4 ${colors.textLight}`}>
             {selectedCountry ? (
               <>
