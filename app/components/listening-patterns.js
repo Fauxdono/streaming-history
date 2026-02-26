@@ -814,13 +814,29 @@ const ListeningPatterns = ({
           </button>
         </div>
       )}
-      {activeTab === 'locations' && (
+      {activeTab === 'dayOfWeek' && (
         <button
-          onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+          onClick={() => setDayOfWeekViewMode(dayOfWeekViewMode === 'plays' ? 'average' : 'plays')}
           className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
         >
-          {viewMode === 'grid' ? '☰' : '⊞'}
+          {dayOfWeekViewMode === 'plays' ? 'Total' : 'Average'}
         </button>
+      )}
+      {activeTab === 'locations' && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMapView(mapView === 'flat' ? 'globe' : 'flat')}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+          >
+            {mapView === 'flat' ? 'Globe' : 'Map'}
+          </button>
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+          >
+            {viewMode === 'grid' ? '☰' : '⊞'}
+          </button>
+        </div>
       )}
       </div>
     </div>
@@ -974,10 +990,10 @@ const ListeningPatterns = ({
                 colors.textLight
               }`}>Which days do you stream music the most?</p>
             </div>
-            <div className={`flex rounded-lg p-1 ${colors.toggleBg}`}>
+            <div className={`flex rounded-lg p-1 sm:hidden ${colors.toggleBg}`}>
               <button
                 onClick={() => setDayOfWeekViewMode('plays')}
-                className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
+                className={`px-2 py-1 rounded-lg text-xs flex-1 ${
                   dayOfWeekViewMode === 'plays' ? colors.toggleActive : colors.toggleInactive
                 }`}
               >
@@ -985,7 +1001,7 @@ const ListeningPatterns = ({
               </button>
               <button
                 onClick={() => setDayOfWeekViewMode('average')}
-                className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm flex-1 ${
+                className={`px-2 py-1 rounded-lg text-xs flex-1 ${
                   dayOfWeekViewMode === 'average' ? colors.toggleActive : colors.toggleInactive
                 }`}
               >
@@ -1255,7 +1271,7 @@ const ListeningPatterns = ({
             <>
               {!selectedCountry && (
                 <>
-                  <div className="flex justify-end mb-2">
+                  <div className="flex justify-end mb-2 sm:hidden">
                     <button
                       onClick={() => setMapView(mapView === 'flat' ? 'globe' : 'flat')}
                       className={`px-3 py-1 text-xs font-bold rounded border transition-all ${colors.buttonInactive}`}
