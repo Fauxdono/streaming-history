@@ -16,7 +16,7 @@ const DiscoveryAnalysis = ({
   colorMode = 'minimal'
 }) => {
   const [activeTab, setActiveTab] = useState('discovery');
-  const [timeframe, setTimeframe] = useState('all');
+  const [timeframe, setTimeframe] = useState('day');
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
