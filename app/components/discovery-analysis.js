@@ -653,17 +653,20 @@ const filteredData = useMemo(() => {
         </h3>
       </div>
 
-      {/* Desktop layout - title and controls on same row */}
-      <div className="hidden sm:flex justify-between items-center mb-2">
-        <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
-          {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ discovery: 'Discovery', loyalty: 'Loyalty', depth: 'Depth', variety: 'Variety' }[activeTab]}</span>
-        </h3>
-        <div className="flex flex-wrap gap-1 sm:gap-2">
+      {/* Desktop layout - title, centered tabs, controls */}
+      <div className="hidden sm:flex items-center mb-2 gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
+            {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ discovery: 'Discovery', loyalty: 'Loyalty', depth: 'Depth', variety: 'Variety' }[activeTab]}</span>
+          </h3>
+        </div>
+        <div className="flex flex-wrap gap-1 items-center justify-center">
           <TabButton id="discovery" label="Discovery" />
           <TabButton id="loyalty" label="Loyalty" />
           <TabButton id="depth" label="Depth" />
           <TabButton id="variety" label="Variety" />
         </div>
+        <div className="flex-1"></div>
       </div>
 
       {/* Mobile controls - separate row */}
