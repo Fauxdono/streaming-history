@@ -1506,35 +1506,6 @@ return (
     {/* Mobile controls - single row with search */}
     <div className="block sm:hidden mb-2">
       <div className="flex items-center gap-1 flex-wrap">
-        <label className={`${colors.text} text-xs`}>Top</label>
-        <input
-          type="number"
-          min="1"
-          max="999"
-          defaultValue={topN}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-          className={`w-10 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
-        />
-        <button
-          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-        >
-          {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-        </button>
-        <button
-          onClick={() => setShowOmittedTab(!showOmittedTab)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgLight} ${colors.text} border ${colors.border}`}`}
-        >
-          <Eye size={10} />
-          {showOmittedTab ? 'Results' : `Omit (${omittedSongs.length + omittedArtists.length})`}
-        </button>
-        <button
-          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-        >
-          M3U
-        </button>
         <div className="relative flex-1">
           <input
             type="text"
@@ -1594,6 +1565,35 @@ return (
             </div>
           )}
         </div>
+        <button
+          onClick={() => setShowOmittedTab(!showOmittedTab)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgLight} ${colors.text} border ${colors.border}`}`}
+        >
+          <Eye size={10} />
+          {showOmittedTab ? 'Results' : `Omit (${omittedSongs.length + omittedArtists.length})`}
+        </button>
+        <button
+          onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          M3U
+        </button>
+        <label className={`${colors.text} text-xs`}>Top</label>
+        <input
+          type="number"
+          min="1"
+          max="999"
+          defaultValue={topN}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
+          className={`w-10 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
+        />
+        <button
+          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+        </button>
       </div>
     </div>
 
