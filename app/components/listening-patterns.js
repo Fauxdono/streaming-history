@@ -753,10 +753,12 @@ const ListeningPatterns = ({
 
     {/* Desktop layout - title, tabs, and controls all on one row */}
     <div className="hidden sm:flex items-center mb-2 gap-2">
-      <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
-        {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ timeOfDay: 'Time of Day', dayOfWeek: 'Day of Week', seasonal: 'Seasonal', obsessions: 'Obsessions', streaming: 'Streaming', locations: 'Locations' }[activeTab]}</span>
-      </h3>
-      <div className="flex flex-wrap gap-1 items-center justify-center flex-1">
+      <div className="flex-1 min-w-0">
+        <h3 className={`text-xl ${colors.text} whitespace-nowrap`}>
+          {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ timeOfDay: 'Time of Day', dayOfWeek: 'Day of Week', seasonal: 'Seasonal', obsessions: 'Obsessions', streaming: 'Streaming', locations: 'Locations' }[activeTab]}</span>
+        </h3>
+      </div>
+      <div className="flex flex-wrap gap-1 items-center justify-center">
         <TabButton id="timeOfDay" label="Time of Day" />
         <TabButton id="dayOfWeek" label="Day of Week" />
         <TabButton id="seasonal" label="Seasonal" />
@@ -764,6 +766,7 @@ const ListeningPatterns = ({
         <TabButton id="streaming" label="Streaming" />
         <TabButton id="locations" label="Locations" />
       </div>
+      <div className="flex-1 flex justify-end">
       {activeTab === 'obsessions' && (
         <div className="flex items-center gap-2">
           <div className={`flex items-center gap-1 ${colors.text}`}>
@@ -819,6 +822,7 @@ const ListeningPatterns = ({
           {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
       )}
+      </div>
     </div>
 
     {/* Mobile controls - separate row */}
