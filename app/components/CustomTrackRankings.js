@@ -1578,7 +1578,6 @@ return (
         >
           M3U
         </button>
-        <label className={`${colors.text} text-xs`}>Top</label>
         <input
           type="number"
           min="1"
