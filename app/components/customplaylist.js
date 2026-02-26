@@ -1123,16 +1123,19 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
         </h3>
       </div>
 
-      {/* Desktop layout - title and controls on same row */}
-      <div className="hidden sm:flex justify-between items-center mb-2">
-        <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
-          Custom Playlists <span className="opacity-50">/</span> <span className="text-base">{{ create: 'Create', saved: `Saved (${savedPlaylists.length})`, export: 'Export' }[activeTab]}</span>
-        </h3>
-        <div className="flex flex-wrap gap-1 sm:gap-2">
+      {/* Desktop layout - title, centered tabs, controls */}
+      <div className="hidden sm:flex items-center mb-2 gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className={`text-xl ${modeColors.text} truncate`}>
+            Custom Playlists <span className="opacity-50">/</span> <span className="text-base">{{ create: 'Create', saved: `Saved (${savedPlaylists.length})`, export: 'Export' }[activeTab]}</span>
+          </h3>
+        </div>
+        <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
           <TabButton id="create" label="Create" />
           <TabButton id="saved" label={`Saved (${savedPlaylists.length})`} />
           <TabButton id="export" label="Export" />
         </div>
+        <div className="flex-1"></div>
       </div>
 
       {/* Mobile controls - separate row */}
