@@ -1905,8 +1905,18 @@ const YearSelector = ({
     ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
+  // CSS zoom scales top/bottom/left/right values on fixed elements, so compensate
+  const useZoom = !desktopFloating && dimFontScale !== 1;
+  const adjustedPositionStyle = useZoom
+    ? Object.fromEntries(Object.entries(positionConfig?.style || {}).map(([k, v]) =>
+        ['top', 'bottom', 'left', 'right'].includes(k) && typeof v === 'string' && v.endsWith('px')
+          ? [k, `${parseFloat(v) / dimFontScale}px`]
+          : [k, v]
+      ))
+    : positionConfig?.style || {};
+
   const containerStyle = asSidebar ? {
-    ...positionConfig.style,
+    ...adjustedPositionStyle,
     width: isHorizontal ? 'auto' : `${baseDimensions.width}px`,
     height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
     maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
