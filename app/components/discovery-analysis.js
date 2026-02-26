@@ -656,17 +656,26 @@ const filteredData = useMemo(() => {
       {/* Desktop layout - title, centered tabs, controls */}
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
+          <h3 className={`text-xl ${modeColors.text} truncate`}>
             {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ discovery: 'Discovery', loyalty: 'Loyalty', depth: 'Depth', variety: 'Variety' }[activeTab]}</span>
           </h3>
         </div>
-        <div className="flex flex-wrap gap-1 items-center justify-center">
+        <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
           <TabButton id="discovery" label="Discovery" />
           <TabButton id="loyalty" label="Loyalty" />
           <TabButton id="depth" label="Depth" />
           <TabButton id="variety" label="Variety" />
         </div>
-        <div className="flex-1"></div>
+        <div className="flex-1 flex justify-end">
+          {activeTab === 'variety' && (
+            <button
+              onClick={() => setTimeframe(timeframe === 'day' ? 'week' : timeframe === 'week' ? 'month' : 'day')}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${modeColors.buttonInactive}`}
+            >
+              {{ day: 'Daily', week: 'Weekly', month: 'Monthly' }[timeframe]}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Mobile controls - separate row */}
@@ -942,7 +951,7 @@ const filteredData = useMemo(() => {
       
       {activeTab === 'variety' && (
         <div className="space-y-6">
-          <div className="flex justify-center gap-3 mb-4 overflow-x-auto pb-1">
+          <div className="flex justify-center gap-3 mb-4 overflow-x-auto pb-1 sm:hidden">
             <TimeframeButton id="day" label="Daily" />
             <TimeframeButton id="week" label="Weekly" />
             <TimeframeButton id="month" label="Monthly" />

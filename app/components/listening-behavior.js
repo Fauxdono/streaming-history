@@ -948,11 +948,11 @@ const filteredData = useMemo(() => {
       {/* Desktop layout - title, centered tabs, controls */}
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className={`text-xl ${modeColors.text} whitespace-nowrap`}>
+          <h3 className={`text-xl ${modeColors.text} truncate`}>
             {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ behavior: 'Behavior', sessions: 'Sessions', artistsTime: 'Artists by Time' }[activeTab]}</span>
           </h3>
         </div>
-        <div className="flex flex-wrap gap-1 items-center justify-center">
+        <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
           <TabButton id="behavior" label="Behavior" />
           <TabButton id="sessions" label="Sessions" />
           <TabButton id="artistsTime" label="Artists by Time" />
