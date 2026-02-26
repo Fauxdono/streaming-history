@@ -2668,7 +2668,7 @@ const SpotifyAnalyzer = ({
                         : `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                             artistSelectionMode
                               ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
-                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
+                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'border border-black bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
                           }`
                     }
                   >
@@ -2826,7 +2826,7 @@ const SpotifyAnalyzer = ({
                         : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
                             artistSelectionMode
                               ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
-                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
+                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'border border-black bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
                           }`
                     }
                   >
