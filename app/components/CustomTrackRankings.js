@@ -1466,14 +1466,14 @@ return (
 
         <button
           onClick={() => setShowOmittedTab(!showOmittedTab)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgLight} ${colors.text} border ${colors.border} hover:${colors.bgMed}`}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           <Eye size={12} />
           {showOmittedTab ? 'Results' : `Omitted (${omittedSongs.length + omittedArtists.length})`}
         </button>
         <button
           onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? (isColorful ? colors.bgDark : (isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]')) : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           <Download size={12} />
           M3U
@@ -1567,14 +1567,14 @@ return (
         </div>
         <button
           onClick={() => setShowOmittedTab(!showOmittedTab)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgLight} ${colors.text} border ${colors.border}`}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           <Eye size={10} />
           {showOmittedTab ? 'Results' : `Omit (${omittedSongs.length + omittedArtists.length})`}
         </button>
         <button
           onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? (isColorful ? colors.bgDark : (isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]')) : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           M3U
         </button>

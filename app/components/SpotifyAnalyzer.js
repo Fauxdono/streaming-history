@@ -2765,48 +2765,6 @@ const SpotifyAnalyzer = ({
               {/* Mobile controls - single row */}
               <div className={`block sm:hidden mb-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-300' : ''}`}>
                 <div className="flex items-center gap-1">
-                  <label className="text-xs">Top</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="500"
-                    defaultValue={topArtistsCount}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopArtistsCount(v); else e.target.value = topArtistsCount; }}
-                    className={
-                      colorMode === 'colorful'
-                        ? 'w-10 border border-blue-300 dark:border-blue-600 rounded px-1 py-1 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                        : `w-10 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
-                    }
-                  />
-                  <button
-                    onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                    className={
-                      colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
-                    }
-                  >
-                    {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                  </button>
-                  <button
-                    onClick={() => setArtistSelectionMode(prev => !prev)}
-                    className={
-                      colorMode === 'colorful'
-                        ? `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
-                            artistSelectionMode
-                              ? 'bg-blue-400 text-white border border-blue-400'
-                              : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
-                          }`
-                        : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
-                            artistSelectionMode
-                              ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
-                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
-                          }`
-                    }
-                  >
-                    🎵
-                  </button>
                   <div className="relative flex-1">
                     <input
                       type="text"
@@ -2856,6 +2814,47 @@ const SpotifyAnalyzer = ({
                       </div>
                     )}
                   </div>
+                  <button
+                    onClick={() => setArtistSelectionMode(prev => !prev)}
+                    className={
+                      colorMode === 'colorful'
+                        ? `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
+                            artistSelectionMode
+                              ? 'bg-blue-400 text-white border border-blue-400'
+                              : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
+                          }`
+                        : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
+                            artistSelectionMode
+                              ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
+                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800' : 'border border-black bg-white text-black hover:bg-gray-100')
+                          }`
+                    }
+                  >
+                    🎵
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    defaultValue={topArtistsCount}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopArtistsCount(v); else e.target.value = topArtistsCount; }}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'w-10 border border-blue-300 dark:border-blue-600 rounded px-1 py-1 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                        : `w-10 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                    }
+                  />
+                  <button
+                    onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                    }
+                  >
+                    {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+                  </button>
                 </div>
                 {artistSelectionMode && (
                   <p className={
@@ -3193,30 +3192,6 @@ const SpotifyAnalyzer = ({
               {/* Mobile controls - single row with search */}
               <div className={`block sm:hidden mb-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>
                 <div className="flex items-center gap-1">
-                  <label className="text-xs">Top</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="500"
-                    defaultValue={topAlbumsCount}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopAlbumsCount(v); else e.target.value = topAlbumsCount; }}
-                    className={
-                      colorMode === 'colorful'
-                        ? 'w-10 border border-cyan-300 dark:border-cyan-600 rounded px-1 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
-                        : `w-10 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
-                    }
-                  />
-                  <button
-                    onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-                    className={
-                      colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
-                    }
-                  >
-                    {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-                  </button>
                   <div className="relative flex-1">
                     <input
                       type="text"
@@ -3266,6 +3241,29 @@ const SpotifyAnalyzer = ({
                       </div>
                     )}
                   </div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
+                    defaultValue={topAlbumsCount}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopAlbumsCount(v); else e.target.value = topAlbumsCount; }}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'w-10 border border-cyan-300 dark:border-cyan-600 rounded px-1 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                        : `w-10 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                    }
+                  />
+                  <button
+                    onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                    }
+                  >
+                    {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+                  </button>
                 </div>
               </div>
 
