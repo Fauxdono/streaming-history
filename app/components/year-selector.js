@@ -133,13 +133,18 @@ const YearSelector = ({
         if (showDaySelector) h = Math.max(h, 56); // 31 days in 1 row
         return { width: 200, height: h };
       }
-      const cols = isMobilePortraitHz ? 3 : 2;
-      const yearRows = Math.ceil(yearCount / cols);
+      if (isMobilePortraitHz) {
+        // Mobile portrait horizontal: stacked rows (year row, month row, day row)
+        let h = 30 + 26; // year row (1 row with up to 6 cols)
+        if (showMonthSelector) h += 56; // 2 rows of 6 months
+        if (showDaySelector) h += 140; // ~5 rows of 7 days
+        return { width: 300, height: Math.max(60, h) };
+      }
+      const yearRows = Math.ceil(yearCount / 2);
       let h = 30 + (yearRows * 26) + 8;
       if (showMonthSelector) h += 110;
       if (showDaySelector) h += 140;
-      const w = isMobilePortraitHz ? 200 : 90;
-      return { width: w, height: Math.max(120, h) };
+      return { width: 90, height: Math.max(120, h) };
     }
 
     if (mode === 'range') {
@@ -150,12 +155,18 @@ const YearSelector = ({
         if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 100); // day grids 3 rows
         return { width: 300, height: h };
       }
-      const cols = isMobilePortraitHz ? 3 : 2;
-      const yearRows = Math.ceil(yearCount / cols);
+      if (isMobilePortraitHz) {
+        // Mobile portrait horizontal: stacked rows
+        let h = 30 + 26; // year row
+        if (showRangeMonthDaySelectors) h += 70; // start/end month rows (2 rows of 6)
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h += 150; // start/end day rows
+        return { width: 300, height: Math.max(60, h) };
+      }
+      const yearRows = Math.ceil(yearCount / 2);
       let h = (yearRows * 26) + 30;
       if (showRangeMonthDaySelectors) h += 200;
       if (showRangeMonthDaySelectors && showRangeDaySelectors) h += 200;
-      return { width: isMobilePortraitHz ? 180 : 180, height: Math.max(180, h) };
+      return { width: 180, height: Math.max(180, h) };
     }
   };
 
@@ -1919,7 +1930,7 @@ const YearSelector = ({
     ...adjustedPositionStyle,
     width: isHorizontal ? 'auto' : `${baseDimensions.width}px`,
     height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
-    maxHeight: isHorizontal ? (isMobile ? '200px' : '50vh') : 'none',
+    maxHeight: isHorizontal ? (isMobile ? '50vh' : '50vh') : 'none',
     ...(desktopFloating ? {
       transform: `scale(${floatScale * dimFontScale})`,
       transformOrigin: 'top left',
@@ -2098,7 +2109,9 @@ const YearSelector = ({
         <div className={`${
           isHorizontal
             ? isMobile
-              ? 'flex flex-row items-center space-x-2 px-2 flex-grow justify-center'
+              ? isMobile && !isLandscape
+                ? 'flex flex-col items-center overflow-y-auto px-2 flex-grow gap-1'
+                : 'flex flex-row items-center space-x-2 px-2 flex-grow justify-center'
               : 'flex flex-row items-center space-x-3 overflow-x-auto max-w-full px-3 flex-grow justify-center'
             : `overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
                 mode === 'range' ? 'px-2' : 'px-1'
@@ -2150,60 +2163,56 @@ const YearSelector = ({
                     All Time
                   </button>
                   
-                  {/* Year/Month/Day as horizontal columns for mobile portrait horizontal */}
+                  {/* Year/Month/Day as stacked rows for mobile portrait horizontal */}
                   {isMobile && !isLandscape && isHorizontal ? (
-                    <div className="flex flex-row items-start gap-2">
-                      {/* Column 1: Year grid */}
-                      <div className="flex flex-col items-center">
-                        {renderYearGrid(2)}
+                    <div className="flex flex-col items-center gap-1">
+                      {/* Row 1: Year grid + month toggle */}
+                      <div className="flex flex-row items-center gap-1">
+                        {renderYearGrid(Math.min(years.length, 6))}
                         {selectedYear !== 'all' && (
-                          <div className="mt-1">
-                            <div
-                              onClick={() => {
-                                const nv = !showMonthSelector;
-                                setShowMonthSelector(nv);
-                                const isHistoryTab = activeTab === 'history';
-                                if (!isHistoryTab) setUserEnabledSelectors(nv);
-                                if (!nv) { setShowDaySelector(false); if (onYearChange && selectedYear !== 'all') onYearChange(selectedYear); }
-                                else { if (onYearChange && selectedYear !== 'all') onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
-                                setRefreshCounter(prev => prev + 1);
-                              }}
-                              className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showMonthSelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                            >
-                              <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[14px]' : ''}`}>
-                                <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m</span>
-                              </div>
+                          <div
+                            onClick={() => {
+                              const nv = !showMonthSelector;
+                              setShowMonthSelector(nv);
+                              const isHistoryTab = activeTab === 'history';
+                              if (!isHistoryTab) setUserEnabledSelectors(nv);
+                              if (!nv) { setShowDaySelector(false); if (onYearChange && selectedYear !== 'all') onYearChange(selectedYear); }
+                              else { if (onYearChange && selectedYear !== 'all') onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
+                              setRefreshCounter(prev => prev + 1);
+                            }}
+                            className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showMonthSelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                          >
+                            <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[14px]' : ''}`}>
+                              <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m</span>
                             </div>
                           </div>
                         )}
                       </div>
-                      {/* Column 2: Month grid */}
+                      {/* Row 2: Month grid + day toggle */}
                       {selectedYear !== 'all' && showMonthSelector && (
-                        <div className="flex flex-col items-center">
-                          {renderMonthGrid(selectedMonth, handleMonthChange, 3)}
-                          <div className="mt-1">
-                            <div
-                              onClick={() => {
-                                const nv = !showDaySelector;
-                                setShowDaySelector(nv);
-                                const isHistoryTab = activeTab === 'history';
-                                if (!isHistoryTab && nv) setUserEnabledSelectors(true);
-                                if (nv) { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`); }
-                                else { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
-                                setRefreshCounter(prev => prev + 1);
-                              }}
-                              className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showDaySelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                            >
-                              <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[14px]' : ''}`}>
-                                <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
-                              </div>
+                        <div className="flex flex-row items-center gap-1">
+                          {renderMonthGrid(selectedMonth, handleMonthChange, 6)}
+                          <div
+                            onClick={() => {
+                              const nv = !showDaySelector;
+                              setShowDaySelector(nv);
+                              const isHistoryTab = activeTab === 'history';
+                              if (!isHistoryTab && nv) setUserEnabledSelectors(true);
+                              if (nv) { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`); }
+                              else { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
+                              setRefreshCounter(prev => prev + 1);
+                            }}
+                            className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showDaySelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                          >
+                            <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[14px]' : ''}`}>
+                              <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
                             </div>
                           </div>
                         </div>
                       )}
-                      {/* Column 3: Day grid */}
+                      {/* Row 3: Day grid */}
                       {selectedYear !== 'all' && showMonthSelector && showDaySelector && (
-                        renderDayGrid(days, selectedDay, handleDayChange, 5)
+                        renderDayGrid(days, selectedDay, handleDayChange, 7)
                       )}
                     </div>
                   ) : (
@@ -2346,84 +2355,78 @@ const YearSelector = ({
             // Range mode
             <>
               {isMobile && !isLandscape && isHorizontal ? (
-                /* Mobile portrait horizontal: columns — year grid | months | days */
-                <div className="flex flex-row items-start gap-2">
-                  {/* Column 1: Range year grid + M toggle */}
-                  <div className="flex flex-col items-center">
-                    {renderRangeYearGrid(2)}
+                /* Mobile portrait horizontal: stacked rows — year | months | days */
+                <div className="flex flex-col items-center gap-1">
+                  {/* Row 1: Range year grid + M toggle */}
+                  <div className="flex flex-row items-center gap-1">
+                    {renderRangeYearGrid(Math.min(years.length, 6))}
                     {yearRange.startYear && yearRange.endYear && (
-                      <div className="mt-1">
-                        <div
-                          onClick={() => {
-                            const nv = !showRangeMonthDaySelectors;
-                            setShowRangeMonthDaySelectors(nv);
-                            if (!nv) {
-                              setShowRangeDaySelectors(false);
-                              if (onYearRangeChange) onYearRangeChange({ startYear: yearRange.startYear, endYear: yearRange.endYear });
-                            } else {
-                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
-                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
-                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                            }
-                            setRefreshCounter(prev => prev + 1);
-                          }}
-                          className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeMonthDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                        >
-                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[14px]' : ''}`}>
-                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m</span>
-                          </div>
+                      <div
+                        onClick={() => {
+                          const nv = !showRangeMonthDaySelectors;
+                          setShowRangeMonthDaySelectors(nv);
+                          if (!nv) {
+                            setShowRangeDaySelectors(false);
+                            if (onYearRangeChange) onYearRangeChange({ startYear: yearRange.startYear, endYear: yearRange.endYear });
+                          } else {
+                            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
+                            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
+                            if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                          }
+                          setRefreshCounter(prev => prev + 1);
+                        }}
+                        className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeMonthDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                      >
+                        <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[14px]' : ''}`}>
+                          <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m</span>
                         </div>
                       </div>
                     )}
                   </div>
-                  {/* Column 2: Start/End month grids + D toggle */}
+                  {/* Row 2: Start/End month grids + D toggle */}
                   {showRangeMonthDaySelectors && (
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex flex-row gap-1">
-                        <div>
-                          <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
-                          {renderMonthGrid(startMonth, handleStartMonthChange, 3)}
-                        </div>
-                        <div>
-                          <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
-                          {renderMonthGrid(endMonth, handleEndMonthChange, 3)}
-                        </div>
+                    <div className="flex flex-row items-center gap-1">
+                      <div>
+                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
+                        {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
                       </div>
                       <div>
-                        <div
-                          onClick={() => {
-                            const nv = !showRangeDaySelectors;
-                            setShowRangeDaySelectors(nv);
-                            if (nv) {
-                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                            } else {
-                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
-                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
-                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                            }
-                            setRefreshCounter(prev => prev + 1);
-                          }}
-                          className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                        >
-                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
-                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
-                          </div>
+                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
+                        {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
+                      </div>
+                      <div
+                        onClick={() => {
+                          const nv = !showRangeDaySelectors;
+                          setShowRangeDaySelectors(nv);
+                          if (nv) {
+                            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                            if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                          } else {
+                            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
+                            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
+                            if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                          }
+                          setRefreshCounter(prev => prev + 1);
+                        }}
+                        className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                      >
+                        <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
+                          <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
                         </div>
                       </div>
                     </div>
                   )}
-                  {/* Column 3: Start/End day grids */}
+                  {/* Row 3: Start/End day grids */}
                   {showRangeMonthDaySelectors && showRangeDaySelectors && (
                     <div className="flex flex-row gap-1">
                       <div>
                         <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SD</div>
-                        {renderDayGrid(startDays, startDay, handleStartDayChange, 5)}
+                        {renderDayGrid(startDays, startDay, handleStartDayChange, 7)}
                       </div>
                       <div>
                         <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>ED</div>
-                        {renderDayGrid(endDays, endDay, handleEndDayChange, 5)}
+                        {renderDayGrid(endDays, endDay, handleEndDayChange, 7)}
                       </div>
                     </div>
                   )}
