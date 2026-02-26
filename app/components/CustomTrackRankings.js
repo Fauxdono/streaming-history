@@ -1464,30 +1464,6 @@ return (
           )}
         </div>
 
-        <label className={`${colors.text} text-xs`}>Show Top</label>
-        <input
-          type="number"
-          min="1"
-          max="999"
-          defaultValue={topN}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-          className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
-        />
-
-        <label className={`${colors.text} text-xs`}>Sort by</label>
-        <button
-          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-        >
-          {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
-        </button>
-        <button
-          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
-        >
-          {viewMode === 'grid' ? '☰' : '⊞'}
-        </button>
         <button
           onClick={() => setShowOmittedTab(!showOmittedTab)}
           className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgLight} ${colors.text} border ${colors.border} hover:${colors.bgMed}`}`}
@@ -1501,6 +1477,28 @@ return (
         >
           <Download size={12} />
           M3U
+        </button>
+        <label className={`${colors.text} text-xs`}>Show Top</label>
+        <input
+          type="number"
+          min="1"
+          max="999"
+          defaultValue={topN}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
+          className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
+        />
+        <button
+          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
+        </button>
+        <button
+          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+        >
+          {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
       </div>
     </div>
