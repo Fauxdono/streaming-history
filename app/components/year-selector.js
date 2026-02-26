@@ -1627,7 +1627,7 @@ const YearSelector = ({
   const getPositionStyles = useMemo(() => {
     const settingsBarHeight = isMobile ? (isLandscape ? 64 : 85) : 40;
     // Use actual TopTabs dimensions, with fallbacks for mobile
-    const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight + (isMobile ? 4 : 0) : (isMobile ? 48 : 56);
+    const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight : (isMobile ? 48 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
 
     // Floating mode: absolute position from saved coordinates
