@@ -145,7 +145,8 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontWeight: fontSize === 'small' ? 'bold' : 'normal'
+              fontWeight: fontSize === 'small' ? 'bold' : 'normal',
+              fontSize: '12px'
             }}
           >
             A
@@ -158,7 +159,8 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontWeight: fontSize === 'medium' ? 'bold' : 'normal'
+              fontWeight: fontSize === 'medium' ? 'bold' : 'normal',
+              fontSize: '16px'
             }}
           >
             A
@@ -171,7 +173,8 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontWeight: fontSize === 'large' ? 'bold' : 'normal'
+              fontWeight: fontSize === 'large' ? 'bold' : 'normal',
+              fontSize: '20px'
             }}
           >
             A
@@ -184,7 +187,8 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
                 : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
             style={{
-              fontWeight: fontSize === 'xlarge' ? 'bold' : 'normal'
+              fontWeight: fontSize === 'xlarge' ? 'bold' : 'normal',
+              fontSize: '24px'
             }}
           >
             A

@@ -1619,15 +1619,13 @@ const YearSelector = ({
     }
   };
 
-  // Fixed settings bar height - this matches the FixedSettingsBar height, scaled by font size (min 40px)
-  const fontScales = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 };
-  const fontScale = fontScales[fontSize] || 1;
+  // Fixed settings bar height - matches FixedSettingsBar (icon buttons only, no text, always 40px on desktop)
   const isLandscapeMobileBar = isMobile && isLandscape;
-  const settingsBarHeight = isMobile ? (isLandscapeMobileBar ? 64 : 85) : Math.max(40, Math.round(40 * fontScale));
+  const settingsBarHeight = isMobile ? (isLandscapeMobileBar ? 64 : 85) : 40;
 
   // Dynamic position styles that account for TopTabs (memoized for mobile performance)
   const getPositionStyles = useMemo(() => {
-    const settingsBarHeight = isMobile ? (isLandscape ? 64 : 85) : Math.max(40, Math.round(40 * fontScale));
+    const settingsBarHeight = isMobile ? (isLandscape ? 64 : 85) : 40;
     // Use actual TopTabs dimensions, with fallbacks for mobile
     const safeTopTabsHeight = topTabsHeight != null ? topTabsHeight + (isMobile ? 4 : 0) : (isMobile ? 48 : 56);
     const safeTopTabsWidth = topTabsWidth || (isMobile ? 160 : 192);
@@ -1727,7 +1725,7 @@ const YearSelector = ({
       className: 'fixed right-0 top-20 bottom-0 z-[90]',
       style: {}
     };
-  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, fontScale, isFloating, floatPos]);
+  }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, isFloating, floatPos]);
 
   // If not expanded, show a mini sidebar (never collapse when floating or horizontal)
   if (!expanded && asSidebar && !isFloating && !isHorizontal) {
