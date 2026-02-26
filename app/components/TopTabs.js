@@ -87,7 +87,7 @@ const TopTabs = ({
         }
         // Re-measure height for top/bottom positions
         if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
-          const actualHeight = topTabsElement.offsetHeight;
+          const actualHeight = Math.ceil(topTabsElement.getBoundingClientRect().height);
           onHeightChange(actualHeight);
         }
       }
@@ -111,32 +111,31 @@ const TopTabs = ({
     }
   }, [isCollapsed, onCollapseChange]);
 
-  // Communicate height changes to parent (for top/bottom positions), but block during transitions
+  // Communicate height changes to parent using ResizeObserver for accurate, real-time measurement
   useEffect(() => {
-    if (onHeightChange && !isTransitioning) {
-      if (currentPosition === 'top' || currentPosition === 'bottom') {
-        // Measure actual height dynamically - only for the tabs container, not settings bar
-        const measureHeight = () => {
-          const topTabsElement = document.querySelector('.toptabs-container');
-          if (topTabsElement) {
-            const actualHeight = topTabsElement.offsetHeight;
-            onHeightChange(actualHeight);
-          } else {
-            // Fallback to responsive approximation - just for tabs
-            const tabHeight = isMobile ? 44 : 56; // Reduced since settings are separate
-            onHeightChange(tabHeight);
-          }
-        };
-        
-        // Measure immediately and after a brief delay to ensure rendering is complete
-        measureHeight();
-        const timer = setTimeout(measureHeight, 100);
-        
-        return () => clearTimeout(timer);
-      } else {
-        // Reset height to 0 when not on top/bottom sides
-        onHeightChange(0);
+    if (!onHeightChange || isTransitioning) return;
+
+    if (currentPosition === 'top' || currentPosition === 'bottom') {
+      const topTabsElement = document.querySelector('.toptabs-container');
+      if (!topTabsElement) {
+        onHeightChange(isMobile ? 44 : 56);
+        return;
       }
+
+      // Measure immediately
+      onHeightChange(Math.ceil(topTabsElement.getBoundingClientRect().height));
+
+      // Watch for size changes (font load, content change, etc.)
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          onHeightChange(Math.ceil(entry.target.getBoundingClientRect().height));
+        }
+      });
+      observer.observe(topTabsElement);
+
+      return () => observer.disconnect();
+    } else {
+      onHeightChange(0);
     }
   }, [currentPosition, onHeightChange, isMobile, isCollapsed, isTransitioning]);
 
