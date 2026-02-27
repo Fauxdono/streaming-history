@@ -112,6 +112,8 @@ const YearSelector = ({
   const [endMonth, setEndMonth] = useState(12);
   const [endDay, setEndDay] = useState(31);
   const [rangeYearTapPhase, setRangeYearTapPhase] = useState('idle');
+  const [rangeMonthTapPhase, setRangeMonthTapPhase] = useState('idle');
+  const [rangeDayTapPhase, setRangeDayTapPhase] = useState('idle');
 
   // Base dimensions before scaling (must be after all state declarations)
   const getBaseDimensions = () => {
@@ -1581,6 +1583,38 @@ const YearSelector = ({
     }
   }, [rangeYearTapPhase, yearRange, handleYearRangeChange]);
 
+  const handleRangeMonthGridTap = useCallback((month) => {
+    if (rangeMonthTapPhase === 'idle') {
+      setRangeMonthTapPhase('start-set');
+      handleStartMonthChange(month);
+    } else {
+      setRangeMonthTapPhase('idle');
+      if (yearRange.startYear === yearRange.endYear && month < startMonth) {
+        // Same year: swap so start < end
+        handleEndMonthChange(startMonth);
+        handleStartMonthChange(month);
+      } else {
+        handleEndMonthChange(month);
+      }
+    }
+  }, [rangeMonthTapPhase, startMonth, yearRange, handleStartMonthChange, handleEndMonthChange]);
+
+  const handleRangeDayGridTap = useCallback((day) => {
+    if (rangeDayTapPhase === 'idle') {
+      setRangeDayTapPhase('start-set');
+      handleStartDayChange(day);
+    } else {
+      setRangeDayTapPhase('idle');
+      if (yearRange.startYear === yearRange.endYear && startMonth === endMonth && day < startDay) {
+        // Same year+month: swap so start < end
+        handleEndDayChange(startDay);
+        handleStartDayChange(day);
+      } else {
+        handleEndDayChange(day);
+      }
+    }
+  }, [rangeDayTapPhase, startDay, startMonth, endMonth, yearRange, handleStartDayChange, handleEndDayChange]);
+
   // Get the label to display for the current date/range
   const getYearLabel = () => {
     if (mode === 'single') {
@@ -2001,6 +2035,83 @@ const YearSelector = ({
     </div>
   );
 
+  const renderRangeMonthGrid = (cols) => {
+    const sameYear = yearRange.startYear === yearRange.endYear;
+    return (
+      <div>
+        <div className={`text-[10px] text-center mb-1 ${colors.text} opacity-70`}>
+          {rangeMonthTapPhase === 'idle'
+            ? 'Tap to reselect'
+            : 'Tap end month'}
+        </div>
+        <div {...gridProps(cols)}>
+          {months.map(month => {
+            const isStart = month === startMonth;
+            const isEnd = month === endMonth;
+            const isBetween = sameYear && startMonth < endMonth
+              && month > startMonth && month < endMonth;
+            return (
+              <button
+                key={month}
+                onClick={() => handleRangeMonthGridTap(month)}
+                className={`px-1 py-0.5 text-[12px] rounded transition-colors ${
+                  isStart || isEnd
+                    ? `${colors.bgActive} ${colors.textActive} font-bold`
+                    : isBetween
+                      ? `${colors.bgMed} ${colors.text}`
+                      : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                }`}
+              >
+                {monthNamesShort[month - 1]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderRangeDayGrid = (cols) => {
+    const sameYearMonth = yearRange.startYear === yearRange.endYear && startMonth === endMonth;
+    const maxDay = Math.max(
+      getDaysInMonth(yearRange.startYear, startMonth),
+      getDaysInMonth(yearRange.endYear, endMonth)
+    );
+    const daysArray = Array.from({ length: maxDay }, (_, i) => i + 1);
+    return (
+      <div>
+        <div className={`text-[10px] text-center mb-1 ${colors.text} opacity-70`}>
+          {rangeDayTapPhase === 'idle'
+            ? 'Tap to reselect'
+            : 'Tap end day'}
+        </div>
+        <div {...gridProps(cols)}>
+          {daysArray.map(day => {
+            const isStart = day === startDay;
+            const isEnd = day === endDay;
+            const isBetween = sameYearMonth && startDay < endDay
+              && day > startDay && day < endDay;
+            return (
+              <button
+                key={day}
+                onClick={() => handleRangeDayGridTap(day)}
+                className={`px-1 py-0.5 text-[12px] rounded transition-colors ${
+                  isStart || isEnd
+                    ? `${colors.bgActive} ${colors.textActive} font-bold`
+                    : isBetween
+                      ? `${colors.bgMed} ${colors.text}`
+                      : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                }`}
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderMonthGrid = (selectedValue, onSelect, cols) => (
     <div {...gridProps(cols)}>
       {months.map(month => (
@@ -2390,17 +2501,10 @@ const YearSelector = ({
                       </div>
                     )}
                   </div>
-                  {/* Row 2: Start/End month grids + D toggle */}
+                  {/* Row 2: Range month grid (tap to select start/end) + D toggle */}
                   {showRangeMonthDaySelectors && (
                     <div className="flex flex-row items-center gap-1">
-                      <div>
-                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
-                        {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
-                      </div>
-                      <div>
-                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
-                        {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
-                      </div>
+                      {renderRangeMonthGrid(6)}
                       <div
                         onClick={() => {
                           const nv = !showRangeDaySelectors;
@@ -2424,18 +2528,9 @@ const YearSelector = ({
                       </div>
                     </div>
                   )}
-                  {/* Row 3: Start/End day grids */}
+                  {/* Row 3: Range day grid (tap to select start/end) */}
                   {showRangeMonthDaySelectors && showRangeDaySelectors && (
-                    <div className="flex flex-row gap-1">
-                      <div>
-                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SD</div>
-                        {renderDayGrid(startDays, startDay, handleStartDayChange, 7)}
-                      </div>
-                      <div>
-                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>ED</div>
-                        {renderDayGrid(endDays, endDay, handleEndDayChange, 7)}
-                      </div>
-                    </div>
+                    renderRangeDayGrid(7)
                   )}
                 </div>
               ) : (
