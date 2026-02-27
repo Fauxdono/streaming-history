@@ -42,6 +42,7 @@ const ListeningPatterns = ({
   setViewMode = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
+  const [viewPress, setViewPress] = useState(0);
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [mapView, setMapView] = useState('flat');
@@ -49,6 +50,8 @@ const ListeningPatterns = ({
   const [obsIntensityThreshold, setObsIntensityThreshold] = useState(5);
   const [obsSortBy, setObsSortBy] = useState('playsInWeek');
   const [obsShowExporter, setObsShowExporter] = useState(false);
+
+  useEffect(() => { setViewPress(0); }, [activeTab]);
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
@@ -807,8 +810,9 @@ const ListeningPatterns = ({
             {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[obsSortBy]}
           </button>
           <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+            key={`obs-view-${viewPress}`}
+            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
           >
             {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
@@ -831,8 +835,9 @@ const ListeningPatterns = ({
             {mapView === 'flat' ? 'Globe' : 'Map'}
           </button>
           <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+            key={`loc-view-${viewPress}`}
+            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
           >
             {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
@@ -1226,8 +1231,9 @@ const ListeningPatterns = ({
           }}
           gridToggle={
             <button
-              onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+              key={`obs-grid-${viewPress}`}
+              onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
             >
               {viewMode === 'grid' ? '☰' : '⊞'}
             </button>

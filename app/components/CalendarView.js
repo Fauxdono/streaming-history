@@ -17,6 +17,9 @@ const CalendarView = ({
 }) => {
   const [activeTab, setActiveTab] = useState('calendar');
   const [daySelectionMode, setDaySelectionMode] = useState(false);
+  const [viewPress, setViewPress] = useState(0);
+
+  useEffect(() => { setViewPress(0); }, [activeTab]);
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
@@ -726,11 +729,12 @@ const CalendarView = ({
             </button>
           )}
           <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            key={`cal-view-${viewPress}`}
+            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
             className={
               isColorful
                 ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-green-500 text-black hover:bg-green-600'
-                : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
             }
           >
             {viewMode === 'grid' ? '☰' : '⊞'}
