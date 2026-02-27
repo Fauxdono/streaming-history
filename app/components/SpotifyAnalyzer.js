@@ -261,10 +261,12 @@ const SpotifyAnalyzer = ({
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'list'
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
+  const [artistsSortPressAnim, setArtistsSortPressAnim] = useState(0);
   const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
+  const [albumsSortPressAnim, setAlbumsSortPressAnim] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
@@ -2738,11 +2740,12 @@ const SpotifyAnalyzer = ({
 
                   <label className="text-xs">Sort by</label>
                   <button
-                    onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    key={`artists-sort-desktop-${artistsSortPressAnim}`}
+                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setArtistsSortPressAnim(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] btn-press-dark' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] btn-press-light'}`
                     }
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -2844,11 +2847,12 @@ const SpotifyAnalyzer = ({
                     }
                   />
                   <button
-                    onClick={() => setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    key={`artists-sort-mobile-${artistsSortPressAnim}`}
+                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setArtistsSortPressAnim(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] btn-press-dark' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] btn-press-light'}`
                     }
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -3165,11 +3169,12 @@ const SpotifyAnalyzer = ({
 
                   <label className="text-xs">Sort by</label>
                   <button
-                    onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    key={`albums-sort-desktop-${albumsSortPressAnim}`}
+                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setAlbumsSortPressAnim(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] btn-press-dark' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] btn-press-light'}`
                     }
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -3253,11 +3258,12 @@ const SpotifyAnalyzer = ({
                     }
                   />
                   <button
-                    onClick={() => setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
+                    key={`albums-sort-mobile-${albumsSortPressAnim}`}
+                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setAlbumsSortPressAnim(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] btn-press-dark' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] btn-press-light'}`
                     }
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
