@@ -25,7 +25,7 @@ const TrackRankings = ({
 }) => {
   const isColorful = colorMode === 'colorful';
   const [_sortBy, _setSortBy] = useState('playsInWeek');
-  const [sortAnimating, setSortAnimating] = useState(false);
+  const [sortPress, setSortPress] = useState(0);
   const [_showExporter, _setShowExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [_topN, _setTopN] = useState(100);
@@ -453,8 +453,9 @@ return (
         M3U
       </button>
       <button
-        onClick={() => { setSortBy(sortBy === 'playsInWeek' ? 'playCount' : sortBy === 'playCount' ? 'weekStart' : 'playsInWeek'); if (!isColorful) { setSortAnimating(true); setTimeout(() => setSortAnimating(false), 300); } }}
-        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''} ${sortAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+        key={`obsessions-sort-${sortPress}`}
+        onClick={() => { setSortBy(sortBy === 'playsInWeek' ? 'playCount' : sortBy === 'playCount' ? 'weekStart' : 'playsInWeek'); if (!isColorful) setSortPress(p => p + 1); }}
+        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''} ${sortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
       >
         {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[sortBy]}
       </button>

@@ -304,8 +304,8 @@ const CustomTrackRankings = ({
   const [endDate, setEndDate] = useState('');
   const [topN, setTopN] = useState(100);
   const [sortBy, setSortBy] = useState('totalPlayed');
-  const [sortByAnimating, setSortByAnimating] = useState(false);
-  const [viewModeAnimating, setViewModeAnimating] = useState(false);
+  const [sortByPress, setSortByPress] = useState(0);
+  const [viewModePress, setViewModePress] = useState(0);
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [selectedAlbums, setSelectedAlbums] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
@@ -1491,14 +1491,16 @@ return (
           className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
         />
         <button
-          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) { setSortByAnimating(true); setTimeout(() => setSortByAnimating(false), 300); } }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+          key={`sort-desktop-${sortByPress}`}
+          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) setSortByPress(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
         <button
-          onClick={() => { setViewMode(viewMode === 'grid' ? 'compact' : 'grid'); if (!isColorful) { setViewModeAnimating(true); setTimeout(() => setViewModeAnimating(false), 300); } }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${viewModeAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+          key={`view-desktop-${viewModePress}`}
+          onClick={() => { setViewMode(viewMode === 'grid' ? 'compact' : 'grid'); if (!isColorful) setViewModePress(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${viewModePress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
         >
           {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
@@ -1590,8 +1592,9 @@ return (
           className={`w-10 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
         />
         <button
-          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) { setSortByAnimating(true); setTimeout(() => setSortByAnimating(false), 300); } }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+          key={`sort-mobile-${sortByPress}`}
+          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) setSortByPress(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>

@@ -261,14 +261,14 @@ const SpotifyAnalyzer = ({
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'list'
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
-  const [artistsSortAnimating, setArtistsSortAnimating] = useState(false);
-  const [artistsViewAnimating, setArtistsViewAnimating] = useState(false);
+  const [artistsSortPress, setArtistsSortPress] = useState(0);
+  const [artistsViewPress, setArtistsViewPress] = useState(0);
   const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
-  const [albumsSortAnimating, setAlbumsSortAnimating] = useState(false);
-  const [albumsViewAnimating, setAlbumsViewAnimating] = useState(false);
+  const [albumsSortPress, setAlbumsSortPress] = useState(0);
+  const [albumsViewPress, setAlbumsViewPress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
@@ -2742,21 +2742,23 @@ const SpotifyAnalyzer = ({
 
                   <label className="text-xs">Sort by</label>
                   <button
-                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') { setArtistsSortAnimating(true); setTimeout(() => setArtistsSortAnimating(false), 300); } }}
+                    key={`artists-sort-d-${artistsSortPress}`}
+                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setArtistsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                   </button>
                   <button
-                    onClick={() => { setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') { setArtistsViewAnimating(true); setTimeout(() => setArtistsViewAnimating(false), 300); } }}
+                    key={`artists-view-d-${artistsViewPress}`}
+                    onClick={() => { setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') setArtistsViewPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsViewAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {artistsViewMode === 'grid' ? '☰' : '⊞'}
@@ -2848,11 +2850,12 @@ const SpotifyAnalyzer = ({
                     }
                   />
                   <button
-                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') { setArtistsSortAnimating(true); setTimeout(() => setArtistsSortAnimating(false), 300); } }}
+                    key={`artists-sort-m-${artistsSortPress}`}
+                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setArtistsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -3169,21 +3172,23 @@ const SpotifyAnalyzer = ({
 
                   <label className="text-xs">Sort by</label>
                   <button
-                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') { setAlbumsSortAnimating(true); setTimeout(() => setAlbumsSortAnimating(false), 300); } }}
+                    key={`albums-sort-d-${albumsSortPress}`}
+                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setAlbumsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                   </button>
                   <button
-                    onClick={() => { setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') { setAlbumsViewAnimating(true); setTimeout(() => setAlbumsViewAnimating(false), 300); } }}
+                    key={`albums-view-d-${albumsViewPress}`}
+                    onClick={() => { setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') setAlbumsViewPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsViewAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {albumsViewMode === 'grid' ? '☰' : '⊞'}
@@ -3257,11 +3262,12 @@ const SpotifyAnalyzer = ({
                     }
                   />
                   <button
-                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') { setAlbumsSortAnimating(true); setTimeout(() => setAlbumsSortAnimating(false), 300); } }}
+                    key={`albums-sort-m-${albumsSortPress}`}
+                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setAlbumsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
