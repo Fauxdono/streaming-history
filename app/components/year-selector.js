@@ -2155,7 +2155,7 @@ const YearSelector = ({
 
                   {/* Year/Month/Day as stacked rows for mobile portrait horizontal */}
                   {isMobile && !isLandscape && isHorizontal ? (
-                    <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-col items-start gap-1">
                       {/* Row 1: All Time + Year grid + month toggle */}
                       <div className="flex flex-row items-center gap-1">
                         <button
@@ -2363,7 +2363,7 @@ const YearSelector = ({
             <>
               {isMobile && !isLandscape && isHorizontal ? (
                 /* Mobile portrait horizontal: stacked rows — year | months | days */
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-start gap-1">
                   {/* Row 1: Range year grid + M toggle */}
                   <div className="flex flex-row items-center gap-1">
                     {renderRangeYearGrid(Math.min(years.length, 6))}
