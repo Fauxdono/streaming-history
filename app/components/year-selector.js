@@ -158,10 +158,10 @@ const YearSelector = ({
         return { width: 300, height: h };
       }
       if (isMobilePortraitHz) {
-        // Mobile portrait horizontal: stacked rows
-        let h = 30 + 26; // year row
-        if (showRangeMonthDaySelectors) h += 70; // start/end month rows (2 rows of 6)
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h += 150; // start/end day rows
+        // Mobile portrait horizontal: stacked rows with instruction text
+        let h = 30 + 26; // year row + instruction text
+        if (showRangeMonthDaySelectors) h += 86; // month instruction + 2 rows of 6 months
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h += 166; // day instruction + day rows
         return { width: 300, height: Math.max(60, h) };
       }
       const yearRows = Math.ceil(yearCount / 2);
@@ -2330,7 +2330,7 @@ const YearSelector = ({
                       )}
                       {/* Row 3: Day grid */}
                       {selectedYear !== 'all' && showMonthSelector && showDaySelector && (
-                        renderDayGrid(days, selectedDay, handleDayChange, 7)
+                        renderDayGrid(days, selectedDay, handleDayChange, 8)
                       )}
                     </div>
                   ) : (
