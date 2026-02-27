@@ -2163,14 +2163,22 @@ const YearSelector = ({
           <div className="w-8 h-1 rounded-full bg-current opacity-30" />
         </div>
       )}
-      {/* Collapse button for sidebar (hidden when horizontal or floating - always expanded) */}
-      {asSidebar && !isHorizontal && !isFloating && (
+      {/* Collapse button for sidebar (hidden when desktop horizontal or floating) */}
+      {asSidebar && (!isHorizontal || (isMobile && !isLandscape)) && !isFloating && (
         <button
           onClick={toggleExpanded}
-          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          className={`absolute ${
+            isHorizontal
+              ? 'right-2 top-1'
+              : `${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20`
+          } p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
           aria-label="Collapse sidebar"
         >
-          <span className={colors.textActive}>{currentPosition === 'left' ? '←' : '→'}</span>
+          <span className={colors.textActive}>{
+            isHorizontal
+              ? currentPosition === 'top' ? '↑' : '↓'
+              : currentPosition === 'left' ? '←' : '→'
+          }</span>
         </button>
       )}
       
@@ -2530,7 +2538,7 @@ const YearSelector = ({
                   )}
                   {/* Row 3: Range day grid (tap to select start/end) */}
                   {showRangeMonthDaySelectors && showRangeDaySelectors && (
-                    renderRangeDayGrid(7)
+                    renderRangeDayGrid(8)
                   )}
                 </div>
               ) : (
