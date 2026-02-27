@@ -3025,9 +3025,19 @@ const SpotifyAnalyzer = ({
                           >
                             <div className={`font-bold ${cardText}`}>{artist.name}</div>
                             <div className={`text-sm ${cardTextLight}`}>
-                              Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                              <br/>
-                              Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
+                              {artistsSortBy === 'playCount' ? (
+                                <>
+                                  Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
+                                  <br/>
+                                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+                                </>
+                              ) : (
+                                <>
+                                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
+                                  <br/>
+                                  Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
+                                </>
+                              )}
                               <br/>
                               {artist.mostPlayedSong && (
                                 <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
@@ -3397,8 +3407,17 @@ const SpotifyAnalyzer = ({
                               </div>
                             </div>
                             <div className={`text-right text-xs ${albumCardTextLight}`}>
-                              <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
-                              <div>{(album.playCount || 0).toLocaleString()} plays</div>
+                              {albumsSortBy === 'playCount' ? (
+                                <>
+                                  <div className="font-medium">{(album.playCount || 0).toLocaleString()} plays</div>
+                                  <div>{formatDuration(album.totalPlayed)}</div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="font-medium">{formatDuration(album.totalPlayed)}</div>
+                                  <div>{(album.playCount || 0).toLocaleString()} plays</div>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
