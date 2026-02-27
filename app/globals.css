@@ -131,6 +131,23 @@ body {
   font-family: Papyrus, fantasy;
 }
 
+.font-opendyslexic {
+  font-family: var(--font-opendyslexic), 'OpenDyslexic', sans-serif;
+}
+
+/* ============================================
+   DYSLEXIC SPACING MODE
+   ============================================ */
+
+html.dyslexic-spacing {
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+
+html.dyslexic-spacing body {
+  line-height: 1.8;
+}
+
 /* ============================================
    FONT SIZE SYSTEM
    ============================================ */

@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Comic_Neue, Inter, JetBrains_Mono, Playfair_Display, Space_Grotesk, Outfit, DM_Sans, Sora, Lexend } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { ThemeProvider } from "./components/themeprovider.js";
@@ -48,6 +49,10 @@ const lexend = Lexend({
   subsets: ['latin'],
   variable: '--font-lexend',
 });
+const openDyslexic = localFont({
+  src: './fonts/OpenDyslexic-Regular.woff2',
+  variable: '--font-opendyslexic',
+});
 
 export const metadata = {
   title: "Cakeculator - Streaming History Analyzer",
@@ -75,7 +80,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} ${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${spaceGrotesk.variable} ${outfit.variable} ${dmSans.variable} ${sora.variable} ${lexend.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${comicNeue.variable} ${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} ${spaceGrotesk.variable} ${outfit.variable} ${dmSans.variable} ${sora.variable} ${lexend.variable} ${openDyslexic.variable}`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="application-name" content="Cake" />

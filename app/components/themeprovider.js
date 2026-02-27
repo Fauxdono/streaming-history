@@ -18,6 +18,8 @@ const ThemeContext = createContext({
   setSkipFilter: () => null,
   fullListenOnly: false,
   setFullListenOnly: () => null,
+  dyslexicSpacing: false,
+  setDyslexicSpacing: () => null,
 });
 
 export const ThemeProvider = ({ children }) => {
@@ -29,6 +31,7 @@ export const ThemeProvider = ({ children }) => {
   const [minPlayDuration, setMinPlayDuration] = useState(30000);
   const [skipFilter, setSkipFilter] = useState(false);
   const [fullListenOnly, setFullListenOnly] = useState(false);
+  const [dyslexicSpacing, setDyslexicSpacing] = useState(false);
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -101,6 +104,13 @@ export const ThemeProvider = ({ children }) => {
       return false;
     };
 
+    const getInitialDyslexicSpacing = () => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem('dyslexicSpacing') === 'true';
+      }
+      return false;
+    };
+
     // Set theme based on preference
     const initialTheme = getInitialTheme();
     setTheme(initialTheme);
@@ -110,7 +120,8 @@ export const ThemeProvider = ({ children }) => {
     setMinPlayDuration(getInitialMinPlayDuration());
     setSkipFilter(getInitialSkipFilter());
     setFullListenOnly(getInitialFullListenOnly());
-    
+    setDyslexicSpacing(getInitialDyslexicSpacing());
+
     // Set up listener for system preference changes
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleSystemThemeChange = (e) => {
@@ -166,7 +177,7 @@ export const ThemeProvider = ({ children }) => {
       'font-sans', 'font-serif', 'font-mono', 'font-comic',
       'font-inter', 'font-jetbrains-mono', 'font-playfair', 'font-space-grotesk',
       'font-outfit', 'font-dm-sans', 'font-sora', 'font-lexend',
-      'font-cursive', 'font-system-ui', 'font-fantasy'
+      'font-cursive', 'font-system-ui', 'font-fantasy', 'font-opendyslexic'
     );
 
     // Add current font family class
@@ -233,6 +244,20 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [fullListenOnly, mounted]);
 
+  // Apply dyslexic spacing
+  useEffect(() => {
+    if (!mounted) return;
+    const root = window.document.documentElement;
+    if (dyslexicSpacing) {
+      root.classList.add('dyslexic-spacing');
+    } else {
+      root.classList.remove('dyslexic-spacing');
+    }
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('dyslexicSpacing', dyslexicSpacing.toString());
+    }
+  }, [dyslexicSpacing, mounted]);
+
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
@@ -258,7 +283,9 @@ export const ThemeProvider = ({ children }) => {
       skipFilter,
       setSkipFilter,
       fullListenOnly,
-      setFullListenOnly
+      setFullListenOnly,
+      dyslexicSpacing,
+      setDyslexicSpacing
     }}>
       {children}
     </ThemeContext.Provider>

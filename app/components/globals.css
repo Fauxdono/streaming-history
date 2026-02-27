@@ -233,6 +233,10 @@ html.font-comic {
   --app-font-family: 'Comic Sans MS', cursive, sans-serif;
 }
 
+html.font-opendyslexic {
+  --app-font-family: var(--font-opendyslexic), 'OpenDyslexic', sans-serif;
+}
+
 /* Dark mode class-based styles */
 /* Tab Background Colors - Using CSS Variables */
 .dark .bg-orange-50 { background-color: var(--orange-bg-light) !important; }

@@ -20,6 +20,8 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
     setSkipFilter,
     fullListenOnly,
     setFullListenOnly,
+    dyslexicSpacing,
+    setDyslexicSpacing,
   } = useTheme();
 
   const isDark = theme === 'dark';
@@ -47,6 +49,7 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
     { value: 'cursive', label: 'Cursive', preview: 'Brush Script MT, Segoe Script, cursive' },
     { value: 'system-ui', label: 'System UI', preview: 'system-ui, -apple-system, sans-serif' },
     { value: 'fantasy', label: 'Fantasy', preview: 'Papyrus, fantasy' },
+    { value: 'opendyslexic', label: 'OpenDyslexic', preview: 'var(--font-opendyslexic), OpenDyslexic, sans-serif' },
   ];
 
   const currentSliderValue = fontSizeOptions.find(opt => opt.value === fontSize)?.sliderValue ?? 1;
@@ -253,6 +256,33 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
           }`}>
             <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
               fullListenOnly ? 'translate-x-5' : ''
+            }`}></div>
+          </div>
+        </div>
+      </label>
+
+      {/* Divider */}
+      <div className={`my-4 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}`}></div>
+
+      {/* Dyslexic Spacing Toggle */}
+      <label className="flex items-center justify-between cursor-pointer py-1">
+        <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          Dyslexia-friendly spacing
+        </span>
+        <div className="relative">
+          <input
+            type="checkbox"
+            checked={dyslexicSpacing}
+            onChange={(e) => setDyslexicSpacing(e.target.checked)}
+            className="sr-only"
+          />
+          <div className={`w-10 h-5 rounded-full transition-colors ${
+            dyslexicSpacing
+              ? 'bg-indigo-500'
+              : isDark ? 'bg-gray-600' : 'bg-gray-300'
+          }`}>
+            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+              dyslexicSpacing ? 'translate-x-5' : ''
             }`}></div>
           </div>
         </div>
