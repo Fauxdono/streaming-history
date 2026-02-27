@@ -2129,45 +2129,52 @@ const YearSelector = ({
                   }`}>YEAR</div>
                 )}
 
-                <div className={`flex ${isHorizontal ? 'flex-row space-x-2' : 'flex-col'} items-center`}>
-                  {/* All Time button - shown in all layouts */}
-                  <button
-                    onClick={(e) => {
-                      console.log("All Time button clicked");
+                <div className={`flex ${isHorizontal ? (isMobile && !isLandscape ? 'flex-col gap-1' : 'flex-row space-x-2') : 'flex-col'} items-center`}>
+                  {/* All Time button - shown outside row layout for non-mphz */}
+                  {!(isMobile && !isLandscape && isHorizontal) && (
+                    <button
+                      onClick={(e) => {
+                        setSelectedYear('all');
+                        setShowMonthSelector(false);
+                        setShowDaySelector(false);
+                        if (onYearChange) onYearChange('all');
+                        setRefreshCounter(prev => prev + 1);
+                      }}
+                      className={`px-2 py-1 text-[12px] rounded-md transition-colors ${
+                        isHorizontal ? '' : 'mb-2'
+                      } ${
+                        selectedYear === 'all'
+                          ? `${colors.bgActive} ${colors.textActive} font-bold`
+                          : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
+                      }`}
+                      title="Show all-time data"
+                    >
+                      All Time
+                    </button>
+                  )}
 
-                      // First update local state
-                      setSelectedYear('all');
-                      setShowMonthSelector(false);
-                      setShowDaySelector(false);
-
-                      // Then directly call parent callback - this is key!
-                      if (onYearChange) {
-                        console.log("Directly calling parent onYearChange with 'all'");
-                        onYearChange('all');
-                      } else {
-                        console.error("onYearChange callback not available!");
-                      }
-
-                      // Force UI refresh
-                      setRefreshCounter(prev => prev + 1);
-                    }}
-                    className={`px-2 py-1 text-[12px] rounded-md transition-colors ${
-                      isHorizontal ? '' : 'mb-2'
-                    } ${
-                      selectedYear === 'all'
-                        ? `${colors.bgActive} ${colors.textActive} font-bold`
-                        : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
-                    }`}
-                    title="Show all-time data"
-                  >
-                    All Time
-                  </button>
-                  
                   {/* Year/Month/Day as stacked rows for mobile portrait horizontal */}
                   {isMobile && !isLandscape && isHorizontal ? (
                     <div className="flex flex-col items-center gap-1">
-                      {/* Row 1: Year grid + month toggle */}
+                      {/* Row 1: All Time + Year grid + month toggle */}
                       <div className="flex flex-row items-center gap-1">
+                        <button
+                          onClick={() => {
+                            setSelectedYear('all');
+                            setShowMonthSelector(false);
+                            setShowDaySelector(false);
+                            if (onYearChange) onYearChange('all');
+                            setRefreshCounter(prev => prev + 1);
+                          }}
+                          className={`px-2 py-0.5 text-[12px] rounded-md transition-colors ${
+                            selectedYear === 'all'
+                              ? `${colors.bgActive} ${colors.textActive} font-bold`
+                              : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
+                          }`}
+                          title="Show all-time data"
+                        >
+                          All
+                        </button>
                         {renderYearGrid(Math.min(years.length, 6))}
                         {selectedYear !== 'all' && (
                           <div
