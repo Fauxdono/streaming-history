@@ -114,6 +114,11 @@ const YearSelector = ({
   const [rangeYearTapPhase, setRangeYearTapPhase] = useState('idle');
   const [rangeMonthTapPhase, setRangeMonthTapPhase] = useState('idle');
   const [rangeDayTapPhase, setRangeDayTapPhase] = useState('idle');
+  const [rangeTapMode, setRangeTapMode] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const stored = localStorage.getItem('yearSelectorRangeTapMode');
+    return stored === null ? true : stored === 'true';
+  });
 
   // Base dimensions before scaling (must be after all state declarations)
   const getBaseDimensions = () => {
@@ -288,6 +293,11 @@ const YearSelector = ({
       localStorage.setItem('yearSelectorFloatScale', String(floatScale));
     }
   }, [floatScale]);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('yearSelectorRangeTapMode', String(rangeTapMode));
+    }
+  }, [rangeTapMode]);
 
   // Clean up old scaling localStorage key
   useEffect(() => {
@@ -2509,37 +2519,100 @@ const YearSelector = ({
                       </div>
                     )}
                   </div>
-                  {/* Row 2: Range month grid (tap to select start/end) + D toggle */}
+                  {/* Tap/Split toggle + mode-specific month/day grids */}
                   {showRangeMonthDaySelectors && (
-                    <div className="flex flex-row items-center gap-1">
-                      {renderRangeMonthGrid(6)}
-                      <div
-                        onClick={() => {
-                          const nv = !showRangeDaySelectors;
-                          setShowRangeDaySelectors(nv);
-                          if (nv) {
-                            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-                            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-                            if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                          } else {
-                            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
-                            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
-                            if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                          }
-                          setRefreshCounter(prev => prev + 1);
-                        }}
-                        className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                      >
-                        <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
-                          <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
+                    <button
+                      onClick={() => setRangeTapMode(!rangeTapMode)}
+                      className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
+                        rangeTapMode
+                          ? `${colors.bgActive} ${colors.textActive} font-bold`
+                          : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                      }`}
+                    >
+                      {rangeTapMode ? 'Tap' : 'Split'}
+                    </button>
+                  )}
+                  {showRangeMonthDaySelectors && rangeTapMode && (
+                    <>
+                      {/* Row 2: Range month grid (tap to select start/end) + D toggle */}
+                      <div className="flex flex-row items-center gap-1">
+                        {renderRangeMonthGrid(6)}
+                        <div
+                          onClick={() => {
+                            const nv = !showRangeDaySelectors;
+                            setShowRangeDaySelectors(nv);
+                            if (nv) {
+                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                            } else {
+                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
+                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
+                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                            }
+                            setRefreshCounter(prev => prev + 1);
+                          }}
+                          className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                        >
+                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
+                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                      {/* Row 3: Range day grid (tap to select start/end) */}
+                      {showRangeDaySelectors && renderRangeDayGrid(8)}
+                    </>
                   )}
-                  {/* Row 3: Range day grid (tap to select start/end) */}
-                  {showRangeMonthDaySelectors && showRangeDaySelectors && (
-                    renderRangeDayGrid(8)
-                  )}
+                  {showRangeMonthDaySelectors && !rangeTapMode && (
+                    <>
+                      {/* Split mode: separate SM/EM month grids */}
+                      <div className="flex flex-row items-start gap-1">
+                        <div>
+                          <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
+                          {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
+                        </div>
+                        <div>
+                          <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
+                          {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
+                        </div>
+                        <div
+                          onClick={() => {
+                            const nv = !showRangeDaySelectors;
+                            setShowRangeDaySelectors(nv);
+                            if (nv) {
+                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                            } else {
+                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
+                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
+                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                            }
+                            setRefreshCounter(prev => prev + 1);
+                          }}
+                          className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                        >
+                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
+                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Split mode: separate SD/ED day grids */}
+                      {showRangeDaySelectors && (
+                        <div className="flex flex-row gap-1">
+                          <div>
+                            <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SD</div>
+                            {renderDayGrid(startDays, startDay, handleStartDayChange, 8)}
+                          </div>
+                          <div>
+                            <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>ED</div>
+                            {renderDayGrid(endDays, endDay, handleEndDayChange, 8)}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )
+                  }
                 </div>
               ) : (
                 /* Desktop / landscape / sidebar: shared range year grid */
@@ -2584,33 +2657,54 @@ const YearSelector = ({
                     </div>
                   </div>
                   
+                  {/* Tap/Separate mode toggle */}
+                  {showRangeMonthDaySelectors && (
+                    <button
+                      onClick={() => setRangeTapMode(!rangeTapMode)}
+                      className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
+                        rangeTapMode
+                          ? `${colors.bgActive} ${colors.textActive} font-bold`
+                          : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                      }`}
+                    >
+                      {rangeTapMode ? 'Tap' : 'Split'}
+                    </button>
+                  )}
+
                   {/* Month/Day grids - only shown when toggle is on */}
                   {showRangeMonthDaySelectors && (
-                    <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
-                      {/* Month grids */}
-                      <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
-                        <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
-                          {renderMonthGrid(startMonth, handleStartMonthChange, isHorizontal ? 6 : 3)}
-                        </div>
-                        <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
-                          {renderMonthGrid(endMonth, handleEndMonthChange, isHorizontal ? 6 : 3)}
-                        </div>
+                    rangeTapMode ? (
+                      <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
+                        {renderRangeMonthGrid(isHorizontal ? 6 : 3)}
+                        {renderRangeDayGrid(isHorizontal ? 16 : 4)}
                       </div>
+                    ) : (
+                      <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
+                        {/* Month grids */}
+                        <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
+                          <div className="flex-1">
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
+                            {renderMonthGrid(startMonth, handleStartMonthChange, isHorizontal ? 6 : 3)}
+                          </div>
+                          <div className="flex-1">
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
+                            {renderMonthGrid(endMonth, handleEndMonthChange, isHorizontal ? 6 : 3)}
+                          </div>
+                        </div>
 
-                      {/* Day grids */}
-                      <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
-                        <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
-                          {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 16 : 4)}
-                        </div>
-                        <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
-                          {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 16 : 4)}
+                        {/* Day grids */}
+                        <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
+                          <div className="flex-1">
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
+                            {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 16 : 4)}
+                          </div>
+                          <div className="flex-1">
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
+                            {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 16 : 4)}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )
                   )}
                 </>
               )}
