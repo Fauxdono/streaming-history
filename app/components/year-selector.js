@@ -2632,13 +2632,12 @@ const YearSelector = ({
               ) : (
                 /* Desktop / landscape / sidebar: range year grid (tap or split) */
                 <div className="w-full">
-                  {rangeTapMode ? (
-                    renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)
-                  ) : (
-                    <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
+                  {rangeTapMode && renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
+                  {!rangeTapMode && !isHorizontal && (
+                    <div className="flex flex-row justify-between gap-2 w-full">
                       <div className="flex-1">
                         <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SY</div>
-                        <div {...gridProps(isHorizontal ? Math.min(years.length, 12) : 2)}>
+                        <div {...gridProps(2)}>
                           {years.map(year => (
                             <button
                               key={year}
@@ -2656,7 +2655,7 @@ const YearSelector = ({
                       </div>
                       <div className="flex-1">
                         <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EY</div>
-                        <div {...gridProps(isHorizontal ? Math.min(years.length, 12) : 2)}>
+                        <div {...gridProps(2)}>
                           {years.map(year => (
                             <button
                               key={year}
@@ -2723,40 +2722,110 @@ const YearSelector = ({
                     </div>
                   </div>
 
-                  {/* Month/Day grids - only shown when toggle is on */}
-                  {showRangeMonthDaySelectors && (
-                    rangeTapMode ? (
-                      <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
-                        {renderRangeMonthGrid(isHorizontal ? 6 : 3)}
-                        {renderRangeDayGrid(isHorizontal ? 16 : 4)}
-                      </div>
-                    ) : (
-                      <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
-                        {/* Month grids */}
-                        <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
-                          <div className="flex-1">
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
-                            {renderMonthGrid(startMonth, handleStartMonthChange, isHorizontal ? 6 : 3)}
-                          </div>
-                          <div className="flex-1">
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
-                            {renderMonthGrid(endMonth, handleEndMonthChange, isHorizontal ? 6 : 3)}
-                          </div>
-                        </div>
+                  {/* Tap mode: unified grids */}
+                  {showRangeMonthDaySelectors && rangeTapMode && (
+                    <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
+                      {renderRangeMonthGrid(isHorizontal ? 6 : 3)}
+                      {renderRangeDayGrid(isHorizontal ? 16 : 4)}
+                    </div>
+                  )}
 
-                        {/* Day grids */}
-                        <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
-                          <div className="flex-1">
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
-                            {renderDayGrid(startDays, startDay, handleStartDayChange, isHorizontal ? 16 : 4)}
-                          </div>
-                          <div className="flex-1">
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
-                            {renderDayGrid(endDays, endDay, handleEndDayChange, isHorizontal ? 16 : 4)}
+                  {/* Split mode, horizontal: start row / end row */}
+                  {!rangeTapMode && isHorizontal && (
+                    <div className="flex flex-col space-y-2 w-full">
+                      {/* Start row: SY + SM + SD */}
+                      <div className="flex flex-row space-x-2 items-start">
+                        <div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SY</div>
+                          <div {...gridProps(Math.min(years.length, 12))}>
+                            {years.map(year => (
+                              <button
+                                key={year}
+                                onClick={() => handleYearRangeChange({ startYear: year, endYear: yearRange.endYear || year })}
+                                className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                                  year === yearRange.startYear
+                                    ? `${colors.bgActive} ${colors.textActive} font-bold`
+                                    : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                                }`}
+                              >
+                                {year}
+                              </button>
+                            ))}
                           </div>
                         </div>
+                        {showRangeMonthDaySelectors && (
+                          <div>
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
+                            {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
+                          </div>
+                        )}
+                        {showRangeMonthDaySelectors && showRangeDaySelectors && (
+                          <div>
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
+                            {renderDayGrid(startDays, startDay, handleStartDayChange, 16)}
+                          </div>
+                        )}
                       </div>
-                    )
+                      {/* End row: EY + EM + ED */}
+                      <div className="flex flex-row space-x-2 items-start">
+                        <div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EY</div>
+                          <div {...gridProps(Math.min(years.length, 12))}>
+                            {years.map(year => (
+                              <button
+                                key={year}
+                                onClick={() => handleYearRangeChange({ startYear: yearRange.startYear || year, endYear: year })}
+                                className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                                  year === yearRange.endYear
+                                    ? `${colors.bgActive} ${colors.textActive} font-bold`
+                                    : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                                }`}
+                              >
+                                {year}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        {showRangeMonthDaySelectors && (
+                          <div>
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
+                            {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
+                          </div>
+                        )}
+                        {showRangeMonthDaySelectors && showRangeDaySelectors && (
+                          <div>
+                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
+                            {renderDayGrid(endDays, endDay, handleEndDayChange, 16)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Split mode, vertical: paired columns */}
+                  {showRangeMonthDaySelectors && !rangeTapMode && !isHorizontal && (
+                    <div className="flex flex-col space-y-2 w-full">
+                      <div className="flex flex-row justify-between gap-2 w-full">
+                        <div className="flex-1">
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
+                          {renderMonthGrid(startMonth, handleStartMonthChange, 3)}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
+                          {renderMonthGrid(endMonth, handleEndMonthChange, 3)}
+                        </div>
+                      </div>
+                      <div className="flex flex-row justify-between gap-2 w-full">
+                        <div className="flex-1">
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
+                          {renderDayGrid(startDays, startDay, handleStartDayChange, 4)}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
+                          {renderDayGrid(endDays, endDay, handleEndDayChange, 4)}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </>
               )}
