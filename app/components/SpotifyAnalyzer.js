@@ -262,11 +262,13 @@ const SpotifyAnalyzer = ({
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [artistsSortAnimating, setArtistsSortAnimating] = useState(false);
+  const [artistsViewAnimating, setArtistsViewAnimating] = useState(false);
   const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [albumsSortAnimating, setAlbumsSortAnimating] = useState(false);
+  const [albumsViewAnimating, setAlbumsViewAnimating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
@@ -2750,11 +2752,11 @@ const SpotifyAnalyzer = ({
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                   </button>
                   <button
-                    onClick={() => setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid')}
+                    onClick={() => { setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') { setArtistsViewAnimating(true); setTimeout(() => setArtistsViewAnimating(false), 300); } }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsViewAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {artistsViewMode === 'grid' ? '☰' : '⊞'}
@@ -3177,11 +3179,11 @@ const SpotifyAnalyzer = ({
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
                   </button>
                   <button
-                    onClick={() => setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid')}
+                    onClick={() => { setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') { setAlbumsViewAnimating(true); setTimeout(() => setAlbumsViewAnimating(false), 300); } }}
                     className={
                       colorMode === 'colorful'
                         ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsViewAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {albumsViewMode === 'grid' ? '☰' : '⊞'}

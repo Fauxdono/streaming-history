@@ -305,6 +305,7 @@ const CustomTrackRankings = ({
   const [topN, setTopN] = useState(100);
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [sortByAnimating, setSortByAnimating] = useState(false);
+  const [viewModeAnimating, setViewModeAnimating] = useState(false);
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [selectedAlbums, setSelectedAlbums] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
@@ -1496,8 +1497,8 @@ return (
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
         <button
-          onClick={() => setViewMode(viewMode === 'grid' ? 'compact' : 'grid')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+          onClick={() => { setViewMode(viewMode === 'grid' ? 'compact' : 'grid'); if (!isColorful) { setViewModeAnimating(true); setTimeout(() => setViewModeAnimating(false), 300); } }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${viewModeAnimating ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
         >
           {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
