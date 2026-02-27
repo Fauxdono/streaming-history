@@ -2493,10 +2493,62 @@ const YearSelector = ({
               {isMobile && !isLandscape && isHorizontal ? (
                 /* Mobile portrait horizontal: stacked rows — year | months | days */
                 <div className="flex flex-col items-start gap-1">
-                  {/* Row 1: Range year grid + M toggle */}
-                  <div className="flex flex-row items-center gap-1">
-                    {renderRangeYearGrid(Math.min(years.length, 6))}
-                    {yearRange.startYear && yearRange.endYear && (
+                  {/* Row 1: Range year grid (tap or split) */}
+                  {rangeTapMode ? (
+                    renderRangeYearGrid(Math.min(years.length, 6))
+                  ) : (
+                    <div className="flex flex-row items-start gap-1">
+                      <div>
+                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SY</div>
+                        <div {...gridProps(Math.min(years.length, 6))}>
+                          {years.map(year => (
+                            <button
+                              key={year}
+                              onClick={() => handleYearRangeChange({ startYear: year, endYear: yearRange.endYear || year })}
+                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                                year === yearRange.startYear
+                                  ? `${colors.bgActive} ${colors.textActive} font-bold`
+                                  : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                              }`}
+                            >
+                              {year}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EY</div>
+                        <div {...gridProps(Math.min(years.length, 6))}>
+                          {years.map(year => (
+                            <button
+                              key={year}
+                              onClick={() => handleYearRangeChange({ startYear: yearRange.startYear || year, endYear: year })}
+                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                                year === yearRange.endYear
+                                  ? `${colors.bgActive} ${colors.textActive} font-bold`
+                                  : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                              }`}
+                            >
+                              {year}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* Tap/Split toggle + M toggle + D toggle row */}
+                  {yearRange.startYear && yearRange.endYear && (
+                    <div className="flex flex-row items-center gap-1">
+                      <button
+                        onClick={() => setRangeTapMode(!rangeTapMode)}
+                        className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
+                          rangeTapMode
+                            ? `${colors.bgActive} ${colors.textActive} font-bold`
+                            : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                        }`}
+                      >
+                        {rangeTapMode ? 'Tap' : 'Split'}
+                      </button>
                       <div
                         onClick={() => {
                           const nv = !showRangeMonthDaySelectors;
@@ -2517,26 +2569,7 @@ const YearSelector = ({
                           <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m</span>
                         </div>
                       </div>
-                    )}
-                  </div>
-                  {/* Tap/Split toggle + mode-specific month/day grids */}
-                  {showRangeMonthDaySelectors && (
-                    <button
-                      onClick={() => setRangeTapMode(!rangeTapMode)}
-                      className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
-                        rangeTapMode
-                          ? `${colors.bgActive} ${colors.textActive} font-bold`
-                          : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
-                      }`}
-                    >
-                      {rangeTapMode ? 'Tap' : 'Split'}
-                    </button>
-                  )}
-                  {showRangeMonthDaySelectors && rangeTapMode && (
-                    <>
-                      {/* Row 2: Range month grid (tap to select start/end) + D toggle */}
-                      <div className="flex flex-row items-center gap-1">
-                        {renderRangeMonthGrid(6)}
+                      {showRangeMonthDaySelectors && (
                         <div
                           onClick={() => {
                             const nv = !showRangeDaySelectors;
@@ -2558,14 +2591,19 @@ const YearSelector = ({
                             <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
                           </div>
                         </div>
-                      </div>
-                      {/* Row 3: Range day grid (tap to select start/end) */}
+                      )}
+                    </div>
+                  )}
+                  {/* Tap mode: unified month/day grids */}
+                  {showRangeMonthDaySelectors && rangeTapMode && (
+                    <>
+                      {renderRangeMonthGrid(6)}
                       {showRangeDaySelectors && renderRangeDayGrid(8)}
                     </>
                   )}
+                  {/* Split mode: separate SM/EM and SD/ED grids */}
                   {showRangeMonthDaySelectors && !rangeTapMode && (
                     <>
-                      {/* Split mode: separate SM/EM month grids */}
                       <div className="flex flex-row items-start gap-1">
                         <div>
                           <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
@@ -2575,29 +2613,7 @@ const YearSelector = ({
                           <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
                           {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
                         </div>
-                        <div
-                          onClick={() => {
-                            const nv = !showRangeDaySelectors;
-                            setShowRangeDaySelectors(nv);
-                            if (nv) {
-                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                            } else {
-                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
-                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
-                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
-                            }
-                            setRefreshCounter(prev => prev + 1);
-                          }}
-                          className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                        >
-                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
-                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
-                          </div>
-                        </div>
                       </div>
-                      {/* Split mode: separate SD/ED day grids */}
                       {showRangeDaySelectors && (
                         <div className="flex flex-row gap-1">
                           <div>
@@ -2611,22 +2627,72 @@ const YearSelector = ({
                         </div>
                       )}
                     </>
-                  )
-                  }
+                  )}
                 </div>
               ) : (
-                /* Desktop / landscape / sidebar: shared range year grid */
+                /* Desktop / landscape / sidebar: range year grid (tap or split) */
                 <div className="w-full">
-                  {renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
+                  {rangeTapMode ? (
+                    renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)
+                  ) : (
+                    <div className={`flex flex-row ${isHorizontal ? 'space-x-2' : 'justify-between gap-2 w-full'}`}>
+                      <div className="flex-1">
+                        <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SY</div>
+                        <div {...gridProps(isHorizontal ? Math.min(years.length, 12) : 2)}>
+                          {years.map(year => (
+                            <button
+                              key={year}
+                              onClick={() => handleYearRangeChange({ startYear: year, endYear: yearRange.endYear || year })}
+                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                                year === yearRange.startYear
+                                  ? `${colors.bgActive} ${colors.textActive} font-bold`
+                                  : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                              }`}
+                            >
+                              {year}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EY</div>
+                        <div {...gridProps(isHorizontal ? Math.min(years.length, 12) : 2)}>
+                          {years.map(year => (
+                            <button
+                              key={year}
+                              onClick={() => handleYearRangeChange({ startYear: yearRange.startYear || year, endYear: year })}
+                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                                year === yearRange.endYear
+                                  ? `${colors.bgActive} ${colors.textActive} font-bold`
+                                  : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                              }`}
+                            >
+                              {year}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Range mode toggles and selectors - hidden on mobile portrait horizontal (handled inline above) */}
               {yearRange.startYear && yearRange.endYear && !(isMobile && !isLandscape && isHorizontal) && (
                 <>
-                  {/* Month/Day toggle */}
+                  {/* Tap/Split toggle + Month/Day toggle */}
                   <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col space-y-2'} ${isHorizontal ? 'items-center' : 'w-full mb-4'}`}>
-                    <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
+                    <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''} gap-1`}>
+                      <button
+                        onClick={() => setRangeTapMode(!rangeTapMode)}
+                        className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
+                          rangeTapMode
+                            ? `${colors.bgActive} ${colors.textActive} font-bold`
+                            : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                        }`}
+                      >
+                        {rangeTapMode ? 'Tap' : 'Split'}
+                      </button>
                       <div
                         onClick={() => {
                             const newValue = !showRangeMonthDaySelectors;
@@ -2656,20 +2722,6 @@ const YearSelector = ({
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Tap/Separate mode toggle */}
-                  {showRangeMonthDaySelectors && (
-                    <button
-                      onClick={() => setRangeTapMode(!rangeTapMode)}
-                      className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
-                        rangeTapMode
-                          ? `${colors.bgActive} ${colors.textActive} font-bold`
-                          : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
-                      }`}
-                    >
-                      {rangeTapMode ? 'Tap' : 'Split'}
-                    </button>
-                  )}
 
                   {/* Month/Day grids - only shown when toggle is on */}
                   {showRangeMonthDaySelectors && (
