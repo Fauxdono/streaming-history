@@ -115,8 +115,10 @@ export default function RootLayout({ children }) {
               document.addEventListener('gestureend', function(e) { e.preventDefault(); });
 
               // Snap back if zoom somehow occurs (e.g. double-tap, iOS accessibility)
+              var isRotating = false;
               if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', function() {
+                  if (isRotating) return;
                   if (window.visualViewport.scale > 1) {
                     document.body.style.transform = 'scale(' + (1 / window.visualViewport.scale) + ')';
                     document.body.style.transformOrigin = '0 0';
@@ -131,6 +133,10 @@ export default function RootLayout({ children }) {
 
               // Force viewport reset on orientation change (fixes iPad zoom-on-rotate)
               window.addEventListener('orientationchange', function() {
+                isRotating = true;
+                document.body.style.transform = '';
+                document.body.style.transformOrigin = '';
+                document.body.style.width = '';
                 var viewport = document.querySelector('meta[name="viewport"]');
                 if (viewport) {
                   var content = viewport.getAttribute('content');
@@ -140,7 +146,8 @@ export default function RootLayout({ children }) {
                     document.body.style.transform = '';
                     document.body.style.transformOrigin = '';
                     document.body.style.width = '';
-                  }, 100);
+                    isRotating = false;
+                  }, 500);
                 }
               });
             })();
