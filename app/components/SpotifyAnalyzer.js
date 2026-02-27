@@ -269,6 +269,7 @@ const SpotifyAnalyzer = ({
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [albumsSortPress, setAlbumsSortPress] = useState(0);
   const [albumsViewPress, setAlbumsViewPress] = useState(0);
+  useEffect(() => { setArtistsSortPress(0); setArtistsViewPress(0); setAlbumsSortPress(0); setAlbumsViewPress(0); }, [activeTab]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
