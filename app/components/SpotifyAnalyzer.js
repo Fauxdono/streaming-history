@@ -2663,9 +2663,9 @@ const SpotifyAnalyzer = ({
                               ? 'bg-blue-400 text-white border border-blue-400'
                               : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
                           }`
-                        : `px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                        : `px-3 py-1 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                             artistSelectionMode
-                              ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
+                              ? (isDarkMode ? 'bg-black text-white border border-[#4169E1] shadow-[inset_2px_2px_0_0_#4169E1] translate-x-[1px] translate-y-[1px]' : 'bg-white text-black border border-black shadow-[inset_2px_2px_0_0_black] translate-x-[1px] translate-y-[1px]')
                               : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'border border-black bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
                           }`
                     }

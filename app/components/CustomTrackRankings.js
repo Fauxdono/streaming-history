@@ -304,6 +304,7 @@ const CustomTrackRankings = ({
   const [endDate, setEndDate] = useState('');
   const [topN, setTopN] = useState(100);
   const [sortBy, setSortBy] = useState('totalPlayed');
+  const [sortByPressAnim, setSortByPressAnim] = useState(0);
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [selectedAlbums, setSelectedAlbums] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
@@ -1489,8 +1490,9 @@ return (
           className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
         />
         <button
-          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+          key={`sort-desktop-${sortByPressAnim}`}
+          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) setSortByPressAnim(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${!isColorful ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
@@ -1588,8 +1590,9 @@ return (
           className={`w-10 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
         />
         <button
-          onClick={() => setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover}`}
+          key={`sort-mobile-${sortByPressAnim}`}
+          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) setSortByPressAnim(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${!isColorful ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>

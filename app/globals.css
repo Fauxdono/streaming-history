@@ -44,6 +44,30 @@ body {
 }
 
 /* ============================================
+   BUTTON PRESS ANIMATION
+   ============================================ */
+
+@keyframes btn-press-dark {
+  0%   { box-shadow: 2px 2px 0 0 #4169E1; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 #4169E1; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 #4169E1; transform: translate(0, 0); }
+}
+
+@keyframes btn-press-light {
+  0%   { box-shadow: 2px 2px 0 0 black; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 black; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 black; transform: translate(0, 0); }
+}
+
+.btn-press-dark {
+  animation: btn-press-dark 0.3s ease-out;
+}
+
+.btn-press-light {
+  animation: btn-press-light 0.3s ease-out;
+}
+
+/* ============================================
    FONT FAMILY SYSTEM
    ============================================ */
 
