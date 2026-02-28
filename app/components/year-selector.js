@@ -2203,7 +2203,9 @@ const YearSelector = ({
           isHorizontal
             ? isMobile && !isLandscape
               ? 'flex flex-col gap-1 items-center mr-2'
-              : 'flex flex-row gap-1 items-center mr-3'
+              : mode === 'range'
+                ? 'flex flex-col gap-1 items-center mr-3'
+                : 'flex flex-row gap-1 items-center mr-3'
             : 'flex flex-col gap-1 items-center mb-2'
         }`}>
 
