@@ -485,7 +485,7 @@ const SpotifyAnalyzer = ({
     };
   }, [selectedStreaksYear, streaks, rawPlayData, topAlbums]);
 
-  const trackDurationMap = stats?.trackDurationMap || null;
+  const [trackDurationMap, setTrackDurationMap] = useState(null);
 
   // Calculate filtered stats based on selected year
   const filteredStats = useMemo(() => {
@@ -1113,6 +1113,7 @@ const SpotifyAnalyzer = ({
       setSongsByYear(results.songsByYear);
       setBriefObsessions(results.briefObsessions);
       setRawPlayData(results.rawPlayData);
+      setTrackDurationMap(results.trackDurationMap || null);
       setStreaks(results.streaks);
 
       // Update file list
@@ -1342,7 +1343,19 @@ const SpotifyAnalyzer = ({
       if (loadedData.songsByYear) setSongsByYear(loadedData.songsByYear);
       
       console.log('🔧 Setting raw play data...');
-      if (loadedData.rawPlayData) setRawPlayData(loadedData.rawPlayData);
+      if (loadedData.rawPlayData) {
+        setRawPlayData(loadedData.rawPlayData);
+        // Rebuild trackDurationMap from rawPlayData (Map doesn't survive serialization)
+        const durMap = new Map();
+        loadedData.rawPlayData.forEach(entry => {
+          if (entry.reason_end === 'trackdone' && entry.master_metadata_track_name && entry.master_metadata_album_artist_name) {
+            const key = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
+            const current = durMap.get(key) || 0;
+            if (entry.ms_played > current) durMap.set(key, entry.ms_played);
+          }
+        });
+        setTrackDurationMap(durMap);
+      }
 
       console.log('🔧 Setting streaks...');
       if (loadedData.streaks) {

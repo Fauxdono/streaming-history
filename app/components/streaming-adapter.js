@@ -2750,6 +2750,7 @@ export const streamingProcessor = {
         artistsByYear: artistsByYear,
         albumsByYear: albumsByYear,
         rawPlayData: allProcessedData,
+        trackDurationMap: stats.trackDurationMap,
         streaks: {
           consecutivePlays: consecutivePlayStreaks,
           overallDaily: overallDailyStreak,
