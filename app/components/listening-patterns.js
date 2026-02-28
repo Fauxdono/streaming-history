@@ -39,7 +39,8 @@ const ListeningPatterns = ({
   songsByYear = {},
   colorMode = 'minimal',
   viewMode = 'grid',
-  setViewMode = () => {}
+  setViewMode = () => {},
+  trackDurationMap = null
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [viewPress, setViewPress] = useState(0);
@@ -54,7 +55,7 @@ const ListeningPatterns = ({
   useEffect(() => { setViewPress(0); }, [activeTab]);
 
   // Get the current theme
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -403,7 +404,12 @@ const ListeningPatterns = ({
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -439,7 +445,7 @@ const ListeningPatterns = ({
     });
 
     return { hourly: hourlyData, periods: timePeriods };
-  }, [filteredData, chartColors.timePeriods, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, chartColors.timePeriods, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   const dayOfWeekData = useMemo(() => {
     const days = [
@@ -454,7 +460,12 @@ const ListeningPatterns = ({
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -502,7 +513,7 @@ const ListeningPatterns = ({
     });
 
     return days;
-  }, [filteredData, chartColors.dayColors, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, chartColors.dayColors, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Monthly/seasonal analysis
   const monthlyData = useMemo(() => {
@@ -531,7 +542,12 @@ const ListeningPatterns = ({
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -562,7 +578,7 @@ const ListeningPatterns = ({
     });
 
     return { months, seasons };
-  }, [filteredData, chartColors.seasonColors, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, chartColors.seasonColors, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Location data aggregation from conn_country
   const { locationData, unmatchedCodes, regionData, countrySongs } = useMemo(() => {
@@ -573,7 +589,12 @@ const ListeningPatterns = ({
 
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -699,7 +720,7 @@ const ListeningPatterns = ({
     });
 
     return { locationData: matched, unmatchedCodes: unmatched, regionData: regionDataFinal, countrySongs: countrySongsFinal };
-  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -1250,6 +1271,7 @@ const ListeningPatterns = ({
         textTheme="yellow"
         backgroundTheme="yellow"
         colorMode={colorMode}
+        trackDurationMap={trackDurationMap}
       />
     )}
 

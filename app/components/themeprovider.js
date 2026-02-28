@@ -20,6 +20,8 @@ const ThemeContext = createContext({
   setFullListenOnly: () => null,
   dyslexicSpacing: false,
   setDyslexicSpacing: () => null,
+  skipEndThreshold: 0,
+  setSkipEndThreshold: () => null,
 });
 
 export const ThemeProvider = ({ children }) => {
@@ -32,6 +34,7 @@ export const ThemeProvider = ({ children }) => {
   const [skipFilter, setSkipFilter] = useState(false);
   const [fullListenOnly, setFullListenOnly] = useState(false);
   const [dyslexicSpacing, setDyslexicSpacing] = useState(false);
+  const [skipEndThreshold, setSkipEndThreshold] = useState(0);
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
@@ -111,6 +114,14 @@ export const ThemeProvider = ({ children }) => {
       return false;
     };
 
+    const getInitialSkipEndThreshold = () => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const stored = window.localStorage.getItem('skipEndThreshold');
+        return stored ? parseInt(stored, 10) : 0;
+      }
+      return 0;
+    };
+
     // Set theme based on preference
     const initialTheme = getInitialTheme();
     setTheme(initialTheme);
@@ -121,6 +132,7 @@ export const ThemeProvider = ({ children }) => {
     setSkipFilter(getInitialSkipFilter());
     setFullListenOnly(getInitialFullListenOnly());
     setDyslexicSpacing(getInitialDyslexicSpacing());
+    setSkipEndThreshold(getInitialSkipEndThreshold());
 
     // Set up listener for system preference changes
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -258,6 +270,13 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [dyslexicSpacing, mounted]);
 
+  useEffect(() => {
+    if (!mounted) return;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('skipEndThreshold', skipEndThreshold.toString());
+    }
+  }, [skipEndThreshold, mounted]);
+
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
@@ -285,7 +304,9 @@ export const ThemeProvider = ({ children }) => {
       fullListenOnly,
       setFullListenOnly,
       dyslexicSpacing,
-      setDyslexicSpacing
+      setDyslexicSpacing,
+      skipEndThreshold,
+      setSkipEndThreshold
     }}>
       {children}
     </ThemeContext.Provider>

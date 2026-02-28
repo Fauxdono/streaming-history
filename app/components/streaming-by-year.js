@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from './themeprovider.js'; // Add theme import if not passed as prop
 
-const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple', textTheme = null, backgroundTheme = null, colorMode = 'minimal' }) => {
+const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsDarkMode, colorTheme = 'purple', textTheme = null, backgroundTheme = null, colorMode = 'minimal', trackDurationMap = null }) => {
   // Use the theme if not explicitly passed as prop
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = propIsDarkMode !== undefined ? propIsDarkMode : theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -98,7 +98,12 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     // Process each entry
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -185,7 +190,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     });
     
     return { total: totalServiceData, byYear: yearlyData };
-  }, [rawPlayData, serviceColors, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [rawPlayData, serviceColors, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Get available years
   const availableYears = useMemo(() => {

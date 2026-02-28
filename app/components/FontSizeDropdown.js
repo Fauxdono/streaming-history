@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from './themeprovider';
 
 const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
-  const { theme, fontSize, setFontSize, fontFamily, setFontFamily, minPlayDuration, setMinPlayDuration, skipFilter, setSkipFilter, fullListenOnly, setFullListenOnly, dyslexicSpacing, setDyslexicSpacing } = useTheme();
+  const { theme, fontSize, setFontSize, fontFamily, setFontFamily, minPlayDuration, setMinPlayDuration, skipFilter, setSkipFilter, fullListenOnly, setFullListenOnly, dyslexicSpacing, setDyslexicSpacing, skipEndThreshold, setSkipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   const dropdownRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -251,6 +251,30 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef }) => {
         />
         <div className={`text-center text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
           {Math.round(minPlayDuration / 1000)}s
+        </div>
+      </div>
+
+      {/* Skip Tolerance */}
+      <div className="mt-3">
+        <div className={`text-xs mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Skip Tolerance (near end)
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="60"
+          value={Math.round(skipEndThreshold / 1000)}
+          onChange={(e) => setSkipEndThreshold(parseInt(e.target.value, 10) * 1000)}
+          className={`w-full h-2 rounded-lg appearance-none cursor-pointer slider
+            ${isDarkMode ? 'bg-black' : 'bg-gray-200'}`}
+          style={{
+            background: isDarkMode
+              ? `linear-gradient(to right, #6366f1 0%, #6366f1 ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #374151 ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #374151 100%)`
+              : `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #e5e7eb ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #e5e7eb 100%)`
+          }}
+        />
+        <div className={`text-center text-sm mt-1 font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {skipEndThreshold === 0 ? 'Off' : `${Math.round(skipEndThreshold / 1000)}s`}
         </div>
       </div>
 

@@ -13,13 +13,14 @@ const DiscoveryAnalysis = ({
   onYearRangeChange,
   onToggleYearRangeMode,
   colorTheme = 'green',
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  trackDurationMap = null
 }) => {
   const [activeTab, setActiveTab] = useState('discovery');
   const [timeframe, setTimeframe] = useState('day');
 
   // Get the current theme
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -299,7 +300,12 @@ const filteredData = useMemo(() => {
     // Sort all entries by timestamp
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -387,7 +393,7 @@ const filteredData = useMemo(() => {
       uniqueArtistsCount: sortedArtists.length,
       artistPlayCounts
     };
-  }, [filteredData, isDarkMode, isColorful, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, isDarkMode, isColorful, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Analyze listening depth
   const depthData = useMemo(() => {
@@ -398,7 +404,12 @@ const filteredData = useMemo(() => {
     // Get the earliest and latest dates for filtering
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -457,7 +468,7 @@ const filteredData = useMemo(() => {
       averageDepth,
       replayValue
     };
-  }, [filteredData, discoveryData.artistPlayCounts, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, discoveryData.artistPlayCounts, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Analyze music variety
   const varietyData = useMemo(() => {
@@ -468,7 +479,12 @@ const filteredData = useMemo(() => {
     
     const passesFilters2 = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -569,7 +585,7 @@ const filteredData = useMemo(() => {
       avgWeeklyVariety,
       avgMonthlyVariety
     };
-  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Helper function to get ISO week number
   function getWeekNumber(date) {

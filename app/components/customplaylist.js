@@ -6,10 +6,11 @@ const CustomPlaylistCreator = ({
   processedData = [],
   formatDuration,
   rawPlayData = [],
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  trackDurationMap = null
 }) => {
   // Get the current theme
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -78,7 +79,12 @@ const trackMap = useMemo(() => {
   
   const passesFilters = (entry) => {
     if (entry.ms_played < minPlayDuration) return false;
-    if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+    if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+      if (!skipEndThreshold || !trackDurationMap) return false;
+      const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+      const est = trackDurationMap.get(key);
+      if (!est || entry.ms_played < est - skipEndThreshold) return false;
+    }
     if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
     return true;
   };
@@ -228,7 +234,7 @@ const createDateFilterIndex = (rawData) => {
   );
   
   return map;
-}, [processedData, rawPlayData, minPlayDuration, skipFilter, fullListenOnly]);
+}, [processedData, rawPlayData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Helper function to normalize track titles for better matching
   function normalizeTrackTitle(title) {

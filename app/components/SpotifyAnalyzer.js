@@ -86,7 +86,7 @@ const SpotifyAnalyzer = ({
   discoveryBackgroundTheme = 'orange'
 }) => {
   // Get the current theme and font size
-  const { theme, fontSize, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, fontSize, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   
   // Helper function to get themed colors
@@ -485,6 +485,8 @@ const SpotifyAnalyzer = ({
     };
   }, [selectedStreaksYear, streaks, rawPlayData, topAlbums]);
 
+  const trackDurationMap = stats?.trackDurationMap || null;
+
   // Calculate filtered stats based on selected year
   const filteredStats = useMemo(() => {
     if (!stats) return null;
@@ -507,7 +509,12 @@ const SpotifyAnalyzer = ({
 
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -545,7 +552,7 @@ const SpotifyAnalyzer = ({
       serviceListeningTime,
       nullTrackNames: filteredData.filter(e => !e.master_metadata_track_name).length
     };
-  }, [selectedStreaksYear, stats, rawPlayData, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [selectedStreaksYear, stats, rawPlayData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Parse range value to a date string
   const parseRangeValue = useCallback((val, isEnd) => {
@@ -723,7 +730,12 @@ const SpotifyAnalyzer = ({
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -861,7 +873,7 @@ const SpotifyAnalyzer = ({
         return b.totalPlayed - a.totalPlayed;
       }
     });
-  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists, albumsSortBy, albumYearRangeMode, albumYearRange, parseRangeValue, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [selectedAlbumYear, albumStartDate, albumEndDate, topAlbums, rawPlayData, selectedArtists, albumsSortBy, albumYearRangeMode, albumYearRange, parseRangeValue, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
 
 
@@ -927,7 +939,12 @@ const SpotifyAnalyzer = ({
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -1049,7 +1066,7 @@ const SpotifyAnalyzer = ({
         return b.totalPlayed - a.totalPlayed;
       }
     });
-  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData, artistsSortBy, yearRangeMode, yearRange, parseRangeValue, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [selectedArtistYear, artistStartDate, artistEndDate, topArtists, rawPlayData, artistsSortBy, yearRangeMode, yearRange, parseRangeValue, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Filtered displayed artists - memoized to prevent recalculation
   const filteredDisplayedArtists = useMemo(() => {
@@ -3501,6 +3518,7 @@ const SpotifyAnalyzer = ({
               colorMode={colorMode}
               viewMode={patternsViewMode}
               setViewMode={setPatternsViewMode}
+              trackDurationMap={trackDurationMap}
             />
           </div>
         );
@@ -3525,6 +3543,7 @@ const SpotifyAnalyzer = ({
               colorMode={colorMode}
               viewMode={calendarViewMode}
               setViewMode={setCalendarViewMode}
+              trackDurationMap={trackDurationMap}
             />
           </div>
         );
@@ -3546,6 +3565,7 @@ const SpotifyAnalyzer = ({
               textTheme={behaviorTextTheme}
               backgroundTheme={behaviorBackgroundTheme}
               colorMode={colorMode}
+              trackDurationMap={trackDurationMap}
             />
           </div>
         );
@@ -3567,6 +3587,7 @@ const SpotifyAnalyzer = ({
               textTheme={discoveryTextTheme}
               backgroundTheme={discoveryBackgroundTheme}
               colorMode={colorMode}
+              trackDurationMap={trackDurationMap}
             />
           </div>
         );
@@ -3599,7 +3620,7 @@ const SpotifyAnalyzer = ({
               ? 'p-2 sm:p-4 bg-rose-200 dark:bg-rose-900 rounded border-2 border-rose-300 dark:border-rose-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
-            <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} colorMode={colorMode} />
+            <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} colorMode={colorMode} trackDurationMap={trackDurationMap} />
           </div>
         );
       

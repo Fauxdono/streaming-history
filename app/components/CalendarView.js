@@ -13,7 +13,8 @@ const CalendarView = ({
   onYearChange, // Add callback to update selected year
   colorMode = 'minimal',
   viewMode = 'grid',
-  setViewMode = () => {}
+  setViewMode = () => {},
+  trackDurationMap = null
 }) => {
   const [activeTab, setActiveTab] = useState('calendar');
   const [daySelectionMode, setDaySelectionMode] = useState(false);
@@ -22,7 +23,7 @@ const CalendarView = ({
   useEffect(() => { setViewPress(0); }, [activeTab]);
 
   // Get the current theme
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -393,7 +394,7 @@ const CalendarView = ({
         day: 'numeric'
       })
     };
-  }, [filteredData, selectedYear, formatDuration, activeTab, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, selectedYear, formatDuration, activeTab, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Daily data for when a specific month is selected
   const dailyCalendarData = useMemo(() => {
@@ -422,7 +423,12 @@ const CalendarView = ({
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -520,7 +526,7 @@ const CalendarView = ({
     });
 
     return daysData;
-  }, [filteredData, selectedYear, isMonthView, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, selectedYear, isMonthView, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Calendar view data - monthly insights with top artist, album, and first listens
   const calendarData = useMemo(() => {
@@ -549,7 +555,12 @@ const CalendarView = ({
     
     const passesFilters2 = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -669,7 +680,7 @@ const CalendarView = ({
     });
 
     return monthsData;
-  }, [filteredData, isMonthView, monthNamesShort, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, isMonthView, monthNamesShort, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   const TabButton = ({ id, label }) => (
     <button

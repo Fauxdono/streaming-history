@@ -2,13 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useTheme } from './themeprovider.js';
 
-const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'minimal' }) => {
+const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'minimal', trackDurationMap = null }) => {
   const [startTime, setStartTime] = useState(''); // Start time in HH:MM format
   const [endTime, setEndTime] = useState('');   // End time in HH:MM format
   const [artistLimit, setArtistLimit] = useState(5);
 
   // Get the current theme
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -57,7 +57,12 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'mini
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -152,7 +157,7 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'mini
       periodTopArtists,
       timePeriods
     };
-  }, [rawPlayData, isDarkMode, isColorful, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [rawPlayData, isDarkMode, isColorful, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Format period data for display based on time range and artist limit
   const periodChartData = useMemo(() => {

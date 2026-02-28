@@ -89,7 +89,8 @@ const ListeningBehavior = ({
   yearRange = { startYear: '', endYear: '' },
   yearRangeMode = false,
   colorTheme = 'indigo',
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  trackDurationMap = null
 }) => {
   const [activeTab, setActiveTab] = useState('behavior');
 
@@ -105,7 +106,7 @@ const ListeningBehavior = ({
   });
 
   // Get the current theme
-  const { theme, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
@@ -682,7 +683,12 @@ const filteredData = useMemo(() => {
     
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -786,7 +792,7 @@ const filteredData = useMemo(() => {
       longestListeningDay,
       mostActiveMonth
     };
-  }, [filteredData, isDarkMode, isColorful, deferredActiveTab, activeTab, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [filteredData, isDarkMode, isColorful, deferredActiveTab, activeTab, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Update selectedDate when selectedYear changes to a specific date
   React.useEffect(() => {
@@ -1308,6 +1314,7 @@ const filteredData = useMemo(() => {
         rawPlayData={filteredData}
         formatDuration={formatDuration}
         colorMode={colorMode}
+        trackDurationMap={trackDurationMap}
       />
     )}
     

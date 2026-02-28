@@ -8,9 +8,10 @@ const MonthDaySelector = ({
   onRangeChange,
   rawPlayData = [],
   formatDuration = (ms) => `${Math.floor(ms / 60000)}min`,
-  colorTheme = 'orange'
+  colorTheme = 'orange',
+  trackDurationMap = null
 }) => {
-  const { minPlayDuration, skipFilter, fullListenOnly } = useTheme();
+  const { minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   // Parse start and end dates
   const [currentStartDate, setCurrentStartDate] = useState(startDate || '');
   const [currentEndDate, setCurrentEndDate] = useState(endDate || '');
@@ -49,7 +50,12 @@ const MonthDaySelector = ({
     // Process raw data
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
@@ -97,7 +103,7 @@ const MonthDaySelector = ({
       maxDate,
       hasData: sortedDates.length > 0
     };
-  }, [rawPlayData, minPlayDuration, skipFilter, fullListenOnly]);
+  }, [rawPlayData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Calculate statistics for the selected range
   const rangeStatistics = useMemo(() => {

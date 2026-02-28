@@ -2079,6 +2079,20 @@ async function calculatePlayStats(entries, minPlayDuration = 30000) {
     }
   }
 
+  // Build track duration map from completed plays (reason_end === 'trackdone')
+  // This maps "trackname|||artistname" → max ms_played, used for skip tolerance
+  const trackDurationMap = new Map();
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    if (entry.reason_end === 'trackdone' && entry.master_metadata_track_name && entry.master_metadata_album_artist_name) {
+      const key = `${entry.master_metadata_track_name.toLowerCase().trim()}|||${entry.master_metadata_album_artist_name.toLowerCase().trim()}`;
+      const current = trackDurationMap.get(key) || 0;
+      if (entry.ms_played > current) {
+        trackDurationMap.set(key, entry.ms_played);
+      }
+    }
+  }
+
   // First pass - collect metadata and reference information
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
@@ -2479,7 +2493,8 @@ async function calculatePlayStats(entries, minPlayDuration = 30000) {
     totalListeningTime,
     serviceListeningTime: serviceTime,
     processedSongs,
-    shortPlays
+    shortPlays,
+    trackDurationMap
   };
 }
 export const streamingProcessor = {
