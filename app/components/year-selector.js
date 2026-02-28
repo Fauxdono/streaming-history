@@ -2631,7 +2631,7 @@ const YearSelector = ({
                 </div>
               ) : (
                 /* Desktop / landscape / sidebar: range year grid (tap or split) */
-                <div className="w-full">
+                <div className={isHorizontal ? '' : 'w-full'}>
                   {(rangeTapMode || isHorizontal) && renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2, isHorizontal)}
                   {!rangeTapMode && !isHorizontal && (
                     <div className="flex flex-row justify-between gap-2 w-full">
