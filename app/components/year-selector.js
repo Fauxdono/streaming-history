@@ -2319,7 +2319,7 @@ const YearSelector = ({
                         </button>
                         {renderYearGrid(Math.min(years.length, 6))}
                         {selectedYear !== 'all' && (
-                          <div
+                          <button
                             onClick={() => {
                               const nv = !showMonthSelector;
                               setShowMonthSelector(nv);
@@ -2329,19 +2329,21 @@ const YearSelector = ({
                               else { if (onYearChange && selectedYear !== 'all') onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
                               setRefreshCounter(prev => prev + 1);
                             }}
-                            className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showMonthSelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                            className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                              showMonthSelector
+                                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            }`}
                           >
-                            <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[14px]' : ''}`}>
-                              <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m</span>
-                            </div>
-                          </div>
+                            <span className="skew-x-[12deg] inline-block">m</span>
+                          </button>
                         )}
                       </div>
                       {/* Row 2: Month grid + day toggle */}
                       {selectedYear !== 'all' && showMonthSelector && (
                         <div className="flex flex-row items-center gap-1">
                           {renderMonthGrid(selectedMonth, handleMonthChange, 6)}
-                          <div
+                          <button
                             onClick={() => {
                               const nv = !showDaySelector;
                               setShowDaySelector(nv);
@@ -2351,12 +2353,14 @@ const YearSelector = ({
                               else { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
                               setRefreshCounter(prev => prev + 1);
                             }}
-                            className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showDaySelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                            className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                              showDaySelector
+                                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            }`}
                           >
-                            <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[14px]' : ''}`}>
-                              <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
-                            </div>
-                          </div>
+                            <span className="skew-x-[12deg] inline-block">d</span>
+                          </button>
                         </div>
                       )}
                       {/* Row 3: Day grid */}
@@ -2378,38 +2382,38 @@ const YearSelector = ({
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
                     <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
                       {/* Month toggle */}
-                      <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
-                        <div
-                          onClick={() => {
-                              const newMonthValue = !showMonthSelector;
-                              setShowMonthSelector(newMonthValue);
+                      <button
+                        onClick={() => {
+                            const newMonthValue = !showMonthSelector;
+                            setShowMonthSelector(newMonthValue);
 
-                              const isHistoryTab = activeTab === 'history';
-                              if (!isHistoryTab) {
-                                setUserEnabledSelectors(newMonthValue);
+                            const isHistoryTab = activeTab === 'history';
+                            if (!isHistoryTab) {
+                              setUserEnabledSelectors(newMonthValue);
+                            }
+
+                            if (!newMonthValue) {
+                              setShowDaySelector(false);
+                              if (onYearChange && selectedYear !== 'all') {
+                                onYearChange(selectedYear);
                               }
-
-                              if (!newMonthValue) {
-                                setShowDaySelector(false);
-                                if (onYearChange && selectedYear !== 'all') {
-                                  onYearChange(selectedYear);
-                                }
-                              } else {
-                                if (onYearChange && selectedYear !== 'all') {
-                                  const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-                                  onYearChange(dateStr);
-                                }
+                            } else {
+                              if (onYearChange && selectedYear !== 'all') {
+                                const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                                onYearChange(dateStr);
                               }
+                            }
 
-                              setRefreshCounter(prev => prev + 1);
-                          }}
-                          className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showMonthSelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                        >
-                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[30px]' : ''}`}>
-                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">month</span>
-                          </div>
-                        </div>
-                      </div>
+                            setRefreshCounter(prev => prev + 1);
+                        }}
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
+                          showMonthSelector
+                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                        }`}
+                      >
+                        <span className="skew-x-[12deg] inline-block">month</span>
+                      </button>
 
                       <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
                         {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
@@ -2421,34 +2425,34 @@ const YearSelector = ({
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
                     <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
                       {/* Day toggle */}
-                      <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
-                        <div
-                          onClick={() => {
-                              const newDayValue = !showDaySelector;
-                              setShowDaySelector(newDayValue);
+                      <button
+                        onClick={() => {
+                            const newDayValue = !showDaySelector;
+                            setShowDaySelector(newDayValue);
 
-                              const isHistoryTab = activeTab === 'history';
-                              if (!isHistoryTab && newDayValue) {
-                                setUserEnabledSelectors(true);
-                              }
+                            const isHistoryTab = activeTab === 'history';
+                            if (!isHistoryTab && newDayValue) {
+                              setUserEnabledSelectors(true);
+                            }
 
-                              if (newDayValue) {
-                                const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
-                                if (onYearChange) onYearChange(dateStr);
-                              } else {
-                                const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-                                if (onYearChange) onYearChange(dateStr);
-                              }
+                            if (newDayValue) {
+                              const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+                              if (onYearChange) onYearChange(dateStr);
+                            } else {
+                              const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                              if (onYearChange) onYearChange(dateStr);
+                            }
 
-                              setRefreshCounter(prev => prev + 1);
-                          }}
-                          className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showDaySelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                        >
-                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showDaySelector ? 'translate-x-[30px]' : ''}`}>
-                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">day</span>
-                          </div>
-                        </div>
-                      </div>
+                            setRefreshCounter(prev => prev + 1);
+                        }}
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
+                          showDaySelector
+                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                        }`}
+                      >
+                        <span className="skew-x-[12deg] inline-block">day</span>
+                      </button>
                       
                       {/* Day grid selector - only shown when day toggle is on */}
                       {showDaySelector && (
@@ -2462,39 +2466,38 @@ const YearSelector = ({
                   {/* Show month toggle separately if month selector is off - hidden on mobile portrait horizontal */}
                   {!showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
                     <div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col space-y-2'} ${isHorizontal ? '' : 'w-full mb-4'}`}>
-                      {/* Month toggle */}
-                      <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''}`}>
-                        <div
-                          onClick={() => {
-                              const newMonthValue = !showMonthSelector;
-                              setShowMonthSelector(newMonthValue);
+                      <button
+                        onClick={() => {
+                            const newMonthValue = !showMonthSelector;
+                            setShowMonthSelector(newMonthValue);
 
-                              const isHistoryTab = activeTab === 'history';
-                              if (!isHistoryTab) {
-                                setUserEnabledSelectors(newMonthValue);
+                            const isHistoryTab = activeTab === 'history';
+                            if (!isHistoryTab) {
+                              setUserEnabledSelectors(newMonthValue);
+                            }
+
+                            if (!newMonthValue) {
+                              setShowDaySelector(false);
+                              if (onYearChange && selectedYear !== 'all') {
+                                onYearChange(selectedYear);
                               }
-
-                              if (!newMonthValue) {
-                                setShowDaySelector(false);
-                                if (onYearChange && selectedYear !== 'all') {
-                                  onYearChange(selectedYear);
-                                }
-                              } else {
-                                if (onYearChange && selectedYear !== 'all') {
-                                  const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-                                  onYearChange(dateStr);
-                                }
+                            } else {
+                              if (onYearChange && selectedYear !== 'all') {
+                                const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                                onYearChange(dateStr);
                               }
+                            }
 
-                              setRefreshCounter(prev => prev + 1);
-                          }}
-                          className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showMonthSelector ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
-                        >
-                          <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showMonthSelector ? 'translate-x-[30px]' : ''}`}>
-                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">month</span>
-                          </div>
-                        </div>
-                      </div>
+                            setRefreshCounter(prev => prev + 1);
+                        }}
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                          showMonthSelector
+                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                        }`}
+                      >
+                        <span className="skew-x-[12deg] inline-block">month</span>
+                      </button>
                     </div>
                   )}
                 </>
@@ -2562,7 +2565,7 @@ const YearSelector = ({
                       >
                         <span className="skew-x-[12deg] inline-block">{rangeTapMode ? 'Tap' : 'Split'}</span>
                       </button>
-                      <div
+                      <button
                         onClick={() => {
                           const nv = !showRangeMonthDaySelectors;
                           setShowRangeMonthDaySelectors(nv);
@@ -2576,14 +2579,16 @@ const YearSelector = ({
                           }
                           setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeMonthDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                          showRangeMonthDaySelectors
+                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                        }`}
                       >
-                        <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[14px]' : ''}`}>
-                          <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m</span>
-                        </div>
-                      </div>
+                        <span className="skew-x-[12deg] inline-block">m</span>
+                      </button>
                       {showRangeMonthDaySelectors && (
-                        <div
+                        <button
                           onClick={() => {
                             const nv = !showRangeDaySelectors;
                             setShowRangeDaySelectors(nv);
@@ -2598,12 +2603,14 @@ const YearSelector = ({
                             }
                             setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`relative w-9 h-5 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                          className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                            showRangeDaySelectors
+                              ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                              : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                          }`}
                         >
-                          <div className={`absolute top-[3px] left-[3px] w-[18px] h-3.5 bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeDaySelectors ? 'translate-x-[14px]' : ''}`}>
-                            <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">d</span>
-                          </div>
-                        </div>
+                          <span className="skew-x-[12deg] inline-block">d</span>
+                        </button>
                       )}
                     </div>
                   )}
