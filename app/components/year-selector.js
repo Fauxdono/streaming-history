@@ -2554,13 +2554,13 @@ const YearSelector = ({
                     <div className="flex flex-row items-center gap-1">
                       <button
                         onClick={() => setRangeTapMode(!rangeTapMode)}
-                        className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
+                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           rangeTapMode
-                            ? `${colors.bgActive} ${colors.textActive} font-bold`
-                            : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
                         }`}
                       >
-                        {rangeTapMode ? 'Tap' : 'Split'}
+                        <span className="skew-x-[12deg] inline-block">{rangeTapMode ? 'Tap' : 'Split'}</span>
                       </button>
                       <div
                         onClick={() => {
@@ -2697,13 +2697,13 @@ const YearSelector = ({
                     <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''} gap-1`}>
                       <button
                         onClick={() => setRangeTapMode(!rangeTapMode)}
-                        className={`px-2 py-0.5 text-[10px] rounded transition-colors ${
+                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           rangeTapMode
-                            ? `${colors.bgActive} ${colors.textActive} font-bold`
-                            : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
+                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
                         }`}
                       >
-                        {rangeTapMode ? 'Tap' : 'Split'}
+                        <span className="skew-x-[12deg] inline-block">{rangeTapMode ? 'Tap' : 'Split'}</span>
                       </button>
                       <button
                         onClick={() => {
