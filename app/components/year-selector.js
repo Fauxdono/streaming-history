@@ -2692,7 +2692,7 @@ const YearSelector = ({
                       >
                         {rangeTapMode ? 'Tap' : 'Split'}
                       </button>
-                      <div
+                      <button
                         onClick={() => {
                             const newValue = !showRangeMonthDaySelectors;
                             setShowRangeMonthDaySelectors(newValue);
@@ -2713,12 +2713,14 @@ const YearSelector = ({
 
                             setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`relative w-[76px] h-6 rounded-sm cursor-pointer transition-all duration-200 skew-x-[-12deg] ${showRangeMonthDaySelectors ? `${colors.bgActive} translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_rgba(0,0,0,0.3)] dark:shadow-[inset_2px_2px_0_0_rgba(65,105,225,0.5)]` : 'bg-gray-300 shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]'}`}
+                        className={`px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${
+                          showRangeMonthDaySelectors
+                            ? `${colors.bgActive} ${colors.textActive} border border-black dark:border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black] dark:shadow-[inset_2px_2px_0_0_#4169E1]`
+                            : `${colors.bgLighter} ${colors.bgHover} ${colors.text} shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]`
+                        }`}
                       >
-                        <div className={`absolute top-[3px] left-[3px] w-[40px] h-[18px] bg-white border border-black dark:bg-black dark:border-[#4169E1] shadow-[1px_1px_0_0_rgba(0,0,0,0.3)] dark:shadow-[1px_1px_0_0_#4169E1] transition-transform duration-200 flex items-center justify-center ${showRangeMonthDaySelectors ? 'translate-x-[30px]' : ''}`}>
-                          <span className="text-[10px] font-bold text-gray-700 dark:text-white skew-x-[12deg]">m/d</span>
-                        </div>
-                      </div>
+                        <span className="skew-x-[12deg] inline-block">m/d</span>
+                      </button>
                     </div>
                   </div>
 
