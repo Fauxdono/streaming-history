@@ -2465,7 +2465,7 @@ const YearSelector = ({
                   
                   {/* Show month toggle separately if month selector is off - hidden on mobile portrait horizontal */}
                   {!showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
-                    <div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col space-y-2'} ${isHorizontal ? '' : 'w-full mb-4'}`}>
+                    <div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col items-center space-y-2'} ${isHorizontal ? '' : 'w-full mb-4'}`}>
                       <button
                         onClick={() => {
                             const newMonthValue = !showMonthSelector;
