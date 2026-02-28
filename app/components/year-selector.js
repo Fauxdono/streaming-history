@@ -687,7 +687,8 @@ const YearSelector = ({
         buttonHover: 'hover:bg-gray-800 dark:hover:bg-gray-200',
         border: 'border-black dark:border-[#4169E1]',
         bgLight: 'bg-white dark:bg-black',
-        bgMed: 'bg-gray-200 dark:bg-gray-800'
+        bgMed: 'bg-gray-200 dark:bg-gray-800',
+        toggleColorVar: '[--toggle-shadow:black] dark:[--toggle-shadow:#4169E1]'
       };
     }
 
@@ -709,7 +710,8 @@ const YearSelector = ({
           border: 'border-pink-300 dark:border-pink-700',
           textBold: 'text-pink-800 dark:text-pink-200',
           bgLight: 'bg-pink-50 dark:bg-pink-900',
-          bgMed: 'bg-pink-200 dark:bg-pink-800'
+          bgMed: 'bg-pink-200 dark:bg-pink-800',
+          toggleColorVar: '[--toggle-shadow:#be185d] dark:[--toggle-shadow:#f9a8d4]'
         };
         break;
       case 'purple':
@@ -727,7 +729,8 @@ const YearSelector = ({
           border: 'border-purple-300 dark:border-purple-700',
           textBold: 'text-purple-800 dark:text-purple-200',
           bgLight: 'bg-purple-50 dark:bg-purple-900',
-          bgMed: 'bg-purple-200 dark:bg-purple-800'
+          bgMed: 'bg-purple-200 dark:bg-purple-800',
+          toggleColorVar: '[--toggle-shadow:#7e22ce] dark:[--toggle-shadow:#d8b4fe]'
         };
         break;
       case 'indigo':
@@ -745,7 +748,8 @@ const YearSelector = ({
           border: 'border-indigo-300 dark:border-indigo-700',
           textBold: 'text-indigo-800 dark:text-indigo-200',
           bgLight: 'bg-indigo-50 dark:bg-indigo-900',
-          bgMed: 'bg-indigo-200 dark:bg-indigo-800'
+          bgMed: 'bg-indigo-200 dark:bg-indigo-800',
+          toggleColorVar: '[--toggle-shadow:#4338ca] dark:[--toggle-shadow:#a5b4fc]'
         };
         break;
       case 'blue':
@@ -763,7 +767,8 @@ const YearSelector = ({
           border: 'border-blue-300 dark:border-blue-700',
           textBold: 'text-blue-800 dark:text-blue-200',
           bgLight: 'bg-blue-50 dark:bg-blue-900',
-          bgMed: 'bg-blue-200 dark:bg-blue-800'
+          bgMed: 'bg-blue-200 dark:bg-blue-800',
+          toggleColorVar: '[--toggle-shadow:#1d4ed8] dark:[--toggle-shadow:#93c5fd]'
         };
         break;
       case 'green':
@@ -781,7 +786,8 @@ const YearSelector = ({
           border: 'border-green-300 dark:border-green-700',
           textBold: 'text-green-800 dark:text-green-200',
           bgLight: 'bg-green-50 dark:bg-green-900',
-          bgMed: 'bg-green-200 dark:bg-green-800'
+          bgMed: 'bg-green-200 dark:bg-green-800',
+          toggleColorVar: '[--toggle-shadow:#15803d] dark:[--toggle-shadow:#86efac]'
         };
         break;
       case 'yellow':
@@ -799,7 +805,8 @@ const YearSelector = ({
           border: 'border-yellow-300 dark:border-yellow-700',
           textBold: 'text-yellow-800 dark:text-yellow-200',
           bgLight: 'bg-yellow-50 dark:bg-yellow-900',
-          bgMed: 'bg-yellow-200 dark:bg-yellow-800'
+          bgMed: 'bg-yellow-200 dark:bg-yellow-800',
+          toggleColorVar: '[--toggle-shadow:#a16207] dark:[--toggle-shadow:#fde047]'
         };
         break;
       case 'red':
@@ -817,7 +824,8 @@ const YearSelector = ({
           border: 'border-red-300 dark:border-red-700',
           textBold: 'text-red-800 dark:text-red-200',
           bgLight: 'bg-red-50 dark:bg-red-900',
-          bgMed: 'bg-red-200 dark:bg-red-800'
+          bgMed: 'bg-red-200 dark:bg-red-800',
+          toggleColorVar: '[--toggle-shadow:#b91c1c] dark:[--toggle-shadow:#fca5a5]'
         };
         break;
       case 'orange':
@@ -835,7 +843,8 @@ const YearSelector = ({
           border: 'border-orange-300 dark:border-orange-700',
           textBold: 'text-orange-800 dark:text-orange-200',
           bgLight: 'bg-orange-50 dark:bg-orange-900',
-          bgMed: 'bg-orange-200 dark:bg-orange-800'
+          bgMed: 'bg-orange-200 dark:bg-orange-800',
+          toggleColorVar: '[--toggle-shadow:#c2410c] dark:[--toggle-shadow:#fdba74]'
         };
         break;
       case 'teal':
@@ -854,7 +863,8 @@ const YearSelector = ({
           border: 'border-teal-300 dark:border-teal-700',
           textBold: 'text-teal-800 dark:text-teal-200',
           bgLight: 'bg-teal-50 dark:bg-teal-900',
-          bgMed: 'bg-teal-200 dark:bg-teal-800'
+          bgMed: 'bg-teal-200 dark:bg-teal-800',
+          toggleColorVar: '[--toggle-shadow:#0f766e] dark:[--toggle-shadow:#5eead4]'
         };
         break;
       case 'cyan':
@@ -872,7 +882,8 @@ const YearSelector = ({
           border: 'border-cyan-300 dark:border-cyan-700',
           textBold: 'text-cyan-800 dark:text-cyan-200',
           bgLight: 'bg-cyan-50 dark:bg-cyan-900',
-          bgMed: 'bg-cyan-200 dark:bg-cyan-800'
+          bgMed: 'bg-cyan-200 dark:bg-cyan-800',
+          toggleColorVar: '[--toggle-shadow:#0e7490] dark:[--toggle-shadow:#67e8f9]'
         };
         break;
       case 'emerald':
@@ -890,7 +901,8 @@ const YearSelector = ({
           border: 'border-emerald-300 dark:border-emerald-700',
           textBold: 'text-emerald-800 dark:text-emerald-200',
           bgLight: 'bg-emerald-50 dark:bg-emerald-900',
-          bgMed: 'bg-emerald-200 dark:bg-emerald-800'
+          bgMed: 'bg-emerald-200 dark:bg-emerald-800',
+          toggleColorVar: '[--toggle-shadow:#047857] dark:[--toggle-shadow:#6ee7b7]'
         };
         break;
       case 'amber':
@@ -908,7 +920,8 @@ const YearSelector = ({
           border: 'border-amber-300 dark:border-amber-700',
           textBold: 'text-amber-800 dark:text-amber-200',
           bgLight: 'bg-amber-50 dark:bg-amber-900',
-          bgMed: 'bg-amber-200 dark:bg-amber-800'
+          bgMed: 'bg-amber-200 dark:bg-amber-800',
+          toggleColorVar: '[--toggle-shadow:#b45309] dark:[--toggle-shadow:#fcd34d]'
         };
         break;
       case 'fuchsia':
@@ -926,7 +939,8 @@ const YearSelector = ({
           border: 'border-fuchsia-300 dark:border-fuchsia-700',
           textBold: 'text-fuchsia-800 dark:text-fuchsia-200',
           bgLight: 'bg-fuchsia-50 dark:bg-fuchsia-900',
-          bgMed: 'bg-fuchsia-200 dark:bg-fuchsia-800'
+          bgMed: 'bg-fuchsia-200 dark:bg-fuchsia-800',
+          toggleColorVar: '[--toggle-shadow:#a21caf] dark:[--toggle-shadow:#f0abfc]'
         };
         break;
       case 'violet':
@@ -944,7 +958,8 @@ const YearSelector = ({
           border: 'border-violet-300 dark:border-violet-700',
           textBold: 'text-violet-800 dark:text-violet-200',
           bgLight: 'bg-violet-50 dark:bg-violet-900',
-          bgMed: 'bg-violet-200 dark:bg-violet-800'
+          bgMed: 'bg-violet-200 dark:bg-violet-800',
+          toggleColorVar: '[--toggle-shadow:#6d28d9] dark:[--toggle-shadow:#c4b5fd]'
         };
         break;
       case 'rose':
@@ -962,7 +977,8 @@ const YearSelector = ({
           border: 'border-rose-300 dark:border-rose-700',
           textBold: 'text-rose-800 dark:text-rose-200',
           bgLight: 'bg-rose-50 dark:bg-rose-900',
-          bgMed: 'bg-rose-200 dark:bg-rose-800'
+          bgMed: 'bg-rose-200 dark:bg-rose-800',
+          toggleColorVar: '[--toggle-shadow:#be123c] dark:[--toggle-shadow:#fda4af]'
         };
         break;
     }
@@ -2710,10 +2726,10 @@ const YearSelector = ({
 
                             setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showRangeMonthDaySelectors
-                            ? `${colors.bgActive} ${colors.textActive} border border-black dark:border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black] dark:shadow-[inset_2px_2px_0_0_#4169E1]`
-                            : `${colors.bgLighter} ${colors.bgHover} ${colors.text} shadow-[2px_2px_0_0_rgba(0,0,0,0.2)] dark:shadow-[2px_2px_0_0_rgba(65,105,225,0.4)]`
+                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">m/d</span>
