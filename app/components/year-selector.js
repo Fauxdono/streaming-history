@@ -2736,22 +2736,22 @@ const YearSelector = ({
                       {/* Start row: SM + SD */}
                       <div className="flex flex-row space-x-2 items-center">
                         <div className={`text-[10px] font-medium ${colors.text}`}>SM</div>
-                        {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
+                        {renderMonthGrid(startMonth, handleStartMonthChange, 12)}
                         {showRangeDaySelectors && (
                           <>
                             <div className={`text-[10px] font-medium ${colors.text}`}>SD</div>
-                            {renderDayGrid(startDays, startDay, handleStartDayChange, 16)}
+                            {renderDayGrid(startDays, startDay, handleStartDayChange, 31)}
                           </>
                         )}
                       </div>
                       {/* End row: EM + ED */}
                       <div className="flex flex-row space-x-2 items-center">
                         <div className={`text-[10px] font-medium ${colors.text}`}>EM</div>
-                        {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
+                        {renderMonthGrid(endMonth, handleEndMonthChange, 12)}
                         {showRangeDaySelectors && (
                           <>
                             <div className={`text-[10px] font-medium ${colors.text}`}>ED</div>
-                            {renderDayGrid(endDays, endDay, handleEndDayChange, 16)}
+                            {renderDayGrid(endDays, endDay, handleEndDayChange, 31)}
                           </>
                         )}
                       </div>
