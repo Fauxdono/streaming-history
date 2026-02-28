@@ -2732,31 +2732,27 @@ const YearSelector = ({
 
                   {/* Split mode, horizontal: start row / end row (months+days only, years shown above) */}
                   {showRangeMonthDaySelectors && !rangeTapMode && isHorizontal && (
-                    <div className="flex flex-col space-y-2 w-full">
+                    <div className="flex flex-col space-y-1 w-full">
                       {/* Start row: SM + SD */}
-                      <div className="flex flex-row space-x-2 items-start">
-                        <div>
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
-                          {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
-                        </div>
+                      <div className="flex flex-row space-x-2 items-center">
+                        <div className={`text-[10px] font-medium ${colors.text}`}>SM</div>
+                        {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
                         {showRangeDaySelectors && (
-                          <div>
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
+                          <>
+                            <div className={`text-[10px] font-medium ${colors.text}`}>SD</div>
                             {renderDayGrid(startDays, startDay, handleStartDayChange, 16)}
-                          </div>
+                          </>
                         )}
                       </div>
                       {/* End row: EM + ED */}
-                      <div className="flex flex-row space-x-2 items-start">
-                        <div>
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
-                          {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
-                        </div>
+                      <div className="flex flex-row space-x-2 items-center">
+                        <div className={`text-[10px] font-medium ${colors.text}`}>EM</div>
+                        {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
                         {showRangeDaySelectors && (
-                          <div>
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
+                          <>
+                            <div className={`text-[10px] font-medium ${colors.text}`}>ED</div>
                             {renderDayGrid(endDays, endDay, handleEndDayChange, 16)}
-                          </div>
+                          </>
                         )}
                       </div>
                     </div>
