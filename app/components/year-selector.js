@@ -2209,11 +2209,6 @@ const YearSelector = ({
             : 'flex flex-col gap-1 items-center mb-2'
         }`}>
 
-          {!(isMobile && !isLandscape && isHorizontal) && (
-            <div className={`text-[12px] font-medium ${colors.text} ${
-              isHorizontal ? 'mr-1' : 'mb-1'
-            }`}>MODE</div>
-          )}
           <button
             onClick={() => handleModeChange('single')}
             className={`px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${
