@@ -2632,7 +2632,7 @@ const YearSelector = ({
               ) : (
                 /* Desktop / landscape / sidebar: range year grid (tap or split) */
                 <div className="w-full">
-                  {rangeTapMode && renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
+                  {(rangeTapMode || isHorizontal) && renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
                   {!rangeTapMode && !isHorizontal && (
                     <div className="flex flex-row justify-between gap-2 w-full">
                       <div className="flex-1">
@@ -2730,69 +2730,29 @@ const YearSelector = ({
                     </div>
                   )}
 
-                  {/* Split mode, horizontal: start row / end row */}
-                  {!rangeTapMode && isHorizontal && (
+                  {/* Split mode, horizontal: start row / end row (months+days only, years shown above) */}
+                  {showRangeMonthDaySelectors && !rangeTapMode && isHorizontal && (
                     <div className="flex flex-col space-y-2 w-full">
-                      {/* Start row: SY + SM + SD */}
+                      {/* Start row: SM + SD */}
                       <div className="flex flex-row space-x-2 items-start">
                         <div>
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SY</div>
-                          <div {...gridProps(Math.min(years.length, 12))}>
-                            {years.map(year => (
-                              <button
-                                key={year}
-                                onClick={() => handleYearRangeChange({ startYear: year, endYear: yearRange.endYear || year })}
-                                className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
-                                  year === yearRange.startYear
-                                    ? `${colors.bgActive} ${colors.textActive} font-bold`
-                                    : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
-                                }`}
-                              >
-                                {year}
-                              </button>
-                            ))}
-                          </div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
+                          {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
                         </div>
-                        {showRangeMonthDaySelectors && (
-                          <div>
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
-                            {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
-                          </div>
-                        )}
-                        {showRangeMonthDaySelectors && showRangeDaySelectors && (
+                        {showRangeDaySelectors && (
                           <div>
                             <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
                             {renderDayGrid(startDays, startDay, handleStartDayChange, 16)}
                           </div>
                         )}
                       </div>
-                      {/* End row: EY + EM + ED */}
+                      {/* End row: EM + ED */}
                       <div className="flex flex-row space-x-2 items-start">
                         <div>
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EY</div>
-                          <div {...gridProps(Math.min(years.length, 12))}>
-                            {years.map(year => (
-                              <button
-                                key={year}
-                                onClick={() => handleYearRangeChange({ startYear: yearRange.startYear || year, endYear: year })}
-                                className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
-                                  year === yearRange.endYear
-                                    ? `${colors.bgActive} ${colors.textActive} font-bold`
-                                    : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
-                                }`}
-                              >
-                                {year}
-                              </button>
-                            ))}
-                          </div>
+                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
+                          {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
                         </div>
-                        {showRangeMonthDaySelectors && (
-                          <div>
-                            <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
-                            {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
-                          </div>
-                        )}
-                        {showRangeMonthDaySelectors && showRangeDaySelectors && (
+                        {showRangeDaySelectors && (
                           <div>
                             <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
                             {renderDayGrid(endDays, endDay, handleEndDayChange, 16)}
