@@ -2009,7 +2009,7 @@ const YearSelector = ({
     </div>
   );
 
-  const renderRangeYearGrid = (cols) => (
+  const renderRangeYearGrid = (cols, compact = false) => (
     <div>
       <div className={`text-[10px] text-center mb-1 ${colors.text} opacity-70`}>
         {rangeYearTapPhase === 'idle' && yearRange.startYear && yearRange.endYear
@@ -2018,7 +2018,7 @@ const YearSelector = ({
             ? 'Tap start year'
             : 'Tap end year'}
       </div>
-      <div {...gridProps(cols)}>
+      <div {...(compact ? { className: 'inline-grid gap-1', style: { gridTemplateColumns: `repeat(${cols}, auto)` } } : gridProps(cols))}>
         {years.map(year => {
           const isStart = year === yearRange.startYear;
           const isEnd = year === yearRange.endYear;
@@ -2632,7 +2632,7 @@ const YearSelector = ({
               ) : (
                 /* Desktop / landscape / sidebar: range year grid (tap or split) */
                 <div className="w-full">
-                  {(rangeTapMode || isHorizontal) && renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
+                  {(rangeTapMode || isHorizontal) && renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2, isHorizontal)}
                   {!rangeTapMode && !isHorizontal && (
                     <div className="flex flex-row justify-between gap-2 w-full">
                       <div className="flex-1">
