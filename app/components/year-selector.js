@@ -2332,7 +2332,7 @@ const YearSelector = ({
                             className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                               showMonthSelector
                                 ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                                : ''
                             }`}
                           >
                             <span className="skew-x-[12deg] inline-block">m</span>
@@ -2356,7 +2356,7 @@ const YearSelector = ({
                             className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                               showDaySelector
                                 ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                                : ''
                             }`}
                           >
                             <span className="skew-x-[12deg] inline-block">d</span>
@@ -2409,7 +2409,7 @@ const YearSelector = ({
                         className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
                           showMonthSelector
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            : ''
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">month</span>
@@ -2448,7 +2448,7 @@ const YearSelector = ({
                         className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
                           showDaySelector
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            : ''
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">day</span>
@@ -2493,7 +2493,7 @@ const YearSelector = ({
                         className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showMonthSelector
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            : ''
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">month</span>
@@ -2560,7 +2560,7 @@ const YearSelector = ({
                         className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           rangeTapMode
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            : ''
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">{rangeTapMode ? 'Tap' : 'Split'}</span>
@@ -2582,7 +2582,7 @@ const YearSelector = ({
                         className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showRangeMonthDaySelectors
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            : ''
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">m</span>
@@ -2606,7 +2606,7 @@ const YearSelector = ({
                           className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                             showRangeDaySelectors
                               ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                              : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                              : ''
                           }`}
                         >
                           <span className="skew-x-[12deg] inline-block">d</span>
@@ -2707,7 +2707,7 @@ const YearSelector = ({
                         className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           rangeTapMode
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            : ''
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">{rangeTapMode ? 'Tap' : 'Split'}</span>
@@ -2736,7 +2736,7 @@ const YearSelector = ({
                         className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showRangeMonthDaySelectors
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            : ''
                         }`}
                       >
                         <span className="skew-x-[12deg] inline-block">m/d</span>
