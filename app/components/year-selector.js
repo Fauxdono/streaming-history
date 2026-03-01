@@ -2229,20 +2229,20 @@ const YearSelector = ({
 
           <button
             onClick={() => handleModeChange('single')}
-            className={`px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${
+            className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
               mode === 'single'
-                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}`
-                : `${colors.text} ${colors.bgLighter}`
+                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
             }`}
           >
             <span className="skew-x-[12deg] inline-block">Single</span>
           </button>
           <button
             onClick={() => handleModeChange('range')}
-            className={`px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${
+            className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
               mode === 'range'
-                ? `${colors.bgActive} ${colors.textActive} ${colors.glowActive}`
-                : `${colors.text} ${colors.bgLighter}`
+                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
             }`}
           >
             <span className="skew-x-[12deg] inline-block">Range</span>
