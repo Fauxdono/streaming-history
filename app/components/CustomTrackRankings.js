@@ -478,11 +478,15 @@ const CustomTrackRankings = ({
         setStartDate(`${yearRange.startYear}-01-01`);
         setEndDate(`${yearRange.endYear}-12-31`);
       }
+    } else if (selectedYear.startsWith('all-')) {
+      // All-time with month or day filter — use empty dates, filtering handled in useMemo
+      setStartDate('');
+      setEndDate('');
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         // Handle case with YYYY-MM-DD or YYYY-MM format
         const parts = selectedYear.split('-');
-        
+
         if (parts.length === 3) {
           // Single day selection - set both start and end to the same day
           setStartDate(selectedYear);
@@ -491,10 +495,10 @@ const CustomTrackRankings = ({
           // Month selection (YYYY-MM)
           const year = parts[0];
           const month = parts[1];
-          
+
           // Get the last day of the month
           const lastDay = new Date(year, parseInt(month), 0).getDate();
-          
+
           setStartDate(`${year}-${month}-01`);
           setEndDate(`${year}-${month}-${lastDay}`);
         }
@@ -857,8 +861,8 @@ const CustomTrackRankings = ({
     end.setHours(23, 59, 59, 999);
     
     // First filter by date range to reduce the dataset
-    const dateFilteredEntries = isAllTime 
-      ? validEntries 
+    let dateFilteredEntries = isAllTime
+      ? validEntries
       : validEntries.filter(entry => {
           try {
             const timestamp = new Date(entry.ts);
@@ -867,7 +871,19 @@ const CustomTrackRankings = ({
             return false;
           }
         });
-    
+
+    // Apply all-time month/day filter (all-MM or all-MM-DD)
+    if (selectedYear.startsWith('all-')) {
+      const parts = selectedYear.split('-');
+      dateFilteredEntries = dateFilteredEntries.filter(entry => {
+        try {
+          const d = new Date(entry.ts);
+          if (parts.length === 3) return (d.getMonth() + 1) === parseInt(parts[1]) && d.getDate() === parseInt(parts[2]);
+          return (d.getMonth() + 1) === parseInt(parts[1]);
+        } catch (err) { return false; }
+      });
+    }
+
     if (dateFilteredEntries.length === 0) {
       console.timeEnd('filteredTracks');
       return [];
@@ -1218,6 +1234,15 @@ const CustomTrackRankings = ({
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       return <span>Songs <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
+    } else if (selectedYear.startsWith('all-')) {
+      // All-time with month or month+day filter
+      const parts = selectedYear.split('-');
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const monthLabel = monthNames[parseInt(parts[1]) - 1] || '';
+      if (parts.length === 3) {
+        return <span>Songs <span className="text-xs opacity-75">all {monthLabel} {parseInt(parts[2])}</span></span>;
+      }
+      return <span>Songs <span className="text-xs opacity-75">all {monthLabel}</span></span>;
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         const parts = selectedYear.split('-');
@@ -1255,7 +1280,7 @@ const CustomTrackRankings = ({
 
   // Get formatted date range string
   const getFormattedDateRange = () => {
-    if ((!startDate && !endDate) || selectedYear === 'all') {
+    if ((!startDate && !endDate) || selectedYear === 'all' || selectedYear.startsWith('all-')) {
       return "All Time";
     }
     

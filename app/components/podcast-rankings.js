@@ -153,11 +153,15 @@ const PodcastRankings = ({
         setStartDate(`${yearRange.startYear}-01-01`);
         setEndDate(`${yearRange.endYear}-12-31`);
       }
+    } else if (selectedYear.startsWith('all-')) {
+      // All-time with month or day filter — clear dates, filtering handled in useMemo
+      setStartDate('');
+      setEndDate('');
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         // Handle YYYY-MM or YYYY-MM-DD format
         const parts = selectedYear.split('-');
-        
+
         if (parts.length === 3) {
           // Single day selection - set both start and end to the same day
           setStartDate(selectedYear);
@@ -166,10 +170,10 @@ const PodcastRankings = ({
           // Month selection (YYYY-MM)
           const year = parts[0];
           const month = parts[1];
-          
+
           // Get the last day of the month
           const lastDay = new Date(year, parseInt(month), 0).getDate();
-          
+
           setStartDate(`${year}-${month}-01`);
           setEndDate(`${year}-${month}-${lastDay}`);
         }
@@ -452,15 +456,15 @@ const PodcastRankings = ({
     const duplicateStats = {exact: 0, overlapping: 0, zeroTime: 0};
 
     // Filter relevant play events and group by episode
-    const relevantEvents = rawPlayData.filter(entry => {
+    let relevantEvents = rawPlayData.filter(entry => {
       if (!entry.ts) return false;
-      
+
       try {
         const timestamp = new Date(entry.ts);
         return (
           !isNaN(timestamp.getTime()) &&
-          (!start || timestamp >= start) && 
-          (!end || timestamp <= end) && 
+          (!start || timestamp >= start) &&
+          (!end || timestamp <= end) &&
           entry.episode_show_name &&
           entry.episode_name &&
           (selectedShows.length === 0 || selectedShows.includes(entry.episode_show_name))
@@ -469,6 +473,18 @@ const PodcastRankings = ({
         return false;
       }
     });
+
+    // Apply all-time month/day filter (all-MM or all-MM-DD)
+    if (selectedYear.startsWith('all-')) {
+      const parts = selectedYear.split('-');
+      relevantEvents = relevantEvents.filter(entry => {
+        try {
+          const d = new Date(entry.ts);
+          if (parts.length === 3) return (d.getMonth() + 1) === parseInt(parts[1]) && d.getDate() === parseInt(parts[2]);
+          return (d.getMonth() + 1) === parseInt(parts[1]);
+        } catch (err) { return false; }
+      });
+    }
 
     // Remove zero-duration entries and exact duplicates first
     const hashTracker = new Set();
@@ -664,7 +680,7 @@ const PodcastRankings = ({
         return b[sortBy] - a[sortBy];
       })
       .slice(0, topN);
-  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows, duplicateThreshold]);
+  }, [rawPlayData, startDate, endDate, topN, sortBy, selectedShows, duplicateThreshold, selectedYear]);
 
   const addShowFromEpisode = (show) => {
     if (!selectedShows.includes(show)) {
@@ -685,6 +701,14 @@ const PodcastRankings = ({
   const getPageTitle = () => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       return <span>Podcast Rankings <span className="text-xs opacity-75">{yearRange.startYear}-{yearRange.endYear}</span></span>;
+    } else if (selectedYear.startsWith('all-')) {
+      const parts = selectedYear.split('-');
+      const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const monthLabel = monthNames[parseInt(parts[1]) - 1] || '';
+      if (parts.length === 3) {
+        return <span>Podcast Rankings <span className="text-xs opacity-75">all {monthLabel} {parseInt(parts[2])}</span></span>;
+      }
+      return <span>Podcast Rankings <span className="text-xs opacity-75">all {monthLabel}</span></span>;
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         const parts = selectedYear.split('-');

@@ -295,7 +295,33 @@ function normalizeAlbumName(albumName) {
 
 function filterDataByDate(data, dateFilter) {
   if (!dateFilter || dateFilter === 'all') return data;
-  
+
+  // All-time with month or month+day filter (all-MM or all-MM-DD)
+  if (dateFilter.startsWith('all-')) {
+    const parts = dateFilter.split('-');
+    if (parts.length === 3) {
+      const month = parseInt(parts[1]), day = parseInt(parts[2]);
+      return data.filter(entry => {
+        try {
+          if (!(entry._dateObj instanceof Date) || isNaN(entry._dateObj.getTime())) {
+            entry._dateObj = new Date(entry.ts);
+          }
+          return (entry._dateObj.getMonth() + 1) === month && entry._dateObj.getDate() === day;
+        } catch (err) { return false; }
+      });
+    } else {
+      const month = parseInt(parts[1]);
+      return data.filter(entry => {
+        try {
+          if (!(entry._dateObj instanceof Date) || isNaN(entry._dateObj.getTime())) {
+            entry._dateObj = new Date(entry.ts);
+          }
+          return (entry._dateObj.getMonth() + 1) === month;
+        } catch (err) { return false; }
+      });
+    }
+  }
+
   // Parse dates once to avoid repeated parsing in filter loop
   let startDate, endDate;
 

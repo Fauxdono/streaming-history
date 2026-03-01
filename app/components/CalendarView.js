@@ -271,6 +271,28 @@ const CalendarView = ({
           }
         });
       }
+    } else if (selectedYear.startsWith('all-')) {
+      // All-time with month or month+day filter (all-MM or all-MM-DD)
+      const parts = selectedYear.split('-');
+      if (parts.length === 3) {
+        const month = parseInt(parts[1]), day = parseInt(parts[2]);
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            return (date.getMonth() + 1) === month && date.getDate() === day;
+          } catch (err) { return false; }
+        });
+      } else {
+        const month = parseInt(parts[1]);
+        return rawPlayData.filter(entry => {
+          try {
+            const date = new Date(entry.ts);
+            if (isNaN(date.getTime())) return false;
+            return (date.getMonth() + 1) === month;
+          } catch (err) { return false; }
+        });
+      }
     } else if (selectedYear !== 'all') {
       if (selectedYear.includes('-')) {
         // Handle YYYY-MM or YYYY-MM-DD format
@@ -278,15 +300,15 @@ const CalendarView = ({
           try {
             const date = new Date(entry.ts);
             if (isNaN(date.getTime())) return false;
-            
+
             // For YYYY-MM-DD format
             if (selectedYear.split('-').length === 3) {
               return date.toISOString().split('T')[0] === selectedYear;
             }
-            
+
             // For YYYY-MM format
             const [year, month] = selectedYear.split('-');
-            return date.getFullYear() === parseInt(year) && 
+            return date.getFullYear() === parseInt(year) &&
                   (date.getMonth() + 1) === parseInt(month);
           } catch (err) {
             return false;
@@ -298,7 +320,7 @@ const CalendarView = ({
           try {
             const date = new Date(entry.ts);
             if (isNaN(date.getTime())) return false;
-            
+
             return date.getFullYear() === parseInt(selectedYear);
           } catch (err) {
             return false;
@@ -311,7 +333,7 @@ const CalendarView = ({
   }, [rawPlayData, selectedYear, yearRangeMode, yearRange]);
   
   // Check if we're viewing a specific month (YYYY-MM format)
-  const isMonthView = selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 2;
+  const isMonthView = selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 2 && !selectedYear.startsWith('all-');
   
   // Listening history data for daily history tab
   const historyData = useMemo(() => {
@@ -320,7 +342,7 @@ const CalendarView = ({
     }
     
     // Only show data when a specific date is selected (YYYY-MM-DD format)
-    if (!selectedYear || !selectedYear.includes('-') || selectedYear.split('-').length !== 3) {
+    if (!selectedYear || !selectedYear.includes('-') || selectedYear.split('-').length !== 3 || selectedYear.startsWith('all-')) {
       return { tracks: [], totalTracks: 0, totalListeningTime: 0, uniqueTracks: 0, uniqueArtists: 0, sessions: 0, formattedDate: 'No date selected' };
     }
     
@@ -960,7 +982,7 @@ const CalendarView = ({
         <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
           <div className="flex flex-col gap-4">
             <div>
-              {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
+              {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && !selectedYear.startsWith('all-') && (
                 <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                   Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
                 </div>

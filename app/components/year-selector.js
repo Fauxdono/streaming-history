@@ -1413,28 +1413,29 @@ const YearSelector = ({
       setUserEnabledSelectors(true);
     }
     
-    // Make sure day is valid for this month
-    if (selectedYear !== 'all') {
-      const daysInMonth = getDaysInMonth(selectedYear, month);
-      const validDay = Math.min(selectedDay, daysInMonth);
-      if (validDay !== selectedDay) {
-        setSelectedDay(validDay);
-      }
-      
-      // Update parent immediately with appropriate format based on current selectors
-      if (showDaySelector && onYearChange) {
-        const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}-${validDay.toString().padStart(2, '0')}`;
-        console.log("Month selector sending YYYY-MM-DD:", dateStr);
-        onYearChange(dateStr);
-      } else if (onYearChange) {
-        const dateStr = `${selectedYear}-${month.toString().padStart(2, '0')}`;
-        console.log("Month selector sending YYYY-MM:", dateStr);
-        onYearChange(dateStr);
-      }
-      
-      // Force UI refresh
-      setRefreshCounter(prev => prev + 1);
+    // Make sure day is valid for this month (use current year or a leap year for all-time)
+    const yearForDays = selectedYear === 'all' ? 2024 : selectedYear;
+    const daysInMonth = getDaysInMonth(yearForDays, month);
+    const validDay = Math.min(selectedDay, daysInMonth);
+    if (validDay !== selectedDay) {
+      setSelectedDay(validDay);
     }
+
+    // Update parent immediately with appropriate format based on current selectors
+    const prefix = selectedYear === 'all' ? 'all' : selectedYear;
+    const mm = month.toString().padStart(2, '0');
+    if (showDaySelector && onYearChange) {
+      const dateStr = `${prefix}-${mm}-${validDay.toString().padStart(2, '0')}`;
+      console.log("Month selector sending date:", dateStr);
+      onYearChange(dateStr);
+    } else if (onYearChange) {
+      const dateStr = `${prefix}-${mm}`;
+      console.log("Month selector sending date:", dateStr);
+      onYearChange(dateStr);
+    }
+
+    // Force UI refresh
+    setRefreshCounter(prev => prev + 1);
   }, [selectedYear, selectedDay, getDaysInMonth, showDaySelector, activeTab, showMonthSelector, onYearChange]);
   
   // Handle day change in single mode
@@ -1448,9 +1449,10 @@ const YearSelector = ({
     }
     
     // Update parent immediately with the new date - always use day format when day changes
-    if (selectedYear && selectedYear !== 'all' && onYearChange) {
-      const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      console.log("Day selector sending YYYY-MM-DD:", dateStr);
+    if (selectedYear && onYearChange) {
+      const prefix = selectedYear === 'all' ? 'all' : selectedYear;
+      const dateStr = `${prefix}-${selectedMonth.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      console.log("Day selector sending date:", dateStr);
       onYearChange(dateStr);
     }
   }, [selectedYear, selectedMonth, activeTab, onYearChange]);
@@ -2318,15 +2320,24 @@ const YearSelector = ({
                           All
                         </button>
                         {renderYearGrid(Math.min(years.length, 6))}
-                        {selectedYear !== 'all' && (
+                        {(
                           <button
                             onClick={() => {
                               const nv = !showMonthSelector;
                               setShowMonthSelector(nv);
                               const isHistoryTab = activeTab === 'history';
                               if (!isHistoryTab) setUserEnabledSelectors(nv);
-                              if (!nv) { setShowDaySelector(false); if (onYearChange && selectedYear !== 'all') onYearChange(selectedYear); }
-                              else { if (onYearChange && selectedYear !== 'all') onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
+                              if (!nv) {
+                                setShowDaySelector(false);
+                                if (onYearChange) {
+                                  onYearChange(selectedYear === 'all' ? 'all' : selectedYear);
+                                }
+                              } else {
+                                if (onYearChange) {
+                                  const mm = selectedMonth.toString().padStart(2, '0');
+                                  onYearChange(selectedYear === 'all' ? `all-${mm}` : `${selectedYear}-${mm}`);
+                                }
+                              }
                               setRefreshCounter(prev => prev + 1);
                             }}
                             className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
@@ -2340,7 +2351,7 @@ const YearSelector = ({
                         )}
                       </div>
                       {/* Row 2: Month grid + day toggle */}
-                      {selectedYear !== 'all' && showMonthSelector && (
+                      {showMonthSelector && (
                         <div className="flex flex-row items-center gap-1">
                           {renderMonthGrid(selectedMonth, handleMonthChange, 6)}
                           <button
@@ -2349,8 +2360,10 @@ const YearSelector = ({
                               setShowDaySelector(nv);
                               const isHistoryTab = activeTab === 'history';
                               if (!isHistoryTab && nv) setUserEnabledSelectors(true);
-                              if (nv) { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`); }
-                              else { if (onYearChange) onYearChange(`${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`); }
+                              const prefix = selectedYear === 'all' ? 'all' : selectedYear;
+                              const mm = selectedMonth.toString().padStart(2, '0');
+                              if (nv) { if (onYearChange) onYearChange(`${prefix}-${mm}-${selectedDay.toString().padStart(2, '0')}`); }
+                              else { if (onYearChange) onYearChange(`${prefix}-${mm}`); }
                               setRefreshCounter(prev => prev + 1);
                             }}
                             className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
@@ -2364,7 +2377,7 @@ const YearSelector = ({
                         </div>
                       )}
                       {/* Row 3: Day grid */}
-                      {selectedYear !== 'all' && showMonthSelector && showDaySelector && (
+                      {showMonthSelector && showDaySelector && (
                         renderDayGrid(days, selectedDay, handleDayChange, 8)
                       )}
                     </div>
@@ -2376,7 +2389,7 @@ const YearSelector = ({
                 </div>
               </div>
 
-              {selectedYear !== 'all' && (
+              {(
                 <>
                   {/* Month Selector - hidden on mobile portrait horizontal (toggle is under year wheel) */}
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
@@ -2394,13 +2407,13 @@ const YearSelector = ({
 
                             if (!newMonthValue) {
                               setShowDaySelector(false);
-                              if (onYearChange && selectedYear !== 'all') {
-                                onYearChange(selectedYear);
+                              if (onYearChange) {
+                                onYearChange(selectedYear === 'all' ? 'all' : selectedYear);
                               }
                             } else {
-                              if (onYearChange && selectedYear !== 'all') {
-                                const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-                                onYearChange(dateStr);
+                              if (onYearChange) {
+                                const mm = selectedMonth.toString().padStart(2, '0');
+                                onYearChange(selectedYear === 'all' ? `all-${mm}` : `${selectedYear}-${mm}`);
                               }
                             }
 
@@ -2435,11 +2448,13 @@ const YearSelector = ({
                               setUserEnabledSelectors(true);
                             }
 
+                            const prefix = selectedYear === 'all' ? 'all' : selectedYear;
+                            const mm = selectedMonth.toString().padStart(2, '0');
                             if (newDayValue) {
-                              const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+                              const dateStr = `${prefix}-${mm}-${selectedDay.toString().padStart(2, '0')}`;
                               if (onYearChange) onYearChange(dateStr);
                             } else {
-                              const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
+                              const dateStr = `${prefix}-${mm}`;
                               if (onYearChange) onYearChange(dateStr);
                             }
 
@@ -2478,13 +2493,13 @@ const YearSelector = ({
 
                             if (!newMonthValue) {
                               setShowDaySelector(false);
-                              if (onYearChange && selectedYear !== 'all') {
-                                onYearChange(selectedYear);
+                              if (onYearChange) {
+                                onYearChange(selectedYear === 'all' ? 'all' : selectedYear);
                               }
                             } else {
-                              if (onYearChange && selectedYear !== 'all') {
-                                const dateStr = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}`;
-                                onYearChange(dateStr);
+                              if (onYearChange) {
+                                const mm = selectedMonth.toString().padStart(2, '0');
+                                onYearChange(selectedYear === 'all' ? `all-${mm}` : `${selectedYear}-${mm}`);
                               }
                             }
 

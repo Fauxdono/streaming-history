@@ -252,6 +252,35 @@ const filteredObsessions = useMemo(() => {
   } else if (initialYear === 'all') {
     // All-time view
     yearFiltered = briefObsessions;
+  } else if (initialYear.startsWith('all-')) {
+    // All-time with month or month+day filter (all-MM or all-MM-DD)
+    const allParts = initialYear.split('-');
+    if (allParts.length === 3) {
+      const month = parseInt(allParts[1]) - 1; // JS months are 0-indexed
+      const day = parseInt(allParts[2]);
+      yearFiltered = briefObsessions.filter(obs => {
+        if (!obs.intensePeriod?.weekStart) return false;
+        const weekStart = new Date(obs.intensePeriod.weekStart);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        // Check if the selected month+day (any year) falls within this week
+        // Try each year that the obsession's week could span
+        const wsYear = weekStart.getFullYear();
+        const target = new Date(wsYear, month, day);
+        return target >= weekStart && target <= weekEnd;
+      });
+    } else {
+      const month = parseInt(allParts[1]) - 1; // JS months are 0-indexed
+      yearFiltered = briefObsessions.filter(obs => {
+        if (!obs.intensePeriod?.weekStart) return false;
+        const weekStart = new Date(obs.intensePeriod.weekStart);
+        const weekMonth = weekStart.getMonth();
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        const endMonth = weekEnd.getMonth();
+        return weekMonth === month || endMonth === month;
+      });
+    }
   } else if (initialYear.includes('-')) {
     // If date includes day or month (YYYY-MM-DD or YYYY-MM format)
     const parts = initialYear.split('-');

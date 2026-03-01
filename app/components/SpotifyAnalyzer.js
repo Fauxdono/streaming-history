@@ -658,8 +658,8 @@ const SpotifyAnalyzer = ({
 
   // useEffect to set album date ranges when year changes (like CustomTrackRankings)
   useEffect(() => {
-    if (selectedAlbumYear === 'all') {
-      // Clear date filters for all-time
+    if (selectedAlbumYear === 'all' || selectedAlbumYear.startsWith('all-')) {
+      // Clear date filters for all-time (month/day filtering handled in useMemo)
       setAlbumStartDate('');
       setAlbumEndDate('');
     } else if (selectedAlbumYear.includes('-')) {
@@ -741,7 +741,7 @@ const SpotifyAnalyzer = ({
     };
 
     // Filter raw data by date range and minimum duration
-    const dateFilteredEntries = isAllTime
+    let dateFilteredEntries = isAllTime
       ? rawPlayData.filter(entry => passesFilters(entry))
       : rawPlayData.filter(entry => {
           try {
@@ -752,6 +752,18 @@ const SpotifyAnalyzer = ({
             return false;
           }
         });
+
+    // Apply all-time month/day filter (all-MM or all-MM-DD)
+    if (selectedAlbumYear.startsWith('all-')) {
+      const parts = selectedAlbumYear.split('-');
+      dateFilteredEntries = dateFilteredEntries.filter(entry => {
+        try {
+          const d = new Date(entry.ts);
+          if (parts.length === 3) return (d.getMonth() + 1) === parseInt(parts[1]) && d.getDate() === parseInt(parts[2]);
+          return (d.getMonth() + 1) === parseInt(parts[1]);
+        } catch (err) { return false; }
+      });
+    }
 
     // Initialize albums object (like streaming adapter)
     const albums = {};
@@ -879,8 +891,8 @@ const SpotifyAnalyzer = ({
 
   // useEffect to set artist date ranges when year changes (like CustomTrackRankings)
   useEffect(() => {
-    if (selectedArtistYear === 'all') {
-      // Clear date filters for all-time
+    if (selectedArtistYear === 'all' || selectedArtistYear.startsWith('all-')) {
+      // Clear date filters for all-time (month/day filtering handled in useMemo)
       setArtistStartDate('');
       setArtistEndDate('');
     } else if (selectedArtistYear.includes('-')) {
@@ -950,7 +962,7 @@ const SpotifyAnalyzer = ({
     };
 
     // Filter raw data by date range and minimum duration
-    const dateFilteredEntries = isAllTime
+    let dateFilteredEntries = isAllTime
       ? rawPlayData.filter(entry => passesFilters(entry))
       : rawPlayData.filter(entry => {
           try {
@@ -961,7 +973,19 @@ const SpotifyAnalyzer = ({
             return false;
           }
         });
-    
+
+    // Apply all-time month/day filter (all-MM or all-MM-DD)
+    if (selectedArtistYear.startsWith('all-')) {
+      const parts = selectedArtistYear.split('-');
+      dateFilteredEntries = dateFilteredEntries.filter(entry => {
+        try {
+          const d = new Date(entry.ts);
+          if (parts.length === 3) return (d.getMonth() + 1) === parseInt(parts[1]) && d.getDate() === parseInt(parts[2]);
+          return (d.getMonth() + 1) === parseInt(parts[1]);
+        } catch (err) { return false; }
+      });
+    }
+
     // Helper function to normalize artist names
     const normalizeArtistName = (name) => {
       if (!name) return null;
@@ -1778,62 +1802,58 @@ const SpotifyAnalyzer = ({
   // Convert selectedArtistYear to date range (like CustomTrackRankings)
   useEffect(() => {
     if (selectedArtistYear === 'range') return; // Range mode sets dates directly
-    if (selectedArtistYear !== 'all') {
-      if (selectedArtistYear.includes('-')) {
-        const parts = selectedArtistYear.split('-');
-        if (parts.length === 3) {
-          // Single day selection
-          setArtistStartDate(selectedArtistYear);
-          setArtistEndDate(selectedArtistYear);
-        } else if (parts.length === 2) {
-          // Month selection (YYYY-MM)
-          const year = parts[0];
-          const month = parts[1];
-          // Calculate last day of month
-          const lastDay = new Date(year, month, 0).getDate();
-          setArtistStartDate(`${year}-${month}-01`);
-          setArtistEndDate(`${year}-${month}-${lastDay}`);
-        }
-      } else {
-        // Single year format (YYYY)
-        setArtistStartDate(`${selectedArtistYear}-01-01`);
-        setArtistEndDate(`${selectedArtistYear}-12-31`);
-      }
-    } else {
-      // All time
+    if (selectedArtistYear === 'all' || selectedArtistYear.startsWith('all-')) {
+      // All time (month/day filtering handled in useMemo)
       setArtistStartDate('');
       setArtistEndDate('');
+    } else if (selectedArtistYear.includes('-')) {
+      const parts = selectedArtistYear.split('-');
+      if (parts.length === 3) {
+        // Single day selection
+        setArtistStartDate(selectedArtistYear);
+        setArtistEndDate(selectedArtistYear);
+      } else if (parts.length === 2) {
+        // Month selection (YYYY-MM)
+        const year = parts[0];
+        const month = parts[1];
+        // Calculate last day of month
+        const lastDay = new Date(year, month, 0).getDate();
+        setArtistStartDate(`${year}-${month}-01`);
+        setArtistEndDate(`${year}-${month}-${lastDay}`);
+      }
+    } else {
+      // Single year format (YYYY)
+      setArtistStartDate(`${selectedArtistYear}-01-01`);
+      setArtistEndDate(`${selectedArtistYear}-12-31`);
     }
   }, [selectedArtistYear]);
 
   // Convert selectedAlbumYear to date range (like CustomTrackRankings)
   useEffect(() => {
     if (selectedAlbumYear === 'range') return; // Range mode sets dates directly
-    if (selectedAlbumYear !== 'all') {
-      if (selectedAlbumYear.includes('-')) {
-        const parts = selectedAlbumYear.split('-');
-        if (parts.length === 3) {
-          // Single day selection
-          setAlbumStartDate(selectedAlbumYear);
-          setAlbumEndDate(selectedAlbumYear);
-        } else if (parts.length === 2) {
-          // Month selection (YYYY-MM)
-          const year = parts[0];
-          const month = parts[1];
-          // Calculate last day of month
-          const lastDay = new Date(year, month, 0).getDate();
-          setAlbumStartDate(`${year}-${month}-01`);
-          setAlbumEndDate(`${year}-${month}-${lastDay}`);
-        }
-      } else {
-        // Single year format (YYYY)
-        setAlbumStartDate(`${selectedAlbumYear}-01-01`);
-        setAlbumEndDate(`${selectedAlbumYear}-12-31`);
-      }
-    } else {
-      // All time
+    if (selectedAlbumYear === 'all' || selectedAlbumYear.startsWith('all-')) {
+      // All time (month/day filtering handled in useMemo)
       setAlbumStartDate('');
       setAlbumEndDate('');
+    } else if (selectedAlbumYear.includes('-')) {
+      const parts = selectedAlbumYear.split('-');
+      if (parts.length === 3) {
+        // Single day selection
+        setAlbumStartDate(selectedAlbumYear);
+        setAlbumEndDate(selectedAlbumYear);
+      } else if (parts.length === 2) {
+        // Month selection (YYYY-MM)
+        const year = parts[0];
+        const month = parts[1];
+        // Calculate last day of month
+        const lastDay = new Date(year, month, 0).getDate();
+        setAlbumStartDate(`${year}-${month}-01`);
+        setAlbumEndDate(`${year}-${month}-${lastDay}`);
+      }
+    } else {
+      // Single year format (YYYY)
+      setAlbumStartDate(`${selectedAlbumYear}-01-01`);
+      setAlbumEndDate(`${selectedAlbumYear}-12-31`);
     }
   }, [selectedAlbumYear]);
 

@@ -99,7 +99,7 @@ const ListeningBehavior = ({
   const deferredActiveTab = useDeferredValue(activeTab);
   // Use selectedYear if it's a specific date (YYYY-MM-DD), otherwise use today
   const [selectedDate, setSelectedDate] = useState(() => {
-    if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) {
+    if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && !selectedYear.startsWith('all-')) {
       return selectedYear; // Use the date from year selector
     }
     return null; // No automatic date selection
@@ -431,6 +431,28 @@ const filteredData = useMemo(() => {
         }
       });
     }
+  } else if (selectedYear.startsWith('all-')) {
+    // All-time with month or month+day filter (all-MM or all-MM-DD)
+    const parts = selectedYear.split('-');
+    if (parts.length === 3) {
+      const month = parseInt(parts[1]), day = parseInt(parts[2]);
+      return dataToUse.filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          if (isNaN(date.getTime())) return false;
+          return (date.getMonth() + 1) === month && date.getDate() === day;
+        } catch (err) { return false; }
+      });
+    } else {
+      const month = parseInt(parts[1]);
+      return dataToUse.filter(entry => {
+        try {
+          const date = new Date(entry.ts);
+          if (isNaN(date.getTime())) return false;
+          return (date.getMonth() + 1) === month;
+        } catch (err) { return false; }
+      });
+    }
   } else if (selectedYear !== 'all') {
     if (selectedYear.includes('-')) {
       // Handle YYYY-MM or YYYY-MM-DD format
@@ -438,15 +460,15 @@ const filteredData = useMemo(() => {
         try {
           const date = new Date(entry.ts);
           if (isNaN(date.getTime())) return false;
-          
+
           // For YYYY-MM-DD format
           if (selectedYear.split('-').length === 3) {
             return date.toISOString().split('T')[0] === selectedYear;
           }
-          
+
           // For YYYY-MM format
           const [year, month] = selectedYear.split('-');
-          return date.getFullYear() === parseInt(year) && 
+          return date.getFullYear() === parseInt(year) &&
                 (date.getMonth() + 1) === parseInt(month);
         } catch (err) {
           return false;
@@ -458,7 +480,7 @@ const filteredData = useMemo(() => {
         try {
           const date = new Date(entry.ts);
           if (isNaN(date.getTime())) return false;
-          
+
           return date.getFullYear() === parseInt(selectedYear);
         } catch (err) {
           return false;
@@ -796,7 +818,7 @@ const filteredData = useMemo(() => {
 
   // Update selectedDate when selectedYear changes to a specific date
   React.useEffect(() => {
-    if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3) {
+    if (selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && !selectedYear.startsWith('all-')) {
       setSelectedDate(selectedYear);
     }
   }, [selectedYear]);
