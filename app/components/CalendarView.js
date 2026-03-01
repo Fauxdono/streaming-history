@@ -341,50 +341,75 @@ const CalendarView = ({
       return { tracks: [], totalTracks: 0, totalListeningTime: 0, uniqueTracks: 0, uniqueArtists: 0, sessions: 0, formattedDate: 'No date selected' };
     }
     
-    // Only show data when a specific date is selected (YYYY-MM-DD format)
-    if (!selectedYear || !selectedYear.includes('-') || selectedYear.split('-').length !== 3 || selectedYear.startsWith('all-')) {
+    // Only show data when a specific date is selected (YYYY-MM-DD or all-MM-DD format)
+    const isAllTimeDay = selectedYear && selectedYear.startsWith('all-') && selectedYear.split('-').length === 3;
+    const isSpecificDay = selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && !selectedYear.startsWith('all-');
+
+    if (!isAllTimeDay && !isSpecificDay) {
       return { tracks: [], totalTracks: 0, totalListeningTime: 0, uniqueTracks: 0, uniqueArtists: 0, sessions: 0, formattedDate: 'No date selected' };
     }
-    
-    const dateToUse = selectedYear;
-    const selectedDateObj = new Date(dateToUse);
-    const nextDay = new Date(selectedDateObj);
-    nextDay.setDate(nextDay.getDate() + 1);
 
-    // Filter tracks for the selected date
-    const dayTracks = filteredData
-      .filter(entry => {
-        const trackDate = new Date(entry.ts);
-        return trackDate >= selectedDateObj && trackDate < nextDay;
-      })
-      .sort((a, b) => new Date(a.ts) - new Date(b.ts)) // Chronological order
-      .map(entry => ({
-        ...entry,
-        formattedTime: new Date(entry.ts).toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true
-        }),
-        formattedDuration: formatDuration(entry.ms_played),
-        completionRate: entry.master_metadata_track_name ?
-          Math.min(100, Math.round((entry.ms_played / (minPlayDuration || 30000)) * 100)) : 0
-      }));
+    let dayTracks;
+    let formattedDate;
+
+    if (isAllTimeDay) {
+      // all-MM-DD: filteredData is already filtered to this month+day across all years
+      const parts = selectedYear.split('-');
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      formattedDate = `Every ${monthNames[parseInt(parts[1]) - 1]} ${parseInt(parts[2])}`;
+
+      dayTracks = [...filteredData]
+        .sort((a, b) => new Date(a.ts) - new Date(b.ts))
+        .map(entry => {
+          const d = new Date(entry.ts);
+          return {
+            ...entry,
+            formattedTime: d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' +
+              d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+            formattedDuration: formatDuration(entry.ms_played),
+            completionRate: entry.master_metadata_track_name ?
+              Math.min(100, Math.round((entry.ms_played / (minPlayDuration || 30000)) * 100)) : 0
+          };
+        });
+    } else {
+      const selectedDateObj = new Date(selectedYear);
+      const nextDay = new Date(selectedDateObj);
+      nextDay.setDate(nextDay.getDate() + 1);
+      formattedDate = selectedDateObj.toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      dayTracks = filteredData
+        .filter(entry => {
+          const trackDate = new Date(entry.ts);
+          return trackDate >= selectedDateObj && trackDate < nextDay;
+        })
+        .sort((a, b) => new Date(a.ts) - new Date(b.ts))
+        .map(entry => ({
+          ...entry,
+          formattedTime: new Date(entry.ts).toLocaleTimeString('en-US', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+          }),
+          formattedDuration: formatDuration(entry.ms_played),
+          completionRate: entry.master_metadata_track_name ?
+            Math.min(100, Math.round((entry.ms_played / (minPlayDuration || 30000)) * 100)) : 0
+        }));
+    }
 
     // Calculate day statistics
     const totalTracks = dayTracks.length;
     const totalListeningTime = dayTracks.reduce((sum, track) => sum + track.ms_played, 0);
     const uniqueTracks = new Set(dayTracks.map(t => `${t.master_metadata_track_name}-${t.master_metadata_album_artist_name}`)).size;
     const uniqueArtists = new Set(dayTracks.filter(t => t.master_metadata_album_artist_name).map(t => t.master_metadata_album_artist_name)).size;
-    
+
     // Find listening sessions (gaps > 30 minutes)
     const sessions = [];
     let currentSession = null;
     const SESSION_GAP = 30 * 60 * 1000; // 30 minutes
-    
+
     dayTracks.forEach(track => {
       const trackTime = new Date(track.ts);
-      
+
       if (!currentSession || (trackTime - currentSession.endTime) > SESSION_GAP) {
         if (currentSession) sessions.push(currentSession);
         currentSession = {
@@ -399,7 +424,7 @@ const CalendarView = ({
         currentSession.count++;
       }
     });
-    
+
     if (currentSession) sessions.push(currentSession);
 
     return {
@@ -409,12 +434,7 @@ const CalendarView = ({
       uniqueTracks,
       uniqueArtists,
       sessions: sessions.length,
-      formattedDate: selectedDateObj.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+      formattedDate
     };
   }, [filteredData, selectedYear, formatDuration, activeTab, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
@@ -982,7 +1002,7 @@ const CalendarView = ({
         <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
           <div className="flex flex-col gap-4">
             <div>
-              {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && !selectedYear.startsWith('all-') && (
+              {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
                 <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
                   Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
                 </div>
