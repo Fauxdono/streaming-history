@@ -844,7 +844,7 @@ const ListeningPatterns = ({
           </div>
           <button
             onClick={() => setObsShowExporter(!obsShowExporter)}
-            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${obsShowExporter ? colors.buttonActive : colors.buttonInactive}`}
           >
             <Download size={12} />
             M3U
