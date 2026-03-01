@@ -349,6 +349,18 @@ const CalendarView = ({
       return { tracks: [], totalTracks: 0, totalListeningTime: 0, uniqueTracks: 0, uniqueArtists: 0, sessions: 0, formattedDate: 'No date selected' };
     }
 
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
     let dayTracks;
     let formattedDate;
 
@@ -358,7 +370,8 @@ const CalendarView = ({
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       formattedDate = `Every ${monthNames[parseInt(parts[1]) - 1]} ${parseInt(parts[2])}`;
 
-      dayTracks = [...filteredData]
+      dayTracks = filteredData
+        .filter(entry => passesFilters(entry))
         .sort((a, b) => new Date(a.ts) - new Date(b.ts))
         .map(entry => {
           const d = new Date(entry.ts);
@@ -382,7 +395,7 @@ const CalendarView = ({
       dayTracks = filteredData
         .filter(entry => {
           const trackDate = new Date(entry.ts);
-          return trackDate >= selectedDateObj && trackDate < nextDay;
+          return trackDate >= selectedDateObj && trackDate < nextDay && passesFilters(entry);
         })
         .sort((a, b) => new Date(a.ts) - new Date(b.ts))
         .map(entry => ({
