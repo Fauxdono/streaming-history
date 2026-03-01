@@ -864,34 +864,53 @@ const CalendarView = ({
 
             {/* Monthly View - List */}
             {!isMonthView && viewMode === 'list' && (
-              <div className={`overflow-x-auto border rounded ${modeColors.border} ${modeColors.bgCard}`}>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className={`border-b ${modeColors.border}`}>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>#</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Month</th>
-                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Plays</th>
-                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Songs</th>
-                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Artists</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Artist</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Album</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {calendarData.map((monthData, index) => (
-                      <tr key={index} className={`border-b ${modeColors.border} hover:opacity-80 transition-colors`}>
-                        <td className={`px-3 py-2 ${modeColors.textLight}`}>{index + 1}</td>
-                        <td className={`px-3 py-2 font-medium ${modeColors.text}`}>{monthData.fullName}</td>
-                        <td className={`px-3 py-2 text-right ${modeColors.text}`}>{monthData.totalPlays}</td>
-                        <td className={`px-3 py-2 text-right ${modeColors.text}`}>{monthData.uniqueSongCount}</td>
-                        <td className={`px-3 py-2 text-right ${modeColors.text}`}>{monthData.uniqueArtistCount}</td>
-                        <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{monthData.topArtist.name || '—'}</td>
-                        <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{monthData.topAlbum.name || '—'}</td>
+              <>
+                {/* Desktop table */}
+                <div className={`hidden sm:block overflow-x-auto border rounded ${modeColors.border} ${modeColors.bgCard}`}>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className={`border-b ${modeColors.border}`}>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>#</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Month</th>
+                        <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Plays</th>
+                        <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Songs</th>
+                        <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Artists</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Artist</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Album</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {calendarData.map((monthData, index) => (
+                        <tr key={index} className={`border-b ${modeColors.border} hover:opacity-80 transition-colors`}>
+                          <td className={`px-3 py-2 ${modeColors.textLight}`}>{index + 1}</td>
+                          <td className={`px-3 py-2 font-medium ${modeColors.text}`}>{monthData.fullName}</td>
+                          <td className={`px-3 py-2 text-right ${modeColors.text}`}>{monthData.totalPlays}</td>
+                          <td className={`px-3 py-2 text-right ${modeColors.text}`}>{monthData.uniqueSongCount}</td>
+                          <td className={`px-3 py-2 text-right ${modeColors.text}`}>{monthData.uniqueArtistCount}</td>
+                          <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{monthData.topArtist.name || '—'}</td>
+                          <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{monthData.topAlbum.name || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Mobile cards */}
+                <div className="sm:hidden space-y-2">
+                  {calendarData.map((monthData, index) => (
+                    <div key={index} className={`p-3 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                      <div className="flex justify-between items-baseline mb-1">
+                        <span className={`font-bold ${modeColors.text}`}>{monthData.fullName}</span>
+                        <span className={`text-xs ${modeColors.textLight}`}>{monthData.totalPlays} plays</span>
+                      </div>
+                      <div className={`text-xs ${modeColors.text} space-y-0.5`}>
+                        <div className="flex justify-between"><span>{monthData.uniqueSongCount} songs</span><span>{monthData.uniqueArtistCount} artists</span></div>
+                        {monthData.topArtist.name && <div className="truncate">Top Artist: <span className="font-bold">{monthData.topArtist.name}</span></div>}
+                        {monthData.topAlbum.name && <div className="truncate">Top Album: <span className="font-bold">{monthData.topAlbum.name}</span></div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
             
             {/* Daily View - Grid */}
@@ -963,49 +982,93 @@ const CalendarView = ({
 
             {/* Daily View - List */}
             {isMonthView && viewMode === 'list' && (
-              <div className={`overflow-x-auto border rounded ${modeColors.border} ${modeColors.bgCard}`}>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className={`border-b ${modeColors.border}`}>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Day</th>
-                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Plays</th>
-                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Songs</th>
-                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Artists</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Artist</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Album</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dailyCalendarData.map((dayData, index) => {
-                      const dateObj = new Date(dayData.date);
-                      const monthName = dateObj.toLocaleDateString('en-US', { month: 'long' });
-                      const day = dateObj.getDate();
-                      const suffix = day % 10 === 1 && day !== 11 ? 'st' :
-                                     day % 10 === 2 && day !== 12 ? 'nd' :
-                                     day % 10 === 3 && day !== 13 ? 'rd' : 'th';
+              <>
+                {/* Desktop table */}
+                <div className={`hidden sm:block overflow-x-auto border rounded ${modeColors.border} ${modeColors.bgCard}`}>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className={`border-b ${modeColors.border}`}>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Day</th>
+                        <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Plays</th>
+                        <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Songs</th>
+                        <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Artists</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Artist</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Top Album</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dailyCalendarData.map((dayData, index) => {
+                        const dateObj = new Date(dayData.date);
+                        const monthName = dateObj.toLocaleDateString('en-US', { month: 'long' });
+                        const day = dateObj.getDate();
+                        const suffix = day % 10 === 1 && day !== 11 ? 'st' :
+                                       day % 10 === 2 && day !== 12 ? 'nd' :
+                                       day % 10 === 3 && day !== 13 ? 'rd' : 'th';
 
-                      return (
-                        <tr key={index} className={`border-b ${modeColors.border} hover:opacity-80 transition-colors cursor-pointer`}
-                          onClick={() => {
-                            if (onYearChange) onYearChange(dayData.date);
-                            setActiveTab('history');
-                          }}
-                        >
-                          <td className={`px-3 py-2 font-medium ${modeColors.text}`}>
-                            <span className="opacity-50">{monthName}</span>{' '}
-                            <span className="font-bold">{day}{suffix}</span>
-                          </td>
-                          <td className={`px-3 py-2 text-right ${modeColors.text}`}>{dayData.totalPlays}</td>
-                          <td className={`px-3 py-2 text-right ${modeColors.text}`}>{dayData.uniqueSongCount}</td>
-                          <td className={`px-3 py-2 text-right ${modeColors.text}`}>{dayData.uniqueArtistCount}</td>
-                          <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{dayData.topArtist.name || '—'}</td>
-                          <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{dayData.topAlbum.name || '—'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                        return (
+                          <tr key={index} className={`border-b ${modeColors.border} hover:opacity-80 transition-colors cursor-pointer`}
+                            onClick={() => {
+                              if (onYearChange) onYearChange(dayData.date);
+                              setActiveTab('history');
+                            }}
+                          >
+                            <td className={`px-3 py-2 font-medium ${modeColors.text}`}>
+                              <span className="opacity-50">{monthName}</span>{' '}
+                              <span className="font-bold">{day}{suffix}</span>
+                            </td>
+                            <td className={`px-3 py-2 text-right ${modeColors.text}`}>{dayData.totalPlays}</td>
+                            <td className={`px-3 py-2 text-right ${modeColors.text}`}>{dayData.uniqueSongCount}</td>
+                            <td className={`px-3 py-2 text-right ${modeColors.text}`}>{dayData.uniqueArtistCount}</td>
+                            <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{dayData.topArtist.name || '—'}</td>
+                            <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{dayData.topAlbum.name || '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Mobile cards */}
+                <div className="sm:hidden space-y-2">
+                  {dailyCalendarData.map((dayData, index) => {
+                    const dateObj = new Date(dayData.date);
+                    const monthName = dateObj.toLocaleDateString('en-US', { month: 'long' });
+                    const day = dateObj.getDate();
+                    const suffix = day % 10 === 1 && day !== 11 ? 'st' :
+                                   day % 10 === 2 && day !== 12 ? 'nd' :
+                                   day % 10 === 3 && day !== 13 ? 'rd' : 'th';
+
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => {
+                          if (onYearChange) onYearChange(dayData.date);
+                          setActiveTab('history');
+                        }}
+                        className={`p-3 rounded border cursor-pointer ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                      >
+                        <div className="flex justify-between items-baseline mb-1">
+                          <span className={`font-bold ${modeColors.text}`}>
+                            <span className="opacity-50">{monthName}</span> {day}{suffix}
+                          </span>
+                          <span className={`text-xs ${modeColors.textLight}`}>{dayData.totalPlays} plays</span>
+                        </div>
+                        <div className={`text-xs ${modeColors.text} space-y-0.5`}>
+                          <div className="flex justify-between">
+                            <span>{dayData.uniqueSongCount} songs</span>
+                            <span>{dayData.uniqueArtistCount} artists</span>
+                          </div>
+                          {dayData.topArtist.name && (
+                            <div className="truncate">Top Artist: <span className="font-bold">{dayData.topArtist.name}</span></div>
+                          )}
+                          {dayData.topAlbum.name && (
+                            <div className="truncate">Top Album: <span className="font-bold">{dayData.topAlbum.name}</span></div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -1077,37 +1140,64 @@ const CalendarView = ({
                 ))}
               </div>
             ) : (
-              <div className={`overflow-x-auto border rounded ${modeColors.border} ${modeColors.bgCard}`}>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className={`border-b ${modeColors.border}`}>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>#</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Time</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Track</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Artist</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Album</th>
-                      <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Duration</th>
-                      <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historyData.tracks.map((track, index) => (
-                      <tr key={index} className={`border-b ${modeColors.border} hover:opacity-80 transition-colors`}>
-                        <td className={`px-3 py-2 ${modeColors.textLight}`}>{index + 1}</td>
-                        <td className={`px-3 py-2 font-mono text-xs ${modeColors.textLight}`}>{track.formattedTime}</td>
-                        <td className={`px-3 py-2 font-medium ${modeColors.text} truncate max-w-[200px]`}>{track.master_metadata_track_name || 'Unknown Track'}</td>
-                        <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{track.master_metadata_album_artist_name || 'Unknown Artist'}</td>
-                        <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{track.master_metadata_album_album_name || '—'}</td>
-                        <td className={`px-3 py-2 text-right ${modeColors.text}`}>{track.formattedDuration}</td>
-                        <td className="px-3 py-2">
-                          {track.reason_end === 'trackdone' && <span className="text-xs text-green-600">Completed</span>}
-                          {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && <span className="text-xs text-orange-600">Skipped</span>}
-                        </td>
+              <>
+                {/* Desktop table */}
+                <div className={`hidden sm:block overflow-x-auto border rounded ${modeColors.border} ${modeColors.bgCard}`}>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className={`border-b ${modeColors.border}`}>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>#</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Time</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Track</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Artist</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Album</th>
+                        <th className={`text-right px-3 py-2 font-medium ${modeColors.textLight}`}>Duration</th>
+                        <th className={`text-left px-3 py-2 font-medium ${modeColors.textLight}`}>Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {historyData.tracks.map((track, index) => (
+                        <tr key={index} className={`border-b ${modeColors.border} hover:opacity-80 transition-colors`}>
+                          <td className={`px-3 py-2 ${modeColors.textLight}`}>{index + 1}</td>
+                          <td className={`px-3 py-2 font-mono text-xs ${modeColors.textLight}`}>{track.formattedTime}</td>
+                          <td className={`px-3 py-2 font-medium ${modeColors.text} truncate max-w-[200px]`}>{track.master_metadata_track_name || 'Unknown Track'}</td>
+                          <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{track.master_metadata_album_artist_name || 'Unknown Artist'}</td>
+                          <td className={`px-3 py-2 ${modeColors.text} truncate max-w-[150px]`}>{track.master_metadata_album_album_name || '—'}</td>
+                          <td className={`px-3 py-2 text-right ${modeColors.text}`}>{track.formattedDuration}</td>
+                          <td className="px-3 py-2">
+                            {track.reason_end === 'trackdone' && <span className="text-xs text-green-600">Completed</span>}
+                            {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && <span className="text-xs text-orange-600">Skipped</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Mobile cards */}
+                <div className="sm:hidden space-y-2">
+                  {historyData.tracks.map((track, index) => (
+                    <div key={index} className={`p-3 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                      <div className="flex justify-between items-start mb-1">
+                        <span className={`font-bold ${modeColors.text} truncate mr-2`} style={{maxWidth: 'calc(100% - 70px)'}}>
+                          {track.master_metadata_track_name || 'Unknown Track'}
+                        </span>
+                        <span className={`text-xs font-mono whitespace-nowrap ${modeColors.textLight}`}>{track.formattedTime}</span>
+                      </div>
+                      <div className={`text-xs ${modeColors.text} space-y-0.5`}>
+                        <div className="truncate">{track.master_metadata_album_artist_name || 'Unknown Artist'}</div>
+                        {track.master_metadata_album_album_name && (
+                          <div className="truncate opacity-70">{track.master_metadata_album_album_name}</div>
+                        )}
+                        <div className="flex justify-between items-center">
+                          <span>{track.formattedDuration}</span>
+                          {track.reason_end === 'trackdone' && <span className="text-green-600">Completed</span>}
+                          {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && <span className="text-orange-600">Skipped</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
