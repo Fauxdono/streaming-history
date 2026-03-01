@@ -1089,8 +1089,9 @@ const CustomTrackRankings = ({
     includeFeatures, 
     onlyFeatures, 
     albumMap, 
-    omittedSongs, 
-    omittedArtists
+    omittedSongs,
+    omittedArtists,
+    selectedYear
   ]);
 
   // Organizing tracks by year - memoized more efficiently
