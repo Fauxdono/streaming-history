@@ -459,16 +459,31 @@ const SpotifyAnalyzer = ({
     if (!rawPlayData || rawPlayData.length === 0) {
       return null;
     }
-    // Filter rawPlayData by selected year (supports YYYY, YYYY-MM, YYYY-MM-DD)
-    const parts = selectedStreaksYear.split('-');
-    const filteredData = rawPlayData.filter(play => {
-      if (!play.ts) return false;
-      const d = new Date(play.ts);
-      if (d.getFullYear().toString() !== parts[0]) return false;
-      if (parts.length >= 2 && (d.getMonth() + 1) !== parseInt(parts[1])) return false;
-      if (parts.length >= 3 && d.getDate() !== parseInt(parts[2])) return false;
-      return true;
-    });
+    let filteredData;
+    if (selectedStreaksYear.startsWith('all-')) {
+      // All-time with month or month+day filter (all-MM or all-MM-DD)
+      const parts = selectedStreaksYear.split('-');
+      const month = parseInt(parts[1]);
+      const day = parts.length === 3 ? parseInt(parts[2]) : null;
+      filteredData = rawPlayData.filter(play => {
+        if (!play.ts) return false;
+        const d = new Date(play.ts);
+        if ((d.getMonth() + 1) !== month) return false;
+        if (day !== null && d.getDate() !== day) return false;
+        return true;
+      });
+    } else {
+      // Filter rawPlayData by selected year (supports YYYY, YYYY-MM, YYYY-MM-DD)
+      const parts = selectedStreaksYear.split('-');
+      filteredData = rawPlayData.filter(play => {
+        if (!play.ts) return false;
+        const d = new Date(play.ts);
+        if (d.getFullYear().toString() !== parts[0]) return false;
+        if (parts.length >= 2 && (d.getMonth() + 1) !== parseInt(parts[1])) return false;
+        if (parts.length >= 3 && d.getDate() !== parseInt(parts[2])) return false;
+        return true;
+      });
+    }
     if (filteredData.length === 0) {
       return null;
     }
@@ -496,16 +511,31 @@ const SpotifyAnalyzer = ({
     if (!rawPlayData || rawPlayData.length === 0) {
       return stats;
     }
-    // Filter rawPlayData by selected year (supports YYYY, YYYY-MM, YYYY-MM-DD)
-    const statsParts = selectedStreaksYear.split('-');
-    const filteredData = rawPlayData.filter(play => {
-      if (!play.ts) return false;
-      const d = new Date(play.ts);
-      if (d.getFullYear().toString() !== statsParts[0]) return false;
-      if (statsParts.length >= 2 && (d.getMonth() + 1) !== parseInt(statsParts[1])) return false;
-      if (statsParts.length >= 3 && d.getDate() !== parseInt(statsParts[2])) return false;
-      return true;
-    });
+    let filteredData;
+    if (selectedStreaksYear.startsWith('all-')) {
+      // All-time with month or month+day filter (all-MM or all-MM-DD)
+      const parts = selectedStreaksYear.split('-');
+      const month = parseInt(parts[1]);
+      const day = parts.length === 3 ? parseInt(parts[2]) : null;
+      filteredData = rawPlayData.filter(play => {
+        if (!play.ts) return false;
+        const d = new Date(play.ts);
+        if ((d.getMonth() + 1) !== month) return false;
+        if (day !== null && d.getDate() !== day) return false;
+        return true;
+      });
+    } else {
+      // Filter rawPlayData by selected year (supports YYYY, YYYY-MM, YYYY-MM-DD)
+      const statsParts = selectedStreaksYear.split('-');
+      filteredData = rawPlayData.filter(play => {
+        if (!play.ts) return false;
+        const d = new Date(play.ts);
+        if (d.getFullYear().toString() !== statsParts[0]) return false;
+        if (statsParts.length >= 2 && (d.getMonth() + 1) !== parseInt(statsParts[1])) return false;
+        if (statsParts.length >= 3 && d.getDate() !== parseInt(statsParts[2])) return false;
+        return true;
+      });
+    }
 
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
@@ -2378,7 +2408,7 @@ const SpotifyAnalyzer = ({
                 colorMode === 'colorful'
                   ? 'text-xl text-indigo-700 dark:text-indigo-300'
                   : 'text-xl'
-              }>Statistics <span className="text-xs opacity-75">{selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear}</span></h3>
+              }>Statistics <span className="text-xs opacity-75">{selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear.startsWith('all-') ? (() => { const p = selectedStreaksYear.split('-'); const monthName = new Date(2024, parseInt(p[1]) - 1).toLocaleDateString('en-US', { month: 'long' }); return p.length === 3 ? `Every ${monthName} ${parseInt(p[2])}` : `Every ${monthName}`; })() : selectedStreaksYear}</span></h3>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
