@@ -38,8 +38,8 @@ const CalendarView = ({
     bgCardAlt: isDarkMode ? 'bg-green-800' : 'bg-green-100',
     border: isDarkMode ? 'border-green-600' : 'border-green-300',
     borderLight: isDarkMode ? 'border-green-600' : 'border-green-300',
-    buttonActive: isDarkMode ? 'bg-green-600 text-black' : 'bg-green-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 hover:bg-green-700' : 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200',
+    buttonActive: isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#16a34a]' : 'bg-green-100 text-green-700 border border-green-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#15803d]',
+    buttonInactive: isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 hover:bg-green-700 shadow-[2px_2px_0_0_#16a34a]' : 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 shadow-[2px_2px_0_0_#15803d]',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
@@ -786,9 +786,7 @@ const CalendarView = ({
               className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                 daySelectionMode
                   ? modeColors.buttonActive
-                  : isColorful
-                    ? 'bg-green-500 text-black hover:bg-green-600'
-                    : `${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+                  : modeColors.buttonInactive
               }`}
             >
               {daySelectionMode ? 'Cancel Selection' : 'View in Daily History'}
@@ -796,12 +794,8 @@ const CalendarView = ({
           )}
           <button
             key={`cal-view-${viewPress}`}
-            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
-            className={
-              isColorful
-                ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-green-500 text-black hover:bg-green-600'
-                : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
-            }
+            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); setViewPress(p => p + 1); }}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${modeColors.buttonInactive} ${viewPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-green-dark' : 'btn-press-green-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
           >
             {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
