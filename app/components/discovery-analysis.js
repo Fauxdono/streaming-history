@@ -35,8 +35,8 @@ const DiscoveryAnalysis = ({
     bgCardAlt: isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
     border: isDarkMode ? 'border-orange-600' : 'border-orange-300',
     borderLight: isDarkMode ? 'border-orange-600' : 'border-orange-300',
-    buttonActive: isDarkMode ? 'bg-orange-600 text-black' : 'bg-orange-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 hover:bg-orange-700' : 'bg-orange-100 text-orange-700 border border-orange-300 hover:bg-orange-200',
+    buttonActive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#c2410c]',
+    buttonInactive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 hover:bg-orange-700 shadow-[2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 hover:bg-orange-200 shadow-[2px_2px_0_0_#c2410c]',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',

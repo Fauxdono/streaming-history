@@ -136,8 +136,9 @@ const CustomTrackRankings = ({
           bg: 'bg-emerald-900',
           bgLight: 'bg-emerald-800',
           bgMed: 'bg-emerald-700',
-          bgDark: 'bg-emerald-500',
-          bgDarkHover: 'hover:bg-emerald-400',
+          bgDark: 'bg-emerald-800 text-emerald-300 border border-emerald-600 shadow-[2px_2px_0_0_#059669]',
+          bgDarkActive: 'bg-emerald-800 text-emerald-300 border border-emerald-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#059669]',
+          bgDarkHover: 'hover:bg-emerald-700',
           border: 'border-emerald-600',
           borderDark: 'border-emerald-500',
           hoverBg: 'hover:bg-emerald-700',
@@ -153,8 +154,9 @@ const CustomTrackRankings = ({
           bg: 'bg-emerald-200',
           bgLight: 'bg-emerald-100',
           bgMed: 'bg-emerald-300',
-          bgDark: 'bg-emerald-600',
-          bgDarkHover: 'hover:bg-emerald-700',
+          bgDark: 'bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-[2px_2px_0_0_#047857]',
+          bgDarkActive: 'bg-emerald-100 text-emerald-700 border border-emerald-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#047857]',
+          bgDarkHover: 'hover:bg-emerald-200',
           border: 'border-emerald-300',
           borderDark: 'border-emerald-700',
           hoverBg: 'hover:bg-emerald-200',
@@ -172,8 +174,9 @@ const CustomTrackRankings = ({
           bg: 'bg-red-900',
           bgLight: 'bg-red-800',
           bgMed: 'bg-red-700',
-          bgDark: 'bg-red-500',
-          bgDarkHover: 'hover:bg-red-400',
+          bgDark: 'bg-red-800 text-red-300 border border-red-600 shadow-[2px_2px_0_0_#dc2626]',
+          bgDarkActive: 'bg-red-800 text-red-300 border border-red-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#dc2626]',
+          bgDarkHover: 'hover:bg-red-700',
           border: 'border-red-600',
           borderDark: 'border-red-500',
           hoverBg: 'hover:bg-red-700',
@@ -189,8 +192,9 @@ const CustomTrackRankings = ({
           bg: 'bg-red-100',
           bgLight: 'bg-red-50',
           bgMed: 'bg-red-200',
-          bgDark: 'bg-red-600',
-          bgDarkHover: 'hover:bg-red-700',
+          bgDark: 'bg-red-100 text-red-700 border border-red-300 shadow-[2px_2px_0_0_#b91c1c]',
+          bgDarkActive: 'bg-red-100 text-red-700 border border-red-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#b91c1c]',
+          bgDarkHover: 'hover:bg-red-200',
           border: 'border-red-300',
           borderDark: 'border-red-700',
           hoverBg: 'hover:bg-red-100',
@@ -208,8 +212,9 @@ const CustomTrackRankings = ({
           bg: 'bg-violet-900',
           bgLight: 'bg-violet-800',
           bgMed: 'bg-violet-700',
-          bgDark: 'bg-violet-500',
-          bgDarkHover: 'hover:bg-violet-400',
+          bgDark: 'bg-violet-800 text-violet-300 border border-violet-600 shadow-[2px_2px_0_0_#7c3aed]',
+          bgDarkActive: 'bg-violet-800 text-violet-300 border border-violet-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]',
+          bgDarkHover: 'hover:bg-violet-700',
           border: 'border-violet-600',
           borderDark: 'border-violet-500',
           hoverBg: 'hover:bg-violet-700',
@@ -225,8 +230,9 @@ const CustomTrackRankings = ({
           bg: 'bg-violet-100',
           bgLight: 'bg-violet-50',
           bgMed: 'bg-violet-200',
-          bgDark: 'bg-violet-600',
-          bgDarkHover: 'hover:bg-violet-700',
+          bgDark: 'bg-violet-100 text-violet-700 border border-violet-300 shadow-[2px_2px_0_0_#6d28d9]',
+          bgDarkActive: 'bg-violet-100 text-violet-700 border border-violet-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#6d28d9]',
+          bgDarkHover: 'hover:bg-violet-200',
           border: 'border-violet-300',
           borderDark: 'border-violet-700',
           hoverBg: 'hover:bg-violet-100',
@@ -245,8 +251,9 @@ const CustomTrackRankings = ({
           bg: 'bg-orange-900',
           bgLight: 'bg-orange-800',
           bgMed: 'bg-orange-700',
-          bgDark: 'bg-orange-500',
-          bgDarkHover: 'hover:bg-orange-400',
+          bgDark: 'bg-orange-800 text-orange-300 border border-orange-600 shadow-[2px_2px_0_0_#ea580c]',
+          bgDarkActive: 'bg-orange-800 text-orange-300 border border-orange-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#ea580c]',
+          bgDarkHover: 'hover:bg-orange-700',
           border: 'border-orange-600',
           borderDark: 'border-orange-500',
           hoverBg: 'hover:bg-orange-700',
@@ -262,8 +269,9 @@ const CustomTrackRankings = ({
           bg: 'bg-orange-100',
           bgLight: 'bg-orange-50',
           bgMed: 'bg-orange-200',
-          bgDark: 'bg-orange-600',
-          bgDarkHover: 'hover:bg-orange-700',
+          bgDark: 'bg-orange-100 text-orange-700 border border-orange-300 shadow-[2px_2px_0_0_#c2410c]',
+          bgDarkActive: 'bg-orange-100 text-orange-700 border border-orange-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#c2410c]',
+          bgDarkHover: 'hover:bg-orange-200',
           border: 'border-orange-300',
           borderDark: 'border-orange-700',
           hoverBg: 'hover:bg-orange-100',
@@ -285,6 +293,7 @@ const CustomTrackRankings = ({
     bgLight: isDarkMode ? 'bg-black' : 'bg-white',
     bgMed: isDarkMode ? 'bg-black' : 'bg-white',
     bgDark: isDarkMode ? 'bg-black text-white border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black shadow-[2px_2px_0_0_black]',
+    bgDarkActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
     bgDarkHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
     border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     borderDark: isDarkMode ? 'border-[#4169E1]' : 'border-black',
@@ -1494,14 +1503,14 @@ return (
 
         <button
           onClick={() => setShowOmittedTab(!showOmittedTab)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgDark} ${colors.bgDarkHover}`}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDarkActive : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           <Eye size={12} />
           {showOmittedTab ? 'Results' : `Omitted (${omittedSongs.length + omittedArtists.length})`}
         </button>
         <button
           onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? (isColorful ? colors.bgDark : (isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]')) : `${colors.bgDark} ${colors.bgDarkHover}`}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? colors.bgDarkActive : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           <Download size={12} />
           M3U
@@ -1518,15 +1527,15 @@ return (
         />
         <button
           key={`sort-desktop-${sortByPress}`}
-          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) setSortByPress(p => p + 1); }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setSortByPress(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isColorful ? '' : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
         <button
           key={`view-desktop-${viewModePress}`}
-          onClick={() => { setViewMode(viewMode === 'grid' ? 'compact' : 'grid'); if (!isColorful) setViewModePress(p => p + 1); }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${viewModePress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+          onClick={() => { setViewMode(viewMode === 'grid' ? 'compact' : 'grid'); setViewModePress(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${viewModePress > 0 ? (isColorful ? '' : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
         >
           {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
@@ -1597,14 +1606,14 @@ return (
         </div>
         <button
           onClick={() => setShowOmittedTab(!showOmittedTab)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDark : `${colors.bgDark} ${colors.bgDarkHover}`}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showOmittedTab ? colors.bgDarkActive : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           <Eye size={10} />
           {showOmittedTab ? 'Results' : `Omit (${omittedSongs.length + omittedArtists.length})`}
         </button>
         <button
           onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? (isColorful ? colors.bgDark : (isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]')) : `${colors.bgDark} ${colors.bgDarkHover}`}`}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? colors.bgDarkActive : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           M3U
         </button>
@@ -1619,8 +1628,8 @@ return (
         />
         <button
           key={`sort-mobile-${sortByPress}`}
-          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (!isColorful) setSortByPress(p => p + 1); }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+          onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setSortByPress(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isColorful ? '' : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>

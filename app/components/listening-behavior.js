@@ -121,8 +121,8 @@ const ListeningBehavior = ({
     bgCardAlt: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
     border: isDarkMode ? 'border-amber-600' : 'border-amber-300',
     borderLight: isDarkMode ? 'border-amber-600' : 'border-amber-300',
-    buttonActive: isDarkMode ? 'bg-amber-600 text-black' : 'bg-amber-500 text-black',
-    buttonInactive: isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 hover:bg-amber-700' : 'bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200',
+    buttonActive: isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#d97706]' : 'bg-amber-100 text-amber-700 border border-amber-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#b45309]',
+    buttonInactive: isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 hover:bg-amber-700 shadow-[2px_2px_0_0_#d97706]' : 'bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200 shadow-[2px_2px_0_0_#b45309]',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
