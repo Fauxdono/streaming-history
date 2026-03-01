@@ -44,6 +44,9 @@ const ListeningPatterns = ({
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
   const [viewPress, setViewPress] = useState(0);
+  const [dayOfWeekPress, setDayOfWeekPress] = useState(0);
+  const [obsSortPress, setObsSortPress] = useState(0);
+  const [mapViewPress, setMapViewPress] = useState(0);
   const [dayOfWeekViewMode, setDayOfWeekViewMode] = useState('plays');
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [mapView, setMapView] = useState('flat');
@@ -52,7 +55,7 @@ const ListeningPatterns = ({
   const [obsSortBy, setObsSortBy] = useState('playsInWeek');
   const [obsShowExporter, setObsShowExporter] = useState(false);
 
-  useEffect(() => { setViewPress(0); }, [activeTab]);
+  useEffect(() => { setViewPress(0); setDayOfWeekPress(0); setObsSortPress(0); setMapViewPress(0); }, [activeTab]);
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
@@ -847,15 +850,16 @@ const ListeningPatterns = ({
             M3U
           </button>
           <button
-            onClick={() => setObsSortBy(obsSortBy === 'playsInWeek' ? 'playCount' : obsSortBy === 'playCount' ? 'weekStart' : 'playsInWeek')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+            key={`obs-sort-${obsSortPress}`}
+            onClick={() => { setObsSortBy(obsSortBy === 'playsInWeek' ? 'playCount' : obsSortBy === 'playCount' ? 'weekStart' : 'playsInWeek'); setObsSortPress(p => p + 1); }}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${obsSortPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
           >
             {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[obsSortBy]}
           </button>
           <button
             key={`obs-view-${viewPress}`}
-            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); setViewPress(p => p + 1); }}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
           >
             {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
@@ -863,8 +867,9 @@ const ListeningPatterns = ({
       )}
       {activeTab === 'dayOfWeek' && (
         <button
-          onClick={() => setDayOfWeekViewMode(dayOfWeekViewMode === 'plays' ? 'average' : 'plays')}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+          key={`dow-${dayOfWeekPress}`}
+          onClick={() => { setDayOfWeekViewMode(dayOfWeekViewMode === 'plays' ? 'average' : 'plays'); setDayOfWeekPress(p => p + 1); }}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${dayOfWeekPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
         >
           {dayOfWeekViewMode === 'plays' ? 'Total' : 'Average'}
         </button>
@@ -872,15 +877,16 @@ const ListeningPatterns = ({
       {activeTab === 'locations' && (
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setMapView(mapView === 'flat' ? 'globe' : 'flat')}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive}`}
+            key={`map-${mapViewPress}`}
+            onClick={() => { setMapView(mapView === 'flat' ? 'globe' : 'flat'); setMapViewPress(p => p + 1); }}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${mapViewPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
           >
             {mapView === 'flat' ? 'Globe' : 'Map'}
           </button>
           <button
             key={`loc-view-${viewPress}`}
-            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+            onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); setViewPress(p => p + 1); }}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
           >
             {viewMode === 'grid' ? '☰' : '⊞'}
           </button>
@@ -1275,8 +1281,8 @@ const ListeningPatterns = ({
           gridToggle={
             <button
               key={`obs-grid-${viewPress}`}
-              onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); if (!isColorful) setViewPress(p => p + 1); }}
-              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+              onClick={() => { setViewMode(viewMode === 'grid' ? 'list' : 'grid'); setViewPress(p => p + 1); }}
+              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.buttonInactive} ${viewPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
             >
               {viewMode === 'grid' ? '☰' : '⊞'}
             </button>
@@ -1323,8 +1329,9 @@ const ListeningPatterns = ({
                 <>
                   <div className="flex justify-end mb-2 sm:hidden">
                     <button
-                      onClick={() => setMapView(mapView === 'flat' ? 'globe' : 'flat')}
-                      className={`px-3 py-1 text-xs font-bold rounded border transition-all ${colors.buttonInactive}`}
+                      key={`map-mobile-${mapViewPress}`}
+                      onClick={() => { setMapView(mapView === 'flat' ? 'globe' : 'flat'); setMapViewPress(p => p + 1); }}
+                      className={`px-3 py-1 text-xs font-bold rounded border transition-all ${colors.buttonInactive} ${mapViewPress > 0 ? (isColorful ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : (isDarkMode ? 'btn-press-dark' : 'btn-press-light')) : ''}`}
                     >
                       {mapView === 'flat' ? 'Globe' : 'Map'}
                     </button>

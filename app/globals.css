@@ -87,6 +87,26 @@ body {
   animation: btn-press-green-light 0.3s ease-out;
 }
 
+@keyframes btn-press-yellow-dark {
+  0%   { box-shadow: 2px 2px 0 0 #ca8a04; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 #ca8a04; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 #ca8a04; transform: translate(0, 0); }
+}
+
+@keyframes btn-press-yellow-light {
+  0%   { box-shadow: 2px 2px 0 0 #a16207; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 #a16207; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 #a16207; transform: translate(0, 0); }
+}
+
+.btn-press-yellow-dark {
+  animation: btn-press-yellow-dark 0.3s ease-out;
+}
+
+.btn-press-yellow-light {
+  animation: btn-press-yellow-light 0.3s ease-out;
+}
+
 /* ============================================
    FONT FAMILY SYSTEM
    ============================================ */
