@@ -56,7 +56,7 @@ const GoogleDriveSync = ({
   const ProgressBar = ({ progress, isActive, isCompleted = false }) => {
     if ((!isActive && !isCompleted) || progress.total === 0) return null;
 
-    const percentage = isCompleted ? 100 : Math.round((progress.step / progress.total) * 100);
+    const percentage = isCompleted ? 100 : (progress.percent != null ? Math.round(progress.percent) : Math.round((progress.step / progress.total) * 100));
     const blockCount = 24;
     const filledBlocks = Math.round((percentage / 100) * blockCount);
     const filled = '█'.repeat(filledBlocks);
@@ -393,7 +393,7 @@ const GoogleDriveSync = ({
   };
 
   // Download entire file at once for desktop (maximum speed)
-  const downloadWholeFile = async (fileId, fileSizeBytes, accessToken) => {
+  const downloadWholeFile = async (fileId, fileSizeBytes, accessToken, onProgress) => {
     const totalMB = (fileSizeBytes / (1024 * 1024)).toFixed(1);
     console.log(`💻 Downloading entire ${totalMB}MB file in one request...`);
 
@@ -431,10 +431,13 @@ const GoogleDriveSync = ({
           const progressPercent = Math.round((downloadedBytes / fileSizeBytes) * 100);
           const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
           
-          setLoadProgress({ 
-            step: 4, 
-            total: 6, 
-            message: `Downloading... ${downloadedMB}MB / ${totalMB}MB (${progressPercent}%)` 
+          // Map download progress (0-100%) to overall progress (5-65%)
+          const overallPercent = 5 + (progressPercent / 100) * 60;
+          onProgress({
+            step: 4,
+            total: 6,
+            percent: overallPercent,
+            message: `Downloading... ${downloadedMB}MB / ${totalMB}MB`
           });
           
           lastProgressUpdate = downloadedBytes;
@@ -458,7 +461,7 @@ const GoogleDriveSync = ({
   };
 
   // Download file - chunked for mobile safety, whole file for desktop speed
-  const downloadFileWithProgress = async (fileId, fileSizeBytes, accessToken) => {
+  const downloadFileWithProgress = async (fileId, fileSizeBytes, accessToken, onProgress) => {
     const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const isLargeFile = fileSizeBytes > 50 * 1024 * 1024; // 50MB+
 
@@ -466,7 +469,7 @@ const GoogleDriveSync = ({
     // Mobile: use chunks to prevent crashes
     if (!isMobile) {
       console.log('💻 Desktop detected - downloading entire file at once for maximum speed...');
-      return await downloadWholeFile(fileId, fileSizeBytes, accessToken);
+      return await downloadWholeFile(fileId, fileSizeBytes, accessToken, onProgress);
     }
     
     console.log('📱 Mobile detected - using chunked download for safety...');
@@ -504,12 +507,14 @@ const GoogleDriveSync = ({
 
         console.log(`📦 Downloading chunk ${chunkIndex + 1}/${totalChunks} (${startByte}-${endByte})`);
 
-        // Update progress before downloading chunk
-        const progressPercent = Math.round((chunkIndex / totalChunks) * 100);
-        setLoadProgress({
+        // Map chunk progress (0-100%) to overall progress (5-65%)
+        const chunkPercent = (chunkIndex / totalChunks) * 100;
+        const overallPercent = 5 + (chunkPercent / 100) * 60;
+        onProgress({
           step: 4,
           total: 6,
-          message: `Downloading chunk ${chunkIndex + 1}/${totalChunks} (${progressPercent}%)...`
+          percent: overallPercent,
+          message: `Downloading chunk ${chunkIndex + 1}/${totalChunks} (${Math.round(chunkPercent)}%)...`
         });
 
         let chunkArrayBuffer;
@@ -546,9 +551,10 @@ const GoogleDriveSync = ({
             const delay = Math.pow(2, retryCount - 1) * 1000;
             console.log(`⏳ Retrying chunk ${chunkIndex + 1} in ${delay}ms...`);
 
-            setLoadProgress({
+            onProgress({
               step: 4,
               total: 6,
+              percent: overallPercent,
               message: `Retrying chunk ${chunkIndex + 1}/${totalChunks} (attempt ${retryCount + 1}/${maxRetries + 1})...`
             });
 
@@ -900,7 +906,7 @@ const GoogleDriveSync = ({
       }
 
       // Step 1: Look for cakeculator folder (using direct fetch instead of gapi.client)
-      setLoadProgress({ step: 1, total: 6, message: 'Looking for cakeculator folder...' });
+      setLoadProgress({ step: 1, total: 6, percent: 2, message: 'Looking for cakeculator folder...' });
       setLoadingStep('Looking for cakeculator folder...');
       console.log('📁 Step 1: Looking for cakeculator folder...');
       let folderId = null;
@@ -922,7 +928,7 @@ const GoogleDriveSync = ({
       }
 
       // Step 2: Search for analysis files (using direct fetch)
-      setLoadProgress({ step: 2, total: 6, message: 'Searching for analysis files...' });
+      setLoadProgress({ step: 2, total: 6, percent: 4, message: 'Searching for analysis files...' });
       setLoadingStep('Searching for analysis files...');
       console.log('🔍 Step 2: Searching for analysis files...');
       let query = "(name contains 'analysis' or name contains 'streaming-analysis') and trashed=false";
@@ -944,7 +950,7 @@ const GoogleDriveSync = ({
       console.log('📋 Search results:', searchData.files?.length || 0, 'files found');
 
       // Step 3: Validate search results
-      setLoadProgress({ step: 3, total: 6, message: 'Validating search results...' });
+      setLoadProgress({ step: 3, total: 6, percent: 5, message: 'Validating search results...' });
       if (!searchData.files || searchData.files.length === 0) {
         clearTimeout(cancelTimeout);
         showMessage('No saved analysis found on Google Drive', true);
@@ -957,8 +963,8 @@ const GoogleDriveSync = ({
       const file = searchData.files[0];
       console.log('📄 Step 3: Found file to load:', file.name, 'ID:', file.id);
 
-      // Step 4: Download file content
-      setLoadProgress({ step: 4, total: 6, message: `Downloading ${file.name}...` });
+      // Step 4: Download file content (5-65% of total progress)
+      setLoadProgress({ step: 4, total: 6, percent: 5, message: `Downloading ${file.name}...` });
       setLoadingStep('Downloading file content...');
       console.log('⬇️ Step 4: Downloading file content...');
 
@@ -980,16 +986,16 @@ const GoogleDriveSync = ({
       }
       
       // Update progress with file size info
-      setLoadProgress({ step: 4, total: 6, message: `Downloading ${file.name} (${fileSizeMB}MB)...` });
+      setLoadProgress({ step: 4, total: 6, percent: 6, message: `Downloading ${file.name} (${fileSizeMB}MB)...` });
       
       console.log(`📁 File size: ${fileSizeMB}MB, mobile: ${isMobile}`);
 
       console.log('⬇️ Starting file download...');
-      const fileContent = await downloadFileWithProgress(file.id, fileSizeBytes, accessToken);
+      const fileContent = await downloadFileWithProgress(file.id, fileSizeBytes, accessToken, setLoadProgress);
       console.log('✅ File download completed');
 
-      // Step 5: Parse analysis data
-      setLoadProgress({ step: 5, total: 6, message: 'Parsing analysis data...' });
+      // Step 5: Parse analysis data (65-80%)
+      setLoadProgress({ step: 5, total: 6, percent: 65, message: 'Parsing analysis data...' });
       setLoadingStep('Parsing analysis data...');
       console.log('📊 Step 5: Parsing JSON data...');
       console.log('🔍 File content structure:', {
@@ -1027,8 +1033,8 @@ const GoogleDriveSync = ({
         hasStats: !!data.stats
       });
       
-      // Step 6: Load data into app with mobile optimization
-      setLoadProgress({ step: 6, total: 6, message: 'Loading data into app...' });
+      // Step 6: Load data into app (80-100%)
+      setLoadProgress({ step: 6, total: 6, percent: 80, message: 'Loading data into app...' });
       setLoadingStep('Loading data into app...');
       console.log('🔄 Step 6: Loading data into app...');
       
@@ -1037,7 +1043,7 @@ const GoogleDriveSync = ({
         if (isMobile && data.processedTracks?.length > 10000) {
           // For mobile devices with large datasets, process in chunks to avoid memory pressure
           console.log('📱 Mobile device detected with large dataset, using chunked processing...');
-          setLoadProgress({ step: 6, total: 6, message: 'Processing data for mobile...' });
+          setLoadProgress({ step: 6, total: 6, percent: 80, message: 'Processing data for mobile...' });
           
           // Add a small delay to let the UI update before heavy processing
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -1050,10 +1056,12 @@ const GoogleDriveSync = ({
             // Show progress for chunked processing
             for (let i = 0; i < totalTracks; i += chunkSize) {
               const progress = Math.round((i / totalTracks) * 100);
-              setLoadProgress({ 
-                step: 6, 
-                total: 6, 
-                message: `Processing data chunk ${Math.floor(i/chunkSize) + 1}/${Math.ceil(totalTracks/chunkSize)} (${progress}%)...` 
+              const overallPercent = 80 + (progress / 100) * 20;
+              setLoadProgress({
+                step: 6,
+                total: 6,
+                percent: overallPercent,
+                message: `Processing data chunk ${Math.floor(i/chunkSize) + 1}/${Math.ceil(totalTracks/chunkSize)} (${progress}%)...`
               });
               
               // Yield to browser to prevent blocking
@@ -1061,7 +1069,7 @@ const GoogleDriveSync = ({
             }
           }
           
-          setLoadProgress({ step: 6, total: 6, message: 'Finalizing data load...' });
+          setLoadProgress({ step: 6, total: 6, percent: 98, message: 'Finalizing data load...' });
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         
