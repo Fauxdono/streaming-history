@@ -30,6 +30,11 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
   const isDark = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
+  // Shadow color for retro button styling
+  const shadowColor = isColorful
+    ? (isDark ? '#6b7280' : '#4b5563')  // gray-500 / gray-600
+    : (isDark ? '#4169E1' : '#000000');  // royal blue / black
+
   // Theme colors: gray for colorful mode, indigo for minimal
   const colors = isColorful
     ? {
@@ -42,15 +47,21 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
         label: isDark ? 'text-gray-400' : 'text-gray-500',
         text: isDark ? 'text-gray-300' : 'text-gray-700',
         divider: isDark ? 'border-gray-600' : 'border-gray-300',
-        // Retro terminal colors
-        termColor: isDark ? 'text-gray-300' : 'text-gray-700',
-        termDim: isDark ? 'text-gray-600' : 'text-gray-300',
-        termBg: isDark ? 'bg-gray-900' : 'bg-gray-50',
-        termBorder: isDark ? 'border-gray-600' : 'border-gray-400',
-        toggleOn: isDark ? 'bg-gray-600 border-gray-500' : 'bg-gray-600 border-gray-500',
-        toggleOff: isDark ? 'bg-gray-800 border-gray-600' : 'bg-gray-200 border-gray-400',
-        toggleText: isDark ? 'text-gray-200' : 'text-white',
-        toggleTextOff: isDark ? 'text-gray-500' : 'text-gray-500',
+        // Retro bar colors
+        barFill: isDark ? 'bg-gray-500' : 'bg-gray-600',
+        barTrack: isDark ? 'bg-gray-800' : 'bg-gray-200',
+        barBorder: isDark ? 'border-gray-600' : 'border-gray-400',
+        barBg: isDark ? 'bg-gray-900' : 'bg-gray-50',
+        barText: isDark ? 'text-gray-300' : 'text-gray-700',
+        // Thumb
+        thumbBg: isDark ? 'bg-gray-700' : 'bg-gray-100',
+        thumbBorder: isDark ? 'border-gray-500' : 'border-gray-500',
+        // Toggle
+        toggleBg: isDark ? 'bg-gray-700' : 'bg-gray-100',
+        toggleBorder: isDark ? 'border-gray-500' : 'border-gray-500',
+        toggleActiveBg: isDark ? 'bg-gray-600' : 'bg-gray-600',
+        toggleActiveText: 'text-white',
+        toggleInactiveText: isDark ? 'text-gray-400' : 'text-gray-500',
       }
     : {
         activeBtn: isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-700',
@@ -62,15 +73,21 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
         label: isDark ? 'text-gray-400' : 'text-gray-500',
         text: isDark ? 'text-gray-300' : 'text-gray-700',
         divider: isDark ? 'border-gray-600' : 'border-gray-200',
-        // Retro terminal colors
-        termColor: isDark ? 'text-[#4169E1]' : 'text-black',
-        termDim: isDark ? 'text-gray-700' : 'text-gray-300',
-        termBg: isDark ? 'bg-black' : 'bg-white',
-        termBorder: isDark ? 'border-[#4169E1]' : 'border-black',
-        toggleOn: isDark ? 'bg-[#4169E1] border-[#5a7ff5]' : 'bg-black border-gray-600',
-        toggleOff: isDark ? 'bg-gray-800 border-gray-600' : 'bg-gray-200 border-gray-400',
-        toggleText: isDark ? 'text-white' : 'text-white',
-        toggleTextOff: isDark ? 'text-gray-500' : 'text-gray-500',
+        // Retro bar colors
+        barFill: isDark ? 'bg-[#4169E1]' : 'bg-black',
+        barTrack: isDark ? 'bg-gray-800' : 'bg-gray-200',
+        barBorder: isDark ? 'border-[#4169E1]' : 'border-black',
+        barBg: isDark ? 'bg-black' : 'bg-white',
+        barText: isDark ? 'text-[#4169E1]' : 'text-black',
+        // Thumb
+        thumbBg: isDark ? 'bg-gray-900' : 'bg-white',
+        thumbBorder: isDark ? 'border-[#4169E1]' : 'border-black',
+        // Toggle
+        toggleBg: isDark ? 'bg-gray-900' : 'bg-white',
+        toggleBorder: isDark ? 'border-[#4169E1]' : 'border-black',
+        toggleActiveBg: isDark ? 'bg-[#4169E1]' : 'bg-black',
+        toggleActiveText: 'text-white',
+        toggleInactiveText: isDark ? 'text-gray-500' : 'text-gray-500',
       };
 
   const fontSizeOptions = [
@@ -113,78 +130,84 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
     setColorMode(newColorMode);
   };
 
-  // Retro block slider component
+  // Retro slider with div-based track and round thumb
   const RetroSlider = ({ value, min, max, onChange, displayValue }) => {
-    const barRef = useRef(null);
-    const blockCount = 20;
-    const fraction = (value - min) / (max - min);
-    const filledBlocks = Math.round(fraction * blockCount);
-    const filled = '\u2588'.repeat(filledBlocks);
-    const empty = '\u2591'.repeat(blockCount - filledBlocks);
+    const trackRef = useRef(null);
+    const fraction = max === min ? 0 : (value - min) / (max - min);
 
-    const handleClick = (e) => {
-      const rect = barRef.current.getBoundingClientRect();
-      const clickFraction = (e.clientX - rect.left) / rect.width;
-      const newValue = Math.round(min + clickFraction * (max - min));
-      onChange(Math.max(min, Math.min(max, newValue)));
+    const calcValue = (clientX) => {
+      const rect = trackRef.current.getBoundingClientRect();
+      const f = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      return Math.round(min + f * (max - min));
     };
 
-    const handleDrag = (e) => {
-      if (e.buttons !== 1) return;
-      handleClick(e);
-    };
+    const handleClick = (e) => onChange(calcValue(e.clientX));
+    const handleDrag = (e) => { if (e.buttons === 1) onChange(calcValue(e.clientX)); };
+    const handleTouch = (e) => onChange(calcValue(e.touches[0].clientX));
 
     return (
-      <div className={`font-mono ${colors.termBg} border ${colors.termBorder} p-2 rounded-none`}>
-        <div
-          ref={barRef}
-          className="text-[14px] leading-none tracking-tight cursor-pointer select-none"
-          onClick={handleClick}
-          onMouseMove={handleDrag}
-          onTouchMove={(e) => {
-            const touch = e.touches[0];
-            const rect = barRef.current.getBoundingClientRect();
-            const fraction = (touch.clientX - rect.left) / rect.width;
-            const newValue = Math.round(min + fraction * (max - min));
-            onChange(Math.max(min, Math.min(max, newValue)));
-          }}
-        >
-          <span className={colors.termColor}>{filled}</span>
-          <span className={colors.termDim}>{empty}</span>
-          <span className={`${colors.termColor} ml-2 text-[11px]`}>{displayValue}</span>
+      <div className={`${colors.barBg} border ${colors.barBorder} p-3 rounded-none`}>
+        <div className="flex items-center gap-3">
+          <div
+            ref={trackRef}
+            className="relative flex-1 h-3 cursor-pointer"
+            onClick={handleClick}
+            onMouseMove={handleDrag}
+            onTouchMove={handleTouch}
+          >
+            {/* Track background */}
+            <div className={`absolute inset-0 ${colors.barTrack} rounded-none`} />
+            {/* Filled portion */}
+            <div
+              className={`absolute top-0 left-0 h-full ${colors.barFill} rounded-none`}
+              style={{ width: `${fraction * 100}%` }}
+            />
+            {/* Round thumb */}
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full ${colors.thumbBg} border-2 ${colors.thumbBorder}`}
+              style={{
+                left: `calc(${fraction * 100}% - 10px)`,
+                boxShadow: `2px 2px 0 0 ${shadowColor}`,
+              }}
+            />
+          </div>
+          <span className={`font-mono text-[12px] min-w-[4rem] text-right ${colors.barText}`}>
+            {displayValue}
+          </span>
         </div>
       </div>
     );
   };
 
-  // Retro toggle switch component
+  // Retro toggle with shadow styling
   const RetroToggle = ({ checked, onChange, label }) => {
     return (
       <label className="flex items-center justify-between cursor-pointer py-1">
         <span className={`text-sm ${colors.text}`}>{label}</span>
         <button
           onClick={() => onChange(!checked)}
-          className={`font-mono text-[11px] px-0 py-0 rounded-none border-2 transition-colors select-none ${
-            checked ? colors.toggleOn : colors.toggleOff
+          className={`font-mono text-[11px] rounded-none border-2 transition-all duration-200 select-none ${
+            checked
+              ? `${colors.toggleActiveBg} ${colors.toggleActiveText} ${colors.toggleBorder} translate-x-[2px] translate-y-[2px]`
+              : `${colors.toggleBg} ${colors.toggleInactiveText} ${colors.toggleBorder}`
           }`}
-          style={{ minWidth: '52px' }}
+          style={{
+            minWidth: '56px',
+            boxShadow: checked
+              ? `inset 2px 2px 0 0 ${shadowColor}`
+              : `2px 2px 0 0 ${shadowColor}`,
+          }}
         >
-          <div className="flex">
-            <span className={`px-1.5 py-0.5 font-bold ${
-              checked
-                ? `${colors.toggleText}`
-                : `${colors.toggleTextOff}`
-            }`}>
-              {checked ? '\u25A0 ON' : 'OFF \u25A0'}
-            </span>
-          </div>
+          <span className="px-2 py-0.5 font-bold block">
+            {checked ? '\u25A0 ON' : 'OFF \u25A0'}
+          </span>
         </button>
       </label>
     );
   };
 
   return (
-    <div className="max-w-2xl mx-auto my-4 p-4">
+    <div className="max-w-4xl mx-auto my-4 p-4">
       {/* Mode Section */}
       <div>
         <div className={`text-xs mb-2 ${colors.label}`}>
