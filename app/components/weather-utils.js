@@ -172,7 +172,10 @@ export async function fetchWeatherBatch(lat, lon, startDate, endDate) {
   const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`;
 
   const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`Weather API error: ${resp.status}`);
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    throw new Error(`Weather API error ${resp.status}: ${body.slice(0, 200)}`);
+  }
   const data = await resp.json();
 
   if (!data.daily || !data.daily.time) return {};
@@ -242,13 +245,18 @@ export async function fetchAllWeather(plays, homeCity, onProgress) {
     if (uncached.length === 0) continue;
 
     // Group uncached dates by year and fetch year-long batches
+    // Cap end date to yesterday (archive API doesn't have future/today data)
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    const maxDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
     const years = new Set(uncached.map(d => d.substring(0, 4)));
     for (const year of years) {
-      fetchTasks.push({
-        lat, lon,
-        startDate: `${year}-01-01`,
-        endDate: `${year}-12-31`,
-      });
+      const endDate = `${year}-12-31` > maxDate ? maxDate : `${year}-12-31`;
+      const startDate = `${year}-01-01`;
+      // Skip if start date is after the max available date
+      if (startDate > maxDate) continue;
+      fetchTasks.push({ lat, lon, startDate, endDate });
     }
   }
 
