@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from './themeprovider';
+import { useRef } from 'react';
 
 /**
  * Settings Panel - Customize appearance and analysis
@@ -27,6 +28,50 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
   } = useTheme();
 
   const isDark = theme === 'dark';
+  const isColorful = colorMode === 'colorful';
+
+  // Theme colors: gray for colorful mode, indigo for minimal
+  const colors = isColorful
+    ? {
+        activeBtn: isDark ? 'bg-gray-600 text-white' : 'bg-gray-600 text-white',
+        inactiveBtn: isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+        activeFont: isDark ? 'bg-gray-600 text-white' : 'bg-gray-600 text-white',
+        inactiveFont: isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700',
+        activeFontSize: isDark ? 'text-gray-300' : 'text-gray-700',
+        inactiveFontSize: isDark ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-600',
+        label: isDark ? 'text-gray-400' : 'text-gray-500',
+        text: isDark ? 'text-gray-300' : 'text-gray-700',
+        divider: isDark ? 'border-gray-600' : 'border-gray-300',
+        // Retro terminal colors
+        termColor: isDark ? 'text-gray-300' : 'text-gray-700',
+        termDim: isDark ? 'text-gray-600' : 'text-gray-300',
+        termBg: isDark ? 'bg-gray-900' : 'bg-gray-50',
+        termBorder: isDark ? 'border-gray-600' : 'border-gray-400',
+        toggleOn: isDark ? 'bg-gray-600 border-gray-500' : 'bg-gray-600 border-gray-500',
+        toggleOff: isDark ? 'bg-gray-800 border-gray-600' : 'bg-gray-200 border-gray-400',
+        toggleText: isDark ? 'text-gray-200' : 'text-white',
+        toggleTextOff: isDark ? 'text-gray-500' : 'text-gray-500',
+      }
+    : {
+        activeBtn: isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-700',
+        inactiveBtn: isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+        activeFont: isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-700',
+        inactiveFont: isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700',
+        activeFontSize: isDark ? 'text-indigo-400' : 'text-indigo-600',
+        inactiveFontSize: isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700',
+        label: isDark ? 'text-gray-400' : 'text-gray-500',
+        text: isDark ? 'text-gray-300' : 'text-gray-700',
+        divider: isDark ? 'border-gray-600' : 'border-gray-200',
+        // Retro terminal colors
+        termColor: isDark ? 'text-[#4169E1]' : 'text-black',
+        termDim: isDark ? 'text-gray-700' : 'text-gray-300',
+        termBg: isDark ? 'bg-black' : 'bg-white',
+        termBorder: isDark ? 'border-[#4169E1]' : 'border-black',
+        toggleOn: isDark ? 'bg-[#4169E1] border-[#5a7ff5]' : 'bg-black border-gray-600',
+        toggleOff: isDark ? 'bg-gray-800 border-gray-600' : 'bg-gray-200 border-gray-400',
+        toggleText: isDark ? 'text-white' : 'text-white',
+        toggleTextOff: isDark ? 'text-gray-500' : 'text-gray-500',
+      };
 
   const fontSizeOptions = [
     { value: 'small', label: 'Small', sliderValue: 0 },
@@ -56,14 +101,6 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
 
   const currentSliderValue = fontSizeOptions.find(opt => opt.value === fontSize)?.sliderValue ?? 1;
 
-  const handleSliderChange = (event) => {
-    const value = parseInt(event.target.value);
-    const option = fontSizeOptions[value];
-    if (option) {
-      setFontSize(option.value);
-    }
-  };
-
   const modeButtons = [
     { label: 'Light Minimal', theme: 'light', colorMode: 'minimal' },
     { label: 'Dark Minimal', theme: 'dark', colorMode: 'minimal' },
@@ -76,11 +113,81 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
     setColorMode(newColorMode);
   };
 
+  // Retro block slider component
+  const RetroSlider = ({ value, min, max, onChange, displayValue }) => {
+    const barRef = useRef(null);
+    const blockCount = 20;
+    const fraction = (value - min) / (max - min);
+    const filledBlocks = Math.round(fraction * blockCount);
+    const filled = '\u2588'.repeat(filledBlocks);
+    const empty = '\u2591'.repeat(blockCount - filledBlocks);
+
+    const handleClick = (e) => {
+      const rect = barRef.current.getBoundingClientRect();
+      const clickFraction = (e.clientX - rect.left) / rect.width;
+      const newValue = Math.round(min + clickFraction * (max - min));
+      onChange(Math.max(min, Math.min(max, newValue)));
+    };
+
+    const handleDrag = (e) => {
+      if (e.buttons !== 1) return;
+      handleClick(e);
+    };
+
+    return (
+      <div className={`font-mono ${colors.termBg} border ${colors.termBorder} p-2 rounded-none`}>
+        <div
+          ref={barRef}
+          className="text-[14px] leading-none tracking-tight cursor-pointer select-none"
+          onClick={handleClick}
+          onMouseMove={handleDrag}
+          onTouchMove={(e) => {
+            const touch = e.touches[0];
+            const rect = barRef.current.getBoundingClientRect();
+            const fraction = (touch.clientX - rect.left) / rect.width;
+            const newValue = Math.round(min + fraction * (max - min));
+            onChange(Math.max(min, Math.min(max, newValue)));
+          }}
+        >
+          <span className={colors.termColor}>{filled}</span>
+          <span className={colors.termDim}>{empty}</span>
+          <span className={`${colors.termColor} ml-2 text-[11px]`}>{displayValue}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Retro toggle switch component
+  const RetroToggle = ({ checked, onChange, label }) => {
+    return (
+      <label className="flex items-center justify-between cursor-pointer py-1">
+        <span className={`text-sm ${colors.text}`}>{label}</span>
+        <button
+          onClick={() => onChange(!checked)}
+          className={`font-mono text-[11px] px-0 py-0 rounded-none border-2 transition-colors select-none ${
+            checked ? colors.toggleOn : colors.toggleOff
+          }`}
+          style={{ minWidth: '52px' }}
+        >
+          <div className="flex">
+            <span className={`px-1.5 py-0.5 font-bold ${
+              checked
+                ? `${colors.toggleText}`
+                : `${colors.toggleTextOff}`
+            }`}>
+              {checked ? '\u25A0 ON' : 'OFF \u25A0'}
+            </span>
+          </div>
+        </button>
+      </label>
+    );
+  };
+
   return (
     <div className="max-w-2xl mx-auto my-4 p-4">
       {/* Mode Section */}
       <div>
-        <div className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`text-xs mb-2 ${colors.label}`}>
           Mode
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -91,13 +198,7 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
                 key={btn.label}
                 onClick={() => handleModeChange(btn.theme, btn.colorMode)}
                 className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                  isActive
-                    ? isDark
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-indigo-100 text-indigo-700'
-                    : isDark
-                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  isActive ? colors.activeBtn : colors.inactiveBtn
                 }`}
               >
                 {btn.label}
@@ -108,26 +209,22 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
       </div>
 
       {/* Divider */}
-      <div className={`my-4 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}`}></div>
+      <div className={`my-4 border-t ${colors.divider}`}></div>
 
       {/* Font Size Section */}
       <div>
-        <div className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`text-xs mb-2 ${colors.label}`}>
           Font Size
         </div>
-        <input
-          type="range"
-          min="0"
-          max="3"
+        <RetroSlider
           value={currentSliderValue}
-          onChange={handleSliderChange}
-          className={`w-full h-2 rounded-lg appearance-none cursor-pointer slider
-            ${isDark ? 'bg-black' : 'bg-gray-200'}`}
-          style={{
-            background: isDark
-              ? `linear-gradient(to right, #374151 0%, #374151 ${(currentSliderValue / 3) * 100}%, #6366f1 ${(currentSliderValue / 3) * 100}%, #6366f1 100%)`
-              : `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${(currentSliderValue / 3) * 100}%, #4f46e5 ${(currentSliderValue / 3) * 100}%, #4f46e5 100%)`
+          min={0}
+          max={3}
+          onChange={(v) => {
+            const option = fontSizeOptions[v];
+            if (option) setFontSize(option.value);
           }}
+          displayValue={fontSizeOptions[currentSliderValue]?.label || ''}
         />
         <div className="flex justify-between mt-3 px-1">
           {[
@@ -140,9 +237,7 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
               key={size}
               onClick={() => setFontSize(size)}
               className={`transition-colors ${
-                fontSize === size
-                  ? isDark ? 'text-indigo-400' : 'text-indigo-600'
-                  : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                fontSize === size ? colors.activeFontSize : colors.inactiveFontSize
               }`}
               style={{
                 fontWeight: fontSize === size ? 'bold' : 'normal',
@@ -156,11 +251,11 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
       </div>
 
       {/* Divider */}
-      <div className={`my-4 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}`}></div>
+      <div className={`my-4 border-t ${colors.divider}`}></div>
 
       {/* Font Family Section */}
       <div>
-        <div className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`text-xs mb-2 ${colors.label}`}>
           Font Family
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-1">
@@ -169,13 +264,7 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
               key={option.value}
               onClick={() => setFontFamily(option.value)}
               className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
-                fontFamily === option.value
-                  ? isDark
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-indigo-100 text-indigo-700'
-                  : isDark
-                    ? 'hover:bg-gray-700 text-gray-300'
-                    : 'hover:bg-gray-100 text-gray-700'
+                fontFamily === option.value ? colors.activeFont : colors.inactiveFont
               }`}
               style={{ fontFamily: option.preview }}
             >
@@ -186,133 +275,62 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
       </div>
 
       {/* Divider */}
-      <div className={`my-4 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}`}></div>
+      <div className={`my-4 border-t ${colors.divider}`}></div>
 
       {/* Analysis Settings */}
       <div>
-        <div className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`text-xs mb-2 ${colors.label}`}>
           Minimum Play Duration
         </div>
-        <input
-          type="range"
-          min="0"
-          max="120"
+        <RetroSlider
           value={Math.round(minPlayDuration / 1000)}
-          onChange={(e) => setMinPlayDuration(parseInt(e.target.value, 10) * 1000)}
-          className={`w-full h-2 rounded-lg appearance-none cursor-pointer slider
-            ${isDark ? 'bg-black' : 'bg-gray-200'}`}
-          style={{
-            background: isDark
-              ? `linear-gradient(to right, #6366f1 0%, #6366f1 ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #374151 ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #374151 100%)`
-              : `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #e5e7eb ${(Math.round(minPlayDuration / 1000) / 120) * 100}%, #e5e7eb 100%)`
-          }}
+          min={0}
+          max={120}
+          onChange={(v) => setMinPlayDuration(v * 1000)}
+          displayValue={`${Math.round(minPlayDuration / 1000)}s`}
         />
-        <div className={`text-center text-sm mt-1 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-          {Math.round(minPlayDuration / 1000)}s
-        </div>
       </div>
 
       {/* Skip Tolerance */}
       <div className="mt-3">
-        <div className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`text-xs mb-2 ${colors.label}`}>
           Skip Tolerance (near end)
         </div>
-        <input
-          type="range"
-          min="0"
-          max="60"
+        <RetroSlider
           value={Math.round(skipEndThreshold / 1000)}
-          onChange={(e) => setSkipEndThreshold(parseInt(e.target.value, 10) * 1000)}
-          className={`w-full h-2 rounded-lg appearance-none cursor-pointer slider
-            ${isDark ? 'bg-black' : 'bg-gray-200'}`}
-          style={{
-            background: isDark
-              ? `linear-gradient(to right, #6366f1 0%, #6366f1 ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #374151 ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #374151 100%)`
-              : `linear-gradient(to right, #4f46e5 0%, #4f46e5 ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #e5e7eb ${(Math.round(skipEndThreshold / 1000) / 60) * 100}%, #e5e7eb 100%)`
-          }}
+          min={0}
+          max={60}
+          onChange={(v) => setSkipEndThreshold(v * 1000)}
+          displayValue={skipEndThreshold === 0 ? 'Off' : `${Math.round(skipEndThreshold / 1000)}s`}
         />
-        <div className={`text-center text-sm mt-1 font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-          {skipEndThreshold === 0 ? 'Off' : `${Math.round(skipEndThreshold / 1000)}s`}
-        </div>
       </div>
 
       {/* Divider */}
-      <div className={`my-4 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}`}></div>
+      <div className={`my-4 border-t ${colors.divider}`}></div>
 
-      {/* Skip Filter Toggle */}
-      <label className="flex items-center justify-between cursor-pointer py-1">
-        <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-          Exclude skipped tracks
-        </span>
-        <div className="relative">
-          <input
-            type="checkbox"
-            checked={skipFilter}
-            onChange={(e) => setSkipFilter(e.target.checked)}
-            className="sr-only"
-          />
-          <div className={`w-10 h-5 rounded-full transition-colors ${
-            skipFilter
-              ? 'bg-indigo-500'
-              : isDark ? 'bg-gray-600' : 'bg-gray-300'
-          }`}>
-            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-              skipFilter ? 'translate-x-5' : ''
-            }`}></div>
-          </div>
-        </div>
-      </label>
+      {/* Toggle Settings */}
+      <RetroToggle
+        checked={skipFilter}
+        onChange={setSkipFilter}
+        label="Exclude skipped tracks"
+      />
 
-      {/* Full Listen Only Toggle */}
-      <label className="flex items-center justify-between cursor-pointer py-1 mt-1">
-        <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-          Only count completed plays
-        </span>
-        <div className="relative">
-          <input
-            type="checkbox"
-            checked={fullListenOnly}
-            onChange={(e) => setFullListenOnly(e.target.checked)}
-            className="sr-only"
-          />
-          <div className={`w-10 h-5 rounded-full transition-colors ${
-            fullListenOnly
-              ? 'bg-indigo-500'
-              : isDark ? 'bg-gray-600' : 'bg-gray-300'
-          }`}>
-            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-              fullListenOnly ? 'translate-x-5' : ''
-            }`}></div>
-          </div>
-        </div>
-      </label>
+      <div className="mt-1">
+        <RetroToggle
+          checked={fullListenOnly}
+          onChange={setFullListenOnly}
+          label="Only count completed plays"
+        />
+      </div>
 
       {/* Divider */}
-      <div className={`my-4 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}`}></div>
+      <div className={`my-4 border-t ${colors.divider}`}></div>
 
-      {/* Dyslexic Spacing Toggle */}
-      <label className="flex items-center justify-between cursor-pointer py-1">
-        <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-          Dyslexia-friendly spacing
-        </span>
-        <div className="relative">
-          <input
-            type="checkbox"
-            checked={dyslexicSpacing}
-            onChange={(e) => setDyslexicSpacing(e.target.checked)}
-            className="sr-only"
-          />
-          <div className={`w-10 h-5 rounded-full transition-colors ${
-            dyslexicSpacing
-              ? 'bg-indigo-500'
-              : isDark ? 'bg-gray-600' : 'bg-gray-300'
-          }`}>
-            <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-              dyslexicSpacing ? 'translate-x-5' : ''
-            }`}></div>
-          </div>
-        </div>
-      </label>
+      <RetroToggle
+        checked={dyslexicSpacing}
+        onChange={setDyslexicSpacing}
+        label="Dyslexia-friendly spacing"
+      />
     </div>
   );
 }
