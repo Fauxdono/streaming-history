@@ -2524,8 +2524,9 @@ async function calculatePlayStats(entries, minPlayDuration = 30000) {
   };
 }
 export const streamingProcessor = {
-  async processFiles(files) {
+  async processFiles(files, onProgress) {
     console.time('processFiles');
+    const report = (step, total, message) => { if (onProgress) onProgress({ step, total, message }); };
     try {
       const allProcessedArrays = [];
       
@@ -2646,12 +2647,14 @@ export const streamingProcessor = {
         }
       });
 
+      report(1, 10, 'Reading file data');
       console.log(`Calculating stats for ${allProcessedData.length} entries`);
       
       // Yield to allow UI updates
       await new Promise(resolve => setTimeout(resolve, 0));
       
       const stats = await calculatePlayStats(allProcessedData);
+      report(2, 10, 'Calculating play statistics');
 
       // Process artist data with better performance
       console.log('Processing artist statistics...');
@@ -2677,6 +2680,7 @@ export const streamingProcessor = {
         albumsByArtist.get(normalizedName).push(album);
       });
 
+      report(3, 10, 'Processing artist data');
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const normalizedArtistName = normalizeArtistName(artist.name);
@@ -2708,6 +2712,7 @@ export const streamingProcessor = {
         })
         .sort((a, b) => b.totalPlayed - a.totalPlayed);
 
+      report(4, 10, 'Processing album data');
       // Process album data
       console.log('Processing album statistics...');
       await new Promise(resolve => setTimeout(resolve, 0));
@@ -2721,33 +2726,39 @@ export const streamingProcessor = {
         ['desc']
       );
 
+      report(5, 10, 'Ranking songs');
       // Top songs
       console.log('Processing song rankings...');
       await new Promise(resolve => setTimeout(resolve, 0));
       
       const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
 
+      report(6, 10, 'Calculating yearly breakdowns');
       // Calculate year-based data with progress updates
       console.log('Calculating yearly breakdowns...');
       await new Promise(resolve => setTimeout(resolve, 0));
       
       const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
       
+      report(7, 10, 'Finding brief obsessions');
       console.log('Calculating brief obsessions...');
       await new Promise(resolve => setTimeout(resolve, 0));
       
       const briefObsessions = calculateBriefObsessions(stats.songs, stats.playHistory);
       
+      report(8, 10, 'Artists by year');
       console.log('Processing artists by year...');
       await new Promise(resolve => setTimeout(resolve, 0));
       
       const artistsByYear = calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData);
       
+      report(9, 10, 'Albums by year');
       console.log('Processing albums by year...');
       await new Promise(resolve => setTimeout(resolve, 0));
 
       const albumsByYear = calculateAlbumsByYear(sortedAlbums, allProcessedData);
 
+      report(10, 10, 'Calculating streaks');
       console.log('Calculating streak statistics...');
       await new Promise(resolve => setTimeout(resolve, 0));
 

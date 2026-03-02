@@ -271,6 +271,7 @@ const SpotifyAnalyzer = ({
   const [albumsViewPress, setAlbumsViewPress] = useState(0);
   useEffect(() => { setArtistsSortPress(0); setArtistsViewPress(0); setAlbumsSortPress(0); setAlbumsViewPress(0); }, [activeTab]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState({ step: 0, total: 0, message: '' });
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
   const [briefObsessions, setBriefObsessions] = useState([]);
@@ -1151,7 +1152,7 @@ const SpotifyAnalyzer = ({
     setIsProcessing(true);
     
     try {
-      const results = await streamingProcessor.processFiles(fileList);
+      const results = await streamingProcessor.processFiles(fileList, setProcessingProgress);
       
       // Update all state in batch
       setStats(results.stats);
@@ -2307,14 +2308,14 @@ const SpotifyAnalyzer = ({
             {isProcessing && (
               <div className="flex flex-col items-center justify-center p-8 space-y-4">
                 <div className="flex flex-col items-center">
-                  <img 
-                    src="/loading.png" 
-                    alt="Cake is cakeculating..." 
+                  <img
+                    src="/loading.png"
+                    alt="Cake is cakeculating..."
                     className="w-48 h-48 object-contain animate-rock bg-transparent loading-cake-image"
                   />
-                  <p 
-                    className="text-xl text-blue-600 mt-2 animate-rainbow cakeculating-text" 
-                    style={{ 
+                  <p
+                    className="text-xl text-blue-600 mt-2 animate-rainbow cakeculating-text"
+                    style={{
                       fontFamily: 'var(--font-comic-neue)',
                       textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
                     }}
@@ -2322,6 +2323,39 @@ const SpotifyAnalyzer = ({
                     Cakeculating...
                   </p>
                 </div>
+                {processingProgress.total > 0 && (() => {
+                  const pct = Math.round((processingProgress.step / processingProgress.total) * 100);
+                  const blockCount = 24;
+                  const filled = '█'.repeat(Math.round((pct / 100) * blockCount));
+                  const empty = '░'.repeat(blockCount - Math.round((pct / 100) * blockCount));
+                  const isColorful = colorMode === 'colorful';
+                  const termColor = isColorful
+                    ? isDarkMode ? 'text-violet-400' : 'text-violet-600'
+                    : isDarkMode ? 'text-[#4169E1]' : 'text-black';
+                  const termDim = isColorful
+                    ? isDarkMode ? 'text-violet-800' : 'text-violet-300'
+                    : isDarkMode ? 'text-gray-700' : 'text-gray-300';
+                  const termBg = isColorful
+                    ? isDarkMode ? 'bg-violet-950' : 'bg-violet-50'
+                    : isDarkMode ? 'bg-black' : 'bg-white';
+                  const termBorder = isColorful
+                    ? isDarkMode ? 'border-violet-600' : 'border-violet-300'
+                    : isDarkMode ? 'border-[#4169E1]' : 'border-black';
+                  return (
+                    <div className={`w-full max-w-sm font-mono ${termBg} border ${termBorder} p-2 rounded-sm`}>
+                      <div className={`text-[11px] ${termColor} mb-1`}>
+                        {'>'} {processingProgress.message.toUpperCase()}
+                      </div>
+                      <div className="text-[13px] leading-none tracking-tight">
+                        <span className={termColor}>{filled}</span><span className={termDim}>{empty}</span>
+                        <span className={`${termColor} ml-1 text-[11px]`}>{pct}%</span>
+                      </div>
+                      <div className={`text-[10px] mt-1 ${termDim}`}>
+                        [{processingProgress.step}/{processingProgress.total}] PROCESSING...
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
                 
