@@ -1842,10 +1842,10 @@ const YearSelector = ({
             {/* Expand button */}
             <button
               onClick={toggleExpanded}
-              className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 mr-8 w-8 h-8 flex items-center justify-center`}
+              className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 mr-8 w-8 h-8 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
-              <span className={colors.textActive}>{isTop ? '↓' : '↑'}</span>
+              <span>{isTop ? '↓' : '↑'}</span>
             </button>
 
             {/* Text container */}
@@ -1861,20 +1861,20 @@ const YearSelector = ({
             {/* Position toggle button */}
             <button
               onClick={togglePosition}
-              className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-4 w-8 h-8 flex items-center justify-center`}
+              className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 ml-4 w-8 h-8 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
-              <span className={`text-[12px] ${colors.textActive}`}>⇄</span>
+              <span className="text-[12px]">⇄</span>
             </button>
             {/* Float button (desktop snapped only) */}
             {!isMobile && (
               <button
                 onClick={toggleFloating}
-                className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 ml-2 w-8 h-8 flex items-center justify-center`}
+                className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 ml-2 w-8 h-8 flex items-center justify-center`}
                 aria-label="Float panel"
                 title="Detach as floating panel"
               >
-                <span className={`text-[12px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                <span className="text-[12px]" style={{fontSize: '14px'}}>&#x29C9;</span>
               </button>
             )}
           </div>
@@ -1883,10 +1883,10 @@ const YearSelector = ({
             {/* Vertical layout */}
             <button
               onClick={toggleExpanded}
-              className={`absolute ${desktopFloating ? 'left-1' : (currentPosition === 'left' ? 'right-1' : 'left-1')} bottom-20 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+              className={`absolute ${desktopFloating ? 'left-1' : (currentPosition === 'left' ? 'right-1' : 'left-1')} bottom-20 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
               aria-label="Expand sidebar"
             >
-              <span className={colors.textActive}>{desktopFloating ? '↓' : (currentPosition === 'left' ? '→' : '←')}</span>
+              <span>{desktopFloating ? '↓' : (currentPosition === 'left' ? '→' : '←')}</span>
             </button>
 
             <div className={`h-full ${isMobile ? 'pt-4' : 'pt-16'} pb-16 flex flex-col items-center justify-center ${colors.text}`}>
@@ -1903,19 +1903,19 @@ const YearSelector = ({
               <>
                 <button
                   onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
-                  className={`absolute left-1 bottom-[4.5rem] p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                  className={`absolute left-1 bottom-[4.5rem] ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className={`text-[12px] ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className="text-[12px]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
-                  className={`absolute left-1 bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                  className={`absolute left-1 bottom-10 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className={`text-[12px] ${colors.textActive}`} style={{fontSize: '10px'}}>&#x1F4CC;</span>
+                  <span className="text-[12px]" style={{fontSize: '10px'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : (
@@ -1923,20 +1923,20 @@ const YearSelector = ({
                 {/* Snapped: position cycle button */}
                 <button
                   onClick={togglePosition}
-                  className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                  className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className={`text-[12px] ${colors.textActive}`}>⇄</span>
+                  <span className="text-[12px]">⇄</span>
                 </button>
                 {/* Float button (desktop snapped only) */}
                 {!isMobile && (
                   <button
                     onClick={toggleFloating}
-                    className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-2 p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20 w-6 h-6 flex items-center justify-center`}
+                    className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-2 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className={`text-[12px] ${colors.textActive}`} style={{fontSize: '10px'}}>&#x29C9;</span>
+                    <span className="text-[12px]" style={{fontSize: '10px'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
@@ -2199,10 +2199,10 @@ const YearSelector = ({
             isHorizontal
               ? 'right-2 top-1'
               : `${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20`
-          } p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} z-10 shadow-md shadow-black/20`}
+          } ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10`}
           aria-label="Collapse sidebar"
         >
-          <span className={colors.textActive}>{
+          <span>{
             isHorizontal
               ? currentPosition === 'top' ? '↑' : '↓'
               : currentPosition === 'left' ? '←' : '→'
@@ -2874,38 +2874,38 @@ const YearSelector = ({
               <>
                 <button
                   onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
-                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className={`text-[14px] ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className="text-[14px]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
-                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                  <span className="text-[14px]" style={{fontSize: '14px'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : asSidebar && (
               <>
                 <button
                   onClick={togglePosition}
-                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className={`text-[14px] ${colors.textActive}`}>⇄</span>
+                  <span className="text-[14px]">⇄</span>
                 </button>
                 {!isMobile && (
                   <button
                     onClick={toggleFloating}
-                    className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                    className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                    <span className="text-[14px]" style={{fontSize: '14px'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
@@ -2918,38 +2918,38 @@ const YearSelector = ({
               <>
                 <button
                   onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
-                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className={`text-[14px] ${colors.textActive}`}>{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className="text-[14px]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
-                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                  <span className="text-[14px]" style={{fontSize: '14px'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : asSidebar && (
               <>
                 <button
                   onClick={togglePosition}
-                  className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className={`text-[14px] ${colors.textActive}`}>⇄</span>
+                  <span className="text-[14px]">⇄</span>
                 </button>
                 {!isMobile && (
                   <button
                     onClick={toggleFloating}
-                    className={`p-1 rounded-full ${colors.buttonBg} ${colors.textActive} ${colors.buttonHover} shadow-md shadow-black/20 flex items-center justify-center w-8 h-8 z-10`}
+                    className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className={`text-[14px] ${colors.textActive}`} style={{fontSize: '14px'}}>&#x29C9;</span>
+                    <span className="text-[14px]" style={{fontSize: '14px'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
