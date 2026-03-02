@@ -2,6 +2,11 @@ import React, { useState, useMemo, useEffect, useCallback, useDeferredValue } fr
 import { PieChart, Pie, Cell, BarChart, Bar, ScatterChart, Scatter, ZAxis, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 import { useTheme } from './themeprovider.js';
+import {
+  COUNTRY_CAPITALS, categorizeWeatherCode, broadWeatherCategory, tempBucket,
+  TEMP_BUCKETS, WEATHER_COLORS, TEMP_COLORS,
+  geocodeCity, fetchAllWeather
+} from './weather-utils.js';
 
 // Removed exported variables to prevent conflicts with SpotifyAnalyzer state management
 
@@ -104,6 +109,22 @@ const ListeningBehavior = ({
     }
     return null; // No automatic date selection
   });
+
+  // Weather tab state
+  const [weatherData, setWeatherData] = useState({});
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherProgress, setWeatherProgress] = useState({ loaded: 0, total: 0 });
+  const [weatherError, setWeatherError] = useState('');
+  const [homeCity, setHomeCity] = useState(() => {
+    try {
+      const saved = localStorage.getItem('weatherHomeCity');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  const [citySearch, setCitySearch] = useState('');
+  const [cityResults, setCityResults] = useState([]);
+  const [citySearching, setCitySearching] = useState(false);
+  const [expandedWeatherCards, setExpandedWeatherCards] = useState({});
 
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
@@ -823,7 +844,153 @@ const filteredData = useMemo(() => {
     }
   }, [selectedYear]);
 
-  // Analyze listening history for selected date - only compute for active history tab
+  // --- Weather tab handlers ---
+  const handleCitySearch = useCallback(async () => {
+    if (!citySearch.trim()) return;
+    setCitySearching(true);
+    setCityResults([]);
+    try {
+      const results = await geocodeCity(citySearch.trim());
+      setCityResults(results);
+    } catch (e) {
+      setWeatherError('City search failed: ' + e.message);
+    } finally {
+      setCitySearching(false);
+    }
+  }, [citySearch]);
+
+  const handleSelectCity = useCallback((city) => {
+    const saved = { name: city.name, lat: city.lat, lon: city.lon, country: city.country, admin1: city.admin1 };
+    setHomeCity(saved);
+    localStorage.setItem('weatherHomeCity', JSON.stringify(saved));
+    setCityResults([]);
+    setCitySearch('');
+    setWeatherData({});
+  }, []);
+
+  const handleFetchWeather = useCallback(async () => {
+    if (!homeCity) return;
+    setWeatherLoading(true);
+    setWeatherError('');
+    setWeatherProgress({ loaded: 0, total: 0 });
+    try {
+      // Build play list with date + country from filteredData
+      const plays = [];
+      const seen = new Set();
+      filteredData.forEach(entry => {
+        if (!entry.ts || entry.ms_played < 1000) return;
+        const d = new Date(entry.ts);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const country = entry.conn_country || homeCity.country;
+        const key = dateStr + '|' + country;
+        if (!seen.has(key)) {
+          seen.add(key);
+          plays.push({ date: dateStr, country });
+        }
+      });
+
+      const data = await fetchAllWeather(plays, homeCity, (loaded, total) => {
+        setWeatherProgress({ loaded, total });
+      });
+      setWeatherData(data);
+    } catch (e) {
+      setWeatherError('Failed to fetch weather: ' + e.message);
+    } finally {
+      setWeatherLoading(false);
+    }
+  }, [homeCity, filteredData]);
+
+  // Weather analysis — join filteredData with weatherData
+  const weatherAnalysis = useMemo(() => {
+    if (deferredActiveTab !== 'weather' && activeTab !== 'weather') {
+      return null;
+    }
+    const wKeys = Object.keys(weatherData);
+    if (wKeys.length === 0) return null;
+
+    const categoryStats = {}; // category → {plays, msPlayed, artists:{}, songs:{}}
+    const tempBucketStats = {}; // bucket → {plays, msPlayed}
+
+    filteredData.forEach(entry => {
+      if (entry.ms_played < 1000) return;
+      const d = new Date(entry.ts);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const country = entry.conn_country || (homeCity ? homeCity.country : '');
+      const wKey = dateStr + '|' + country;
+      const w = weatherData[wKey];
+      if (!w) return;
+
+      // Weather category
+      const cat = broadWeatherCategory(w.code);
+      if (!categoryStats[cat]) categoryStats[cat] = { plays: 0, msPlayed: 0, artists: {}, songs: {} };
+      categoryStats[cat].plays++;
+      categoryStats[cat].msPlayed += entry.ms_played;
+
+      const artistName = entry.master_metadata_album_artist_name || 'Unknown';
+      const trackName = entry.master_metadata_track_name || 'Unknown';
+      categoryStats[cat].artists[artistName] = (categoryStats[cat].artists[artistName] || 0) + 1;
+      const songKey = `${trackName} — ${artistName}`;
+      categoryStats[cat].songs[songKey] = (categoryStats[cat].songs[songKey] || 0) + 1;
+
+      // Temperature bucket
+      if (w.tempMax != null) {
+        const bucket = tempBucket(w.tempMax);
+        if (!tempBucketStats[bucket]) tempBucketStats[bucket] = { plays: 0, msPlayed: 0 };
+        tempBucketStats[bucket].plays++;
+        tempBucketStats[bucket].msPlayed += entry.ms_played;
+      }
+    });
+
+    // Pie chart data
+    const pieData = Object.entries(categoryStats)
+      .filter(([, s]) => s.plays > 0)
+      .map(([cat, s]) => ({
+        name: cat,
+        value: s.plays,
+        hours: Math.round(s.msPlayed / 3600000 * 10) / 10,
+        color: WEATHER_COLORS[cat] || '#999',
+      }))
+      .sort((a, b) => b.value - a.value);
+
+    // Top artists/songs per category
+    const categoryDetails = {};
+    for (const [cat, s] of Object.entries(categoryStats)) {
+      categoryDetails[cat] = {
+        plays: s.plays,
+        hours: Math.round(s.msPlayed / 3600000 * 10) / 10,
+        topArtists: Object.entries(s.artists).sort((a, b) => b[1] - a[1]).slice(0, 5),
+        topSongs: Object.entries(s.songs).sort((a, b) => b[1] - a[1]).slice(0, 5),
+      };
+    }
+
+    // Temperature bar chart
+    const tempData = TEMP_BUCKETS.map(bucket => ({
+      name: bucket,
+      hours: tempBucketStats[bucket] ? Math.round(tempBucketStats[bucket].msPlayed / 3600000 * 10) / 10 : 0,
+      plays: tempBucketStats[bucket] ? tempBucketStats[bucket].plays : 0,
+      color: TEMP_COLORS[bucket],
+    }));
+
+    // Rainy vs Sunny
+    const rainy = categoryStats['Rain'] || { plays: 0, msPlayed: 0, artists: {} };
+    const sunny = categoryStats['Clear'] || { plays: 0, msPlayed: 0, artists: {} };
+    const rainyVsSunny = {
+      rainy: {
+        plays: rainy.plays,
+        hours: Math.round(rainy.msPlayed / 3600000 * 10) / 10,
+        topArtists: Object.entries(rainy.artists).sort((a, b) => b[1] - a[1]).slice(0, 5),
+      },
+      sunny: {
+        plays: sunny.plays,
+        hours: Math.round(sunny.msPlayed / 3600000 * 10) / 10,
+        topArtists: Object.entries(sunny.artists).sort((a, b) => b[1] - a[1]).slice(0, 5),
+      },
+    };
+
+    const totalPlays = pieData.reduce((sum, d) => sum + d.value, 0);
+
+    return { pieData, categoryDetails, tempData, rainyVsSunny, totalPlays };
+  }, [filteredData, weatherData, deferredActiveTab, activeTab, homeCity]);
 
   // Custom pie chart label renderer - just show the percentage inside
   const renderCustomizedLabel = useCallback(({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -977,13 +1144,14 @@ const filteredData = useMemo(() => {
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
           <h3 className={`text-xl ${modeColors.text} truncate`}>
-            {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ behavior: 'Behavior', sessions: 'Sessions', artistsTime: 'Artists by Time' }[activeTab]}</span>
+            {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ behavior: 'Behavior', sessions: 'Sessions', artistsTime: 'Artists by Time', weather: 'Weather' }[activeTab]}</span>
           </h3>
         </div>
         <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
           <TabButton id="behavior" label="Behavior" />
           <TabButton id="sessions" label="Sessions" />
           <TabButton id="artistsTime" label="Artists by Time" />
+          <TabButton id="weather" label="Weather" />
         </div>
         <div className="flex-1"></div>
       </div>
@@ -994,6 +1162,7 @@ const filteredData = useMemo(() => {
           <TabButton id="behavior" label="Behavior" />
           <TabButton id="sessions" label="Sessions" />
           <TabButton id="artistsTime" label="By Time" />
+          <TabButton id="weather" label="Weather" />
         </div>
       </div>
 
@@ -1339,7 +1508,272 @@ const filteredData = useMemo(() => {
         trackDurationMap={trackDurationMap}
       />
     )}
-    
+
+    {activeTab === 'weather' && (
+      <div className="space-y-6">
+        {/* City Setup */}
+        <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+          <h3 className={`text-sm sm:text-lg font-bold mb-3 ${modeColors.text}`}>Home City</h3>
+          {homeCity && (
+            <div className={`mb-3 text-sm ${modeColors.text}`}>
+              Current: <span className="font-bold">{homeCity.name}{homeCity.admin1 ? `, ${homeCity.admin1}` : ''}, {homeCity.country}</span>
+              <button
+                onClick={() => { setHomeCity(null); localStorage.removeItem('weatherHomeCity'); setWeatherData({}); }}
+                className={`ml-2 text-xs px-2 py-0.5 rounded ${modeColors.buttonInactive}`}
+              >
+                Change
+              </button>
+            </div>
+          )}
+          {!homeCity && (
+            <div className="flex flex-col sm:flex-row gap-2 mb-3">
+              <input
+                type="text"
+                value={citySearch}
+                onChange={(e) => setCitySearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCitySearch()}
+                placeholder="Search for your city..."
+                className={`flex-1 px-3 py-1.5 rounded border text-sm ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-black placeholder-gray-400'}`}
+              />
+              <button
+                onClick={handleCitySearch}
+                disabled={citySearching}
+                className={`px-3 py-1.5 text-sm rounded ${modeColors.buttonInactive}`}
+              >
+                {citySearching ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+          )}
+          {cityResults.length > 0 && (
+            <div className="space-y-1 mb-3">
+              {cityResults.map((city, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSelectCity(city)}
+                  className={`block w-full text-left px-3 py-1.5 rounded text-sm ${modeColors.buttonInactive}`}
+                >
+                  {city.name}{city.admin1 ? `, ${city.admin1}` : ''}, {city.country} ({city.lat}, {city.lon})
+                </button>
+              ))}
+            </div>
+          )}
+          {homeCity && (
+            <button
+              onClick={handleFetchWeather}
+              disabled={weatherLoading}
+              className={`px-4 py-2 text-sm rounded font-medium ${modeColors.buttonInactive}`}
+            >
+              {weatherLoading
+                ? `Fetching weather... ${weatherProgress.total > 0 ? `(${weatherProgress.loaded}/${weatherProgress.total})` : ''}`
+                : Object.keys(weatherData).length > 0 ? 'Re-fetch Weather Data' : 'Fetch Weather Data'}
+            </button>
+          )}
+          {weatherError && <p className="text-red-500 text-sm mt-2">{weatherError}</p>}
+        </div>
+
+        {/* Weather content */}
+        {weatherAnalysis && (
+          <>
+            {/* Weather Mood Breakdown - Pie Chart */}
+            <div>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Weather Mood Breakdown</h3>
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={weatherAnalysis.pieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="70%"
+                      labelLine={false}
+                      label={renderCustomizedLabel}
+                      stroke={getStrokeColor}
+                      strokeWidth={2}
+                    >
+                      {weatherAnalysis.pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value, name, props) => [`${value} plays (${props.payload.hours}h)`, name]}
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                        border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+                        color: isDarkMode ? '#ffffff' : '#000000'
+                      }}
+                    />
+                    <Legend
+                      wrapperStyle={{ color: getLegendTextColor, fontSize: '12px' }}
+                      iconType="rect"
+                      formatter={(value) => (
+                        <span style={{ color: getLegendTextColor }}>{value}</span>
+                      )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className={`text-sm text-center mt-2 ${modeColors.textLight}`}>
+                {weatherAnalysis.totalPlays.toLocaleString()} plays matched with weather data
+              </div>
+            </div>
+
+            {/* Top Artists & Songs by Weather */}
+            <div>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Top Artists & Songs by Weather</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(weatherAnalysis.categoryDetails)
+                  .sort((a, b) => b[1].plays - a[1].plays)
+                  .map(([cat, detail]) => (
+                  <div key={cat} className={`rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                    <button
+                      onClick={() => setExpandedWeatherCards(prev => ({ ...prev, [cat]: !prev[cat] }))}
+                      className={`w-full text-left p-3 flex items-center justify-between ${modeColors.text}`}
+                    >
+                      <span className="font-bold flex items-center gap-2">
+                        <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: WEATHER_COLORS[cat] || '#999' }}></span>
+                        {cat}
+                        <span className={`font-normal text-sm ${modeColors.textLight}`}>({detail.plays.toLocaleString()} plays, {detail.hours}h)</span>
+                      </span>
+                      <span className="text-sm">{expandedWeatherCards[cat] ? '\u25B2' : '\u25BC'}</span>
+                    </button>
+                    {expandedWeatherCards[cat] && (
+                      <div className="px-3 pb-3 grid grid-cols-2 gap-3">
+                        <div>
+                          <h4 className={`text-xs font-bold mb-1 ${modeColors.textLight}`}>Top Artists</h4>
+                          <ol className="space-y-0.5">
+                            {detail.topArtists.map(([name, count], i) => (
+                              <li key={i} className={`text-xs ${modeColors.text}`}>
+                                <span className={modeColors.textLighter}>{i + 1}.</span> {name} <span className={modeColors.textLighter}>({count})</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                        <div>
+                          <h4 className={`text-xs font-bold mb-1 ${modeColors.textLight}`}>Top Songs</h4>
+                          <ol className="space-y-0.5">
+                            {detail.topSongs.map(([name, count], i) => (
+                              <li key={i} className={`text-xs ${modeColors.text} truncate`} title={name}>
+                                <span className={modeColors.textLighter}>{i + 1}.</span> {name} <span className={modeColors.textLighter}>({count})</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Temperature Analysis - Bar Chart */}
+            <div>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Listening by Temperature</h3>
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weatherAnalysis.tempData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fill: getTextColor, fontSize: 11 }}
+                      tickLine={{ stroke: getStrokeColor }}
+                      axisLine={{ stroke: getStrokeColor }}
+                    />
+                    <YAxis
+                      tick={{ fill: getTextColor, fontSize: 11 }}
+                      tickLine={{ stroke: getStrokeColor }}
+                      axisLine={{ stroke: getStrokeColor }}
+                      label={{ value: 'Hours', angle: -90, position: 'insideLeft', fill: getTextColor, fontSize: 12 }}
+                    />
+                    <Tooltip
+                      formatter={(value, name, props) => [`${value}h (${props.payload.plays} plays)`, 'Listening']}
+                      contentStyle={{
+                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
+                        border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+                        color: isDarkMode ? '#ffffff' : '#000000'
+                      }}
+                    />
+                    <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
+                      {weatherAnalysis.tempData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Rainy vs Sunny Comparison */}
+            <div>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Rainy vs Sunny Days</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Rainy */}
+                <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <h4 className={`font-bold mb-2 flex items-center gap-2 ${modeColors.text}`}>
+                    <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: WEATHER_COLORS['Rain'] }}></span>
+                    Rainy Days
+                  </h4>
+                  <p className={`text-sm mb-2 ${modeColors.textLight}`}>
+                    {weatherAnalysis.rainyVsSunny.rainy.plays.toLocaleString()} plays &middot; {weatherAnalysis.rainyVsSunny.rainy.hours}h
+                  </p>
+                  {weatherAnalysis.rainyVsSunny.rainy.topArtists.length > 0 && (
+                    <div>
+                      <h5 className={`text-xs font-bold mb-1 ${modeColors.textLight}`}>Top Artists</h5>
+                      <ol className="space-y-0.5">
+                        {weatherAnalysis.rainyVsSunny.rainy.topArtists.map(([name, count], i) => (
+                          <li key={i} className={`text-xs ${modeColors.text}`}>
+                            <span className={modeColors.textLighter}>{i + 1}.</span> {name} <span className={modeColors.textLighter}>({count})</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                </div>
+                {/* Sunny */}
+                <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <h4 className={`font-bold mb-2 flex items-center gap-2 ${modeColors.text}`}>
+                    <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: WEATHER_COLORS['Clear'] }}></span>
+                    Sunny Days
+                  </h4>
+                  <p className={`text-sm mb-2 ${modeColors.textLight}`}>
+                    {weatherAnalysis.rainyVsSunny.sunny.plays.toLocaleString()} plays &middot; {weatherAnalysis.rainyVsSunny.sunny.hours}h
+                  </p>
+                  {weatherAnalysis.rainyVsSunny.sunny.topArtists.length > 0 && (
+                    <div>
+                      <h5 className={`text-xs font-bold mb-1 ${modeColors.textLight}`}>Top Artists</h5>
+                      <ol className="space-y-0.5">
+                        {weatherAnalysis.rainyVsSunny.sunny.topArtists.map(([name, count], i) => (
+                          <li key={i} className={`text-xs ${modeColors.text}`}>
+                            <span className={modeColors.textLighter}>{i + 1}.</span> {name} <span className={modeColors.textLighter}>({count})</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Empty state when no weather data yet */}
+        {!weatherAnalysis && homeCity && !weatherLoading && Object.keys(weatherData).length === 0 && (
+          <div className={`text-center py-8 ${modeColors.textLight}`}>
+            <p className="text-lg mb-2">Click "Fetch Weather Data" to load historical weather</p>
+            <p className="text-sm">This will fetch weather for all dates in your listening history using the Open-Meteo API.</p>
+          </div>
+        )}
+
+        {!homeCity && (
+          <div className={`text-center py-8 ${modeColors.textLight}`}>
+            <p className="text-lg mb-2">Set your home city to get started</p>
+            <p className="text-sm">We'll use your city's weather to correlate with your listening habits.</p>
+          </div>
+        )}
+      </div>
+    )}
+
   </div>
 );
 };
