@@ -36,6 +36,17 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Prevent iOS auto-zoom on input focus (requires >= 16px font-size) */
+@media screen and (max-width: 639px) {
+  input[type="number"],
+  input[type="text"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 body {
   color: var(--fg);
   background: var(--bg);
