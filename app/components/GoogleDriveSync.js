@@ -52,24 +52,40 @@ const GoogleDriveSync = ({
     setTimeout(clearMessage, 5000);
   };
 
-  // Progress bar component
+  // Retro terminal-style progress bar component
   const ProgressBar = ({ progress, isActive, isCompleted = false }) => {
     if ((!isActive && !isCompleted) || progress.total === 0) return null;
-    
-    // Always show 100% when completed, otherwise calculate normally
+
     const percentage = isCompleted ? 100 : Math.round((progress.step / progress.total) * 100);
-    
+    const blockCount = 24;
+    const filledBlocks = Math.round((percentage / 100) * blockCount);
+    const filled = '█'.repeat(filledBlocks);
+    const empty = '░'.repeat(blockCount - filledBlocks);
+
+    const termColor = isColorful
+      ? isDarkMode ? 'text-violet-400' : 'text-violet-600'
+      : isDarkMode ? 'text-[#4169E1]' : 'text-black';
+    const termDim = isColorful
+      ? isDarkMode ? 'text-violet-800' : 'text-violet-300'
+      : isDarkMode ? 'text-gray-700' : 'text-gray-300';
+    const termBg = isColorful
+      ? isDarkMode ? 'bg-violet-950' : 'bg-violet-50'
+      : isDarkMode ? 'bg-black' : 'bg-white';
+    const termBorder = isColorful
+      ? isDarkMode ? 'border-violet-600' : 'border-violet-300'
+      : isDarkMode ? 'border-[#4169E1]' : 'border-black';
+
     return (
-      <div className="mb-3">
-        <div className="flex justify-between text-sm text-gray-600 mb-1">
-          <span>{isCompleted ? 'Completed!' : progress.message}</span>
-          <span>{isCompleted ? `${progress.total}/${progress.total}` : `${progress.step}/${progress.total}`}</span>
+      <div className={`mb-3 font-mono ${termBg} border ${termBorder} p-2 rounded-sm`}>
+        <div className={`text-[11px] ${termColor} mb-1`}>
+          {isCompleted ? '> TRANSFER COMPLETE' : `> ${progress.message.toUpperCase()}`}
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className={`h-2 rounded-full transition-all duration-300 ease-out ${isColorful ? (isCompleted ? 'bg-green-600' : 'bg-blue-600') : (isDarkMode ? 'bg-white' : 'bg-black')}`}
-            style={{ width: `${percentage}%` }}
-          ></div>
+        <div className="text-[13px] leading-none tracking-tight">
+          <span className={termColor}>{filled}</span><span className={termDim}>{empty}</span>
+          <span className={`${termColor} ml-1 text-[11px]`}>{percentage}%</span>
+        </div>
+        <div className={`text-[10px] mt-1 ${termDim}`}>
+          [{progress.step}/{progress.total}] {isCompleted ? 'ALL BLOCKS OK' : 'PROCESSING...'}
         </div>
       </div>
     );
