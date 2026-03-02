@@ -2647,20 +2647,20 @@ export const streamingProcessor = {
         }
       });
 
-      report(1, 10, 'Reading file data');
-      console.log(`Calculating stats for ${allProcessedData.length} entries`);
-      
-      // Yield to allow UI updates
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      const stats = await calculatePlayStats(allProcessedData);
-      report(2, 10, 'Calculating play statistics');
+      // Helper: yield to browser so React can paint progress updates
+      const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve, 50));
 
-      // Process artist data with better performance
-      console.log('Processing artist statistics...');
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
+      report(1, 10, 'Reading file data');
+      await yieldToBrowser();
+
+      console.log(`Calculating stats for ${allProcessedData.length} entries`);
+      const stats = await calculatePlayStats(allProcessedData);
+
+      report(2, 10, 'Calculating play statistics');
+      await yieldToBrowser();
+
       // Pre-build a map of songs by normalized artist name for faster lookup
+      console.log('Processing artist statistics...');
       const songsByArtist = new Map();
       stats.songs.forEach(song => {
         const normalizedName = normalizeArtistName(song.fullArtist || song.artist);
@@ -2681,6 +2681,8 @@ export const streamingProcessor = {
       });
 
       report(3, 10, 'Processing artist data');
+      await yieldToBrowser();
+
       const sortedArtists = Object.values(stats.artists)
         .map(artist => {
           const normalizedArtistName = normalizeArtistName(artist.name);
@@ -2713,10 +2715,9 @@ export const streamingProcessor = {
         .sort((a, b) => b.totalPlayed - a.totalPlayed);
 
       report(4, 10, 'Processing album data');
-      // Process album data
+      await yieldToBrowser();
+
       console.log('Processing album statistics...');
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
       const sortedAlbums = _.orderBy(
         Object.values(stats.albums).map(album => ({
           ...album,
@@ -2727,41 +2728,39 @@ export const streamingProcessor = {
       );
 
       report(5, 10, 'Ranking songs');
-      // Top songs
+      await yieldToBrowser();
+
       console.log('Processing song rankings...');
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
       const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
 
       report(6, 10, 'Calculating yearly breakdowns');
-      // Calculate year-based data with progress updates
-      console.log('Calculating yearly breakdowns...');
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
-      
-      report(7, 10, 'Finding brief obsessions');
-      console.log('Calculating brief obsessions...');
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      const briefObsessions = calculateBriefObsessions(stats.songs, stats.playHistory);
-      
-      report(8, 10, 'Artists by year');
-      console.log('Processing artists by year...');
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
-      const artistsByYear = calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData);
-      
-      report(9, 10, 'Albums by year');
-      console.log('Processing albums by year...');
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await yieldToBrowser();
 
+      console.log('Calculating yearly breakdowns...');
+      const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
+
+      report(7, 10, 'Finding brief obsessions');
+      await yieldToBrowser();
+
+      console.log('Calculating brief obsessions...');
+      const briefObsessions = calculateBriefObsessions(stats.songs, stats.playHistory);
+
+      report(8, 10, 'Artists by year');
+      await yieldToBrowser();
+
+      console.log('Processing artists by year...');
+      const artistsByYear = calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData);
+
+      report(9, 10, 'Albums by year');
+      await yieldToBrowser();
+
+      console.log('Processing albums by year...');
       const albumsByYear = calculateAlbumsByYear(sortedAlbums, allProcessedData);
 
       report(10, 10, 'Calculating streaks');
-      console.log('Calculating streak statistics...');
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await yieldToBrowser();
 
+      console.log('Calculating streak statistics...');
       const consecutivePlayStreaks = calculateConsecutivePlayStreaks(allProcessedData);
       const overallDailyStreak = calculateOverallDailyStreak(allProcessedData);
       const topSongDailyStreak = calculateTopSongDailyStreak(stats.songs, stats.playHistory);
