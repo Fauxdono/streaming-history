@@ -2360,15 +2360,15 @@ const SpotifyAnalyzer = ({
             )}
                 
             {uploadedFiles.length > 0 && (
-              <div className={`mt-4 p-2 rounded-lg border max-w-sm ${
+              <div className={`mt-4 p-2 rounded-lg border ${
                 colorMode === 'colorful'
                   ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
                   : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black')
               }`}>
                 <h4 className={`font-semibold mb-1 text-lg ${uploadText}`}>Uploaded Files:</h4>
-                <ul className="space-y-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
                   {uploadedFiles.map((fileName, index) => (
-                    <li key={index} className={`flex items-center justify-between px-2 py-1 rounded ${
+                    <div key={index} className={`flex items-center justify-between px-2 py-1 rounded ${
                       colorMode === 'colorful'
                         ? 'bg-violet-100 dark:bg-violet-700'
                         : (isDarkMode ? 'bg-gray-900' : 'bg-white')
@@ -2387,9 +2387,9 @@ const SpotifyAnalyzer = ({
                       >
                         <Trash2 size={16} />
                       </button>
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
 
                 {uploadedFileList && uploadedFileList.length === 1 &&
                  uploadedFileList[0].name.endsWith('.xlsx') && (
