@@ -955,11 +955,13 @@ const filteredData = useMemo(() => {
     // Top artists/songs per category
     const categoryDetails = {};
     for (const [cat, s] of Object.entries(categoryStats)) {
+      const allSongsSorted = Object.entries(s.songs).sort((a, b) => b[1] - a[1]);
       categoryDetails[cat] = {
         plays: s.plays,
         hours: Math.round(s.msPlayed / 3600000 * 10) / 10,
         topArtists: Object.entries(s.artists).sort((a, b) => b[1] - a[1]).slice(0, 5),
-        topSongs: Object.entries(s.songs).sort((a, b) => b[1] - a[1]).slice(0, 5),
+        topSongs: allSongsSorted.slice(0, 5),
+        playlist: allSongsSorted.slice(0, 20),
       };
     }
 
@@ -1701,6 +1703,77 @@ const filteredData = useMemo(() => {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Weather Playlists */}
+            <div>
+              <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Weather Playlists</h3>
+              <p className={`text-xs mb-3 ${modeColors.textLight}`}>Your top 20 most-played songs for each weather condition</p>
+              <div className="space-y-4">
+                {Object.entries(weatherAnalysis.categoryDetails)
+                  .filter(([, d]) => d.playlist.length > 0)
+                  .sort((a, b) => b[1].plays - a[1].plays)
+                  .map(([cat, detail]) => {
+                    const playlistLabels = {
+                      'Clear': 'Sunny Day Playlist',
+                      'Cloudy': 'Overcast Playlist',
+                      'Rain': 'Rainy Day Playlist',
+                      'Snow': 'Snow Day Playlist',
+                      'Fog': 'Foggy Day Playlist',
+                      'Thunderstorm': 'Thunderstorm Playlist',
+                    };
+                    const isExpanded = expandedWeatherCards['playlist_' + cat];
+                    return (
+                      <div key={cat} className={`rounded border overflow-hidden ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                        <button
+                          onClick={() => setExpandedWeatherCards(prev => ({ ...prev, ['playlist_' + cat]: !prev['playlist_' + cat] }))}
+                          className={`w-full text-left p-3 flex items-center justify-between`}
+                        >
+                          <span className={`font-bold flex items-center gap-2 ${modeColors.text}`}>
+                            <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: WEATHER_COLORS[cat] || '#999' }}></span>
+                            {playlistLabels[cat] || cat + ' Playlist'}
+                            <span className={`font-normal text-sm ${modeColors.textLight}`}>{detail.playlist.length} songs</span>
+                          </span>
+                          <span className={`text-sm ${modeColors.text}`}>{isExpanded ? '\u25B2' : '\u25BC'}</span>
+                        </button>
+                        {isExpanded && (
+                          <div className="px-3 pb-3">
+                            <table className="w-full">
+                              <thead>
+                                <tr className={`text-xs ${modeColors.textLight} border-b ${modeColors.borderLight}`}>
+                                  <th className="text-left py-1 w-8">#</th>
+                                  <th className="text-left py-1">Song</th>
+                                  <th className="text-left py-1 hidden sm:table-cell">Artist</th>
+                                  <th className="text-right py-1 w-16">Plays</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {detail.playlist.map(([songKey, count], i) => {
+                                  const parts = songKey.split(' — ');
+                                  const track = parts[0];
+                                  const artist = parts.slice(1).join(' — ');
+                                  return (
+                                    <tr key={i} className={`text-xs border-b ${modeColors.borderLight} border-opacity-30`}>
+                                      <td className={`py-1.5 ${modeColors.textLighter}`}>{i + 1}</td>
+                                      <td className={`py-1.5 ${modeColors.text} truncate max-w-0`}>
+                                        <div className="truncate">{track}</div>
+                                        <div className={`sm:hidden text-xs ${modeColors.textLighter} truncate`}>{artist}</div>
+                                      </td>
+                                      <td className={`py-1.5 hidden sm:table-cell ${modeColors.textLight} truncate max-w-0`}>
+                                        <div className="truncate">{artist}</div>
+                                      </td>
+                                      <td className={`py-1.5 text-right tabular-nums ${modeColors.text}`}>{count}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
 
