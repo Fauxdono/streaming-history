@@ -3704,7 +3704,11 @@ const SpotifyAnalyzer = ({
 
       case 'settings':
         return (
-          <div className="p-2 sm:p-4">
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-gray-100 dark:bg-gray-800 rounded border-2 border-gray-300 dark:border-gray-600'
+              : 'p-2 sm:p-4'
+          }>
             <SettingsPanel colorMode={colorMode} setColorMode={setColorMode} />
           </div>
         );
