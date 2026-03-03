@@ -2838,7 +2838,7 @@ const SpotifyAnalyzer = ({
                     onClick={() => { setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid'); setArtistsViewPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
-                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? `${artistColors.bg} text-yellow-300 border border-yellow-600 shadow-[2px_2px_0_0_#ca8a04]` : `${artistColors.bg} text-yellow-700 border border-yellow-700 shadow-[2px_2px_0_0_#a16207]`} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : ''}`
+                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb]' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8]'} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-blue-dark' : 'btn-press-blue-light') : ''}`
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
