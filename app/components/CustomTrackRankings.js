@@ -1528,14 +1528,14 @@ return (
         <button
           key={`sort-desktop-${sortByPress}`}
           onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setSortByPress(p => p + 1); }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${isColorful ? `${colors.bg} ${colors.text} border ${colors.border} ${isDarkMode ? 'shadow-[2px_2px_0_0_#059669]' : 'shadow-[2px_2px_0_0_#047857]'} hover:opacity-80` : colors.bgDark} ${isColorful ? '' : colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? (isColorful ? 'btn-press-emerald-dark' : 'btn-press-dark') : (isColorful ? 'btn-press-emerald-light' : 'btn-press-light')) : ''}`}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? (isColorful ? 'btn-press-emerald-dark' : 'btn-press-dark') : (isColorful ? 'btn-press-emerald-light' : 'btn-press-light')) : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
         <button
           key={`view-desktop-${viewModePress}`}
           onClick={() => { setViewMode(viewMode === 'grid' ? 'compact' : 'grid'); setViewModePress(p => p + 1); }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${isColorful ? `${colors.bg} ${colors.text} border ${colors.border} ${isDarkMode ? 'shadow-[2px_2px_0_0_#059669]' : 'shadow-[2px_2px_0_0_#047857]'} hover:opacity-80` : colors.bgDark} ${isColorful ? '' : colors.bgDarkHover} ${viewModePress > 0 ? (isDarkMode ? (isColorful ? 'btn-press-emerald-dark' : 'btn-press-dark') : (isColorful ? 'btn-press-emerald-light' : 'btn-press-light')) : ''}`}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${viewModePress > 0 ? (isDarkMode ? (isColorful ? 'btn-press-emerald-dark' : 'btn-press-dark') : (isColorful ? 'btn-press-emerald-light' : 'btn-press-light')) : ''}`}
         >
           {viewMode === 'grid' ? '☰' : '⊞'}
         </button>
@@ -1629,7 +1629,7 @@ return (
         <button
           key={`sort-mobile-${sortByPress}`}
           onClick={() => { setSortBy(sortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setSortByPress(p => p + 1); }}
-          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${isColorful ? `${colors.bg} ${colors.text} border ${colors.border} ${isDarkMode ? 'shadow-[2px_2px_0_0_#059669]' : 'shadow-[2px_2px_0_0_#047857]'} hover:opacity-80` : colors.bgDark} ${isColorful ? '' : colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? (isColorful ? 'btn-press-emerald-dark' : 'btn-press-dark') : (isColorful ? 'btn-press-emerald-light' : 'btn-press-light')) : ''}`}
+          className={`px-2 py-1 rounded text-xs font-medium transition-colors ${colors.bgDark} ${colors.bgDarkHover} ${sortByPress > 0 ? (isDarkMode ? (isColorful ? 'btn-press-emerald-dark' : 'btn-press-dark') : (isColorful ? 'btn-press-emerald-light' : 'btn-press-light')) : ''}`}
         >
           {sortBy === 'totalPlayed' ? 'Time' : 'Plays'}
         </button>
