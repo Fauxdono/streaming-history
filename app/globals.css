@@ -118,6 +118,46 @@ body {
   animation: btn-press-yellow-light 0.3s ease-out;
 }
 
+@keyframes btn-press-cyan-dark {
+  0%   { box-shadow: 2px 2px 0 0 #0891b2; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 #0891b2; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 #0891b2; transform: translate(0, 0); }
+}
+
+@keyframes btn-press-cyan-light {
+  0%   { box-shadow: 2px 2px 0 0 #0e7490; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 #0e7490; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 #0e7490; transform: translate(0, 0); }
+}
+
+.btn-press-cyan-dark {
+  animation: btn-press-cyan-dark 0.3s ease-out;
+}
+
+.btn-press-cyan-light {
+  animation: btn-press-cyan-light 0.3s ease-out;
+}
+
+@keyframes btn-press-emerald-dark {
+  0%   { box-shadow: 2px 2px 0 0 #059669; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 #059669; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 #059669; transform: translate(0, 0); }
+}
+
+@keyframes btn-press-emerald-light {
+  0%   { box-shadow: 2px 2px 0 0 #047857; transform: translate(0, 0); }
+  40%  { box-shadow: inset 2px 2px 0 0 #047857; transform: translate(1px, 1px); }
+  100% { box-shadow: 2px 2px 0 0 #047857; transform: translate(0, 0); }
+}
+
+.btn-press-emerald-dark {
+  animation: btn-press-emerald-dark 0.3s ease-out;
+}
+
+.btn-press-emerald-light {
+  animation: btn-press-emerald-light 0.3s ease-out;
+}
+
 /* ============================================
    FONT FAMILY SYSTEM
    ============================================ */

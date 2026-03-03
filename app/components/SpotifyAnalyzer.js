@@ -2824,10 +2824,10 @@ const SpotifyAnalyzer = ({
                   <label className="text-xs">Sort by</label>
                   <button
                     key={`artists-sort-d-${artistsSortPress}`}
-                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setArtistsSortPress(p => p + 1); }}
+                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setArtistsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? `${artistColors.bg} text-yellow-300 border border-yellow-600 shadow-[2px_2px_0_0_#ca8a04]` : `${artistColors.bg} text-yellow-700 border border-yellow-700 shadow-[2px_2px_0_0_#a16207]`} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : ''}`
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
@@ -2835,10 +2835,10 @@ const SpotifyAnalyzer = ({
                   </button>
                   <button
                     key={`artists-view-d-${artistsViewPress}`}
-                    onClick={() => { setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') setArtistsViewPress(p => p + 1); }}
+                    onClick={() => { setArtistsViewMode(artistsViewMode === 'grid' ? 'list' : 'grid'); setArtistsViewPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? `${artistColors.bg} text-yellow-300 border border-yellow-600 shadow-[2px_2px_0_0_#ca8a04]` : `${artistColors.bg} text-yellow-700 border border-yellow-700 shadow-[2px_2px_0_0_#a16207]`} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : ''}`
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
@@ -2932,10 +2932,10 @@ const SpotifyAnalyzer = ({
                   />
                   <button
                     key={`artists-sort-m-${artistsSortPress}`}
-                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setArtistsSortPress(p => p + 1); }}
+                    onClick={() => { setArtistsSortBy(artistsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setArtistsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600'
+                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? `${artistColors.bg} text-yellow-300 border border-yellow-600 shadow-[2px_2px_0_0_#ca8a04]` : `${artistColors.bg} text-yellow-700 border border-yellow-700 shadow-[2px_2px_0_0_#a16207]`} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-yellow-dark' : 'btn-press-yellow-light') : ''}`
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
@@ -3264,10 +3264,10 @@ const SpotifyAnalyzer = ({
                   <label className="text-xs">Sort by</label>
                   <button
                     key={`albums-sort-d-${albumsSortPress}`}
-                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setAlbumsSortPress(p => p + 1); }}
+                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setAlbumsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? `${albumColors.bg} text-cyan-300 border border-cyan-600 shadow-[2px_2px_0_0_#0891b2]` : `${albumColors.bg} text-cyan-700 border border-cyan-700 shadow-[2px_2px_0_0_#0e7490]`} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-cyan-dark' : 'btn-press-cyan-light') : ''}`
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
@@ -3275,10 +3275,10 @@ const SpotifyAnalyzer = ({
                   </button>
                   <button
                     key={`albums-view-d-${albumsViewPress}`}
-                    onClick={() => { setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid'); if (colorMode !== 'colorful') setAlbumsViewPress(p => p + 1); }}
+                    onClick={() => { setAlbumsViewMode(albumsViewMode === 'grid' ? 'list' : 'grid'); setAlbumsViewPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? `${albumColors.bg} text-cyan-300 border border-cyan-600 shadow-[2px_2px_0_0_#0891b2]` : `${albumColors.bg} text-cyan-700 border border-cyan-700 shadow-[2px_2px_0_0_#0e7490]`} ${albumsViewPress > 0 ? (isDarkMode ? 'btn-press-cyan-dark' : 'btn-press-cyan-light') : ''}`
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
@@ -3354,10 +3354,10 @@ const SpotifyAnalyzer = ({
                   />
                   <button
                     key={`albums-sort-m-${albumsSortPress}`}
-                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); if (colorMode !== 'colorful') setAlbumsSortPress(p => p + 1); }}
+                    onClick={() => { setAlbumsSortBy(albumsSortBy === 'totalPlayed' ? 'playCount' : 'totalPlayed'); setAlbumsSortPress(p => p + 1); }}
                     className={
                       colorMode === 'colorful'
-                        ? 'px-2 py-1 rounded text-xs font-medium transition-colors bg-cyan-500 text-white hover:bg-cyan-600'
+                        ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? `${albumColors.bg} text-cyan-300 border border-cyan-600 shadow-[2px_2px_0_0_#0891b2]` : `${albumColors.bg} text-cyan-700 border border-cyan-700 shadow-[2px_2px_0_0_#0e7490]`} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-cyan-dark' : 'btn-press-cyan-light') : ''}`
                         : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
