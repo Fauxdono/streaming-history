@@ -618,35 +618,51 @@ const GoogleDriveSync = ({
         setIsInitialized(true);
       }
 
+      // If we have a valid stored token, restore it silently — no popup needed
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
+      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
+      if (storedToken && storedExpiry && Date.now() < parseInt(storedExpiry)) {
+        window.gapi.client.setToken({ access_token: storedToken });
+        setIsConnected(true);
+        setIsConnecting(false);
+        showMessage('Connected to Google Drive successfully!');
+        return;
+      }
+
+      const onTokenReceived = (tokenResponse) => {
+        if (tokenResponse.error) {
+          // interaction_required means silent auth failed — retry with the full popup
+          if (tokenResponse.error === 'interaction_required' || tokenResponse.error === 'access_denied') {
+            tokenClient.requestAccessToken({ prompt: '' });
+          } else {
+            showMessage(`Authentication failed: ${tokenResponse.error}`, true);
+            setIsConnecting(false);
+          }
+          return;
+        }
+
+        window.gapi.client.setToken({ access_token: tokenResponse.access_token });
+
+        const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('google_drive_token', tokenResponse.access_token);
+          localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
+        }
+
+        setIsConnected(true);
+        setIsConnecting(false);
+        showMessage('Connected to Google Drive successfully!');
+      };
+
       const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: (tokenResponse) => {
-          if (tokenResponse.error) {
-            showMessage(`Authentication failed: ${tokenResponse.error}`, true);
-            setIsConnecting(false);
-            return;
-          }
-          
-          window.gapi.client.setToken({
-            access_token: tokenResponse.access_token
-          });
-          
-          // Store token and expiry time for persistence
-          const expiryTime = Date.now() + (tokenResponse.expires_in * 1000); // expires_in is in seconds
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('google_drive_token', tokenResponse.access_token);
-            localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
-          }
-          
-          setIsConnected(true);
-          setIsConnecting(false);
-          showMessage('Connected to Google Drive successfully!');
-        }
+        callback: onTokenReceived,
       });
 
-      tokenClient.requestAccessToken({ prompt: 'consent' });
-      
+      // Try silent auth first — no popup if Google already has a session with permission
+      tokenClient.requestAccessToken({ prompt: 'none' });
+
     } catch (error) {
       showMessage(`Connection failed: ${error.message}`, true);
       setIsConnecting(false);
