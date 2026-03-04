@@ -992,16 +992,17 @@ const YearSelector = ({
     return <div className={colors.text + " italic"}>No year data available</div>;
   }
   
-  // When horizontal or floating, always force expanded
+  // When floating, always force expanded
   useEffect(() => {
-    if (isHorizontal || isFloating) setExpanded(true);
-  }, [isHorizontal, isFloating]);
+    if (isFloating) setExpanded(true);
+  }, [isFloating]);
 
-  // Toggle sidebar expand/collapse (disabled when horizontal or floating)
+  // Toggle sidebar expand/collapse (disabled when floating, or horizontal on desktop)
   const toggleExpanded = useCallback(() => {
-    if (isHorizontal || isFloating) return;
+    if (isFloating) return;
+    if (isHorizontal && !isMobile) return;
     setExpanded(prev => !prev);
-  }, [isHorizontal, isFloating]);
+  }, [isHorizontal, isFloating, isMobile]);
   
   // Toggle sidebar position - cycles through right, bottom, left, top with memory
   const togglePosition = useCallback(() => {
@@ -1115,13 +1116,16 @@ const YearSelector = ({
         const nearest = Object.entries(dists).reduce((a, b) => b[1] < a[1] ? b : a)[0];
         setCurrentPosition(nearest);
       } else {
-        // Snapped -> Floating: report 0 dims
+        // Snapped -> Floating: preserve current orientation
+        const orientation = isHorizontal ? 'horizontal' : 'vertical';
+        setFloatOrientation(orientation);
+        localStorage.setItem('yearSelectorFloatOrientation', orientation);
         if (onWidthChange) onWidthChange(0);
         if (onHeightChange) onHeightChange(0);
       }
       return !prev;
     });
-  }, [floatPos, onWidthChange, onHeightChange]);
+  }, [floatPos, onWidthChange, onHeightChange, isHorizontal]);
 
   // Clamp floating position to keep panel visible within viewport
   const clampFloatPos = useCallback((pos) => {
@@ -1800,8 +1804,8 @@ const YearSelector = ({
     };
   }, [currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, isFloating, floatPos]);
 
-  // If not expanded, show a mini sidebar (never collapse when floating or horizontal)
-  if (!expanded && asSidebar && !isFloating && !isHorizontal) {
+  // If not expanded, show a mini sidebar (never collapse when floating; allow horizontal collapse on mobile)
+  if (!expanded && asSidebar && !isFloating && (!isHorizontal || isMobile)) {
     const isBottom = currentPosition === 'bottom';
     const isTop = currentPosition === 'top';
     const desktopFloating = !isMobile && isFloating;
