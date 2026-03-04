@@ -2015,7 +2015,7 @@ const YearSelector = ({
         <button
           key={year}
           onClick={() => handleYearChange(year)}
-          className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+          className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap text-center overflow-hidden ${
             selectedYear === year
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2047,7 +2047,7 @@ const YearSelector = ({
             <button
               key={year}
               onClick={() => handleRangeYearGridTap(year)}
-              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap text-center overflow-hidden ${
                 isStart || isEnd
                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                   : isBetween
@@ -2146,7 +2146,7 @@ const YearSelector = ({
         <button
           key={month}
           onClick={() => onSelect(month)}
-          className={`px-1 py-0.5 text-[12px] rounded transition-colors ${wrap ? 'min-w-[28px]' : ''} ${
+          className={`px-1 py-0.5 text-[12px] rounded transition-colors text-center overflow-hidden ${wrap ? 'min-w-[28px]' : ''} ${
             selectedValue === month
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2164,7 +2164,7 @@ const YearSelector = ({
         <button
           key={day}
           onClick={() => onSelect(day)}
-          className={`px-1 py-0.5 text-[12px] rounded transition-colors ${wrap ? 'min-w-[20px]' : ''} ${
+          className={`px-1 py-0.5 text-[12px] rounded transition-colors text-center overflow-hidden ${wrap ? 'min-w-[20px]' : ''} ${
             selectedValue === day
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2299,9 +2299,9 @@ const YearSelector = ({
 
                   {/* Year/Month/Day as stacked rows for mobile portrait horizontal */}
                   {isMobile && !isLandscape && isHorizontal ? (
-                    <div className="flex flex-col items-start gap-1">
+                    <div className="flex flex-col items-center gap-1 w-full overflow-hidden">
                       {/* Row 1: All Time + Year grid + month toggle */}
-                      <div className="flex flex-row items-center gap-1">
+                      <div className="flex flex-row items-center gap-1 w-full justify-center">
                         <button
                           onClick={() => {
                             setSelectedYear('all');
@@ -2352,7 +2352,7 @@ const YearSelector = ({
                       </div>
                       {/* Row 2: Month grid + day toggle */}
                       {showMonthSelector && (
-                        <div className="flex flex-row items-center gap-1">
+                        <div className="flex flex-row items-center gap-1 w-full justify-center">
                           {renderMonthGrid(selectedMonth, handleMonthChange, 6)}
                           <button
                             onClick={() => {
