@@ -267,6 +267,7 @@ const SpotifyAnalyzer = ({
   const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
+  const [expandedAlbumListRows, setExpandedAlbumListRows] = useState({});
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [albumsSortPress, setAlbumsSortPress] = useState(0);
   const [albumsViewPress, setAlbumsViewPress] = useState(0);
@@ -3035,10 +3036,11 @@ const SpotifyAnalyzer = ({
                         <thead>
                           <tr className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600' : (isDarkMode ? 'border-[#4169E1]' : 'border-black')}`}>
                             <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Rank</th>
-                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Artist</th>
-                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Time</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>Artist</th>
+                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>Time</th>
                             <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>Plays</th>
                             <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden md:table-cell`}>Top Song</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden ml:table-cell`}>Top Album</th>
                             <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>First Song</th>
                             <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>First Listen</th>
                           </tr>
@@ -3061,10 +3063,11 @@ const SpotifyAnalyzer = ({
                                 className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-[#4169E1] hover:bg-gray-800' : 'border-black hover:bg-gray-100')} ${artistSelectionMode ? 'cursor-pointer' : ''}`}
                               >
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}>{originalRank}</td>
-                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.name}</td>
-                                <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{formatDuration(artist.totalPlayed)}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{artist.name}</td>
+                                <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{formatDuration(artist.totalPlayed)}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.playCount?.toLocaleString() || 0}</td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden md:table-cell`}>{artist.mostPlayedSong?.trackName || '-'}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden ml:table-cell`}>{artist.mostPlayedAlbum?.albumName || '-'}</td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>{artist.firstSong || '-'}</td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden lg:table-cell`}>{artist.firstListen ? new Date(artist.firstListen).toLocaleDateString() : '-'}</td>
                               </tr>
@@ -3466,25 +3469,70 @@ const SpotifyAnalyzer = ({
                         <thead>
                           <tr className={`border-b ${colorMode === 'colorful' ? 'border-cyan-300 dark:border-cyan-600' : (isDarkMode ? 'border-[#4169E1]' : 'border-black')}`}>
                             <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Rank</th>
-                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Album</th>
-                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Artist</th>
-                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Time</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>Album</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>Artist</th>
+                            <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>Time</th>
                             <th className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>Plays</th>
+                            <th className={`p-1 sm:p-2 text-left ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm hidden ml:table-cell whitespace-nowrap`}>Top Track</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => (
-                            <tr
-                              key={`${album.artist}-${album.name}`}
-                              className={`border-b ${colorMode === 'colorful' ? 'border-cyan-300 dark:border-cyan-600 hover:bg-cyan-100 dark:hover:bg-cyan-700' : (isDarkMode ? 'border-[#4169E1] hover:bg-gray-800' : 'border-black hover:bg-gray-100')}`}
-                            >
-                              <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} font-medium text-xs sm:text-sm`}>{index + 1}</td>
-                              <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{album.name}</td>
-                              <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{album.artist}</td>
-                              <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{formatDuration(album.totalPlayed)}</td>
-                              <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : ''} text-xs sm:text-sm`}>{(album.playCount || 0).toLocaleString()}</td>
-                            </tr>
-                          ))}
+                          {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
+                            const rowKey = `${album.artist}-${album.name}`;
+                            const isRowExpanded = !!expandedAlbumListRows[rowKey];
+                            const tracks = album.trackObjects || [];
+                            const colorClass = colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-200' : '';
+                            const borderClass = colorMode === 'colorful' ? 'border-cyan-300 dark:border-cyan-600' : (isDarkMode ? 'border-[#4169E1]' : 'border-black');
+                            return (
+                                <tr
+                                  key={rowKey}
+                                  className={`border-b ${colorMode === 'colorful' ? 'border-cyan-300 dark:border-cyan-600 hover:bg-cyan-100 dark:hover:bg-cyan-700' : (isDarkMode ? 'border-[#4169E1] hover:bg-gray-800' : 'border-black hover:bg-gray-100')}`}
+                                >
+                                  <td className={`p-1 sm:p-2 ${colorClass} font-medium text-xs sm:text-sm`}>{index + 1}</td>
+                                  <td className={`p-1 sm:p-2 ${colorClass} text-xs sm:text-sm whitespace-nowrap`}>{album.name}</td>
+                                  <td className={`p-1 sm:p-2 ${colorClass} text-xs sm:text-sm whitespace-nowrap`}>{album.artist}</td>
+                                  <td className={`p-1 sm:p-2 text-right ${colorClass} text-xs sm:text-sm whitespace-nowrap`}>{formatDuration(album.totalPlayed)}</td>
+                                  <td className={`p-1 sm:p-2 text-right ${colorClass} text-xs sm:text-sm`}>{(album.playCount || 0).toLocaleString()}</td>
+                                  <td className={`p-1 sm:p-2 ${colorClass} text-xs sm:text-sm hidden ml:table-cell relative`}>
+                                    {tracks.length > 0 ? (
+                                      <div className="relative">
+                                        <button
+                                          type="button"
+                                          onClick={() => setExpandedAlbumListRows(prev => ({ ...prev, [rowKey]: !prev[rowKey] }))}
+                                          className={`flex items-center gap-1 w-full text-left cursor-pointer hover:opacity-70`}
+                                        >
+                                          <span className="truncate">{tracks[0].trackName}</span>
+                                          <span className={`inline-flex items-center justify-center w-4 h-4 text-xs rounded border leading-none shrink-0 ml-1
+                                            ${colorMode === 'colorful'
+                                              ? (isDarkMode ? 'bg-cyan-800 text-cyan-200 border-cyan-500 shadow-[1px_1px_0_0_#06b6d4]' : 'bg-cyan-100 text-cyan-700 border-cyan-600 shadow-[1px_1px_0_0_#0e7490]')
+                                              : (isDarkMode ? 'bg-black text-white border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white text-black border-black shadow-[1px_1px_0_0_black]')
+                                            }`}
+                                          >{isRowExpanded ? '−' : '+'}</span>
+                                        </button>
+                                        {isRowExpanded && (
+                                          <div className={`absolute left-0 top-full z-50 w-64 border rounded shadow-lg overflow-hidden ${colorMode === 'colorful' ? 'bg-cyan-50 dark:bg-cyan-900 border-cyan-300 dark:border-cyan-600' : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-white border-black')}`}>
+                                            <div className={`sticky top-0 p-1 text-xs text-center font-medium ${colorMode === 'colorful' ? 'bg-cyan-200 dark:bg-cyan-700 text-cyan-700 dark:text-cyan-200' : (isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black')}`}>
+                                              {tracks.length} track{tracks.length !== 1 ? 's' : ''}
+                                            </div>
+                                            <div className="max-h-48 overflow-y-auto">
+                                              {tracks.map((track, i) => (
+                                                <div key={i} className={`p-1 text-xs ${i % 2 === 0 ? (colorMode === 'colorful' ? 'bg-cyan-50 dark:bg-cyan-900' : (isDarkMode ? 'bg-black' : 'bg-white')) : (colorMode === 'colorful' ? 'bg-cyan-100 dark:bg-cyan-800' : (isDarkMode ? 'bg-gray-900' : 'bg-gray-50'))}`}>
+                                                  <div className={`flex justify-between items-center ${colorClass}`}>
+                                                    <span className="truncate">{track.trackName || 'Unknown'}</span>
+                                                    <span className="opacity-60 ml-2 shrink-0">{formatDuration(track.totalPlayed || 0)}</span>
+                                                  </div>
+                                                  <div className={`text-right opacity-60 ${colorClass}`}>{track.playCount || 0} plays</div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : '-'}
+                                  </td>
+                                </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -3835,6 +3883,7 @@ const SpotifyAnalyzer = ({
     calendarViewMode,
     artistSelectionMode,
     expandedArtistCards,
+    expandedAlbumListRows,
     filteredStats,
     filteredStreaks
   ]);

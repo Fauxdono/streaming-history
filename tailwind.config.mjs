@@ -19,6 +19,9 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      screens: {
+        ml: '896px', // between md (768px) and lg (1024px)
+      },
     },
   },
   plugins: [],

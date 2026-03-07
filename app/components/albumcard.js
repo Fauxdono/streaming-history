@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { Music, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 
 const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan', colorMode = 'minimal' }) => {
@@ -115,61 +114,62 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
         </div>
       )}
 
-      {/* Row 3: top track flex-wrap, full names when expanded */}
+      {/* Row 3: top track — click to open floating track list */}
       {topTrack && (
-        <div className={`flex flex-wrap gap-y-1 text-xs text-center ${colors.textLight}`}>
-          <div className="flex-1 min-w-0 px-1">
-            <div className="opacity-60">Top Track</div>
-            <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{topTrack.trackName}</div>
-          </div>
-          <div className="flex-1 min-w-0 px-1">
-            <div className="opacity-60">Plays</div>
-            <div className="font-bold">{topTrack.playCount}</div>
-          </div>
-        </div>
-      )}
-
-      {/* More tracks toggle */}
-      {otherTracks.length > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowTracks(s => !s)}
-          className={`mt-2 text-xs flex items-center justify-between w-full p-1 ${colors.text} ${colors.bgButton} rounded cursor-pointer`}
-        >
-          <span className="flex items-center">
-            <Music size={14} className="mr-1" />
-            {showTracks ? 'Hide' : 'Show'} {otherTracks.length} more tracks
-            {remainingTracks > otherTracks.length && !showTracks &&
-              <span className="ml-1">({remainingTracks - otherTracks.length} unavailable)</span>}
-          </span>
-          {showTracks ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </button>
-      )}
-
-      {showTracks && (
-        <div className={`mt-1 max-h-64 overflow-y-auto text-xs border ${colors.border} rounded`}>
-          <div className={`sticky top-0 ${colors.bgHeader} p-1 text-xs text-center ${colors.text} font-medium`}>
-            {remainingTracks !== otherTracks.length
-              ? `Showing ${otherTracks.length} of ${remainingTracks} remaining tracks`
-              : `Showing all ${otherTracks.length} remaining tracks`}
-          </div>
-          {otherTracks.map((track, trackIndex) => (
-            <div
-              key={`${track.trackName || 'unknown'}-${trackIndex}`}
-              className={`p-1 ${trackIndex % 2 === 0 ? colors.bgStripe : colors.bg}`}
-            >
-              <div className={`flex justify-between items-center ${colors.text}`}>
-                <span>
-                  {track.trackName || 'Unknown Track'}
-                  {track.variations && track.variations.length > 1 && (
-                    <span className={`text-xs ${colors.textLight} ml-1`}>({track.variations.length} versions)</span>
-                  )}
-                </span>
-                <span className={`text-xs ${colors.textLight}`}>{formatDuration(track.totalPlayed || 0)}</span>
-              </div>
-              <div className={`text-right text-xs ${colors.textLight}`}>{track.playCount || 0} plays</div>
+        <div className="relative mt-1">
+          <button
+            type="button"
+            onClick={() => setShowTracks(s => !s)}
+            className={`flex flex-wrap gap-y-1 text-xs text-center w-full cursor-pointer hover:opacity-70 ${colors.textLight}`}
+          >
+            <div className="flex-1 min-w-0 px-1">
+              <div className="opacity-60">Top Track</div>
+              <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{topTrack.trackName}</div>
             </div>
-          ))}
+            <div className="flex-1 min-w-0 px-1">
+              <div className="opacity-60">Plays</div>
+              <div className="font-bold flex items-center justify-center gap-1">
+                {topTrack.playCount}
+                {albumTracks.length > 1 && (
+                  <span className={`inline-flex items-center justify-center w-4 h-4 text-xs rounded border leading-none
+                    ${isColorful
+                      ? (isDarkMode ? `${colors.bg} ${colors.text} border-current shadow-[1px_1px_0_0_currentColor]` : `${colors.bg} ${colors.text} border-current shadow-[1px_1px_0_0_currentColor]`)
+                      : (isDarkMode ? 'bg-black text-white border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white text-black border-black shadow-[1px_1px_0_0_black]')
+                    }`}
+                  >
+                    {showTracks ? '−' : '+'}
+                  </span>
+                )}
+              </div>
+            </div>
+          </button>
+
+          {showTracks && (
+            <div className={`absolute left-0 top-full z-50 w-full border rounded shadow-lg overflow-hidden ${colors.bg} ${colors.border}`}>
+              <div className={`sticky top-0 p-1 text-xs text-center font-medium ${colors.bgHeader} ${colors.text}`}>
+                {albumTracks.length} track{albumTracks.length !== 1 ? 's' : ''}
+              </div>
+              <div className="max-h-48 overflow-y-auto">
+                {albumTracks.map((track, trackIndex) => (
+                  <div
+                    key={`${track.trackName || 'unknown'}-${trackIndex}`}
+                    className={`p-1 ${trackIndex % 2 === 0 ? colors.bgStripe : colors.bg}`}
+                  >
+                    <div className={`flex justify-between items-center ${colors.text}`}>
+                      <span>
+                        {track.trackName || 'Unknown Track'}
+                        {track.variations && track.variations.length > 1 && (
+                          <span className={`text-xs ${colors.textLight} ml-1`}>({track.variations.length} versions)</span>
+                        )}
+                      </span>
+                      <span className={`text-xs ${colors.textLight}`}>{formatDuration(track.totalPlayed || 0)}</span>
+                    </div>
+                    <div className={`text-right text-xs ${colors.textLight}`}>{track.playCount || 0} plays</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
