@@ -259,6 +259,7 @@ const SpotifyAnalyzer = ({
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(50);
   const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'list'
+  const [expandedArtistCards, setExpandedArtistCards] = useState({});
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [artistsSortPress, setArtistsSortPress] = useState(0);
@@ -1076,6 +1077,7 @@ const SpotifyAnalyzer = ({
           firstSong: trackName,
           firstSongPlayCount: 1,
           tracks: new Map(), // Track all songs and their play counts
+          albums: new Map(), // Track all albums and their play counts
           longestStreak: 1,
           currentStreak: 1,
           streakStart: timestamp.getTime(),
@@ -1103,17 +1105,28 @@ const SpotifyAnalyzer = ({
       const trackData = artist.tracks.get(trackName);
       trackData.playCount++;
       trackData.totalPlayed += entry.ms_played || 0;
+
+      // Track albums for mostPlayedAlbum
+      const albumName = entry.master_metadata_album_album_name;
+      if (albumName) {
+        artist.albums.set(albumName, (artist.albums.get(albumName) || 0) + 1);
+      }
     });
-    
-    // Process each artist to find most played song
+
+    // Process each artist to find most played song and album
     artistMap.forEach(artist => {
       if (artist.tracks.size > 0) {
         const mostPlayedTrack = Array.from(artist.tracks.values())
           .sort((a, b) => b.playCount - a.playCount)[0];
         artist.mostPlayedSong = mostPlayedTrack;
       }
-      // Remove the tracks map as it's no longer needed
+      if (artist.albums.size > 0) {
+        const [albumName, playCount] = Array.from(artist.albums.entries())
+          .sort((a, b) => b[1] - a[1])[0];
+        artist.mostPlayedAlbum = { albumName, playCount };
+      }
       delete artist.tracks;
+      delete artist.albums;
     });
     
     return Array.from(artistMap.values()).sort((a, b) => {
@@ -3063,7 +3076,7 @@ const SpotifyAnalyzer = ({
                   </div>
                 ) : (
                   // Grid view
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 items-start">
                     {(filteredDisplayedArtists.length > 0 ? filteredDisplayedArtists : displayedArtists)
                       .slice(0, topArtistsCount)
                       .map((artist) => {
@@ -3090,13 +3103,22 @@ const SpotifyAnalyzer = ({
                           ? 'text-blue-600 dark:text-blue-300'
                           : (isDarkMode ? 'text-white' : 'text-black');
 
+                        const isExpanded = !!expandedArtistCards[artist.name];
+                        const toggleExpanded = (e) => {
+                          e.stopPropagation();
+                          setExpandedArtistCards(prev => ({
+                            ...prev,
+                            [artist.name]: !prev[artist.name],
+                          }));
+                        };
+
                         return (
                           <div
                             key={artist.name}
                             onClick={handleArtistClick}
                             className={`
                               ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
-                              p-3 ${cardBg} rounded border ${cardBorder} relative
+                              p-3 ${cardBg} rounded border ${cardBorder} text-center
                               ${colorMode === 'minimal' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}
                               ${artistSelectionMode
                                 ? (colorMode === 'colorful'
@@ -3106,36 +3128,58 @@ const SpotifyAnalyzer = ({
                               }
                             `}
                           >
-                            <div className={`font-bold ${cardText}`}>{artist.name}</div>
-                            <div className={`text-sm ${cardTextLight}`}>
-                              {artistsSortBy === 'playCount' ? (
-                                <>
-                                  Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
-                                  <br/>
-                                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                                </>
-                              ) : (
-                                <>
-                                  Total Time: <span className="font-bold">{formatDuration(artist.totalPlayed)}</span>
-                                  <br/>
-                                  Plays: <span className="font-bold">{artist.playCount?.toLocaleString() || 0}</span>
-                                </>
-                              )}
-                              <br/>
+                            {/* Row 1: position + name + toggle */}
+                            <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${cardText}`}>
+                              <span className="opacity-50 text-sm w-5 text-left">#{originalRank}</span>
+                              <span className="flex-1 text-center">{artist.name}</span>
+                              <button
+                                type="button"
+                                onClick={toggleExpanded}
+                                className="w-5 text-sm opacity-60 hover:opacity-100 leading-none cursor-pointer"
+                              >
+                                {isExpanded ? '−' : '+'}
+                              </button>
+                            </div>
+
+                            {/* Row 2: collapsible total time | plays | first listen */}
+                            {isExpanded && (
+                              <div className={`grid grid-cols-3 gap-1 mb-2 text-xs ${cardTextLight}`}>
+                                <div>
+                                  <div className="opacity-60">Time</div>
+                                  <div className="font-bold">{formatDuration(artist.totalPlayed)}</div>
+                                </div>
+                                <div>
+                                  <div className="opacity-60">Plays</div>
+                                  <div className="font-bold">{artist.playCount?.toLocaleString() || 0}</div>
+                                </div>
+                                <div>
+                                  <div className="opacity-60">Since</div>
+                                  <div className="font-bold">{artist.firstListen ? new Date(artist.firstListen).toLocaleDateString() : '—'}</div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Rows 3-4: flex-wrap so short content merges into one row */}
+                            <div className={`flex flex-wrap gap-y-1 text-xs text-center ${cardTextLight}`}>
                               {artist.mostPlayedSong && (
-                                <>Top Song: <span className="font-bold">{artist.mostPlayedSong.trackName}</span> ({artist.mostPlayedSong.playCount} plays)<br/></>
-                              )}
-                              {artist.mostPlayedAlbum && (
-                                <>Top Album: <span className="font-bold">{artist.mostPlayedAlbum.albumName}</span> ({artist.mostPlayedAlbum.playCount} plays)<br/></>
+                                <div className="flex-1 min-w-0 px-1">
+                                  <div className="opacity-60">Top Song</div>
+                                  <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{artist.mostPlayedSong.trackName}</div>
+                                </div>
                               )}
                               {artist.firstSong && (
-                                <>First Song: <span className="font-bold">{artist.firstSong}</span> ({artist.firstSongPlayCount} plays)<br/></>
+                                <div className="flex-1 min-w-0 px-1">
+                                  <div className="opacity-60">First Song</div>
+                                  <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{artist.firstSong}</div>
+                                </div>
                               )}
-                              {artist.firstListen && (
-                                <>First Listen: <span className="font-bold">{new Date(artist.firstListen).toLocaleDateString()}</span></>
+                              {artist.mostPlayedAlbum && (
+                                <div className="flex-1 min-w-0 px-1">
+                                  <div className="opacity-60">Top Album</div>
+                                  <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{artist.mostPlayedAlbum.albumName}</div>
+                                </div>
                               )}
                             </div>
-                            <div className={`absolute top-1 right-3 ${cardText} text-[2rem]`}>{originalRank}</div>
                           </div>
                         );
                       })}
@@ -3448,7 +3492,7 @@ const SpotifyAnalyzer = ({
                 ) : (
                   // Grid or Mobile view
                   <div className={`
-                    ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4' : 'space-y-1'}
+                    ${albumsViewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 items-start' : 'space-y-1'}
                   `}>
                     {displayedAlbums.slice(0, topAlbumsCount).map((album, index) => {
                       const albumCardBg = colorMode === 'colorful'
@@ -3790,6 +3834,7 @@ const SpotifyAnalyzer = ({
     patternsViewMode,
     calendarViewMode,
     artistSelectionMode,
+    expandedArtistCards,
     filteredStats,
     filteredStreaks
   ]);
