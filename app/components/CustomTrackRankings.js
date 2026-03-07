@@ -331,6 +331,7 @@ const CustomTrackRankings = ({
   const [showPlaylistExporter, setShowPlaylistExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showOmitDropdown, setShowOmitDropdown] = useState(null); // Track which card's dropdown is open
+  const [expandedTrackCards, setExpandedTrackCards] = useState({});
 
   // Create a ref to hold our normalization cache that persists across renders
   const normalizationCache = useRef(new Map());
@@ -1777,96 +1778,87 @@ return (
       <div>
         {filteredTracks.length > 0 ? (
           viewMode === 'grid' ? (
-            // Grid view - like artists tab grid
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {filteredTracks.map((song, index) => (
-                <div
-                  key={song.key}
-                  className={`p-3 pb-2 border rounded-lg ${colors.bgLight} ${colors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1] hover:shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black] hover:shadow-[2px_2px_0_0_black]') : 'shadow-sm hover:shadow-md'} transition-shadow`}
-                >
-                  {song.isFeatured && (
-                    <span className={`inline-block px-1 py-0.5 mb-2 ${colors.bgMed} ${colors.text} rounded text-xs`}>
-                      FEAT
-                    </span>
-                  )}
-
-                  <div className={`font-bold ${colors.text}`}>{song.displayName || song.trackName}</div>
-                  <div className={`text-sm ${colors.textLight}`}>
-                    Artist: <span
-                      className="font-bold cursor-pointer hover:underline"
-                      onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
-                    >
-                      {song.displayArtist || song.artist}
-                    </span>
-                    <br/>
-                    Album: <span
-                      className="font-bold cursor-pointer hover:underline"
-                      onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
-                    >
-                      {song.albumName}
-                    </span>
-                    <br/>
-                    Total Time: <span className="font-bold">{formatDuration(song.totalPlayed)}</span>
-                    <br/>
-                    Plays: <span className="font-bold">{song.playCount}</span>
-                  </div>
-
+            // Grid view
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 items-start">
+              {filteredTracks.map((song, index) => {
+                const isExpanded = !!expandedTrackCards[song.key];
+                const toggleExpanded = (e) => {
+                  e.stopPropagation();
+                  setExpandedTrackCards(prev => ({ ...prev, [song.key]: !prev[song.key] }));
+                };
+                return (
                   <div
-                    className="absolute top-1 right-3 text-[2rem] font-bold"
-                    style={{
-                      color: 'transparent',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      backgroundColor: (() => {
-                        const theme = isColorful ? (textTheme || colorTheme || 'orange') : null;
-                        const rgb = {
-                          orange: isDarkMode ? '253,186,116' : '194,65,12',
-                          emerald: isDarkMode ? '110,231,183' : '4,120,87',
-                          red: isDarkMode ? '252,165,165' : '185,28,28',
-                          violet: isDarkMode ? '196,181,253' : '109,40,217',
-                        }[theme] || (isDarkMode ? '255,255,255' : '0,0,0');
-                        return `rgba(${rgb},0.1)`;
-                      })(),
-                      textShadow: isDarkMode
-                        ? '0px 2px 3px rgba(255,255,255,0.15), 0px -1px 1px rgba(0,0,0,0.6)'
-                        : '0px 2px 3px rgba(255,255,255,0.9), 0px -1px 1px rgba(0,0,0,0.2)',
-                    }}
-                  >{index + 1}</div>
+                    key={song.key}
+                    className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} relative text-center ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                  >
+                    {/* Omit button */}
+                    <div className={`absolute top-0 right-0 ${colors.text}`} style={{ transform: 'translate(14%, -14%)', zIndex: 10 }}>
+                      <button
+                        onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
+                        title="Omit options"
+                        className={`flex items-center justify-center rounded-full cursor-pointer hover:opacity-70
+                          ${!isColorful
+                            ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]')
+                            : 'shadow-[1px_1px_0_0_currentColor]'
+                          }`}
+                      >
+                        <XCircle size={{ small: 20, medium: 24, large: 28, xlarge: 32 }[fontSize] || 24} />
+                      </button>
+                      {showOmitDropdown === song.key && (
+                        <div className={`absolute top-full right-0 mt-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
+                          <button onClick={() => { omitSong(song); setShowOmitDropdown(null); }} className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg}`}>Omit song</button>
+                          <button onClick={() => { omitArtist(song.artist); setShowOmitDropdown(null); }} className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg} border-t ${colors.border}`}>Omit artist</button>
+                        </div>
+                      )}
+                    </div>
 
-                  {/* Omit button - centered on top-right corner */}
-                  <div className={`absolute top-0 right-0 ${colors.text}`} style={{ transform: 'translate(14%, -14%)', zIndex: 10 }}>
-                    <button
-                      onClick={() => setShowOmitDropdown(showOmitDropdown === song.key ? null : song.key)}
-                      className="opacity-30 hover:opacity-100 transition-opacity"
-                      title="Omit options"
-                    >
-                      <XCircle size={{ small: 14, medium: 16, large: 18, xlarge: 20 }[fontSize] || 16} />
-                    </button>
-                    {showOmitDropdown === song.key && (
-                      <div className={`absolute top-full right-0 mt-1 ${colors.bg} border ${colors.border} rounded shadow-lg z-50 min-w-max`}>
-                        <button
-                          onClick={() => {
-                            omitSong(song);
-                            setShowOmitDropdown(null);
-                          }}
-                          className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg}`}
+                    {/* Row 1: rank + name + toggle */}
+                    <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${colors.text}`}>
+                      <span className="opacity-50 text-sm w-5 text-left shrink-0">#{index + 1}</span>
+                      <div className="flex-1 text-center px-1">
+                        {song.isFeatured && <span className={`inline-block px-1 py-0.5 mr-1 ${colors.bgMed} rounded text-xs font-normal`}>FEAT</span>}
+                        <div>{song.displayName || song.trackName}</div>
+                        <div
+                          className={`text-xs font-normal opacity-70 cursor-pointer hover:underline ${colors.textLight}`}
+                          onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}
                         >
-                          Omit song
-                        </button>
-                        <button
-                          onClick={() => {
-                            omitArtist(song.artist);
-                            setShowOmitDropdown(null);
-                          }}
-                          className={`block w-full px-3 py-2 text-left text-xs ${colors.text} ${colors.hoverBg} border-t ${colors.border}`}
+                          {song.displayArtist || song.artist}
+                        </div>
+                      </div>
+                      <button type="button" onClick={toggleExpanded} className="w-5 text-sm opacity-60 hover:opacity-100 leading-none cursor-pointer shrink-0">
+                        {isExpanded ? '−' : '+'}
+                      </button>
+                    </div>
+
+                    {/* Row 2: collapsible Time | Plays */}
+                    {isExpanded && (
+                      <div className={`grid grid-cols-2 gap-1 mb-2 text-xs ${colors.textLight}`}>
+                        <div>
+                          <div className="opacity-60">Time</div>
+                          <div className="font-bold">{formatDuration(song.totalPlayed)}</div>
+                        </div>
+                        <div>
+                          <div className="opacity-60">Plays</div>
+                          <div className="font-bold">{song.playCount}</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Row 3: Album */}
+                    {song.albumName && (
+                      <div className={`text-xs text-center ${colors.textLight} mt-1`}>
+                        <div className="opacity-60 hidden sm:block">Album</div>
+                        <div
+                          className={`font-bold cursor-pointer hover:underline ${isExpanded ? 'break-words' : 'truncate'}`}
+                          onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
                         >
-                          Omit artist
-                        </button>
+                          {song.albumName}
+                        </div>
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : viewMode === 'mobile' ? (
             // Mobile view - 2-column table like artists tab
