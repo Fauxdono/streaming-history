@@ -19,6 +19,9 @@ const CalendarView = ({
   const [activeTab, setActiveTab] = useState('calendar');
   const [daySelectionMode, setDaySelectionMode] = useState(false);
   const [viewPress, setViewPress] = useState(0);
+  const [expandedMonthCards, setExpandedMonthCards] = useState({});
+  const [expandedDayCards, setExpandedDayCards] = useState({});
+  const [expandedHistoryCards, setExpandedHistoryCards] = useState({});
 
   useEffect(() => { setViewPress(0); }, [activeTab]);
 
@@ -827,32 +830,45 @@ const CalendarView = ({
           <div>
             {/* Monthly View - Grid */}
             {!isMonthView && viewMode === 'grid' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {calendarData.map((monthData, index) => (
-                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
-                    <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem]`}>{monthData.fullName}</div>
-                    <div className={`text-sm ${modeColors.text}`}>
-                      Total Time: <span className="font-bold">{formatDuration(monthData.totalTime)}</span>
-                      <br/>
-                      Plays: <span className="font-bold">{monthData.totalPlays.toLocaleString()}</span>
-                      <br/>
-                      Songs: <span className="font-bold">{monthData.uniqueSongCount}</span>
-                      <br/>
-                      Artists: <span className="font-bold">{monthData.uniqueArtistCount}</span>
-                      <br/>
-                      {monthData.topArtist.name && (
-                        <>Top Artist: <span className="font-bold">{monthData.topArtist.name}</span> ({monthData.topArtist.playCount} plays)<br/></>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 items-start">
+                {calendarData.map((monthData, index) => {
+                  const isExpanded = !!expandedMonthCards[index];
+                  return (
+                    <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border ${modeColors.border} text-center ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                      {/* Row 1: name + toggle */}
+                      <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
+                        <span className="w-5 shrink-0" />
+                        <span className="flex-1 text-center">{monthData.fullName}</span>
+                        <button type="button" onClick={() => setExpandedMonthCards(p => ({ ...p, [index]: !p[index] }))} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">{isExpanded ? '−' : '+'}</button>
+                      </div>
+                      {/* Row 2: collapsible stats */}
+                      {isExpanded && (
+                        <div className={`grid grid-cols-2 gap-1 mb-2 text-xs ${modeColors.textLight}`}>
+                          <div><div className="opacity-60">Time</div><div className="font-bold">{formatDuration(monthData.totalTime)}</div></div>
+                          <div><div className="opacity-60">Plays</div><div className="font-bold">{monthData.totalPlays.toLocaleString()}</div></div>
+                          <div><div className="opacity-60">Songs</div><div className="font-bold">{monthData.uniqueSongCount}</div></div>
+                          <div><div className="opacity-60">Artists</div><div className="font-bold">{monthData.uniqueArtistCount}</div></div>
+                        </div>
                       )}
-                      {monthData.topAlbum.name && (
-                        <>Top Album: <span className="font-bold">{monthData.topAlbum.name}</span> ({monthData.topAlbum.playCount} plays)<br/></>
-                      )}
-                      {monthData.topSong.name && (
-                        <>Top Song: <span className="font-bold">{monthData.topSong.name}</span> ({monthData.topSong.playCount} plays)<br/></>
-                      )}
-                      New Songs: <span className="font-bold">{monthData.firstListens.length}</span>
+                      {/* Row 3: top artist | top song */}
+                      <div className={`flex flex-wrap gap-y-1 text-xs text-center ${modeColors.textLight}`}>
+                        {monthData.topArtist.name && (
+                          <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Artist</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{monthData.topArtist.name}</div></div>
+                        )}
+                        {monthData.topSong.name && (
+                          <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Song</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{monthData.topSong.name}</div></div>
+                        )}
+                      </div>
+                      {/* Row 4: top album + new songs */}
+                      <div className={`flex flex-wrap gap-y-1 text-xs text-center mt-1 ${modeColors.textLight}`}>
+                        {monthData.topAlbum.name && (
+                          <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Album</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{monthData.topAlbum.name}</div></div>
+                        )}
+                        <div className="flex-1 min-w-0 px-1"><div className="opacity-60">New Songs</div><div className="font-bold">{monthData.firstListens.length}</div></div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -916,7 +932,7 @@ const CalendarView = ({
                   </p>
                 )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 items-start">
                 {dailyCalendarData.map((dayData, index) => {
                   const handleDayClick = () => {
                     if (!daySelectionMode) return;
@@ -926,17 +942,18 @@ const CalendarView = ({
                   };
 
                   const dateObj = new Date(dayData.date);
-                  const monthName = dateObj.toLocaleDateString('en-US', { month: 'long' });
+                  const monthName = dateObj.toLocaleDateString('en-US', { month: 'short' });
                   const day = dateObj.getDate();
                   const suffix = day % 10 === 1 && day !== 11 ? 'st' :
                                  day % 10 === 2 && day !== 12 ? 'nd' :
                                  day % 10 === 3 && day !== 13 ? 'rd' : 'th';
+                  const isExpanded = !!expandedDayCards[dayData.date];
 
                   return (
                   <div
                     key={index}
                     onClick={handleDayClick}
-                    className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${
+                    className={`p-3 ${modeColors.bgCardAlt} rounded border text-center ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
                     } ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'} ${
                       daySelectionMode
@@ -947,25 +964,34 @@ const CalendarView = ({
                             : 'hover:bg-gray-100 ring-2 ring-black ring-opacity-30'
                         : ''
                     }`}>
-                    <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem]`}>
-                      <span className="opacity-50">{monthName}</span>{' '}{day}{suffix}
+                    {/* Row 1: date + toggle */}
+                    <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
+                      <span className="w-5 shrink-0" />
+                      <span className="flex-1 text-center">{monthName} {day}{suffix}</span>
+                      <button type="button" onClick={e => { e.stopPropagation(); setExpandedDayCards(p => ({ ...p, [dayData.date]: !p[dayData.date] })); }} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">{isExpanded ? '−' : '+'}</button>
                     </div>
-                    <div className={`text-sm ${modeColors.text}`}>
-                      Total Time: <span className="font-bold">{formatDuration(dayData.totalTime)}</span>
-                      <br/>
-                      Plays: <span className="font-bold">{dayData.totalPlays.toLocaleString()}</span>
-                      <br/>
-                      Songs: <span className="font-bold">{dayData.uniqueSongCount}</span>
-                      <br/>
-                      Artists: <span className="font-bold">{dayData.uniqueArtistCount}</span>
-                      <br/>
+                    {/* Row 2: collapsible stats */}
+                    {isExpanded && (
+                      <div className={`grid grid-cols-2 gap-1 mb-2 text-xs ${modeColors.textLight}`}>
+                        <div><div className="opacity-60">Time</div><div className="font-bold">{formatDuration(dayData.totalTime)}</div></div>
+                        <div><div className="opacity-60">Plays</div><div className="font-bold">{dayData.totalPlays.toLocaleString()}</div></div>
+                        <div><div className="opacity-60">Songs</div><div className="font-bold">{dayData.uniqueSongCount}</div></div>
+                        <div><div className="opacity-60">Artists</div><div className="font-bold">{dayData.uniqueArtistCount}</div></div>
+                      </div>
+                    )}
+                    {/* Row 3: top artist | top album */}
+                    <div className={`flex flex-wrap gap-y-1 text-xs text-center ${modeColors.textLight}`}>
                       {dayData.topArtist.name && (
-                        <>Top Artist: <span className="font-bold">{dayData.topArtist.name}</span> ({dayData.topArtist.playCount} plays)<br/></>
+                        <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Artist</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{dayData.topArtist.name}</div></div>
                       )}
                       {dayData.topAlbum.name && (
-                        <>Top Album: <span className="font-bold">{dayData.topAlbum.name}</span> ({dayData.topAlbum.playCount} plays)<br/></>
+                        <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Album</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{dayData.topAlbum.name}</div></div>
                       )}
-                      New Songs: <span className="font-bold">{dayData.firstListens.length}</span>
+                    </div>
+                    {/* Row 4: new songs */}
+                    <div className={`text-xs text-center mt-1 ${modeColors.textLight}`}>
+                      <div className="opacity-60">New Songs</div>
+                      <div className="font-bold">{dayData.firstListens.length}</div>
                     </div>
                   </div>
                   );
@@ -1110,28 +1136,44 @@ const CalendarView = ({
                 No listening data found for this date.
               </div>
             ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {historyData.tracks.map((track, index) => (
-                  <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border transition-all duration-300 relative ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
-                    <div className={`absolute top-1 right-3 ${modeColors.textLight} text-[1.33rem] font-mono`}>{track.formattedTime}</div>
-                    <div className={`font-bold ${modeColors.text} pr-20 truncate`}>{track.master_metadata_track_name || 'Unknown Track'}</div>
-                    <div className={`text-sm ${modeColors.text}`}>
-                      Artist: <span className="font-bold">{track.master_metadata_album_artist_name || 'Unknown Artist'}</span>
-                      <br/>
-                      {track.master_metadata_album_album_name && (
-                        <>Album: <span className="font-bold">{track.master_metadata_album_album_name}</span><br/></>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 items-start">
+                {historyData.tracks.map((track, index) => {
+                  const isExpanded = !!expandedHistoryCards[index];
+                  return (
+                    <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border text-center ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                      {/* Row 1: rank + name + artist subline + toggle */}
+                      <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
+                        <span className="opacity-50 text-sm w-5 text-left shrink-0">#{index + 1}</span>
+                        <div className="flex-1 min-w-0 text-center px-1">
+                          <div className={`${isExpanded ? 'break-words' : 'truncate'}`}>{track.master_metadata_track_name || 'Unknown Track'}</div>
+                          <div className={`text-xs font-normal opacity-70 truncate ${modeColors.textLight}`}>{track.master_metadata_album_artist_name || 'Unknown Artist'}</div>
+                        </div>
+                        <button type="button" onClick={() => setExpandedHistoryCards(p => ({ ...p, [index]: !p[index] }))} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">{isExpanded ? '−' : '+'}</button>
+                      </div>
+                      {/* Row 2: collapsible time + duration */}
+                      {isExpanded && (
+                        <div className={`grid grid-cols-2 gap-1 mb-2 text-xs ${modeColors.textLight}`}>
+                          <div><div className="opacity-60">Played at</div><div className="font-bold font-mono">{track.formattedTime}</div></div>
+                          <div><div className="opacity-60">Duration</div><div className="font-bold">{track.formattedDuration}</div></div>
+                        </div>
                       )}
-                      Duration: <span className="font-bold">{track.formattedDuration}</span>
-                      <br/>
-                      {track.reason_end === 'trackdone' && (
-                        <span className="text-green-600">Completed</span>
-                      )}
-                      {(track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && (
-                        <span className="text-orange-600">Skipped</span>
-                      )}
+                      {/* Row 3: album + status */}
+                      <div className={`flex flex-wrap gap-y-1 text-xs text-center ${modeColors.textLight}`}>
+                        {track.master_metadata_album_album_name && (
+                          <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Album</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{track.master_metadata_album_album_name}</div></div>
+                        )}
+                        {(track.reason_end === 'trackdone' || track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && (
+                          <div className="flex-1 min-w-0 px-1">
+                            <div className="opacity-60">Status</div>
+                            <div className={`font-bold ${track.reason_end === 'trackdone' ? 'text-green-600' : 'text-orange-600'}`}>
+                              {track.reason_end === 'trackdone' ? 'Completed' : 'Skipped'}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <>
