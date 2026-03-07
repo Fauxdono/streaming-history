@@ -338,10 +338,13 @@ const SpotifyAnalyzer = ({
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
   const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Note: YearSelector reports its own dimensions via onWidthChange/onHeightChange callbacks.
   // No need to duplicate dimension logic here — the callbacks handle all mode/position changes.
-  
+
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     const checkMobile = () => {
       const isNarrow = window.innerWidth < 640;
@@ -2052,8 +2055,8 @@ const SpotifyAnalyzer = ({
 
   // Simple content area calculation: screen size minus component widths/heights
   const contentAreaStyles = useMemo(() => {
-    // Check if window is available (SSR safety)
-    if (typeof window === 'undefined') {
+    // Return SSR-matching values until after mount to avoid hydration mismatch
+    if (!mounted) {
       return {
         paddingTop: '56px',
         paddingBottom: '0px', 
@@ -2112,7 +2115,7 @@ const SpotifyAnalyzer = ({
       paddingLeft: `${leftSpace}px`,
       paddingRight: `${rightSpace}px`,
     };
-  }, [topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorWidth, showYearSidebar, isMobile, yearSelectorHeight, fontSize]);
+  }, [mounted, topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorWidth, showYearSidebar, isMobile, yearSelectorHeight, fontSize]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
