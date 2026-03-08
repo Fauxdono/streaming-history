@@ -1131,7 +1131,7 @@ const GoogleDriveSync = ({
   const cardBg = isColorful
     ? (isDarkMode ? 'bg-violet-700 border-violet-500' : 'bg-violet-100 border-violet-300')
     : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300');
-  const minBtn = isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100';
+  const minBtn = isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]';
 
   return (
     <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg}`}>
@@ -1169,7 +1169,7 @@ const GoogleDriveSync = ({
             onClick={handleConnect}
             disabled={isConnecting || isInitializing}
             className={isColorful
-              ? 'px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm'
+              ? `px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#2563eb]' : 'shadow-[2px_2px_0_0_#1d4ed8]'}`
               : `px-3 sm:px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm ${minBtn}`
             }
           >
@@ -1197,7 +1197,7 @@ const GoogleDriveSync = ({
               onClick={handleSave}
               disabled={isSaving || !stats || !processedData || processedData.length === 0}
               className={isColorful
-                ? 'flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm'
+                ? `flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#2563eb]' : 'shadow-[2px_2px_0_0_#1d4ed8]'}`
                 : `flex-1 px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm ${minBtn}`
               }
             >
@@ -1207,7 +1207,7 @@ const GoogleDriveSync = ({
               onClick={handleLoad}
               disabled={isLoading}
               className={isColorful
-                ? 'flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm'
+                ? `flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#16a34a]' : 'shadow-[2px_2px_0_0_#15803d]'}`
                 : `flex-1 px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm ${minBtn}`
               }
             >
@@ -1232,7 +1232,7 @@ const GoogleDriveSync = ({
               <button
                 onClick={cancelLoad}
                 className={isColorful
-                  ? 'w-full mt-2 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs'
+                  ? `w-full mt-2 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`
                   : `w-full mt-2 px-3 py-2 rounded text-xs ${minBtn}`
                 }
               >
@@ -1253,7 +1253,7 @@ const GoogleDriveSync = ({
                 onClick={handleSave}
                 disabled={isSaving || !stats || !processedData || processedData.length === 0}
                 className={isColorful
-                  ? 'w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base'
+                  ? `w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base ${isDarkMode ? 'shadow-[2px_2px_0_0_#2563eb]' : 'shadow-[2px_2px_0_0_#1d4ed8]'}`
                   : `w-full px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-base ${minBtn}`
                 }
               >
@@ -1281,7 +1281,7 @@ const GoogleDriveSync = ({
                   onClick={handleLoad}
                   disabled={isLoading}
                   className={isColorful
-                    ? 'w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-base'
+                    ? `w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-base ${isDarkMode ? 'shadow-[2px_2px_0_0_#16a34a]' : 'shadow-[2px_2px_0_0_#15803d]'}`
                     : `w-full px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-base ${minBtn}`
                   }
                 >
@@ -1291,7 +1291,7 @@ const GoogleDriveSync = ({
                   <button
                     onClick={cancelLoad}
                     className={isColorful
-                      ? 'w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm'
+                      ? `w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`
                       : `w-full px-4 py-2 rounded text-sm ${minBtn}`
                     }
                   >

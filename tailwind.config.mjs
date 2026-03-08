@@ -20,7 +20,8 @@ export default {
         foreground: "var(--foreground)",
       },
       screens: {
-        ml: '896px', // between md (768px) and lg (1024px)
+        ml: '896px',  // between md (768px) and lg (1024px)
+        '3xl': '2048px',
       },
     },
   },

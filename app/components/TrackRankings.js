@@ -28,6 +28,7 @@ const TrackRankings = ({
   const [sortPress, setSortPress] = useState(0);
   const [_showExporter, _setShowExporter] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedCards, setExpandedCards] = useState({});
   const [_topN, _setTopN] = useState(100);
   const [_intensityThreshold, _setIntensityThreshold] = useState(5);
 
@@ -520,29 +521,53 @@ return (
 
       {/* Grid View */}
       {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 gap-4 mt-2 items-start">
           {filteredObsessions.length > 0 ? (
-            filteredObsessions.map((obsession, index) => (
-              <div
-                key={obsession.key || `${obsession.trackName}-${obsession.artist}`}
-                className={`p-3 ${getThemedColors().bgLight} rounded shadow-sm border ${getThemedColors().border} relative`}
-              >
-                <div className={`font-bold ${getThemedColors().text} pr-8`}>{obsession.trackName}</div>
-                <div className={`text-sm ${getThemedColors().textLight}`}>{obsession.artist}</div>
-                {obsession.albumName && (
-                  <div className={`text-xs italic ${getThemedColors().textLighter} truncate`}>{obsession.albumName}</div>
-                )}
-                <div className={`border-t ${getThemedColors().border} my-2`}></div>
-                <div className={`text-sm ${getThemedColors().text}`}>
-                  <div><span className="font-bold">{obsession.intensePeriod.playsInWeek}</span> plays in peak week</div>
-                  <div><span className="font-bold">{obsession.playCount}</span> total plays</div>
-                  <div className={`text-xs ${getThemedColors().textLighter} mt-1`}>
-                    Week of {formatDate(obsession.intensePeriod.weekStart)}
+            filteredObsessions.map((obsession, index) => {
+              const key = obsession.key || `${obsession.trackName}-${obsession.artist}`;
+              const isExpanded = !!expandedCards[key];
+              const c = getThemedColors();
+              return (
+                <div
+                  key={key}
+                  className={`p-3 ${c.bgLight} rounded border ${c.border} text-center ${colorMode === 'minimal' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                >
+                  {/* Row 1: rank + name + artist subline + toggle */}
+                  <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${!isExpanded ? 'overflow-hidden' : ''} ${c.text}`}>
+                    <span className="opacity-50 text-sm w-5 text-left shrink-0">#{index + 1}</span>
+                    <div className="flex-1 min-w-0 text-center px-1">
+                      <div className={isExpanded ? 'break-words' : 'truncate'}>{obsession.trackName}</div>
+                      <div className={`text-xs font-normal opacity-70 ${isExpanded ? 'break-words' : 'truncate'} ${c.textLight}`}>{obsession.artist}</div>
+                    </div>
+                    <button type="button" onClick={() => setExpandedCards(p => ({ ...p, [key]: !p[key] }))} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">
+                      {isExpanded ? '−' : '+'}
+                    </button>
+                  </div>
+
+                  {/* Row 2: collapsible peak plays | total plays */}
+                  {isExpanded && (
+                    <div className={`grid grid-cols-2 gap-1 mb-2 text-xs ${c.textLight}`}>
+                      <div><div className="opacity-60">Peak Week</div><div className="font-bold">{obsession.intensePeriod.playsInWeek}</div></div>
+                      <div><div className="opacity-60">Total Plays</div><div className="font-bold">{obsession.playCount}</div></div>
+                    </div>
+                  )}
+
+                  {/* Row 3: album + week date flex-wrap */}
+                  <div className={`flex flex-wrap gap-y-1 text-xs text-center ${c.textLight}`}>
+                    {obsession.albumName && (
+                      <div className="flex-1 min-w-0 px-1">
+                        <div className="opacity-60">Album</div>
+                        <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{obsession.albumName}</div>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 px-1">
+                      <div className="opacity-60">Week of</div>
+                      <div className="font-bold truncate">{formatDate(obsession.intensePeriod.weekStart)}</div>
+                    </div>
                   </div>
                 </div>
-                <div className={`absolute top-1 right-3 ${getThemedColors().text} text-[2rem]`}>{index + 1}</div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className={`col-span-full p-4 text-center ${getThemedColors().textLighter}`}>
               {yearRangeMode && yearRange.startYear && yearRange.endYear
