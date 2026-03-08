@@ -36,27 +36,31 @@ const CustomTrackRankings = ({
         textLight: isDarkMode ? 'text-violet-400' : 'text-violet-600',
         textLighter: isDarkMode ? 'text-violet-500' : 'text-violet-500',
         textDark: isDarkMode ? 'text-violet-200' : 'text-violet-800',
-        hoverText: isDarkMode ? 'hover:text-violet-100' : 'hover:text-violet-200'
+        hoverText: isDarkMode ? 'hover:text-violet-100' : 'hover:text-violet-200',
+        placeholder: isDarkMode ? 'placeholder-violet-400' : 'placeholder-violet-600'
       },
       red: {
         text: isDarkMode ? 'text-red-300' : 'text-red-700',
         textLight: isDarkMode ? 'text-red-400' : 'text-red-600',
         textLighter: isDarkMode ? 'text-red-500' : 'text-red-500',
         textDark: isDarkMode ? 'text-red-200' : 'text-red-800',
-        hoverText: isDarkMode ? 'hover:text-red-100' : 'hover:text-red-200'
+        hoverText: isDarkMode ? 'hover:text-red-100' : 'hover:text-red-200',
+        placeholder: isDarkMode ? 'placeholder-red-400' : 'placeholder-red-600'
       },
       emerald: {
         text: isDarkMode ? 'text-emerald-300' : 'text-emerald-700',
         textLight: isDarkMode ? 'text-emerald-400' : 'text-emerald-600',
         textLighter: isDarkMode ? 'text-emerald-500' : 'text-emerald-500',
         textDark: isDarkMode ? 'text-emerald-200' : 'text-emerald-800',
-        hoverText: isDarkMode ? 'hover:text-emerald-100' : 'hover:text-emerald-200'
+        hoverText: isDarkMode ? 'hover:text-emerald-100' : 'hover:text-emerald-200',
+        placeholder: isDarkMode ? 'placeholder-emerald-400' : 'placeholder-emerald-600'
       },
       orange: {
         text: isDarkMode ? 'text-orange-300' : 'text-orange-700',
         textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600',
         textLighter: isDarkMode ? 'text-orange-500' : 'text-orange-500',
         textDark: isDarkMode ? 'text-orange-200' : 'text-orange-800',
+        placeholder: isDarkMode ? 'placeholder-orange-400' : 'placeholder-orange-600',
         hoverText: isDarkMode ? 'hover:text-orange-100' : 'hover:text-orange-200'
       }
     };
@@ -66,8 +70,9 @@ const CustomTrackRankings = ({
         bg: 'bg-emerald-900',
         bgLight: 'bg-emerald-800',
         bgMed: 'bg-emerald-700',
-        bgDark: 'bg-emerald-500',
-        bgDarkHover: 'hover:bg-emerald-400',
+        bgDark: 'bg-emerald-800 text-emerald-300 border border-emerald-600 shadow-[2px_2px_0_0_#059669]',
+        bgDarkActive: 'bg-emerald-800 text-emerald-300 border border-emerald-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#059669]',
+        bgDarkHover: 'hover:bg-emerald-700',
         border: 'border-emerald-600',
         borderDark: 'border-emerald-500',
         hoverBg: 'hover:bg-emerald-700',
@@ -78,8 +83,9 @@ const CustomTrackRankings = ({
         bg: 'bg-emerald-200',
         bgLight: 'bg-emerald-100',
         bgMed: 'bg-emerald-300',
-        bgDark: 'bg-emerald-600',
-        bgDarkHover: 'hover:bg-emerald-700',
+        bgDark: 'bg-emerald-100 text-emerald-700 border border-emerald-300 shadow-[2px_2px_0_0_#047857]',
+        bgDarkActive: 'bg-emerald-100 text-emerald-700 border border-emerald-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#047857]',
+        bgDarkHover: 'hover:bg-emerald-200',
         border: 'border-emerald-300',
         borderDark: 'border-emerald-700',
         hoverBg: 'hover:bg-emerald-200',
@@ -91,8 +97,9 @@ const CustomTrackRankings = ({
         bg: isDarkMode ? 'bg-violet-900' : 'bg-violet-100',
         bgLight: isDarkMode ? 'bg-violet-800' : 'bg-violet-50',
         bgMed: isDarkMode ? 'bg-violet-700' : 'bg-violet-200',
-        bgDark: isDarkMode ? 'bg-violet-500' : 'bg-violet-600',
-        bgDarkHover: isDarkMode ? 'hover:bg-violet-400' : 'hover:bg-violet-700',
+        bgDark: isDarkMode ? 'bg-violet-800 text-violet-300 border border-violet-600 shadow-[2px_2px_0_0_#7c3aed]' : 'bg-violet-100 text-violet-700 border border-violet-300 shadow-[2px_2px_0_0_#6d28d9]',
+        bgDarkActive: isDarkMode ? 'bg-violet-800 text-violet-300 border border-violet-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]' : 'bg-violet-100 text-violet-700 border border-violet-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#6d28d9]',
+        bgDarkHover: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-200',
         border: isDarkMode ? 'border-violet-600' : 'border-violet-300',
         borderDark: isDarkMode ? 'border-violet-400' : 'border-violet-700',
         hoverBg: isDarkMode ? 'hover:bg-violet-700' : 'hover:bg-violet-100',
@@ -104,8 +111,9 @@ const CustomTrackRankings = ({
         bg: isDarkMode ? 'bg-orange-900' : 'bg-orange-100',
         bgLight: isDarkMode ? 'bg-orange-800' : 'bg-orange-50',
         bgMed: isDarkMode ? 'bg-orange-700' : 'bg-orange-200',
-        bgDark: isDarkMode ? 'bg-orange-500' : 'bg-orange-600',
-        bgDarkHover: isDarkMode ? 'hover:bg-orange-400' : 'hover:bg-orange-700',
+        bgDark: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 shadow-[2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 shadow-[2px_2px_0_0_#c2410c]',
+        bgDarkActive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#c2410c]',
+        bgDarkHover: isDarkMode ? 'hover:bg-orange-700' : 'hover:bg-orange-200',
         border: isDarkMode ? 'border-orange-600' : 'border-orange-300',
         borderDark: isDarkMode ? 'border-orange-400' : 'border-orange-700',
         hoverBg: isDarkMode ? 'hover:bg-orange-700' : 'hover:bg-orange-100',
@@ -301,7 +309,8 @@ const CustomTrackRankings = ({
     hoverBgDark: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
     focusBorder: isDarkMode ? 'focus:border-[#4169E1]' : 'focus:border-black',
     focusRing: 'focus:ring-gray-400',
-    hoverText: isDarkMode ? 'hover:text-gray-300' : 'hover:text-gray-700'
+    hoverText: isDarkMode ? 'hover:text-gray-300' : 'hover:text-gray-700',
+    placeholder: isDarkMode ? 'placeholder-gray-500' : 'placeholder-gray-400'
   });
 
   // Use minimal colors if not in colorful mode, otherwise use themed colors
@@ -1452,7 +1461,7 @@ return (
               setAlbumSearch(e.target.value);
             }}
             placeholder="Search artists or albums..."
-            className={`w-full border rounded px-2 py-1 text-sm ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+            className={`w-full border rounded px-2 py-1 text-sm ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing} ${colors.placeholder || ''}`}
           />
           {unifiedSearch && (
             <button
@@ -1556,7 +1565,7 @@ return (
               setAlbumSearch(e.target.value);
             }}
             placeholder="Search..."
-            className={`w-full border rounded px-2 py-1 text-xs ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+            className={`w-full border rounded px-2 py-1 text-xs ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing} ${colors.placeholder || ''}`}
           />
           {unifiedSearch && (
             <button
