@@ -3255,7 +3255,7 @@ const SpotifyAnalyzer = ({
                       placeholder="Search artists..."
                       className={
                         colorMode === 'colorful'
-                          ? 'w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-sm bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-400 dark:placeholder-cyan-500'
+                          ? 'w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-sm bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-400 dark:placeholder-cyan-500'
                           : `w-full border rounded px-2 py-1 text-sm focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
@@ -3274,7 +3274,7 @@ const SpotifyAnalyzer = ({
                     {artistSearch && filteredArtists.length > 0 && (
                       <div className={
                         colorMode === 'colorful'
-                          ? 'absolute z-10 w-full bg-cyan-50 dark:bg-cyan-900 border border-cyan-300 dark:border-cyan-600 rounded shadow-lg mt-1'
+                          ? 'absolute z-10 w-full bg-cyan-100 dark:bg-cyan-900 border border-cyan-300 dark:border-cyan-600 rounded shadow-lg mt-1'
                           : `absolute z-10 w-full border rounded shadow-lg mt-1 ${isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-white border-black'}`
                       }>
                         {filteredArtists.map(artist => (
@@ -3286,7 +3286,7 @@ const SpotifyAnalyzer = ({
                             }}
                             className={
                               colorMode === 'colorful'
-                                ? 'px-2 py-1 hover:bg-cyan-100 dark:hover:bg-cyan-800 text-cyan-700 dark:text-cyan-300 cursor-pointer'
+                                ? 'px-2 py-1 hover:bg-cyan-200 dark:hover:bg-cyan-800 text-cyan-700 dark:text-cyan-300 cursor-pointer'
                                 : `px-2 py-1 cursor-pointer ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-gray-100 text-black'}`
                             }
                           >
@@ -3306,7 +3306,7 @@ const SpotifyAnalyzer = ({
                     onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopAlbumsCount(v); else e.target.value = topAlbumsCount; }}
                     className={
                       colorMode === 'colorful'
-                        ? 'w-14 border border-cyan-300 dark:border-cyan-600 rounded px-1.5 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                        ? 'w-14 border border-cyan-300 dark:border-cyan-600 rounded px-1.5 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300'
                         : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
                     }
                   />
@@ -3348,7 +3348,7 @@ const SpotifyAnalyzer = ({
                       placeholder="Search..."
                       className={
                         colorMode === 'colorful'
-                          ? 'w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-400 dark:placeholder-cyan-500'
+                          ? 'w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-400 dark:placeholder-cyan-500'
                           : `w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
@@ -3367,7 +3367,7 @@ const SpotifyAnalyzer = ({
                     {artistSearch && filteredArtists.length > 0 && (
                       <div className={
                         colorMode === 'colorful'
-                          ? 'absolute z-10 w-full bg-cyan-50 dark:bg-cyan-900 border border-cyan-300 dark:border-cyan-600 rounded shadow-lg mt-1'
+                          ? 'absolute z-10 w-full bg-cyan-100 dark:bg-cyan-900 border border-cyan-300 dark:border-cyan-600 rounded shadow-lg mt-1'
                           : `absolute z-10 w-full border rounded shadow-lg mt-1 ${isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-white border-black'}`
                       }>
                         {filteredArtists.map(artist => (
@@ -3379,7 +3379,7 @@ const SpotifyAnalyzer = ({
                             }}
                             className={
                               colorMode === 'colorful'
-                                ? 'px-2 py-1 hover:bg-cyan-100 dark:hover:bg-cyan-800 text-cyan-700 dark:text-cyan-300 cursor-pointer'
+                                ? 'px-2 py-1 hover:bg-cyan-200 dark:hover:bg-cyan-800 text-cyan-700 dark:text-cyan-300 cursor-pointer'
                                 : `px-2 py-1 cursor-pointer ${isDarkMode ? 'hover:bg-gray-800 text-white' : 'hover:bg-gray-100 text-black'}`
                             }
                           >
@@ -3398,7 +3398,7 @@ const SpotifyAnalyzer = ({
                     onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopAlbumsCount(v); else e.target.value = topAlbumsCount; }}
                     className={
                       colorMode === 'colorful'
-                        ? 'w-10 border border-cyan-300 dark:border-cyan-600 rounded px-1 py-1 text-xs bg-cyan-50 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-200'
+                        ? 'w-10 border border-cyan-300 dark:border-cyan-600 rounded px-1 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300'
                         : `w-10 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
                     }
                   />
