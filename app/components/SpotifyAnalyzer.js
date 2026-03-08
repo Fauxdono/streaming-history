@@ -2920,10 +2920,10 @@ const SpotifyAnalyzer = ({
                     onClick={() => setArtistSelectionMode(prev => !prev)}
                     className={
                       colorMode === 'colorful'
-                        ? `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
+                        ? `px-1.5 py-1 rounded text-xs font-medium transition-all ${
                             artistSelectionMode
-                              ? 'bg-blue-400 text-white border border-blue-400'
-                              : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-500'
+                              ? (isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[inset_2px_2px_0_0_#2563eb] translate-x-[1px] translate-y-[1px]' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[inset_2px_2px_0_0_#1d4ed8] translate-x-[1px] translate-y-[1px]')
+                              : (isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb] hover:opacity-80' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8] hover:opacity-80')
                           }`
                         : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
                             artistSelectionMode
