@@ -65,8 +65,8 @@ const PodcastRankings = ({
     bgCardAlt: isDarkMode ? 'bg-red-800' : 'bg-red-100',
     border: isDarkMode ? 'border-red-600' : 'border-red-300',
     borderLight: isDarkMode ? 'border-red-600' : 'border-red-300',
-    buttonActive: isDarkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white',
-    buttonInactive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 hover:bg-red-700' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200',
+    buttonActive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#b91c1c]',
+    buttonInactive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 hover:bg-red-700 shadow-[2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 shadow-[2px_2px_0_0_#b91c1c]',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
@@ -867,7 +867,7 @@ const PodcastRankings = ({
           <span className="text-xs">min</span>
           <button
             onClick={() => setShowDuplicateStats(!showDuplicateStats)}
-            className={`px-2 py-1 rounded text-xs hover:opacity-80 whitespace-nowrap ${modeColors.buttonInactive}`}
+            className={`px-2 py-1 rounded text-xs whitespace-nowrap transition-all ${showDuplicateStats ? modeColors.buttonActive : modeColors.buttonInactive}`}
           >
             {showDuplicateStats ? 'Hide Stats' : 'Stats'}
           </button>
@@ -893,31 +893,6 @@ const PodcastRankings = ({
       {/* Mobile controls - single row with search */}
       <div className={`block sm:hidden mb-2 ${modeColors.text}`}>
         <div className="flex items-center gap-1">
-          <label className="text-xs">Top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            defaultValue={topN}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-          />
-          <label className="text-xs">Gap</label>
-          <input
-            type="number"
-            min="1"
-            max="1440"
-            value={duplicateThreshold}
-            onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
-            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-          />
-          <button
-            onClick={() => setShowDuplicateStats(!showDuplicateStats)}
-            className={`px-1.5 py-1 rounded text-xs hover:opacity-80 whitespace-nowrap ${modeColors.buttonInactive}`}
-          >
-            {showDuplicateStats ? 'Hide' : 'Stats'}
-          </button>
           <div className="relative flex-1">
             <input
               type="text"
@@ -948,6 +923,31 @@ const PodcastRankings = ({
               </div>
             )}
           </div>
+          <label className="text-xs">Top</label>
+          <input
+            type="number"
+            min="1"
+            max="999"
+            defaultValue={topN}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
+            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
+            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          />
+          <label className="text-xs">Gap</label>
+          <input
+            type="number"
+            min="1"
+            max="1440"
+            value={duplicateThreshold}
+            onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
+            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          />
+          <button
+            onClick={() => setShowDuplicateStats(!showDuplicateStats)}
+            className={`px-1.5 py-1 rounded text-xs whitespace-nowrap transition-all ${showDuplicateStats ? modeColors.buttonActive : modeColors.buttonInactive}`}
+          >
+            {showDuplicateStats ? 'Hide' : 'Stats'}
+          </button>
         </div>
       </div>
 
