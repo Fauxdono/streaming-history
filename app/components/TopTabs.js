@@ -437,8 +437,9 @@ const TopTabs = ({
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
           // Pre-calculate positions to avoid layout shifts
-          ...(currentPosition === 'top' && { 
-            top: isMobile ? '0px' : settingsBarHeight, 
+          ...(currentPosition === 'top' && {
+            top: isMobile ? '0px' : settingsBarHeight,
+            paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
             transform: isMobile ? 'translateZ(0)' : undefined // Hardware acceleration on mobile
           }),
           ...(currentPosition === 'bottom' && isMobile && {
@@ -448,12 +449,14 @@ const TopTabs = ({
           ...(currentPosition === 'bottom' && !isMobile && {
             bottom: '0'
           }),
-          ...(currentPosition === 'left' && { 
+          ...(currentPosition === 'left' && {
             top: isMobile ? '0px' : settingsBarHeight,
+            paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
             transform: isMobile ? 'translateZ(0)' : undefined
           }),
-          ...(currentPosition === 'right' && { 
+          ...(currentPosition === 'right' && {
             top: isMobile ? '0px' : settingsBarHeight,
+            paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
             transform: isMobile ? 'translateZ(0)' : undefined
           })
         }}
