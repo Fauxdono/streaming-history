@@ -1452,7 +1452,7 @@ return (
               setAlbumSearch(e.target.value);
             }}
             placeholder="Search artists or albums..."
-            className={`w-full border rounded px-2 py-1 text-sm ${colors.bg} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+            className={`w-full border rounded px-2 py-1 text-sm ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
           />
           {unifiedSearch && (
             <button
@@ -1463,10 +1463,10 @@ return (
             </button>
           )}
           {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-            <div className={`absolute z-10 mt-1 w-full ${colors.bg} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
+            <div className={`absolute z-10 mt-1 w-full ${colors.bgLight} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
               {filteredArtists.length > 0 && (
                 <div>
-                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
+                  <div className={`px-2 py-1 ${colors.bg} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
                   {filteredArtists.map(artist => (
                     <div
                       key={artist}
@@ -1483,7 +1483,7 @@ return (
               )}
               {filteredAlbums.length > 0 && (
                 <div>
-                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
+                  <div className={`px-2 py-1 ${colors.bg} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
                   {filteredAlbums.map(album => (
                     <div
                       key={album.key}
@@ -1524,7 +1524,7 @@ return (
           defaultValue={topN}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
           onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-          className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text}`}
+          className={`w-14 border rounded px-1.5 py-1 text-xs ${colors.bgLight} ${colors.border} ${colors.text}`}
         />
         <button
           key={`sort-desktop-${sortByPress}`}
@@ -1556,7 +1556,7 @@ return (
               setAlbumSearch(e.target.value);
             }}
             placeholder="Search..."
-            className={`w-full border rounded px-2 py-1 text-xs ${colors.bg} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
+            className={`w-full border rounded px-2 py-1 text-xs ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing}`}
           />
           {unifiedSearch && (
             <button
@@ -1567,10 +1567,10 @@ return (
             </button>
           )}
           {unifiedSearch && (filteredArtists.length > 0 || filteredAlbums.length > 0) && (
-            <div className={`absolute z-10 mt-1 w-full ${colors.bg} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
+            <div className={`absolute z-10 mt-1 w-full ${colors.bgLight} border ${colors.border} rounded-md shadow-lg max-h-60 overflow-y-auto`}>
               {filteredArtists.length > 0 && (
                 <div>
-                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
+                  <div className={`px-2 py-1 ${colors.bg} ${colors.textDark} font-semibold text-xs`}>ARTISTS</div>
                   {filteredArtists.map(artist => (
                     <div
                       key={artist}
@@ -1587,7 +1587,7 @@ return (
               )}
               {filteredAlbums.length > 0 && (
                 <div>
-                  <div className={`px-2 py-1 ${colors.bgLight} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
+                  <div className={`px-2 py-1 ${colors.bg} ${colors.textDark} font-semibold text-xs`}>ALBUMS</div>
                   {filteredAlbums.map(album => (
                     <div
                       key={album.key}
