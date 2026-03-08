@@ -324,6 +324,7 @@ const CustomTrackRankings = ({
   const [sortBy, setSortBy] = useState('totalPlayed');
   const [sortByPress, setSortByPress] = useState(0);
   const [viewModePress, setViewModePress] = useState(0);
+  useEffect(() => { setSortByPress(0); setViewModePress(0); }, [isDarkMode, colorMode]);
   const [selectedArtists, setSelectedArtists] = useState(initialArtists);
   const [selectedAlbums, setSelectedAlbums] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
