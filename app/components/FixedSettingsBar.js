@@ -215,6 +215,7 @@ const FixedSettingsBar = ({
         isOpen={showFontSizeDropdown}
         onClose={() => setShowFontSizeDropdown(false)}
         buttonRef={settingsButtonRef}
+        colorMode={colorMode}
       />
 
       {/* Analysis Settings Dropdown */}
