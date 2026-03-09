@@ -2003,11 +2003,11 @@ const YearSelector = ({
     ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  // iOS Safari bug: zoom on position:fixed elements scales the box model but NOT text.
-  // Fix: outer container keeps zoom for correct layout/sizing (positions compensated for desktop).
-  // On mobile, we also add an inner non-fixed wrapper div with zoom — non-fixed elements DO
-  // have text scaled by zoom on iOS Safari, so the inner div forces correct text rendering.
-  const useZoom = !desktopFloating && dimFontScale !== 1;
+  // iOS Safari bug: zoom on position:fixed elements scales box model but NOT text rendering.
+  // Fix: on mobile, outer container uses dimensions directly (no zoom), raw positions.
+  //      An inner non-fixed wrapper applies zoom — non-fixed elements scale text correctly on iOS.
+  // On desktop, outer container uses zoom (compensating position values) as before.
+  const useZoom = !desktopFloating && !isMobile && dimFontScale !== 1;
   const adjustedPositionStyle = useZoom
     ? Object.fromEntries(Object.entries(positionConfig?.style || {}).map(([k, v]) =>
         ['top', 'bottom', 'left', 'right'].includes(k) && typeof v === 'string' && v.endsWith('px')
@@ -2018,19 +2018,20 @@ const YearSelector = ({
 
   const containerStyle = asSidebar ? {
     ...adjustedPositionStyle,
-    width: isHorizontal ? 'auto' : `${baseDimensions.width}px`,
-    height: isHorizontal ? `${baseDimensions.height}px` : 'auto',
-    maxHeight: isHorizontal ? (isMobile ? '50vh' : '50vh') : 'none',
+    // Mobile: use scaled dimensions directly (no outer zoom). Desktop: use base + zoom.
+    width: isHorizontal ? 'auto' : (isMobile ? `${dimensions.width}px` : `${baseDimensions.width}px`),
+    height: isHorizontal ? (isMobile ? `${dimensions.height}px` : `${baseDimensions.height}px`) : 'auto',
+    maxHeight: isHorizontal ? '50vh' : 'none',
     ...(desktopFloating ? {
       transform: `scale(${floatScale * dimFontScale})`,
       transformOrigin: 'top left',
-    } : dimFontScale !== 1 ? {
+    } : !isMobile && dimFontScale !== 1 ? {
       zoom: dimFontScale,
     } : {}),
   } : {};
 
-  // Inner wrapper for mobile: non-fixed div with zoom forces iOS Safari to scale text too.
-  // Width/height use baseDimensions so zoom brings them to the correct visual (dimensions) size.
+  // Inner wrapper for mobile: non-fixed div with zoom — iOS Safari scales text in non-fixed
+  // zoomed elements correctly. Width/height use baseDimensions so after zoom they equal dimensions.
   const mobileInnerWrapperStyle = isMobile && asSidebar && dimFontScale !== 1 ? {
     zoom: dimFontScale,
     width: isHorizontal ? `calc(100% / ${dimFontScale})` : `${baseDimensions.width}px`,
