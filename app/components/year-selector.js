@@ -2116,8 +2116,11 @@ const YearSelector = ({
     </div>
   );
 
-  const renderRangeMonthGrid = (cols) => {
+  const renderRangeMonthGrid = (cols, rows = null) => {
     const sameYear = yearRange.startYear === yearRange.endYear;
+    const monthGridProps = rows
+      ? { style: { display: 'grid', gridTemplateRows: `repeat(${rows}, auto)`, gridAutoFlow: 'column', gap: '4px' } }
+      : gridProps(cols);
     return (
       <div>
         <div className={`text-[0.833em] text-center mb-1 ${colors.text} opacity-70`}>
@@ -2125,7 +2128,7 @@ const YearSelector = ({
             ? 'Tap to reselect'
             : 'Tap end month'}
         </div>
-        <div {...gridProps(cols)}>
+        <div {...monthGridProps}>
           {months.map(month => {
             const isStart = month === startMonth;
             const isEnd = month === endMonth;
@@ -2193,8 +2196,13 @@ const YearSelector = ({
     );
   };
 
-  const renderMonthGrid = (selectedValue, onSelect, cols, wrap = false) => (
-    <div {...(wrap ? { className: 'flex flex-wrap gap-1' } : gridProps(cols))}>
+  const renderMonthGrid = (selectedValue, onSelect, cols, wrap = false, rows = null) => (
+    <div {...(wrap
+      ? { className: 'flex flex-wrap gap-1' }
+      : rows
+        ? { style: { display: 'grid', gridTemplateRows: `repeat(${rows}, auto)`, gridAutoFlow: 'column', gap: '4px' } }
+        : gridProps(cols)
+    )}>
       {months.map(month => (
         <button
           key={month}
@@ -2448,91 +2456,170 @@ const YearSelector = ({
 
               {(
                 <>
-                  {/* Month Selector - hidden on mobile portrait horizontal (toggle is under year wheel) */}
+                  {/* Month + Day Selectors - hidden on mobile portrait horizontal (toggle is under year wheel) */}
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
-                    <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
-                      {/* Month toggle */}
-                      <button
-                        onClick={() => {
-                            const newMonthValue = !showMonthSelector;
-                            setShowMonthSelector(newMonthValue);
+                    isMobile && isLandscape ? (
+                      /* Mobile landscape: toggles stacked in left column, grids in right column */
+                      <div className="flex flex-row items-start gap-2">
+                        {/* Toggle column */}
+                        <div className="flex flex-col gap-1">
+                          {/* Month toggle */}
+                          <button
+                            onClick={() => {
+                                const newMonthValue = !showMonthSelector;
+                                setShowMonthSelector(newMonthValue);
 
-                            const isHistoryTab = activeTab === 'history';
-                            if (!isHistoryTab) {
-                              setUserEnabledSelectors(newMonthValue);
-                            }
+                                const isHistoryTab = activeTab === 'history';
+                                if (!isHistoryTab) {
+                                  setUserEnabledSelectors(newMonthValue);
+                                }
 
-                            if (!newMonthValue) {
-                              setShowDaySelector(false);
-                              if (onYearChange) {
-                                onYearChange(selectedYear === 'all' ? 'all' : selectedYear);
-                              }
-                            } else {
-                              if (onYearChange) {
+                                if (!newMonthValue) {
+                                  setShowDaySelector(false);
+                                  if (onYearChange) {
+                                    onYearChange(selectedYear === 'all' ? 'all' : selectedYear);
+                                  }
+                                } else {
+                                  if (onYearChange) {
+                                    const mm = selectedMonth.toString().padStart(2, '0');
+                                    onYearChange(selectedYear === 'all' ? `all-${mm}` : `${selectedYear}-${mm}`);
+                                  }
+                                }
+
+                                setRefreshCounter(prev => prev + 1);
+                            }}
+                            className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                              showMonthSelector
+                                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            }`}
+                          >
+                            <span className="skew-x-[12deg] inline-block">month</span>
+                          </button>
+                          {/* Day toggle */}
+                          <button
+                            onClick={() => {
+                                const newDayValue = !showDaySelector;
+                                setShowDaySelector(newDayValue);
+
+                                const isHistoryTab = activeTab === 'history';
+                                if (!isHistoryTab && newDayValue) {
+                                  setUserEnabledSelectors(true);
+                                }
+
+                                const prefix = selectedYear === 'all' ? 'all' : selectedYear;
                                 const mm = selectedMonth.toString().padStart(2, '0');
-                                onYearChange(selectedYear === 'all' ? `all-${mm}` : `${selectedYear}-${mm}`);
-                              }
-                            }
+                                if (newDayValue) {
+                                  const dateStr = `${prefix}-${mm}-${selectedDay.toString().padStart(2, '0')}`;
+                                  if (onYearChange) onYearChange(dateStr);
+                                } else {
+                                  const dateStr = `${prefix}-${mm}`;
+                                  if (onYearChange) onYearChange(dateStr);
+                                }
 
-                            setRefreshCounter(prev => prev + 1);
-                        }}
-                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
-                          showMonthSelector
-                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
-                        }`}
-                      >
-                        <span className="skew-x-[12deg] inline-block">month</span>
-                      </button>
-
-                      <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
-                        {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? (isMobile && isLandscape ? 3 : 12) : 3)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Day Toggle and Selector - hidden on mobile portrait horizontal */}
-                  {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
-                    <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
-                      {/* Day toggle */}
-                      <button
-                        onClick={() => {
-                            const newDayValue = !showDaySelector;
-                            setShowDaySelector(newDayValue);
-
-                            const isHistoryTab = activeTab === 'history';
-                            if (!isHistoryTab && newDayValue) {
-                              setUserEnabledSelectors(true);
-                            }
-
-                            const prefix = selectedYear === 'all' ? 'all' : selectedYear;
-                            const mm = selectedMonth.toString().padStart(2, '0');
-                            if (newDayValue) {
-                              const dateStr = `${prefix}-${mm}-${selectedDay.toString().padStart(2, '0')}`;
-                              if (onYearChange) onYearChange(dateStr);
-                            } else {
-                              const dateStr = `${prefix}-${mm}`;
-                              if (onYearChange) onYearChange(dateStr);
-                            }
-
-                            setRefreshCounter(prev => prev + 1);
-                        }}
-                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
-                          showDaySelector
-                            ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
-                            : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
-                        }`}
-                      >
-                        <span className="skew-x-[12deg] inline-block">day</span>
-                      </button>
-                      
-                      {/* Day grid selector - only shown when day toggle is on */}
-                      {showDaySelector && (
-                        <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
-                          {renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? (isMobile && isLandscape ? 7 : 31) : 4)}
+                                setRefreshCounter(prev => prev + 1);
+                            }}
+                            className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                              showDaySelector
+                                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            }`}
+                          >
+                            <span className="skew-x-[12deg] inline-block">day</span>
+                          </button>
                         </div>
-                      )}
-                    </div>
+                        {/* Grid column */}
+                        <div className="flex flex-col gap-1">
+                          {renderMonthGrid(selectedMonth, handleMonthChange, null, false, 5)}
+                          {showDaySelector && renderDayGrid(days, selectedDay, handleDayChange, 7)}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Non-mobile-landscape: month toggle + grid row */}
+                        <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
+                          {/* Month toggle */}
+                          <button
+                            onClick={() => {
+                                const newMonthValue = !showMonthSelector;
+                                setShowMonthSelector(newMonthValue);
+
+                                const isHistoryTab = activeTab === 'history';
+                                if (!isHistoryTab) {
+                                  setUserEnabledSelectors(newMonthValue);
+                                }
+
+                                if (!newMonthValue) {
+                                  setShowDaySelector(false);
+                                  if (onYearChange) {
+                                    onYearChange(selectedYear === 'all' ? 'all' : selectedYear);
+                                  }
+                                } else {
+                                  if (onYearChange) {
+                                    const mm = selectedMonth.toString().padStart(2, '0');
+                                    onYearChange(selectedYear === 'all' ? `all-${mm}` : `${selectedYear}-${mm}`);
+                                  }
+                                }
+
+                                setRefreshCounter(prev => prev + 1);
+                            }}
+                            className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
+                              showMonthSelector
+                                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            }`}
+                          >
+                            <span className="skew-x-[12deg] inline-block">month</span>
+                          </button>
+
+                          <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
+                            {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
+                          </div>
+                        </div>
+
+                        {/* Day toggle + grid row */}
+                        <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col'} items-center ${isHorizontal ? '' : 'w-full'}`}>
+                          {/* Day toggle */}
+                          <button
+                            onClick={() => {
+                                const newDayValue = !showDaySelector;
+                                setShowDaySelector(newDayValue);
+
+                                const isHistoryTab = activeTab === 'history';
+                                if (!isHistoryTab && newDayValue) {
+                                  setUserEnabledSelectors(true);
+                                }
+
+                                const prefix = selectedYear === 'all' ? 'all' : selectedYear;
+                                const mm = selectedMonth.toString().padStart(2, '0');
+                                if (newDayValue) {
+                                  const dateStr = `${prefix}-${mm}-${selectedDay.toString().padStart(2, '0')}`;
+                                  if (onYearChange) onYearChange(dateStr);
+                                } else {
+                                  const dateStr = `${prefix}-${mm}`;
+                                  if (onYearChange) onYearChange(dateStr);
+                                }
+
+                                setRefreshCounter(prev => prev + 1);
+                            }}
+                            className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
+                              showDaySelector
+                                ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                                : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                            }`}
+                          >
+                            <span className="skew-x-[12deg] inline-block">day</span>
+                          </button>
+
+                          {/* Day grid selector - only shown when day toggle is on */}
+                          {showDaySelector && (
+                            <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
+                              {renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 31 : 4)}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )
                   )}
                   
                   {/* Show month toggle separately if month selector is off - hidden on mobile portrait horizontal */}
@@ -2724,7 +2811,7 @@ const YearSelector = ({
               ) : (
                 /* Desktop / landscape / sidebar: range year grid (tap or split) */
                 <div className={isHorizontal ? '' : 'w-full'}>
-                  {rangeTapMode && renderRangeYearGrid(isHorizontal ? Math.min(years.length, 12) : 2, isHorizontal)}
+                  {rangeTapMode && renderRangeYearGrid(isHorizontal ? (isMobile && isLandscape ? Math.min(3, years.length) : Math.min(years.length, 12)) : 2, isHorizontal)}
                   {!rangeTapMode && !isHorizontal && (
                     <div className="flex flex-row justify-between gap-2 w-full">
                       <div className="flex-1">
@@ -2819,8 +2906,8 @@ const YearSelector = ({
                   {/* Tap mode: unified grids */}
                   {showRangeMonthDaySelectors && rangeTapMode && (
                     <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
-                      {renderRangeMonthGrid(isHorizontal ? 6 : 3)}
-                      {renderRangeDayGrid(isHorizontal ? 16 : 4)}
+                      {renderRangeMonthGrid(isHorizontal ? (isMobile && isLandscape ? null : 6) : 3, isMobile && isLandscape && isHorizontal ? 5 : null)}
+                      {renderRangeDayGrid(isHorizontal ? (isMobile && isLandscape ? 7 : 16) : 4)}
                     </div>
                   )}
 
