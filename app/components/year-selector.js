@@ -133,6 +133,16 @@ const YearSelector = ({
 
     if (mode === 'single') {
       if (isHorizontal && !isMobilePortraitHz) {
+        if (isMobile && isLandscape) {
+          // Mobile landscape bottom bar: year grid uses up to 5 cols per row → multiple rows
+          const yearCols = Math.min(5, yearCount);
+          const yearRows = Math.ceil(yearCount / yearCols);
+          let h = yearRows * 26 + 12; // row height ~26px + padding
+          // Month/day are side-by-side with years in flex-row, so take max
+          if (showMonthSelector) h = Math.max(h, 56);
+          if (showDaySelector) h = Math.max(h, 96);
+          return { width: 300, height: Math.max(48, h) };
+        }
         // Desktop horizontal: years in one row, month/day grids are side-by-side (flex-row)
         // Height is max of sections, not sum; minimum 48 to match collapsed bar height
         let h = 48; // base: at least as tall as collapsed bar
@@ -156,6 +166,14 @@ const YearSelector = ({
 
     if (mode === 'range') {
       if (isHorizontal && !isMobilePortraitHz) {
+        if (isMobile && isLandscape) {
+          const yearCols = Math.min(5, yearCount);
+          const yearRows = Math.ceil(yearCount / yearCols);
+          let h = yearRows * 26 + 20; // year rows + mode buttons
+          if (showRangeMonthDaySelectors) h = Math.max(h, 80);
+          if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 100);
+          return { width: 300, height: Math.max(48, h) };
+        }
         // Desktop horizontal: year grid in one row, month/day grids side-by-side
         let h = 50; // base: mode buttons + year row + instruction label (min 48 for collapsed bar)
         if (showRangeMonthDaySelectors) h = Math.max(h, 80); // month grids 2 rows
@@ -1311,7 +1329,7 @@ const YearSelector = ({
     return (
       <button
         onClick={onClick}
-        className={`px-2 py-1 mb-2 text-[12px] rounded-md transition-colors ${
+        className={`px-2 py-1 mb-2 text-[1em] rounded-md transition-colors ${
           selectedYear === 'all' 
             ? 'bg-current text-white font-bold' 
             : 'bg-current/20 hover:bg-current/30 text-current'
@@ -1875,10 +1893,10 @@ const YearSelector = ({
 
             {/* Text container */}
             <div className={`flex flex-row items-center space-x-2 ${colors.text}`}>
-              <div className="text-[12px] opacity-70">
+              <div className="text-[1em] opacity-70">
                 {mode === 'single' ? 'Year' : 'Year Range'}
               </div>
-              <div className="text-[12px] font-bold">
+              <div className="text-[1em] font-bold">
                 {getYearLabel()}
               </div>
             </div>
@@ -1889,7 +1907,7 @@ const YearSelector = ({
               className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 ml-4 w-8 h-8 flex items-center justify-center`}
               aria-label="Toggle sidebar position"
             >
-              <span className="text-[12px]">⇄</span>
+              <span className="text-[1em]">⇄</span>
             </button>
             {/* Float button (desktop snapped only) */}
             {!isMobile && (
@@ -1899,7 +1917,7 @@ const YearSelector = ({
                 aria-label="Float panel"
                 title="Detach as floating panel"
               >
-                <span className="text-[12px]" style={{fontSize: '14px'}}>&#x29C9;</span>
+                <span className="text-[1em]" style={{fontSize: '1.167em'}}>&#x29C9;</span>
               </button>
             )}
           </div>
@@ -1915,10 +1933,10 @@ const YearSelector = ({
             </button>
 
             <div className={`h-full ${isMobile ? 'pt-4' : 'pt-16'} pb-16 flex flex-col items-center justify-center ${colors.text}`}>
-              <div className="writing-mode-vertical text-[12px] opacity-70">
+              <div className="writing-mode-vertical text-[1em] opacity-70">
                 {mode === 'single' ? 'Year' : 'Year Range'}
               </div>
-              <div className="writing-mode-vertical text-[12px] font-bold my-2">
+              <div className="writing-mode-vertical text-[1em] font-bold my-2">
                 {getYearLabel()}
               </div>
             </div>
@@ -1932,7 +1950,7 @@ const YearSelector = ({
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className="text-[12px]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className="text-[1em]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
@@ -1940,7 +1958,7 @@ const YearSelector = ({
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className="text-[12px]" style={{fontSize: '10px'}}>&#x1F4CC;</span>
+                  <span className="text-[1em]" style={{fontSize: '0.833em'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : (
@@ -1951,7 +1969,7 @@ const YearSelector = ({
                   className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-10 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className="text-[12px]">⇄</span>
+                  <span className="text-[1em]">⇄</span>
                 </button>
                 {/* Float button (desktop snapped only) */}
                 {!isMobile && (
@@ -1961,7 +1979,7 @@ const YearSelector = ({
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className="text-[12px]" style={{fontSize: '10px'}}>&#x29C9;</span>
+                    <span className="text-[1em]" style={{fontSize: '0.833em'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
@@ -2003,10 +2021,12 @@ const YearSelector = ({
     ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  // iOS Safari bug: zoom on position:fixed elements scales box model but NOT text rendering.
-  // Fix: on mobile, outer container uses dimensions directly (no zoom), raw positions.
-  //      An inner non-fixed wrapper applies zoom — non-fixed elements scale text correctly on iOS.
-  // On desktop, outer container uses zoom (compensating position values) as before.
+  // CSS zoom on position:fixed scales box model but NOT text on iOS Safari.
+  // Fix: set an explicit font-size on the container (12px base on desktop pinned to avoid
+  // interference with global rem scale, scaled by dimFontScale on mobile since no zoom is used).
+  // All text inside uses em units so they scale off this base.
+  // Desktop: container font-size=12px + zoom=dimFontScale → text = 12*dimFontScale px ✓
+  // Mobile:  container font-size=12*dimFontScale px, no zoom    → text = 12*dimFontScale px ✓
   const useZoom = !desktopFloating && !isMobile && dimFontScale !== 1;
   const adjustedPositionStyle = useZoom
     ? Object.fromEntries(Object.entries(positionConfig?.style || {}).map(([k, v]) =>
@@ -2018,10 +2038,11 @@ const YearSelector = ({
 
   const containerStyle = asSidebar ? {
     ...adjustedPositionStyle,
-    // Mobile: use scaled dimensions directly (no outer zoom). Desktop: use base + zoom.
     width: isHorizontal ? 'auto' : (isMobile ? `${dimensions.width}px` : `${baseDimensions.width}px`),
     height: isHorizontal ? (isMobile ? `${dimensions.height}px` : `${baseDimensions.height}px`) : 'auto',
     maxHeight: isHorizontal ? '50vh' : 'none',
+    // Pin em base to 12px so text-[Xem] classes are consistent regardless of inherited font size
+    fontSize: isMobile ? `${12 * dimFontScale}px` : '12px',
     ...(desktopFloating ? {
       transform: `scale(${floatScale * dimFontScale})`,
       transformOrigin: 'top left',
@@ -2030,14 +2051,7 @@ const YearSelector = ({
     } : {}),
   } : {};
 
-  // Inner wrapper for mobile: non-fixed div with zoom — iOS Safari scales text in non-fixed
-  // zoomed elements correctly. Width/height use baseDimensions so after zoom they equal dimensions.
-  const mobileInnerWrapperStyle = isMobile && asSidebar && dimFontScale !== 1 ? {
-    zoom: dimFontScale,
-    width: isHorizontal ? `calc(100% / ${dimFontScale})` : `${baseDimensions.width}px`,
-    ...(isHorizontal ? { height: `${baseDimensions.height}px` } : {}),
-    overflow: 'hidden',
-  } : null;
+  const mobileInnerWrapperStyle = null; // no longer needed
 
   // Tailwind JIT-safe grid column classes (1-12 are standard Tailwind)
   const gridColsClass = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-5', 6: 'grid-cols-6', 7: 'grid-cols-7', 8: 'grid-cols-8', 9: 'grid-cols-9', 10: 'grid-cols-10', 11: 'grid-cols-11', 12: 'grid-cols-12' };
@@ -2053,7 +2067,7 @@ const YearSelector = ({
         <button
           key={year}
           onClick={() => handleYearChange(year)}
-          className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap text-center overflow-hidden ${
+          className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap text-center overflow-hidden ${
             selectedYear === year
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2067,7 +2081,7 @@ const YearSelector = ({
 
   const renderRangeYearGrid = (cols, compact = false) => (
     <div>
-      <div className={`text-[10px] text-center mb-1 ${colors.text} opacity-70`}>
+      <div className={`text-[0.833em] text-center mb-1 ${colors.text} opacity-70`}>
         {rangeYearTapPhase === 'idle' && yearRange.startYear && yearRange.endYear
           ? 'Tap to reselect'
           : rangeYearTapPhase === 'idle'
@@ -2085,7 +2099,7 @@ const YearSelector = ({
             <button
               key={year}
               onClick={() => handleRangeYearGridTap(year)}
-              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap text-center overflow-hidden ${
+              className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap text-center overflow-hidden ${
                 isStart || isEnd
                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                   : isBetween
@@ -2105,7 +2119,7 @@ const YearSelector = ({
     const sameYear = yearRange.startYear === yearRange.endYear;
     return (
       <div>
-        <div className={`text-[10px] text-center mb-1 ${colors.text} opacity-70`}>
+        <div className={`text-[0.833em] text-center mb-1 ${colors.text} opacity-70`}>
           {rangeMonthTapPhase === 'idle'
             ? 'Tap to reselect'
             : 'Tap end month'}
@@ -2120,7 +2134,7 @@ const YearSelector = ({
               <button
                 key={month}
                 onClick={() => handleRangeMonthGridTap(month)}
-                className={`px-1 py-0.5 text-[12px] rounded transition-colors ${
+                className={`px-1 py-0.5 text-[1em] rounded transition-colors ${
                   isStart || isEnd
                     ? `${colors.bgActive} ${colors.textActive} font-bold`
                     : isBetween
@@ -2146,7 +2160,7 @@ const YearSelector = ({
     const daysArray = Array.from({ length: maxDay }, (_, i) => i + 1);
     return (
       <div>
-        <div className={`text-[10px] text-center mb-1 ${colors.text} opacity-70`}>
+        <div className={`text-[0.833em] text-center mb-1 ${colors.text} opacity-70`}>
           {rangeDayTapPhase === 'idle'
             ? 'Tap to reselect'
             : 'Tap end day'}
@@ -2161,7 +2175,7 @@ const YearSelector = ({
               <button
                 key={day}
                 onClick={() => handleRangeDayGridTap(day)}
-                className={`px-1 py-0.5 text-[12px] rounded transition-colors ${
+                className={`px-1 py-0.5 text-[1em] rounded transition-colors ${
                   isStart || isEnd
                     ? `${colors.bgActive} ${colors.textActive} font-bold`
                     : isBetween
@@ -2184,7 +2198,7 @@ const YearSelector = ({
         <button
           key={month}
           onClick={() => onSelect(month)}
-          className={`px-1 py-0.5 text-[12px] rounded transition-colors text-center overflow-hidden ${wrap ? 'min-w-[28px]' : ''} ${
+          className={`px-1 py-0.5 text-[1em] rounded transition-colors text-center overflow-hidden ${wrap ? 'min-w-[28px]' : ''} ${
             selectedValue === month
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2202,7 +2216,7 @@ const YearSelector = ({
         <button
           key={day}
           onClick={() => onSelect(day)}
-          className={`px-1 py-0.5 text-[12px] rounded transition-colors text-center overflow-hidden ${wrap ? 'min-w-[20px]' : ''} ${
+          className={`px-1 py-0.5 text-[1em] rounded transition-colors text-center overflow-hidden ${wrap ? 'min-w-[20px]' : ''} ${
             selectedValue === day
               ? `${colors.bgActive} ${colors.textActive} font-bold`
               : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2219,8 +2233,6 @@ const YearSelector = ({
       className={`year-selector-container ${asSidebar ? positionConfig.className : ''} ${containerClass}`}
       style={containerStyle}
     >
-      {/* Inner wrapper: on mobile, a non-fixed div with zoom forces iOS Safari to scale text */}
-      <div style={mobileInnerWrapperStyle || undefined}>
       {/* Drag bar for floating mode */}
       {desktopFloating && asSidebar && (
         <div
@@ -2269,7 +2281,7 @@ const YearSelector = ({
 
           <button
             onClick={() => handleModeChange('single')}
-            className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+            className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[0.833em] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
               mode === 'single'
                 ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                 : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2279,7 +2291,7 @@ const YearSelector = ({
           </button>
           <button
             onClick={() => handleModeChange('range')}
-            className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[10px] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+            className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[0.833em] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
               mode === 'range'
                 ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                 : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2308,7 +2320,7 @@ const YearSelector = ({
               {/* Year selection */}
               <div className={`flex ${isHorizontal ? (isMobile && !isLandscape ? 'flex-col items-center' : 'flex-row items-center') : 'flex-col items-center'}`}>
                 {!(isMobile && !isLandscape && isHorizontal) && (
-                  <div className={`text-[12px] font-medium ${colors.text} ${
+                  <div className={`text-[1em] font-medium ${colors.text} ${
                     isHorizontal ? 'mr-2' : 'mb-1'
                   }`}>YEAR</div>
                 )}
@@ -2324,7 +2336,7 @@ const YearSelector = ({
                         if (onYearChange) onYearChange('all');
                         setRefreshCounter(prev => prev + 1);
                       }}
-                      className={`px-2 py-1 text-[12px] rounded-md transition-colors ${
+                      className={`px-2 py-1 text-[1em] rounded-md transition-colors ${
                         isHorizontal ? '' : 'mb-2'
                       } ${
                         selectedYear === 'all'
@@ -2350,7 +2362,7 @@ const YearSelector = ({
                             if (onYearChange) onYearChange('all');
                             setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`px-2 py-0.5 text-[12px] rounded-md transition-colors ${
+                          className={`px-2 py-0.5 text-[1em] rounded-md transition-colors ${
                             selectedYear === 'all'
                               ? `${colors.bgActive} ${colors.textActive} font-bold`
                               : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
@@ -2380,7 +2392,7 @@ const YearSelector = ({
                               }
                               setRefreshCounter(prev => prev + 1);
                             }}
-                            className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                            className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                               showMonthSelector
                                 ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                                 : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2406,7 +2418,7 @@ const YearSelector = ({
                               else { if (onYearChange) onYearChange(`${prefix}-${mm}`); }
                               setRefreshCounter(prev => prev + 1);
                             }}
-                            className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                            className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                               showDaySelector
                                 ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                                 : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2423,7 +2435,11 @@ const YearSelector = ({
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
-                      {renderYearGrid(isHorizontal ? Math.min(years.length, 12) : 2)}
+                      {renderYearGrid(
+                        isHorizontal
+                          ? (isMobile && isLandscape ? Math.min(5, years.length) : Math.min(years.length, 12))
+                          : 2
+                      )}
                     </div>
                   )}
                 </div>
@@ -2459,7 +2475,7 @@ const YearSelector = ({
 
                             setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
                           showMonthSelector
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2500,7 +2516,7 @@ const YearSelector = ({
 
                             setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${isHorizontal ? 'mr-1' : ''} ${
                           showDaySelector
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2545,7 +2561,7 @@ const YearSelector = ({
 
                             setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showMonthSelector
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2570,13 +2586,13 @@ const YearSelector = ({
                   ) : (
                     <div className="flex flex-row items-start gap-1">
                       <div>
-                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SY</div>
+                        <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>SY</div>
                         <div {...gridProps(Math.min(years.length, 6))}>
                           {years.map(year => (
                             <button
                               key={year}
                               onClick={() => handleYearRangeChange({ startYear: year, endYear: yearRange.endYear || year })}
-                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                              className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap ${
                                 year === yearRange.startYear
                                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                                   : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2588,13 +2604,13 @@ const YearSelector = ({
                         </div>
                       </div>
                       <div>
-                        <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EY</div>
+                        <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>EY</div>
                         <div {...gridProps(Math.min(years.length, 6))}>
                           {years.map(year => (
                             <button
                               key={year}
                               onClick={() => handleYearRangeChange({ startYear: yearRange.startYear || year, endYear: year })}
-                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                              className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap ${
                                 year === yearRange.endYear
                                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                                   : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2612,7 +2628,7 @@ const YearSelector = ({
                     <div className="flex flex-row items-center gap-1">
                       <button
                         onClick={() => setRangeTapMode(!rangeTapMode)}
-                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           rangeTapMode
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2634,7 +2650,7 @@ const YearSelector = ({
                           }
                           setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showRangeMonthDaySelectors
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2658,7 +2674,7 @@ const YearSelector = ({
                             }
                             setRefreshCounter(prev => prev + 1);
                           }}
-                          className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                          className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                             showRangeDaySelectors
                               ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                               : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2681,22 +2697,22 @@ const YearSelector = ({
                     <>
                       <div className="flex flex-row items-start gap-1">
                         <div>
-                          <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
+                          <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>SM</div>
                           {renderMonthGrid(startMonth, handleStartMonthChange, 6)}
                         </div>
                         <div>
-                          <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
+                          <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>EM</div>
                           {renderMonthGrid(endMonth, handleEndMonthChange, 6)}
                         </div>
                       </div>
                       {showRangeDaySelectors && (
                         <div className="flex flex-row gap-1">
                           <div>
-                            <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>SD</div>
+                            <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>SD</div>
                             {renderDayGrid(startDays, startDay, handleStartDayChange, 8)}
                           </div>
                           <div>
-                            <div className={`text-[10px] font-medium ${colors.text} text-center mb-0.5`}>ED</div>
+                            <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>ED</div>
                             {renderDayGrid(endDays, endDay, handleEndDayChange, 8)}
                           </div>
                         </div>
@@ -2711,13 +2727,13 @@ const YearSelector = ({
                   {!rangeTapMode && !isHorizontal && (
                     <div className="flex flex-row justify-between gap-2 w-full">
                       <div className="flex-1">
-                        <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SY</div>
+                        <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>SY</div>
                         <div {...gridProps(2)}>
                           {years.map(year => (
                             <button
                               key={year}
                               onClick={() => handleYearRangeChange({ startYear: year, endYear: yearRange.endYear || year })}
-                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                              className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap ${
                                 year === yearRange.startYear
                                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                                   : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2729,13 +2745,13 @@ const YearSelector = ({
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EY</div>
+                        <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>EY</div>
                         <div {...gridProps(2)}>
                           {years.map(year => (
                             <button
                               key={year}
                               onClick={() => handleYearRangeChange({ startYear: yearRange.startYear || year, endYear: year })}
-                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                              className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap ${
                                 year === yearRange.endYear
                                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                                   : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2759,7 +2775,7 @@ const YearSelector = ({
                     <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''} gap-1`}>
                       <button
                         onClick={() => setRangeTapMode(!rangeTapMode)}
-                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                        className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           rangeTapMode
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2788,7 +2804,7 @@ const YearSelector = ({
 
                             setRefreshCounter(prev => prev + 1);
                         }}
-                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[10px] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                        className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showRangeMonthDaySelectors
                             ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
@@ -2812,13 +2828,13 @@ const YearSelector = ({
                     <div className="flex flex-col space-y-1 w-full">
                       {/* Start year row */}
                       <div className="flex flex-row space-x-2 items-center">
-                        <div className={`text-[10px] font-medium ${colors.text}`}>SY</div>
+                        <div className={`text-[0.833em] font-medium ${colors.text}`}>SY</div>
                         <div className="flex flex-wrap gap-1">
                           {years.map(year => (
                             <button
                               key={year}
                               onClick={() => handleYearRangeChange({ startYear: year, endYear: yearRange.endYear || year })}
-                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                              className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap ${
                                 year === yearRange.startYear
                                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                                   : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2830,11 +2846,11 @@ const YearSelector = ({
                         </div>
                         {showRangeMonthDaySelectors && (
                           <>
-                            <div className={`text-[10px] font-medium ${colors.text}`}>SM</div>
+                            <div className={`text-[0.833em] font-medium ${colors.text}`}>SM</div>
                             {renderMonthGrid(startMonth, handleStartMonthChange, 12, true)}
                             {showRangeDaySelectors && (
                               <>
-                                <div className={`text-[10px] font-medium ${colors.text}`}>SD</div>
+                                <div className={`text-[0.833em] font-medium ${colors.text}`}>SD</div>
                                 {renderDayGrid(startDays, startDay, handleStartDayChange, 31, true)}
                               </>
                             )}
@@ -2843,13 +2859,13 @@ const YearSelector = ({
                       </div>
                       {/* End year row */}
                       <div className="flex flex-row space-x-2 items-center">
-                        <div className={`text-[10px] font-medium ${colors.text}`}>EY</div>
+                        <div className={`text-[0.833em] font-medium ${colors.text}`}>EY</div>
                         <div className="flex flex-wrap gap-1">
                           {years.map(year => (
                             <button
                               key={year}
                               onClick={() => handleYearRangeChange({ startYear: yearRange.startYear || year, endYear: year })}
-                              className={`px-1 py-0.5 text-[12px] rounded transition-colors whitespace-nowrap ${
+                              className={`px-1 py-0.5 text-[1em] rounded transition-colors whitespace-nowrap ${
                                 year === yearRange.endYear
                                   ? `${colors.bgActive} ${colors.textActive} font-bold`
                                   : `${colors.bgLighter} ${colors.bgHover} ${colors.text}`
@@ -2861,11 +2877,11 @@ const YearSelector = ({
                         </div>
                         {showRangeMonthDaySelectors && (
                           <>
-                            <div className={`text-[10px] font-medium ${colors.text}`}>EM</div>
+                            <div className={`text-[0.833em] font-medium ${colors.text}`}>EM</div>
                             {renderMonthGrid(endMonth, handleEndMonthChange, 12, true)}
                             {showRangeDaySelectors && (
                               <>
-                                <div className={`text-[10px] font-medium ${colors.text}`}>ED</div>
+                                <div className={`text-[0.833em] font-medium ${colors.text}`}>ED</div>
                                 {renderDayGrid(endDays, endDay, handleEndDayChange, 31, true)}
                               </>
                             )}
@@ -2880,21 +2896,21 @@ const YearSelector = ({
                     <div className="flex flex-col space-y-2 w-full">
                       <div className="flex flex-row justify-between gap-2 w-full">
                         <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SM</div>
+                          <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>SM</div>
                           {renderMonthGrid(startMonth, handleStartMonthChange, 3)}
                         </div>
                         <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>EM</div>
+                          <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>EM</div>
                           {renderMonthGrid(endMonth, handleEndMonthChange, 3)}
                         </div>
                       </div>
                       <div className="flex flex-row justify-between gap-2 w-full">
                         <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>SD</div>
+                          <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>SD</div>
                           {renderDayGrid(startDays, startDay, handleStartDayChange, 4)}
                         </div>
                         <div className="flex-1">
-                          <div className={`text-[12px] font-medium ${colors.text} text-center mb-1`}>ED</div>
+                          <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>ED</div>
                           {renderDayGrid(endDays, endDay, handleEndDayChange, 4)}
                         </div>
                       </div>
@@ -2918,7 +2934,7 @@ const YearSelector = ({
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className="text-[14px]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className="text-[1.167em]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
@@ -2926,7 +2942,7 @@ const YearSelector = ({
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className="text-[14px]" style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                  <span className="text-[1.167em]" style={{fontSize: '1.167em'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : asSidebar && (
@@ -2936,7 +2952,7 @@ const YearSelector = ({
                   className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className="text-[14px]">⇄</span>
+                  <span className="text-[1.167em]">⇄</span>
                 </button>
                 {!isMobile && (
                   <button
@@ -2945,7 +2961,7 @@ const YearSelector = ({
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className="text-[14px]" style={{fontSize: '14px'}}>&#x29C9;</span>
+                    <span className="text-[1.167em]" style={{fontSize: '1.167em'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
@@ -2962,7 +2978,7 @@ const YearSelector = ({
                   aria-label="Toggle orientation"
                   title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
                 >
-                  <span className="text-[14px]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+                  <span className="text-[1.167em]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
                 </button>
                 <button
                   onClick={toggleFloating}
@@ -2970,7 +2986,7 @@ const YearSelector = ({
                   aria-label="Dock panel"
                   title="Dock to edge"
                 >
-                  <span className="text-[14px]" style={{fontSize: '14px'}}>&#x1F4CC;</span>
+                  <span className="text-[1.167em]" style={{fontSize: '1.167em'}}>&#x1F4CC;</span>
                 </button>
               </>
             ) : asSidebar && (
@@ -2980,7 +2996,7 @@ const YearSelector = ({
                   className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
                   aria-label="Toggle sidebar position"
                 >
-                  <span className="text-[14px]">⇄</span>
+                  <span className="text-[1.167em]">⇄</span>
                 </button>
                 {!isMobile && (
                   <button
@@ -2989,7 +3005,7 @@ const YearSelector = ({
                     aria-label="Float panel"
                     title="Detach as floating panel"
                   >
-                    <span className="text-[14px]" style={{fontSize: '14px'}}>&#x29C9;</span>
+                    <span className="text-[1.167em]" style={{fontSize: '1.167em'}}>&#x29C9;</span>
                   </button>
                 )}
               </>
@@ -3023,7 +3039,6 @@ const YearSelector = ({
           opacity: 0.3;
         }
       `}</style>
-      </div>{/* end inner wrapper */}
     </div>
   );
 };
