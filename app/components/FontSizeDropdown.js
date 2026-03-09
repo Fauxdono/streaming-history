@@ -176,8 +176,8 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose, buttonRef]);
 
-  // Position dropdown — on mobile always opens downward, capped to screen
-  const [position, setPosition] = useState({ top: 0, left: 0, maxHeight: 'none' });
+  // Position dropdown
+  const [position, setPosition] = useState({ top: null, bottom: null, left: 0, maxHeight: 'none' });
 
   useEffect(() => {
     if (isOpen && buttonRef.current) {
@@ -188,25 +188,21 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
       if (left < 8) left = 8;
       if (left + dropdownWidth > window.innerWidth - 8) left = window.innerWidth - dropdownWidth - 8;
 
-      const top = buttonRect.bottom + 8;
-      const spaceBelow = window.innerHeight - top - 8;
-
-      let maxHeight;
       if (isMobile) {
-        // On mobile: always open downward, clamp to available space below settings bar
-        maxHeight = Math.max(spaceBelow, 120);
+        // Open upward from the button, capped to available space above
+        const bottom = window.innerHeight - buttonRect.top + 8;
+        const maxHeight = Math.max(buttonRect.top - 16, 120);
+        setPosition({ top: null, bottom, left, maxHeight });
       } else {
-        // On desktop: open above if not enough room below
+        const top = buttonRect.bottom + 8;
+        const spaceBelow = window.innerHeight - top - 8;
         if (spaceBelow < 400) {
           const spaceAbove = buttonRect.top - 8;
-          const adjustedTop = Math.max(8, buttonRect.top - Math.min(600, spaceAbove) - 8);
-          setPosition({ top: adjustedTop, left, maxHeight: Math.min(600, spaceAbove) });
-          return;
+          setPosition({ top: Math.max(8, buttonRect.top - Math.min(600, spaceAbove) - 8), bottom: null, left, maxHeight: Math.min(600, spaceAbove) });
+        } else {
+          setPosition({ top, bottom: null, left, maxHeight: Math.min(600, spaceBelow) });
         }
-        maxHeight = Math.min(600, spaceBelow);
       }
-
-      setPosition({ top, left, maxHeight });
     }
   }, [isOpen, buttonRef, isMobile]);
 
@@ -217,7 +213,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
       ref={dropdownRef}
       className={`fixed z-[300] ${colors.bg} border rounded-lg shadow-xl p-4 overflow-y-auto`}
       style={{
-        top: position.top,
+        ...(position.bottom !== null ? { bottom: position.bottom } : { top: position.top }),
         left: position.left,
         width: isMobile ? '280px' : '560px',
         maxHeight: position.maxHeight,
