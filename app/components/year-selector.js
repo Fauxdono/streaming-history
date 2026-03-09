@@ -2003,11 +2003,11 @@ const YearSelector = ({
     ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  // iOS Safari: zoom scales box model on fixed elements but NOT text rendering.
-  // Fix: use transform:scale on mobile (scales everything incl. text), zoom on desktop.
-  // transform doesn't shift CSS position values, so no position compensation needed for mobile.
-  // Desktop zoom DOES shift top/left/right/bottom, so compensate by dividing those by dimFontScale.
-  const useZoom = !desktopFloating && !isMobile && dimFontScale !== 1;
+  // iOS Safari bug: zoom on position:fixed elements scales the box model but NOT text.
+  // Fix: outer container keeps zoom for correct layout/sizing (positions compensated for desktop).
+  // On mobile, we also add an inner non-fixed wrapper div with zoom — non-fixed elements DO
+  // have text scaled by zoom on iOS Safari, so the inner div forces correct text rendering.
+  const useZoom = !desktopFloating && dimFontScale !== 1;
   const adjustedPositionStyle = useZoom
     ? Object.fromEntries(Object.entries(positionConfig?.style || {}).map(([k, v]) =>
         ['top', 'bottom', 'left', 'right'].includes(k) && typeof v === 'string' && v.endsWith('px')
@@ -2015,12 +2015,6 @@ const YearSelector = ({
           : [k, v]
       ))
     : positionConfig?.style || {};
-
-  // For mobile transform, anchor to the edge the panel is flush against
-  const mobileTransformOrigin = currentPosition === 'right' ? 'top right'
-    : currentPosition === 'left' ? 'top left'
-    : currentPosition === 'bottom' ? 'bottom left'
-    : 'top left';
 
   const containerStyle = asSidebar ? {
     ...adjustedPositionStyle,
@@ -2030,13 +2024,19 @@ const YearSelector = ({
     ...(desktopFloating ? {
       transform: `scale(${floatScale * dimFontScale})`,
       transformOrigin: 'top left',
-    } : isMobile && dimFontScale !== 1 ? {
-      transform: `scale(${dimFontScale})`,
-      transformOrigin: mobileTransformOrigin,
-    } : !isMobile && dimFontScale !== 1 ? {
+    } : dimFontScale !== 1 ? {
       zoom: dimFontScale,
     } : {}),
   } : {};
+
+  // Inner wrapper for mobile: non-fixed div with zoom forces iOS Safari to scale text too.
+  // Width/height use baseDimensions so zoom brings them to the correct visual (dimensions) size.
+  const mobileInnerWrapperStyle = isMobile && asSidebar && dimFontScale !== 1 ? {
+    zoom: dimFontScale,
+    width: isHorizontal ? `calc(100% / ${dimFontScale})` : `${baseDimensions.width}px`,
+    ...(isHorizontal ? { height: `${baseDimensions.height}px` } : {}),
+    overflow: 'hidden',
+  } : null;
 
   // Tailwind JIT-safe grid column classes (1-12 are standard Tailwind)
   const gridColsClass = { 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-4', 5: 'grid-cols-5', 6: 'grid-cols-6', 7: 'grid-cols-7', 8: 'grid-cols-8', 9: 'grid-cols-9', 10: 'grid-cols-10', 11: 'grid-cols-11', 12: 'grid-cols-12' };
@@ -2218,6 +2218,8 @@ const YearSelector = ({
       className={`year-selector-container ${asSidebar ? positionConfig.className : ''} ${containerClass}`}
       style={containerStyle}
     >
+      {/* Inner wrapper: on mobile, a non-fixed div with zoom forces iOS Safari to scale text */}
+      <div style={mobileInnerWrapperStyle || undefined}>
       {/* Drag bar for floating mode */}
       {desktopFloating && asSidebar && (
         <div
@@ -3020,6 +3022,7 @@ const YearSelector = ({
           opacity: 0.3;
         }
       `}</style>
+      </div>{/* end inner wrapper */}
     </div>
   );
 };
