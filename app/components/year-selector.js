@@ -2260,7 +2260,7 @@ const YearSelector = ({
           className={`absolute ${
             isHorizontal
               ? 'right-2 top-1'
-              : `${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20`
+              : `${currentPosition === 'left' ? 'right-1' : 'left-1'} ${isMobile ? 'bottom-2' : 'bottom-20'}`
           } ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10`}
           aria-label="Collapse sidebar"
         >
@@ -2269,6 +2269,16 @@ const YearSelector = ({
               ? currentPosition === 'top' ? '↑' : '↓'
               : currentPosition === 'left' ? '←' : '→'
           }</span>
+        </button>
+      )}
+      {/* Switch sides button in expanded state — mobile vertical only */}
+      {asSidebar && !isHorizontal && !isFloating && isMobile && (
+        <button
+          onClick={togglePosition}
+          className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
+          aria-label="Switch sides"
+        >
+          <span className="text-[1em]">⇄</span>
         </button>
       )}
       
