@@ -2003,8 +2003,11 @@ const YearSelector = ({
     ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
     : `mb-4 border rounded ${colors.border} overflow-hidden p-4 ${colors.bgLight}`;
 
-  // CSS zoom scales top/bottom/left/right values on fixed elements, so compensate
-  const useZoom = !desktopFloating && dimFontScale !== 1;
+  // iOS Safari: zoom scales box model on fixed elements but NOT text rendering.
+  // Fix: use transform:scale on mobile (scales everything incl. text), zoom on desktop.
+  // transform doesn't shift CSS position values, so no position compensation needed for mobile.
+  // Desktop zoom DOES shift top/left/right/bottom, so compensate by dividing those by dimFontScale.
+  const useZoom = !desktopFloating && !isMobile && dimFontScale !== 1;
   const adjustedPositionStyle = useZoom
     ? Object.fromEntries(Object.entries(positionConfig?.style || {}).map(([k, v]) =>
         ['top', 'bottom', 'left', 'right'].includes(k) && typeof v === 'string' && v.endsWith('px')
@@ -2012,6 +2015,12 @@ const YearSelector = ({
           : [k, v]
       ))
     : positionConfig?.style || {};
+
+  // For mobile transform, anchor to the edge the panel is flush against
+  const mobileTransformOrigin = currentPosition === 'right' ? 'top right'
+    : currentPosition === 'left' ? 'top left'
+    : currentPosition === 'bottom' ? 'bottom left'
+    : 'top left';
 
   const containerStyle = asSidebar ? {
     ...adjustedPositionStyle,
@@ -2021,9 +2030,12 @@ const YearSelector = ({
     ...(desktopFloating ? {
       transform: `scale(${floatScale * dimFontScale})`,
       transformOrigin: 'top left',
-    } : {
+    } : isMobile && dimFontScale !== 1 ? {
+      transform: `scale(${dimFontScale})`,
+      transformOrigin: mobileTransformOrigin,
+    } : !isMobile && dimFontScale !== 1 ? {
       zoom: dimFontScale,
-    }),
+    } : {}),
   } : {};
 
   // Tailwind JIT-safe grid column classes (1-12 are standard Tailwind)
