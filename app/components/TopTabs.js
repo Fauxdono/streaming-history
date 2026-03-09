@@ -75,26 +75,34 @@ const TopTabs = ({
 
   // Re-measure dimensions on window resize, but block during transitions
   useEffect(() => {
-    const handleResize = () => {
-      if (isTransitioning) return; // Block updates during transitions
-      
+    const measure = () => {
       const topTabsElement = document.querySelector('.toptabs-container');
-      if (topTabsElement) {
-        // Re-measure width for left/right positions
-        if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
-          const actualWidth = topTabsElement.offsetWidth;
-          onWidthChange(actualWidth);
-        }
-        // Re-measure height for top/bottom positions
-        if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
-          const actualHeight = Math.ceil(topTabsElement.getBoundingClientRect().height);
-          onHeightChange(actualHeight);
-        }
+      if (!topTabsElement) return;
+      if (onWidthChange && (currentPosition === 'left' || currentPosition === 'right')) {
+        onWidthChange(topTabsElement.offsetWidth);
+      }
+      if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
+        onHeightChange(Math.ceil(topTabsElement.getBoundingClientRect().height));
       }
     };
 
+    const handleResize = () => {
+      if (isTransitioning) return;
+      measure();
+    };
+
+    // On orientation change, env(safe-area-inset-top) updates *after* the resize
+    // event fires, so we re-measure after a short delay to get the settled value.
+    const handleOrientationChange = () => {
+      setTimeout(measure, 250);
+    };
+
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
   }, [currentPosition, onWidthChange, onHeightChange, isTransitioning]);
 
   // Communicate position changes to parent
