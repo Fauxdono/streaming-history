@@ -269,6 +269,21 @@ const YearSelector = ({
     };
   }, []);
 
+  // Auto-move to bottom in landscape mobile, restore on return to portrait
+  const portraitPositionRef = useRef(null);
+  useEffect(() => {
+    if (!isMobile) return;
+    if (isLandscape) {
+      // Save the current portrait position before switching
+      portraitPositionRef.current = currentPosition;
+      setCurrentPosition('bottom');
+    } else {
+      // Restore portrait position (default to 'right' if none saved)
+      setCurrentPosition(portraitPositionRef.current || 'right');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLandscape, isMobile]);
+
   // Persist floating state to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
