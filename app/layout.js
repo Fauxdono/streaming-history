@@ -145,7 +145,7 @@ export default function RootLayout({ children }) {
                 var viewport = document.querySelector('meta[name="viewport"]');
                 if (viewport) {
                   var content = viewport.getAttribute('content');
-                  viewport.setAttribute('content', 'width=device-width');
+                  viewport.setAttribute('content', 'width=device-width, viewport-fit=cover');
                   setTimeout(function() {
                     viewport.setAttribute('content', content);
                     document.body.style.transform = '';
