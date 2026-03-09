@@ -139,8 +139,9 @@ const YearSelector = ({
           const yearRows = Math.ceil(yearCount / yearCols);
           let h = yearRows * 26 + 12; // row height ~26px + padding
           // Month/day are side-by-side with years in flex-row, so take max
-          if (showMonthSelector) h = Math.max(h, 56);
-          if (showDaySelector) h = Math.max(h, 96);
+          // 5-col months → 3 rows; 7-col days → 5 rows
+          if (showMonthSelector) h = Math.max(h, 3 * 26 + 12); // ~90px
+          if (showDaySelector) h = Math.max(h, 5 * 26 + 12); // ~142px
           return { width: 300, height: Math.max(48, h) };
         }
         // Desktop horizontal: years in one row, month/day grids are side-by-side (flex-row)
@@ -2485,7 +2486,7 @@ const YearSelector = ({
                       </button>
 
                       <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
-                        {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
+                        {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? (isMobile && isLandscape ? 5 : 12) : 3)}
                       </div>
                     </div>
                   )}
@@ -2528,7 +2529,7 @@ const YearSelector = ({
                       {/* Day grid selector - only shown when day toggle is on */}
                       {showDaySelector && (
                         <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
-                          {renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 31 : 4)}
+                          {renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? (isMobile && isLandscape ? 7 : 31) : 4)}
                         </div>
                       )}
                     </div>
