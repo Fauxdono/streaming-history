@@ -170,10 +170,11 @@ const YearSelector = ({
         if (isMobile && isLandscape) {
           const yearCols = Math.min(3, yearCount);
           const yearRows = Math.ceil(yearCount / yearCols);
-          let h = yearRows * 26 + 20; // year rows + mode buttons
-          if (showRangeMonthDaySelectors) h = Math.max(h, 80);
-          if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 100);
-          return { width: 300, height: Math.max(48, h) };
+          let h = yearRows * 26 + 20; // instruction text + year rows
+          h = Math.max(h, 80); // min height for toggle buttons column (Tap/Split + month + day)
+          if (showRangeMonthDaySelectors) h = Math.max(h, 5 * 26 + 20); // month: 5 rows + instruction
+          if (showRangeDaySelectors) h = Math.max(h, 5 * 26 + 20); // day: ~5 rows + instruction
+          return { width: 300, height: Math.max(48, h) + 12 };
         }
         // Desktop horizontal: year grid in one row, month/day grids side-by-side
         let h = 50; // base: mode buttons + year row + instruction label (min 48 for collapsed bar)
@@ -2858,9 +2859,10 @@ const YearSelector = ({
               {/* Range mode toggles and selectors - hidden on mobile portrait horizontal (handled inline above) */}
               {yearRange.startYear && yearRange.endYear && !(isMobile && !isLandscape && isHorizontal) && (
                 <>
-                  {/* Tap/Split toggle + Month/Day toggle */}
-                  <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col space-y-2'} ${isHorizontal ? 'items-center' : 'w-full mb-4'}`}>
-                    <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''} gap-1`}>
+                  {/* Tap/Split toggle + Month/Day toggles */}
+                  {isMobile && isLandscape && isHorizontal ? (
+                    /* Mobile landscape: Tap/Split on top, then month + day toggles below */
+                    <div className="flex flex-col gap-1 justify-center">
                       <button
                         onClick={() => setRangeTapMode(!rangeTapMode)}
                         className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
@@ -2871,26 +2873,20 @@ const YearSelector = ({
                       >
                         <span className="skew-x-[12deg] inline-block">{rangeTapMode ? 'Tap' : 'Split'}</span>
                       </button>
+                      {/* Month toggle */}
                       <button
                         onClick={() => {
-                            const newValue = !showRangeMonthDaySelectors;
-                            setShowRangeMonthDaySelectors(newValue);
-                            if (!newValue) setShowRangeDaySelectors(false);
-                            else setShowRangeDaySelectors(true);
-
-                            if (newValue) {
-                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
-                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
-                              if (onYearRangeChange) {
-                                onYearRangeChange({ startYear: startStr, endYear: endStr });
-                              }
-                            } else {
-                              if (onYearRangeChange) {
-                                onYearRangeChange({ startYear: yearRange.startYear, endYear: yearRange.endYear });
-                              }
-                            }
-
-                            setRefreshCounter(prev => prev + 1);
+                          const newValue = !showRangeMonthDaySelectors;
+                          setShowRangeMonthDaySelectors(newValue);
+                          if (!newValue) {
+                            setShowRangeDaySelectors(false);
+                            if (onYearRangeChange) onYearRangeChange({ startYear: yearRange.startYear, endYear: yearRange.endYear });
+                          } else {
+                            const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
+                            const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
+                            if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                          }
+                          setRefreshCounter(prev => prev + 1);
                         }}
                         className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
                           showRangeMonthDaySelectors
@@ -2898,16 +2894,86 @@ const YearSelector = ({
                             : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
                         }`}
                       >
-                        <span className="skew-x-[12deg] inline-block">m/d</span>
+                        <span className="skew-x-[12deg] inline-block">month</span>
                       </button>
+                      {/* Day toggle - only when month is active */}
+                      {showRangeMonthDaySelectors && (
+                        <button
+                          onClick={() => {
+                            const nv = !showRangeDaySelectors;
+                            setShowRangeDaySelectors(nv);
+                            if (nv) {
+                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                            } else {
+                              const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}`;
+                              const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}`;
+                              if (onYearRangeChange) onYearRangeChange({ startYear: startStr, endYear: endStr });
+                            }
+                            setRefreshCounter(prev => prev + 1);
+                          }}
+                          className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                            showRangeDaySelectors
+                              ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                              : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                          }`}
+                        >
+                          <span className="skew-x-[12deg] inline-block">day</span>
+                        </button>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div className={`flex ${isHorizontal ? 'flex-row' : 'flex-col space-y-2'} ${isHorizontal ? 'items-center' : 'w-full mb-4'}`}>
+                      <div className={`flex items-center ${isHorizontal ? 'mr-1' : ''} gap-1`}>
+                        <button
+                          onClick={() => setRangeTapMode(!rangeTapMode)}
+                          className={`${colors.toggleColorVar} px-2 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                            rangeTapMode
+                              ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                              : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                          }`}
+                        >
+                          <span className="skew-x-[12deg] inline-block">{rangeTapMode ? 'Tap' : 'Split'}</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                              const newValue = !showRangeMonthDaySelectors;
+                              setShowRangeMonthDaySelectors(newValue);
+                              if (!newValue) setShowRangeDaySelectors(false);
+                              else setShowRangeDaySelectors(true);
+
+                              if (newValue) {
+                                const startStr = `${yearRange.startYear}-${startMonth.toString().padStart(2, '0')}-${startDay.toString().padStart(2, '0')}`;
+                                const endStr = `${yearRange.endYear}-${endMonth.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}`;
+                                if (onYearRangeChange) {
+                                  onYearRangeChange({ startYear: startStr, endYear: endStr });
+                                }
+                              } else {
+                                if (onYearRangeChange) {
+                                  onYearRangeChange({ startYear: yearRange.startYear, endYear: yearRange.endYear });
+                                }
+                              }
+
+                              setRefreshCounter(prev => prev + 1);
+                          }}
+                          className={`${colors.toggleColorVar} px-3 py-0.5 text-[0.833em] font-bold rounded-sm transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                            showRangeMonthDaySelectors
+                              ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                              : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                          }`}
+                        >
+                          <span className="skew-x-[12deg] inline-block">m/d</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Tap mode: unified grids */}
                   {showRangeMonthDaySelectors && rangeTapMode && (
                     <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
                       {renderRangeMonthGrid(isHorizontal ? (isMobile && isLandscape ? null : 6) : 3, isMobile && isLandscape && isHorizontal ? 5 : null)}
-                      {renderRangeDayGrid(isHorizontal ? (isMobile && isLandscape ? 7 : 16) : 4)}
+                      {showRangeDaySelectors && renderRangeDayGrid(isHorizontal ? (isMobile && isLandscape ? 7 : 16) : 4)}
                     </div>
                   )}
 
