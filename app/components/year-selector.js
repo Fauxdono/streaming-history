@@ -1721,8 +1721,10 @@ const YearSelector = ({
         case 'top':
           return {
             className: 'fixed z-[89]',
-            style: { 
-              top: `${isMobile ? safeTopTabsHeight : settingsBarHeight + safeTopTabsHeight}px`,
+            style: {
+              top: isMobile
+                ? `calc(env(safe-area-inset-top) + ${safeTopTabsHeight}px)`
+                : `${settingsBarHeight + safeTopTabsHeight}px`,
               left: '0px',
               right: '0px'
             }
@@ -1779,18 +1781,22 @@ const YearSelector = ({
         case 'left':
           return {
             className: 'fixed z-[90]',
-            style: { 
+            style: {
               left: '0px',
-              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight - 1}px` : `${settingsBarHeight + safeTopTabsHeight - 1}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
+              top: topTabsPosition === 'top'
+                ? (isMobile ? `calc(env(safe-area-inset-top) + ${safeTopTabsHeight - 1}px)` : `${settingsBarHeight + safeTopTabsHeight - 1}px`)
+                : (isMobile ? '0px' : `${settingsBarHeight}px`),
               bottom: topTabsPosition === 'bottom' ? (isMobile ? `${settingsBarHeight + safeTopTabsHeight}px` : `${safeTopTabsHeight}px`) : (isMobile ? `${settingsBarHeight}px` : '0px')
             }
           };
         case 'right':
           return {
             className: 'fixed z-[90]',
-            style: { 
+            style: {
               right: '0px',
-              top: topTabsPosition === 'top' ? (isMobile ? `${safeTopTabsHeight - 1}px` : `${settingsBarHeight + safeTopTabsHeight - 1}px`) : (isMobile ? '0px' : `${settingsBarHeight}px`),
+              top: topTabsPosition === 'top'
+                ? (isMobile ? `calc(env(safe-area-inset-top) + ${safeTopTabsHeight - 1}px)` : `${settingsBarHeight + safeTopTabsHeight - 1}px`)
+                : (isMobile ? '0px' : `${settingsBarHeight}px`),
               bottom: topTabsPosition === 'bottom' ? (isMobile ? `${settingsBarHeight + safeTopTabsHeight}px` : `${safeTopTabsHeight}px`) : (isMobile ? `${settingsBarHeight}px` : '0px')
             }
           };

@@ -2124,7 +2124,12 @@ const SpotifyAnalyzer = ({
     }
     
     return {
-      paddingTop: `${topSpace}px`,
+      // On mobile with top-positioned TopTabs, the TopTabs height (JS-measured) excludes the
+      // safe-area inset. We add env(safe-area-inset-top) in CSS so it's always in sync with
+      // the actual device inset, regardless of orientation-change timing issues.
+      paddingTop: (isMobile && topTabsPosition === 'top')
+        ? `calc(env(safe-area-inset-top) + ${topSpace}px)`
+        : `${topSpace}px`,
       paddingBottom: `${bottomSpace}px`,
       paddingLeft: `${leftSpace}px`,
       paddingRight: `${rightSpace}px`,

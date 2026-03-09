@@ -82,7 +82,10 @@ const TopTabs = ({
         onWidthChange(topTabsElement.offsetWidth);
       }
       if (onHeightChange && (currentPosition === 'top' || currentPosition === 'bottom')) {
-        onHeightChange(Math.ceil(topTabsElement.getBoundingClientRect().height));
+        // Measure inner scroll container to exclude safe-area paddingTop on outer element
+        const inner = topTabsElement.querySelector(':scope > div');
+        const target = inner || topTabsElement;
+        onHeightChange(Math.ceil(target.getBoundingClientRect().height));
       }
     };
 
@@ -130,8 +133,12 @@ const TopTabs = ({
         return;
       }
 
+      // Measure inner scroll container to exclude safe-area paddingTop on outer element
+      const innerElement = topTabsElement.querySelector(':scope > div');
+      const measureTarget = innerElement || topTabsElement;
+
       // Measure immediately
-      onHeightChange(Math.ceil(topTabsElement.getBoundingClientRect().height));
+      onHeightChange(Math.ceil(measureTarget.getBoundingClientRect().height));
 
       // Watch for size changes (font load, content change, etc.)
       const observer = new ResizeObserver((entries) => {
@@ -139,7 +146,7 @@ const TopTabs = ({
           onHeightChange(Math.ceil(entry.target.getBoundingClientRect().height));
         }
       });
-      observer.observe(topTabsElement);
+      observer.observe(measureTarget);
 
       return () => observer.disconnect();
     } else {
