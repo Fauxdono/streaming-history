@@ -136,24 +136,14 @@ export default function RootLayout({ children }) {
                 });
               }
 
-              // Force viewport reset on orientation change (fixes iPad zoom-on-rotate)
+              // Reset body transform on orientation change (no viewport meta manipulation —
+              // that caused safe-area flicker on the sides in landscape)
               window.addEventListener('orientationchange', function() {
                 isRotating = true;
                 document.body.style.transform = '';
                 document.body.style.transformOrigin = '';
                 document.body.style.width = '';
-                var viewport = document.querySelector('meta[name="viewport"]');
-                if (viewport) {
-                  var content = viewport.getAttribute('content');
-                  viewport.setAttribute('content', 'width=device-width, viewport-fit=cover');
-                  setTimeout(function() {
-                    viewport.setAttribute('content', content);
-                    document.body.style.transform = '';
-                    document.body.style.transformOrigin = '';
-                    document.body.style.width = '';
-                    isRotating = false;
-                  }, 500);
-                }
+                setTimeout(function() { isRotating = false; }, 500);
               });
             })();
           `
