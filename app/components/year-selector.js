@@ -134,8 +134,8 @@ const YearSelector = ({
     if (mode === 'single') {
       if (isHorizontal && !isMobilePortraitHz) {
         if (isMobile && isLandscape) {
-          // Mobile landscape bottom bar: year grid uses up to 5 cols per row → multiple rows
-          const yearCols = Math.min(5, yearCount);
+          // Mobile landscape bottom bar: year grid uses up to 3 cols per row → multiple rows
+          const yearCols = Math.min(3, yearCount);
           const yearRows = Math.ceil(yearCount / yearCols);
           let h = yearRows * 26 + 12; // row height ~26px + padding
           // Month/day are side-by-side with years in flex-row, so take max
@@ -168,7 +168,7 @@ const YearSelector = ({
     if (mode === 'range') {
       if (isHorizontal && !isMobilePortraitHz) {
         if (isMobile && isLandscape) {
-          const yearCols = Math.min(5, yearCount);
+          const yearCols = Math.min(3, yearCount);
           const yearRows = Math.ceil(yearCount / yearCols);
           let h = yearRows * 26 + 20; // year rows + mode buttons
           if (showRangeMonthDaySelectors) h = Math.max(h, 80);
@@ -2320,7 +2320,7 @@ const YearSelector = ({
             <>
               {/* Year selection */}
               <div className={`flex ${isHorizontal ? (isMobile && !isLandscape ? 'flex-col items-center' : 'flex-row items-center') : 'flex-col items-center'}`}>
-                {!(isMobile && !isLandscape && isHorizontal) && (
+                {!(isMobile && isHorizontal) && (
                   <div className={`text-[1em] font-medium ${colors.text} ${
                     isHorizontal ? 'mr-2' : 'mb-1'
                   }`}>YEAR</div>
@@ -2438,7 +2438,7 @@ const YearSelector = ({
                     <div className="flex flex-col items-center">
                       {renderYearGrid(
                         isHorizontal
-                          ? (isMobile && isLandscape ? Math.min(5, years.length) : Math.min(years.length, 12))
+                          ? (isMobile && isLandscape ? Math.min(3, years.length) : Math.min(years.length, 12))
                           : 2
                       )}
                     </div>
