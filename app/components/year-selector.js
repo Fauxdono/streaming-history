@@ -2459,8 +2459,8 @@ const YearSelector = ({
                   {/* Month + Day Selectors - hidden on mobile portrait horizontal (toggle is under year wheel) */}
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
                     isMobile && isLandscape ? (
-                      /* Mobile landscape: toggles stacked in left column, grids in right column */
-                      <div className="flex flex-row items-start gap-2">
+                      /* Mobile landscape: toggles stacked in left column, grids side by side to the right */
+                      <div className="flex flex-row items-center gap-2">
                         {/* Toggle column */}
                         <div className="flex flex-col gap-1">
                           {/* Month toggle */}
@@ -2528,8 +2528,8 @@ const YearSelector = ({
                             <span className="skew-x-[12deg] inline-block">day</span>
                           </button>
                         </div>
-                        {/* Grid column */}
-                        <div className="flex flex-col gap-1">
+                        {/* Grids side by side */}
+                        <div className="flex flex-row items-start gap-2">
                           {renderMonthGrid(selectedMonth, handleMonthChange, null, false, 5)}
                           {showDaySelector && renderDayGrid(days, selectedDay, handleDayChange, 7)}
                         </div>
