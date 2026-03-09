@@ -2459,8 +2459,8 @@ const YearSelector = ({
                 <>
                   {/* Month + Day Selectors - hidden on mobile portrait horizontal (toggle is under year wheel) */}
                   {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
-                    isMobile && isLandscape ? (
-                      /* Mobile landscape: toggles stacked in left column, grids side by side to the right */
+                    isMobile && isLandscape && isHorizontal ? (
+                      /* Mobile landscape horizontal: toggles stacked in left column, grids side by side to the right */
                       <div className="flex flex-row items-center gap-2">
                         {/* Toggle column */}
                         <div className="flex flex-col gap-1">
