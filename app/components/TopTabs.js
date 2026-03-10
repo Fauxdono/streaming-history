@@ -373,9 +373,24 @@ const TopTabs = ({
   const getContainerStyles = () => {
     // Faster transitions on mobile to reduce lag
     const transitionClass = isMobile ? 'transition-all duration-150' : 'transition-all duration-300';
+    const colorfulTabBg = {
+      upload: 'bg-violet-200 dark:bg-violet-900',
+      stats: 'bg-indigo-200 dark:bg-indigo-900',
+      artists: 'bg-blue-200 dark:bg-blue-900',
+      albums: 'bg-cyan-200 dark:bg-cyan-900',
+      custom: 'bg-emerald-200 dark:bg-emerald-900',
+      tracks: 'bg-red-200 dark:bg-red-900',
+      calendar: 'bg-green-200 dark:bg-green-900',
+      patterns: 'bg-yellow-200 dark:bg-yellow-900',
+      behavior: 'bg-amber-200 dark:bg-amber-900',
+      discovery: 'bg-orange-200 dark:bg-orange-900',
+      podcasts: 'bg-red-200 dark:bg-red-900',
+      playlists: 'bg-rose-200 dark:bg-rose-900',
+      updates: 'bg-fuchsia-200 dark:bg-fuchsia-900',
+    };
     const bgStyles = colorMode === 'minimal'
       ? 'bg-white dark:bg-black'
-      : 'bg-white dark:bg-black';
+      : (colorfulTabBg[activeTab] || 'bg-white dark:bg-black');
     const borderColor = colorMode === 'minimal'
       ? 'border-black dark:border-[#4169E1]'
       : 'border-violet-200 dark:border-gray-600';
