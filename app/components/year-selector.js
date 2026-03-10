@@ -160,8 +160,8 @@ const YearSelector = ({
       }
       const yearRows = Math.ceil(yearCount / 2);
       let h = 30 + (yearRows * 26) + 8;
-      if (showMonthSelector) h += 110;
-      if (showDaySelector) h += 140;
+      if (showMonthSelector) h += 6 * 26 + 8;  // 2 cols × 6 rows + label
+      if (showDaySelector) h += 11 * 26 + 8;   // 3 cols × 11 rows + label
       return { width: 90, height: Math.max(120, h) };
     }
 
@@ -191,8 +191,8 @@ const YearSelector = ({
       }
       const yearRows = Math.ceil(yearCount / 2);
       let h = (yearRows * 26) + 30;
-      if (showRangeMonthDaySelectors) h += 200;
-      if (showRangeMonthDaySelectors && showRangeDaySelectors) h += 200;
+      if (showRangeMonthDaySelectors) h += 6 * 26 + 8;   // 2 cols × 6 rows + label
+      if (showRangeMonthDaySelectors && showRangeDaySelectors) h += 11 * 26 + 8;  // 3 cols × 11 rows + label
       return { width: 180, height: Math.max(180, h) };
     }
   };
@@ -2574,7 +2574,7 @@ const YearSelector = ({
                           </button>
 
                           <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
-                            {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 3)}
+                            {renderMonthGrid(selectedMonth, handleMonthChange, isHorizontal ? 12 : 2)}
                           </div>
                         </div>
 
@@ -2615,7 +2615,7 @@ const YearSelector = ({
                           {/* Day grid selector - only shown when day toggle is on */}
                           {showDaySelector && (
                             <div className={isHorizontal ? 'ml-2' : 'mt-2'}>
-                              {renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 31 : 4)}
+                              {renderDayGrid(days, selectedDay, handleDayChange, isHorizontal ? 31 : 3)}
                             </div>
                           )}
                         </div>
@@ -2972,8 +2972,8 @@ const YearSelector = ({
                   {/* Tap mode: unified grids */}
                   {showRangeMonthDaySelectors && rangeTapMode && (
                     <div className={`flex ${isHorizontal ? 'flex-row space-x-3' : 'flex-col space-y-2'} w-full`}>
-                      {renderRangeMonthGrid(isHorizontal ? (isMobile && isLandscape ? null : 6) : 3, isMobile && isLandscape && isHorizontal ? 5 : null)}
-                      {showRangeDaySelectors && renderRangeDayGrid(isHorizontal ? (isMobile && isLandscape ? 7 : 16) : 4)}
+                      {renderRangeMonthGrid(isHorizontal ? (isMobile && isLandscape ? null : 6) : 2, isMobile && isLandscape && isHorizontal ? 5 : null)}
+                      {showRangeDaySelectors && renderRangeDayGrid(isHorizontal ? (isMobile && isLandscape ? 7 : 16) : 3)}
                     </div>
                   )}
 
@@ -3051,21 +3051,21 @@ const YearSelector = ({
                       <div className="flex flex-row justify-between gap-2 w-full">
                         <div className="flex-1">
                           <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>SM</div>
-                          {renderMonthGrid(startMonth, handleStartMonthChange, 3)}
+                          {renderMonthGrid(startMonth, handleStartMonthChange, 2)}
                         </div>
                         <div className="flex-1">
                           <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>EM</div>
-                          {renderMonthGrid(endMonth, handleEndMonthChange, 3)}
+                          {renderMonthGrid(endMonth, handleEndMonthChange, 2)}
                         </div>
                       </div>
                       <div className="flex flex-row justify-between gap-2 w-full">
                         <div className="flex-1">
                           <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>SD</div>
-                          {renderDayGrid(startDays, startDay, handleStartDayChange, 4)}
+                          {renderDayGrid(startDays, startDay, handleStartDayChange, 3)}
                         </div>
                         <div className="flex-1">
                           <div className={`text-[1em] font-medium ${colors.text} text-center mb-1`}>ED</div>
-                          {renderDayGrid(endDays, endDay, handleEndDayChange, 4)}
+                          {renderDayGrid(endDays, endDay, handleEndDayChange, 3)}
                         </div>
                       </div>
                     </div>
