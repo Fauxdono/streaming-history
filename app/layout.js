@@ -70,12 +70,12 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     title: 'Cakeculator',
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
   }
 };
 
 export const viewport = {
-  themeColor: '#000000',
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({ children }) {
@@ -85,10 +85,10 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
         <meta name="application-name" content="Cake" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Cake" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#ffffff" />
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width, shrink-to-fit=no, viewport-fit=cover" />
         
         {/* Favicon */}

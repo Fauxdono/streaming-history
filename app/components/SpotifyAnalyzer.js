@@ -273,12 +273,17 @@ const SpotifyAnalyzer = ({
   const [albumsViewPress, setAlbumsViewPress] = useState(0);
   useEffect(() => { setArtistsSortPress(0); setArtistsViewPress(0); setAlbumsSortPress(0); setAlbumsViewPress(0); }, [activeTab, isDarkMode, colorMode]);
 
-  // Sync html+body background to active tab color so iOS safe areas match the page background
-  // Light colors match Tailwind -200 shades used by getPageBackground(); dark match -900 shades
+  // Sync html+body background and theme-color meta so iOS safe areas and status bar
+  // text adapt to the active tab color. Light = -200 shades; dark = -900 shades.
   useEffect(() => {
+    const setThemeColor = (color) => {
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', color);
+    };
     if (colorMode !== 'colorful') {
       document.documentElement.style.backgroundColor = '';
       document.body.style.backgroundColor = '';
+      setThemeColor(isDarkMode ? '#000000' : '#ffffff');
       return;
     }
     const light = { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe' };
@@ -287,6 +292,7 @@ const SpotifyAnalyzer = ({
     const color = map[activeTab] || '';
     document.documentElement.style.backgroundColor = color;
     document.body.style.backgroundColor = color;
+    setThemeColor(color);
     return () => {
       document.documentElement.style.backgroundColor = '';
       document.body.style.backgroundColor = '';
