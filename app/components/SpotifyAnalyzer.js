@@ -1994,6 +1994,12 @@ const SpotifyAnalyzer = ({
     }
   }, [activeTab, handleYearRangeChange, handleAlbumYearRangeChange, handleCustomTrackYearRangeChange]);
 
+  // Stable callback for year selector expand state — must be memoized to avoid
+  // React 18 "Cannot update while rendering" warning from Strict Mode double-effect firing
+  const handleYearSelectorExpandChange = useCallback((expanded) => {
+    setYearSelectorExpanded(expanded);
+  }, []);
+
   // Handle range mode toggle from sidebar
   const handleSidebarRangeModeToggle = useCallback((isRange) => {
     console.log("handleSidebarRangeModeToggle called with:", { isRange, activeTab });
@@ -4072,10 +4078,7 @@ const SpotifyAnalyzer = ({
             activeTab={activeTab}
             onYearChange={handleSidebarYearChange}
             onYearRangeChange={handleSidebarYearRangeChange}
-            onExpandChange={(expanded) => {
-              console.log('SpotifyAnalyzer: Received year selector expansion change:', expanded);
-              setYearSelectorExpanded(expanded);
-            }}
+            onExpandChange={handleYearSelectorExpandChange}
             onPositionChange={setYearSelectorPosition}
             onWidthChange={setYearSelectorWidth}
             onHeightChange={setYearSelectorHeight}
