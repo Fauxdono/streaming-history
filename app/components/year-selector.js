@@ -1965,10 +1965,10 @@ const YearSelector = ({
               </>
             ) : (
               <>
-                {/* Snapped: position cycle button — protrudes slightly outside container */}
+                {/* Snapped: position cycle button — on outer edge of container */}
                 <button
                   onClick={togglePosition}
-                  className={`absolute ${currentPosition === 'left' ? 'right-[-10px]' : 'left-[-10px]'} bottom-10 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
+                  className={`absolute ${currentPosition === 'left' ? 'left-0' : 'right-0'} bottom-10 ${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] z-10 w-6 h-6 flex items-center justify-center`}
                   aria-label="Toggle sidebar position"
                 >
                   <span className="text-[1em]">⇄</span>
@@ -2319,9 +2319,9 @@ const YearSelector = ({
                 ? 'flex flex-col items-center overflow-y-auto px-2 flex-grow gap-1'
                 : 'flex flex-row items-center space-x-2 px-2 flex-grow justify-center'
               : 'flex flex-row items-center space-x-3 overflow-x-auto max-w-full px-3 flex-grow justify-center'
-            : `overflow-y-auto ${isLandscape ? 'max-h-[calc(100%-120px)]' : 'max-h-[calc(100%-180px)]'} ${
+            : `overflow-y-auto flex-1 min-h-0 ${
                 mode === 'range' ? 'px-2' : 'px-1'
-              } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex-grow flex flex-col items-center space-y-2`
+              } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex flex-col items-center space-y-2`
         }`}>
 
           {mode === 'single' ? (
