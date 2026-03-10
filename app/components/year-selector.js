@@ -2254,7 +2254,7 @@ const YearSelector = ({
         </div>
       )}
       {/* Collapse button for sidebar (hidden when desktop horizontal or floating) */}
-      {asSidebar && (!isHorizontal || (isMobile && !isLandscape)) && !isFloating && (
+      {asSidebar && (!isHorizontal || isMobile) && !isFloating && (
         <button
           onClick={toggleExpanded}
           className={`absolute ${
