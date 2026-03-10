@@ -177,12 +177,15 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
   }, [isOpen, onClose, buttonRef]);
 
   // Position dropdown
-  const [position, setPosition] = useState({ top: null, bottom: null, left: 0, maxHeight: 'none' });
+  const [position, setPosition] = useState({ top: null, bottom: null, left: 0, maxHeight: 'none', width: 280 });
 
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const dropdownWidth = isMobile ? 280 : 560;
+      const isLandscape = window.innerWidth > window.innerHeight;
+      const dropdownWidth = isMobile
+        ? (isLandscape ? Math.min(window.innerWidth - 16, 560) : 280)
+        : 560;
 
       let left = buttonRect.left + buttonRect.width / 2 - dropdownWidth / 2;
       if (left < 8) left = 8;
@@ -192,15 +195,15 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
         // Open upward from the button, capped to available space above
         const bottom = window.innerHeight - buttonRect.top + 8;
         const maxHeight = Math.max(buttonRect.top - 16, 120);
-        setPosition({ top: null, bottom, left, maxHeight });
+        setPosition({ top: null, bottom, left, maxHeight, width: dropdownWidth });
       } else {
         const top = buttonRect.bottom + 8;
         const spaceBelow = window.innerHeight - top - 8;
         if (spaceBelow < 400) {
           const spaceAbove = buttonRect.top - 8;
-          setPosition({ top: Math.max(8, buttonRect.top - Math.min(600, spaceAbove) - 8), bottom: null, left, maxHeight: Math.min(600, spaceAbove) });
+          setPosition({ top: Math.max(8, buttonRect.top - Math.min(600, spaceAbove) - 8), bottom: null, left, maxHeight: Math.min(600, spaceAbove), width: dropdownWidth });
         } else {
-          setPosition({ top, bottom: null, left, maxHeight: Math.min(600, spaceBelow) });
+          setPosition({ top, bottom: null, left, maxHeight: Math.min(600, spaceBelow), width: dropdownWidth });
         }
       }
     }
@@ -215,7 +218,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
       style={{
         ...(position.bottom !== null ? { bottom: position.bottom } : { top: position.top }),
         left: position.left,
-        width: isMobile ? '280px' : '560px',
+        width: `${position.width}px`,
         maxHeight: position.maxHeight,
       }}
     >
