@@ -63,7 +63,7 @@ const FixedSettingsBar = ({
           })
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center pt-2'}`} style={{height: isMobile ? `${mobileBarHeight}px` : 'auto'}}>
+        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center'}`} style={{height: isMobile ? `${mobileBarHeight}px` : 'auto', ...((!isMobile) && { paddingTop: '8px' })}}>
           {isMobile ? (
             <>
               {/* Left side buttons */}
@@ -138,15 +138,16 @@ const FixedSettingsBar = ({
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-1 px-2">
+            <div className="flex items-center" style={{gap: '4px', padding: '0 8px'}}>
               {/* Dark mode toggle */}
               <button
                 onClick={toggleTheme}
-                className={`p-1.5 rounded-full transition-colors shadow-lg w-8 h-8 flex items-center justify-center ${
+                className={`rounded-full transition-colors shadow-lg flex items-center justify-center flex-shrink-0 ${
                   isDarkMode
                     ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
                     : 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
                 }`}
+                style={{width: '32px', height: '32px', padding: '6px'}}
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
@@ -155,13 +156,14 @@ const FixedSettingsBar = ({
               {/* Color mode toggle */}
               <button
                 onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
-                className={`p-1.5 rounded-full transition-colors shadow-lg w-8 h-8 flex items-center justify-center ${
+                className={`rounded-full transition-colors shadow-lg flex items-center justify-center flex-shrink-0 ${
                   colorMode === 'colorful'
                     ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
                     : isDarkMode
                       ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                       : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                 }`}
+                style={{width: '32px', height: '32px', padding: '6px'}}
                 title={colorMode === 'minimal' ? 'Switch to colorful mode' : 'Switch to minimal mode'}
               >
                 <Palette size={14} />
@@ -171,7 +173,8 @@ const FixedSettingsBar = ({
               <button
                 ref={settingsButtonRef}
                 onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                className="rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
+                style={{width: '32px', height: '32px', padding: '6px'}}
                 title="Font & Display Settings"
               >
                 <Type size={14} />
@@ -181,7 +184,8 @@ const FixedSettingsBar = ({
               <button
                 ref={supportButtonRef}
                 onClick={() => setShowSupportDropdown(!showSupportDropdown)}
-                className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                className="rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
+                style={{width: '32px', height: '32px', padding: '6px'}}
                 title="Support"
               >
                 <Heart size={14} fill="white" />
@@ -191,7 +195,8 @@ const FixedSettingsBar = ({
               <button
                 ref={analysisButtonRef}
                 onClick={() => setShowAnalysisSettings(!showAnalysisSettings)}
-                className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                className="rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
+                style={{width: '32px', height: '32px', padding: '6px'}}
                 title="Analysis Settings"
               >
                 <Settings size={14} />
@@ -200,7 +205,8 @@ const FixedSettingsBar = ({
               {/* Position toggle button */}
               <button
                 onClick={togglePosition}
-                className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                className="rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
+                style={{width: '32px', height: '32px', padding: '6px'}}
                 title="Change tab position"
               >
                 <ArrowLeftRight size={14} />
