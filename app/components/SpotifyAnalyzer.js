@@ -273,17 +273,24 @@ const SpotifyAnalyzer = ({
   const [albumsViewPress, setAlbumsViewPress] = useState(0);
   useEffect(() => { setArtistsSortPress(0); setArtistsViewPress(0); setAlbumsSortPress(0); setAlbumsViewPress(0); }, [activeTab, isDarkMode, colorMode]);
 
-  // Sync html background to active tab color so iOS safe areas match the page background
+  // Sync html+body background to active tab color so iOS safe areas match the page background
+  // Light colors match Tailwind -200 shades used by getPageBackground(); dark match -900 shades
   useEffect(() => {
     if (colorMode !== 'colorful') {
       document.documentElement.style.backgroundColor = '';
+      document.body.style.backgroundColor = '';
       return;
     }
-    const light = { upload: '#ede9fe', stats: '#e0e7ff', artists: '#dbeafe', albums: '#cffafe', custom: '#d1fae5', tracks: '#fee2e2', calendar: '#dcfce7', patterns: '#fef9c3', behavior: '#fef3c7', discovery: '#ffedd5', podcasts: '#fee2e2', playlists: '#ffe4e6', updates: '#fae8ff' };
+    const light = { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe' };
     const dark  = { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75' };
     const map = isDarkMode ? dark : light;
-    document.documentElement.style.backgroundColor = map[activeTab] || '';
-    return () => { document.documentElement.style.backgroundColor = ''; };
+    const color = map[activeTab] || '';
+    document.documentElement.style.backgroundColor = color;
+    document.body.style.backgroundColor = color;
+    return () => {
+      document.documentElement.style.backgroundColor = '';
+      document.body.style.backgroundColor = '';
+    };
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
