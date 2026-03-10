@@ -276,24 +276,31 @@ const SpotifyAnalyzer = ({
   // Sync html+body background and theme-color meta so iOS safe areas and status bar
   // text adapt to the active tab color. Light = -200 shades; dark = -900 shades.
   useEffect(() => {
-    const setThemeColor = (color) => {
-      const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', color);
-    };
-    if (colorMode !== 'colorful') {
-      document.documentElement.style.backgroundColor = '';
-      document.body.style.backgroundColor = '';
-      setThemeColor(isDarkMode ? '#000000' : '#ffffff');
-      return;
-    }
     const light = { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe' };
     const dark  = { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75' };
-    const map = isDarkMode ? dark : light;
-    const color = map[activeTab] || '';
-    document.documentElement.style.backgroundColor = color;
-    document.body.style.backgroundColor = color;
-    setThemeColor(color);
+
+    const applyColor = () => {
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (colorMode !== 'colorful') {
+        document.documentElement.style.backgroundColor = '';
+        document.body.style.backgroundColor = '';
+        if (meta) meta.setAttribute('content', isDarkMode ? '#000000' : '#ffffff');
+        return;
+      }
+      const color = (isDarkMode ? dark : light)[activeTab] || '';
+      document.documentElement.style.backgroundColor = color;
+      document.body.style.backgroundColor = color;
+      if (meta) meta.setAttribute('content', color);
+    };
+
+    applyColor();
+
+    // iOS resets status bar state after orientation change — re-apply after it settles
+    const handleOrientationChange = () => setTimeout(applyColor, 300);
+    window.addEventListener('orientationchange', handleOrientationChange);
+
     return () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
       document.documentElement.style.backgroundColor = '';
       document.body.style.backgroundColor = '';
     };
