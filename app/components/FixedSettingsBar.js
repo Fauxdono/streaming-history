@@ -65,12 +65,11 @@ const FixedSettingsBar = ({
       <div 
         className={`fixed left-0 right-0 w-full z-[100] ${isMobile ? 'border-t' : 'border-b'} border-violet-200 dark:border-gray-600`}
         style={{
-          ...(colorfulBg ? { backgroundColor: colorfulBg } : {
-            backgroundImage: 'url(/apple-touch-icon.png)',
-            backgroundRepeat: 'repeat-x',
-            backgroundSize: 'auto 100%',
-            backgroundPosition: 'left center',
-          }),
+          backgroundImage: 'url(/apple-touch-icon.png)',
+          backgroundRepeat: 'repeat-x',
+          backgroundSize: 'auto 100%',
+          backgroundPosition: 'left center',
+          ...(colorfulBg ? { backgroundColor: colorfulBg } : {}),
           transform: 'translateZ(0)',
           willChange: 'auto',
           ...(isMobile ? {
