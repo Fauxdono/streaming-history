@@ -21,6 +21,23 @@ const FixedSettingsBar = ({
 }) => {
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  const tabAccentColors = {
+    upload:    isDarkMode ? '#4c1d95' : '#ddd6fe',
+    stats:     isDarkMode ? '#312e81' : '#c7d2fe',
+    artists:   isDarkMode ? '#1e3a8a' : '#bfdbfe',
+    albums:    isDarkMode ? '#164e63' : '#a5f3fc',
+    custom:    isDarkMode ? '#064e3b' : '#a7f3d0',
+    tracks:    isDarkMode ? '#7f1d1d' : '#fecaca',
+    calendar:  isDarkMode ? '#14532d' : '#bbf7d0',
+    patterns:  isDarkMode ? '#713f12' : '#fef08a',
+    behavior:  isDarkMode ? '#78350f' : '#fde68a',
+    discovery: isDarkMode ? '#7c2d12' : '#fed7aa',
+    podcasts:  isDarkMode ? '#7f1d1d' : '#fecaca',
+    playlists: isDarkMode ? '#881337' : '#fecdd3',
+    updates:   isDarkMode ? '#701a75' : '#f5d0fe',
+  };
+  const colorfulBg = colorMode === 'colorful' ? (tabAccentColors[activeTab] || null) : null;
   const mobileBarHeight = isLandscapeMobile ? 64 : 85;
   // Tabs that support grid/list view (mobile only)
   const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns', 'calendar'];
@@ -48,10 +65,12 @@ const FixedSettingsBar = ({
       <div 
         className={`fixed left-0 right-0 w-full z-[100] ${isMobile ? 'border-t' : 'border-b'} border-violet-200 dark:border-gray-600`}
         style={{
-          backgroundImage: 'url(/apple-touch-icon.png)',
-          backgroundRepeat: 'repeat-x',
-          backgroundSize: 'auto 100%',
-          backgroundPosition: 'left center',
+          ...(colorfulBg ? { backgroundColor: colorfulBg } : {
+            backgroundImage: 'url(/apple-touch-icon.png)',
+            backgroundRepeat: 'repeat-x',
+            backgroundSize: 'auto 100%',
+            backgroundPosition: 'left center',
+          }),
           transform: 'translateZ(0)',
           willChange: 'auto',
           ...(isMobile ? {
