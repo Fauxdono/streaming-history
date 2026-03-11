@@ -281,16 +281,17 @@ const SpotifyAnalyzer = ({
 
     const applyColor = () => {
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (colorMode !== 'colorful') {
+      const color = (isDarkMode ? dark : light)[activeTab] || '';
+      // Always update theme-color so desktop Safari tints its tab bar
+      if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
+      // Only apply bg color on html/body in colorful mode (mobile safe areas)
+      if (colorMode === 'colorful') {
+        document.documentElement.style.backgroundColor = color;
+        document.body.style.backgroundColor = color;
+      } else {
         document.documentElement.style.backgroundColor = '';
         document.body.style.backgroundColor = '';
-        if (meta) meta.setAttribute('content', isDarkMode ? '#000000' : '#ffffff');
-        return;
       }
-      const color = (isDarkMode ? dark : light)[activeTab] || '';
-      document.documentElement.style.backgroundColor = color;
-      document.body.style.backgroundColor = color;
-      if (meta) meta.setAttribute('content', color);
     };
 
     applyColor();
