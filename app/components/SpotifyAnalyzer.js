@@ -24,6 +24,7 @@ import ExportButton from './ExportButton.js';
 import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import GoogleDriveSync from './GoogleDriveSync.js';
+import RockboxScrobbler from './RockboxScrobbler.js';
 import FixedSettingsBar from './FixedSettingsBar.js';
 import SettingsPanel from './SettingsPanel.js';
 
@@ -3845,6 +3846,43 @@ const SpotifyAnalyzer = ({
           </div>
         );
 
+      case 'scrobbler':
+        return (
+          <div className={`p-2 sm:p-4 rounded border-2 ${
+            colorMode === 'colorful'
+              ? 'bg-teal-200 dark:bg-teal-900 border-teal-300 dark:border-teal-700'
+              : isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'
+          }`}>
+            <div className="hidden sm:block mb-4">
+              <h3 className={`text-xl ${colorMode === 'colorful' ? 'text-teal-700 dark:text-teal-300' : ''}`}>Rockbox Scrobbler</h3>
+            </div>
+            <RockboxScrobbler
+              isDarkMode={isDarkMode}
+              colorMode={colorMode}
+              onScrobblesLoaded={(entries) => {
+                const content = entries.map(e =>
+                  [
+                    e.master_metadata_album_artist_name,
+                    e.master_metadata_album_album_name || '',
+                    e.master_metadata_track_name,
+                    '',
+                    Math.round((e.ms_played || 210000) / 1000),
+                    e.skipped ? 'S' : '',
+                    Math.floor(new Date(e.ts).getTime() / 1000),
+                    ''
+                  ].join('\t')
+                ).join('\n');
+                const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
+                const blob = new Blob([header + content], { type: 'text/plain' });
+                const file = new File([blob], '.scrobbler.log', { type: 'text/plain' });
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                processFiles(dt.files);
+              }}
+            />
+          </div>
+        );
+
       case 'settings':
         return (
           <div className={
@@ -3893,6 +3931,7 @@ const SpotifyAnalyzer = ({
     handleFileUpload,
     handleDeleteFile,
     handleProcessFiles,
+    processFiles,
     topArtists,
     topAlbums,
     briefObsessions,

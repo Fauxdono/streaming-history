@@ -2775,5 +2775,6 @@ export {
   calculateConsecutivePlayStreaks,
   calculateOverallDailyStreak,
   calculateTopSongDailyStreak,
-  calculateTopAlbumDailyStreak
+  calculateTopAlbumDailyStreak,
+  processRockboxScrobblerLog
 };
