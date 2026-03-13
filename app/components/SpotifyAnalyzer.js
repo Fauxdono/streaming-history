@@ -274,6 +274,18 @@ const SpotifyAnalyzer = ({
   const [albumsViewPress, setAlbumsViewPress] = useState(0);
   useEffect(() => { setArtistsSortPress(0); setArtistsViewPress(0); setAlbumsSortPress(0); setAlbumsViewPress(0); }, [activeTab, isDarkMode, colorMode]);
 
+  // Refresh stored scrobble count whenever the upload tab is active
+  useEffect(() => {
+    if (activeTab === 'upload') {
+      try {
+        const raw = localStorage.getItem('rockbox_scrobbles');
+        const map = raw ? JSON.parse(raw) : {};
+        const count = Object.values(map).reduce((s, a) => s + a.length, 0);
+        setStoredScrobbleCount(count);
+      } catch { setStoredScrobbleCount(0); }
+    }
+  }, [activeTab]);
+
   // Sync html+body background and theme-color meta so iOS safe areas and status bar
   // text adapt to the active tab color. Light = -200 shades; dark = -900 shades.
   useEffect(() => {
@@ -322,6 +334,8 @@ const SpotifyAnalyzer = ({
   const [artistSearch, setArtistSearch] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadInnerTab, setUploadInnerTab] = useState('upload');
+  const [includeScrobblerData, setIncludeScrobblerData] = useState(false);
+  const [storedScrobbleCount, setStoredScrobbleCount] = useState(0);
   const [uploadedFileList, setUploadedFileList] = useState(null);
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   
@@ -1341,28 +1355,53 @@ const SpotifyAnalyzer = ({
 
   // Process uploaded files with useCallback
   const handleProcessFiles = useCallback(() => {
-    if (!uploadedFileList || uploadedFileList.length === 0) {
-      setError("Please upload files first");
+    const hasUploadedFiles = uploadedFileList && uploadedFileList.length > 0;
+    const hasScrobblerData = includeScrobblerData && storedScrobbleCount > 0;
+
+    if (!hasUploadedFiles && !hasScrobblerData) {
+      setError("Please upload files or include Rockbox scrobbler data first");
       return;
     }
-    
+
     setIsProcessing(true);
-    
-    // Use setTimeout to allow the UI to update before processing starts
-    setTimeout(() => {
-      processFiles(uploadedFileList)
-        .then(() => {
-          setActiveTab('stats');
-        })
-        .catch(err => {
-          console.error("Error processing files:", err);
-          setError(err.message);
-        })
-        .finally(() => {
-          setIsProcessing(false);
-        });
+
+    setTimeout(async () => {
+      try {
+        let filesToProcess = uploadedFileList ? Array.from(uploadedFileList) : [];
+
+        if (hasScrobblerData) {
+          const raw = localStorage.getItem('rockbox_scrobbles');
+          const map = raw ? JSON.parse(raw) : {};
+          const entries = Object.values(map).flat().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+          const lines = entries.map(e =>
+            [
+              e.master_metadata_album_artist_name,
+              e.master_metadata_album_album_name || '',
+              e.master_metadata_track_name,
+              '',
+              Math.round((e.ms_played || 210000) / 1000),
+              e.skipped ? 'S' : '',
+              Math.floor(new Date(e.ts).getTime() / 1000),
+              ''
+            ].join('\t')
+          ).join('\n');
+          const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
+          const blob = new Blob([header + lines], { type: 'text/plain' });
+          filesToProcess = [new File([blob], '.scrobbler.log', { type: 'text/plain' }), ...filesToProcess];
+        }
+
+        const dt = new DataTransfer();
+        filesToProcess.forEach(f => dt.items.add(f));
+        await processFiles(dt.files);
+        setActiveTab('stats');
+      } catch (err) {
+        console.error("Error processing files:", err);
+        setError(err.message);
+      } finally {
+        setIsProcessing(false);
+      }
     }, 100);
-  }, [uploadedFileList, processFiles]);
+  }, [uploadedFileList, processFiles, includeScrobblerData, storedScrobbleCount]);
 
 
 
@@ -2469,6 +2508,18 @@ const SpotifyAnalyzer = ({
                   <ExcelPreview file={uploadedFileList[0]} />
                 )}
 
+                {storedScrobbleCount > 0 && (
+                  <label className={`mt-3 flex items-center gap-2 cursor-pointer select-none text-sm ${uploadTextLight}`}>
+                    <input
+                      type="checkbox"
+                      checked={includeScrobblerData}
+                      onChange={e => setIncludeScrobblerData(e.target.checked)}
+                      className="w-4 h-4 accent-violet-600"
+                    />
+                    Include Rockbox scrobbles ({storedScrobbleCount.toLocaleString()} plays)
+                  </label>
+                )}
+
                 <button
                   onClick={handleProcessFiles}
                   disabled={isProcessing}
@@ -2480,6 +2531,38 @@ const SpotifyAnalyzer = ({
                 >
                   {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}
                 </button>
+              </div>
+            )}
+
+            {/* Scrobbler-only calculate — shown when no files uploaded but scrobbles exist */}
+            {uploadedFiles.length === 0 && storedScrobbleCount > 0 && (
+              <div className={`mt-4 p-3 rounded-lg border ${
+                colorMode === 'colorful'
+                  ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
+                  : isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black'
+              }`}>
+                <label className={`flex items-center gap-2 cursor-pointer select-none text-sm mb-3 ${uploadTextLight}`}>
+                  <input
+                    type="checkbox"
+                    checked={includeScrobblerData}
+                    onChange={e => setIncludeScrobblerData(e.target.checked)}
+                    className="w-4 h-4 accent-violet-600"
+                  />
+                  Include Rockbox scrobbles ({storedScrobbleCount.toLocaleString()} plays)
+                </label>
+                {includeScrobblerData && (
+                  <button
+                    onClick={handleProcessFiles}
+                    disabled={isProcessing}
+                    className={
+                      colorMode === 'colorful'
+                        ? 'w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg'
+                        : `w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg disabled:cursor-not-allowed ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 disabled:opacity-50' : 'bg-white text-black border border-black hover:bg-gray-100 disabled:opacity-50'}`
+                    }
+                  >
+                    {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}
+                  </button>
+                )}
               </div>
             )}
                 
@@ -3937,6 +4020,9 @@ const SpotifyAnalyzer = ({
     error,
     uploadInnerTab,
     setUploadInnerTab,
+    includeScrobblerData,
+    setIncludeScrobblerData,
+    storedScrobbleCount,
     handleLoadSampleData,
     handleFileUpload,
     handleDeleteFile,
