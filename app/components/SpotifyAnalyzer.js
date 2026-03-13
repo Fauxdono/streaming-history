@@ -321,6 +321,7 @@ const SpotifyAnalyzer = ({
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploadInnerTab, setUploadInnerTab] = useState('upload');
   const [uploadedFileList, setUploadedFileList] = useState(null);
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   
@@ -2227,13 +2228,56 @@ const SpotifyAnalyzer = ({
           ? 'bg-violet-100 dark:bg-violet-800'
           : (isDarkMode ? 'bg-black' : 'bg-white');
 
+        const uploadInnerBtnActive = colorMode === 'colorful'
+          ? 'bg-violet-200 dark:bg-violet-700 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
+          : isDarkMode
+            ? 'bg-gray-800 text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+            : 'bg-gray-100 text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
+        const uploadInnerBtnInactive = colorMode === 'colorful'
+          ? 'bg-violet-100 dark:bg-violet-800 text-violet-600 dark:text-violet-400 border border-violet-300 dark:border-violet-600 hover:bg-violet-200 shadow-[2px_2px_0_0_#7c3aed]'
+          : isDarkMode
+            ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]'
+            : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]';
+
         return (
           <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-            {/* Desktop title */}
-            <div className="hidden sm:block mb-4">
-              <h3 className={`text-xl ${uploadText}`}>Upload Files</h3>
+            {/* Title + inner tabs row */}
+            <div className="flex items-center gap-3 mb-4">
+              <h3 className={`text-xl hidden sm:block ${uploadText}`}>
+                {uploadInnerTab === 'upload' ? 'Upload Files' : 'Scrobbler'}
+              </h3>
+              <div className="flex gap-1">
+                <button onClick={() => setUploadInnerTab('upload')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'upload' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Upload</button>
+                <button onClick={() => setUploadInnerTab('scrobbler')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'scrobbler' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Scrobbler</button>
+              </div>
             </div>
             <div>
+            {uploadInnerTab === 'scrobbler' ? (
+              <RockboxScrobbler
+                isDarkMode={isDarkMode}
+                colorMode={colorMode}
+                onScrobblesLoaded={(entries) => {
+                  const content = entries.map(e =>
+                    [
+                      e.master_metadata_album_artist_name,
+                      e.master_metadata_album_album_name || '',
+                      e.master_metadata_track_name,
+                      '',
+                      Math.round((e.ms_played || 210000) / 1000),
+                      e.skipped ? 'S' : '',
+                      Math.floor(new Date(e.ts).getTime() / 1000),
+                      ''
+                    ].join('\t')
+                  ).join('\n');
+                  const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
+                  const blob = new Blob([header + content], { type: 'text/plain' });
+                  const file = new File([blob], '.scrobbler.log', { type: 'text/plain' });
+                  const dt = new DataTransfer();
+                  dt.items.add(file);
+                  processFiles(dt.files);
+                }}
+              />
+            ) : (<>
             {/* Storage Notification */}
             {storageNotification && (
               <div className={`mb-6 p-4 rounded-lg border ${
@@ -2454,6 +2498,7 @@ const SpotifyAnalyzer = ({
               {' · '}
               <a href="/terms" className="underline hover:opacity-70">Terms of Service</a>
             </div>
+            </>)}
             </div>
           </div>
         );
@@ -3846,43 +3891,6 @@ const SpotifyAnalyzer = ({
           </div>
         );
 
-      case 'scrobbler':
-        return (
-          <div className={`p-2 sm:p-4 rounded border-2 ${
-            colorMode === 'colorful'
-              ? 'bg-teal-200 dark:bg-teal-900 border-teal-300 dark:border-teal-700'
-              : isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'
-          }`}>
-            <div className="hidden sm:block mb-4">
-              <h3 className={`text-xl ${colorMode === 'colorful' ? 'text-teal-700 dark:text-teal-300' : ''}`}>Rockbox Scrobbler</h3>
-            </div>
-            <RockboxScrobbler
-              isDarkMode={isDarkMode}
-              colorMode={colorMode}
-              onScrobblesLoaded={(entries) => {
-                const content = entries.map(e =>
-                  [
-                    e.master_metadata_album_artist_name,
-                    e.master_metadata_album_album_name || '',
-                    e.master_metadata_track_name,
-                    '',
-                    Math.round((e.ms_played || 210000) / 1000),
-                    e.skipped ? 'S' : '',
-                    Math.floor(new Date(e.ts).getTime() / 1000),
-                    ''
-                  ].join('\t')
-                ).join('\n');
-                const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
-                const blob = new Blob([header + content], { type: 'text/plain' });
-                const file = new File([blob], '.scrobbler.log', { type: 'text/plain' });
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                processFiles(dt.files);
-              }}
-            />
-          </div>
-        );
-
       case 'settings':
         return (
           <div className={
@@ -3927,6 +3935,8 @@ const SpotifyAnalyzer = ({
     uploadedFiles,
     uploadedFileList,
     error,
+    uploadInnerTab,
+    setUploadInnerTab,
     handleLoadSampleData,
     handleFileUpload,
     handleDeleteFile,

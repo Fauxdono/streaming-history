@@ -233,8 +233,6 @@ const TopTabs = ({
         return '🎧';
       case 'playlists':
         return '📋';
-      case 'scrobbler':
-        return '📻';
       case 'settings':
         return '⚙️';
       default:
@@ -306,10 +304,6 @@ const TopTabs = ({
           return activeTab === tabId
             ? 'bg-rose-50 text-rose-600 border-b-2 border-rose-600 dark:bg-rose-900 dark:text-rose-300 dark:border-rose-400'
             : 'bg-rose-200 text-rose-600 hover:bg-rose-300 dark:bg-rose-800 dark:text-rose-300 dark:hover:bg-rose-700';
-        case 'scrobbler':
-          return activeTab === tabId
-            ? 'bg-teal-50 text-teal-600 border-b-2 border-teal-600 dark:bg-teal-900 dark:text-teal-300 dark:border-teal-400'
-            : 'bg-teal-200 text-teal-600 hover:bg-teal-300 dark:bg-teal-800 dark:text-teal-300 dark:hover:bg-teal-700';
         case 'settings':
           return activeTab === tabId
             ? 'bg-gray-50 text-gray-600 border-b-2 border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-400'
@@ -392,7 +386,6 @@ const TopTabs = ({
       discovery: 'bg-orange-200 dark:bg-orange-900',
       podcasts: 'bg-red-200 dark:bg-red-900',
       playlists: 'bg-rose-200 dark:bg-rose-900',
-      scrobbler: 'bg-teal-200 dark:bg-teal-900',
       updates: 'bg-fuchsia-200 dark:bg-fuchsia-900',
     };
     const bgStyles = colorMode === 'minimal'
@@ -462,7 +455,6 @@ const TopTabs = ({
       {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
       {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
       {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
-      <TabButton id="scrobbler" label="Scrobbler" />
       <TabButton id="settings" label="Settings" />
     </div>
   );
