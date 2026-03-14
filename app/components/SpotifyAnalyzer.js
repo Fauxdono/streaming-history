@@ -2268,15 +2268,15 @@ const SpotifyAnalyzer = ({
           : (isDarkMode ? 'bg-black' : 'bg-white');
 
         const uploadInnerBtnActive = colorMode === 'colorful'
-          ? 'bg-violet-200 dark:bg-violet-700 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
+          ? 'bg-violet-200 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
           : isDarkMode
-            ? 'bg-gray-800 text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
-            : 'bg-gray-100 text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
+            ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+            : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
         const uploadInnerBtnInactive = colorMode === 'colorful'
-          ? 'bg-violet-100 dark:bg-violet-800 text-violet-600 dark:text-violet-400 border border-violet-300 dark:border-violet-600 hover:bg-violet-200 shadow-[2px_2px_0_0_#7c3aed]'
+          ? 'bg-violet-200 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-600 hover:opacity-80 shadow-[2px_2px_0_0_#7c3aed]'
           : isDarkMode
-            ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]'
-            : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]';
+            ? 'bg-black text-white border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
+            : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
 
         return (
           <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
