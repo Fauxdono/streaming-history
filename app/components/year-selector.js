@@ -2331,7 +2331,7 @@ const YearSelector = ({
           </button>
           {/* Orientation + dock buttons directly below Single/Range in vertical floating */}
           {desktopFloating && !isHorizontal && asSidebar && (
-            <>
+            <div className="flex flex-row gap-1">
               <button
                 onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
                 className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
@@ -2348,7 +2348,7 @@ const YearSelector = ({
               >
                 <span className="text-[1.167em]" style={{fontSize: '1.167em'}}>&#x1F4CC;</span>
               </button>
-            </>
+            </div>
           )}
         </div>
 
