@@ -2047,7 +2047,7 @@ const YearSelector = ({
   const containerStyle = asSidebar ? {
     ...adjustedPositionStyle,
     width: isHorizontal ? 'auto' : (isMobile ? `${dimensions.width}px` : `${baseDimensions.width}px`),
-    height: isHorizontal ? (isMobile ? `${dimensions.height}px` : `${baseDimensions.height}px`) : 'auto',
+    height: isHorizontal ? (isMobile ? `${dimensions.height}px` : `${baseDimensions.height + (!isMobile && isFloating ? 28 : 0)}px`) : 'auto',
     maxHeight: isHorizontal ? '50vh' : 'none',
     // Pin em base to 12px so text-[Xem] classes are consistent regardless of inherited font size
     fontSize: isMobile ? `${12 * dimFontScale}px` : '12px',
