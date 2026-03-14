@@ -2308,6 +2308,7 @@ const YearSelector = ({
             : 'flex flex-col gap-1 items-center mb-2'
         }`}>
 
+
           <button
             onClick={() => handleModeChange('single')}
             className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[0.833em] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
@@ -2328,6 +2329,27 @@ const YearSelector = ({
           >
             <span className="skew-x-[12deg] inline-block">Range</span>
           </button>
+          {/* Orientation + dock buttons directly below Single/Range in vertical floating */}
+          {desktopFloating && !isHorizontal && asSidebar && (
+            <>
+              <button
+                onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
+                className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
+                aria-label="Toggle orientation"
+                title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
+              >
+                <span className="text-[1.167em]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
+              </button>
+              <button
+                onClick={toggleFloating}
+                className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
+                aria-label="Dock panel"
+                title="Dock to edge"
+              >
+                <span className="text-[1.167em]" style={{fontSize: '1.167em'}}>&#x1F4CC;</span>
+              </button>
+            </>
+          )}
         </div>
 
         {/* Content area - horizontal layout for bottom and top positions */}
@@ -3159,28 +3181,8 @@ const YearSelector = ({
             )}
           </div>
         ) : (
-          <div className={`${desktopFloating ? 'mt-2 pb-2' : 'absolute bottom-2'} left-0 right-0 flex justify-center gap-2`}>
-            {asSidebar && desktopFloating ? (
-              /* Floating: dock + orientation buttons */
-              <>
-                <button
-                  onClick={() => setFloatOrientation(prev => prev === 'vertical' ? 'horizontal' : 'vertical')}
-                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
-                  aria-label="Toggle orientation"
-                  title={floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}
-                >
-                  <span className="text-[1.167em]">{floatOrientation === 'vertical' ? '⇔' : '⇕'}</span>
-                </button>
-                <button
-                  onClick={toggleFloating}
-                  className={`${colors.toggleColorVar} p-1 rounded-full ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] shadow-[2px_2px_0_0_var(--toggle-shadow)] flex items-center justify-center w-8 h-8 z-10`}
-                  aria-label="Dock panel"
-                  title="Dock to edge"
-                >
-                  <span className="text-[1.167em]" style={{fontSize: '1.167em'}}>&#x1F4CC;</span>
-                </button>
-              </>
-            ) : asSidebar && (
+          <div className={`${desktopFloating ? 'hidden' : 'absolute bottom-2'} left-0 right-0 flex justify-center gap-2`}>
+            {asSidebar && (
               <>
                 <button
                   onClick={togglePosition}
