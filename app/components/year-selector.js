@@ -1143,24 +1143,22 @@ const YearSelector = ({
 
   // Toggle between floating and snapped modes
   const toggleFloating = useCallback(() => {
-    setIsFloating(prev => {
-      if (prev) {
-        // Floating -> Snapped: snap to nearest edge
-        const { x, y } = floatPos;
-        const dists = { left: x, right: window.innerWidth - x, top: y, bottom: window.innerHeight - y };
-        const nearest = Object.entries(dists).reduce((a, b) => b[1] < a[1] ? b : a)[0];
-        setCurrentPosition(nearest);
-      } else {
-        // Snapped -> Floating: preserve current orientation
-        const orientation = isHorizontal ? 'horizontal' : 'vertical';
-        setFloatOrientation(orientation);
-        localStorage.setItem('yearSelectorFloatOrientation', orientation);
-        if (onWidthChange) onWidthChange(0);
-        if (onHeightChange) onHeightChange(0);
-      }
-      return !prev;
-    });
-  }, [floatPos, onWidthChange, onHeightChange, isHorizontal]);
+    if (isFloating) {
+      // Floating -> Snapped: snap to nearest edge
+      const { x, y } = floatPos;
+      const dists = { left: x, right: window.innerWidth - x, top: y, bottom: window.innerHeight - y };
+      const nearest = Object.entries(dists).reduce((a, b) => b[1] < a[1] ? b : a)[0];
+      setCurrentPosition(nearest);
+    } else {
+      // Snapped -> Floating: preserve current orientation and reset parent dimensions
+      const orientation = isHorizontal ? 'horizontal' : 'vertical';
+      setFloatOrientation(orientation);
+      localStorage.setItem('yearSelectorFloatOrientation', orientation);
+      if (onWidthChange) onWidthChange(0);
+      if (onHeightChange) onHeightChange(0);
+    }
+    setIsFloating(prev => !prev);
+  }, [isFloating, floatPos, onWidthChange, onHeightChange, isHorizontal]);
 
   // Clamp floating position to keep panel visible within viewport
   const clampFloatPos = useCallback((pos) => {
