@@ -2024,6 +2024,8 @@ const YearSelector = ({
   const dimensions = getCurrentDimensions();
   const baseDimensions = getBaseDimensions();
   const desktopFloating = !isMobile && isFloating;
+  // Stacked layout: mobile portrait horizontal OR desktop floating horizontal
+  const useStackedHorizontal = isHorizontal && (isFloating || (isMobile && !isLandscape));
 
   const containerClass = asSidebar
     ? `max-h-screen ${colors.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden ${topTabsPosition === 'top' && currentPosition === 'top' && !desktopFloating ? '' : 'border'} ${colors.border}`
@@ -2320,7 +2322,11 @@ const YearSelector = ({
         {/* Content area - horizontal layout for bottom and top positions */}
         <div className={`${
           isHorizontal
-            ? 'flex flex-col items-center overflow-y-auto px-2 flex-grow gap-1'
+            ? useStackedHorizontal
+              ? 'flex flex-col items-center overflow-y-auto px-2 flex-grow gap-1'
+              : isMobile
+                ? 'flex flex-row items-center space-x-2 px-2 flex-grow justify-center'
+                : 'flex flex-row items-center space-x-3 overflow-x-auto max-w-full px-3 flex-grow justify-center'
             : `overflow-y-auto flex-1 min-h-0 ${
                 mode === 'range' ? 'px-2' : 'px-1'
               } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex flex-col items-center space-y-2`
@@ -2337,9 +2343,9 @@ const YearSelector = ({
                   }`}>YEAR</div>
                 )}
 
-                <div className={`flex ${isHorizontal ? 'flex-col gap-1' : 'flex-col'} items-center`}>
+                <div className={`flex ${isHorizontal ? (useStackedHorizontal ? 'flex-col gap-1' : 'flex-row space-x-2') : 'flex-col'} items-center`}>
                   {/* All Time button - shown outside row layout for non-mphz */}
-                  {!isHorizontal && (
+                  {!useStackedHorizontal && !isHorizontal && (
                     <button
                       onClick={(e) => {
                         setSelectedYear('all');
@@ -2359,8 +2365,8 @@ const YearSelector = ({
                     </button>
                   )}
 
-                  {/* Year/Month/Day as stacked rows for mobile portrait horizontal */}
-                  {isHorizontal ? (
+                  {/* Year/Month/Day as stacked rows for mobile portrait + floating horizontal */}
+                  {useStackedHorizontal ? (
                     <div className="flex flex-col items-center gap-1 w-full overflow-hidden">
                       {/* Row 1: All Time + Year grid + month toggle */}
                       <div className="flex flex-row items-center gap-1 w-full justify-center">
@@ -2458,7 +2464,7 @@ const YearSelector = ({
               {(
                 <>
                   {/* Month + Day Selectors - hidden on mobile portrait horizontal (toggle is under year wheel) */}
-                  {showMonthSelector && !isHorizontal && (
+                  {showMonthSelector && !useStackedHorizontal && (
                     isMobile && isLandscape && isHorizontal ? (
                       /* Mobile landscape horizontal: toggles stacked in left column, grids side by side to the right */
                       <div className="flex flex-row items-center gap-2">
@@ -2624,7 +2630,7 @@ const YearSelector = ({
                   )}
                   
                   {/* Show month toggle separately if month selector is off - hidden on mobile portrait horizontal */}
-                  {!showMonthSelector && !isHorizontal && (
+                  {!showMonthSelector && !useStackedHorizontal && (
                     <div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col items-center space-y-2'} ${isHorizontal ? '' : 'w-full mb-4'}`}>
                       <button
                         onClick={() => {
@@ -2666,8 +2672,8 @@ const YearSelector = ({
           ) : (
             // Range mode
             <>
-              {isHorizontal ? (
-                /* Horizontal: stacked rows — year | months | days */
+              {useStackedHorizontal ? (
+                /* Mobile portrait + floating horizontal: stacked rows — year | months | days */
                 <div className="flex flex-col items-start gap-1">
                   {/* Row 1: Range year grid (tap or split) */}
                   {rangeTapMode ? (
@@ -2857,7 +2863,7 @@ const YearSelector = ({
               )}
 
               {/* Range mode toggles and selectors - hidden on mobile portrait horizontal (handled inline above) */}
-              {yearRange.startYear && yearRange.endYear && !isHorizontal && (
+              {yearRange.startYear && yearRange.endYear && !useStackedHorizontal && (
                 <>
                   {/* Tap/Split toggle + Month/Day toggles */}
                   {isMobile && isLandscape && isHorizontal ? (
