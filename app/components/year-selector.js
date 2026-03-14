@@ -1142,16 +1142,23 @@ const YearSelector = ({
   }, [isMobile, isFloating, floatScale]);
 
   // Toggle between floating and snapped modes
-  const pinnedPositionRef = useRef(null);
+  const lastHorizontalPosRef = useRef('top');
+  const lastVerticalPosRef = useRef('right');
 
   const toggleFloating = useCallback(() => {
     if (isFloating) {
-      // Floating -> Snapped: restore the position it was at before floating
-      const restoreTo = pinnedPositionRef.current || currentPosition || 'right';
+      // Floating -> Snapped: restore position matching the current float orientation
+      const restoreTo = floatOrientation === 'horizontal'
+        ? lastHorizontalPosRef.current
+        : lastVerticalPosRef.current;
       setCurrentPosition(restoreTo);
     } else {
-      // Snapped -> Floating: remember current pinned position
-      pinnedPositionRef.current = currentPosition;
+      // Snapped -> Floating: remember current pinned position by axis
+      if (currentPosition === 'top' || currentPosition === 'bottom') {
+        lastHorizontalPosRef.current = currentPosition;
+      } else {
+        lastVerticalPosRef.current = currentPosition;
+      }
       const orientation = isHorizontal ? 'horizontal' : 'vertical';
       setFloatOrientation(orientation);
       localStorage.setItem('yearSelectorFloatOrientation', orientation);
@@ -1159,7 +1166,7 @@ const YearSelector = ({
       if (onHeightChange) onHeightChange(0);
     }
     setIsFloating(prev => !prev);
-  }, [isFloating, currentPosition, onWidthChange, onHeightChange, isHorizontal]);
+  }, [isFloating, currentPosition, floatOrientation, onWidthChange, onHeightChange, isHorizontal]);
 
   // Clamp floating position to keep panel visible within viewport
   const clampFloatPos = useCallback((pos) => {
