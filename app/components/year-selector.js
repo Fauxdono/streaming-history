@@ -2296,8 +2296,9 @@ const YearSelector = ({
           : 'h-full flex flex-col pt-4 pb-8'
       }`}>
 
-        {/* Mode toggle buttons */}
+        {/* Mode toggle buttons - hidden in floating horizontal (moved to right column) */}
         <div className={`${
+          useStackedHorizontal && desktopFloating ? 'hidden' :
           isHorizontal
             ? isMobile && !isLandscape
               ? 'flex flex-col gap-1 items-center mr-2'
@@ -3094,7 +3095,32 @@ const YearSelector = ({
         
         {/* Position toggle / float-dock buttons */}
         {isHorizontal ? (
-          <div className="flex items-center justify-center ml-2 gap-1">
+          <div className={`flex ${useStackedHorizontal && desktopFloating ? 'flex-col' : 'flex-row'} items-center justify-center ml-2 gap-1`}>
+            {/* Single/Range buttons in floating horizontal column */}
+            {useStackedHorizontal && desktopFloating && (
+              <>
+                <button
+                  onClick={() => handleModeChange('single')}
+                  className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[0.833em] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                    mode === 'single'
+                      ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                      : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                  }`}
+                >
+                  <span className="skew-x-[12deg] inline-block">Single</span>
+                </button>
+                <button
+                  onClick={() => handleModeChange('range')}
+                  className={`${colors.toggleColorVar} px-2 py-1 rounded-sm text-[0.833em] font-bold text-center w-14 transition-all duration-200 skew-x-[-12deg] ${colors.bgLighter} ${colors.text} border border-[var(--toggle-shadow)] ${
+                    mode === 'range'
+                      ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_var(--toggle-shadow)]'
+                      : 'shadow-[2px_2px_0_0_var(--toggle-shadow)]'
+                  }`}
+                >
+                  <span className="skew-x-[12deg] inline-block">Range</span>
+                </button>
+              </>
+            )}
             {asSidebar && desktopFloating ? (
               /* Floating: dock + orientation buttons */
               <>
