@@ -2268,12 +2268,12 @@ const SpotifyAnalyzer = ({
           : (isDarkMode ? 'bg-black' : 'bg-white');
 
         const uploadInnerBtnActive = colorMode === 'colorful'
-          ? 'bg-violet-200 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
+          ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
           : isDarkMode
             ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
             : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
         const uploadInnerBtnInactive = colorMode === 'colorful'
-          ? 'bg-violet-200 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-600 hover:opacity-80 shadow-[2px_2px_0_0_#7c3aed]'
+          ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 hover:opacity-80 shadow-[2px_2px_0_0_#7c3aed]'
           : isDarkMode
             ? 'bg-black text-white border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
             : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
