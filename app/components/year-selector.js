@@ -2292,7 +2292,7 @@ const YearSelector = ({
       
       <div className={`${
         isHorizontal
-          ? `flex flex-row items-center h-full ${topTabsPosition === 'top' && currentPosition === 'top' ? 'px-3' : 'px-3'} pr-12`
+          ? `flex flex-row items-center h-full px-3 ${isMobile ? 'pr-12' : 'pr-2'}`
           : 'h-full flex flex-col pt-4 pb-8'
       }`}>
 
@@ -3090,7 +3090,7 @@ const YearSelector = ({
         
         {/* Position toggle / float-dock buttons */}
         {isHorizontal ? (
-          <div className={`flex ${useStackedHorizontal && desktopFloating ? 'flex-col' : 'flex-row'} items-center justify-center ml-2 gap-1`}>
+          <div className={`flex ${useStackedHorizontal && desktopFloating ? 'flex-col ml-auto' : 'flex-row ml-2'} items-center justify-center gap-1`}>
             {/* Single/Range buttons in floating horizontal column */}
             {useStackedHorizontal && desktopFloating && (
               <>
