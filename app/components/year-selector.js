@@ -2320,11 +2320,7 @@ const YearSelector = ({
         {/* Content area - horizontal layout for bottom and top positions */}
         <div className={`${
           isHorizontal
-            ? isMobile
-              ? isMobile && !isLandscape
-                ? 'flex flex-col items-center overflow-y-auto px-2 flex-grow gap-1'
-                : 'flex flex-row items-center space-x-2 px-2 flex-grow justify-center'
-              : 'flex flex-row items-center space-x-3 overflow-x-auto max-w-full px-3 flex-grow justify-center'
+            ? 'flex flex-col items-center overflow-y-auto px-2 flex-grow gap-1'
             : `overflow-y-auto flex-1 min-h-0 ${
                 mode === 'range' ? 'px-2' : 'px-1'
               } scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-current flex flex-col items-center space-y-2`
@@ -2341,9 +2337,9 @@ const YearSelector = ({
                   }`}>YEAR</div>
                 )}
 
-                <div className={`flex ${isHorizontal ? (isMobile && !isLandscape ? 'flex-col gap-1' : 'flex-row space-x-2') : 'flex-col'} items-center`}>
+                <div className={`flex ${isHorizontal ? 'flex-col gap-1' : 'flex-col'} items-center`}>
                   {/* All Time button - shown outside row layout for non-mphz */}
-                  {!(isMobile && !isLandscape && isHorizontal) && (
+                  {!isHorizontal && (
                     <button
                       onClick={(e) => {
                         setSelectedYear('all');
@@ -2352,9 +2348,7 @@ const YearSelector = ({
                         if (onYearChange) onYearChange('all');
                         setRefreshCounter(prev => prev + 1);
                       }}
-                      className={`px-2 py-1 text-[1em] rounded-md transition-colors ${
-                        isHorizontal ? '' : 'mb-2'
-                      } ${
+                      className={`px-2 py-1 text-[1em] rounded-md transition-colors mb-2 ${
                         selectedYear === 'all'
                           ? `${colors.bgActive} ${colors.textActive} font-bold`
                           : `${colors.bgLighter} hover:${colors.bgHover} ${colors.text}`
@@ -2366,7 +2360,7 @@ const YearSelector = ({
                   )}
 
                   {/* Year/Month/Day as stacked rows for mobile portrait horizontal */}
-                  {isMobile && !isLandscape && isHorizontal ? (
+                  {isHorizontal ? (
                     <div className="flex flex-col items-center gap-1 w-full overflow-hidden">
                       {/* Row 1: All Time + Year grid + month toggle */}
                       <div className="flex flex-row items-center gap-1 w-full justify-center">
@@ -2387,7 +2381,7 @@ const YearSelector = ({
                         >
                           All
                         </button>
-                        {renderYearGrid(Math.min(years.length, 6))}
+                        {renderYearGrid(isMobile ? Math.min(years.length, 6) : Math.min(years.length, 12))}
                         {(
                           <button
                             onClick={() => {
@@ -2464,7 +2458,7 @@ const YearSelector = ({
               {(
                 <>
                   {/* Month + Day Selectors - hidden on mobile portrait horizontal (toggle is under year wheel) */}
-                  {showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
+                  {showMonthSelector && !isHorizontal && (
                     isMobile && isLandscape && isHorizontal ? (
                       /* Mobile landscape horizontal: toggles stacked in left column, grids side by side to the right */
                       <div className="flex flex-row items-center gap-2">
@@ -2630,7 +2624,7 @@ const YearSelector = ({
                   )}
                   
                   {/* Show month toggle separately if month selector is off - hidden on mobile portrait horizontal */}
-                  {!showMonthSelector && !(isMobile && !isLandscape && isHorizontal) && (
+                  {!showMonthSelector && !isHorizontal && (
                     <div className={`flex ${isHorizontal ? 'flex-row items-center' : 'flex-col items-center space-y-2'} ${isHorizontal ? '' : 'w-full mb-4'}`}>
                       <button
                         onClick={() => {
@@ -2672,17 +2666,17 @@ const YearSelector = ({
           ) : (
             // Range mode
             <>
-              {isMobile && !isLandscape && isHorizontal ? (
-                /* Mobile portrait horizontal: stacked rows — year | months | days */
+              {isHorizontal ? (
+                /* Horizontal: stacked rows — year | months | days */
                 <div className="flex flex-col items-start gap-1">
                   {/* Row 1: Range year grid (tap or split) */}
                   {rangeTapMode ? (
-                    renderRangeYearGrid(Math.min(years.length, 6))
+                    renderRangeYearGrid(isMobile ? Math.min(years.length, 6) : Math.min(years.length, 12))
                   ) : (
                     <div className="flex flex-row items-start gap-1">
                       <div>
                         <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>SY</div>
-                        <div {...gridProps(Math.min(years.length, 6))}>
+                        <div {...gridProps(isMobile ? Math.min(years.length, 6) : Math.min(years.length, 12))}>
                           {years.map(year => (
                             <button
                               key={year}
@@ -2700,7 +2694,7 @@ const YearSelector = ({
                       </div>
                       <div>
                         <div className={`text-[0.833em] font-medium ${colors.text} text-center mb-0.5`}>EY</div>
-                        <div {...gridProps(Math.min(years.length, 6))}>
+                        <div {...gridProps(isMobile ? Math.min(years.length, 6) : Math.min(years.length, 12))}>
                           {years.map(year => (
                             <button
                               key={year}
@@ -2863,7 +2857,7 @@ const YearSelector = ({
               )}
 
               {/* Range mode toggles and selectors - hidden on mobile portrait horizontal (handled inline above) */}
-              {yearRange.startYear && yearRange.endYear && !(isMobile && !isLandscape && isHorizontal) && (
+              {yearRange.startYear && yearRange.endYear && !isHorizontal && (
                 <>
                   {/* Tap/Split toggle + Month/Day toggles */}
                   {isMobile && isLandscape && isHorizontal ? (
