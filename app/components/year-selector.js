@@ -144,12 +144,12 @@ const YearSelector = ({
           if (showDaySelector) h = Math.max(h, 5 * 26 + 12); // ~142px
           return { width: 300, height: Math.max(48, h) };
         }
-        // Desktop horizontal: years in one row, month/day grids are side-by-side (flex-row)
-        // Height is max of sections, not sum; minimum 48 to match collapsed bar height
-        let h = 48; // base: at least as tall as collapsed bar
-        if (showMonthSelector) h = Math.max(h, 56); // 12 months in 1 row
-        if (showDaySelector) h = Math.max(h, 56); // 31 days in 1 row
-        return { width: 200, height: h };
+        // Desktop horizontal: stacked rows (year → month → day)
+        // Sum the rows since they stack vertically
+        let h = 30 + 28; // year row (~28px) + drag handle + padding
+        if (showMonthSelector) h += 56; // month grid row (~2 rows of months)
+        if (showDaySelector) h += 60; // day grid row
+        return { width: 300, height: Math.max(60, h) };
       }
       if (isMobilePortraitHz) {
         // Mobile portrait horizontal: stacked rows (year row, month row, day row)
@@ -2047,8 +2047,8 @@ const YearSelector = ({
   const containerStyle = asSidebar ? {
     ...adjustedPositionStyle,
     width: isHorizontal ? 'auto' : (isMobile ? `${dimensions.width}px` : `${baseDimensions.width}px`),
-    height: isHorizontal ? (isMobile ? `${dimensions.height}px` : `${baseDimensions.height + (!isMobile && isFloating ? 28 : 0)}px`) : 'auto',
-    maxHeight: isHorizontal ? '50vh' : 'none',
+    height: isHorizontal ? (isMobile ? `${dimensions.height}px` : (!isMobile && isFloating ? 'auto' : `${baseDimensions.height}px`)) : 'auto',
+    maxHeight: isHorizontal ? (isMobile ? '50vh' : (!isMobile && isFloating ? '85vh' : 'none')) : 'none',
     // Pin em base to 12px so text-[Xem] classes are consistent regardless of inherited font size
     fontSize: isMobile ? `${12 * dimFontScale}px` : '12px',
     ...(desktopFloating ? {
