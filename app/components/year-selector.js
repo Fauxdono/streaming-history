@@ -144,8 +144,11 @@ const YearSelector = ({
           if (showDaySelector) h = Math.max(h, 5 * 26 + 12); // ~142px
           return { width: 300, height: Math.max(48, h) };
         }
-        // Desktop horizontal: stacked rows (year → month → day)
-        // Sum the rows since they stack vertically
+        if (!isFloating) {
+          // Desktop pinned horizontal: all inline (side-by-side), single row
+          return { width: 300, height: 44 };
+        }
+        // Desktop floating horizontal: stacked rows (year → month → day)
         let h = 30 + 28; // year row (~28px) + drag handle + padding
         if (showMonthSelector) h += 56; // month grid row (~2 rows of months)
         if (showDaySelector) h += 60; // day grid row
@@ -176,10 +179,17 @@ const YearSelector = ({
           if (showRangeDaySelectors) h = Math.max(h, 5 * 26 + 20); // day: ~5 rows + instruction
           return { width: 300, height: Math.max(48, h) + 12 };
         }
-        // Desktop horizontal: year grid in one row, month/day grids side-by-side
-        let h = 50; // base: mode buttons + year row + instruction label (min 48 for collapsed bar)
-        if (showRangeMonthDaySelectors) h = Math.max(h, 80); // month grids 2 rows
-        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 100); // day grids 3 rows
+        if (!isFloating) {
+          // Desktop pinned horizontal: all inline (side-by-side), single row
+          let h = 44;
+          if (showRangeMonthDaySelectors) h = Math.max(h, 56);
+          if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 68);
+          return { width: 300, height: h };
+        }
+        // Desktop floating horizontal: stacked rows
+        let h = 50;
+        if (showRangeMonthDaySelectors) h = Math.max(h, 80);
+        if (showRangeMonthDaySelectors && showRangeDaySelectors) h = Math.max(h, 100);
         return { width: 300, height: h };
       }
       if (isMobilePortraitHz) {
