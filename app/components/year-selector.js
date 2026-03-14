@@ -2348,11 +2348,6 @@ const YearSelector = ({
             <>
               {/* Year selection */}
               <div className={`flex ${isHorizontal ? (isMobile && !isLandscape ? 'flex-col items-center' : 'flex-row items-center') : 'flex-col items-center'}`}>
-                {!(isMobile && isHorizontal) && (
-                  <div className={`text-[1em] font-medium ${colors.text} ${
-                    isHorizontal ? 'mr-2' : 'mb-1'
-                  }`}>YEAR</div>
-                )}
 
                 <div className={`flex ${isHorizontal ? (useStackedHorizontal ? 'flex-col gap-1' : 'flex-row space-x-2') : 'flex-col'} items-center`}>
                   {/* All Time button - shown outside row layout for non-mphz */}
