@@ -984,11 +984,14 @@ function processRockboxScrobblerLog(content) {
     // Rating: L = loved, B = banned, S = skipped, empty = normal
     const skipped = rating === 'S';
 
+    // Rockbox stores all featured artists joined by ';' — use only the primary artist
+    const primaryArtist = String(artist).split(';')[0].trim();
+
     transformedData.push({
       ts: ts.toISOString(),
       ms_played: skipped ? Math.min(durationMs, 15000) : durationMs,
       master_metadata_track_name: String(track),
-      master_metadata_album_artist_name: String(artist),
+      master_metadata_album_artist_name: primaryArtist,
       master_metadata_album_album_name: String(album || 'Unknown Album'),
       reason_start: 'trackdone',
       reason_end: skipped ? 'fwdbtn' : 'trackdone',
