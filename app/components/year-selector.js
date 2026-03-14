@@ -1142,15 +1142,16 @@ const YearSelector = ({
   }, [isMobile, isFloating, floatScale]);
 
   // Toggle between floating and snapped modes
+  const pinnedPositionRef = useRef(null);
+
   const toggleFloating = useCallback(() => {
     if (isFloating) {
-      // Floating -> Snapped: snap to nearest edge
-      const { x, y } = floatPos;
-      const dists = { left: x, right: window.innerWidth - x, top: y, bottom: window.innerHeight - y };
-      const nearest = Object.entries(dists).reduce((a, b) => b[1] < a[1] ? b : a)[0];
-      setCurrentPosition(nearest);
+      // Floating -> Snapped: restore the position it was at before floating
+      const restoreTo = pinnedPositionRef.current || currentPosition || 'right';
+      setCurrentPosition(restoreTo);
     } else {
-      // Snapped -> Floating: preserve current orientation and reset parent dimensions
+      // Snapped -> Floating: remember current pinned position
+      pinnedPositionRef.current = currentPosition;
       const orientation = isHorizontal ? 'horizontal' : 'vertical';
       setFloatOrientation(orientation);
       localStorage.setItem('yearSelectorFloatOrientation', orientation);
@@ -1158,7 +1159,7 @@ const YearSelector = ({
       if (onHeightChange) onHeightChange(0);
     }
     setIsFloating(prev => !prev);
-  }, [isFloating, floatPos, onWidthChange, onHeightChange, isHorizontal]);
+  }, [isFloating, currentPosition, onWidthChange, onHeightChange, isHorizontal]);
 
   // Clamp floating position to keep panel visible within viewport
   const clampFloatPos = useCallback((pos) => {
