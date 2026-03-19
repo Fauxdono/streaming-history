@@ -63,13 +63,19 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
   const {
     mode, years, selectedYear, selectedMonth, selectedDay, days,
     showMonthSelector, showDaySelector,
+    showRangeMonthDaySelectors, showRangeDaySelectors,
     setYear, setMode, setMonth, setDay,
     toggleMonthSelector, toggleDaySelector,
+    toggleRangeMonthDaySelectors, toggleRangeDaySelectors,
     yearRange, tapYear,
   } = sel;
 
-  const showMonths = showMonthSelector && selectedYear !== 'all' && mode === 'single';
-  const showDays   = showDaySelector   && showMonths;
+  const showMonths = mode === 'single'
+    ? showMonthSelector && selectedYear !== 'all'
+    : showRangeMonthDaySelectors && yearRange.startYear && yearRange.endYear;
+  const showDays = mode === 'single'
+    ? showDaySelector && showMonths
+    : showRangeDaySelectors && showMonths;
 
   const yearCount = years.length + 1; // +1 for "All"
   const allItems  = ['all', ...years];
@@ -285,10 +291,15 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
           onMouseDown={e => e.stopPropagation()}
           onTouchStart={e => e.stopPropagation()}
         >
-          <div style={{ display: 'flex', gap: 3 }}>
-            <button onClick={() => setMode('single')} style={modeBtn(mode === 'single', 'single')}>Single</button>
-            <button onClick={() => setMode('range')}  style={modeBtn(mode === 'range',  'range' )}>Range</button>
-          </div>
+          {/* Single ↔ Range toggle */}
+          <button
+            onClick={() => setMode(mode === 'single' ? 'range' : 'single')}
+            style={modeToggleBtn(mode)}
+          >
+            {mode === 'single' ? 'Single' : 'Range'}
+          </button>
+
+          {/* Selected value */}
           <div style={{ textAlign: 'center', lineHeight: 1.25, marginTop: 1 }}>
             {labelLines.map((line, i) => (
               <div key={i} style={{
@@ -298,11 +309,16 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
               }}>{line}</div>
             ))}
           </div>
-          {mode === 'single' && selectedYear !== 'all' && (
+
+          {/* Mo / Dy toggles — single mode: any non-all year; range mode: when both years picked */}
+          {((mode === 'single' && selectedYear !== 'all') ||
+            (mode === 'range' && yearRange.startYear && yearRange.endYear)) && (
             <div style={{ display: 'flex', gap: 3, marginTop: 2 }}>
-              <button onClick={toggleMonthSelector} style={toggleBtn(showMonthSelector)}>Mo</button>
-              {showMonthSelector && (
-                <button onClick={toggleDaySelector} style={toggleBtn(showDaySelector)}>Dy</button>
+              <button onClick={mode === 'single' ? toggleMonthSelector : toggleRangeMonthDaySelectors}
+                style={toggleBtn(mode === 'single' ? showMonthSelector : showRangeMonthDaySelectors)}>Mo</button>
+              {(mode === 'single' ? showMonthSelector : showRangeMonthDaySelectors) && (
+                <button onClick={mode === 'single' ? toggleDaySelector : toggleRangeDaySelectors}
+                  style={toggleBtn(mode === 'single' ? showDaySelector : showRangeDaySelectors)}>Dy</button>
               )}
             </div>
           )}
@@ -334,17 +350,18 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
 }
 
 // ---- Style helpers ----------------------------------------------------------
-function modeBtn(active, which) {
-  const g = which === 'single'
-    ? { bg: 'linear-gradient(135deg,#667eea,#764ba2)', glow: 'rgba(102,126,234,0.6)' }
-    : { bg: 'linear-gradient(135deg,#f093fb,#f5576c)', glow: 'rgba(240,147,251,0.6)' };
+function modeToggleBtn(mode) {
+  const isSingle = mode === 'single';
   return {
-    fontSize: 7, fontWeight: 'bold', padding: '2px 5px', borderRadius: 3, cursor: 'pointer',
-    border: active ? '1px solid rgba(255,255,255,0.3)' : '1px solid rgba(255,255,255,0.1)',
-    background: active ? g.bg : 'rgba(255,255,255,0.07)',
+    fontSize: 8, fontWeight: 'bold', padding: '3px 8px', borderRadius: 4, cursor: 'pointer',
+    background: isSingle
+      ? 'linear-gradient(135deg,#667eea,#764ba2)'
+      : 'linear-gradient(135deg,#f093fb,#f5576c)',
     color: '#fff',
-    boxShadow: active ? `0 0 6px ${g.glow}` : 'none',
-    transition: 'all 0.15s',
+    border: '1px solid rgba(255,255,255,0.25)',
+    boxShadow: isSingle ? '0 0 7px rgba(102,126,234,0.6)' : '0 0 7px rgba(240,147,251,0.6)',
+    transition: 'all 0.2s',
+    width: 44,
   };
 }
 
