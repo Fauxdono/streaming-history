@@ -35,7 +35,8 @@ export default function YearSelector({
   onChange,
   onLayoutChange,
 }) {
-  const { fontSize } = useTheme();
+  const { fontSize, theme } = useTheme();
+  const isDark = theme === 'dark';
   const fontScale = { small: 0.875, medium: 1, large: 1.125, xlarge: 1.25 }[fontSize] ?? 1;
 
   const sel   = useYearSelectorState({ artistsByYear, rawPlayData, initialYear, initialYearRange, isRangeMode, activeTab, onChange });
@@ -71,6 +72,9 @@ export default function YearSelector({
         pos={panel.floatPos}
         onDrag={panel.handleDragStart}
         onClose={panel.toggleDial}
+        colorMode={colorMode}
+        colorTheme={colorTheme}
+        isDark={isDark}
       />
     );
   }
@@ -149,10 +153,7 @@ export default function YearSelector({
               </button>
               <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
               {!panel.isMobile && (
-                <>
-                  <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
-                  <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
-                </>
+                <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
               )}
             </div>
             {/* Month / Day toggles */}
@@ -272,13 +273,17 @@ function ModeControls({ sel, panel, c, asSidebar }) {
       <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
       <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
 
+      {/* Dial toggle — always visible on desktop sidebar (vertical) */}
+      {asSidebar && !isHorizontal && !isMobile && (
+        <PressButton active={panel.isDial} c={c} onClick={panel.toggleDial}>◎ Dial</PressButton>
+      )}
+
       {/* Float/orientation controls inline with mode buttons (vertical floating) */}
       {desktopFloating && !isHorizontal && asSidebar && (
         <div className="flex flex-row gap-1 mt-1">
           <button onClick={panel.toggleOrientation} className={iconBtn(c)} title={panel.floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}>
             {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
           </button>
-          <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
           <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
         </div>
       )}
@@ -288,10 +293,7 @@ function ModeControls({ sel, panel, c, asSidebar }) {
         <div className="flex flex-row gap-1 mt-1">
           <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
           {!isMobile && (
-            <>
-              <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
-              <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
-            </>
+            <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
           )}
         </div>
       )}

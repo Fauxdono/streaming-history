@@ -1,6 +1,96 @@
 'use client';
 import React, { useCallback, useMemo } from 'react';
 
+// ---- Theme-aware color resolution ------------------------------------------
+
+const ACCENTS = {
+  pink:    '#ec4899', purple:  '#a855f7', indigo:  '#6366f1',
+  blue:    '#3b82f6', green:   '#22c55e', yellow:  '#eab308',
+  red:     '#ef4444', orange:  '#f97316', teal:    '#14b8a6',
+  cyan:    '#06b6d4', emerald: '#10b981', amber:   '#f59e0b',
+  fuchsia: '#d946ef', violet:  '#8b5cf6', rose:    '#f43f5e',
+};
+
+function getDialColors(colorMode, colorTheme, isDark) {
+  if (colorMode === 'minimal') {
+    if (isDark) return {
+      shellBg:      'radial-gradient(circle at 38% 28%, #1a1a1a 0%, #080808 70%)',
+      shellShadow:  '0 0 0 3px rgba(65,105,225,0.3), 0 0 0 7px rgba(0,0,0,0.6), 0 16px 60px rgba(0,0,0,0.9), inset 0 2px 4px rgba(255,255,255,0.05)',
+      rimStroke:    'rgba(65,105,225,0.25)',
+      trackFill:    'rgba(255,255,255,0.04)',
+      trackDash:    'rgba(65,105,225,0.2)',
+      centerBg:     'radial-gradient(circle at 42% 35%, #1c1c1c, #080808)',
+      centerBorder: 'rgba(65,105,225,0.35)',
+      itemDefault:  'rgba(255,255,255,0.07)',
+      itemBorder:   'rgba(255,255,255,0.1)',
+      itemColor:    'rgba(255,255,255,0.6)',
+      itemActive:   '#ffffff',
+      itemActiveBg: '#4169E1',
+      itemActiveGlow:'rgba(65,105,225,0.8)',
+      itemActiveBorder: 'rgba(255,255,255,0.4)',
+      labelColor:   'rgba(255,255,255,0.92)',
+      labelSub:     'rgba(255,255,255,0.5)',
+      glossGrad:    ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'],
+      rangeArc:     'rgba(65,105,225,0.35)',
+      modeBg:       '#4169E1',
+      modeGlow:     'rgba(65,105,225,0.6)',
+      toggleActive: 'rgba(65,105,225,0.5)',
+    };
+    // minimal light
+    return {
+      shellBg:      'radial-gradient(circle at 38% 28%, #f0f0f0 0%, #e0e0e0 60%, #cacaca 100%)',
+      shellShadow:  '0 0 0 3px rgba(0,0,0,0.12), 0 0 0 7px rgba(0,0,0,0.06), 0 16px 60px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.8)',
+      rimStroke:    'rgba(0,0,0,0.15)',
+      trackFill:    'rgba(0,0,0,0.06)',
+      trackDash:    'rgba(0,0,0,0.12)',
+      centerBg:     'radial-gradient(circle at 42% 35%, #ffffff, #e8e8e8)',
+      centerBorder: 'rgba(0,0,0,0.15)',
+      itemDefault:  'rgba(0,0,0,0.06)',
+      itemBorder:   'rgba(0,0,0,0.12)',
+      itemColor:    'rgba(0,0,0,0.6)',
+      itemActive:   '#ffffff',
+      itemActiveBg: '#000000',
+      itemActiveGlow:'rgba(0,0,0,0.35)',
+      itemActiveBorder: 'rgba(0,0,0,0.5)',
+      labelColor:   'rgba(0,0,0,0.9)',
+      labelSub:     'rgba(0,0,0,0.5)',
+      glossGrad:    ['rgba(255,255,255,0.7)', 'rgba(255,255,255,0)'],
+      rangeArc:     'rgba(0,0,0,0.15)',
+      modeBg:       '#000000',
+      modeGlow:     'rgba(0,0,0,0.3)',
+      toggleActive: 'rgba(0,0,0,0.2)',
+    };
+  }
+
+  // Colorful — dark space body, accent color for selections
+  const accent = ACCENTS[colorTheme] ?? ACCENTS.teal;
+  const accentFade = accent + '33'; // ~20% opacity
+  const accentGlow = accent + 'cc'; // ~80% opacity
+  return {
+    shellBg:      'radial-gradient(circle at 38% 28%, #28284a 0%, #111128 55%, #08080f 100%)',
+    shellShadow:  '0 0 0 3px rgba(255,255,255,0.06), 0 0 0 7px rgba(0,0,0,0.5), 0 16px 60px rgba(0,0,0,0.85), inset 0 2px 6px rgba(255,255,255,0.07)',
+    rimStroke:    'rgba(255,255,255,0.08)',
+    trackFill:    'rgba(255,255,255,0.05)',
+    trackDash:    'rgba(255,255,255,0.13)',
+    centerBg:     'radial-gradient(circle at 42% 35%, #2e2e58, #14142a)',
+    centerBorder: 'rgba(255,255,255,0.14)',
+    itemDefault:  'rgba(255,255,255,0.07)',
+    itemBorder:   'rgba(255,255,255,0.09)',
+    itemColor:    'rgba(255,255,255,0.55)',
+    itemActive:   '#ffffff',
+    itemActiveBg: accent,
+    itemActiveGlow: accentGlow,
+    itemActiveBorder: 'rgba(255,255,255,0.35)',
+    labelColor:   'rgba(255,255,255,0.92)',
+    labelSub:     'rgba(255,255,255,0.5)',
+    glossGrad:    ['rgba(255,255,255,0.10)', 'rgba(255,255,255,0)'],
+    rangeArc:     accentFade,
+    modeBg:       accent,
+    modeGlow:     accentGlow,
+    toggleActive: accentFade,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // DialSelector — circular concentric-ring year/month/day picker
 //
@@ -59,7 +149,7 @@ function arcPath(cx, cy, r, startDeg, endDeg) {
 }
 
 // ---------------------------------------------------------------------------
-export function DialSelector({ sel, pos, onDrag, onClose }) {
+export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful', colorTheme = 'teal', isDark = true }) {
   const {
     mode, years, selectedYear, selectedMonth, selectedDay, days,
     showMonthSelector, showDaySelector,
@@ -79,6 +169,9 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
 
   const yearCount = years.length + 1; // +1 for "All"
   const allItems  = ['all', ...years];
+
+  // Theme colors
+  const dc = useMemo(() => getDialColors(colorMode, colorTheme, isDark), [colorMode, colorTheme, isDark]);
 
   // Geometry is stable — only yearCount can change it (not showMonths/showDays)
   const geo = useMemo(() => getGeometry(yearCount), [yearCount]);
@@ -130,13 +223,8 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
         height:   S,
         borderRadius: '50%',
         overflow: 'hidden',
-        background: 'radial-gradient(circle at 38% 28%, #28284a 0%, #111128 55%, #08080f 100%)',
-        boxShadow: [
-          '0 0 0 3px rgba(255,255,255,0.06)',
-          '0 0 0 7px rgba(0,0,0,0.5)',
-          '0 16px 60px rgba(0,0,0,0.85)',
-          'inset 0 2px 6px rgba(255,255,255,0.07)',
-        ].join(', '),
+        background: dc.shellBg,
+        boxShadow: dc.shellShadow,
         transition: 'width 0.4s ease, height 0.4s ease, left 0.4s ease, top 0.4s ease',
         userSelect: 'none',
         cursor: 'grab',
@@ -153,41 +241,41 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
         <svg width={S_MAX} height={S_MAX}
           style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
 
-          {/* Outer rim (drawn at max size — shell clips it) */}
+          {/* Outer rim */}
           <circle cx={CX} cy={CY} r={S_MAX / 2 - 5}
-            fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
+            fill="none" stroke={dc.rimStroke} strokeWidth="2" />
 
           {/* Year ring */}
           <circle cx={CX} cy={CY} r={YEAR_R}
-            fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={YEAR_W} />
+            fill="none" stroke={dc.trackFill} strokeWidth={YEAR_W} />
           <circle cx={CX} cy={CY} r={YEAR_R}
-            fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="1" strokeDasharray="2 5" />
+            fill="none" stroke={dc.trackDash} strokeWidth="1" strokeDasharray="2 5" />
 
           {/* Range arc */}
           {mode === 'range' && rStartIdx >= 0 && rEndIdx >= 0 && rStartIdx !== rEndIdx && (() => {
             const aS = (rStartIdx / yearCount) * 360;
             const aE = (rEndIdx   / yearCount) * 360;
             return <path d={arcPath(CX, CY, YEAR_R, aS, aE)} fill="none"
-              stroke="rgba(100,180,255,0.3)" strokeWidth={YEAR_W - 6} strokeLinecap="round" />;
+              stroke={dc.rangeArc} strokeWidth={YEAR_W - 6} strokeLinecap="round" />;
           })()}
 
           {/* Month ring */}
           <circle cx={CX} cy={CY} r={MONTH_R}
-            fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={MONTH_W} />
+            fill="none" stroke={dc.trackFill} strokeWidth={MONTH_W} />
           <circle cx={CX} cy={CY} r={MONTH_R}
-            fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="1" strokeDasharray="2 5" />
+            fill="none" stroke={dc.trackDash} strokeWidth="1" strokeDasharray="2 5" />
 
           {/* Day ring */}
           <circle cx={CX} cy={CY} r={DAY_R}
-            fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={DAY_W} />
+            fill="none" stroke={dc.trackFill} strokeWidth={DAY_W} />
           <circle cx={CX} cy={CY} r={DAY_R}
-            fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="1" strokeDasharray="2 5" />
+            fill="none" stroke={dc.trackDash} strokeWidth="1" strokeDasharray="2 5" />
 
           {/* Gloss sheen */}
           <defs>
             <radialGradient id="dial-gloss" cx="35%" cy="28%" r="55%">
-              <stop offset="0%"   stopColor="white" stopOpacity="0.10" />
-              <stop offset="100%" stopColor="white" stopOpacity="0"    />
+              <stop offset="0%"   stopColor={dc.glossGrad[0]} />
+              <stop offset="100%" stopColor={dc.glossGrad[1]} />
             </radialGradient>
           </defs>
           <circle cx={CX} cy={CY} r={S_MAX / 2 - 5} fill="url(#dial-gloss)" />
@@ -210,15 +298,10 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
                 position: 'absolute', left: x - w / 2, top: y - h / 2, width: w, height: h,
                 borderRadius: 9, fontSize: year === 'all' ? 8 : 10, padding: 0,
                 fontWeight: isSel ? 'bold' : 400,
-                color: isSel ? '#fff' : 'rgba(255,255,255,0.55)',
-                background: isSel
-                  ? isStart ? 'linear-gradient(135deg,#4facfe,#00f2fe)'
-                  : isEnd   ? 'linear-gradient(135deg,#f093fb,#f5576c)'
-                  :             'linear-gradient(135deg,#7c5cfc,#5c9cec)'
-                  : 'rgba(255,255,255,0.07)',
-                border: isSel ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.09)',
-                boxShadow: isSel
-                  ? `0 0 10px ${isStart ? 'rgba(79,172,254,0.8)' : isEnd ? 'rgba(245,87,108,0.8)' : 'rgba(124,92,252,0.8)'}`
+                color: isSel ? dc.itemActive : dc.itemColor,
+                background: isSel ? dc.itemActiveBg : dc.itemDefault,
+                border: isSel ? `1px solid ${dc.itemActiveBorder}` : `1px solid ${dc.itemBorder}`,
+                boxShadow: isSel ? `0 0 10px ${dc.itemActiveGlow}`
                   : 'none',
                 cursor: 'pointer', zIndex: 5,
               }}
@@ -238,10 +321,10 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
                 position: 'absolute', left: x - 14, top: y - 9, width: 28, height: 18,
                 borderRadius: 9, fontSize: 9, padding: 0,
                 fontWeight: isSel ? 'bold' : 400,
-                color: isSel ? '#fff' : 'rgba(255,255,255,0.5)',
-                background: isSel ? 'linear-gradient(135deg,#f7971e,#ffd200)' : 'rgba(255,255,255,0.06)',
-                border: isSel ? '1px solid rgba(255,220,0,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                boxShadow: isSel ? '0 0 9px rgba(255,210,0,0.7)' : 'none',
+                color: isSel ? dc.itemActive : dc.itemColor,
+                background: isSel ? dc.itemActiveBg : dc.itemDefault,
+                border: isSel ? `1px solid ${dc.itemActiveBorder}` : `1px solid ${dc.itemBorder}`,
+                boxShadow: isSel ? `0 0 9px ${dc.itemActiveGlow}` : 'none',
                 cursor: showMonths ? 'pointer' : 'default', zIndex: 6,
               }}
             >{name}</button>
@@ -259,10 +342,10 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
                 position: 'absolute', left: x - 10, top: y - 8, width: 20, height: 16,
                 borderRadius: 8, fontSize: 8, padding: 0,
                 fontWeight: isSel ? 'bold' : 400,
-                color: isSel ? '#fff' : 'rgba(255,255,255,0.45)',
-                background: isSel ? 'linear-gradient(135deg,#56ab2f,#a8e063)' : 'rgba(255,255,255,0.05)',
-                border: isSel ? '1px solid rgba(168,224,99,0.4)' : '1px solid rgba(255,255,255,0.07)',
-                boxShadow: isSel ? '0 0 7px rgba(86,171,47,0.7)' : 'none',
+                color: isSel ? dc.itemActive : dc.itemColor,
+                background: isSel ? dc.itemActiveBg : dc.itemDefault,
+                border: isSel ? `1px solid ${dc.itemActiveBorder}` : `1px solid ${dc.itemBorder}`,
+                boxShadow: isSel ? `0 0 7px ${dc.itemActiveGlow}` : 'none',
                 cursor: showDays ? 'pointer' : 'default', zIndex: 7,
               }}
             >{day}</button>
@@ -276,13 +359,9 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
             left: CX - CENTER_R, top: CY - CENTER_R,
             width: CENTER_R * 2, height: CENTER_R * 2,
             borderRadius: '50%',
-            background: 'radial-gradient(circle at 42% 35%, #2e2e58, #14142a)',
-            border: '2px solid rgba(255,255,255,0.14)',
-            boxShadow: [
-              'inset 0 2px 6px rgba(0,0,0,0.8)',
-              'inset 0 1px 2px rgba(255,255,255,0.07)',
-              '0 0 0 1px rgba(0,0,0,0.5)',
-            ].join(', '),
+            background: dc.centerBg,
+            border: `2px solid ${dc.centerBorder}`,
+            boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.05)',
             display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
             gap: 3, zIndex: 10,
@@ -294,7 +373,7 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
           {/* Single ↔ Range toggle */}
           <button
             onClick={() => setMode(mode === 'single' ? 'range' : 'single')}
-            style={modeToggleBtn(mode)}
+            style={modeToggleBtn(mode, dc)}
           >
             {mode === 'single' ? 'Single' : 'Range'}
           </button>
@@ -303,7 +382,7 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
           <div style={{ textAlign: 'center', lineHeight: 1.25, marginTop: 1 }}>
             {labelLines.map((line, i) => (
               <div key={i} style={{
-                color: i === 0 ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.5)',
+                color: i === 0 ? dc.labelColor : dc.labelSub,
                 fontSize: i === 0 ? 11 : 9, fontWeight: i === 0 ? 'bold' : 'normal',
                 fontFamily: 'monospace', letterSpacing: '0.04em',
               }}>{line}</div>
@@ -315,10 +394,10 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
             (mode === 'range' && yearRange.startYear && yearRange.endYear)) && (
             <div style={{ display: 'flex', gap: 3, marginTop: 2 }}>
               <button onClick={mode === 'single' ? toggleMonthSelector : toggleRangeMonthDaySelectors}
-                style={toggleBtn(mode === 'single' ? showMonthSelector : showRangeMonthDaySelectors)}>Mo</button>
+                style={toggleBtn(mode === 'single' ? showMonthSelector : showRangeMonthDaySelectors, dc)}>Mo</button>
               {(mode === 'single' ? showMonthSelector : showRangeMonthDaySelectors) && (
                 <button onClick={mode === 'single' ? toggleDaySelector : toggleRangeDaySelectors}
-                  style={toggleBtn(mode === 'single' ? showDaySelector : showRangeDaySelectors)}>Dy</button>
+                  style={toggleBtn(mode === 'single' ? showDaySelector : showRangeDaySelectors, dc)}>Dy</button>
               )}
             </div>
           )}
@@ -350,28 +429,24 @@ export function DialSelector({ sel, pos, onDrag, onClose }) {
 }
 
 // ---- Style helpers ----------------------------------------------------------
-function modeToggleBtn(mode) {
-  const isSingle = mode === 'single';
+function modeToggleBtn(mode, dc) {
   return {
-    fontSize: 8, fontWeight: 'bold', padding: '3px 8px', borderRadius: 4, cursor: 'pointer',
-    background: isSingle
-      ? 'linear-gradient(135deg,#667eea,#764ba2)'
-      : 'linear-gradient(135deg,#f093fb,#f5576c)',
-    color: '#fff',
-    border: '1px solid rgba(255,255,255,0.25)',
-    boxShadow: isSingle ? '0 0 7px rgba(102,126,234,0.6)' : '0 0 7px rgba(240,147,251,0.6)',
-    transition: 'all 0.2s',
-    width: 44,
+    fontSize: 8, fontWeight: 'bold', padding: '3px 8px', borderRadius: 4,
+    cursor: 'pointer', width: 44, transition: 'all 0.2s',
+    background: dc.modeBg,
+    color: dc.itemActive,
+    border: `1px solid ${dc.itemActiveBorder}`,
+    boxShadow: `0 0 7px ${dc.modeGlow}`,
   };
 }
 
-function toggleBtn(active) {
+function toggleBtn(active, dc) {
   return {
     fontSize: 7, padding: '1px 4px', borderRadius: 3, cursor: 'pointer',
-    border: '1px solid rgba(255,255,255,0.12)',
-    background: active ? 'rgba(124,92,252,0.45)' : 'rgba(255,255,255,0.06)',
-    color: active ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.5)',
-    boxShadow: active ? '0 0 5px rgba(124,92,252,0.4)' : 'none',
+    border: `1px solid ${active ? dc.itemActiveBorder : dc.itemBorder}`,
+    background: active ? dc.toggleActive : dc.itemDefault,
+    color: active ? dc.labelColor : dc.labelSub,
+    boxShadow: active ? `0 0 5px ${dc.modeGlow}` : 'none',
     transition: 'all 0.15s',
   };
 }
