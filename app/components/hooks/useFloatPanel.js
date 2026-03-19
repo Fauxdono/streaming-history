@@ -16,6 +16,7 @@ const STORAGE_KEYS = {
   position:    'yearSelectorFloatPos',
   orientation: 'yearSelectorFloatOrientation',
   scale:       'yearSelectorFloatScale',
+  dial:        'yearSelectorDial',
 };
 
 const SCALE_MIN = 0.5;
@@ -93,6 +94,10 @@ export function useFloatPanel({
     readStorage(STORAGE_KEYS.scale, 1)
   );
 
+  const [isDial, _setIsDial] = useState(() =>
+    readStorage(STORAGE_KEYS.dial, false)
+  );
+
   // Wrap setters to keep localStorage in sync
   const setIsFloating = useCallback((v) => {
     const next = typeof v === 'function' ? v(isFloating) : v;
@@ -117,6 +122,19 @@ export function useFloatPanel({
     _setFloatScale(prev => {
       const next = typeof v === 'function' ? v(prev) : v;
       writeStorage(STORAGE_KEYS.scale, next);
+      return next;
+    });
+  }, []);
+
+  const toggleDial = useCallback(() => {
+    _setIsDial(prev => {
+      const next = !prev;
+      writeStorage(STORAGE_KEYS.dial, next);
+      // Dial is always floating — ensure isFloating=true when entering dial
+      if (next) {
+        _setIsFloating(true);
+        writeStorage(STORAGE_KEYS.floating, true);
+      }
       return next;
     });
   }, []);
@@ -294,6 +312,7 @@ export function useFloatPanel({
     floatPos,
     floatOrientation,
     floatScale,
+    isDial,
     currentPosition,
     expanded,
     isTransitioning,
@@ -304,6 +323,7 @@ export function useFloatPanel({
     togglePosition,
     toggleFloating,
     toggleOrientation,
+    toggleDial,
     setCurrentPosition,
 
     // drag / resize handlers (attach to DOM elements)

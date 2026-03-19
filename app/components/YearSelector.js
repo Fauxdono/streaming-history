@@ -4,6 +4,7 @@ import { useTheme } from './themeprovider';
 import { useYearSelectorState }  from './hooks/useYearSelectorState';
 import { useFloatPanel }         from './hooks/useFloatPanel';
 import { useYearSelectorColors } from './hooks/useYearSelectorColors';
+import { DialSelector }          from './DialSelector';
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -60,6 +61,18 @@ export default function YearSelector({
 
   if (!sel.years.length) {
     return <div className={`${c.text} italic`}>No year data available</div>;
+  }
+
+  // Dial mode — circular floating widget (desktop only)
+  if (panel.isDial && !panel.isMobile && asSidebar) {
+    return (
+      <DialSelector
+        sel={sel}
+        pos={panel.floatPos}
+        onDrag={panel.handleDragStart}
+        onClose={panel.toggleDial}
+      />
+    );
   }
 
   // Position styles for the fixed container
@@ -136,7 +149,10 @@ export default function YearSelector({
               </button>
               <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
               {!panel.isMobile && (
-                <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
+                <>
+                  <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
+                  <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
+                </>
               )}
             </div>
             {/* Month / Day toggles */}
@@ -262,6 +278,7 @@ function ModeControls({ sel, panel, c, asSidebar }) {
           <button onClick={panel.toggleOrientation} className={iconBtn(c)} title={panel.floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}>
             {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
           </button>
+          <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
           <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
         </div>
       )}
@@ -271,7 +288,10 @@ function ModeControls({ sel, panel, c, asSidebar }) {
         <div className="flex flex-row gap-1 mt-1">
           <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
           {!isMobile && (
-            <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
+            <>
+              <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
+              <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
+            </>
           )}
         </div>
       )}
@@ -362,6 +382,7 @@ function SingleContent({ sel, panel, c, stacked }) {
           <button onClick={panel.toggleOrientation} className={iconBtn(c)} title="Rotate">
             {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
           </button>
+          <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
           <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
         </div>
       )}
