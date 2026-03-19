@@ -48,11 +48,15 @@ export default function YearSelector({
     if (!onLayoutChange || !panelRef.current) return;
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
-      onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width, height });
+      onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width, height, isFloating: panel.desktopFloating });
     });
     ro.observe(panelRef.current);
+    // Fire immediately when float state changes so parent zeroes out space right away
+    if (panel.desktopFloating) {
+      onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width: 0, height: 0, isFloating: true });
+    }
     return () => ro.disconnect();
-  }, [panel.expanded, panel.currentPosition, onLayoutChange]);
+  }, [panel.expanded, panel.currentPosition, panel.desktopFloating, onLayoutChange]);
 
   if (!sel.years.length) {
     return <div className={`${c.text} italic`}>No year data available</div>;
@@ -305,7 +309,7 @@ function ModeControls({ sel, panel, c, asSidebar }) {
 function SelectionContent({ sel, panel, c }) {
   const { isHorizontal, desktopFloating, isMobile, isLandscape } = panel;
   // "Stacked" = horizontal orientation but rows stacked (floating or mobile portrait)
-  const stacked = isHorizontal && (desktopFloating || (isMobile && !isLandscape));
+  const stacked = isHorizontal && isMobile && !isLandscape;
 
   const wrapClass = isHorizontal
     ? stacked
@@ -796,12 +800,17 @@ export function YearSelectorCompat(props) {
     }
   }, [onYearChange, onYearRangeChange, onToggleRangeMode]);
 
-  const handleLayoutChange = React.useCallback(({ expanded, position, width, height }) => {
+  const handleLayoutChange = React.useCallback(({ expanded, position, width, height, isFloating }) => {
     onExpandChange?.(expanded);
     onPositionChange?.(position);
-    const isVertical = position === 'left' || position === 'right';
-    onWidthChange?.(isVertical ? width : 0);
-    onHeightChange?.(isVertical ? 0 : height);
+    if (isFloating) {
+      onWidthChange?.(0);
+      onHeightChange?.(0);
+    } else {
+      const isVertical = position === 'left' || position === 'right';
+      onWidthChange?.(isVertical ? width : 0);
+      onHeightChange?.(isVertical ? 0 : height);
+    }
   }, [onExpandChange, onPositionChange, onWidthChange, onHeightChange]);
 
   return (
