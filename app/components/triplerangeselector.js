@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import YearSelector from './year-selector.js';
+import { YearSelectorCompat as YearSelector } from './YearSelector.js';
 
 // Helper function to get days in a month
 function getDaysInMonth(year, month) {
