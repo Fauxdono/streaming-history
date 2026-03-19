@@ -14,7 +14,7 @@ import ListeningPatterns from './listening-patterns.js';
 import ListeningBehavior from './listening-behavior.js';
 import DiscoveryAnalysis from './discovery-analysis.js';
 import { X, Trash2, Download } from 'lucide-react';
-import YearSelector from './year-selector.js';
+import { YearSelectorCompat as YearSelector } from './YearSelector.js';
 import AlbumCard from './albumcard.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
