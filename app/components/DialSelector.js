@@ -362,6 +362,7 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
             left: CX - CENTER_R, top: CY - CENTER_R,
             width: CENTER_R * 2, height: CENTER_R * 2,
             borderRadius: '50%',
+            overflow: 'hidden',
             background: dc.centerBg,
             border: `2px solid ${dc.centerBorder}`,
             boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.05)',
@@ -373,8 +374,20 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
           onMouseDown={e => e.stopPropagation()}
           onTouchStart={e => e.stopPropagation()}
         >
+          {/* Exit dial → back to regular YearSelector */}
+          <button
+            onClick={e => { e.stopPropagation(); onClose(); }}
+            style={{
+              fontSize: 7, fontWeight: 'bold', padding: '2px 8px', borderRadius: 4,
+              cursor: 'pointer',
+              background: 'rgba(255,255,255,0.07)',
+              border: `1px solid ${dc.itemBorder}`,
+              color: dc.labelSub,
+            }}
+          >✕ Exit</button>
+
           {/* Selected value */}
-          <div style={{ textAlign: 'center', lineHeight: 1.25, marginBottom: 4 }}>
+          <div style={{ textAlign: 'center', lineHeight: 1.25 }}>
             {labelLines.map((line, i) => (
               <div key={i} style={{
                 color: i === 0 ? dc.labelColor : dc.labelSub,
@@ -395,7 +408,6 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
               boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)',
             }}
           >
-            {/* Sliding knob */}
             <div style={{
               position: 'absolute', top: 2,
               width: 34, height: 18, borderRadius: 9,
@@ -404,7 +416,6 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
               transition: 'left 0.2s ease',
               boxShadow: `0 0 7px ${dc.modeGlow}`,
             }} />
-            {/* Labels */}
             <span style={{
               position: 'absolute', left: 0, width: 37, textAlign: 'center',
               top: '50%', transform: 'translateY(-50%)',
@@ -421,10 +432,10 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
             }}>Range</span>
           </div>
 
-          {/* Mo / Dy toggles — single mode: any non-all year; range mode: when both years picked */}
+          {/* Mo / Dy toggles */}
           {((mode === 'single' && selectedYear !== 'all') ||
             (mode === 'range' && yearRange.startYear && yearRange.endYear)) && (
-            <div style={{ display: 'flex', gap: 3, marginTop: 2 }}>
+            <div style={{ display: 'flex', gap: 3 }}>
               <button onClick={mode === 'single' ? toggleMonthSelector : toggleRangeMonthDaySelectors}
                 style={toggleBtn(mode === 'single' ? showMonthSelector : showRangeMonthDaySelectors, dc)}>Mo</button>
               {(mode === 'single' ? showMonthSelector : showRangeMonthDaySelectors) && (
@@ -434,26 +445,6 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
             </div>
           )}
         </div>
-
-        {/* ---- Close button ---- */}
-        <button
-          onClick={e => { e.stopPropagation(); onClose(); }}
-          onMouseDown={e => e.stopPropagation()}
-          onTouchStart={e => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            left: CX + S_YEAR / 2 - 32,   // near top-right of year-only circle
-            top:  CY - S_YEAR / 2 + 10,
-            width: 20, height: 20, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            color: 'rgba(255,255,255,0.45)',
-            fontSize: 10, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 20, padding: 0,
-          }}
-          aria-label="Exit dial"
-        >✕</button>
 
       </div>{/* end inner canvas */}
     </div>

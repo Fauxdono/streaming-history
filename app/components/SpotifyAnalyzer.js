@@ -320,6 +320,11 @@ const SpotifyAnalyzer = ({
     };
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [enableEnrichment, setEnableEnrichment] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try { return JSON.parse(localStorage.getItem('enableAlbumEnrichment') ?? 'false'); } catch { return false; }
+  });
+  const [enrichmentProgress, setEnrichmentProgress] = useState(null); // { done, total }
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
   const [briefObsessions, setBriefObsessions] = useState([]);
@@ -627,6 +632,16 @@ const SpotifyAnalyzer = ({
       }
     });
 
+    // Date window
+    let earliestDate = null;
+    let latestDate = null;
+    for (const play of filteredData) {
+      if (!play.ts) continue;
+      const t = new Date(play.ts).getTime();
+      if (earliestDate === null || t < earliestDate) earliestDate = t;
+      if (latestDate === null || t > latestDate) latestDate = t;
+    }
+
     return {
       ...stats,
       totalEntries: filteredData.length,
@@ -635,7 +650,9 @@ const SpotifyAnalyzer = ({
       shortPlays,
       totalListeningTime,
       serviceListeningTime,
-      nullTrackNames: filteredData.filter(e => !e.master_metadata_track_name).length
+      nullTrackNames: filteredData.filter(e => !e.master_metadata_track_name).length,
+      earliestDate,
+      latestDate,
     };
   }, [selectedStreaksYear, stats, rawPlayData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
@@ -1218,7 +1235,11 @@ const SpotifyAnalyzer = ({
     setIsProcessing(true);
     
     try {
-      const results = await streamingProcessor.processFiles(fileList);
+      setEnrichmentProgress(null);
+      const results = await streamingProcessor.processFiles(fileList, {
+        enableEnrichment,
+        onEnrichmentProgress: (done, total) => setEnrichmentProgress({ done, total }),
+      });
       
       // Update all state in batch
       setStats(results.stats);
@@ -1253,8 +1274,9 @@ const SpotifyAnalyzer = ({
       throw err;
     } finally {
       setIsProcessing(false);
+      setEnrichmentProgress(null);
     }
-  }, []);
+  }, [enableEnrichment]);
 
   // Handle file upload with useCallback
   const handleFileUpload = useCallback((e) => {
@@ -1276,38 +1298,7 @@ const SpotifyAnalyzer = ({
     setUploadedFileList(combinedFiles);
     setUploadedFiles(updatedFileNames);
     
-    // Save uploaded files to persistent storage if authenticated
-    if (isAuthenticated && storageReady) {
-      try {
-        // Convert files to serializable format for storage
-        const fileMetadata = combinedFiles.map(file => ({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified,
-          uploadedAt: Date.now()
-        }));
-        
-        // Save file metadata
-        const storage = {
-          saveUploadedFiles: (data) => {
-            localStorage.setItem(`streaming_data_${deviceId}_uploaded_files`, JSON.stringify({
-              data,
-              timestamp: Date.now(),
-              version: '1.0'
-            }));
-          }
-        };
-        storage.saveUploadedFiles(fileMetadata);
-        
-        // Note: We don't store file contents due to size limitations (files can be 12MB+ each)
-        // Only processed data is stored, which is much smaller and more valuable
-        console.log(`File upload detected: ${combinedFiles.length} files. Processed data will be saved after analysis.`);
-        
-      } catch (saveError) {
-        console.error('Failed to save files to persistent storage:', saveError);
-      }
-    }
+    console.log(`File upload: ${combinedFiles.length} files queued for processing.`);
   }, [uploadedFileList]);
 
   // Handle file deletion with useCallback
@@ -1320,34 +1311,6 @@ const SpotifyAnalyzer = ({
       setUploadedFileList(remainingFiles.length === 0 ? null : remainingFiles);
       setUploadedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
       
-      // Update persistent storage if authenticated
-      if (isAuthenticated && storageReady && deviceId) {
-        try {
-          if (remainingFiles.length === 0) {
-            // Clear file metadata from storage
-            localStorage.removeItem(`streaming_data_${deviceId}_uploaded_files`);
-            console.log('Cleared all file metadata from storage');
-          } else {
-            // Update stored file metadata only (not content)
-            const fileMetadata = remainingFiles.map(file => ({
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              lastModified: file.lastModified,
-              uploadedAt: Date.now()
-            }));
-            
-            localStorage.setItem(`streaming_data_${deviceId}_uploaded_files`, JSON.stringify({
-              data: fileMetadata,
-              timestamp: Date.now(),
-              version: '1.0'
-            }));
-            console.log(`Updated file metadata for ${remainingFiles.length} files`);
-          }
-        } catch (saveError) {
-          console.error('Failed to update files in persistent storage:', saveError);
-        }
-      }
     } else {
       setUploadedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
     }
@@ -2465,8 +2428,28 @@ const SpotifyAnalyzer = ({
                       textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)'
                     }}
                   >
-                    Cakeculating...
+                    {enrichmentProgress ? 'Looking up albums...' : 'Cakeculating...'}
                   </p>
+                  {enrichmentProgress && (
+                    <div className="w-64 mt-3">
+                      <div className={`w-full h-3 rounded-full overflow-hidden ${
+                        isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
+                      }`}>
+                        <div
+                          className="h-full rounded-full transition-all duration-300 ease-out"
+                          style={{
+                            width: `${Math.round((enrichmentProgress.done / enrichmentProgress.total) * 100)}%`,
+                            background: colorMode === 'colorful'
+                              ? 'linear-gradient(90deg, #8b5cf6, #3b82f6)'
+                              : isDarkMode ? '#4169E1' : '#000',
+                          }}
+                        />
+                      </div>
+                      <p className={`text-xs mt-1 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        MusicBrainz: {enrichmentProgress.done} / {enrichmentProgress.total} tracks
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -2519,6 +2502,19 @@ const SpotifyAnalyzer = ({
                     Include Rockbox scrobbles ({storedScrobbleCount.toLocaleString()} plays)
                   </label>
                 )}
+
+                <label className={`mt-3 flex items-center gap-2 cursor-pointer select-none text-sm ${uploadTextLight}`}>
+                  <input
+                    type="checkbox"
+                    checked={enableEnrichment}
+                    onChange={e => {
+                      setEnableEnrichment(e.target.checked);
+                      localStorage.setItem('enableAlbumEnrichment', JSON.stringify(e.target.checked));
+                    }}
+                    className="w-4 h-4 accent-violet-600"
+                  />
+                  Look up missing album data via MusicBrainz
+                </label>
 
                 <button
                   onClick={handleProcessFiles}
@@ -2615,6 +2611,9 @@ const SpotifyAnalyzer = ({
                     <li>Unique songs: {filteredStats?.uniqueSongs || 0}</li>
                     <li>Entries with no track name: {filteredStats?.nullTrackNames || 0}</li>
                     <li>Plays under 30s: {filteredStats?.shortPlays || 0}</li>
+                    {filteredStats?.earliestDate && filteredStats?.latestDate && (
+                      <li>Time window: {new Date(filteredStats.earliestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} — {new Date(filteredStats.latestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</li>
+                    )}
                   </ul>
                 </div>
                 <div className={

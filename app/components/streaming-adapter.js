@@ -2,6 +2,7 @@
 import Papa from 'papaparse';
 import _ from 'lodash';
 import * as XLSX from 'xlsx';
+import { enrichAlbums } from './albumEnrichment';
 
 // Essential service constants
 export const STREAMING_TYPES = {
@@ -701,7 +702,7 @@ async function processAppleMusicCSV(content) {
       .filter(row => row[nameField])
       .map(row => {
         // Parse track info
-        const trackDescription = row[nameField] || '';
+        const trackDescription = String(row[nameField] || '');
         const dashIndex = trackDescription.indexOf(' - ');
         const artistName = dashIndex > 0 ? trackDescription.substring(0, dashIndex).trim() : 'Unknown Artist';
         const trackName = dashIndex > 0 ? trackDescription.substring(dashIndex + 3).trim() : trackDescription;
@@ -2527,7 +2528,7 @@ async function calculatePlayStats(entries, minPlayDuration = 30000) {
   };
 }
 export const streamingProcessor = {
-  async processFiles(files) {
+  async processFiles(files, { enableEnrichment = false, onEnrichmentProgress } = {}) {
     console.time('processFiles');
     try {
       const allProcessedArrays = [];
@@ -2649,6 +2650,24 @@ export const streamingProcessor = {
         }
       });
 
+      // Enrich missing album data via MusicBrainz (opt-in)
+      let enrichResult = null;
+      if (enableEnrichment) {
+        const unknownAlbumCount = allProcessedData.filter(
+          e => !e.master_metadata_album_album_name || e.master_metadata_album_album_name === 'Unknown Album'
+        ).length;
+        if (unknownAlbumCount > 0) {
+          console.log(`Enriching album data for ${unknownAlbumCount} entries with missing albums...`);
+          enrichResult = await enrichAlbums(allProcessedData, (done, total) => {
+            if (onEnrichmentProgress) onEnrichmentProgress(done, total);
+            if (done % 50 === 0 || done === total) {
+              console.log(`Album enrichment: ${done}/${total} lookups complete`);
+            }
+          });
+          console.log(`Album enrichment complete: ${enrichResult.enriched} entries updated`);
+        }
+      }
+
       console.log(`Calculating stats for ${allProcessedData.length} entries`);
       const stats = await calculatePlayStats(allProcessedData);
 
@@ -2745,7 +2764,8 @@ export const streamingProcessor = {
           uniqueSongs: stats.songs.length,
           shortPlays: stats.shortPlays,
           totalListeningTime: stats.totalListeningTime,
-          serviceListeningTime: stats.serviceListeningTime
+          serviceListeningTime: stats.serviceListeningTime,
+          albumEnrichment: enrichResult
         },
         topArtists: sortedArtists,
         topAlbums: sortedAlbums,
