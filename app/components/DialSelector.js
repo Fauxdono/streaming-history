@@ -103,7 +103,7 @@ function getDialColors(colorMode, colorTheme, isDark) {
 // ---------------------------------------------------------------------------
 
 function getGeometry(yearCount) {
-  const CENTER_R = 44;
+  const CENTER_R = 60;
   const YEAR_W   = 28;
   const MONTH_W  = 24;
   const DAY_W    = 22;
@@ -118,9 +118,12 @@ function getGeometry(yearCount) {
   const MONTH_R = YEAR_R  + YEAR_W  / 2 + GAP + MONTH_W / 2;
   const DAY_R   = MONTH_R + MONTH_W / 2 + GAP + DAY_W   / 2;
 
-  // Three shell sizes — outer animated div clips to this
-  const S_YEAR  = Math.round((YEAR_R  + YEAR_W  / 2 + RIM) * 2);
-  const S_MONTH = Math.round((MONTH_R + MONTH_W / 2 + RIM) * 2);
+  // Three shell sizes — sized so the next ring is fully hidden when inactive.
+  // S_YEAR clips just inside the inner edge of month items at 3/9 o'clock.
+  // S_MONTH clips just inside the inner edge of day items at 3/9 o'clock.
+  // S_DAY shows full day ring with a small rim.
+  const S_YEAR  = Math.round((MONTH_R - MONTH_W / 2 - 4) * 2);
+  const S_MONTH = Math.round((DAY_R   - DAY_W   / 2 - 4) * 2);
   const S_DAY   = Math.round((DAY_R   + DAY_W   / 2 + RIM) * 2);
 
   // Inner canvas is always S_MAX — items positioned relative to its center
@@ -370,16 +373,8 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
           onMouseDown={e => e.stopPropagation()}
           onTouchStart={e => e.stopPropagation()}
         >
-          {/* Single ↔ Range toggle */}
-          <button
-            onClick={() => setMode(mode === 'single' ? 'range' : 'single')}
-            style={modeToggleBtn(mode, dc)}
-          >
-            {mode === 'single' ? 'Single' : 'Range'}
-          </button>
-
           {/* Selected value */}
-          <div style={{ textAlign: 'center', lineHeight: 1.25, marginTop: 1 }}>
+          <div style={{ textAlign: 'center', lineHeight: 1.25, marginBottom: 4 }}>
             {labelLines.map((line, i) => (
               <div key={i} style={{
                 color: i === 0 ? dc.labelColor : dc.labelSub,
@@ -387,6 +382,43 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
                 fontFamily: 'monospace', letterSpacing: '0.04em',
               }}>{line}</div>
             ))}
+          </div>
+
+          {/* Single ↔ Range sliding toggle */}
+          <div
+            onClick={() => setMode(mode === 'single' ? 'range' : 'single')}
+            style={{
+              position: 'relative', width: 74, height: 22, borderRadius: 11,
+              background: 'rgba(0,0,0,0.25)',
+              border: `1px solid ${dc.centerBorder}`,
+              cursor: 'pointer', flexShrink: 0,
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)',
+            }}
+          >
+            {/* Sliding knob */}
+            <div style={{
+              position: 'absolute', top: 2,
+              width: 34, height: 18, borderRadius: 9,
+              background: dc.modeBg,
+              left: mode === 'single' ? 2 : 36,
+              transition: 'left 0.2s ease',
+              boxShadow: `0 0 7px ${dc.modeGlow}`,
+            }} />
+            {/* Labels */}
+            <span style={{
+              position: 'absolute', left: 0, width: 37, textAlign: 'center',
+              top: '50%', transform: 'translateY(-50%)',
+              fontSize: 7, fontWeight: 'bold',
+              color: mode === 'single' ? dc.itemActive : dc.labelSub,
+              pointerEvents: 'none', zIndex: 1,
+            }}>Single</span>
+            <span style={{
+              position: 'absolute', right: 0, width: 37, textAlign: 'center',
+              top: '50%', transform: 'translateY(-50%)',
+              fontSize: 7, fontWeight: 'bold',
+              color: mode === 'range' ? dc.itemActive : dc.labelSub,
+              pointerEvents: 'none', zIndex: 1,
+            }}>Range</span>
           </div>
 
           {/* Mo / Dy toggles — single mode: any non-all year; range mode: when both years picked */}
@@ -429,17 +461,6 @@ export function DialSelector({ sel, pos, onDrag, onClose, colorMode = 'colorful'
 }
 
 // ---- Style helpers ----------------------------------------------------------
-function modeToggleBtn(mode, dc) {
-  return {
-    fontSize: 8, fontWeight: 'bold', padding: '3px 8px', borderRadius: 4,
-    cursor: 'pointer', width: 44, transition: 'all 0.2s',
-    background: dc.modeBg,
-    color: dc.itemActive,
-    border: `1px solid ${dc.itemActiveBorder}`,
-    boxShadow: `0 0 7px ${dc.modeGlow}`,
-  };
-}
-
 function toggleBtn(active, dc) {
   return {
     fontSize: 7, padding: '1px 4px', borderRadius: 3, cursor: 'pointer',

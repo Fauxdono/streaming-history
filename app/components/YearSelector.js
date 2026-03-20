@@ -65,7 +65,7 @@ export default function YearSelector({
   }
 
   // Dial mode — circular floating widget (desktop only)
-  if (panel.isDial && !panel.isMobile && asSidebar) {
+  if (panel.isDial && !panel.isMobile) {
     return (
       <DialSelector
         sel={sel}
@@ -270,13 +270,11 @@ function ModeControls({ sel, panel, c, asSidebar }) {
         ? 'flex-col gap-1 items-center shrink-0'
         : 'flex-col gap-1 items-center mb-2'
     }`}>
+      {/* Dial toggle */}
+      <PressButton active={panel.isDial} c={c} onClick={panel.toggleDial}>◎ Dial</PressButton>
+
       <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
       <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
-
-      {/* Dial toggle — always visible on desktop sidebar (vertical) */}
-      {asSidebar && !isHorizontal && !isMobile && (
-        <PressButton active={panel.isDial} c={c} onClick={panel.toggleDial}>◎ Dial</PressButton>
-      )}
 
       {/* Float/orientation controls inline with mode buttons (vertical floating) */}
       {desktopFloating && !isHorizontal && asSidebar && (
@@ -384,7 +382,7 @@ function SingleContent({ sel, panel, c, stacked }) {
           <button onClick={panel.toggleOrientation} className={iconBtn(c)} title="Rotate">
             {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
           </button>
-          <button onClick={panel.toggleDial} className={iconBtn(c)} title="Dial mode">◎</button>
+          <PressButton active={panel.isDial} c={c} onClick={panel.toggleDial}>◎ Dial</PressButton>
           <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
         </div>
       )}

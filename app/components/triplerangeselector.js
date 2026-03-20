@@ -902,7 +902,7 @@ const TripleRangeSelector = ({
       </div>
       
       {/* Use YearSelector component for year selection */}
-      <YearSelector 
+      <YearSelector
         artistsByYear={yearsForYearSelector}
         rawPlayData={[]} // Empty array since this component doesn't have play data
         onYearChange={handleYearChange}
