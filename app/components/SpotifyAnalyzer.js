@@ -2715,9 +2715,9 @@ const SpotifyAnalyzer = ({
                     formatDuration={formatDuration}
                     colorMode={colorMode}
                   />
-                  <div className={`mt-3 pt-3 border-t ${isColorful ? 'border-indigo-200 dark:border-indigo-600' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                  <div className={`mt-3 pt-3 border-t ${colorMode === 'colorful' ? 'border-indigo-200 dark:border-indigo-600' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                     <p className={
-                      isColorful
+                      colorMode === 'colorful'
                         ? 'text-sm text-indigo-600 dark:text-indigo-400 mb-2'
                         : `text-sm mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`
                     }>
