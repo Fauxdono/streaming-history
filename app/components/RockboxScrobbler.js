@@ -134,6 +134,36 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
     }
   }, [processContent]);
 
+  // Handle JSON import (exported scrobbles or any JSON with ts + track fields)
+  const processJSON = useCallback((content) => {
+    try {
+      let data = JSON.parse(content);
+      // Handle both array and {year: [...]} object shapes
+      if (!Array.isArray(data)) {
+        if (typeof data === 'object') {
+          data = Object.values(data).flat();
+        } else {
+          setStatus({ type: 'error', message: 'Unrecognized JSON format.' });
+          return;
+        }
+      }
+      // Validate entries have the expected shape
+      const valid = data.filter(e => e.ts && e.master_metadata_track_name);
+      if (valid.length === 0) {
+        setStatus({ type: 'error', message: 'No valid scrobble entries found in JSON. Expected fields: ts, master_metadata_track_name.' });
+        return;
+      }
+      const { newCount } = mergeEntries(valid);
+      if (newCount > 0) {
+        setStatus({ type: 'success', message: `Imported ${newCount} new scrobble${newCount !== 1 ? 's' : ''} from JSON.` });
+      } else {
+        setStatus({ type: 'info', message: 'All scrobbles already imported — nothing new.' });
+      }
+    } catch {
+      setStatus({ type: 'error', message: 'Failed to parse JSON file.' });
+    }
+  }, [mergeEntries]);
+
   // Handle file (from input or drop)
   const handleFile = useCallback(async (file) => {
     if (!file) return;
@@ -141,14 +171,18 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
     setStatus(null);
     try {
       const content = await file.text();
-      await processContent(content, null);
+      if (file.name.endsWith('.json')) {
+        processJSON(content);
+      } else {
+        await processContent(content, null);
+      }
     } catch (err) {
       setStatus({ type: 'error', message: err.message });
     } finally {
       setSyncing(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  }, [processContent]);
+  }, [processContent, processJSON]);
 
   // Drag and drop handlers
   const onDragOver = useCallback((e) => {
@@ -265,7 +299,7 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
             </div>
             <div className="flex gap-3 items-start">
               <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>3</span>
-              <p className={`text-sm ${textLight}`}>Drag <code className="font-mono">.scrobbler.log</code> from the device root into the box below, or click to browse</p>
+              <p className={`text-sm ${textLight}`}>Drag <code className="font-mono">.scrobbler.log</code> or a scrobbles JSON file into the box below, or click to browse</p>
             </div>
 
             {/* Drop zone */}
@@ -283,12 +317,12 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
             >
               <span className="text-3xl">{dragging ? '📂' : '📁'}</span>
               <p className={`text-sm font-medium ${dragging ? (isColorful ? 'text-violet-700' : '') : textLight}`}>
-                {syncing ? 'Reading file…' : dragging ? 'Drop it!' : 'Drop .scrobbler.log here or click to browse'}
+                {syncing ? 'Reading file…' : dragging ? 'Drop it!' : 'Drop .scrobbler.log or .json here, or click to browse'}
               </p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="*"
+                accept=".log,.json"
                 className="hidden"
                 onChange={(e) => handleFile(e.target.files?.[0])}
                 disabled={syncing}
