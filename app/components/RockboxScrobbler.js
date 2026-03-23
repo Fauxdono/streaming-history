@@ -275,9 +275,23 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
               <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>3</span>
               <p className={`text-sm ${textLight}`}>Done — scrobbles are saved by year below</p>
             </div>
-            <button onClick={handleConnect} disabled={syncing} className={`mt-1 ${btnPrimary}`}>
-              {syncing ? 'Reading…' : '📻 Connect device'}
-            </button>
+            <div className="flex gap-2 mt-1 flex-wrap">
+              <button onClick={handleConnect} disabled={syncing} className={btnPrimary}>
+                {syncing ? 'Reading…' : '📻 Connect device'}
+              </button>
+              <button onClick={() => fileInputRef.current?.click()} disabled={syncing} className={btnSecondary}>
+                📄 Import file
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".log,.json"
+                className="hidden"
+                onChange={(e) => handleFile(e.target.files?.[0])}
+                disabled={syncing}
+              />
+            </div>
+            <p className={`text-xs mt-1 ${textLight}`}>Import .scrobbler.log or previously exported .json files</p>
           </div>
         ) : (
           // Safari/Firefox: drag-and-drop path
