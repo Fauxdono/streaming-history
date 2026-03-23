@@ -199,24 +199,24 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
     setStatus({ type: 'info', message: 'All stored scrobbles cleared.' });
   }, []);
 
-  // Style helpers
+  // Style helpers — colorful mode uses violet to match the upload page
   const isColorful = colorMode === 'colorful';
-  const border = isColorful ? 'border-teal-300 dark:border-teal-700' : isDarkMode ? 'border-[#4169E1]' : 'border-black';
-  const cardBg = isColorful ? 'bg-teal-50 dark:bg-teal-900/40' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
-  const textMain = isColorful ? 'text-teal-700 dark:text-teal-300' : '';
-  const textLight = isColorful ? 'text-teal-600 dark:text-teal-400' : 'text-gray-500 dark:text-gray-400';
+  const border = isColorful ? 'border-violet-300 dark:border-violet-700' : isDarkMode ? 'border-[#4169E1]' : 'border-black';
+  const cardBg = isColorful ? 'bg-violet-100 dark:bg-violet-800' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
+  const textMain = isColorful ? 'text-violet-700 dark:text-violet-300' : '';
+  const textLight = isColorful ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400';
   const shadow = !isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : '';
 
   const btnPrimary = isColorful
-    ? 'px-4 py-2 rounded-lg font-medium text-sm bg-teal-600 text-white hover:bg-teal-700 transition-colors'
+    ? 'px-4 py-2 rounded-lg font-medium text-sm bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
     : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
 
   const btnSecondary = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-teal-100 text-teal-700 hover:bg-teal-200 transition-colors border border-teal-300'
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-colors border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed]'
     : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
 
   const btnDanger = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors'
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
     : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-red-400 border-red-600 hover:bg-gray-800' : 'bg-white text-red-600 border-red-400 hover:bg-red-50'}`;
 
   return (
@@ -230,15 +230,15 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
           // Chrome/Edge: auto-connect path
           <div className="space-y-3">
             <div className="flex gap-3 items-start">
-              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-teal-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>1</span>
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>1</span>
               <p className={`text-sm ${textLight}`}>Plug your Rockbox device in via USB</p>
             </div>
             <div className="flex gap-3 items-start">
-              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-teal-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>2</span>
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>2</span>
               <p className={`text-sm ${textLight}`}>Click <strong>Connect device</strong> and select the root folder of the device (not a subfolder)</p>
             </div>
             <div className="flex gap-3 items-start">
-              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-teal-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>3</span>
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>3</span>
               <p className={`text-sm ${textLight}`}>Done — scrobbles are saved by year below</p>
             </div>
             <button onClick={handleConnect} disabled={syncing} className={`mt-1 ${btnPrimary}`}>
@@ -249,11 +249,11 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
           // Safari/Firefox: drag-and-drop path
           <div className="space-y-3">
             <div className="flex gap-3 items-start">
-              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-teal-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>1</span>
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>1</span>
               <p className={`text-sm ${textLight}`}>Plug your Rockbox device in via USB</p>
             </div>
             <div className="flex gap-3 items-start">
-              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-teal-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>2</span>
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>2</span>
               <div>
                 <p className={`text-sm ${textLight}`}>Open the device in Finder/Explorer</p>
                 {isMac && (
@@ -264,7 +264,7 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
               </div>
             </div>
             <div className="flex gap-3 items-start">
-              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-teal-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>3</span>
+              <span className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isColorful ? 'bg-violet-600 text-white' : isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>3</span>
               <p className={`text-sm ${textLight}`}>Drag <code className="font-mono">.scrobbler.log</code> from the device root into the box below, or click to browse</p>
             </div>
 
@@ -277,12 +277,12 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
               onClick={() => fileInputRef.current?.click()}
               className={`mt-2 flex flex-col items-center justify-center gap-2 p-8 rounded-lg border-2 border-dashed cursor-pointer transition-colors select-none ${
                 dragging
-                  ? isColorful ? 'border-teal-500 bg-teal-100 dark:bg-teal-800' : isDarkMode ? 'border-white bg-gray-800' : 'border-black bg-gray-100'
-                  : isColorful ? 'border-teal-300 dark:border-teal-600 hover:bg-teal-100 dark:hover:bg-teal-800/50' : isDarkMode ? 'border-gray-600 hover:border-gray-400 hover:bg-gray-800' : 'border-gray-300 hover:border-gray-500 hover:bg-gray-50'
+                  ? isColorful ? 'border-violet-500 bg-violet-100 dark:bg-violet-800' : isDarkMode ? 'border-white bg-gray-800' : 'border-black bg-gray-100'
+                  : isColorful ? 'border-violet-300 dark:border-violet-600 hover:bg-violet-100 dark:hover:bg-violet-800/50' : isDarkMode ? 'border-gray-600 hover:border-gray-400 hover:bg-gray-800' : 'border-gray-300 hover:border-gray-500 hover:bg-gray-50'
               }`}
             >
               <span className="text-3xl">{dragging ? '📂' : '📁'}</span>
-              <p className={`text-sm font-medium ${dragging ? (isColorful ? 'text-teal-700' : '') : textLight}`}>
+              <p className={`text-sm font-medium ${dragging ? (isColorful ? 'text-violet-700' : '') : textLight}`}>
                 {syncing ? 'Reading file…' : dragging ? 'Drop it!' : 'Drop .scrobbler.log here or click to browse'}
               </p>
               <input
@@ -363,7 +363,7 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
                 const isUntagged = entry.master_metadata_album_artist_name === '<Untagged>' || /\.\w{2,4}$/.test(entry.master_metadata_track_name || '');
                 return (
                   <div key={i} className={`flex items-center justify-between gap-3 px-3 py-1.5 rounded text-xs ${
-                    isColorful ? 'bg-teal-50 dark:bg-teal-900/30' : isDarkMode ? 'bg-black' : 'bg-white'
+                    isColorful ? 'bg-violet-50 dark:bg-violet-900/30' : isDarkMode ? 'bg-black' : 'bg-white'
                   } ${entry.skipped ? 'opacity-40' : ''} ${isUntagged ? 'opacity-50' : ''}`}>
                     <div className="min-w-0 flex-1">
                       <span className="font-medium block truncate">
