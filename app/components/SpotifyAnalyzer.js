@@ -2257,14 +2257,21 @@ const SpotifyAnalyzer = ({
 
         return (
           <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-            {/* Title + inner tabs row */}
-            <div className="flex items-center gap-3 mb-4">
+            {/* Title + inner tabs + web app row */}
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <h3 className={`text-xl hidden sm:block ${uploadText}`}>
                 {uploadInnerTab === 'upload' ? 'Upload Files' : 'Scrobbler'}
               </h3>
               <div className="flex gap-1">
                 <button onClick={() => setUploadInnerTab('upload')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'upload' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Upload</button>
                 <button onClick={() => setUploadInnerTab('scrobbler')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'scrobbler' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Scrobbler</button>
+              </div>
+              <div className={`ml-auto ${
+                colorMode === 'colorful'
+                  ? 'px-2 py-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
+                  : `px-2 py-1 rounded border ${isDarkMode ? 'bg-black text-white border-[#4169E1]' : 'bg-white text-black border-black'}`
+              }`}>
+                <p className="font-bold text-xs">📱 Download as Web App!</p>
               </div>
             </div>
             <div>
@@ -2389,15 +2396,6 @@ const SpotifyAnalyzer = ({
               </div>
             </div>
 
-            {/* Download as Web App - pinned below */}
-            <div className={`mb-4 ${
-              colorMode === 'colorful'
-                ? 'p-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
-                : `p-2 rounded border ${isDarkMode ? 'bg-black text-white border-[#4169E1]' : 'bg-white text-black border-black'}`
-            }`}>
-              <p className="font-bold text-xs">📱 Download as Web App!</p>
-              <p className="text-xs mt-0.5">Install to your device for offline access.</p>
-            </div>
               
             <div className={`p-4 rounded-lg border ${uploadCardBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
               <p className={`mb-3 font-semibold text-sm ${uploadText}`}>
