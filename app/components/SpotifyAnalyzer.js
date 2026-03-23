@@ -20,6 +20,7 @@ import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
 import ExportButton from './ExportButton.js';
+import Top100Export from './Top100Export.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
@@ -566,7 +567,18 @@ const SpotifyAnalyzer = ({
   const filteredStats = useMemo(() => {
     if (!stats) return null;
     if (selectedStreaksYear === 'all') {
-      return stats;
+      // Compute date window from all raw data
+      let earliestDate = null;
+      let latestDate = null;
+      if (rawPlayData) {
+        for (const play of rawPlayData) {
+          if (!play.ts) continue;
+          const t = new Date(play.ts).getTime();
+          if (earliestDate === null || t < earliestDate) earliestDate = t;
+          if (latestDate === null || t > latestDate) latestDate = t;
+        }
+      }
+      return { ...stats, earliestDate, latestDate };
     }
     if (!rawPlayData || rawPlayData.length === 0) {
       return stats;
@@ -1236,8 +1248,10 @@ const SpotifyAnalyzer = ({
     
     try {
       setEnrichmentProgress(null);
+      // Read enrichment preference directly from localStorage to avoid stale closures
+      const shouldEnrich = JSON.parse(localStorage.getItem('enableAlbumEnrichment') ?? 'false');
       const results = await streamingProcessor.processFiles(fileList, {
-        enableEnrichment,
+        enableEnrichment: shouldEnrich,
         onEnrichmentProgress: (done, total) => setEnrichmentProgress({ done, total }),
       });
       
@@ -1276,7 +1290,7 @@ const SpotifyAnalyzer = ({
       setIsProcessing(false);
       setEnrichmentProgress(null);
     }
-  }, [enableEnrichment]);
+  }, []);
 
   // Handle file upload with useCallback
   const handleFileUpload = useCallback((e) => {
@@ -2596,6 +2610,11 @@ const SpotifyAnalyzer = ({
                   ? 'text-xl text-indigo-700 dark:text-indigo-300'
                   : 'text-xl'
               }>Statistics <span className="text-xs opacity-75">{selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear.startsWith('all-') ? (() => { const p = selectedStreaksYear.split('-'); const monthName = new Date(2024, parseInt(p[1]) - 1).toLocaleDateString('en-US', { month: 'long' }); return p.length === 3 ? `Every ${monthName} ${parseInt(p[2])}` : `Every ${monthName}`; })() : selectedStreaksYear}</span></h3>
+              {filteredStats?.earliestDate && filteredStats?.latestDate && (
+                <p className={`text-sm mt-1 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>
+                  {new Date(filteredStats.earliestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} — {new Date(filteredStats.latestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </p>
+              )}
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2611,9 +2630,6 @@ const SpotifyAnalyzer = ({
                     <li>Unique songs: {filteredStats?.uniqueSongs || 0}</li>
                     <li>Entries with no track name: {filteredStats?.nullTrackNames || 0}</li>
                     <li>Plays under 30s: {filteredStats?.shortPlays || 0}</li>
-                    {filteredStats?.earliestDate && filteredStats?.latestDate && (
-                      <li>Time window: {new Date(filteredStats.earliestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} — {new Date(filteredStats.latestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</li>
-                    )}
                   </ul>
                 </div>
                 <div className={
@@ -2699,6 +2715,23 @@ const SpotifyAnalyzer = ({
                     formatDuration={formatDuration}
                     colorMode={colorMode}
                   />
+                  <div className={`mt-3 pt-3 border-t ${isColorful ? 'border-indigo-200 dark:border-indigo-600' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <p className={
+                      isColorful
+                        ? 'text-sm text-indigo-600 dark:text-indigo-400 mb-2'
+                        : `text-sm mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`
+                    }>
+                      Lightweight export of your top 100 rankings — paste into AI chats or save for later.
+                    </p>
+                    <Top100Export
+                      processedData={processedData || []}
+                      songsByYear={songsByYear || {}}
+                      topArtists={displayedArtists || []}
+                      topAlbums={displayedAlbums || []}
+                      formatDuration={formatDuration}
+                      colorMode={colorMode}
+                    />
+                  </div>
                 </div>
               )}
 

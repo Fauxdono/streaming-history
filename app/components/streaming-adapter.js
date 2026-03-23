@@ -2658,6 +2658,11 @@ export const streamingProcessor = {
         ).length;
         if (unknownAlbumCount > 0) {
           console.log(`Enriching album data for ${unknownAlbumCount} entries with missing albums...`);
+          // Fire initial progress and yield so the UI renders the bar before enrichment starts
+          if (onEnrichmentProgress) {
+            onEnrichmentProgress(0, unknownAlbumCount);
+            await new Promise(r => setTimeout(r, 50));
+          }
           enrichResult = await enrichAlbums(allProcessedData, (done, total) => {
             if (onEnrichmentProgress) onEnrichmentProgress(done, total);
             if (done % 50 === 0 || done === total) {

@@ -152,7 +152,11 @@ export async function enrichAlbums(entries, onProgress) {
       }
       cached++;
       done++;
-      if (onProgress) onProgress(done, total);
+      if (onProgress) {
+        onProgress(done, total);
+        // Yield every 5 cached items so the browser can repaint the progress bar
+        if (done % 5 === 0) await new Promise(r => setTimeout(r, 16));
+      }
       continue;
     }
 
