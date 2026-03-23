@@ -366,7 +366,7 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
                     isColorful ? 'bg-violet-50 dark:bg-violet-900/30' : isDarkMode ? 'bg-black' : 'bg-white'
                   } ${entry.skipped ? 'opacity-40' : ''} ${isUntagged ? 'opacity-50' : ''}`}>
                     <div className="min-w-0 flex-1">
-                      <span className="font-medium block truncate">
+                      <span className={`font-medium block truncate ${isColorful ? 'text-violet-800 dark:text-violet-200' : ''}`}>
                         {entry.master_metadata_track_name}
                         {isUntagged && <span className={`ml-1.5 text-[10px] font-normal px-1 py-0.5 rounded ${isDarkMode ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>untagged</span>}
                       </span>
