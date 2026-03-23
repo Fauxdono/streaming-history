@@ -2197,6 +2197,10 @@ async function calculatePlayStats(entries, minPlayDuration = 30000) {
       if (playTime < minPlayDuration) shortPlays++;
       continue;
     }
+    // Skip untagged iPod files (filenames like KRPL.m4a with no real metadata)
+    if (entry.master_metadata_album_artist_name === '<Untagged>' || /\.\w{2,4}$/.test(entry.master_metadata_track_name)) {
+      continue;
+    }
 
     processedSongs++;
     totalListeningTime += playTime;

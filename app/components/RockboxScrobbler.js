@@ -40,7 +40,12 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
     if (ts) setLastSync(new Date(parseInt(ts)));
   }, []);
 
-  const totalStored = Object.values(scrobblesByYear).reduce((sum, arr) => sum + arr.length, 0);
+  const allScrobbles = Object.values(scrobblesByYear).flat();
+  const totalStored = allScrobbles.length;
+  const untaggedCount = allScrobbles.filter(e =>
+    e.master_metadata_album_artist_name === '<Untagged>' ||
+    /\.\w{2,4}$/.test(e.master_metadata_track_name || '')
+  ).length;
   const years = Object.keys(scrobblesByYear).sort((a, b) => b - a);
 
   const mergeEntries = useCallback((entries) => {
@@ -319,6 +324,19 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
             </div>
           </div>
 
+          {/* Untagged warning */}
+          {untaggedCount > 0 && (
+            <div className={`mb-3 px-3 py-2 rounded text-xs flex items-start gap-2 ${
+              isDarkMode ? 'bg-yellow-900/30 text-yellow-300 border border-yellow-800' : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+            }`}>
+              <span className="shrink-0">⚠️</span>
+              <span>
+                <strong>{untaggedCount}</strong> scrobble{untaggedCount !== 1 ? 's' : ''} with missing metadata (filenames like KRPL.m4a instead of track names).
+                These files need ID3 tags on the iPod — use Mp3tag or MusicBrainz Picard to fix them.
+              </span>
+            </div>
+          )}
+
           {/* Year rows */}
           <div className="space-y-1 mb-4">
             {years.map(year => (
@@ -342,12 +360,16 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
               .slice(0, 100)
               .map((entry, i) => {
                 const d = new Date(entry.ts);
+                const isUntagged = entry.master_metadata_album_artist_name === '<Untagged>' || /\.\w{2,4}$/.test(entry.master_metadata_track_name || '');
                 return (
                   <div key={i} className={`flex items-center justify-between gap-3 px-3 py-1.5 rounded text-xs ${
                     isColorful ? 'bg-teal-50 dark:bg-teal-900/30' : isDarkMode ? 'bg-black' : 'bg-white'
-                  } ${entry.skipped ? 'opacity-40' : ''}`}>
+                  } ${entry.skipped ? 'opacity-40' : ''} ${isUntagged ? 'opacity-50' : ''}`}>
                     <div className="min-w-0 flex-1">
-                      <span className="font-medium block truncate">{entry.master_metadata_track_name}</span>
+                      <span className="font-medium block truncate">
+                        {entry.master_metadata_track_name}
+                        {isUntagged && <span className={`ml-1.5 text-[10px] font-normal px-1 py-0.5 rounded ${isDarkMode ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>untagged</span>}
+                      </span>
                       <span className={`block truncate ${textLight}`}>
                         {entry.master_metadata_album_artist_name}
                         {entry.master_metadata_album_album_name && entry.master_metadata_album_album_name !== 'Unknown Album'
