@@ -298,13 +298,17 @@ const SpotifyAnalyzer = ({
       const color = (isDarkMode ? dark : light)[activeTab] || '';
       // Always update theme-color so Safari tints its tab bar
       if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
-      // Apply bg color on html/body in colorful mode (mobile safe areas + Safari tab bar sampling)
-      if (colorMode === 'colorful') {
-        document.documentElement.style.backgroundColor = color;
-        document.body.style.backgroundColor = color;
+      // Inject a <style> tag to override html/body background with !important
+      let styleEl = document.getElementById('tab-tint-style');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'tab-tint-style';
+        document.head.appendChild(styleEl);
+      }
+      if (colorMode === 'colorful' && color) {
+        styleEl.textContent = `html, body { background-color: ${color} !important; }`;
       } else {
-        document.documentElement.style.backgroundColor = '';
-        document.body.style.backgroundColor = '';
+        styleEl.textContent = '';
       }
     };
 
@@ -316,8 +320,8 @@ const SpotifyAnalyzer = ({
 
     return () => {
       window.removeEventListener('orientationchange', handleOrientationChange);
-      document.documentElement.style.backgroundColor = '';
-      document.body.style.backgroundColor = '';
+      const styleEl = document.getElementById('tab-tint-style');
+      if (styleEl) styleEl.textContent = '';
     };
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);
