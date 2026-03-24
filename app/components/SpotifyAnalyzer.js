@@ -296,8 +296,8 @@ const SpotifyAnalyzer = ({
 
     const applyColor = () => {
       const meta = document.querySelector('meta[name="theme-color"]');
-      const color = (isDarkMode ? dark : light)[activeTab] || '';
-      // Always update theme-color so Safari tints its tab bar
+      const color = colorMode === 'colorful' ? ((isDarkMode ? dark : light)[activeTab] || '') : '';
+      // Update theme-color meta for Safari tab bar
       if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
       // Inject a <style> tag to override html/body background with !important
       let styleEl = document.getElementById('tab-tint-style');
@@ -306,7 +306,7 @@ const SpotifyAnalyzer = ({
         styleEl.id = 'tab-tint-style';
         document.head.appendChild(styleEl);
       }
-      if (colorMode === 'colorful' && color) {
+      if (color) {
         styleEl.textContent = `html, body { background-color: ${color} !important; }`;
       } else {
         styleEl.textContent = '';
