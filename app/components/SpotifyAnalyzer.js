@@ -295,16 +295,16 @@ const SpotifyAnalyzer = ({
 
     const applyColor = () => {
       const meta = document.querySelector('meta[name="theme-color"]');
-      const color = colorMode === 'colorful' ? (isDarkMode ? dark : light)[activeTab] : '';
-      // Set theme-color for Safari tab bar tinting
+      const color = (isDarkMode ? dark : light)[activeTab] || '';
+      // Always update theme-color so Safari tints its tab bar
       if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
-      // Set html+body background so Safari samples the color (safe areas + tab bar)
-      if (color) {
-        document.documentElement.style.setProperty('background', color, 'important');
-        document.body.style.setProperty('background', color, 'important');
+      // Apply bg color on html/body in colorful mode (mobile safe areas + Safari tab bar sampling)
+      if (colorMode === 'colorful') {
+        document.documentElement.style.backgroundColor = color;
+        document.body.style.backgroundColor = color;
       } else {
-        document.documentElement.style.removeProperty('background');
-        document.body.style.removeProperty('background');
+        document.documentElement.style.backgroundColor = '';
+        document.body.style.backgroundColor = '';
       }
     };
 
@@ -316,8 +316,8 @@ const SpotifyAnalyzer = ({
 
     return () => {
       window.removeEventListener('orientationchange', handleOrientationChange);
-      document.documentElement.style.removeProperty('background');
-      document.body.style.removeProperty('background');
+      document.documentElement.style.backgroundColor = '';
+      document.body.style.backgroundColor = '';
     };
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);

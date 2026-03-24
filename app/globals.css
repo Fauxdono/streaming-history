@@ -34,7 +34,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background: var(--bg);
+  background-color: var(--bg);
 }
 
 /* Prevent iOS auto-zoom on input focus (requires >= 16px font-size) */
@@ -50,7 +50,7 @@ html {
 
 body {
   color: var(--fg);
-  background: var(--bg);
+  background-color: var(--bg);
   margin: 0;
   padding: 0;
 }
