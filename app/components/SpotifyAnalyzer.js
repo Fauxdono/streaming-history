@@ -266,7 +266,7 @@ const SpotifyAnalyzer = ({
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [artistsSortPress, setArtistsSortPress] = useState(0);
   const [artistsViewPress, setArtistsViewPress] = useState(0);
-  const [colorMode, setColorMode] = useState('minimal'); // 'minimal' or 'colorful'
+  const [colorMode, setColorMode] = useState('colorful'); // 'minimal' or 'colorful'
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
   const [expandedAlbumListRows, setExpandedAlbumListRows] = useState({});
@@ -290,7 +290,7 @@ const SpotifyAnalyzer = ({
   // Sync html+body background and theme-color meta so iOS safe areas and status bar
   // text adapt to the active tab color. Light = -200 shades; dark = -900 shades.
   useEffect(() => {
-    const light = { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe' };
+    const light = { upload: '#c4b5fd', stats: '#a5b4fc', artists: '#93c5fd', albums: '#67e8f9', custom: '#6ee7b7', tracks: '#fca5a5', calendar: '#86efac', patterns: '#fde047', behavior: '#fcd34d', discovery: '#fdba74', podcasts: '#fca5a5', playlists: '#fda4af', updates: '#e879f9' };
     const dark  = { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75' };
 
     const applyColor = () => {
