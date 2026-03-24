@@ -287,37 +287,13 @@ const SpotifyAnalyzer = ({
     }
   }, [activeTab]);
 
-  // Sync html+body background and theme-color meta so Safari tab bar and
-  // iOS safe areas match the active tab color.
+  // Sync theme-color meta for Safari tab bar tinting + iOS safe areas
   useEffect(() => {
-    // Tailwind -200 (light) / -900 (dark) hex values per tab
     const light = { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe' };
     const dark  = { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75' };
-
     const color = colorMode === 'colorful' ? ((isDarkMode ? dark : light)[activeTab] || '') : '';
-    console.log('[tint]', { activeTab, colorMode, isDarkMode, color });
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
-
-    let styleEl = document.getElementById('tab-tint-style');
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = 'tab-tint-style';
-      document.head.appendChild(styleEl);
-    }
-    styleEl.textContent = color ? `html, body { background-color: ${color} !important; }` : '';
-
-    const handleOrientationChange = () => {
-      if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
-      styleEl.textContent = color ? `html, body { background-color: ${color} !important; }` : '';
-    };
-    window.addEventListener('orientationchange', handleOrientationChange);
-
-    return () => {
-      window.removeEventListener('orientationchange', handleOrientationChange);
-      const s = document.getElementById('tab-tint-style');
-      if (s) s.textContent = '';
-    };
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [enableEnrichment, setEnableEnrichment] = useState(() => {
@@ -4146,7 +4122,7 @@ const SpotifyAnalyzer = ({
   };
 
   return (
-    <div className={`w-full h-full min-h-screen ${getPageBackground()}`}>
+    <div className={`w-full h-full min-h-screen ${getPageBackground()}`} data-bg-debug={getPageBackground()}>
       <FixedSettingsBar
         togglePosition={togglePosition}
         toggleCollapsed={toggleCollapsed}
