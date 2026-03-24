@@ -295,6 +295,7 @@ const SpotifyAnalyzer = ({
     const dark  = { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75' };
 
     const color = colorMode === 'colorful' ? ((isDarkMode ? dark : light)[activeTab] || '') : '';
+    console.log('[tint]', { activeTab, colorMode, isDarkMode, color });
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
 
