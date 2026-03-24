@@ -295,17 +295,11 @@ const SpotifyAnalyzer = ({
 
     const applyColor = () => {
       const meta = document.querySelector('meta[name="theme-color"]');
-      const color = (isDarkMode ? dark : light)[activeTab] || '';
-      // Update theme-color so Safari tints its tab bar (only in colorful mode)
-      if (meta) {
-        if (colorMode === 'colorful' && color) {
-          meta.setAttribute('content', color);
-        } else {
-          meta.setAttribute('content', isDarkMode ? '#000000' : '#ffffff');
-        }
-      }
-      // Apply bg color on html/body in colorful mode (Safari tab bar + mobile safe areas)
-      if (colorMode === 'colorful' && color) {
+      const color = colorMode === 'colorful' ? (isDarkMode ? dark : light)[activeTab] : '';
+      // Set theme-color for Safari tab bar tinting
+      if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
+      // Set html+body background so Safari samples the color (safe areas + tab bar)
+      if (color) {
         document.documentElement.style.setProperty('background', color, 'important');
         document.body.style.setProperty('background', color, 'important');
       } else {
