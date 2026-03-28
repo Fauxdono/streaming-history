@@ -13,7 +13,8 @@ export const STREAMING_TYPES = {
   DEEZER: 'deezer',
   SOUNDCLOUD: 'soundcloud',
   CAKE: 'cake',
-  IPOD: 'ipod'
+  IPOD: 'ipod',
+  LASTFM: 'lastfm'
 };
 
 export const STREAMING_SERVICES = {
@@ -64,6 +65,12 @@ export const STREAMING_SERVICES = {
     downloadUrl: 'https://www.rockbox.org/',
     instructions: 'Connect your iPod and find the .scrobbler.log file in the root of your iPod drive. This file is created by Rockbox firmware.',
     acceptedFormats: '.log'
+  },
+  [STREAMING_TYPES.LASTFM]: {
+    name: 'Last.fm',
+    downloadUrl: 'https://www.last.fm/api/account/create',
+    instructions: 'Connect your Last.fm account to import your scrobble history directly via the API.',
+    acceptedFormats: '.json'
   }
 };
 
@@ -420,6 +427,14 @@ function detectFileType(filename, content) {
         return 'cake-export';
       }
       
+      // Last.fm format detection (array with artist, name, date fields)
+      if (Array.isArray(data) && data.length > 0) {
+        const sample = data[0];
+        if (sample.name && sample.artist && sample.date && sample.source === 'lastfm') {
+          return 'lastfm';
+        }
+      }
+
       // YouTube Music JSON (has different structure)
       if (Array.isArray(data) && data.length > 0) {
         const sample = data[0];
@@ -1006,6 +1021,79 @@ function processRockboxScrobblerLog(content) {
 
   console.log(`Transformed ${transformedData.length} iPod/Rockbox scrobbler entries`);
   return transformedData;
+}
+
+// Cross-source deduplication: removes duplicate plays that appear in multiple services.
+// E.g. a Spotify play that was also scrobbled to Last.fm.
+// Keeps the entry with more metadata (prefers sources with real ms_played over defaults).
+function deduplicateCrossSources(entries) {
+  // Sort by timestamp so we can efficiently compare nearby entries
+  const sorted = entries.slice().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+
+  // Source priority: prefer entries with real play duration data
+  const SOURCE_PRIORITY = { spotify: 5, apple_music: 4, tidal: 3, deezer: 3, youtube_music: 3, soundcloud: 2, ipod: 2, cake: 1, lastfm: 0 };
+
+  const removed = new Set();
+  const WINDOW_MS = 3 * 60 * 1000; // 3 minute window
+
+  for (let i = 0; i < sorted.length; i++) {
+    if (removed.has(i)) continue;
+    const a = sorted[i];
+    const aTime = new Date(a.ts).getTime();
+    const aTrack = (a.master_metadata_track_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const aArtist = (a.master_metadata_album_artist_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    if (!aTrack || !aArtist) continue;
+
+    // Look ahead within the time window
+    for (let j = i + 1; j < sorted.length; j++) {
+      if (removed.has(j)) continue;
+      const b = sorted[j];
+      const bTime = new Date(b.ts).getTime();
+
+      // Past the window — stop looking
+      if (bTime - aTime > WINDOW_MS) break;
+
+      // Same source — not a cross-source duplicate
+      if (a.source === b.source) continue;
+
+      const bTrack = (b.master_metadata_track_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const bArtist = (b.master_metadata_album_artist_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      if (aTrack === bTrack && aArtist === bArtist) {
+        // Keep the one with higher priority (more data)
+        const aPri = SOURCE_PRIORITY[a.source] ?? 1;
+        const bPri = SOURCE_PRIORITY[b.source] ?? 1;
+        if (aPri >= bPri) {
+          removed.add(j);
+        } else {
+          removed.add(i);
+          break; // a is removed, stop comparing it
+        }
+      }
+    }
+  }
+
+  return sorted.filter((_, i) => !removed.has(i));
+}
+
+function processLastfmJSON(content) {
+  const data = typeof content === 'string' ? JSON.parse(content) : content;
+  if (!Array.isArray(data)) return [];
+
+  return data.filter(t => t.name && t.artist).map(track => ({
+    ts: track.date || new Date().toISOString(),
+    ms_played: track.duration_ms || 210000,
+    master_metadata_track_name: String(track.name),
+    master_metadata_album_artist_name: String(track.artist),
+    master_metadata_album_album_name: String(track.album || 'Unknown Album'),
+    reason_start: 'trackdone',
+    reason_end: 'trackdone',
+    shuffle: false,
+    skipped: false,
+    platform: 'Last.fm',
+    source: 'lastfm'
+  }));
 }
 
 async function processCakeExcelFile(file) {
@@ -2613,6 +2701,9 @@ export const streamingProcessor = {
                 case 'ipod':
                   return processRockboxScrobblerLog(content);
 
+                case 'lastfm':
+                  return processLastfmJSON(content);
+
                 case 'youtube_music':
                   // TODO: Add YouTube Music processing
                   console.log(`YouTube Music format detected but not yet supported: ${file.name}`);
@@ -2645,7 +2736,20 @@ export const streamingProcessor = {
         await new Promise(resolve => setTimeout(resolve, 10));
       }
       // Flatten all batch arrays into a single array
-      const allProcessedData = allProcessedArrays.flat();
+      let allProcessedData = allProcessedArrays.flat();
+
+      // Cross-source deduplication: when the same play appears in multiple services
+      // (e.g. Spotify + Last.fm scrobbler), keep the entry with more data.
+      // Two entries are duplicates if they have the same track+artist within 3 minutes.
+      const sources = new Set(allProcessedData.map(e => e.source));
+      if (sources.size > 1) {
+        const before = allProcessedData.length;
+        allProcessedData = deduplicateCrossSources(allProcessedData);
+        const removed = before - allProcessedData.length;
+        if (removed > 0) {
+          console.log(`Cross-source dedup: removed ${removed} duplicate entries across ${sources.size} sources`);
+        }
+      }
 
       // Process ISRC codes from Deezer data
       allProcessedData.forEach(item => {
@@ -2808,5 +2912,6 @@ export {
   calculateOverallDailyStreak,
   calculateTopSongDailyStreak,
   calculateTopAlbumDailyStreak,
-  processRockboxScrobblerLog
+  processRockboxScrobblerLog,
+  processLastfmJSON
 };

@@ -26,6 +26,7 @@ import { useTheme } from './themeprovider.js';
 // import UnifiedAuth from './unified-auth.js'; // Temporarily disabled due to React error
 import GoogleDriveSync from './GoogleDriveSync.js';
 import RockboxScrobbler from './RockboxScrobbler.js';
+import LastfmConnect from './LastfmConnect.js';
 import FixedSettingsBar from './FixedSettingsBar.js';
 import SettingsPanel from './SettingsPanel.js';
 
@@ -284,11 +285,25 @@ const SpotifyAnalyzer = ({
         const count = Object.values(map).reduce((s, a) => s + a.length, 0);
         setStoredScrobbleCount(count);
       } catch { setStoredScrobbleCount(0); }
+      try {
+        const yearsRaw = localStorage.getItem('lastfm_years');
+        const years = yearsRaw ? JSON.parse(yearsRaw) : [];
+        let count = 0;
+        for (const y of years) {
+          const raw = localStorage.getItem('lastfm_y_' + y);
+          if (raw) count += JSON.parse(raw).length;
+        }
+        setStoredLastfmCount(count);
+      } catch { setStoredLastfmCount(0); }
     }
   }, [activeTab]);
 
   // Sync theme-color meta for Safari tab bar tinting + iOS safe areas
   useEffect(() => {
+    // Clean up any stale style tag from previous versions
+    const stale = document.getElementById('tab-tint-style');
+    if (stale) stale.remove();
+
     const light = { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe' };
     const dark  = { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75' };
     const color = colorMode === 'colorful' ? ((isDarkMode ? dark : light)[activeTab] || '') : '';
@@ -317,6 +332,8 @@ const SpotifyAnalyzer = ({
   const [uploadInnerTab, setUploadInnerTab] = useState('upload');
   const [includeScrobblerData, setIncludeScrobblerData] = useState(false);
   const [storedScrobbleCount, setStoredScrobbleCount] = useState(0);
+  const [includeLastfmData, setIncludeLastfmData] = useState(false);
+  const [storedLastfmCount, setStoredLastfmCount] = useState(0);
   const [uploadedFileList, setUploadedFileList] = useState(null);
   const [selectedArtistYear, setSelectedArtistYear] = useState('all');
   
@@ -1309,9 +1326,10 @@ const SpotifyAnalyzer = ({
   const handleProcessFiles = useCallback(() => {
     const hasUploadedFiles = uploadedFileList && uploadedFileList.length > 0;
     const hasScrobblerData = includeScrobblerData && storedScrobbleCount > 0;
+    const hasLastfmData = includeLastfmData && storedLastfmCount > 0;
 
-    if (!hasUploadedFiles && !hasScrobblerData) {
-      setError("Please upload files or include Rockbox scrobbler data first");
+    if (!hasUploadedFiles && !hasScrobblerData && !hasLastfmData) {
+      setError("Please upload files or include scrobbler data first");
       return;
     }
 
@@ -1342,6 +1360,29 @@ const SpotifyAnalyzer = ({
           filesToProcess = [new File([blob], '.scrobbler.log', { type: 'text/plain' }), ...filesToProcess];
         }
 
+        if (hasLastfmData) {
+          const yearsRaw = localStorage.getItem('lastfm_years');
+          const years = yearsRaw ? JSON.parse(yearsRaw) : [];
+          const entries = [];
+          for (const y of years) {
+            const raw = localStorage.getItem('lastfm_y_' + y);
+            if (!raw) continue;
+            const arr = JSON.parse(raw);
+            // Handle compact [date, artist, name, album] and legacy object formats
+            for (const item of arr) {
+              if (Array.isArray(item)) {
+                entries.push({ date: item[0], artist: item[1], name: item[2], album: item[3] || '', source: 'lastfm' });
+              } else {
+                entries.push({ ...item, source: 'lastfm' });
+              }
+            }
+          }
+          entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+          const lastfmJson = JSON.stringify(entries);
+          const blob = new Blob([lastfmJson], { type: 'application/json' });
+          filesToProcess = [new File([blob], 'lastfm-scrobbles.json', { type: 'application/json' }), ...filesToProcess];
+        }
+
         const dt = new DataTransfer();
         filesToProcess.forEach(f => dt.items.add(f));
         await processFiles(dt.files);
@@ -1353,7 +1394,7 @@ const SpotifyAnalyzer = ({
         setIsProcessing(false);
       }
     }, 100);
-  }, [uploadedFileList, processFiles, includeScrobblerData, storedScrobbleCount]);
+  }, [uploadedFileList, processFiles, includeScrobblerData, storedScrobbleCount, includeLastfmData, storedLastfmCount]);
 
 
 
@@ -2235,11 +2276,12 @@ const SpotifyAnalyzer = ({
             {/* Title + inner tabs + web app row */}
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <h3 className={`text-xl hidden sm:block ${uploadText}`}>
-                {uploadInnerTab === 'upload' ? 'Upload Files' : 'Scrobbler'}
+                {uploadInnerTab === 'upload' ? 'Upload Files' : uploadInnerTab === 'lastfm' ? 'Last.fm' : 'Scrobbler'}
               </h3>
               <div className="flex gap-1">
                 <button onClick={() => setUploadInnerTab('upload')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'upload' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Upload</button>
                 <button onClick={() => setUploadInnerTab('scrobbler')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'scrobbler' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Scrobbler</button>
+                <button onClick={() => setUploadInnerTab('lastfm')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'lastfm' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Last.fm</button>
               </div>
               <div className={`ml-auto ${
                 colorMode === 'colorful'
@@ -2270,6 +2312,23 @@ const SpotifyAnalyzer = ({
                   const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
                   const blob = new Blob([header + content], { type: 'text/plain' });
                   const file = new File([blob], '.scrobbler.log', { type: 'text/plain' });
+                  const dt = new DataTransfer();
+                  dt.items.add(file);
+                  processFiles(dt.files);
+                }}
+              />
+            ) : uploadInnerTab === 'lastfm' ? (
+              <LastfmConnect
+                isDarkMode={isDarkMode}
+                colorMode={colorMode}
+                onScrobblesLoaded={(entries) => {
+                  // Convert Last.fm scrobbles to JSON file for processing
+                  const lastfmData = entries.map(e => ({
+                    ...e,
+                    source: 'lastfm'
+                  }));
+                  const blob = new Blob([JSON.stringify(lastfmData)], { type: 'application/json' });
+                  const file = new File([blob], 'lastfm-scrobbles.json', { type: 'application/json' });
                   const dt = new DataTransfer();
                   dt.items.add(file);
                   processFiles(dt.files);
@@ -2377,7 +2436,7 @@ const SpotifyAnalyzer = ({
                 Upload your streaming history files:
               </p>
               <p className={`mb-3 text-xs sm:text-sm ${uploadTextLight}`}>
-                Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), iPod/Rockbox (.log), Cake (.xlsx/.json)
+                Supported: Spotify (.json), Apple Music (.csv), YouTube Music (.json), Deezer (.xlsx), Tidal (.csv), SoundCloud (.csv), iPod/Rockbox (.log), Last.fm (.json), Cake (.xlsx/.json)
               </p>
               <input
                 type="file"
@@ -2488,6 +2547,18 @@ const SpotifyAnalyzer = ({
                   </label>
                 )}
 
+                {storedLastfmCount > 0 && (
+                  <label className={`mt-3 flex items-center gap-2 cursor-pointer select-none text-sm ${uploadTextLight}`}>
+                    <input
+                      type="checkbox"
+                      checked={includeLastfmData}
+                      onChange={e => setIncludeLastfmData(e.target.checked)}
+                      className="w-4 h-4 accent-violet-600"
+                    />
+                    Include Last.fm scrobbles ({storedLastfmCount.toLocaleString()} plays)
+                  </label>
+                )}
+
                 <label className={`mt-3 flex items-center gap-2 cursor-pointer select-none text-sm ${uploadTextLight}`}>
                   <input
                     type="checkbox"
@@ -2516,22 +2587,35 @@ const SpotifyAnalyzer = ({
             )}
 
             {/* Scrobbler-only calculate — shown when no files uploaded but scrobbles exist */}
-            {uploadedFiles.length === 0 && storedScrobbleCount > 0 && (
+            {uploadedFiles.length === 0 && (storedScrobbleCount > 0 || storedLastfmCount > 0) && (
               <div className={`mt-4 p-3 rounded-lg border ${
                 colorMode === 'colorful'
                   ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
                   : isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black'
               }`}>
-                <label className={`flex items-center gap-2 cursor-pointer select-none text-sm mb-3 ${uploadTextLight}`}>
-                  <input
-                    type="checkbox"
-                    checked={includeScrobblerData}
-                    onChange={e => setIncludeScrobblerData(e.target.checked)}
-                    className="w-4 h-4 accent-violet-600"
-                  />
-                  Include Rockbox scrobbles ({storedScrobbleCount.toLocaleString()} plays)
-                </label>
-                {includeScrobblerData && (
+                {storedScrobbleCount > 0 && (
+                  <label className={`flex items-center gap-2 cursor-pointer select-none text-sm mb-3 ${uploadTextLight}`}>
+                    <input
+                      type="checkbox"
+                      checked={includeScrobblerData}
+                      onChange={e => setIncludeScrobblerData(e.target.checked)}
+                      className="w-4 h-4 accent-violet-600"
+                    />
+                    Include Rockbox scrobbles ({storedScrobbleCount.toLocaleString()} plays)
+                  </label>
+                )}
+                {storedLastfmCount > 0 && (
+                  <label className={`flex items-center gap-2 cursor-pointer select-none text-sm mb-3 ${uploadTextLight}`}>
+                    <input
+                      type="checkbox"
+                      checked={includeLastfmData}
+                      onChange={e => setIncludeLastfmData(e.target.checked)}
+                      className="w-4 h-4 accent-violet-600"
+                    />
+                    Include Last.fm scrobbles ({storedLastfmCount.toLocaleString()} plays)
+                  </label>
+                )}
+                {(includeScrobblerData || includeLastfmData) && (
                   <button
                     onClick={handleProcessFiles}
                     disabled={isProcessing}
