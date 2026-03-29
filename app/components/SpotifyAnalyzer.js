@@ -2763,6 +2763,13 @@ const SpotifyAnalyzer = ({
                             <span>{formatDuration(time)}</span>
                           </li>
                         ))}
+                        {filteredStats.serviceListeningTime.lastfm && Object.keys(filteredStats.serviceListeningTime).length > 1 && (
+                          <li className={`text-xs mt-1 opacity-50 ${
+                            colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : ''
+                          }`}>
+                            last.fm time only counts plays not found in other services (duplicates removed)
+                          </li>
+                        )}
                       </ul>
                     </div>
                   )}

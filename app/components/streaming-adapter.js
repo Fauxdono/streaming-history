@@ -1027,19 +1027,31 @@ function processRockboxScrobblerLog(content) {
 // E.g. a Spotify play that was also scrobbled to Last.fm.
 // Keeps the entry with more metadata (prefers sources with real ms_played over defaults).
 function deduplicateCrossSources(entries) {
-  // Sort by timestamp so we can efficiently compare nearby entries
-  const sorted = entries.slice().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  // Sort by estimated start time so we can efficiently compare nearby entries.
+  // Last.fm records start time, Spotify records end time — compare start times
+  // to catch duplicates regardless of song length.
+  const getStartTime = (e) => {
+    const t = new Date(e.ts).getTime();
+    // Spotify/Tidal/etc ts is end-of-play: estimate start by subtracting duration
+    if (e.source !== 'lastfm' && e.ms_played && e.ms_played > 0) {
+      return t - e.ms_played;
+    }
+    // Last.fm ts is already the start time
+    return t;
+  };
+
+  const sorted = entries.slice().sort((a, b) => getStartTime(a) - getStartTime(b));
 
   // Source priority: prefer entries with real play duration data
   const SOURCE_PRIORITY = { spotify: 5, apple_music: 4, tidal: 3, deezer: 3, youtube_music: 3, soundcloud: 2, ipod: 2, cake: 1, lastfm: 0 };
 
   const removed = new Set();
-  const WINDOW_MS = 3 * 60 * 1000; // 3 minute window
+  const WINDOW_MS = 3 * 60 * 1000; // 3 minute window on start times
 
   for (let i = 0; i < sorted.length; i++) {
     if (removed.has(i)) continue;
     const a = sorted[i];
-    const aTime = new Date(a.ts).getTime();
+    const aStart = getStartTime(a);
     const aTrack = (a.master_metadata_track_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const aArtist = (a.master_metadata_album_artist_name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -1049,10 +1061,10 @@ function deduplicateCrossSources(entries) {
     for (let j = i + 1; j < sorted.length; j++) {
       if (removed.has(j)) continue;
       const b = sorted[j];
-      const bTime = new Date(b.ts).getTime();
+      const bStart = getStartTime(b);
 
       // Past the window — stop looking
-      if (bTime - aTime > WINDOW_MS) break;
+      if (bStart - aStart > WINDOW_MS) break;
 
       // Same source — not a cross-source duplicate
       if (a.source === b.source) continue;
