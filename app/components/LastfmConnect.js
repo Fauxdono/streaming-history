@@ -1,81 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import * as db from './lastfm-db.js';
 
-const STORAGE_PREFIX = 'lastfm_y_'; // per-year keys: lastfm_y_2024, lastfm_y_2023, etc.
-const INDEX_KEY = 'lastfm_years';   // stores list of years that have data
 const USERNAME_KEY = 'lastfm_username';
 const LAST_SYNC_KEY = 'lastfm_last_sync';
 const SESSION_KEY = 'lastfm_session_key';
 const AUTH_TOKEN_KEY = 'lastfm_auth_token';
-
-// Migrate old single-key storage to per-year keys
-function migrateOldStorage() {
-  try {
-    const old = localStorage.getItem('lastfm_scrobbles');
-    if (!old) return;
-    const map = JSON.parse(old);
-    const years = [];
-    for (const [year, entries] of Object.entries(map)) {
-      // Compact entries during migration
-      const compact = entries.map(e => [e.date, e.artist, e.name, e.album || '']);
-      localStorage.setItem(STORAGE_PREFIX + year, JSON.stringify(compact));
-      years.push(year);
-    }
-    localStorage.setItem(INDEX_KEY, JSON.stringify(years));
-    localStorage.removeItem('lastfm_scrobbles');
-  } catch { /* ignore migration errors */ }
-}
-
-// Compact format: [date, artist, name, album] — ~60% smaller than full objects
-function loadYear(year) {
-  try {
-    const raw = localStorage.getItem(STORAGE_PREFIX + year);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    // Handle both compact array format and legacy object format
-    if (arr.length > 0 && Array.isArray(arr[0])) {
-      return arr.map(([date, artist, name, album]) => ({ date, artist, name, album: album || '' }));
-    }
-    return arr; // legacy format
-  } catch { return []; }
-}
-
-function loadAllScrobbles() {
-  const years = getStoredYears();
-  const map = {};
-  for (const y of years) {
-    const entries = loadYear(y);
-    if (entries.length > 0) map[y] = entries;
-  }
-  return map;
-}
-
-function getStoredYears() {
-  try {
-    const raw = localStorage.getItem(INDEX_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
-function saveYear(year, entries) {
-  // Save in compact format
-  const compact = entries.map(e => [e.date, e.artist, e.name, e.album || '']);
-  try {
-    localStorage.setItem(STORAGE_PREFIX + year, JSON.stringify(compact));
-  } catch (err) {
-    if (err.name === 'QuotaExceededError' || err.code === 22) {
-      throw new Error('QUOTA');
-    }
-    throw err;
-  }
-  // Update year index
-  const years = getStoredYears();
-  if (!years.includes(year)) {
-    years.push(year);
-    localStorage.setItem(INDEX_KEY, JSON.stringify(years));
-  }
-}
 
 function scrobbleKey(entry) {
   return `${entry.date}|${entry.artist}|${entry.name}`;
@@ -101,35 +32,36 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
   const [scrobbling, setScrobbling] = useState(false);
   const [scrobbleProgress, setScrobbleProgress] = useState(null);
   const [rockboxCount, setRockboxCount] = useState(0);
+  const [dbReady, setDbReady] = useState(false);
   const abortRef = useRef(null);
   const scrobbleAbortRef = useRef(false);
 
-  // Load saved state on mount + check for auth callback
+  // Load saved state on mount
   useEffect(() => {
-    migrateOldStorage();
-    const stored = loadAllScrobbles();
-    setScrobblesByYear(stored);
-    const user = localStorage.getItem(USERNAME_KEY);
-    if (user) {
-      setSavedUsername(user);
-      setUsername(user);
-    }
-    const ts = localStorage.getItem(LAST_SYNC_KEY);
-    if (ts) setLastSync(new Date(parseInt(ts)));
-    const sk = localStorage.getItem(SESSION_KEY);
-    if (sk) setSessionKey(sk);
+    (async () => {
+      // Migrate any old localStorage data to IndexedDB
+      await db.migrateFromLocalStorage();
+      const stored = await db.loadAllScrobbles();
+      setScrobblesByYear(stored);
+      setDbReady(true);
 
-    // Count rockbox scrobbles
-    const rbMap = loadRockboxScrobbles();
-    const count = Object.values(rbMap).reduce((s, a) => s + a.length, 0);
-    setRockboxCount(count);
+      const user = localStorage.getItem(USERNAME_KEY);
+      if (user) { setSavedUsername(user); setUsername(user); }
+      const ts = localStorage.getItem(LAST_SYNC_KEY);
+      if (ts) setLastSync(new Date(parseInt(ts)));
+      const sk = localStorage.getItem(SESSION_KEY);
+      if (sk) setSessionKey(sk);
 
-    // Check if returning from Last.fm auth
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (token) {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      completeAuth(token);
-    }
+      const rbMap = loadRockboxScrobbles();
+      setRockboxCount(Object.values(rbMap).reduce((s, a) => s + a.length, 0));
+
+      // Check if returning from Last.fm auth
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (token) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        completeAuth(token);
+      }
+    })();
   }, []);
 
   // Complete auth after user returns from Last.fm
@@ -141,18 +73,14 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
         body: JSON.stringify({ method: 'auth.getsession', token }),
       });
       const data = await res.json();
-      if (data.error) {
-        setStatus({ type: 'error', message: 'Auth failed: ' + data.error });
-        return;
-      }
+      if (data.error) { setStatus({ type: 'error', message: 'Auth failed: ' + data.error }); return; }
       const sk = data.session?.key;
       const name = data.session?.name;
       if (sk) {
         localStorage.setItem(SESSION_KEY, sk);
         setSessionKey(sk);
         if (name && !savedUsername) {
-          setSavedUsername(name);
-          setUsername(name);
+          setSavedUsername(name); setUsername(name);
           localStorage.setItem(USERNAME_KEY, name);
         }
         setStatus({ type: 'success', message: `Authenticated as ${name || savedUsername}. You can now scrobble to Last.fm.` });
@@ -166,14 +94,12 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
   const totalStored = allScrobbles.length;
   const years = Object.keys(scrobblesByYear).sort((a, b) => b - a);
 
-  // Merge new scrobbles with existing, deduplicating. Saves per-year.
-  // Returns { newCount, quotaHit }
-  const mergeEntries = useCallback((entries) => {
-    const existing = loadAllScrobbles();
+  // Merge new scrobbles with existing, deduplicating. Saves per-year to IndexedDB.
+  const mergeEntries = useCallback(async (entries) => {
+    const existing = await db.loadAllScrobbles();
     const existingKeys = new Set(Object.values(existing).flat().map(scrobbleKey));
     let newCount = 0;
     const touchedYears = new Set();
-    let quotaHit = false;
 
     for (const entry of entries) {
       const key = scrobbleKey(entry);
@@ -186,34 +112,21 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
       newCount++;
     }
 
-    // Save each touched year separately
     for (const year of touchedYears) {
-      try {
-        saveYear(year, existing[year]);
-      } catch (err) {
-        if (err.message === 'QUOTA') {
-          quotaHit = true;
-          break;
-        }
-        throw err;
-      }
+      await db.saveYear(year, existing[year]);
     }
 
     localStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
     setScrobblesByYear({ ...existing });
     setLastSync(new Date());
-    return { newCount, quotaHit };
+    return { newCount };
   }, []);
 
-  // Fetch user info from Last.fm
   const fetchUserInfo = useCallback(async (user) => {
     try {
       const res = await fetch(`/api/lastfm?method=user.getinfo&user=${encodeURIComponent(user)}`);
       const data = await res.json();
-      if (data.error) {
-        setStatus({ type: 'error', message: data.error });
-        return null;
-      }
+      if (data.error) { setStatus({ type: 'error', message: data.error }); return null; }
       return data.user;
     } catch (err) {
       setStatus({ type: 'error', message: 'Failed to connect to Last.fm API: ' + err.message });
@@ -221,7 +134,6 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
     }
   }, []);
 
-  // Connect account — validate username and fetch info
   const handleConnect = useCallback(async () => {
     const trimmed = username.trim();
     if (!trimmed) return;
@@ -235,12 +147,10 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
         localStorage.setItem(USERNAME_KEY, trimmed);
         setStatus({ type: 'success', message: `Connected as ${info.name} (${parseInt(info.playcount).toLocaleString()} total scrobbles)` });
       }
-    } finally {
-      setFetching(false);
-    }
+    } finally { setFetching(false); }
   }, [username, fetchUserInfo]);
 
-  // Fetch all scrobble history, paginated — saves incrementally every 5 pages
+  // Fetch all scrobble history — saves incrementally to IndexedDB
   const fetchAllScrobbles = useCallback(async () => {
     const user = savedUsername;
     if (!user) return;
@@ -251,22 +161,16 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
 
     const controller = new AbortController();
     abortRef.current = controller;
-
     let totalFetched = 0;
     let totalNew = 0;
-    let quotaHit = false;
 
     try {
-      // First request to get total pages
       const firstRes = await fetch(
         `/api/lastfm?method=user.getrecenttracks&user=${encodeURIComponent(user)}&limit=200&page=1`,
         { signal: controller.signal }
       );
       const firstData = await firstRes.json();
-      if (firstData.error) {
-        setStatus({ type: 'error', message: firstData.error });
-        return;
-      }
+      if (firstData.error) { setStatus({ type: 'error', message: firstData.error }); return; }
 
       const recentTracks = firstData.recenttracks;
       const totalPages = parseInt(recentTracks['@attr']?.totalPages || '1');
@@ -275,15 +179,13 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
 
       let pendingTracks = [];
 
-      // Process first page
       const firstPageTracks = parseTracksPage(recentTracks.track);
       pendingTracks.push(...firstPageTracks);
       totalFetched += firstPageTracks.length;
       setProgress({ fetched: totalFetched, total: totalTracks });
 
-      // Fetch remaining pages sequentially, saving every 5 pages
       for (let page = 2; page <= totalPages; page++) {
-        if (controller.signal.aborted || quotaHit) break;
+        if (controller.signal.aborted) break;
 
         let retries = 0;
         let success = false;
@@ -293,11 +195,7 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
               `/api/lastfm?method=user.getrecenttracks&user=${encodeURIComponent(user)}&limit=200&page=${page}`,
               { signal: controller.signal }
             );
-            if (res.status === 429) {
-              retries++;
-              await new Promise(r => setTimeout(r, 2000 * retries));
-              continue;
-            }
+            if (res.status === 429) { retries++; await new Promise(r => setTimeout(r, 2000 * retries)); continue; }
             const data = await res.json();
             if (!data.error) {
               const tracks = parseTracksPage(data.recenttracks?.track || []);
@@ -314,33 +212,26 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
 
         setProgress({ fetched: totalFetched, total: totalTracks });
 
-        // Save incrementally every 5 pages to avoid losing progress
+        // Save incrementally every ~1000 entries
         if (pendingTracks.length >= 1000 || page === totalPages) {
-          const { newCount, quotaHit: qh } = mergeEntries(pendingTracks);
+          const { newCount } = await mergeEntries(pendingTracks);
           totalNew += newCount;
           pendingTracks = [];
-          if (qh) {
-            quotaHit = true;
-            break;
-          }
         }
 
         await new Promise(r => setTimeout(r, 350));
       }
 
       // Save any remaining
-      if (pendingTracks.length > 0 && !quotaHit) {
-        const { newCount, quotaHit: qh } = mergeEntries(pendingTracks);
+      if (pendingTracks.length > 0) {
+        const { newCount } = await mergeEntries(pendingTracks);
         totalNew += newCount;
-        if (qh) quotaHit = true;
       }
 
-      if (quotaHit) {
-        setStatus({ type: 'error', message: `Storage full — saved ${totalNew.toLocaleString()} of ${totalFetched.toLocaleString()} scrobbles. Clear some browser data to import more.` });
-      } else if (totalNew > 0) {
+      if (totalNew > 0) {
         setStatus({ type: 'success', message: `Imported ${totalNew.toLocaleString()} new scrobbles (${totalFetched.toLocaleString()} total fetched).` });
         if (onScrobblesLoaded) {
-          const all = Object.values(loadAllScrobbles()).flat();
+          const all = Object.values(await db.loadAllScrobbles()).flat();
           onScrobblesLoaded(all);
         }
       } else {
@@ -359,40 +250,29 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
     }
   }, [savedUsername, mergeEntries, onScrobblesLoaded]);
 
-  // Fetch only recent scrobbles (since last sync)
   const fetchRecent = useCallback(async () => {
     const user = savedUsername;
     if (!user) return;
-
     setFetching(true);
     setStatus(null);
-
     try {
       let allTracks = [];
       for (let page = 1; page <= 5; page++) {
         const res = await fetch(
           `/api/lastfm?method=user.getrecenttracks&user=${encodeURIComponent(user)}&limit=200&page=${page}`
         );
-        if (res.status === 429) {
-          await new Promise(r => setTimeout(r, 3000));
-          page--;
-          continue;
-        }
+        if (res.status === 429) { await new Promise(r => setTimeout(r, 3000)); page--; continue; }
         const data = await res.json();
         if (data.error) break;
-        const tracks = parseTracksPage(data.recenttracks?.track || []);
-        allTracks.push(...tracks);
+        allTracks.push(...parseTracksPage(data.recenttracks?.track || []));
         if (parseInt(data.recenttracks?.['@attr']?.totalPages || '1') <= page) break;
         await new Promise(r => setTimeout(r, 350));
       }
-
-      const { newCount, quotaHit } = mergeEntries(allTracks);
-      if (quotaHit) {
-        setStatus({ type: 'error', message: `Storage full — saved ${newCount.toLocaleString()} scrobbles. Clear some browser data to import more.` });
-      } else if (newCount > 0) {
+      const { newCount } = await mergeEntries(allTracks);
+      if (newCount > 0) {
         setStatus({ type: 'success', message: `Imported ${newCount.toLocaleString()} new scrobbles.` });
         if (onScrobblesLoaded) {
-          const all = Object.values(loadAllScrobbles()).flat();
+          const all = Object.values(await db.loadAllScrobbles()).flat();
           onScrobblesLoaded(all);
         }
       } else {
@@ -400,48 +280,29 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
       }
     } catch (err) {
       setStatus({ type: 'error', message: 'Fetch failed: ' + err.message });
-    } finally {
-      setFetching(false);
-    }
+    } finally { setFetching(false); }
   }, [savedUsername, mergeEntries, onScrobblesLoaded]);
 
-  // Start Last.fm auth flow
   const handleAuth = useCallback(async () => {
     setStatus(null);
     try {
       const res = await fetch('/api/lastfm?method=auth.gettoken');
       const data = await res.json();
-      if (data.error) {
-        setStatus({ type: 'error', message: data.error });
-        return;
-      }
+      if (data.error) { setStatus({ type: 'error', message: data.error }); return; }
       const token = data.token;
       const apiKey = data._apiKey;
-      if (!token || !apiKey) {
-        setStatus({ type: 'error', message: 'Failed to get auth token.' });
-        return;
-      }
-      // Save token so we can complete auth when user returns
+      if (!token || !apiKey) { setStatus({ type: 'error', message: 'Failed to get auth token.' }); return; }
       localStorage.setItem(AUTH_TOKEN_KEY, token);
-      // Redirect to Last.fm auth page
-      window.open(
-        `https://www.last.fm/api/auth/?api_key=${apiKey}&token=${token}`,
-        'lastfm_auth',
-        'width=800,height=600'
-      );
+      window.open(`https://www.last.fm/api/auth/?api_key=${apiKey}&token=${token}`, 'lastfm_auth', 'width=800,height=600');
       setStatus({ type: 'info', message: 'Authorize in the Last.fm window, then click "Complete authorization" below.' });
     } catch (err) {
       setStatus({ type: 'error', message: 'Auth failed: ' + err.message });
     }
   }, []);
 
-  // Manually complete auth (after user authorizes in popup)
   const handleCompleteAuth = useCallback(async () => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (!token) {
-      setStatus({ type: 'error', message: 'No auth token found. Click "Authorize" first.' });
-      return;
-    }
+    if (!token) { setStatus({ type: 'error', message: 'No auth token found. Click "Authorize" first.' }); return; }
     await completeAuth(token);
   }, [savedUsername]);
 
@@ -454,28 +315,21 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
   // Scrobble iPod/Rockbox plays to Last.fm
   const handleScrobbleIpod = useCallback(async () => {
     if (!sessionKey) return;
-
     const rbMap = loadRockboxScrobbles();
     const allEntries = Object.values(rbMap).flat().sort((a, b) => new Date(a.ts) - new Date(b.ts));
-
     if (allEntries.length === 0) {
       setStatus({ type: 'info', message: 'No Rockbox scrobbles found. Import them on the Scrobbler tab first.' });
       return;
     }
-
-    // Filter out entries without proper metadata
     const valid = allEntries.filter(e =>
-      e.master_metadata_track_name &&
-      e.master_metadata_album_artist_name &&
+      e.master_metadata_track_name && e.master_metadata_album_artist_name &&
       e.master_metadata_album_artist_name !== '<Untagged>' &&
       !/\.\w{2,4}$/.test(e.master_metadata_track_name)
     );
-
     if (valid.length === 0) {
       setStatus({ type: 'info', message: 'All Rockbox scrobbles have missing metadata (untagged). Fix the ID3 tags first.' });
       return;
     }
-
     const confirmed = window.confirm(
       `Scrobble ${valid.length.toLocaleString()} iPod plays to your Last.fm account?\n\n` +
       `This will add them to your Last.fm history.` +
@@ -488,7 +342,6 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
     scrobbleAbortRef.current = false;
     setScrobbleProgress({ sent: 0, total: valid.length, accepted: 0 });
 
-    // Convert to Last.fm scrobble format
     const scrobbles = valid.map(e => ({
       artist: e.master_metadata_album_artist_name,
       track: e.master_metadata_track_name,
@@ -503,9 +356,7 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
     try {
       for (let i = 0; i < scrobbles.length; i += BATCH) {
         if (scrobbleAbortRef.current) break;
-
         const batch = scrobbles.slice(i, i + BATCH);
-
         let retries = 0;
         let success = false;
         while (!success && retries < 3) {
@@ -513,22 +364,11 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
             const res = await fetch('/api/lastfm', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                method: 'track.scrobble',
-                sk: sessionKey,
-                scrobbles: batch,
-              }),
+              body: JSON.stringify({ method: 'track.scrobble', sk: sessionKey, scrobbles: batch }),
             });
-
-            if (res.status === 429) {
-              retries++;
-              await new Promise(r => setTimeout(r, 3000 * retries));
-              continue;
-            }
-
+            if (res.status === 429) { retries++; await new Promise(r => setTimeout(r, 3000 * retries)); continue; }
             const data = await res.json();
             if (data.error) {
-              // Session expired or invalid
               if (data.error.includes('session') || data.error.includes('Unauthorized')) {
                 setStatus({ type: 'error', message: 'Session expired. Please re-authorize.' });
                 localStorage.removeItem(SESSION_KEY);
@@ -537,31 +377,16 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                 setScrobbleProgress(null);
                 return;
               }
-              retries++;
-              await new Promise(r => setTimeout(r, 2000 * retries));
-              continue;
+              retries++; await new Promise(r => setTimeout(r, 2000 * retries)); continue;
             }
-
-            const accepted = data.scrobbles?.['@attr']?.accepted
-              ? parseInt(data.scrobbles['@attr'].accepted)
-              : batch.length;
-            totalAccepted += accepted;
+            totalAccepted += data.scrobbles?.['@attr']?.accepted ? parseInt(data.scrobbles['@attr'].accepted) : batch.length;
             success = true;
-          } catch {
-            retries++;
-            await new Promise(r => setTimeout(r, 2000 * retries));
-          }
+          } catch { retries++; await new Promise(r => setTimeout(r, 2000 * retries)); }
         }
-
         totalSent += batch.length;
         setScrobbleProgress({ sent: totalSent, total: valid.length, accepted: totalAccepted });
-
-        // Rate limit: wait between batches
-        if (i + BATCH < scrobbles.length) {
-          await new Promise(r => setTimeout(r, 1000));
-        }
+        if (i + BATCH < scrobbles.length) await new Promise(r => setTimeout(r, 1000));
       }
-
       if (scrobbleAbortRef.current) {
         setStatus({ type: 'info', message: `Scrobbling cancelled. Sent ${totalSent.toLocaleString()} of ${valid.length.toLocaleString()} (${totalAccepted.toLocaleString()} accepted).` });
       } else {
@@ -569,25 +394,15 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
       }
     } catch (err) {
       setStatus({ type: 'error', message: 'Scrobble failed: ' + err.message });
-    } finally {
-      setScrobbling(false);
-      setScrobbleProgress(null);
-    }
+    } finally { setScrobbling(false); setScrobbleProgress(null); }
   }, [sessionKey]);
 
-  const handleCancel = useCallback(() => {
-    if (abortRef.current) abortRef.current.abort();
-  }, []);
-
-  const handleCancelScrobble = useCallback(() => {
-    scrobbleAbortRef.current = true;
-  }, []);
+  const handleCancel = useCallback(() => { if (abortRef.current) abortRef.current.abort(); }, []);
+  const handleCancelScrobble = useCallback(() => { scrobbleAbortRef.current = true; }, []);
 
   const handleDisconnect = useCallback(() => {
     localStorage.removeItem(USERNAME_KEY);
-    setSavedUsername('');
-    setUserInfo(null);
-    setUsername('');
+    setSavedUsername(''); setUserInfo(null); setUsername('');
     setStatus({ type: 'info', message: 'Disconnected Last.fm account.' });
   }, []);
 
@@ -596,10 +411,8 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
     if (!data) return;
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lastfm-scrobbles-${year}.json`;
-    a.click();
+    const a = document.createElement('a'); a.href = url;
+    a.download = `lastfm-scrobbles-${year}.json`; a.click();
     URL.revokeObjectURL(url);
   }, [scrobblesByYear]);
 
@@ -607,20 +420,14 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
     const all = Object.values(scrobblesByYear).flat().sort((a, b) => new Date(a.date) - new Date(b.date));
     const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'lastfm-scrobbles-all.json';
-    a.click();
+    const a = document.createElement('a'); a.href = url;
+    a.download = 'lastfm-scrobbles-all.json'; a.click();
     URL.revokeObjectURL(url);
   }, [scrobblesByYear]);
 
-  const clearAll = useCallback(() => {
+  const handleClearAll = useCallback(async () => {
     if (!window.confirm('Delete all stored Last.fm scrobbles from this browser?')) return;
-    const years = getStoredYears();
-    for (const y of years) {
-      localStorage.removeItem(STORAGE_PREFIX + y);
-    }
-    localStorage.removeItem(INDEX_KEY);
+    await db.clearAll();
     localStorage.removeItem(LAST_SYNC_KEY);
     setScrobblesByYear({});
     setLastSync(null);
@@ -638,14 +445,14 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
   const btnPrimary = isColorful
     ? 'px-4 py-2 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 transition-colors shadow-[2px_2px_0_0_#dc2626]'
     : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
-
   const btnSecondary = isColorful
     ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors border border-red-300 dark:border-red-700 shadow-[2px_2px_0_0_#dc2626]'
     : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
-
   const btnDanger = isColorful
     ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#dc2626]'
     : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-red-400 border-red-600 hover:bg-gray-800' : 'bg-white text-red-600 border-red-400 hover:bg-red-50'}`;
+
+  if (!dbReady) return null; // Wait for IndexedDB to load
 
   return (
     <div className="space-y-4">
@@ -686,34 +493,22 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                 <span className="text-base">🎵</span>
                 <span className="font-medium">{savedUsername}</span>
                 {userInfo && (
-                  <span className={textLight}>
-                    · {parseInt(userInfo.playcount).toLocaleString()} scrobbles
-                  </span>
+                  <span className={textLight}>· {parseInt(userInfo.playcount).toLocaleString()} scrobbles</span>
                 )}
               </div>
-              <button onClick={handleDisconnect} className={`text-xs ${textLight} hover:underline`}>
-                Disconnect
-              </button>
+              <button onClick={handleDisconnect} className={`text-xs ${textLight} hover:underline`}>Disconnect</button>
             </div>
 
-            {/* Import scrobbles */}
             <div className="flex gap-2 flex-wrap">
               <button onClick={fetchAllScrobbles} disabled={fetching} className={btnPrimary}>
                 {fetching ? 'Fetching...' : totalStored > 0 ? 'Fetch full history' : 'Import all scrobbles'}
               </button>
               {totalStored > 0 && (
-                <button onClick={fetchRecent} disabled={fetching} className={btnSecondary}>
-                  Fetch recent
-                </button>
+                <button onClick={fetchRecent} disabled={fetching} className={btnSecondary}>Fetch recent</button>
               )}
-              {fetching && (
-                <button onClick={handleCancel} className={btnDanger}>
-                  Cancel
-                </button>
-              )}
+              {fetching && <button onClick={handleCancel} className={btnDanger}>Cancel</button>}
             </div>
 
-            {/* Progress bar */}
             {progress && (
               <div className="space-y-1">
                 <div className={`text-xs ${textLight}`}>
@@ -746,12 +541,8 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                 Authorize Cake to scrobble your iPod/Rockbox plays to your Last.fm account.
               </p>
               <div className="flex gap-2 flex-wrap items-center">
-                <button onClick={handleAuth} className={btnPrimary}>
-                  Authorize with Last.fm
-                </button>
-                <button onClick={handleCompleteAuth} className={btnSecondary}>
-                  Complete authorization
-                </button>
+                <button onClick={handleAuth} className={btnPrimary}>Authorize with Last.fm</button>
+                <button onClick={handleCompleteAuth} className={btnSecondary}>Complete authorization</button>
               </div>
             </div>
           ) : (
@@ -759,32 +550,18 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`text-xs px-2 py-1 rounded ${
                   isColorful ? 'bg-green-200 dark:bg-green-900 text-green-800 dark:text-green-300' : isDarkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700'
-                }`}>
-                  Authorized
-                </span>
-                <button onClick={handleDeauth} className={`text-xs ${textLight} hover:underline`}>
-                  Remove authorization
-                </button>
+                }`}>Authorized</span>
+                <button onClick={handleDeauth} className={`text-xs ${textLight} hover:underline`}>Remove authorization</button>
               </div>
 
               {rockboxCount > 0 ? (
                 <div className="space-y-2">
-                  <p className={`text-sm ${textLight}`}>
-                    {rockboxCount.toLocaleString()} iPod scrobbles available to upload to Last.fm.
-                  </p>
+                  <p className={`text-sm ${textLight}`}>{rockboxCount.toLocaleString()} iPod scrobbles available to upload to Last.fm.</p>
                   <div className="flex gap-2 flex-wrap">
-                    <button
-                      onClick={handleScrobbleIpod}
-                      disabled={scrobbling}
-                      className={btnPrimary}
-                    >
+                    <button onClick={handleScrobbleIpod} disabled={scrobbling} className={btnPrimary}>
                       {scrobbling ? 'Scrobbling...' : `Scrobble ${rockboxCount.toLocaleString()} iPod plays`}
                     </button>
-                    {scrobbling && (
-                      <button onClick={handleCancelScrobble} className={btnDanger}>
-                        Cancel
-                      </button>
-                    )}
+                    {scrobbling && <button onClick={handleCancelScrobble} className={btnDanger}>Cancel</button>}
                   </div>
                 </div>
               ) : (
@@ -793,7 +570,6 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                 </p>
               )}
 
-              {/* Scrobble progress */}
               {scrobbleProgress && (
                 <div className="space-y-1">
                   <div className={`text-xs ${textLight}`}>
@@ -834,25 +610,21 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
             </h4>
             <div className="flex gap-2">
               <button onClick={downloadAll} className={btnSecondary}>Download all ({totalStored.toLocaleString()})</button>
-              <button onClick={clearAll} className={btnDanger}>Clear</button>
+              <button onClick={handleClearAll} className={btnDanger}>Clear</button>
             </div>
           </div>
 
-          {/* Year rows */}
           <div className="space-y-1 mb-4">
             {years.map(year => (
               <div key={year} className="flex items-center justify-between">
                 <span className={`text-sm ${textLight}`}>
                   <strong>{year}</strong> — {scrobblesByYear[year].length.toLocaleString()} scrobble{scrobblesByYear[year].length !== 1 ? 's' : ''}
                 </span>
-                <button onClick={() => downloadYear(year)} className={btnSecondary}>
-                  {year}.json
-                </button>
+                <button onClick={() => downloadYear(year)} className={btnSecondary}>{year}.json</button>
               </div>
             ))}
           </div>
 
-          {/* Recent scrobbles list */}
           <h4 className={`font-semibold text-sm mb-2 ${textMain}`}>Recent scrobbles</h4>
           <div className="space-y-1 max-h-72 overflow-y-auto">
             {allScrobbles
@@ -865,12 +637,9 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                     isColorful ? 'bg-red-50 dark:bg-red-900/30' : isDarkMode ? 'bg-black' : 'bg-white'
                   }`}>
                     <div className="min-w-0 flex-1">
-                      <span className={`font-medium block truncate ${isColorful ? 'text-red-800 dark:text-red-200' : ''}`}>
-                        {entry.name}
-                      </span>
+                      <span className={`font-medium block truncate ${isColorful ? 'text-red-800 dark:text-red-200' : ''}`}>{entry.name}</span>
                       <span className={`block truncate ${textLight}`}>
-                        {entry.artist}
-                        {entry.album && entry.album !== 'Unknown Album' ? ` · ${entry.album}` : ''}
+                        {entry.artist}{entry.album && entry.album !== 'Unknown Album' ? ` · ${entry.album}` : ''}
                       </span>
                     </div>
                     <div className={`text-right shrink-0 ${textLight}`}>
@@ -887,7 +656,6 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
   );
 }
 
-// Parse a page of tracks from Last.fm API response into our storage format
 function parseTracksPage(tracks) {
   if (!Array.isArray(tracks)) return [];
   return tracks

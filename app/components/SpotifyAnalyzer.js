@@ -27,6 +27,7 @@ import { useTheme } from './themeprovider.js';
 import GoogleDriveSync from './GoogleDriveSync.js';
 import RockboxScrobbler from './RockboxScrobbler.js';
 import LastfmConnect from './LastfmConnect.js';
+import { getTotalCount as getLastfmCount, loadAllScrobbles as loadLastfmScrobbles } from './lastfm-db.js';
 import FixedSettingsBar from './FixedSettingsBar.js';
 import SettingsPanel from './SettingsPanel.js';
 
@@ -285,16 +286,7 @@ const SpotifyAnalyzer = ({
         const count = Object.values(map).reduce((s, a) => s + a.length, 0);
         setStoredScrobbleCount(count);
       } catch { setStoredScrobbleCount(0); }
-      try {
-        const yearsRaw = localStorage.getItem('lastfm_years');
-        const years = yearsRaw ? JSON.parse(yearsRaw) : [];
-        let count = 0;
-        for (const y of years) {
-          const raw = localStorage.getItem('lastfm_y_' + y);
-          if (raw) count += JSON.parse(raw).length;
-        }
-        setStoredLastfmCount(count);
-      } catch { setStoredLastfmCount(0); }
+      getLastfmCount().then(count => setStoredLastfmCount(count)).catch(() => setStoredLastfmCount(0));
     }
   }, [activeTab]);
 
@@ -1361,22 +1353,8 @@ const SpotifyAnalyzer = ({
         }
 
         if (hasLastfmData) {
-          const yearsRaw = localStorage.getItem('lastfm_years');
-          const years = yearsRaw ? JSON.parse(yearsRaw) : [];
-          const entries = [];
-          for (const y of years) {
-            const raw = localStorage.getItem('lastfm_y_' + y);
-            if (!raw) continue;
-            const arr = JSON.parse(raw);
-            // Handle compact [date, artist, name, album] and legacy object formats
-            for (const item of arr) {
-              if (Array.isArray(item)) {
-                entries.push({ date: item[0], artist: item[1], name: item[2], album: item[3] || '', source: 'lastfm' });
-              } else {
-                entries.push({ ...item, source: 'lastfm' });
-              }
-            }
-          }
+          const allYears = await loadLastfmScrobbles();
+          const entries = Object.values(allYears).flat().map(e => ({ ...e, source: 'lastfm' }));
           entries.sort((a, b) => new Date(a.date) - new Date(b.date));
           const lastfmJson = JSON.stringify(entries);
           const blob = new Blob([lastfmJson], { type: 'application/json' });
