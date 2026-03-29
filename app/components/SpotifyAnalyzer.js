@@ -1392,6 +1392,60 @@ const SpotifyAnalyzer = ({
         return;
       }
 
+      // If scrobbler or Last.fm data should be included, re-process through the full pipeline
+      const hasScrobblerData = includeScrobblerData && storedScrobbleCount > 0;
+      const hasLastfmData = includeLastfmData && storedLastfmCount > 0;
+      if ((hasScrobblerData || hasLastfmData) && loadedData.rawPlayData && loadedData.rawPlayData.length > 0) {
+        console.log('🔄 Re-processing Google Drive data with scrobbler/Last.fm data...');
+        setIsProcessing(true);
+        try {
+          // Create a JSON blob from rawPlayData (detected as Spotify format, source preserved)
+          const driveBlob = new Blob([JSON.stringify(loadedData.rawPlayData)], { type: 'application/json' });
+          let filesToProcess = [new File([driveBlob], 'drive-data.json', { type: 'application/json' })];
+
+          if (hasScrobblerData) {
+            const raw = localStorage.getItem('rockbox_scrobbles');
+            const map = raw ? JSON.parse(raw) : {};
+            const entries = Object.values(map).flat().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+            const lines = entries.map(e =>
+              [
+                e.master_metadata_album_artist_name,
+                e.master_metadata_album_album_name || '',
+                e.master_metadata_track_name,
+                '',
+                Math.round((e.ms_played || 210000) / 1000),
+                e.skipped ? 'S' : '',
+                Math.floor(new Date(e.ts).getTime() / 1000),
+                ''
+              ].join('\t')
+            ).join('\n');
+            const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
+            const blob = new Blob([header + lines], { type: 'text/plain' });
+            filesToProcess.push(new File([blob], '.scrobbler.log', { type: 'text/plain' }));
+          }
+
+          if (hasLastfmData) {
+            const allYears = await loadLastfmScrobbles();
+            const entries = Object.values(allYears).flat().map(e => ({ ...e, source: 'lastfm' }));
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const lastfmJson = JSON.stringify(entries);
+            const blob = new Blob([lastfmJson], { type: 'application/json' });
+            filesToProcess.push(new File([blob], 'lastfm-scrobbles.json', { type: 'application/json' }));
+          }
+
+          const dt = new DataTransfer();
+          filesToProcess.forEach(f => dt.items.add(f));
+          await processFiles(dt.files);
+          return; // processFiles handles setting all state and switching tabs
+        } catch (err) {
+          console.error('Error re-processing with scrobbler data:', err);
+          setError(err.message);
+          return;
+        } finally {
+          setIsProcessing(false);
+        }
+      }
+
       // Check if we're on a mobile device and have a large dataset
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
       const isLargeDataset = (loadedData?.processedTracks?.length || 0) > 15000;
@@ -1632,7 +1686,7 @@ const SpotifyAnalyzer = ({
         loadedData: loadedData
       });
     }
-  }, []);
+  }, [includeScrobblerData, storedScrobbleCount, includeLastfmData, storedLastfmCount, processFiles]);
 
 
   // Reset data loaded flag when authentication state changes

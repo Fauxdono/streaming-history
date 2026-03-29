@@ -2670,7 +2670,7 @@ export const streamingProcessor = {
                   const data = JSON.parse(content);
                   return data.map(entry => ({
                     ...entry,
-                    source: 'spotify'
+                    source: entry.source || 'spotify'
                   }));
                   
                 case 'cake-export':
