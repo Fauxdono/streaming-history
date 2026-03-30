@@ -664,10 +664,10 @@ function parseTracksPage(tracks) {
       name: t.name,
       artist: t.artist?.['#text'] || t.artist?.name || '',
       album: t.album?.['#text'] || '',
-      date: t.date?.['#text']
-        ? new Date(t.date['#text']).toISOString()
-        : t.date?.uts
-          ? new Date(parseInt(t.date.uts) * 1000).toISOString()
+      date: t.date?.uts
+        ? new Date(parseInt(t.date.uts) * 1000).toISOString()
+        : t.date?.['#text']
+          ? new Date(t.date['#text'] + ' UTC').toISOString()
           : new Date().toISOString(),
       duration_ms: 210000,
       mbid: t.mbid || '',
