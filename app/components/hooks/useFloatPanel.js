@@ -79,7 +79,7 @@ export function useFloatPanel({
 
   // ---- Floating panel state (persisted) -------------------------------------
   const [isFloating, _setIsFloating] = useState(() =>
-    isMobile ? false : readStorage(STORAGE_KEYS.floating, true)
+    isMobile ? false : readStorage(STORAGE_KEYS.floating, false)
   );
 
   const [floatPos, _setFloatPos] = useState(() =>

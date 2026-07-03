@@ -5,6 +5,7 @@ const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
+import { RankBadge, RankBar } from './RankCardBits.js';
 
 const CustomTrackRankings = ({
   rawPlayData = [],
@@ -1824,7 +1825,7 @@ return (
 
                     {/* Row 1: rank + name + toggle */}
                     <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${colors.text}`}>
-                      <span className="opacity-50 text-sm w-5 text-left shrink-0">#{index + 1}</span>
+                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
                       <div className="flex-1 text-center px-1">
                         {song.isFeatured && <span className={`inline-block px-1 py-0.5 mr-1 ${colors.bgMed} rounded text-xs font-normal`}>FEAT</span>}
                         <div>{song.displayName || song.trackName}</div>
@@ -1866,6 +1867,16 @@ return (
                         </div>
                       </div>
                     )}
+
+                    {/* Play bar — relative to #1 by the active sort metric */}
+                    <RankBar
+                      value={song[sortBy] || 0}
+                      max={filteredTracks[0]?.[sortBy] || 0}
+                      label={sortBy === 'playCount'
+                        ? `${(song.playCount || 0).toLocaleString()} plays`
+                        : formatDuration(song.totalPlayed)}
+                      className={colors.text || (isDarkMode ? 'text-[#4169E1]' : 'text-black')}
+                    />
                   </div>
                 );
               })}

@@ -47,16 +47,17 @@ export default function YearSelector({
 
   // Notify parent of layout changes via ResizeObserver
   React.useEffect(() => {
-    if (!onLayoutChange || !panelRef.current) return;
+    if (!onLayoutChange) return;
+    // Floating (dial) renders no docked panel — zero out reserved space right away
+    if (panel.desktopFloating || !panelRef.current) {
+      onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width: 0, height: 0, isFloating: panel.desktopFloating });
+      return;
+    }
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
       onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width, height, isFloating: panel.desktopFloating });
     });
     ro.observe(panelRef.current);
-    // Fire immediately when float state changes so parent zeroes out space right away
-    if (panel.desktopFloating) {
-      onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width: 0, height: 0, isFloating: true });
-    }
     return () => ro.disconnect();
   }, [panel.expanded, panel.currentPosition, panel.desktopFloating, onLayoutChange]);
 
@@ -64,14 +65,15 @@ export default function YearSelector({
     return <div className={`${c.text} italic`}>No year data available</div>;
   }
 
-  // Dial mode — circular floating widget (desktop only)
-  if (panel.isDial && !panel.isMobile) {
+  // Floating on desktop = the dial. The panel-style floating variant is gone;
+  // undocking the sidebar always gives the circular dial selector.
+  if (asSidebar && panel.desktopFloating) {
     return (
       <DialSelector
         sel={sel}
         pos={panel.floatPos}
         onDrag={panel.handleDragStart}
-        onClose={panel.toggleDial}
+        onClose={panel.toggleFloating}
         colorMode={colorMode}
         colorTheme={colorTheme}
         isDark={isDark}
@@ -92,12 +94,8 @@ export default function YearSelector({
     fontScale,
   }) : null;
 
-  // Scale: floating uses CSS transform, pinned desktop uses zoom
-  const scaleStyle = panel.desktopFloating
-    ? { transform: `scale(${panel.floatScale * fontScale})`, transformOrigin: 'top left' }
-    : (!panel.isMobile && fontScale !== 1)
-      ? { zoom: fontScale }
-      : {};
+  // Pinned desktop scales via zoom (floating renders the dial, handled above)
+  const scaleStyle = (!panel.isMobile && fontScale !== 1) ? { zoom: fontScale } : {};
 
   const containerBase = asSidebar
     ? `${c.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${c.border}`
@@ -123,11 +121,6 @@ export default function YearSelector({
       className={`year-selector-container ${asSidebar ? posStyle.className : ''} ${containerBase}`}
       style={{ ...posStyle?.style, fontSize: panel.isMobile ? `${12 * fontScale}px` : '12px', ...scaleStyle }}
     >
-      {/* Drag handle */}
-      {panel.desktopFloating && asSidebar && (
-        <DragHandle c={c} onDragStart={panel.handleDragStart} />
-      )}
-
       {/* Collapse button (sidebar, not floating, not desktop-horizontal) */}
       {asSidebar && !panel.isFloating && !panel.isHorizontal && (
         <CollapseButton panel={panel} c={c} />
@@ -145,7 +138,7 @@ export default function YearSelector({
         <SelectionContent sel={sel} panel={panel} c={c} />
 
         {/* Panel controls — far end of horizontal bar */}
-        {asSidebar && panel.isHorizontal && !panel.desktopFloating && (
+        {asSidebar && panel.isHorizontal && (
           <div className="flex flex-col gap-1 items-center shrink-0 ml-auto pl-2">
             <div className="flex flex-row gap-1">
               <button onClick={panel.toggleExpanded} className={iconBtn(c)} aria-label="Collapse">
@@ -153,7 +146,7 @@ export default function YearSelector({
               </button>
               <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
               {!panel.isMobile && (
-                <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
+                <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float as dial">◎</button>
               )}
             </div>
             {/* Month / Day toggles */}
@@ -177,10 +170,6 @@ export default function YearSelector({
         )}
       </div>
 
-      {/* Resize grip */}
-      {panel.desktopFloating && asSidebar && (
-        <ResizeGrip onResizeStart={panel.handleResizeStart} />
-      )}
     </div>
   );
 }
@@ -259,39 +248,23 @@ function CollapsedPanel({ panel, c, mode, label, posStyle, scaleStyle, container
 // ---------------------------------------------------------------------------
 
 function ModeControls({ sel, panel, c, asSidebar }) {
-  const { isHorizontal, desktopFloating, isMobile, isLandscape } = panel;
-
-  // In desktop floating horizontal, these are shown in the right column instead
-  const hidden = isHorizontal && desktopFloating && !isMobile;
+  const { isHorizontal, isMobile } = panel;
 
   return (
-    <div className={`${hidden ? 'hidden' : ''} flex ${
+    <div className={`flex ${
       isHorizontal
         ? 'flex-col gap-1 items-center shrink-0'
         : 'flex-col gap-1 items-center mb-2'
     }`}>
-      {/* Dial toggle */}
-      <PressButton active={panel.isDial} c={c} onClick={panel.toggleDial}>◎ Dial</PressButton>
-
       <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
       <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
 
-      {/* Float/orientation controls inline with mode buttons (vertical floating) */}
-      {desktopFloating && !isHorizontal && asSidebar && (
-        <div className="flex flex-row gap-1 mt-1">
-          <button onClick={panel.toggleOrientation} className={iconBtn(c)} title={panel.floatOrientation === 'vertical' ? 'Switch to horizontal' : 'Switch to vertical'}>
-            {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
-          </button>
-          <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
-        </div>
-      )}
-
       {/* Pinned sidebar controls — vertical */}
-      {!desktopFloating && asSidebar && !isHorizontal && (
+      {asSidebar && !isHorizontal && (
         <div className="flex flex-row gap-1 mt-1">
           <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
           {!isMobile && (
-            <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
+            <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float as dial">◎</button>
           )}
         </div>
       )}
@@ -327,7 +300,7 @@ function ModeControls({ sel, panel, c, asSidebar }) {
 // ---------------------------------------------------------------------------
 
 function SelectionContent({ sel, panel, c }) {
-  const { isHorizontal, desktopFloating, isMobile, isLandscape } = panel;
+  const { isHorizontal, isMobile, isLandscape } = panel;
   // "Stacked" = horizontal orientation but rows stacked (floating or mobile portrait)
   const stacked = isHorizontal && isMobile && !isLandscape;
 
@@ -353,7 +326,7 @@ function SelectionContent({ sel, panel, c }) {
 // ---------------------------------------------------------------------------
 
 function SingleContent({ sel, panel, c, stacked }) {
-  const { isHorizontal, isMobile, isLandscape, desktopFloating } = panel;
+  const { isHorizontal, isMobile, isLandscape } = panel;
   const pinnedHz = isHorizontal && !stacked && !isMobile;
   const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2)  : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : 2;
   const monthCols = pinnedHz ? 6                                : isHorizontal && !stacked ? 6 : 2;
@@ -373,19 +346,6 @@ function SingleContent({ sel, panel, c, stacked }) {
       {sel.showDaySelector && sel.showMonthSelector && sel.selectedYear !== 'all' && (
         <DayGrid days={sel.days} selected={sel.selectedDay} onSelect={sel.setDay} cols={dayCols} minItemWidth={stacked && isMobile ? 24 : undefined} c={c} />
       )}
-
-      {/* Floating horizontal: orientation + dock controls on far right */}
-      {desktopFloating && isHorizontal && (
-        <div className="flex flex-col gap-1 items-center ml-2 shrink-0">
-          <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
-          <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
-          <button onClick={panel.toggleOrientation} className={iconBtn(c)} title="Rotate">
-            {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
-          </button>
-          <PressButton active={panel.isDial} c={c} onClick={panel.toggleDial}>◎ Dial</PressButton>
-          <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
-        </div>
-      )}
     </>
   );
 }
@@ -395,7 +355,7 @@ function SingleContent({ sel, panel, c, stacked }) {
 // ---------------------------------------------------------------------------
 
 function RangeContent({ sel, panel, c, stacked }) {
-  const { isHorizontal, isMobile, isLandscape, desktopFloating } = panel;
+  const { isHorizontal, isMobile, isLandscape } = panel;
   const pinnedHz  = isHorizontal && !stacked && !isMobile;
   const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2) : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : 2;
   const monthCols = pinnedHz ? 6                               : isHorizontal && !stacked ? 6 : 2;
@@ -420,18 +380,6 @@ function RangeContent({ sel, panel, c, stacked }) {
 
       {/* Trailing hint — follows the last visible grid */}
       <RangeHint sel={sel} c={c} />
-
-      {/* Floating horizontal controls */}
-      {desktopFloating && isHorizontal && (
-        <div className="flex flex-col gap-1 items-center ml-2 shrink-0">
-          <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
-          <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
-          <button onClick={panel.toggleOrientation} className={iconBtn(c)} title="Rotate">
-            {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
-          </button>
-          <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
-        </div>
-      )}
     </>
   );
 }
@@ -637,18 +585,6 @@ function PressButton({ active, c, onClick, children }) {
   );
 }
 
-function DragHandle({ c, onDragStart }) {
-  return (
-    <div
-      className={`flex items-center justify-center py-1 cursor-grab active:cursor-grabbing ${c.bgMed} rounded-t-lg`}
-      onMouseDown={onDragStart}
-      onTouchStart={onDragStart}
-    >
-      <div className="w-8 h-1 rounded-full bg-current opacity-30" />
-    </div>
-  );
-}
-
 function CollapseButton({ panel, c }) {
   const { isHorizontal, currentPosition, isMobile } = panel;
   const arrow = isHorizontal
@@ -665,20 +601,6 @@ function CollapseButton({ panel, c }) {
     >
       {arrow}
     </button>
-  );
-}
-
-function ResizeGrip({ onResizeStart }) {
-  return (
-    <div
-      className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-30 flex items-end justify-end pr-0.5 pb-0.5 opacity-40 hover:opacity-70"
-      onMouseDown={onResizeStart}
-      onTouchStart={onResizeStart}
-    >
-      <svg width="8" height="8" viewBox="0 0 8 8">
-        <path d="M8 0L0 8M8 3L3 8M8 6L6 8" stroke="currentColor" strokeWidth="1.5"/>
-      </svg>
-    </div>
   );
 }
 

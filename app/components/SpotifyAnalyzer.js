@@ -16,6 +16,7 @@ import DiscoveryAnalysis from './discovery-analysis.js';
 import { X, Trash2, Download } from 'lucide-react';
 import { YearSelectorCompat as YearSelector } from './YearSelector.js';
 import AlbumCard from './albumcard.js';
+import { RankBadge, RankBar } from './RankCardBits.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
@@ -3433,7 +3434,7 @@ const SpotifyAnalyzer = ({
                           >
                             {/* Row 1: position + name + toggle */}
                             <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${cardText}`}>
-                              <span className="opacity-50 text-sm w-5 text-left">#{originalRank}</span>
+                              <RankBadge rank={originalRank} isDarkMode={isDarkMode} />
                               <span className="flex-1 text-center">{artist.name}</span>
                               <button
                                 type="button"
@@ -3483,6 +3484,16 @@ const SpotifyAnalyzer = ({
                                 </div>
                               )}
                             </div>
+
+                            {/* Play bar — relative to #1 by the active sort metric */}
+                            <RankBar
+                              value={artistsSortBy === 'playCount' ? (artist.playCount || 0) : (artist.totalPlayed || 0)}
+                              max={artistsSortBy === 'playCount' ? (displayedArtists[0]?.playCount || 0) : (displayedArtists[0]?.totalPlayed || 0)}
+                              label={artistsSortBy === 'playCount'
+                                ? `${(artist.playCount || 0).toLocaleString()} plays`
+                                : formatDuration(artist.totalPlayed)}
+                              className={cardText || (isDarkMode ? 'text-[#4169E1]' : 'text-black')}
+                            />
                           </div>
                         );
                       })}
@@ -3869,6 +3880,8 @@ const SpotifyAnalyzer = ({
                           textTheme={albumTextTheme}
                           backgroundTheme={albumBackgroundTheme}
                           colorMode={colorMode}
+                          sortBy={albumsSortBy}
+                          maxValue={albumsSortBy === 'playCount' ? (displayedAlbums[0]?.playCount || 0) : (displayedAlbums[0]?.totalPlayed || 0)}
                         />
                       ) : (
                         <div

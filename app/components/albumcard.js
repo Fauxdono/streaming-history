@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useTheme } from './themeprovider.js';
+import { RankBadge, RankBar } from './RankCardBits.js';
 
-const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan', colorMode = 'minimal' }) => {
+const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan', colorMode = 'minimal', sortBy = 'totalPlayed', maxValue = 0 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showTracks, setShowTracks] = useState(false);
 
@@ -67,7 +68,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
 
       {/* Row 1: rank + album name + artist + toggle */}
       <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${colors.text}`}>
-        <span className="opacity-50 text-sm w-5 text-left shrink-0">#{index + 1}</span>
+        <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
         <div className="flex-1 text-center px-1">
           <div>{album.name}</div>
           <div className={`text-xs font-normal opacity-70 ${colors.textLight}`}>{album.artist}</div>
@@ -172,6 +173,16 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
           )}
         </div>
       )}
+
+      {/* Play bar — relative to #1 by the active sort metric */}
+      <RankBar
+        value={sortBy === 'playCount' ? (album.playCount || 0) : (album.totalPlayed || 0)}
+        max={maxValue}
+        label={sortBy === 'playCount'
+          ? `${(album.playCount || 0).toLocaleString()} plays`
+          : formatDuration(album.totalPlayed)}
+        className={colors.text || (isDarkMode ? 'text-[#4169E1]' : 'text-black')}
+      />
     </div>
   );
 };

@@ -388,6 +388,12 @@ const filteredData = useMemo(() => {
       };
     });
     
+    // Peak discovery month — computed without mutating the chronological chart data
+    const peakDiscoveryMonth = newArtistsByMonth.reduce(
+      (max, m) => (!max || m.count > max.count ? m : max),
+      null
+    );
+
     // Calculate artist loyalty (top 5 vs others)
     const sortedArtists = Object.entries(artistPlayTime)
       .sort((a, b) => b[1] - a[1])
@@ -408,6 +414,7 @@ const filteredData = useMemo(() => {
     return {
       firstListenDates,
       newArtistsByMonth,
+      peakDiscoveryMonth,
       totalArtistsDiscovered: Object.keys(firstListenDates).length,
       loyaltyData,
       top5Artists,
@@ -806,10 +813,10 @@ const filteredData = useMemo(() => {
                   <>
                     Your peak discovery month was
                     <span className="font-bold">{' '}
-                      {discoveryData.newArtistsByMonth.sort((a, b) => b.count - a.count)[0]?.fullLabel}
+                      {discoveryData.peakDiscoveryMonth?.fullLabel}
                     </span> when you discovered
                     <span className="font-bold">{' '}
-                      {discoveryData.newArtistsByMonth.sort((a, b) => b.count - a.count)[0]?.count}
+                      {discoveryData.peakDiscoveryMonth?.count}
                     </span> new artists.
                   </>
                 ) : 'No discovery data available.'}
