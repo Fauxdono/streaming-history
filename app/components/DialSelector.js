@@ -1,27 +1,8 @@
 'use client';
 import React, { useCallback, useMemo } from 'react';
+import { PALETTES } from './theme.js';
 
 // ---- Theme-aware color resolution ------------------------------------------
-
-// Tailwind palette shades per theme — the dial styles are inline (SVG strokes,
-// gradients), so it needs raw hex values rather than utility classes.
-const PALETTES = {
-  pink:    { c50:'#fdf2f8', c100:'#fce7f3', c200:'#fbcfe8', c300:'#f9a8d4', c500:'#ec4899', c600:'#db2777', c700:'#be185d', c800:'#9d174d', c900:'#831843' },
-  purple:  { c50:'#faf5ff', c100:'#f3e8ff', c200:'#e9d5ff', c300:'#d8b4fe', c500:'#a855f7', c600:'#9333ea', c700:'#7e22ce', c800:'#6b21a8', c900:'#581c87' },
-  indigo:  { c50:'#eef2ff', c100:'#e0e7ff', c200:'#c7d2fe', c300:'#a5b4fc', c500:'#6366f1', c600:'#4f46e5', c700:'#4338ca', c800:'#3730a3', c900:'#312e81' },
-  blue:    { c50:'#eff6ff', c100:'#dbeafe', c200:'#bfdbfe', c300:'#93c5fd', c500:'#3b82f6', c600:'#2563eb', c700:'#1d4ed8', c800:'#1e40af', c900:'#1e3a8a' },
-  green:   { c50:'#f0fdf4', c100:'#dcfce7', c200:'#bbf7d0', c300:'#86efac', c500:'#22c55e', c600:'#16a34a', c700:'#15803d', c800:'#166534', c900:'#14532d' },
-  yellow:  { c50:'#fefce8', c100:'#fef9c3', c200:'#fef08a', c300:'#fde047', c500:'#eab308', c600:'#ca8a04', c700:'#a16207', c800:'#854d0e', c900:'#713f12' },
-  red:     { c50:'#fef2f2', c100:'#fee2e2', c200:'#fecaca', c300:'#fca5a5', c500:'#ef4444', c600:'#dc2626', c700:'#b91c1c', c800:'#991b1b', c900:'#7f1d1d' },
-  orange:  { c50:'#fff7ed', c100:'#ffedd5', c200:'#fed7aa', c300:'#fdba74', c500:'#f97316', c600:'#ea580c', c700:'#c2410c', c800:'#9a3412', c900:'#7c2d12' },
-  teal:    { c50:'#f0fdfa', c100:'#ccfbf1', c200:'#99f6e4', c300:'#5eead4', c500:'#14b8a6', c600:'#0d9488', c700:'#0f766e', c800:'#115e59', c900:'#134e4a' },
-  cyan:    { c50:'#ecfeff', c100:'#cffafe', c200:'#a5f3fc', c300:'#67e8f9', c500:'#06b6d4', c600:'#0891b2', c700:'#0e7490', c800:'#155e75', c900:'#164e63' },
-  emerald: { c50:'#ecfdf5', c100:'#d1fae5', c200:'#a7f3d0', c300:'#6ee7b7', c500:'#10b981', c600:'#059669', c700:'#047857', c800:'#065f46', c900:'#064e3b' },
-  amber:   { c50:'#fffbeb', c100:'#fef3c7', c200:'#fde68a', c300:'#fcd34d', c500:'#f59e0b', c600:'#d97706', c700:'#b45309', c800:'#92400e', c900:'#78350f' },
-  fuchsia: { c50:'#fdf4ff', c100:'#fae8ff', c200:'#f5d0fe', c300:'#f0abfc', c500:'#d946ef', c600:'#c026d3', c700:'#a21caf', c800:'#86198f', c900:'#701a75' },
-  violet:  { c50:'#f5f3ff', c100:'#ede9fe', c200:'#ddd6fe', c300:'#c4b5fd', c500:'#8b5cf6', c600:'#7c3aed', c700:'#6d28d9', c800:'#5b21b6', c900:'#4c1d95' },
-  rose:    { c50:'#fff1f2', c100:'#ffe4e6', c200:'#fecdd3', c300:'#fda4af', c500:'#f43f5e', c600:'#e11d48', c700:'#be123c', c800:'#9f1239', c900:'#881337' },
-};
 
 function getDialColors(colorMode, colorTheme, isDark) {
   if (colorMode === 'minimal') {

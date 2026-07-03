@@ -17,6 +17,7 @@ import { X, Trash2, Download } from 'lucide-react';
 import { YearSelectorCompat as YearSelector } from './YearSelector.js';
 import AlbumCard from './albumcard.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
+import { getTabColors as getSharedTabColors } from './theme.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
@@ -94,154 +95,8 @@ const SpotifyAnalyzer = ({
   const { theme, fontSize, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const isDarkMode = theme === 'dark';
   
-  // Helper function to get themed colors
-  const getTabColors = (textTheme, backgroundTheme) => {
-    const textColors = {
-      blue: {
-        text: isDarkMode ? 'text-blue-300' : 'text-blue-700',
-        textLight: isDarkMode ? 'text-blue-400' : 'text-blue-600',
-        textDark: isDarkMode ? 'text-blue-200' : 'text-blue-800'
-      },
-      cyan: {
-        text: isDarkMode ? 'text-cyan-300' : 'text-cyan-700',
-        textLight: isDarkMode ? 'text-cyan-400' : 'text-cyan-600',
-        textDark: isDarkMode ? 'text-cyan-200' : 'text-cyan-800'
-      },
-      green: {
-        text: isDarkMode ? 'text-green-300' : 'text-green-700',
-        textLight: isDarkMode ? 'text-green-400' : 'text-green-600',
-        textDark: isDarkMode ? 'text-green-200' : 'text-green-800'
-      },
-      amber: {
-        text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
-        textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
-        textDark: isDarkMode ? 'text-amber-200' : 'text-amber-800'
-      },
-      yellow: {
-        text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
-        textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
-        textDark: isDarkMode ? 'text-yellow-200' : 'text-yellow-800'
-      },
-      orange: {
-        text: isDarkMode ? 'text-orange-300' : 'text-orange-700',
-        textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600',
-        textDark: isDarkMode ? 'text-orange-200' : 'text-orange-800'
-      },
-      red: {
-        text: isDarkMode ? 'text-red-400' : 'text-red-800',
-        textLight: isDarkMode ? 'text-red-500' : 'text-red-700',
-        textDark: isDarkMode ? 'text-red-300' : 'text-red-900'
-      },
-      indigo: {
-        text: isDarkMode ? 'text-indigo-300' : 'text-indigo-700',
-        textLight: isDarkMode ? 'text-indigo-400' : 'text-indigo-600',
-        textDark: isDarkMode ? 'text-indigo-200' : 'text-indigo-800'
-      },
-      emerald: {
-        text: isDarkMode ? 'text-emerald-300' : 'text-emerald-700',
-        textLight: isDarkMode ? 'text-emerald-400' : 'text-emerald-600',
-        textDark: isDarkMode ? 'text-emerald-200' : 'text-emerald-800'
-      },
-      violet: {
-        text: isDarkMode ? 'text-violet-300' : 'text-violet-700',
-        textLight: isDarkMode ? 'text-violet-400' : 'text-violet-600',
-        textDark: isDarkMode ? 'text-violet-200' : 'text-violet-800'
-      },
-      rose: {
-        text: isDarkMode ? 'text-rose-300' : 'text-rose-700',
-        textLight: isDarkMode ? 'text-rose-400' : 'text-rose-600',
-        textDark: isDarkMode ? 'text-rose-200' : 'text-rose-800'
-      }
-    };
-
-    const backgroundColors = {
-      blue: {
-        bg: isDarkMode ? 'bg-black' : 'bg-blue-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-blue-700' : 'border-blue-200',
-        borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400',
-        wrapper: isDarkMode ? 'bg-blue-900 border-blue-800' : 'bg-blue-100 border-[var(--border)]'
-      },
-      cyan: {
-        bg: isDarkMode ? 'bg-black' : 'bg-cyan-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-cyan-700' : 'border-cyan-200',
-        borderHover: isDarkMode ? 'border-cyan-500' : 'border-cyan-400',
-        wrapper: isDarkMode ? 'bg-cyan-900 border-cyan-800' : 'bg-cyan-100 border-[var(--border)]'
-      },
-      green: {
-        bg: isDarkMode ? 'bg-black' : 'bg-green-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-green-700' : 'border-green-200',
-        borderHover: isDarkMode ? 'border-green-500' : 'border-green-400',
-        wrapper: isDarkMode ? 'bg-green-900 border-green-800' : 'bg-green-100 border-green-300'
-      },
-      amber: {
-        bg: isDarkMode ? 'bg-black' : 'bg-amber-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-amber-700' : 'border-amber-200',
-        borderHover: isDarkMode ? 'border-amber-500' : 'border-amber-400',
-        wrapper: isDarkMode ? 'bg-amber-900 border-amber-800' : 'bg-amber-100 border-amber-300'
-      },
-      yellow: {
-        bg: isDarkMode ? 'bg-black' : 'bg-yellow-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-yellow-700' : 'border-yellow-200',
-        borderHover: isDarkMode ? 'border-yellow-500' : 'border-yellow-400',
-        wrapper: isDarkMode ? 'bg-yellow-900 border-yellow-800' : 'bg-yellow-100 border-[var(--border)]'
-      },
-      orange: {
-        bg: isDarkMode ? 'bg-black' : 'bg-orange-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-orange-700' : 'border-orange-200',
-        borderHover: isDarkMode ? 'border-orange-500' : 'border-orange-400',
-        wrapper: isDarkMode ? 'bg-orange-900 border-orange-800' : 'bg-orange-100 border-orange-300'
-      },
-      red: {
-        bg: isDarkMode ? 'bg-black' : 'bg-red-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-red-700' : 'border-red-200',
-        borderHover: isDarkMode ? 'border-red-500' : 'border-red-400',
-        wrapper: isDarkMode ? 'bg-red-900 border-red-800' : 'bg-red-100 border-[var(--border)]'
-      },
-      indigo: {
-        bg: isDarkMode ? 'bg-black' : 'bg-indigo-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-indigo-700' : 'border-indigo-200',
-        borderHover: isDarkMode ? 'border-indigo-500' : 'border-indigo-400',
-        wrapper: isDarkMode ? 'bg-indigo-900 border-indigo-800' : 'bg-indigo-100 border-indigo-300'
-      },
-      emerald: {
-        bg: isDarkMode ? 'bg-black' : 'bg-emerald-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-emerald-700' : 'border-emerald-200',
-        borderHover: isDarkMode ? 'border-emerald-500' : 'border-emerald-400',
-        wrapper: isDarkMode ? 'bg-emerald-900 border-emerald-800' : 'bg-emerald-100 border-[var(--border)]'
-      },
-      violet: {
-        bg: isDarkMode ? 'bg-black' : 'bg-violet-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-violet-700' : 'border-violet-200',
-        borderHover: isDarkMode ? 'border-violet-500' : 'border-violet-400',
-        wrapper: isDarkMode ? 'bg-violet-900 border-violet-800' : 'bg-violet-100 border-violet-300'
-      },
-      rose: {
-        bg: isDarkMode ? 'bg-black' : 'bg-rose-50',
-        bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-rose-700' : 'border-rose-200',
-        borderHover: isDarkMode ? 'border-rose-500' : 'border-rose-400',
-        wrapper: isDarkMode ? 'bg-rose-900 border-rose-800' : 'bg-rose-100 border-rose-300'
-      }
-    };
-
-    const textColorObj = textColors[textTheme] || textColors.blue;
-    const backgroundColorObj = backgroundColors[backgroundTheme] || backgroundColors.blue;
-
-    return {
-      ...textColorObj,
-      ...backgroundColorObj
-    };
-  };
+  // Helper function to get themed colors (shared design system — see theme.js)
+  const getTabColors = (textTheme, backgroundTheme) => getSharedTabColors(textTheme, backgroundTheme, isDarkMode);
 
   // Get themed colors for each tab
   const uploadColors = getTabColors(uploadTextTheme, uploadBackgroundTheme);

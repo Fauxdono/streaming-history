@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTheme } from './themeprovider.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
+import { getAlbumCardColors } from './theme.js';
 
 const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan', colorMode = 'minimal', sortBy = 'totalPlayed', maxValue = 0 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -10,46 +11,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  const getThemedColors = () => {
-    if (!isColorful) {
-      return {
-        text: '',
-        textLight: isDarkMode ? 'text-white' : 'text-black',
-        bg: isDarkMode ? 'bg-black' : 'bg-white',
-        border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-        bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-        bgButton: isDarkMode ? 'bg-black border border-[#4169E1]' : 'bg-white border border-black',
-        bgStripe: isDarkMode ? 'bg-black' : 'bg-white',
-        bgHeader: isDarkMode ? 'bg-black' : 'bg-white'
-      };
-    }
-
-    const textColors = {
-      cyan:    { text: isDarkMode ? 'text-cyan-300'    : 'text-cyan-700',    textLight: isDarkMode ? 'text-cyan-400'    : 'text-cyan-600' },
-      blue:    { text: isDarkMode ? 'text-blue-300'    : 'text-blue-700',    textLight: isDarkMode ? 'text-blue-400'    : 'text-blue-600' },
-      green:   { text: isDarkMode ? 'text-green-300'   : 'text-green-700',   textLight: isDarkMode ? 'text-green-400'   : 'text-green-600' },
-      amber:   { text: isDarkMode ? 'text-amber-300'   : 'text-amber-700',   textLight: isDarkMode ? 'text-amber-400'   : 'text-amber-600' },
-      orange:  { text: isDarkMode ? 'text-orange-300'  : 'text-orange-700',  textLight: isDarkMode ? 'text-orange-400'  : 'text-orange-600' },
-      red:     { text: isDarkMode ? 'text-red-300'     : 'text-red-700',     textLight: isDarkMode ? 'text-red-400'     : 'text-red-600' },
-      indigo:  { text: isDarkMode ? 'text-indigo-300'  : 'text-indigo-700',  textLight: isDarkMode ? 'text-indigo-400'  : 'text-indigo-600' },
-      emerald: { text: isDarkMode ? 'text-emerald-300' : 'text-emerald-700', textLight: isDarkMode ? 'text-emerald-400' : 'text-emerald-600' }
-    };
-
-    const backgroundColors = {
-      cyan:    { bg: isDarkMode ? 'bg-cyan-800'    : 'bg-cyan-100',    border: isDarkMode ? 'border-cyan-600'    : 'border-cyan-300',    bgLight: isDarkMode ? 'bg-cyan-900'    : 'bg-cyan-200',    bgButton: isDarkMode ? 'bg-cyan-700'    : 'bg-cyan-200',    bgStripe: isDarkMode ? 'bg-cyan-900'    : 'bg-cyan-200',    bgHeader: isDarkMode ? 'bg-cyan-700'    : 'bg-cyan-300' },
-      blue:    { bg: isDarkMode ? 'bg-blue-800'    : 'bg-blue-100',    border: isDarkMode ? 'border-blue-600'    : 'border-blue-300',    bgLight: isDarkMode ? 'bg-blue-900'    : 'bg-blue-200',    bgButton: isDarkMode ? 'bg-blue-700'    : 'bg-blue-200',    bgStripe: isDarkMode ? 'bg-blue-900'    : 'bg-blue-200',    bgHeader: isDarkMode ? 'bg-blue-700'    : 'bg-blue-300' },
-      green:   { bg: isDarkMode ? 'bg-green-800'   : 'bg-green-50',    border: isDarkMode ? 'border-green-600'   : 'border-green-300',   bgLight: isDarkMode ? 'bg-green-900'   : 'bg-green-100',   bgButton: isDarkMode ? 'bg-green-700'   : 'bg-green-100',   bgStripe: isDarkMode ? 'bg-green-900'   : 'bg-green-100',   bgHeader: isDarkMode ? 'bg-green-700'   : 'bg-green-200' },
-      amber:   { bg: isDarkMode ? 'bg-amber-800'   : 'bg-amber-50',    border: isDarkMode ? 'border-amber-600'   : 'border-amber-300',   bgLight: isDarkMode ? 'bg-amber-900'   : 'bg-amber-100',   bgButton: isDarkMode ? 'bg-amber-700'   : 'bg-amber-100',   bgStripe: isDarkMode ? 'bg-amber-900'   : 'bg-amber-100',   bgHeader: isDarkMode ? 'bg-amber-700'   : 'bg-amber-200' },
-      orange:  { bg: isDarkMode ? 'bg-orange-800'  : 'bg-orange-50',   border: isDarkMode ? 'border-orange-600'  : 'border-orange-300',  bgLight: isDarkMode ? 'bg-orange-900'  : 'bg-orange-100',  bgButton: isDarkMode ? 'bg-orange-700'  : 'bg-orange-100',  bgStripe: isDarkMode ? 'bg-orange-900'  : 'bg-orange-100',  bgHeader: isDarkMode ? 'bg-orange-700'  : 'bg-orange-200' },
-      red:     { bg: isDarkMode ? 'bg-red-800'     : 'bg-red-50',      border: isDarkMode ? 'border-red-600'     : 'border-red-300',     bgLight: isDarkMode ? 'bg-red-900'     : 'bg-red-100',     bgButton: isDarkMode ? 'bg-red-700'     : 'bg-red-100',     bgStripe: isDarkMode ? 'bg-red-900'     : 'bg-red-100',     bgHeader: isDarkMode ? 'bg-red-700'     : 'bg-red-200' },
-      indigo:  { bg: isDarkMode ? 'bg-indigo-800'  : 'bg-indigo-50',   border: isDarkMode ? 'border-indigo-600'  : 'border-indigo-300',  bgLight: isDarkMode ? 'bg-indigo-900'  : 'bg-indigo-100',  bgButton: isDarkMode ? 'bg-indigo-700'  : 'bg-indigo-100',  bgStripe: isDarkMode ? 'bg-indigo-900'  : 'bg-indigo-100',  bgHeader: isDarkMode ? 'bg-indigo-700'  : 'bg-indigo-200' },
-      emerald: { bg: isDarkMode ? 'bg-emerald-800' : 'bg-emerald-50',  border: isDarkMode ? 'border-emerald-600' : 'border-emerald-300', bgLight: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-100', bgButton: isDarkMode ? 'bg-emerald-700' : 'bg-emerald-100', bgStripe: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-100', bgHeader: isDarkMode ? 'bg-emerald-700' : 'bg-emerald-200' }
-    };
-
-    return { ...(textColors[textTheme] || textColors.cyan), ...(backgroundColors[backgroundTheme] || backgroundColors.cyan) };
-  };
-
-  const colors = getThemedColors();
+  const colors = getAlbumCardColors({ textTheme, backgroundTheme, isColorful, isDarkMode });
 
   const albumTracks = useMemo(() => {
     if (album?.trackObjects && Array.isArray(album.trackObjects) && album.trackObjects.length > 0) {
