@@ -356,15 +356,9 @@ function SelectionContent({ sel, panel, c }) {
 function SingleContent({ sel, panel, c, stacked }) {
   const { isHorizontal, isMobile, isLandscape } = panel;
   const pinnedHz = isHorizontal && !stacked && !isMobile;
-  // Vertical dock widens progressively: slim with just years, wider with the
-  // month grid, calendar-width (7-day weeks) with the day grid.
-  const monthsOpen = sel.showMonthSelector && sel.selectedYear !== 'all';
-  const daysOpen   = sel.showDaySelector && monthsOpen;
-  const vYearCols  = daysOpen ? 4 : monthsOpen ? 3 : 2;
-  const vMonthCols = daysOpen ? 6 : 3;
-  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2)  : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : vYearCols;
-  const monthCols = pinnedHz ? 6                                : isHorizontal && !stacked ? 6 : vMonthCols;
-  const dayCols   = pinnedHz ? Math.ceil(sel.days.length / 2)  : isHorizontal && !stacked ? 7 : 7;
+  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2)  : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : 2;
+  const monthCols = pinnedHz ? 6                                : isHorizontal && !stacked ? 6 : 2;
+  const dayCols   = pinnedHz ? Math.ceil(sel.days.length / 2)  : isHorizontal && !stacked ? 7 : 3;
 
   return (
     <>
@@ -391,18 +385,13 @@ function SingleContent({ sel, panel, c, stacked }) {
 function RangeContent({ sel, panel, c, stacked }) {
   const { isHorizontal, isMobile, isLandscape } = panel;
   const pinnedHz  = isHorizontal && !stacked && !isMobile;
-  // Vertical dock widens progressively (see SingleContent)
-  const monthsOpen = sel.showRangeMonthDaySelectors && sel.yearRange.startYear && sel.yearRange.endYear;
-  const daysOpen   = sel.showRangeDaySelectors && monthsOpen;
-  const vYearCols  = daysOpen ? 4 : monthsOpen ? 3 : 2;
-  const vMonthCols = daysOpen ? 6 : 3;
-  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2) : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : vYearCols;
-  const monthCols = pinnedHz ? 6                               : isHorizontal && !stacked ? 6 : vMonthCols;
+  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2) : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : 2;
+  const monthCols = pinnedHz ? 6                               : isHorizontal && !stacked ? 6 : 2;
   const maxDay    = Math.max(
     getDaysInMonthLocal(sel.yearRange.startYear, sel.startMonth),
     getDaysInMonthLocal(sel.yearRange.endYear,   sel.endMonth),
   );
-  const dayCols   = pinnedHz ? Math.ceil(maxDay / 2)           : isHorizontal && !stacked ? 7 : 7;
+  const dayCols   = pinnedHz ? Math.ceil(maxDay / 2)           : isHorizontal && !stacked ? 7 : 3;
 
   return (
     <>
