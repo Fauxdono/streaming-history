@@ -51,51 +51,107 @@ export default function StatsTab({
   // Records & firsts, respecting the page's year filter
   const records = useMemo(() => {
     const data = filterDataByDate(rawPlayData || [], selectedStreaksYear);
-    let first = null;
-    const dayMs = {};
+
+    // One chronological list of counted plays (>30s, valid date)
+    const plays = [];
     for (const e of data) {
       if (!e.ms_played || e.ms_played < 30000) continue;
       const d = new Date(e.ts);
       if (isNaN(d.getTime())) continue;
-      if (e.master_metadata_track_name && (!first || d < first.date)) {
-        first = { date: d, track: e.master_metadata_track_name, artist: e.master_metadata_album_artist_name };
-      }
-      const key = localDayKey(d);
-      dayMs[key] = (dayMs[key] || 0) + e.ms_played;
+      plays.push({
+        t: d.getTime(),
+        ms: e.ms_played,
+        track: e.master_metadata_track_name,
+        artist: e.master_metadata_album_artist_name,
+      });
+    }
+    if (!plays.length) return null;
+    plays.sort((a, b) => a.t - b.t);
+
+    const first = plays.find(p => p.track) || plays[0];
+
+    // Per-day totals and counts
+    const dayMs = {};
+    const dayCount = {};
+    for (const p of plays) {
+      const key = localDayKey(new Date(p.t));
+      dayMs[key] = (dayMs[key] || 0) + p.ms;
+      dayCount[key] = (dayCount[key] || 0) + 1;
     }
     const days = Object.keys(dayMs).sort();
-    if (!days.length) return null;
 
-    // Biggest day — ignore days whose total exceeds 24h: those are data
-    // artifacts (e.g. Spotify offline-sync batches reporting multi-hour
-    // ms_played per song), not real listening days.
+    // Biggest day (by time) — ignore days whose total exceeds 24h: those are
+    // data artifacts, not real listening days.
     const plausible = days.filter(k => dayMs[k] <= 86400000);
     const candidates = plausible.length ? plausible : days;
     let bestDay = candidates[0];
     for (const k of candidates) if (dayMs[k] > dayMs[bestDay]) bestDay = k;
-    // Top artist on the biggest day (second, narrow pass)
     const artistMs = {};
-    for (const e of data) {
-      if (!e.ms_played || e.ms_played < 30000) continue;
-      const d = new Date(e.ts);
-      if (isNaN(d.getTime()) || localDayKey(d) !== bestDay) continue;
-      const a = e.master_metadata_album_artist_name;
-      if (a) artistMs[a] = (artistMs[a] || 0) + e.ms_played;
+    for (const p of plays) {
+      if (localDayKey(new Date(p.t)) !== bestDay || !p.artist) continue;
+      artistMs[p.artist] = (artistMs[p.artist] || 0) + p.ms;
     }
     const bestDayArtist = Object.entries(artistMs).sort((a, b) => b[1] - a[1])[0]?.[0];
 
-    // Longest silence between listening days
+    // Busiest day (by play count)
+    let busiestDay = days[0];
+    for (const k of days) if (dayCount[k] > dayCount[busiestDay]) busiestDay = k;
+
+    // Milestone play — the largest round play number reached
+    const MILESTONES = [1000000, 500000, 250000, 200000, 100000, 50000, 25000, 10000, 5000, 1000];
+    let milestone = null;
+    const n = MILESTONES.find(m => plays.length >= m);
+    if (n) {
+      const p = plays[n - 1];
+      milestone = { n, track: p.track, artist: p.artist, date: new Date(p.t) };
+    }
+
+    // Longest session — chain of plays with < 15 min between them
+    let session = null;
+    let sStart = 0, sMs = plays[0].ms;
+    for (let i = 1; i <= plays.length; i++) {
+      const chained = i < plays.length && plays[i].t - plays[i - 1].t <= 15 * 60 * 1000;
+      if (chained) { sMs += plays[i].ms; continue; }
+      const count = i - sStart;
+      if (sMs <= 86400000 && (!session || sMs > session.ms)) {
+        session = { ms: sMs, count, date: new Date(plays[sStart].t) };
+      }
+      if (i < plays.length) { sStart = i; sMs = plays[i].ms; }
+    }
+
+    // Longest relationship — song with the widest first→latest span (10+ plays)
+    const songSpan = new Map();
+    for (const p of plays) {
+      if (!p.track) continue;
+      const key = `${p.track}|||${p.artist || ''}`;
+      const s = songSpan.get(key);
+      if (s) { s.last = p.t; s.count++; }
+      else songSpan.set(key, { first: p.t, last: p.t, count: 1, track: p.track, artist: p.artist });
+    }
+    let relationship = null;
+    for (const s of songSpan.values()) {
+      if (s.count >= 10 && (!relationship || s.last - s.first > relationship.last - relationship.first)) relationship = s;
+    }
+
+    // Longest silence between listening days — and the song that broke it
     let gap = null;
     for (let i = 1; i < days.length; i++) {
-      const prev = new Date(days[i - 1]), cur = new Date(days[i]);
-      const diff = Math.round((cur - prev) / 86400000) - 1;
+      const diff = Math.round((new Date(days[i]) - new Date(days[i - 1])) / 86400000) - 1;
       if (diff > 0 && (!gap || diff > gap.days)) gap = { days: diff, from: days[i - 1], to: days[i] };
+    }
+    if (gap) {
+      const breaker = plays.find(p => localDayKey(new Date(p.t)) === gap.to && p.track);
+      if (breaker) gap.brokenBy = { track: breaker.track, artist: breaker.artist };
     }
 
     const spanDays = Math.round((new Date(days[days.length - 1]) - new Date(days[0])) / 86400000) + 1;
     return {
-      first,
+      first: first ? { date: new Date(first.t), track: first.track, artist: first.artist } : null,
       biggestDay: { date: bestDay, ms: dayMs[bestDay], artist: bestDayArtist },
+      busiestDay: { date: busiestDay, count: dayCount[busiestDay] },
+      milestone,
+      session,
+      relationship,
       gap,
       daysWithMusic: days.length,
       spanDays,
@@ -285,63 +341,87 @@ export default function StatsTab({
               )}
 
               {/* Records & Firsts */}
-              {records && (
-                <div className={
-                  colorMode === 'colorful'
-                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
-                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
-                }>
-                  <h4 className={
+              {records && (() => {
+                const cardCls = colorMode === 'colorful'
+                  ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
+                  : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`;
+                const labelCls = colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1';
+                const mainCls = colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium';
+                const subCls = colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400';
+                const strongCls = colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold';
+                const Card = ({ label, children }) => (
+                  <div className={cardCls}>
+                    <div className={labelCls}>{label}</div>
+                    {children}
+                  </div>
+                );
+                const relYears = records.relationship
+                  ? ((records.relationship.last - records.relationship.first) / (365.25 * 86400000))
+                  : 0;
+                return (
+                  <div className={
                     colorMode === 'colorful'
-                      ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
-                      : 'text-lg font-semibold mb-4'
-                  }>Records &amp; Firsts</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {records.first && (
-                      <div className={
-                        colorMode === 'colorful'
-                          ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
-                          : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
-                      }>
-                        <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>First play:</div>
-                        <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>&quot;{records.first.track}&quot;</div>
-                        {records.first.artist && <div className={colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400'}>by {records.first.artist}</div>}
-                        <div className={colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold'}>{records.first.date.toLocaleDateString()}</div>
-                      </div>
-                    )}
-                    <div className={
+                      ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
+                      : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
+                  }>
+                    <h4 className={
                       colorMode === 'colorful'
-                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
-                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
-                    }>
-                      <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>Biggest day:</div>
-                      <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>{new Date(records.biggestDay.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                      <div className={colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold'}>{formatDuration(records.biggestDay.ms)} of music</div>
-                      {records.biggestDay.artist && <div className={colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400'}>mostly {records.biggestDay.artist}</div>}
-                    </div>
-                    {records.gap && records.gap.days > 1 && (
-                      <div className={
-                        colorMode === 'colorful'
-                          ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
-                          : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
-                      }>
-                        <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>Longest silence:</div>
-                        <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>{records.gap.days} days</div>
-                        <div className={colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400'}>{new Date(records.gap.from).toLocaleDateString()} — {new Date(records.gap.to).toLocaleDateString()}</div>
-                      </div>
-                    )}
-                    <div className={
-                      colorMode === 'colorful'
-                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
-                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
-                    }>
-                      <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>Days with music:</div>
-                      <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>{records.daysWithMusic.toLocaleString()} of {records.spanDays.toLocaleString()} days</div>
-                      <div className={colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold'}>{Math.round((records.daysWithMusic / records.spanDays) * 100)}%</div>
+                        ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
+                        : 'text-lg font-semibold mb-4'
+                    }>Records &amp; Firsts</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {records.first && (
+                        <Card label="First play:">
+                          <div className={mainCls}>&quot;{records.first.track}&quot;</div>
+                          {records.first.artist && <div className={subCls}>by {records.first.artist}</div>}
+                          <div className={strongCls}>{records.first.date.toLocaleDateString()}</div>
+                        </Card>
+                      )}
+                      {records.milestone && (
+                        <Card label={`Play #${records.milestone.n.toLocaleString()}:`}>
+                          <div className={mainCls}>&quot;{records.milestone.track || 'Unknown'}&quot;</div>
+                          {records.milestone.artist && <div className={subCls}>by {records.milestone.artist}</div>}
+                          <div className={strongCls}>{records.milestone.date.toLocaleDateString()}</div>
+                        </Card>
+                      )}
+                      <Card label="Biggest day:">
+                        <div className={mainCls}>{new Date(records.biggestDay.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                        <div className={strongCls}>{formatDuration(records.biggestDay.ms)} of music</div>
+                        {records.biggestDay.artist && <div className={subCls}>mostly {records.biggestDay.artist}</div>}
+                      </Card>
+                      <Card label="Busiest day:">
+                        <div className={mainCls}>{records.busiestDay.count.toLocaleString()} plays</div>
+                        <div className={strongCls}>{new Date(records.busiestDay.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                      </Card>
+                      {records.session && (
+                        <Card label="Longest session:">
+                          <div className={mainCls}>{formatDuration(records.session.ms)}</div>
+                          <div className={subCls}>{records.session.count.toLocaleString()} tracks, barely pausing</div>
+                          <div className={strongCls}>{records.session.date.toLocaleDateString()}</div>
+                        </Card>
+                      )}
+                      {records.relationship && relYears >= 1 && (
+                        <Card label="Longest relationship:">
+                          <div className={mainCls}>&quot;{records.relationship.track}&quot;</div>
+                          {records.relationship.artist && <div className={subCls}>by {records.relationship.artist}</div>}
+                          <div className={strongCls}>{new Date(records.relationship.first).getFullYear()} → {new Date(records.relationship.last).getFullYear()} · {relYears >= 2 ? `${Math.floor(relYears)} years` : 'over a year'} · {records.relationship.count.toLocaleString()} plays</div>
+                        </Card>
+                      )}
+                      {records.gap && records.gap.days > 1 && (
+                        <Card label="Longest silence:">
+                          <div className={mainCls}>{records.gap.days} days</div>
+                          <div className={subCls}>{new Date(records.gap.from).toLocaleDateString()} — {new Date(records.gap.to).toLocaleDateString()}</div>
+                          {records.gap.brokenBy && <div className={strongCls}>broken by &quot;{records.gap.brokenBy.track}&quot;</div>}
+                        </Card>
+                      )}
+                      <Card label="Days with music:">
+                        <div className={mainCls}>{records.daysWithMusic.toLocaleString()} of {records.spanDays.toLocaleString()} days</div>
+                        <div className={strongCls}>{Math.round((records.daysWithMusic / records.spanDays) * 100)}%</div>
+                      </Card>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Download Data Section */}
               {stats && processedData.length > 0 && (
