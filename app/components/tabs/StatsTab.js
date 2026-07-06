@@ -70,13 +70,15 @@ export default function StatsTab({
 
     const first = plays.find(p => p.track) || plays[0];
 
-    // Per-day totals and counts
+    // Per-day totals, counts, and first play of each day
     const dayMs = {};
     const dayCount = {};
+    const dayFirstTrack = {};
     for (const p of plays) {
       const key = localDayKey(new Date(p.t));
       dayMs[key] = (dayMs[key] || 0) + p.ms;
       dayCount[key] = (dayCount[key] || 0) + 1;
+      if (!dayFirstTrack[key] && p.track) dayFirstTrack[key] = { track: p.track, artist: p.artist };
     }
     const days = Object.keys(dayMs).sort();
 
@@ -115,20 +117,18 @@ export default function StatsTab({
       milestone = { n, track: p.track, artist: p.artist, date: new Date(p.t) };
     }
 
-    // Longest session — chain of plays with < 15 min between them
-    let session = null;
+    // Top 3 sessions — chains of plays with < 15 min between them
+    const allSessions = [];
     let sStart = 0, sMs = plays[0].ms;
     for (let i = 1; i <= plays.length; i++) {
       const chained = i < plays.length && plays[i].t - plays[i - 1].t <= 15 * 60 * 1000;
       if (chained) { sMs += plays[i].ms; continue; }
-      const count = i - sStart;
-      if (sMs <= 86400000 && (!session || sMs > session.ms)) {
-        session = { ms: sMs, count, date: new Date(plays[sStart].t) };
-      }
+      if (sMs <= 86400000) allSessions.push({ ms: sMs, count: i - sStart, date: new Date(plays[sStart].t) });
       if (i < plays.length) { sStart = i; sMs = plays[i].ms; }
     }
+    const sessions = allSessions.sort((a, b) => b.ms - a.ms).slice(0, 3);
 
-    // Longest relationship — song with the widest first→latest span (10+ plays)
+    // Top 3 relationships — songs with the widest first→latest span (10+ plays)
     const songSpan = new Map();
     for (const p of plays) {
       if (!p.track) continue;
@@ -137,21 +137,18 @@ export default function StatsTab({
       if (s) { s.last = p.t; s.count++; }
       else songSpan.set(key, { first: p.t, last: p.t, count: 1, track: p.track, artist: p.artist });
     }
-    let relationship = null;
-    for (const s of songSpan.values()) {
-      if (s.count >= 10 && (!relationship || s.last - s.first > relationship.last - relationship.first)) relationship = s;
-    }
+    const relationships = [...songSpan.values()]
+      .filter(s => s.count >= 10)
+      .sort((a, b) => (b.last - b.first) - (a.last - a.first))
+      .slice(0, 3);
 
-    // Longest silence between listening days — and the song that broke it
-    let gap = null;
+    // Top 3 silences between listening days — with the song that broke each
+    const allGaps = [];
     for (let i = 1; i < days.length; i++) {
       const diff = Math.round((new Date(days[i]) - new Date(days[i - 1])) / 86400000) - 1;
-      if (diff > 0 && (!gap || diff > gap.days)) gap = { days: diff, from: days[i - 1], to: days[i] };
+      if (diff > 0) allGaps.push({ days: diff, from: days[i - 1], to: days[i], brokenBy: dayFirstTrack[days[i]] });
     }
-    if (gap) {
-      const breaker = plays.find(p => localDayKey(new Date(p.t)) === gap.to && p.track);
-      if (breaker) gap.brokenBy = { track: breaker.track, artist: breaker.artist };
-    }
+    const gaps = allGaps.sort((a, b) => b.days - a.days).slice(0, 3).filter(g => g.days > 1);
 
     const spanDays = Math.round((new Date(days[days.length - 1]) - new Date(days[0])) / 86400000) + 1;
     return {
@@ -159,9 +156,9 @@ export default function StatsTab({
       topDays,
       topBusiest,
       milestone,
-      session,
-      relationship,
-      gap,
+      sessions,
+      relationships,
+      gaps,
       daysWithMusic: days.length,
       spanDays,
     };
@@ -364,9 +361,25 @@ export default function StatsTab({
                     {children}
                   </div>
                 );
-                const relYears = records.relationship
-                  ? ((records.relationship.last - records.relationship.first) / (365.25 * 86400000))
-                  : 0;
+                const Top3 = ({ label, items, render }) => (
+                  items && items.length > 0 ? (
+                    <div className={`${cardCls} col-span-2`}>
+                      <div className={labelCls}>{label}</div>
+                      <div className="flex gap-3">
+                        {items.map((item, i) => (
+                          <div key={i} className="flex-1 min-w-0">{render(item, i)}</div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null
+                );
+                const spanLabel = (s) => {
+                  const years = (s.last - s.first) / (365.25 * 86400000);
+                  if (years >= 2) return `${Math.floor(years)} years`;
+                  if (years >= 1) return 'over a year';
+                  return `${Math.max(1, Math.round(years * 12))} months`;
+                };
+                const fmtDay = (d) => new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
                 return (
                   <div className={
                     colorMode === 'colorful'
@@ -393,54 +406,84 @@ export default function StatsTab({
                           <div className={strongCls}>{records.milestone.date.toLocaleDateString()}</div>
                         </Card>
                       )}
-                      <div className={`${cardCls} col-span-2`}>
-                        <div className={labelCls}>Biggest days:</div>
-                        <div className="flex gap-3">
-                          {records.topDays.map((d, i) => (
-                            <div key={d.date} className="flex-1 min-w-0">
-                              <div className={i === 0 ? mainCls : subCls}>{new Date(d.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                              <div className={i === 0 ? strongCls : subCls}>{formatDuration(d.ms)}</div>
-                              {d.artist && <div className={`${subCls} truncate`} title={d.artist}>mostly {d.artist}</div>}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className={`${cardCls} col-span-2`}>
-                        <div className={labelCls}>Busiest days:</div>
-                        <div className="flex gap-3">
-                          {records.topBusiest.map((d, i) => (
-                            <div key={d.date} className="flex-1 min-w-0">
-                              <div className={i === 0 ? mainCls : subCls}>{d.count.toLocaleString()} plays</div>
-                              <div className={i === 0 ? strongCls : subCls}>{new Date(d.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {records.session && (
-                        <Card label="Longest session:">
-                          <div className={mainCls}>{formatDuration(records.session.ms)}</div>
-                          <div className={subCls}>{records.session.count.toLocaleString()} tracks, barely pausing</div>
-                          <div className={strongCls}>{records.session.date.toLocaleDateString()}</div>
-                        </Card>
-                      )}
-                      {records.relationship && relYears >= 1 && (
-                        <Card label="Longest relationship:">
-                          <div className={`${mainCls} truncate`} title={records.relationship.track}>&quot;{records.relationship.track}&quot;</div>
-                          {records.relationship.artist && <div className={`${subCls} truncate`}>by {records.relationship.artist}</div>}
-                          <div className={strongCls}>{new Date(records.relationship.first).getFullYear()} → {new Date(records.relationship.last).getFullYear()} · {relYears >= 2 ? `${Math.floor(relYears)} years` : 'over a year'} · {records.relationship.count.toLocaleString()} plays</div>
-                        </Card>
-                      )}
-                      {records.gap && records.gap.days > 1 && (
-                        <Card label="Longest silence:">
-                          <div className={mainCls}>{records.gap.days} days</div>
-                          <div className={subCls}>{new Date(records.gap.from).toLocaleDateString()} — {new Date(records.gap.to).toLocaleDateString()}</div>
-                          {records.gap.brokenBy && <div className={`${strongCls} truncate`} title={records.gap.brokenBy.track}>broken by &quot;{records.gap.brokenBy.track}&quot;</div>}
-                        </Card>
-                      )}
                       <Card label="Days with music:">
                         <div className={mainCls}>{records.daysWithMusic.toLocaleString()} of {records.spanDays.toLocaleString()} days</div>
                         <div className={strongCls}>{Math.round((records.daysWithMusic / records.spanDays) * 100)}%</div>
                       </Card>
+                      <Top3 label="Biggest days:" items={records.topDays} render={(d, i) => (
+                        <>
+                          <div className={i === 0 ? mainCls : subCls}>{fmtDay(d.date)}</div>
+                          <div className={i === 0 ? strongCls : subCls}>{formatDuration(d.ms)}</div>
+                          {d.artist && <div className={`${subCls} truncate`} title={d.artist}>mostly {d.artist}</div>}
+                        </>
+                      )} />
+                      <Top3 label="Busiest days:" items={records.topBusiest} render={(d, i) => (
+                        <>
+                          <div className={i === 0 ? mainCls : subCls}>{d.count.toLocaleString()} plays</div>
+                          <div className={i === 0 ? strongCls : subCls}>{fmtDay(d.date)}</div>
+                        </>
+                      )} />
+                      <Top3 label="Longest sessions:" items={records.sessions} render={(s, i) => (
+                        <>
+                          <div className={i === 0 ? mainCls : subCls}>{formatDuration(s.ms)}</div>
+                          <div className={`${subCls} truncate`}>{s.count.toLocaleString()} tracks</div>
+                          <div className={i === 0 ? strongCls : subCls}>{s.date.toLocaleDateString()}</div>
+                        </>
+                      )} />
+                      <Top3 label="Longest relationships:" items={records.relationships} render={(s, i) => (
+                        <>
+                          <div className={`${i === 0 ? mainCls : subCls} truncate`} title={s.track}>&quot;{s.track}&quot;</div>
+                          {s.artist && <div className={`${subCls} truncate`}>by {s.artist}</div>}
+                          <div className={i === 0 ? strongCls : subCls}>{new Date(s.first).getFullYear()} → {new Date(s.last).getFullYear()} · {spanLabel(s)}</div>
+                        </>
+                      )} />
+                      <Top3 label="Songs on repeat:" items={filteredStreaks?.consecutivePlays?.top3?.songs} render={(s, i) => (
+                        <>
+                          <div className={`${i === 0 ? mainCls : subCls} truncate`} title={s.trackName}>&quot;{s.trackName}&quot;</div>
+                          {s.artist && <div className={`${subCls} truncate`}>by {s.artist}</div>}
+                          <div className={i === 0 ? strongCls : subCls}>{s.count} in a row</div>
+                        </>
+                      )} />
+                      <Top3 label="Artist marathons:" items={filteredStreaks?.consecutivePlays?.top3?.artists} render={(s, i) => (
+                        <>
+                          <div className={`${i === 0 ? mainCls : subCls} truncate`} title={s.name}>{s.name}</div>
+                          <div className={i === 0 ? strongCls : subCls}>{s.count} plays straight</div>
+                        </>
+                      )} />
+                      <Top3 label="Album sessions:" items={filteredStreaks?.consecutivePlays?.top3?.albums} render={(s, i) => (
+                        <>
+                          <div className={`${i === 0 ? mainCls : subCls} truncate`} title={s.name}>{s.name}</div>
+                          {s.artist && <div className={`${subCls} truncate`}>by {s.artist}</div>}
+                          <div className={i === 0 ? strongCls : subCls}>{s.count} tracks in a row</div>
+                        </>
+                      )} />
+                      <Top3 label="Daily streaks:" items={filteredStreaks?.overallDaily?.top3} render={(s, i) => (
+                        <>
+                          <div className={i === 0 ? mainCls : subCls}>{s.count} days</div>
+                          <div className={`${subCls} truncate`}>{new Date(s.startDate).toLocaleDateString()} — {new Date(s.endDate).toLocaleDateString()}</div>
+                        </>
+                      )} />
+                      <Top3 label="Most dedicated songs:" items={filteredStreaks?.topSongDaily?.top3} render={(s, i) => (
+                        <>
+                          <div className={`${i === 0 ? mainCls : subCls} truncate`} title={s.trackName}>&quot;{s.trackName}&quot;</div>
+                          {s.artist && <div className={`${subCls} truncate`}>by {s.artist}</div>}
+                          <div className={i === 0 ? strongCls : subCls}>{s.count} days in a row</div>
+                        </>
+                      )} />
+                      <Top3 label="Most consistent albums:" items={filteredStreaks?.topAlbumDaily?.top3} render={(s, i) => (
+                        <>
+                          <div className={`${i === 0 ? mainCls : subCls} truncate`} title={s.name}>{s.name}</div>
+                          {s.artist && <div className={`${subCls} truncate`}>by {s.artist}</div>}
+                          <div className={i === 0 ? strongCls : subCls}>{s.count} days straight</div>
+                        </>
+                      )} />
+                      <Top3 label="Longest silences:" items={records.gaps} render={(g, i) => (
+                        <>
+                          <div className={i === 0 ? mainCls : subCls}>{g.days} days</div>
+                          <div className={`${subCls} truncate`}>{new Date(g.from).toLocaleDateString()} — {new Date(g.to).toLocaleDateString()}</div>
+                          {g.brokenBy && <div className={`${i === 0 ? strongCls : subCls} truncate`} title={g.brokenBy.track}>broken by &quot;{g.brokenBy.track}&quot;</div>}
+                        </>
+                      )} />
                     </div>
                   </div>
                 );
@@ -499,210 +542,6 @@ export default function StatsTab({
                 </div>
               )}
 
-              {/* Listening Streaks Section */}
-              {stats && (streaks || rawPlayData?.length > 0) && (
-                <div className={
-                  colorMode === 'colorful'
-                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
-                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
-                }>
-                  <h4 className={
-                    colorMode === 'colorful'
-                      ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
-                      : 'text-lg font-semibold mb-4'
-                  }>Listening Streaks</h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Back-to-Back Plays Column */}
-                    <div className={
-                      colorMode === 'colorful'
-                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
-                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
-                    }>
-                      <h5 className={
-                        colorMode === 'colorful'
-                          ? 'font-medium mb-3 text-indigo-600 dark:text-indigo-400'
-                          : 'font-medium mb-3'
-                      }>Back-to-Back Plays</h5>
-
-                      {/* Song on repeat */}
-                      {filteredStreaks?.consecutivePlays?.song && (
-                        <div className="mb-3">
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
-                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
-                          }>Song on repeat:</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
-                              : 'font-medium'
-                          }>"{filteredStreaks.consecutivePlays.song.trackName}"</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
-                              : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {filteredStreaks.consecutivePlays.song.artist}</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
-                              : 'text-sm font-semibold'
-                          }>{filteredStreaks.consecutivePlays.song.count} plays in a row</div>
-                        </div>
-                      )}
-
-                      {/* Artist marathon */}
-                      {filteredStreaks?.consecutivePlays?.artist && (
-                        <div className="mb-3">
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
-                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
-                          }>Artist marathon:</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
-                              : 'font-medium'
-                          }>{filteredStreaks.consecutivePlays.artist.name}</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
-                              : 'text-sm font-semibold'
-                          }>{filteredStreaks.consecutivePlays.artist.count} consecutive plays</div>
-                        </div>
-                      )}
-
-                      {/* Album session */}
-                      {filteredStreaks?.consecutivePlays?.album && (
-                        <div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
-                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
-                          }>Album session:</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
-                              : 'font-medium'
-                          }>{filteredStreaks.consecutivePlays.album.name}</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
-                              : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {filteredStreaks.consecutivePlays.album.artist}</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
-                              : 'text-sm font-semibold'
-                          }>{filteredStreaks.consecutivePlays.album.count} tracks in a row</div>
-                        </div>
-                      )}
-
-                      {!filteredStreaks?.consecutivePlays?.song && !filteredStreaks?.consecutivePlays?.artist && !filteredStreaks?.consecutivePlays?.album && (
-                        <div className={
-                          colorMode === 'colorful'
-                            ? 'text-sm text-indigo-500 dark:text-indigo-400'
-                            : 'text-sm text-gray-500'
-                        }>No consecutive play streaks found</div>
-                      )}
-                    </div>
-
-                    {/* Daily Streaks Column */}
-                    <div className={
-                      colorMode === 'colorful'
-                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
-                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
-                    }>
-                      <h5 className={
-                        colorMode === 'colorful'
-                          ? 'font-medium mb-3 text-indigo-600 dark:text-indigo-400'
-                          : 'font-medium mb-3'
-                      }>Daily Streaks</h5>
-
-                      {/* Overall listening streak */}
-                      {filteredStreaks?.overallDaily && (
-                        <div className="mb-3">
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
-                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
-                          }>Longest listening streak:</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
-                              : 'font-medium'
-                          }>{filteredStreaks.overallDaily.count} consecutive days</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
-                              : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>{new Date(filteredStreaks.overallDaily.startDate).toLocaleDateString()} - {new Date(filteredStreaks.overallDaily.endDate).toLocaleDateString()}</div>
-                        </div>
-                      )}
-
-                      {/* Most dedicated song */}
-                      {filteredStreaks?.topSongDaily && (
-                        <div className="mb-3">
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
-                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
-                          }>Most dedicated song:</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
-                              : 'font-medium'
-                          }>"{filteredStreaks.topSongDaily.trackName}"</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
-                              : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {filteredStreaks.topSongDaily.artist}</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
-                              : 'text-sm font-semibold'
-                          }>{filteredStreaks.topSongDaily.count} days in a row</div>
-                        </div>
-                      )}
-
-                      {/* Most consistent album */}
-                      {filteredStreaks?.topAlbumDaily && (
-                        <div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1'
-                              : 'text-xs text-gray-500 dark:text-gray-400 mb-1'
-                          }>Most consistent album:</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'font-medium text-indigo-700 dark:text-indigo-300'
-                              : 'font-medium'
-                          }>{filteredStreaks.topAlbumDaily.name}</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm text-indigo-600 dark:text-indigo-400'
-                              : 'text-sm text-gray-600 dark:text-gray-400'
-                          }>by {filteredStreaks.topAlbumDaily.artist}</div>
-                          <div className={
-                            colorMode === 'colorful'
-                              ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
-                              : 'text-sm font-semibold'
-                          }>{filteredStreaks.topAlbumDaily.count} consecutive days</div>
-                        </div>
-                      )}
-
-                      {!filteredStreaks?.overallDaily && !filteredStreaks?.topSongDaily && !filteredStreaks?.topAlbumDaily && (
-                        <div className={
-                          colorMode === 'colorful'
-                            ? 'text-sm text-indigo-500 dark:text-indigo-400'
-                            : 'text-sm text-gray-500'
-                        }>No daily streaks found</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
 
             </div>
           </div>

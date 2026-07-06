@@ -63,7 +63,8 @@ export function calculateConsecutivePlayStreaks(rawPlayData) {
     return {
       song: null,
       artist: null,
-      album: null
+      album: null,
+      top3: { songs: [], artists: [], albums: [] }
     };
   }
 
@@ -73,13 +74,19 @@ export function calculateConsecutivePlayStreaks(rawPlayData) {
     .sort((a, b) => new Date(a.ts) - new Date(b.ts));
 
   if (sortedPlays.length === 0) {
-    return { song: null, artist: null, album: null };
+    return { song: null, artist: null, album: null, top3: { songs: [], artists: [], albums: [] } };
   }
 
-  // Track best streaks
-  let bestSongStreak = { count: 0, trackName: null, artist: null, startTime: null, endTime: null };
-  let bestArtistStreak = { count: 0, name: null, startTime: null, endTime: null };
-  let bestAlbumStreak = { count: 0, name: null, artist: null, startTime: null, endTime: null };
+  // Best finished run per entity (song/artist/album), so the top-3 lists
+  // contain three DIFFERENT songs/artists/albums, not three runs of one.
+  const songRuns = new Map();
+  const artistRuns = new Map();
+  const albumRuns = new Map();
+  const noteRun = (map, key, run) => {
+    if (run.count < 2) return;
+    const prev = map.get(key);
+    if (!prev || run.count > prev.count) map.set(key, run);
+  };
 
   // Current streak tracking
   let currentSong = { key: null, count: 0, trackName: null, artist: null, startTime: null };
@@ -97,15 +104,13 @@ export function calculateConsecutivePlayStreaks(rawPlayData) {
     if (songKey === currentSong.key) {
       currentSong.count++;
     } else {
-      if (currentSong.count > bestSongStreak.count) {
-        bestSongStreak = {
-          count: currentSong.count,
-          trackName: currentSong.trackName,
-          artist: currentSong.artist,
-          startTime: currentSong.startTime,
-          endTime: timestamp
-        };
-      }
+      noteRun(songRuns, currentSong.key, {
+        count: currentSong.count,
+        trackName: currentSong.trackName,
+        artist: currentSong.artist,
+        startTime: currentSong.startTime,
+        endTime: timestamp
+      });
       currentSong = {
         key: songKey,
         count: 1,
@@ -119,14 +124,12 @@ export function calculateConsecutivePlayStreaks(rawPlayData) {
     if (artistName === currentArtist.name) {
       currentArtist.count++;
     } else {
-      if (currentArtist.count > bestArtistStreak.count) {
-        bestArtistStreak = {
-          count: currentArtist.count,
-          name: currentArtist.name,
-          startTime: currentArtist.startTime,
-          endTime: timestamp
-        };
-      }
+      noteRun(artistRuns, currentArtist.name, {
+        count: currentArtist.count,
+        name: currentArtist.name,
+        startTime: currentArtist.startTime,
+        endTime: timestamp
+      });
       currentArtist = { name: artistName, count: 1, startTime: timestamp };
     }
 
@@ -134,15 +137,13 @@ export function calculateConsecutivePlayStreaks(rawPlayData) {
     if (albumKey === currentAlbum.key) {
       currentAlbum.count++;
     } else {
-      if (currentAlbum.count > bestAlbumStreak.count) {
-        bestAlbumStreak = {
-          count: currentAlbum.count,
-          name: currentAlbum.name,
-          artist: currentAlbum.artist,
-          startTime: currentAlbum.startTime,
-          endTime: timestamp
-        };
-      }
+      noteRun(albumRuns, currentAlbum.key, {
+        count: currentAlbum.count,
+        name: currentAlbum.name,
+        artist: currentAlbum.artist,
+        startTime: currentAlbum.startTime,
+        endTime: timestamp
+      });
       currentAlbum = {
         key: albumKey,
         count: 1,
@@ -153,39 +154,31 @@ export function calculateConsecutivePlayStreaks(rawPlayData) {
     }
   }
 
-  // Check final streaks
+  // Flush final streaks
   const lastTimestamp = sortedPlays[sortedPlays.length - 1].ts;
-  if (currentSong.count > bestSongStreak.count) {
-    bestSongStreak = {
-      count: currentSong.count,
-      trackName: currentSong.trackName,
-      artist: currentSong.artist,
-      startTime: currentSong.startTime,
-      endTime: lastTimestamp
-    };
-  }
-  if (currentArtist.count > bestArtistStreak.count) {
-    bestArtistStreak = {
-      count: currentArtist.count,
-      name: currentArtist.name,
-      startTime: currentArtist.startTime,
-      endTime: lastTimestamp
-    };
-  }
-  if (currentAlbum.count > bestAlbumStreak.count) {
-    bestAlbumStreak = {
-      count: currentAlbum.count,
-      name: currentAlbum.name,
-      artist: currentAlbum.artist,
-      startTime: currentAlbum.startTime,
-      endTime: lastTimestamp
-    };
-  }
+  noteRun(songRuns, currentSong.key, {
+    count: currentSong.count, trackName: currentSong.trackName, artist: currentSong.artist,
+    startTime: currentSong.startTime, endTime: lastTimestamp
+  });
+  noteRun(artistRuns, currentArtist.name, {
+    count: currentArtist.count, name: currentArtist.name,
+    startTime: currentArtist.startTime, endTime: lastTimestamp
+  });
+  noteRun(albumRuns, currentAlbum.key, {
+    count: currentAlbum.count, name: currentAlbum.name, artist: currentAlbum.artist,
+    startTime: currentAlbum.startTime, endTime: lastTimestamp
+  });
+
+  const top3 = (map) => [...map.values()].sort((a, b) => b.count - a.count).slice(0, 3);
+  const songsTop = top3(songRuns);
+  const artistsTop = top3(artistRuns);
+  const albumsTop = top3(albumRuns);
 
   return {
-    song: bestSongStreak.count > 1 ? bestSongStreak : null,
-    artist: bestArtistStreak.count > 1 ? bestArtistStreak : null,
-    album: bestAlbumStreak.count > 1 ? bestAlbumStreak : null
+    song: songsTop[0] || null,
+    artist: artistsTop[0] || null,
+    album: albumsTop[0] || null,
+    top3: { songs: songsTop, artists: artistsTop, albums: albumsTop }
   };
 }
 
@@ -206,45 +199,26 @@ export function calculateOverallDailyStreak(rawPlayData) {
     return null;
   }
 
-  let longestStreak = 0;
+  // Collect every consecutive-day run, then rank
+  const runs = [];
   let currentStreak = 1;
   let streakStart = days[0];
-  let streakEnd = days[0];
-  let bestStreakStart = days[0];
-  let bestStreakEnd = days[0];
 
   for (let i = 1; i < days.length; i++) {
-    const currentDate = new Date(days[i]);
-    const previousDate = new Date(days[i - 1]);
-    const diffDays = (currentDate - previousDate) / (1000 * 60 * 60 * 24);
-
+    const diffDays = (new Date(days[i]) - new Date(days[i - 1])) / (1000 * 60 * 60 * 24);
     if (diffDays === 1) {
       currentStreak++;
-      streakEnd = days[i];
-      if (currentStreak > longestStreak) {
-        longestStreak = currentStreak;
-        bestStreakStart = streakStart;
-        bestStreakEnd = streakEnd;
-      }
     } else {
+      if (currentStreak > 1) runs.push({ count: currentStreak, startDate: streakStart, endDate: days[i - 1] });
       currentStreak = 1;
       streakStart = days[i];
-      streakEnd = days[i];
     }
   }
+  if (currentStreak > 1) runs.push({ count: currentStreak, startDate: streakStart, endDate: days[days.length - 1] });
 
-  // Check if final streak is the longest
-  if (currentStreak > longestStreak) {
-    longestStreak = currentStreak;
-    bestStreakStart = streakStart;
-    bestStreakEnd = streakEnd;
-  }
-
-  return longestStreak > 1 ? {
-    count: longestStreak,
-    startDate: bestStreakStart,
-    endDate: bestStreakEnd
-  } : null;
+  runs.sort((a, b) => b.count - a.count);
+  const top3 = runs.slice(0, 3);
+  return top3.length ? { ...top3[0], top3 } : null;
 }
 
 // Calculate top song daily streak - consecutive days listening to the same song
@@ -253,25 +227,27 @@ export function calculateTopSongDailyStreak(songs, playHistory) {
     return null;
   }
 
-  let bestStreak = null;
+  const candidates = [];
 
   for (const song of songs.slice(0, 100)) { // Check top 100 songs for performance
     const timestamps = playHistory[song.key] || [];
     if (timestamps.length < 2) continue;
 
     const streakResult = calculateArtistStreaks(timestamps);
-    if (streakResult.longestStreak > 1 && (!bestStreak || streakResult.longestStreak > bestStreak.count)) {
-      bestStreak = {
+    if (streakResult.longestStreak > 1) {
+      candidates.push({
         trackName: song.trackName,
         artist: song.artist,
         count: streakResult.longestStreak,
         startDate: streakResult.streakStart,
         endDate: streakResult.streakEnd
-      };
+      });
     }
   }
 
-  return bestStreak;
+  candidates.sort((a, b) => b.count - a.count);
+  const top3 = candidates.slice(0, 3);
+  return top3.length ? { ...top3[0], top3 } : null;
 }
 
 // Calculate top album daily streak - consecutive days listening to the same album
@@ -291,7 +267,7 @@ export function calculateTopAlbumDailyStreak(albums, rawPlayData) {
     albumPlayHistory[albumKey].push(new Date(play.ts).getTime());
   }
 
-  let bestStreak = null;
+  const candidates = [];
 
   for (const album of albums.slice(0, 100)) { // Check top 100 albums for performance
     const albumKey = `${album.name}|||${album.artist}`;
@@ -299,17 +275,19 @@ export function calculateTopAlbumDailyStreak(albums, rawPlayData) {
     if (timestamps.length < 2) continue;
 
     const streakResult = calculateArtistStreaks(timestamps);
-    if (streakResult.longestStreak > 1 && (!bestStreak || streakResult.longestStreak > bestStreak.count)) {
-      bestStreak = {
+    if (streakResult.longestStreak > 1) {
+      candidates.push({
         name: album.name,
         artist: album.artist,
         count: streakResult.longestStreak,
         startDate: streakResult.streakStart,
         endDate: streakResult.streakEnd
-      };
+      });
     }
   }
 
-  return bestStreak;
+  candidates.sort((a, b) => b.count - a.count);
+  const top3 = candidates.slice(0, 3);
+  return top3.length ? { ...top3[0], top3 } : null;
 }
 
