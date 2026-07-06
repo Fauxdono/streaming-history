@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useTheme } from './themeprovider';
 import { useYearSelectorState }  from './hooks/useYearSelectorState';
 import { useFloatPanel }         from './hooks/useFloatPanel';
@@ -44,6 +44,22 @@ export default function YearSelector({
   const c     = useYearSelectorColors({ colorTheme, colorMode });
 
   const panelRef = useRef(null);
+
+  // Measure the actual settings-bar height (it grows with the font-size
+  // setting). TopTabs positions itself off the measured value — the docked
+  // panel must use the same number or it slides underneath the tabs.
+  const [settingsBarHeight, setSettingsBarHeight] = useState(40);
+  React.useEffect(() => {
+    if (panel.isMobile) return;
+    const measure = () => {
+      const el = document.querySelector('.fixed.left-0.right-0.w-full.z-\\[100\\]');
+      if (el) setSettingsBarHeight(el.offsetHeight);
+    };
+    measure();
+    const timer = setTimeout(measure, 100); // re-measure after fonts/layout settle
+    window.addEventListener('resize', measure);
+    return () => { clearTimeout(timer); window.removeEventListener('resize', measure); };
+  }, [panel.isMobile, fontSize]);
 
   // Notify parent of layout changes via ResizeObserver
   React.useEffect(() => {
@@ -92,6 +108,7 @@ export default function YearSelector({
     isMobile:        panel.isMobile,
     isLandscape:     panel.isLandscape,
     fontScale,
+    settingsBarHeight,
   }) : null;
 
   // Pinned desktop scales via zoom (floating renders the dial, handled above)
@@ -645,58 +662,65 @@ function getLabel(sel) {
   return startYear === endYear ? startYear : `${startYear}–${endYear}`;
 }
 
-function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, fontScale }) {
+function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPosition, topTabsHeight, topTabsWidth, isMobile, isLandscape, fontScale, settingsBarHeight = 40 }) {
   if (isFloating) {
     return { className: 'fixed z-[100]', style: { left: `${floatPos.x}px`, top: `${floatPos.y}px` } };
   }
 
-  const settingsBar = isMobile ? (isLandscape ? 64 : 85) : 40;
+  // Desktop: use the measured settings-bar height (scales with font size)
+  const settingsBar = isMobile ? (isLandscape ? 64 : 85) : settingsBarHeight;
   const tabsH = topTabsHeight ?? (isMobile ? 48 : 56);
   const tabsW = topTabsWidth ?? (isMobile ? 160 : 192);
   const sameSide = topTabsPosition === currentPosition;
+
+  // The desktop panel renders inside `zoom: fontScale`, which multiplies
+  // fixed-position offsets. Divide real-pixel offsets by the zoom so the
+  // panel lands exactly where intended (e.g. flush under TopTabs).
+  const z = isMobile ? 1 : (fontScale || 1);
+  const px = (n) => `${Math.round(n / z)}px`;
 
   switch (currentPosition) {
     case 'top': return {
       className: 'fixed z-[89]',
       style: {
         top:   sameSide
-          ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH}px)` : `${settingsBar + tabsH}px`)
-          : (isMobile ? '0px' : `${settingsBar}px`),
-        left:  topTabsPosition === 'left'  ? `${tabsW}px` : '0px',
-        right: topTabsPosition === 'right' ? `${tabsW}px` : '0px',
+          ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH}px)` : px(settingsBar + tabsH))
+          : (isMobile ? '0px' : px(settingsBar)),
+        left:  topTabsPosition === 'left'  ? px(tabsW) : '0px',
+        right: topTabsPosition === 'right' ? px(tabsW) : '0px',
       }
     };
     case 'bottom': return {
       className: 'fixed z-[89]',
       style: {
         bottom: sameSide
-          ? (isMobile ? `${settingsBar + tabsH}px` : `${tabsH}px`)
+          ? (isMobile ? `${settingsBar + tabsH}px` : px(tabsH))
           : (isMobile ? `${settingsBar}px` : '0px'),
-        left:   topTabsPosition === 'left'  ? `${tabsW}px` : '0px',
-        right:  topTabsPosition === 'right' ? `${tabsW}px` : '0px',
+        left:   topTabsPosition === 'left'  ? px(tabsW) : '0px',
+        right:  topTabsPosition === 'right' ? px(tabsW) : '0px',
       }
     };
     case 'left': return {
       className: 'fixed z-[90]',
       style: {
-        left:   sameSide ? `${tabsW}px` : '0px',
+        left:   sameSide ? px(tabsW) : '0px',
         top:    topTabsPosition === 'top'
-          ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : `${settingsBar + tabsH - 1}px`)
-          : (isMobile ? '0px' : `${settingsBar}px`),
+          ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : px(settingsBar + tabsH - 1))
+          : (isMobile ? '0px' : px(settingsBar)),
         bottom: topTabsPosition === 'bottom'
-          ? (isMobile ? `${settingsBar + tabsH}px` : `${tabsH}px`)
+          ? (isMobile ? `${settingsBar + tabsH}px` : px(tabsH))
           : (isMobile ? `${settingsBar}px` : '0px'),
       }
     };
     case 'right': return {
       className: 'fixed z-[90]',
       style: {
-        right:  sameSide ? `${tabsW}px` : '0px',
+        right:  sameSide ? px(tabsW) : '0px',
         top:    topTabsPosition === 'top'
-          ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : `${settingsBar + tabsH - 1}px`)
-          : (isMobile ? '0px' : `${settingsBar}px`),
+          ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : px(settingsBar + tabsH - 1))
+          : (isMobile ? '0px' : px(settingsBar)),
         bottom: topTabsPosition === 'bottom'
-          ? (isMobile ? `${settingsBar + tabsH}px` : `${tabsH}px`)
+          ? (isMobile ? `${settingsBar + tabsH}px` : px(tabsH))
           : (isMobile ? `${settingsBar}px` : '0px'),
       }
     };
