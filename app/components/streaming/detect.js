@@ -26,6 +26,19 @@ export function detectFileType(filename, content) {
         if (sample.name && sample.artist && sample.date && sample.source === 'lastfm') {
           return 'lastfm';
         }
+        // lastfm.ghan.nl export: array of API pages [{ "@attr", track: [...] }]
+        if (sample['@attr'] && Array.isArray(sample.track)) {
+          return 'lastfm';
+        }
+        // Flat array of raw Last.fm API tracks: artist is a {"#text"} object
+        if (sample.name && typeof sample.artist === 'object' && sample.artist?.['#text'] !== undefined) {
+          return 'lastfm';
+        }
+      }
+
+      // Raw Last.fm API response wrapper
+      if (data?.recenttracks?.track) {
+        return 'lastfm';
       }
 
       // YouTube Music JSON (has different structure)
@@ -43,7 +56,12 @@ export function detectFileType(filename, content) {
   // For CSV files, check headers
   if (filename.endsWith('.csv')) {
     const firstLine = content.split('\n')[0]?.toLowerCase() || '';
-    
+
+    // Last.fm CSV export (lastfm.ghan.nl): uts,utc_time,artist,...,track,track_mbid
+    if (firstLine.includes('uts') && firstLine.includes('utc_time') && firstLine.includes('track_mbid')) {
+      return 'lastfm';
+    }
+
     // SoundCloud detection
     if (firstLine.includes('play_time') && firstLine.includes('track_title') && firstLine.includes('track_url')) {
       return 'soundcloud';

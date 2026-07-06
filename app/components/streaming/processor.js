@@ -8,7 +8,7 @@ import { normalizeArtistName } from './normalize.js';
 import { processAppleMusicCSV } from './parsers/apple-music.js';
 import { processCakeExcelFile } from './parsers/cake.js';
 import { processDeezerXLSX } from './parsers/deezer.js';
-import { processLastfmJSON } from './parsers/lastfm.js';
+import { processLastfmJSON, processLastfmCSV } from './parsers/lastfm.js';
 import { processRockboxScrobblerLog } from './parsers/rockbox.js';
 import { processSoundcloudCSV } from './parsers/soundcloud.js';
 import { processTidalCSV } from './parsers/tidal.js';
@@ -97,7 +97,9 @@ export const streamingProcessor = {
                   return processRockboxScrobblerLog(content);
 
                 case 'lastfm':
-                  return processLastfmJSON(content);
+                  return file.name.endsWith('.csv')
+                    ? await processLastfmCSV(content)
+                    : processLastfmJSON(content);
 
                 case 'youtube_music':
                   // TODO: Add YouTube Music processing

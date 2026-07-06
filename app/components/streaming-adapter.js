@@ -27,4 +27,4 @@ export {
   calculateTopAlbumDailyStreak,
 } from './streaming/streaks.js';
 export { processRockboxScrobblerLog } from './streaming/parsers/rockbox.js';
-export { processLastfmJSON } from './streaming/parsers/lastfm.js';
+export { processLastfmJSON, processLastfmCSV } from './streaming/parsers/lastfm.js';
