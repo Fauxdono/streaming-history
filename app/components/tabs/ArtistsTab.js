@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { RankBadge, RankBar } from '../RankCardBits.js';
 
 // Artists tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
@@ -26,6 +26,7 @@ export default function ArtistsTab({
   getArtistsTabLabel,
   selectedArtistYear,
   setSelectedArtistYear,
+  artistsByYear,
   selectedArtists,
   setSelectedArtists,
   setActiveTab,
@@ -37,6 +38,38 @@ export default function ArtistsTab({
   yearRangeMode,
   setYearRangeMode,
 }) {
+  // Previous-year ranks (same sort metric) for rank-movement chips.
+  // Only meaningful when a single year is selected.
+  const prevRanks = useMemo(() => {
+    if (yearRangeMode || !selectedArtistYear || selectedArtistYear === 'all' || !/^\d{4}$/.test(String(selectedArtistYear))) return null;
+    const prev = artistsByYear?.[String(parseInt(selectedArtistYear, 10) - 1)];
+    if (!prev || prev.length === 0) return null;
+    const sorted = [...prev].sort((a, b) => (b[artistsSortBy] || 0) - (a[artistsSortBy] || 0));
+    const map = new Map();
+    sorted.forEach((a, i) => map.set(a.name, i + 1));
+    return map;
+  }, [artistsByYear, selectedArtistYear, yearRangeMode, artistsSortBy]);
+
+  const rankChip = (name, rank) => {
+    if (!prevRanks) return null;
+    const prev = prevRanks.get(name);
+    const delta = prev ? prev - rank : null;
+    const prevYear = parseInt(selectedArtistYear, 10) - 1;
+    return (
+      <span
+        className={`shrink-0 text-[10px] font-bold leading-none ${
+          delta === null ? 'italic opacity-60'
+          : delta > 0 ? 'text-green-600 dark:text-green-400'
+          : delta < 0 ? 'text-red-500 dark:text-red-400'
+          : 'opacity-40'
+        }`}
+        title={prev ? `#${prev} in ${prevYear}` : `not ranked in ${prevYear}`}
+      >
+        {delta === null ? 'new' : delta > 0 ? `\u25B2${delta}` : delta < 0 ? `\u25BC${-delta}` : '='}
+      </span>
+    );
+  };
+
   return (
           <div className={
             colorMode === 'colorful'
@@ -435,6 +468,7 @@ export default function ArtistsTab({
                             {/* Row 1: position + name + toggle */}
                             <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${cardText}`}>
                               <RankBadge rank={originalRank} isDarkMode={isDarkMode} />
+                              {rankChip(artist.name, originalRank)}
                               <span
                                 className="flex-1 text-center cursor-pointer hover:underline"
                                 title={`See your ${artist.name} songs`}

@@ -2221,6 +2221,7 @@ const SpotifyAnalyzer = ({
             getArtistsTabLabel={getArtistsTabLabel}
             selectedArtistYear={selectedArtistYear}
             setSelectedArtistYear={setSelectedArtistYear}
+            artistsByYear={artistsByYear}
             selectedArtists={selectedArtists}
             setSelectedArtists={setSelectedArtists}
             setActiveTab={setActiveTab}

@@ -3,6 +3,7 @@ import { Download } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
 import { getObsessionColors } from './theme.js';
+import { RankBadge, RankBar } from './RankCardBits.js';
 
 const TrackRankings = ({
   processedData = [],
@@ -447,9 +448,9 @@ return (
                 >
                   {/* Row 1: rank + name + artist subline + toggle */}
                   <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${!isExpanded ? 'overflow-hidden' : ''} ${c.text}`}>
-                    <span className="opacity-50 text-sm w-5 text-left shrink-0">#{index + 1}</span>
+                    <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
                     <div className="flex-1 min-w-0 text-center px-1">
-                      <div className={isExpanded ? 'break-words' : 'truncate'}>{obsession.trackName}</div>
+                      <div className={isExpanded ? 'break-words' : 'truncate'} title={obsession.trackName}>{obsession.trackName}</div>
                       <div className={`text-xs font-normal opacity-70 ${isExpanded ? 'break-words' : 'truncate'} ${c.textLight}`}>{obsession.artist}</div>
                     </div>
                     <button type="button" onClick={() => setExpandedCards(p => ({ ...p, [key]: !p[key] }))} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">
@@ -457,7 +458,7 @@ return (
                     </button>
                   </div>
 
-                  {/* Row 2: collapsible peak plays | total plays */}
+                  {/* Expanded details */}
                   {isExpanded && (
                     <div className={`grid grid-cols-2 gap-1 mb-2 text-xs ${c.textLight}`}>
                       <div><div className="opacity-60">Peak Week</div><div className="font-bold">{obsession.intensePeriod.playsInWeek}</div></div>
@@ -465,19 +466,27 @@ return (
                     </div>
                   )}
 
-                  {/* Row 3: album + week date flex-wrap */}
-                  <div className={`flex flex-wrap gap-y-1 text-xs text-center ${c.textLight}`}>
+                  {/* Full-width fact rows: label left, value right */}
+                  <div className={`space-y-1 text-xs ${c.textLight}`}>
                     {obsession.albumName && (
-                      <div className="flex-1 min-w-0 px-1">
-                        <div className="opacity-60">Album</div>
-                        <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{obsession.albumName}</div>
+                      <div className="flex justify-between gap-2">
+                        <span className="opacity-60 shrink-0">Album</span>
+                        <span className={`font-bold text-right min-w-0 ${isExpanded ? 'break-words' : 'truncate'}`} title={obsession.albumName}>{obsession.albumName}</span>
                       </div>
                     )}
-                    <div className="flex-1 min-w-0 px-1">
-                      <div className="opacity-60">Week of</div>
-                      <div className="font-bold truncate">{formatDate(obsession.intensePeriod.weekStart)}</div>
+                    <div className="flex justify-between gap-2">
+                      <span className="opacity-60 shrink-0">Week of</span>
+                      <span className="font-bold text-right min-w-0 truncate">{formatDate(obsession.intensePeriod.weekStart)}</span>
                     </div>
                   </div>
+
+                  {/* Play bar — peak-week intensity relative to #1 */}
+                  <RankBar
+                    value={obsession.intensePeriod?.playsInWeek || 0}
+                    max={filteredObsessions[0]?.intensePeriod?.playsInWeek || 0}
+                    label={`${obsession.intensePeriod?.playsInWeek || 0} in a week`}
+                    className={c.text || (isDarkMode ? 'text-[#4169E1]' : 'text-black')}
+                  />
                 </div>
               );
             })
