@@ -182,15 +182,11 @@ export function useFloatPanel({
     ? floatOrientation === 'horizontal'
     : currentPosition === 'top' || currentPosition === 'bottom';
 
-  // Force expanded when horizontal on desktop (can't collapse a top/bottom bar)
-  useEffect(() => { if (isHorizontal && !isMobile) setExpanded(true); }, [isHorizontal, isMobile]);
-
   // ---- Actions --------------------------------------------------------------
   const toggleExpanded = useCallback(() => {
     if (isFloating) return;
-    if (isHorizontal && !isMobile) return; // horizontal desktop is always open
     setExpanded(prev => !prev);
-  }, [isFloating, isHorizontal, isMobile]);
+  }, [isFloating]);
 
   // Cycle: right → bottom → left → top → right
   const CYCLE = { right: 'bottom', bottom: 'left', left: 'top', top: 'right' };

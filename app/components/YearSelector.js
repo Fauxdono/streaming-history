@@ -123,8 +123,8 @@ export default function YearSelector({
     ? `${c.sidebarBg} backdrop-blur-sm rounded-lg shadow-lg overflow-hidden border ${c.border}`
     : `mb-4 border rounded ${c.border} overflow-hidden p-4 ${c.bgLight}`;
 
-  // Collapsed mini-panel
-  if (!panel.expanded && asSidebar && !panel.isFloating && (!panel.isHorizontal || panel.isMobile)) {
+  // Collapsed mini-panel (any docked side)
+  if (!panel.expanded && asSidebar && !panel.isFloating) {
     return (
       <CollapsedPanel
         panel={panel} c={c}
