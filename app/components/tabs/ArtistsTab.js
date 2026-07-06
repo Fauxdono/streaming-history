@@ -382,13 +382,16 @@ export default function ArtistsTab({
                       .slice(0, topArtistsCount)
                       .map((artist) => {
                         const originalRank = displayedArtists.indexOf(artist) + 1;
+                        const goToArtistSongs = () => {
+                          setActiveTab('custom');
+                          setSelectedArtists([artist.name]);
+                          setArtistSelectionMode(false);
+                        };
                         const handleArtistClick = () => {
                           if (!artistSelectionMode) {
                             return;
                           }
-                          setActiveTab('custom');
-                          setSelectedArtists([artist.name]);
-                          setArtistSelectionMode(false);
+                          goToArtistSongs();
                         };
 
                         const cardBg = colorMode === 'colorful'
@@ -432,7 +435,11 @@ export default function ArtistsTab({
                             {/* Row 1: position + name + toggle */}
                             <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${cardText}`}>
                               <RankBadge rank={originalRank} isDarkMode={isDarkMode} />
-                              <span className="flex-1 text-center">{artist.name}</span>
+                              <span
+                                className="flex-1 text-center cursor-pointer hover:underline"
+                                title={`See your ${artist.name} songs`}
+                                onClick={(e) => { e.stopPropagation(); goToArtistSongs(); }}
+                              >{artist.name}</span>
                               <button
                                 type="button"
                                 onClick={toggleExpanded}
