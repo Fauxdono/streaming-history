@@ -219,8 +219,10 @@ function CollapsedPanel({ panel, c, mode, label, posStyle, scaleStyle, container
           <button onClick={(e) => { e.stopPropagation(); panel.toggleExpanded(); }} className={iconBtn(c)} aria-label="Expand">
             <span>{currentPosition === 'top' ? '↓' : '↑'}</span>
           </button>
-          <span className={`${c.text} text-[1em] opacity-70`}>{mode === 'single' ? 'Year' : 'Year Range'}</span>
-          <span className={`${c.text} text-[1em] font-bold flex-1`}>{label}</span>
+          <div className="flex-1 flex items-center justify-center gap-2">
+            <span className={`${c.text} text-[1em] opacity-70`}>{mode === 'single' ? 'Year' : 'Year Range'}</span>
+            <span className={`${c.text} text-[1em] font-bold`}>{label}</span>
+          </div>
           <button onClick={(e) => { e.stopPropagation(); panel.togglePosition(); }} className={iconBtn(c)} aria-label="Move panel">⇄</button>
           {!isMobile && (
             <button onClick={(e) => { e.stopPropagation(); panel.toggleFloating(); }} className={iconBtn(c)} title="Float as dial">◎</button>
