@@ -160,16 +160,12 @@ export default function YearSelector({
         {/* Selection content */}
         <SelectionContent sel={sel} panel={panel} c={c} />
 
-        {/* Panel controls — far end of horizontal bar */}
+        {/* Collapse — far end of horizontal bar */}
         {asSidebar && panel.isHorizontal && (
           <div className="flex flex-row gap-1 items-center shrink-0 ml-auto pl-2">
             <button onClick={panel.toggleExpanded} className={iconBtn(c)} aria-label="Collapse">
               {panel.currentPosition === 'top' ? '↑' : '↓'}
             </button>
-            <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
-            {!panel.isMobile && (
-              <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float as dial">◎</button>
-            )}
           </div>
         )}
       </div>
@@ -282,13 +278,22 @@ function ModeControls({ sel, panel, c, asSidebar }) {
   );
 
   if (isHorizontal) {
-    // Two compact columns: Single/Range next to Month/Day
+    // Compact columns mirroring the vertical order:
+    // Single/Range · move/float · Month/Day
     return (
       <div className="flex flex-row gap-1 items-center shrink-0">
         <div className="flex flex-col gap-1 items-center">
           <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
           <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
         </div>
+        {asSidebar && (
+          <div className="flex flex-col gap-1 items-center">
+            <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
+            {!isMobile && (
+              <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float as dial">◎</button>
+            )}
+          </div>
+        )}
         <div className="flex flex-col gap-1 items-center empty:hidden">
           {monthDayToggles}
         </div>
