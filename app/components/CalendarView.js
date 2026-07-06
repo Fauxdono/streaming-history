@@ -735,21 +735,30 @@ const CalendarView = ({
                           <div><div className="opacity-60">Artists</div><div className="font-bold">{monthData.uniqueArtistCount}</div></div>
                         </div>
                       )}
-                      {/* Row 3: top artist | top song */}
-                      <div className={`flex flex-wrap gap-y-1 text-xs text-center ${modeColors.textLight}`}>
+                      {/* Full-width fact rows: label left, value right */}
+                      <div className={`space-y-1 text-xs ${modeColors.textLight}`}>
                         {monthData.topArtist.name && (
-                          <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Artist</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{monthData.topArtist.name}</div></div>
+                          <div className="flex justify-between gap-2">
+                            <span className="opacity-60 shrink-0">Top Artist</span>
+                            <span className={`font-bold text-right min-w-0 ${isExpanded ? 'break-words' : 'truncate'}`} title={monthData.topArtist.name}>{monthData.topArtist.name}</span>
+                          </div>
                         )}
                         {monthData.topSong.name && (
-                          <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Song</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{monthData.topSong.name}</div></div>
+                          <div className="flex justify-between gap-2">
+                            <span className="opacity-60 shrink-0">Top Song</span>
+                            <span className={`font-bold text-right min-w-0 ${isExpanded ? 'break-words' : 'truncate'}`} title={monthData.topSong.name}>{monthData.topSong.name}</span>
+                          </div>
                         )}
-                      </div>
-                      {/* Row 4: top album + new songs */}
-                      <div className={`flex flex-wrap gap-y-1 text-xs text-center mt-1 ${modeColors.textLight}`}>
                         {monthData.topAlbum.name && (
-                          <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Top Album</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{monthData.topAlbum.name}</div></div>
+                          <div className="flex justify-between gap-2">
+                            <span className="opacity-60 shrink-0">Top Album</span>
+                            <span className={`font-bold text-right min-w-0 ${isExpanded ? 'break-words' : 'truncate'}`} title={monthData.topAlbum.name}>{monthData.topAlbum.name}</span>
+                          </div>
                         )}
-                        <div className="flex-1 min-w-0 px-1"><div className="opacity-60">New Songs</div><div className="font-bold">{monthData.firstListens.length}</div></div>
+                        <div className="flex justify-between gap-2">
+                          <span className="opacity-60 shrink-0">New Songs</span>
+                          <span className="font-bold">{monthData.firstListens.length}</span>
+                        </div>
                       </div>
                     </div>
                   );

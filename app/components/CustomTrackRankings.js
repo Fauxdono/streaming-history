@@ -1569,16 +1569,17 @@ return (
                       </div>
                     )}
 
-                    {/* Row 3: Album */}
+                    {/* Full-width fact row: label left, value right */}
                     {song.albumName && (
-                      <div className={`text-xs text-center ${colors.textLight} mt-1`}>
-                        <div className="opacity-60 hidden sm:block">Album</div>
-                        <div
-                          className={`font-bold cursor-pointer hover:underline ${isExpanded ? 'break-words' : 'truncate'}`}
+                      <div className={`flex justify-between gap-2 text-xs ${colors.textLight} mt-1`}>
+                        <span className="opacity-60 shrink-0">Album</span>
+                        <span
+                          className={`font-bold text-right min-w-0 cursor-pointer hover:underline ${isExpanded ? 'break-words' : 'truncate'}`}
+                          title={song.albumName}
                           onClick={() => addAlbumFromTrack(song.albumName, song.artist)}
                         >
                           {song.albumName}
-                        </div>
+                        </span>
                       </div>
                     )}
 

@@ -3,6 +3,7 @@ import {
   format, parseISO, isValid
 } from 'date-fns';
 import { useTheme } from './themeprovider.js';
+import { RankBadge, RankBar } from './RankCardBits.js';
 
 // Helper to safely parse dates and check validity
 const safeParseISOAndValidate = (dateString) => {
@@ -46,6 +47,7 @@ const PodcastRankings = ({
   const [duplicatesFound, setDuplicatesFound] = useState(0);
   const [duplicateTypes, setDuplicateTypes] = useState({ exact: 0, overlapping: 0, zeroTime: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedEpisodeCards, setExpandedEpisodeCards] = useState({});
   // Use viewMode prop instead of internal state
   const isCompactView = viewMode === 'compact';
 
@@ -985,33 +987,68 @@ const PodcastRankings = ({
         viewMode === 'grid' ? (
           // Grid view - card layout matching artists/albums style
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-2">
-            {filteredEpisodes.map((episode, index) => (
+            {filteredEpisodes.map((episode, index) => {
+              const isExpanded = !!expandedEpisodeCards[episode.key];
+              return (
               <div
                 key={episode.key}
-                className={`p-3 ${modeColors.bgCard} rounded border ${modeColors.border} relative ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                className={`p-3 ${modeColors.bgCard} rounded border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
               >
-                <div className={`font-bold ${modeColors.text}`}>{episode.episodeName}</div>
-                <div className={`text-sm ${modeColors.textLight}`}>
-                  Show: <span
-                    className="font-bold cursor-pointer hover:underline"
-                    onClick={() => addShowFromEpisode(episode.showName)}
-                  >{episode.showName}</span>
-                  <br/>
-                  Total Time: <span className="font-bold">{formatDuration(episode.totalPlayed)}</span>
-                  <br/>
-                  Sessions: <span className="font-bold">{episode.segmentCount}</span>
-                  <br/>
-                  Longest: <span className="font-bold">{formatDuration(episode.longestSession)}</span>
-                  {episode.uniquePlatforms && episode.uniquePlatforms.length > 0 && (
-                    <>
-                      <br/>
-                      Platform: <span className="font-bold">{episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).slice(0, 2).join(', ')}</span>
-                    </>
-                  )}
+                {/* Row 1: rank + name + toggle */}
+                <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
+                  <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                  <span className={`flex-1 text-center px-1 ${isExpanded ? 'break-words' : 'truncate'}`} title={episode.episodeName}>{episode.episodeName}</span>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedEpisodeCards(p => ({ ...p, [episode.key]: !p[episode.key] }))}
+                    className="w-5 text-sm opacity-60 hover:opacity-100 leading-none cursor-pointer shrink-0"
+                  >{isExpanded ? '\u2212' : '+'}</button>
                 </div>
-                <div className={`absolute top-1 right-3 ${modeColors.text} text-[2rem]`}>{index + 1}</div>
+
+                {/* Expanded details */}
+                {isExpanded && (
+                  <div className={`space-y-1 mb-2 text-xs ${modeColors.textLight}`}>
+                    <div className="flex justify-between gap-2">
+                      <span className="opacity-60 shrink-0">Sessions</span>
+                      <span className="font-bold">{episode.segmentCount}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="opacity-60 shrink-0">Longest</span>
+                      <span className="font-bold">{formatDuration(episode.longestSession)}</span>
+                    </div>
+                    {episode.uniquePlatforms && episode.uniquePlatforms.length > 0 && (
+                      <div className="flex justify-between gap-2">
+                        <span className="opacity-60 shrink-0">Platform</span>
+                        <span className="font-bold text-right min-w-0 truncate">{episode.uniquePlatforms.map(p => p.includes(';') ? p.split(';')[0] : p).slice(0, 2).join(', ')}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Full-width fact rows: label left, value right */}
+                <div className={`space-y-1 text-xs ${modeColors.textLight}`}>
+                  <div className="flex justify-between gap-2">
+                    <span className="opacity-60 shrink-0">Show</span>
+                    <span
+                      className={`font-bold text-right min-w-0 cursor-pointer hover:underline ${isExpanded ? 'break-words' : 'truncate'}`}
+                      title={episode.showName}
+                      onClick={() => addShowFromEpisode(episode.showName)}
+                    >{episode.showName}</span>
+                  </div>
+                </div>
+
+                {/* Play bar — relative to #1 by the active sort metric */}
+                <RankBar
+                  value={episode[sortBy] || 0}
+                  max={filteredEpisodes[0]?.[sortBy] || 0}
+                  label={sortBy === 'segmentCount'
+                    ? `${(episode.segmentCount || 0).toLocaleString()} sessions`
+                    : formatDuration(episode[sortBy] || 0)}
+                  className={modeColors.text || (isDarkMode ? 'text-[#4169E1]' : 'text-black')}
+                />
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           // Table/List view

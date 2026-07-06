@@ -83,15 +83,16 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
           <button
             type="button"
             onClick={() => setShowTracks(s => !s)}
-            className={`flex flex-wrap gap-y-1 text-xs text-center w-full cursor-pointer hover:opacity-70 ${colors.textLight}`}
+            className={`space-y-1 text-xs w-full cursor-pointer hover:opacity-70 ${colors.textLight}`}
           >
-            <div className="flex-1 min-w-0 px-1">
-              <div className="opacity-60">Top Track</div>
-              <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{topTrack.trackName}</div>
+            {/* Full-width fact rows: label left, value right */}
+            <div className="flex justify-between gap-2">
+              <span className="opacity-60 shrink-0">Top Track</span>
+              <span className={`font-bold text-right min-w-0 ${isExpanded ? 'break-words' : 'truncate'}`} title={topTrack.trackName}>{topTrack.trackName}</span>
             </div>
-            <div className="flex-1 min-w-0 px-1">
-              <div className="opacity-60">Plays</div>
-              <div className="font-bold flex items-center justify-center gap-1">
+            <div className="flex justify-between gap-2">
+              <span className="opacity-60 shrink-0">Plays</span>
+              <span className="font-bold flex items-center gap-1">
                 {topTrack.playCount}
                 {albumTracks.length > 1 && (
                   <span className={`inline-flex items-center justify-center w-4 h-4 text-xs rounded border leading-none
@@ -103,7 +104,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
                     {showTracks ? '−' : '+'}
                   </span>
                 )}
-              </div>
+              </span>
             </div>
           </button>
 
