@@ -80,22 +80,31 @@ export default function StatsTab({
     }
     const days = Object.keys(dayMs).sort();
 
-    // Biggest day (by time) — ignore days whose total exceeds 24h: those are
-    // data artifacts, not real listening days.
+    // Top 3 biggest days (by time) — ignore days whose total exceeds 24h:
+    // those are data artifacts, not real listening days.
     const plausible = days.filter(k => dayMs[k] <= 86400000);
     const candidates = plausible.length ? plausible : days;
-    let bestDay = candidates[0];
-    for (const k of candidates) if (dayMs[k] > dayMs[bestDay]) bestDay = k;
-    const artistMs = {};
+    const topDays = candidates
+      .map(k => ({ date: k, ms: dayMs[k] }))
+      .sort((a, b) => b.ms - a.ms)
+      .slice(0, 3);
+    // Dominant artist on each of those days (one narrow pass)
+    const topKeys = new Set(topDays.map(d => d.date));
+    const dayArtistMs = {};
     for (const p of plays) {
-      if (localDayKey(new Date(p.t)) !== bestDay || !p.artist) continue;
-      artistMs[p.artist] = (artistMs[p.artist] || 0) + p.ms;
+      const k = localDayKey(new Date(p.t));
+      if (!topKeys.has(k) || !p.artist) continue;
+      (dayArtistMs[k] = dayArtistMs[k] || {})[p.artist] = (dayArtistMs[k][p.artist] || 0) + p.ms;
     }
-    const bestDayArtist = Object.entries(artistMs).sort((a, b) => b[1] - a[1])[0]?.[0];
+    topDays.forEach(d => {
+      d.artist = Object.entries(dayArtistMs[d.date] || {}).sort((a, b) => b[1] - a[1])[0]?.[0];
+    });
 
-    // Busiest day (by play count)
-    let busiestDay = days[0];
-    for (const k of days) if (dayCount[k] > dayCount[busiestDay]) busiestDay = k;
+    // Top 3 busiest days (by play count)
+    const topBusiest = days
+      .map(k => ({ date: k, count: dayCount[k] }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
 
     // Milestone play — the largest round play number reached
     const MILESTONES = [1000000, 500000, 250000, 200000, 100000, 50000, 25000, 10000, 5000, 1000];
@@ -147,8 +156,8 @@ export default function StatsTab({
     const spanDays = Math.round((new Date(days[days.length - 1]) - new Date(days[0])) / 86400000) + 1;
     return {
       first: first ? { date: new Date(first.t), track: first.track, artist: first.artist } : null,
-      biggestDay: { date: bestDay, ms: dayMs[bestDay], artist: bestDayArtist },
-      busiestDay: { date: busiestDay, count: dayCount[busiestDay] },
+      topDays,
+      topBusiest,
       milestone,
       session,
       relationship,
@@ -369,30 +378,44 @@ export default function StatsTab({
                         ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
                         : 'text-lg font-semibold mb-4'
                     }>Records &amp; Firsts</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       {records.first && (
                         <Card label="First play:">
-                          <div className={mainCls}>&quot;{records.first.track}&quot;</div>
-                          {records.first.artist && <div className={subCls}>by {records.first.artist}</div>}
+                          <div className={`${mainCls} truncate`} title={records.first.track}>&quot;{records.first.track}&quot;</div>
+                          {records.first.artist && <div className={`${subCls} truncate`}>by {records.first.artist}</div>}
                           <div className={strongCls}>{records.first.date.toLocaleDateString()}</div>
                         </Card>
                       )}
                       {records.milestone && (
                         <Card label={`Play #${records.milestone.n.toLocaleString()}:`}>
-                          <div className={mainCls}>&quot;{records.milestone.track || 'Unknown'}&quot;</div>
-                          {records.milestone.artist && <div className={subCls}>by {records.milestone.artist}</div>}
+                          <div className={`${mainCls} truncate`} title={records.milestone.track}>&quot;{records.milestone.track || 'Unknown'}&quot;</div>
+                          {records.milestone.artist && <div className={`${subCls} truncate`}>by {records.milestone.artist}</div>}
                           <div className={strongCls}>{records.milestone.date.toLocaleDateString()}</div>
                         </Card>
                       )}
-                      <Card label="Biggest day:">
-                        <div className={mainCls}>{new Date(records.biggestDay.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                        <div className={strongCls}>{formatDuration(records.biggestDay.ms)} of music</div>
-                        {records.biggestDay.artist && <div className={subCls}>mostly {records.biggestDay.artist}</div>}
-                      </Card>
-                      <Card label="Busiest day:">
-                        <div className={mainCls}>{records.busiestDay.count.toLocaleString()} plays</div>
-                        <div className={strongCls}>{new Date(records.busiestDay.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                      </Card>
+                      <div className={`${cardCls} col-span-2`}>
+                        <div className={labelCls}>Biggest days:</div>
+                        <div className="flex gap-3">
+                          {records.topDays.map((d, i) => (
+                            <div key={d.date} className="flex-1 min-w-0">
+                              <div className={i === 0 ? mainCls : subCls}>{new Date(d.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                              <div className={i === 0 ? strongCls : subCls}>{formatDuration(d.ms)}</div>
+                              {d.artist && <div className={`${subCls} truncate`} title={d.artist}>mostly {d.artist}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={`${cardCls} col-span-2`}>
+                        <div className={labelCls}>Busiest days:</div>
+                        <div className="flex gap-3">
+                          {records.topBusiest.map((d, i) => (
+                            <div key={d.date} className="flex-1 min-w-0">
+                              <div className={i === 0 ? mainCls : subCls}>{d.count.toLocaleString()} plays</div>
+                              <div className={i === 0 ? strongCls : subCls}>{new Date(d.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                       {records.session && (
                         <Card label="Longest session:">
                           <div className={mainCls}>{formatDuration(records.session.ms)}</div>
@@ -402,8 +425,8 @@ export default function StatsTab({
                       )}
                       {records.relationship && relYears >= 1 && (
                         <Card label="Longest relationship:">
-                          <div className={mainCls}>&quot;{records.relationship.track}&quot;</div>
-                          {records.relationship.artist && <div className={subCls}>by {records.relationship.artist}</div>}
+                          <div className={`${mainCls} truncate`} title={records.relationship.track}>&quot;{records.relationship.track}&quot;</div>
+                          {records.relationship.artist && <div className={`${subCls} truncate`}>by {records.relationship.artist}</div>}
                           <div className={strongCls}>{new Date(records.relationship.first).getFullYear()} → {new Date(records.relationship.last).getFullYear()} · {relYears >= 2 ? `${Math.floor(relYears)} years` : 'over a year'} · {records.relationship.count.toLocaleString()} plays</div>
                         </Card>
                       )}
@@ -411,7 +434,7 @@ export default function StatsTab({
                         <Card label="Longest silence:">
                           <div className={mainCls}>{records.gap.days} days</div>
                           <div className={subCls}>{new Date(records.gap.from).toLocaleDateString()} — {new Date(records.gap.to).toLocaleDateString()}</div>
-                          {records.gap.brokenBy && <div className={strongCls}>broken by &quot;{records.gap.brokenBy.track}&quot;</div>}
+                          {records.gap.brokenBy && <div className={`${strongCls} truncate`} title={records.gap.brokenBy.track}>broken by &quot;{records.gap.brokenBy.track}&quot;</div>}
                         </Card>
                       )}
                       <Card label="Days with music:">
