@@ -133,6 +133,7 @@ export default function YearSelector({
         posStyle={posStyle}
         scaleStyle={scaleStyle}
         containerBase={containerBase}
+        panelRef={panelRef}
       />
     );
   }
@@ -200,64 +201,67 @@ export default function YearSelector({
 // Collapsed (minimized) panel
 // ---------------------------------------------------------------------------
 
-function CollapsedPanel({ panel, c, mode, label, posStyle, scaleStyle, containerBase }) {
-  const { isHorizontal, currentPosition, isMobile, desktopFloating } = panel;
+function CollapsedPanel({ panel, c, mode, label, posStyle, scaleStyle, containerBase, panelRef }) {
+  const { isHorizontal, currentPosition, isMobile } = panel;
   return (
     <div
-      className={`${posStyle.className} ${containerBase}`}
+      ref={panelRef}
+      className={`year-selector-container ${posStyle.className} ${containerBase}`}
       style={{ ...posStyle.style, ...scaleStyle }}
     >
       {isHorizontal ? (
-        <div className="flex flex-row items-center gap-2 px-3 py-2">
-          <button onClick={panel.toggleExpanded} className={iconBtn(c)} aria-label="Expand">
+        /* Collapsed bar — click anywhere to expand; controls in one row */
+        <div
+          className="flex flex-row items-center gap-2 px-3 py-2 cursor-pointer"
+          onClick={panel.toggleExpanded}
+          title="Expand"
+        >
+          <button onClick={(e) => { e.stopPropagation(); panel.toggleExpanded(); }} className={iconBtn(c)} aria-label="Expand">
             <span>{currentPosition === 'top' ? '↓' : '↑'}</span>
           </button>
           <span className={`${c.text} text-[1em] opacity-70`}>{mode === 'single' ? 'Year' : 'Year Range'}</span>
-          <span className={`${c.text} text-[1em] font-bold`}>{label}</span>
-          <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move">⇄</button>
+          <span className={`${c.text} text-[1em] font-bold flex-1`}>{label}</span>
+          <button onClick={(e) => { e.stopPropagation(); panel.togglePosition(); }} className={iconBtn(c)} aria-label="Move panel">⇄</button>
           {!isMobile && (
-            <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float">&#x29C9;</button>
+            <button onClick={(e) => { e.stopPropagation(); panel.toggleFloating(); }} className={iconBtn(c)} title="Float as dial">◎</button>
           )}
         </div>
       ) : (
-        <div className="relative h-full flex flex-col items-center justify-center py-4">
+        /* Collapsed strip — click anywhere to expand; all buttons in one
+           centered line with even spacing */
+        <div
+          className="h-full flex flex-col items-center px-1.5 py-2 gap-1.5 cursor-pointer"
+          onClick={panel.toggleExpanded}
+          title="Expand"
+        >
           <button
-            onClick={panel.toggleExpanded}
-            className={`absolute ${desktopFloating ? 'left-1' : currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-20 ${iconBtn(c)}`}
+            onClick={(e) => { e.stopPropagation(); panel.toggleExpanded(); }}
+            className={iconBtn(c)}
             aria-label="Expand"
           >
-            {desktopFloating ? '↓' : currentPosition === 'left' ? '→' : '←'}
+            {currentPosition === 'left' ? '→' : '←'}
           </button>
 
-          <div className={`${c.text} text-[1em] opacity-70`} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-            {mode === 'single' ? 'Year' : 'Year Range'}
-          </div>
-          <div className={`${c.text} text-[1em] font-bold my-2`} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-            {label}
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 min-h-0">
+            <div className={`${c.text} text-[1em] opacity-70`} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+              {mode === 'single' ? 'Year' : 'Year Range'}
+            </div>
+            <div className={`${c.text} text-[1em] font-bold`} style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+              {label}
+            </div>
           </div>
 
-          {desktopFloating ? (
-            <div className="absolute left-1 bottom-8 flex flex-col gap-1">
-              <button onClick={panel.toggleOrientation} className={iconBtn(c)} title="Rotate">
-                {panel.floatOrientation === 'vertical' ? '⇔' : '⇕'}
-              </button>
-              <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Dock">&#x1F4CC;</button>
-            </div>
-          ) : (
-            <>
-              <button
-                onClick={panel.togglePosition}
-                className={`absolute ${currentPosition === 'left' ? 'left-0' : 'right-0'} bottom-10 ${iconBtn(c)}`}
-                aria-label="Move"
-              >⇄</button>
-              {!isMobile && (
-                <button
-                  onClick={panel.toggleFloating}
-                  className={`absolute ${currentPosition === 'left' ? 'right-1' : 'left-1'} bottom-2 ${iconBtn(c)}`}
-                  title="Float"
-                >&#x29C9;</button>
-              )}
-            </>
+          <button
+            onClick={(e) => { e.stopPropagation(); panel.togglePosition(); }}
+            className={iconBtn(c)}
+            aria-label="Move panel"
+          >⇄</button>
+          {!isMobile && (
+            <button
+              onClick={(e) => { e.stopPropagation(); panel.toggleFloating(); }}
+              className={iconBtn(c)}
+              title="Float as dial"
+            >◎</button>
           )}
         </div>
       )}
