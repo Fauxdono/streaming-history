@@ -43,6 +43,19 @@ const ListeningPatterns = ({
   trackDurationMap = null
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
+
+  // Which hemisphere's season definitions to use (persisted)
+  const [hemisphere, setHemisphere] = useState(() => {
+    if (typeof window === 'undefined') return 'north';
+    try { return localStorage.getItem('seasonalHemisphere') || 'north'; } catch { return 'north'; }
+  });
+  const toggleHemisphere = () => {
+    setHemisphere(prev => {
+      const next = prev === 'north' ? 'south' : 'north';
+      try { localStorage.setItem('seasonalHemisphere', next); } catch {}
+      return next;
+    });
+  };
   const [viewPress, setViewPress] = useState(0);
   const [dayOfWeekPress, setDayOfWeekPress] = useState(0);
   const [obsSortPress, setObsSortPress] = useState(0);
@@ -542,27 +555,29 @@ const ListeningPatterns = ({
   
   // Monthly/seasonal analysis
   const monthlyData = useMemo(() => {
-    const months = [
-      { name: 'Jan', fullName: 'January', monthNum: 0, count: 0, totalMs: 0, color: chartColors.seasonColors.winter },
-      { name: 'Feb', fullName: 'February', monthNum: 1, count: 0, totalMs: 0, color: chartColors.seasonColors.winter },
-      { name: 'Mar', fullName: 'March', monthNum: 2, count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
-      { name: 'Apr', fullName: 'April', monthNum: 3, count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
-      { name: 'May', fullName: 'May', monthNum: 4, count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
-      { name: 'Jun', fullName: 'June', monthNum: 5, count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
-      { name: 'Jul', fullName: 'July', monthNum: 6, count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
-      { name: 'Aug', fullName: 'August', monthNum: 7, count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
-      { name: 'Sep', fullName: 'September', monthNum: 8, count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
-      { name: 'Oct', fullName: 'October', monthNum: 9, count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
-      { name: 'Nov', fullName: 'November', monthNum: 10, count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
-      { name: 'Dec', fullName: 'December', monthNum: 11, count: 0, totalMs: 0, color: chartColors.seasonColors.winter }
+    const south = hemisphere === 'south';
+    // Season of each calendar month (0=spring, 1=summer, 2=fall, 3=winter)
+    const seasonOfMonth = south
+      ? [1, 1, 2, 2, 2, 3, 3, 3, 0, 0, 0, 1]
+      : [3, 3, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3];
+    const seasonKeys = ['spring', 'summer', 'fall', 'winter'];
+
+    const MONTH_NAMES = [
+      ['Jan', 'January'], ['Feb', 'February'], ['Mar', 'March'], ['Apr', 'April'],
+      ['May', 'May'], ['Jun', 'June'], ['Jul', 'July'], ['Aug', 'August'],
+      ['Sep', 'September'], ['Oct', 'October'], ['Nov', 'November'], ['Dec', 'December'],
     ];
-    
-    // Group months into seasons
+    const months = MONTH_NAMES.map(([name, fullName], i) => ({
+      name, fullName, monthNum: i, count: 0, totalMs: 0,
+      color: chartColors.seasonColors[seasonKeys[seasonOfMonth[i]]],
+    }));
+
+    // Group months into seasons (month ranges depend on hemisphere)
     const seasons = [
-      { name: 'Spring', fullName: 'Spring (Mar-May)', count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
-      { name: 'Summer', fullName: 'Summer (Jun-Aug)', count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
-      { name: 'Fall', fullName: 'Fall (Sep-Nov)', count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
-      { name: 'Winter', fullName: 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: chartColors.seasonColors.winter }
+      { name: 'Spring', fullName: south ? 'Spring (Sep-Nov)' : 'Spring (Mar-May)', count: 0, totalMs: 0, color: chartColors.seasonColors.spring },
+      { name: 'Summer', fullName: south ? 'Summer (Dec-Feb)' : 'Summer (Jun-Aug)', count: 0, totalMs: 0, color: chartColors.seasonColors.summer },
+      { name: 'Fall', fullName: south ? 'Fall (Mar-May)' : 'Fall (Sep-Nov)', count: 0, totalMs: 0, color: chartColors.seasonColors.fall },
+      { name: 'Winter', fullName: south ? 'Winter (Jun-Aug)' : 'Winter (Dec-Feb)', count: 0, totalMs: 0, color: chartColors.seasonColors.winter }
     ];
     
     const passesFilters = (entry) => {
@@ -586,24 +601,14 @@ const ListeningPatterns = ({
         months[month].totalMs += entry.ms_played;
 
         // Add to seasons
-        if (month >= 2 && month <= 4) {
-          seasons[0].count += 1;
-          seasons[0].totalMs += entry.ms_played;
-        } else if (month >= 5 && month <= 7) {
-          seasons[1].count += 1;
-          seasons[1].totalMs += entry.ms_played;
-        } else if (month >= 8 && month <= 10) {
-          seasons[2].count += 1;
-          seasons[2].totalMs += entry.ms_played;
-        } else {
-          seasons[3].count += 1;
-          seasons[3].totalMs += entry.ms_played;
-        }
+        const si = seasonOfMonth[month];
+        seasons[si].count += 1;
+        seasons[si].totalMs += entry.ms_played;
       }
     });
 
     return { months, seasons };
-  }, [filteredData, chartColors.seasonColors, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, chartColors.seasonColors, hemisphere, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Location data aggregation from conn_country
   const { locationData, unmatchedCodes, regionData, countrySongs } = useMemo(() => {
@@ -1138,9 +1143,16 @@ const ListeningPatterns = ({
           <h3 className={`text-sm font-bold mb-2 sm:hidden ${
             colors.text
           }`}>Listening by Month</h3>
-          <p className={`mb-4 ${
-            colors.textLight
-          }`}>How does your listening change throughout the year?</p>
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <p className={colors.textLight}>How does your listening change throughout the year?</p>
+            <button
+              onClick={toggleHemisphere}
+              title="Seasons differ by hemisphere — switch to match where you live"
+              className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium shrink-0 ${colors.buttonInactive}`}
+            >
+              {hemisphere === 'north' ? '🌍 Northern seasons' : '🌏 Southern seasons'}
+            </button>
+          </div>
           
           <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
             colors.bgCard
