@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { enrichAlbums } from '../albumEnrichment';
 import { calculateAlbumsByYear, calculateArtistsByYear, calculateBriefObsessions, calculatePlayStats, calculateSongsByYear } from './aggregate.js';
 import { deduplicateCrossSources } from './dedup.js';
+import { clampSyncBursts } from './artifacts.js';
 import { detectFileType } from './detect.js';
 import { normalizeArtistName } from './normalize.js';
 import { processAppleMusicCSV } from './parsers/apple-music.js';
@@ -131,6 +132,13 @@ export const streamingProcessor = {
       }
       // Flatten all batch arrays into a single array
       let allProcessedData = allProcessedArrays.flat();
+
+      // Repair corrupted durations from offline-sync bursts before any
+      // stats are computed (see streaming/artifacts.js).
+      const burstResult = clampSyncBursts(allProcessedData);
+      if (burstResult.clamped > 0) {
+        console.log(`Sync-burst repair: clamped ${burstResult.clamped} corrupted plays, reclaimed ${Math.round(burstResult.reclaimedMs / 3600000)}h of phantom listening time`);
+      }
 
       // Cross-source deduplication: when the same play appears in multiple services
       // (e.g. Spotify + Last.fm scrobbler), keep the entry with more data.

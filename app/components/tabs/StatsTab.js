@@ -1,10 +1,14 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Download } from 'lucide-react';
 import ExportButton from '../ExportButton.js';
 import Top100Export from '../Top100Export.js';
+import { filterDataByDate } from '../streaming-adapter.js';
 
-// Statistics tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
+const localDayKey = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// Statistics tab content.
 export default function StatsTab({
   briefObsessions,
   colorMode,
@@ -23,6 +27,88 @@ export default function StatsTab({
   topAlbums,
   topArtists,
 }) {
+  // Listening hours per calendar year (all-time context strip)
+  const yearlyTotals = useMemo(() => {
+    const per = {};
+    for (const e of rawPlayData || []) {
+      if (!e.ms_played || e.ms_played < 30000) continue;
+      const y = new Date(e.ts).getFullYear();
+      if (!isNaN(y)) per[y] = (per[y] || 0) + e.ms_played;
+    }
+    const years = Object.keys(per).map(Number).sort((a, b) => a - b);
+    if (!years.length) return [];
+    const out = [];
+    for (let y = years[0]; y <= years[years.length - 1]; y++) {
+      out.push({ year: y, ms: per[y] || 0 });
+    }
+    return out;
+  }, [rawPlayData]);
+  const peakYear = useMemo(
+    () => yearlyTotals.reduce((max, y) => (y.ms > (max?.ms || 0) ? y : max), null),
+    [yearlyTotals]
+  );
+
+  // Records & firsts, respecting the page's year filter
+  const records = useMemo(() => {
+    const data = filterDataByDate(rawPlayData || [], selectedStreaksYear);
+    let first = null;
+    const dayMs = {};
+    for (const e of data) {
+      if (!e.ms_played || e.ms_played < 30000) continue;
+      const d = new Date(e.ts);
+      if (isNaN(d.getTime())) continue;
+      if (e.master_metadata_track_name && (!first || d < first.date)) {
+        first = { date: d, track: e.master_metadata_track_name, artist: e.master_metadata_album_artist_name };
+      }
+      const key = localDayKey(d);
+      dayMs[key] = (dayMs[key] || 0) + e.ms_played;
+    }
+    const days = Object.keys(dayMs).sort();
+    if (!days.length) return null;
+
+    // Biggest day — ignore days whose total exceeds 24h: those are data
+    // artifacts (e.g. Spotify offline-sync batches reporting multi-hour
+    // ms_played per song), not real listening days.
+    const plausible = days.filter(k => dayMs[k] <= 86400000);
+    const candidates = plausible.length ? plausible : days;
+    let bestDay = candidates[0];
+    for (const k of candidates) if (dayMs[k] > dayMs[bestDay]) bestDay = k;
+    // Top artist on the biggest day (second, narrow pass)
+    const artistMs = {};
+    for (const e of data) {
+      if (!e.ms_played || e.ms_played < 30000) continue;
+      const d = new Date(e.ts);
+      if (isNaN(d.getTime()) || localDayKey(d) !== bestDay) continue;
+      const a = e.master_metadata_album_artist_name;
+      if (a) artistMs[a] = (artistMs[a] || 0) + e.ms_played;
+    }
+    const bestDayArtist = Object.entries(artistMs).sort((a, b) => b[1] - a[1])[0]?.[0];
+
+    // Longest silence between listening days
+    let gap = null;
+    for (let i = 1; i < days.length; i++) {
+      const prev = new Date(days[i - 1]), cur = new Date(days[i]);
+      const diff = Math.round((cur - prev) / 86400000) - 1;
+      if (diff > 0 && (!gap || diff > gap.days)) gap = { days: diff, from: days[i - 1], to: days[i] };
+    }
+
+    const spanDays = Math.round((new Date(days[days.length - 1]) - new Date(days[0])) / 86400000) + 1;
+    return {
+      first,
+      biggestDay: { date: bestDay, ms: dayMs[bestDay], artist: bestDayArtist },
+      gap,
+      daysWithMusic: days.length,
+      spanDays,
+    };
+  }, [rawPlayData, selectedStreaksYear]);
+
+  // "% of waking hours" equivalence for the hero (16 waking hours/day)
+  const wakingPct = useMemo(() => {
+    if (!records || records.spanDays < 60 || !filteredStats?.totalListeningTime) return null;
+    const pct = (filteredStats.totalListeningTime / (records.spanDays * 16 * 3600000)) * 100;
+    return pct >= 0.1 ? pct : null;
+  }, [records, filteredStats]);
+
   return stats ? (
           <div className={
             colorMode === 'colorful'
@@ -44,48 +130,63 @@ export default function StatsTab({
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <ul className={
+                {/* Hero: the number that matters */}
+                <div className="flex flex-col justify-center py-2">
+                  <div className={
                     colorMode === 'colorful'
-                      ? 'space-y-1 text-indigo-700 dark:text-indigo-300'
-                      : 'space-y-1'
-                  }>
-                    <li>Files processed: {stats.totalFiles}</li>
-                    <li>Total entries: {filteredStats?.totalEntries || 0}</li>
-                    <li>Processed songs: {filteredStats?.processedSongs || 0}</li>
-                    <li>Unique songs: {filteredStats?.uniqueSongs || 0}</li>
-                    <li>Entries with no track name: {filteredStats?.nullTrackNames || 0}</li>
-                    <li>Plays under 30s: {filteredStats?.shortPlays || 0}</li>
-                  </ul>
+                      ? 'text-sm font-medium text-indigo-600 dark:text-indigo-400'
+                      : 'text-sm font-medium opacity-70'
+                  }>You&apos;ve listened to</div>
+                  <div className={
+                    colorMode === 'colorful'
+                      ? 'text-4xl sm:text-5xl font-bold leading-tight text-indigo-700 dark:text-indigo-300'
+                      : 'text-4xl sm:text-5xl font-bold leading-tight'
+                  }>{formatDuration(filteredStats?.totalListeningTime || 0)}</div>
+                  <div className={
+                    colorMode === 'colorful'
+                      ? 'text-sm font-medium text-indigo-600 dark:text-indigo-400'
+                      : 'text-sm font-medium opacity-70'
+                  }>of music{filteredStats?.earliestDate && filteredStats?.latestDate && (
+                    <> · {new Date(filteredStats.earliestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })} — {new Date(filteredStats.latestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</>
+                  )}</div>
+                  {wakingPct && (
+                    <div className={
+                      colorMode === 'colorful'
+                        ? 'text-sm mt-2 text-indigo-600 dark:text-indigo-400'
+                        : 'text-sm mt-2 opacity-70'
+                    }>
+                      ≈ {wakingPct < 10 ? wakingPct.toFixed(1) : Math.round(wakingPct)}% of your waking hours had music on 🎂
+                    </div>
+                  )}
+                  <div className={
+                    colorMode === 'colorful'
+                      ? 'text-xs mt-1 text-indigo-500 dark:text-indigo-500'
+                      : 'text-xs mt-1 opacity-50'
+                  }>only counting plays over 30 seconds</div>
+
+                  {/* Data quality footnote */}
+                  <details className={`mt-3 text-sm ${
+                    colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-70'
+                  }`}>
+                    <summary className="cursor-pointer select-none hover:opacity-80">Data details</summary>
+                    <ul className="mt-2 space-y-1 pl-1">
+                      <li>Files processed: {stats.totalFiles}</li>
+                      <li>Total entries: {filteredStats?.totalEntries || 0}</li>
+                      <li>Processed songs: {filteredStats?.processedSongs || 0}</li>
+                      <li>Unique songs: {filteredStats?.uniqueSongs || 0}</li>
+                      <li>Entries with no track name: {filteredStats?.nullTrackNames || 0}</li>
+                      <li>Plays under 30s: {filteredStats?.shortPlays || 0}</li>
+                    </ul>
+                  </details>
                 </div>
                 <div className={
                   colorMode === 'colorful'
                     ? 'p-4 border space-y-2 bg-indigo-100 dark:bg-indigo-900 border-indigo-300 dark:border-indigo-700 rounded text-indigo-700 dark:text-indigo-300'
                     : `p-4 border space-y-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
                 }>
-                  <div className={
-                    colorMode === 'colorful'
-                      ? 'mb-1 font-semibold text-indigo-700 dark:text-indigo-300'
-                      : 'mb-1'
-                  }>Total Listening Time:</div>
-                  <div className={
-                    colorMode === 'colorful'
-                      ? 'text-2xl text-indigo-700 dark:text-indigo-300'
-                      : 'text-2xl'
-                  }>{formatDuration(filteredStats?.totalListeningTime || 0)}</div>
-                  <div className={
-                    colorMode === 'colorful'
-                      ? 'text-sm text-indigo-600 dark:text-indigo-400'
-                      : 'text-sm'
-                  }>(only counting plays over 30 seconds)</div>
-
                   {/* Service breakdown */}
                   {filteredStats?.serviceListeningTime && Object.keys(filteredStats.serviceListeningTime).length > 0 && (
-                    <div className={
-                      colorMode === 'colorful'
-                        ? 'mt-4 pt-3 border-t border-indigo-300 dark:border-indigo-700'
-                        : `mt-4 pt-3 border-t ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
-                    }>
+                    <div>
                       <div className={
                         colorMode === 'colorful'
                           ? 'mb-2 font-semibold text-indigo-700 dark:text-indigo-300'
@@ -114,6 +215,133 @@ export default function StatsTab({
                   )}
                 </div>
               </div>
+
+              {/* Your Years — hours per calendar year */}
+              {yearlyTotals.length > 1 && (
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300'
+                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
+                }>
+                  <div className="flex items-baseline justify-between mb-3">
+                    <h4 className={
+                      colorMode === 'colorful'
+                        ? 'text-lg font-semibold text-indigo-700 dark:text-indigo-300'
+                        : 'text-lg font-semibold'
+                    }>Your Years</h4>
+                    {peakYear && (
+                      <span className={
+                        colorMode === 'colorful'
+                          ? 'text-xs text-indigo-600 dark:text-indigo-400'
+                          : 'text-xs opacity-70'
+                      }>peak: {peakYear.year} · {formatDuration(peakYear.ms)}</span>
+                    )}
+                  </div>
+                  <div className={`flex items-end gap-1 h-28 overflow-x-auto pb-1 ${
+                    colorMode === 'colorful'
+                      ? 'text-indigo-500 dark:text-indigo-400'
+                      : (isDarkMode ? 'text-[#4169E1]' : 'text-black')
+                  }`}>
+                    {yearlyTotals.map(({ year, ms }) => {
+                      const hPct = peakYear?.ms ? Math.max(2, Math.round((ms / peakYear.ms) * 100)) : 0;
+                      const isPeak = year === peakYear?.year;
+                      const label = formatDuration(ms);
+                      // Strip is h-28 (112px); vertical text needs ~6.5px per character
+                      const fitsInside = (hPct / 100) * 112 >= label.length * 6.5 + 10;
+                      const yearLabelColor = colorMode === 'colorful'
+                        ? 'text-indigo-700 dark:text-indigo-300'
+                        : (isDarkMode ? 'text-white' : 'text-black');
+                      return (
+                        <div key={year} className="flex flex-col items-center justify-end flex-1 min-w-[2rem] h-full" title={`${year}: ${formatDuration(ms)}`}>
+                          {/* Too short for knockout text — hours float above the bar */}
+                          {!fitsInside && (
+                            <span
+                              className={`text-[10px] leading-none mb-1 ${isPeak ? 'font-bold' : 'font-medium'} ${yearLabelColor}`}
+                              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                            >{label}</span>
+                          )}
+                          <div
+                            className={`w-full rounded-t bg-current overflow-hidden flex items-center justify-center ${isPeak ? '' : 'opacity-60'}`}
+                            style={{ height: `${hPct}%` }}
+                          >
+                            {/* Hours knocked out of the middle of the bar, reading bottom-to-top */}
+                            {fitsInside && (
+                              <span
+                                className={`text-[10px] leading-none ${isPeak ? 'font-bold' : 'font-medium'} ${
+                                  colorMode === 'colorful'
+                                    ? 'text-indigo-100 dark:text-indigo-900'
+                                    : (isDarkMode ? 'text-black' : 'text-white')
+                                }`}
+                                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                              >{label}</span>
+                            )}
+                          </div>
+                          <div className={`text-[10px] leading-tight mt-1 ${isPeak ? 'font-bold' : 'opacity-70'} ${yearLabelColor}`}>{String(year).slice(2)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Records & Firsts */}
+              {records && (
+                <div className={
+                  colorMode === 'colorful'
+                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
+                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
+                }>
+                  <h4 className={
+                    colorMode === 'colorful'
+                      ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
+                      : 'text-lg font-semibold mb-4'
+                  }>Records &amp; Firsts</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {records.first && (
+                      <div className={
+                        colorMode === 'colorful'
+                          ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
+                          : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
+                      }>
+                        <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>First play:</div>
+                        <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>&quot;{records.first.track}&quot;</div>
+                        {records.first.artist && <div className={colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400'}>by {records.first.artist}</div>}
+                        <div className={colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold'}>{records.first.date.toLocaleDateString()}</div>
+                      </div>
+                    )}
+                    <div className={
+                      colorMode === 'colorful'
+                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
+                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
+                    }>
+                      <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>Biggest day:</div>
+                      <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>{new Date(records.biggestDay.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                      <div className={colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold'}>{formatDuration(records.biggestDay.ms)} of music</div>
+                      {records.biggestDay.artist && <div className={colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400'}>mostly {records.biggestDay.artist}</div>}
+                    </div>
+                    {records.gap && records.gap.days > 1 && (
+                      <div className={
+                        colorMode === 'colorful'
+                          ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
+                          : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
+                      }>
+                        <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>Longest silence:</div>
+                        <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>{records.gap.days} days</div>
+                        <div className={colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400'}>{new Date(records.gap.from).toLocaleDateString()} — {new Date(records.gap.to).toLocaleDateString()}</div>
+                      </div>
+                    )}
+                    <div className={
+                      colorMode === 'colorful'
+                        ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
+                        : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`
+                    }>
+                      <div className={colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1'}>Days with music:</div>
+                      <div className={colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium'}>{records.daysWithMusic.toLocaleString()} of {records.spanDays.toLocaleString()} days</div>
+                      <div className={colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold'}>{Math.round((records.daysWithMusic / records.spanDays) * 100)}%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Download Data Section */}
               {stats && processedData.length > 0 && (
