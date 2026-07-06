@@ -151,7 +151,7 @@ export default function YearSelector({
 
       {/* Main layout */}
       <div className={panel.isHorizontal
-        ? 'flex flex-row items-start h-full px-3 gap-3 overflow-x-auto'
+        ? 'flex flex-row items-center px-3 py-2 gap-3'
         : 'h-full flex flex-col pt-4 pb-8'
       }>
         {/* Mode buttons */}
@@ -162,32 +162,13 @@ export default function YearSelector({
 
         {/* Panel controls — far end of horizontal bar */}
         {asSidebar && panel.isHorizontal && (
-          <div className="flex flex-col gap-1 items-center shrink-0 ml-auto pl-2">
-            <div className="flex flex-row gap-1">
-              <button onClick={panel.toggleExpanded} className={iconBtn(c)} aria-label="Collapse">
-                {panel.currentPosition === 'top' ? '↑' : '↓'}
-              </button>
-              <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
-              {!panel.isMobile && (
-                <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float as dial">◎</button>
-              )}
-            </div>
-            {/* Month / Day toggles */}
-            {sel.mode === 'single' && sel.selectedYear !== 'all' && (
-              <>
-                <PressButton active={sel.showMonthSelector} c={c} onClick={sel.toggleMonthSelector}>Month</PressButton>
-                {sel.showMonthSelector && (
-                  <PressButton active={sel.showDaySelector} c={c} onClick={sel.toggleDaySelector}>Day</PressButton>
-                )}
-              </>
-            )}
-            {sel.mode === 'range' && sel.yearRange.startYear && sel.yearRange.endYear && (
-              <>
-                <PressButton active={sel.showRangeMonthDaySelectors} c={c} onClick={sel.toggleRangeMonthDaySelectors}>Month</PressButton>
-                {sel.showRangeMonthDaySelectors && (
-                  <PressButton active={sel.showRangeDaySelectors} c={c} onClick={sel.toggleRangeDaySelectors}>Day</PressButton>
-                )}
-              </>
+          <div className="flex flex-row gap-1 items-center shrink-0 ml-auto pl-2">
+            <button onClick={panel.toggleExpanded} className={iconBtn(c)} aria-label="Collapse">
+              {panel.currentPosition === 'top' ? '↑' : '↓'}
+            </button>
+            <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
+            {!panel.isMobile && (
+              <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float as dial">◎</button>
             )}
           </div>
         )}
@@ -278,17 +259,50 @@ function CollapsedPanel({ panel, c, mode, label, posStyle, scaleStyle, container
 function ModeControls({ sel, panel, c, asSidebar }) {
   const { isHorizontal, isMobile } = panel;
 
+  // Month / Day toggles (shown when applicable in either orientation)
+  const monthDayToggles = (
+    <>
+      {sel.mode === 'single' && sel.selectedYear !== 'all' && (
+        <>
+          <PressButton active={sel.showMonthSelector} c={c} onClick={sel.toggleMonthSelector}>Month</PressButton>
+          {sel.showMonthSelector && (
+            <PressButton active={sel.showDaySelector} c={c} onClick={sel.toggleDaySelector}>Day</PressButton>
+          )}
+        </>
+      )}
+      {sel.mode === 'range' && sel.yearRange.startYear && sel.yearRange.endYear && (
+        <>
+          <PressButton active={sel.showRangeMonthDaySelectors} c={c} onClick={sel.toggleRangeMonthDaySelectors}>Month</PressButton>
+          {sel.showRangeMonthDaySelectors && (
+            <PressButton active={sel.showRangeDaySelectors} c={c} onClick={sel.toggleRangeDaySelectors}>Day</PressButton>
+          )}
+        </>
+      )}
+    </>
+  );
+
+  if (isHorizontal) {
+    // Two compact columns: Single/Range next to Month/Day
+    return (
+      <div className="flex flex-row gap-1 items-center shrink-0">
+        <div className="flex flex-col gap-1 items-center">
+          <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
+          <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
+        </div>
+        <div className="flex flex-col gap-1 items-center empty:hidden">
+          {monthDayToggles}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`flex ${
-      isHorizontal
-        ? 'flex-col gap-1 items-center shrink-0'
-        : 'flex-col gap-1 items-center mb-2'
-    }`}>
+    <div className="flex flex-col gap-1 items-center mb-2">
       <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
       <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
 
       {/* Pinned sidebar controls — vertical */}
-      {asSidebar && !isHorizontal && (
+      {asSidebar && (
         <div className="flex flex-row gap-1 mt-1">
           <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
           {!isMobile && (
@@ -297,28 +311,7 @@ function ModeControls({ sel, panel, c, asSidebar }) {
         </div>
       )}
 
-      {/* Month / Day toggles — only in vertical / floating mode (horizontal has them in the far-right bar) */}
-      {!isHorizontal && (
-        <>
-          {sel.mode === 'single' && sel.selectedYear !== 'all' && (
-            <>
-              <PressButton active={sel.showMonthSelector} c={c} onClick={sel.toggleMonthSelector}>Month</PressButton>
-              {sel.showMonthSelector && (
-                <PressButton active={sel.showDaySelector} c={c} onClick={sel.toggleDaySelector}>Day</PressButton>
-              )}
-            </>
-          )}
-          {sel.mode === 'range' && sel.yearRange.startYear && sel.yearRange.endYear && (
-            <>
-              <PressButton active={sel.showRangeMonthDaySelectors} c={c} onClick={sel.toggleRangeMonthDaySelectors}>Month</PressButton>
-              {sel.showRangeMonthDaySelectors && (
-                <PressButton active={sel.showRangeDaySelectors} c={c} onClick={sel.toggleRangeDaySelectors}>Day</PressButton>
-              )}
-            </>
-          )}
-        </>
-      )}
-
+      {monthDayToggles}
     </div>
   );
 }
