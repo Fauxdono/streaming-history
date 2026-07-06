@@ -442,42 +442,44 @@ export default function ArtistsTab({
                               </button>
                             </div>
 
-                            {/* Row 2: collapsible total time | plays | first listen */}
+                            {/* Expanded details: time | plays | since + first song */}
                             {isExpanded && (
-                              <div className={`grid grid-cols-3 gap-1 mb-2 text-xs ${cardTextLight}`}>
-                                <div>
-                                  <div className="opacity-60">Time</div>
-                                  <div className="font-bold">{formatDuration(artist.totalPlayed)}</div>
+                              <div className={`mb-2 text-xs ${cardTextLight}`}>
+                                <div className="grid grid-cols-3 gap-1">
+                                  <div>
+                                    <div className="opacity-60">Time</div>
+                                    <div className="font-bold">{formatDuration(artist.totalPlayed)}</div>
+                                  </div>
+                                  <div>
+                                    <div className="opacity-60">Plays</div>
+                                    <div className="font-bold">{artist.playCount?.toLocaleString() || 0}</div>
+                                  </div>
+                                  <div>
+                                    <div className="opacity-60">Since</div>
+                                    <div className="font-bold">{artist.firstListen ? new Date(artist.firstListen).toLocaleDateString() : '—'}</div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <div className="opacity-60">Plays</div>
-                                  <div className="font-bold">{artist.playCount?.toLocaleString() || 0}</div>
-                                </div>
-                                <div>
-                                  <div className="opacity-60">Since</div>
-                                  <div className="font-bold">{artist.firstListen ? new Date(artist.firstListen).toLocaleDateString() : '—'}</div>
-                                </div>
+                                {artist.firstSong && (
+                                  <div className="flex justify-between gap-2 mt-2">
+                                    <span className="opacity-60 shrink-0">First Song</span>
+                                    <span className="font-bold text-right break-words min-w-0">{artist.firstSong}</span>
+                                  </div>
+                                )}
                               </div>
                             )}
 
-                            {/* Rows 3-4: flex-wrap so short content merges into one row */}
-                            <div className={`flex flex-wrap gap-y-1 text-xs text-center ${cardTextLight}`}>
+                            {/* Full-width fact rows: label left, value right */}
+                            <div className={`space-y-1 text-xs ${cardTextLight}`}>
                               {artist.mostPlayedSong && (
-                                <div className="flex-1 min-w-0 px-1">
-                                  <div className="opacity-60">Top Song</div>
-                                  <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{artist.mostPlayedSong.trackName}</div>
-                                </div>
-                              )}
-                              {artist.firstSong && (
-                                <div className="flex-1 min-w-0 px-1">
-                                  <div className="opacity-60">First Song</div>
-                                  <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{artist.firstSong}</div>
+                                <div className="flex justify-between gap-2">
+                                  <span className="opacity-60 shrink-0">Top Song</span>
+                                  <span className={`font-bold text-right min-w-0 ${isExpanded ? 'break-words' : 'truncate'}`} title={artist.mostPlayedSong.trackName}>{artist.mostPlayedSong.trackName}</span>
                                 </div>
                               )}
                               {artist.mostPlayedAlbum && (
-                                <div className="flex-1 min-w-0 px-1">
-                                  <div className="opacity-60">Top Album</div>
-                                  <div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{artist.mostPlayedAlbum.albumName}</div>
+                                <div className="flex justify-between gap-2">
+                                  <span className="opacity-60 shrink-0">Top Album</span>
+                                  <span className={`font-bold text-right min-w-0 ${isExpanded ? 'break-words' : 'truncate'}`} title={artist.mostPlayedAlbum.albumName}>{artist.mostPlayedAlbum.albumName}</span>
                                 </div>
                               )}
                             </div>
