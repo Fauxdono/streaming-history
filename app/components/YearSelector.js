@@ -69,13 +69,18 @@ export default function YearSelector({
       onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width: 0, height: 0, isFloating: panel.desktopFloating });
       return;
     }
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width, height, isFloating: panel.desktopFloating });
+    const ro = new ResizeObserver(() => {
+      // Report the RENDERED size (getBoundingClientRect includes the border
+      // and the zoom:fontScale scaling — contentRect includes neither), so
+      // the main content area is padded by exactly what the panel occupies.
+      const rect = panelRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      onLayoutChange({ expanded: panel.expanded, position: panel.currentPosition, width: rect.width, height: rect.height, isFloating: panel.desktopFloating });
     });
     ro.observe(panelRef.current);
     return () => ro.disconnect();
-  }, [panel.expanded, panel.currentPosition, panel.desktopFloating, onLayoutChange]);
+    // fontScale changes the rendered size without a ResizeObserver event — re-measure
+  }, [panel.expanded, panel.currentPosition, panel.desktopFloating, onLayoutChange, fontScale]);
 
   if (!sel.years.length) {
     return <div className={`${c.text} italic`}>No year data available</div>;
