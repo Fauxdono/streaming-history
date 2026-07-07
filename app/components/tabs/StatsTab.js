@@ -181,8 +181,6 @@ export default function StatsTab({
   const { setTheme } = useTheme();
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
-  const [exportCm, setExportCm] = useState(colorMode);       // 'colorful' | 'minimal'
-  const [exportDk, setExportDk] = useState(isDarkMode);      // dark?
   const [useBorder, setUseBorder] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewing, setPreviewing] = useState(false);
@@ -201,34 +199,23 @@ export default function StatsTab({
     </div>
   );
 
-  const rafPaint = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 30))));
-
-  // Render the poster to a canvas in the given theme variant. Because Tailwind
-  // dark mode + colorMode are ancestor/class driven, we briefly swap the live
-  // app to (cm, dk), clone the now-correctly-themed sections, capture, restore.
-  const renderPosterCanvas = async ({ cm, dk, border, scale }) => {
+  // Render the poster to a canvas in the current page theme. The 4 mode
+  // buttons switch the actual app theme, so this just clones the live
+  // (already-correctly-themed) sections — no swapping needed.
+  const renderPosterCanvas = async ({ border, scale }) => {
     if (!overviewRef.current || !recordsRef.current) return null;
     const { default: html2canvas } = await import('html2canvas');
-    const need = cm !== colorMode || dk !== isDarkMode;
-    const origCm = colorMode, origDk = isDarkMode;
+    const bg = isDarkMode ? '#000000' : (colorMode === 'colorful' ? '#c7d2fe' : '#ffffff');
+    const headColor = colorMode === 'colorful' ? (isDarkMode ? '#c7d2fe' : '#3730a3') : (isDarkMode ? '#ffffff' : '#000000');
+    const B = 56; // sprinkle-border thickness
     let poster;
     try {
-      if (need) {
-        setColorMode(cm);
-        setTheme(dk ? 'dark' : 'light');
-        await rafPaint();
-      }
-      const bg = dk ? '#000000' : (cm === 'colorful' ? '#c7d2fe' : '#ffffff');
-      const headColor = cm === 'colorful' ? (dk ? '#c7d2fe' : '#3730a3') : (dk ? '#ffffff' : '#000000');
-
-      // Outer frame (sprinkle border when enabled) wraps the solid content panel
+      // Outer frame; when bordered, the padding holds the sprinkle strips
       poster = document.createElement('div');
-      poster.style.cssText = `position:fixed;left:-99999px;top:0;width:1160px;box-sizing:border-box;`
-        + (border
-          ? `padding:28px;background:url(/apple-touch-icon.png) repeat;background-size:56px auto;`
-          : `padding:0;background:${bg};`);
+      poster.style.cssText = `position:fixed;left:-99999px;top:0;width:1160px;box-sizing:border-box;position:relative;`
+        + (border ? `padding:${B}px;background:transparent;` : `padding:0;background:${bg};`);
       const content = document.createElement('div');
-      content.style.cssText = `padding:20px;box-sizing:border-box;background:${bg};${border ? 'border-radius:10px;' : ''}`;
+      content.style.cssText = `padding:20px;box-sizing:border-box;background:${bg};position:relative;z-index:1;${border ? 'border-radius:8px;' : ''}`;
       poster.appendChild(content);
 
       const header = document.createElement('div');
@@ -256,6 +243,27 @@ export default function StatsTab({
       left.appendChild(stack(cards.slice(0, split)));
       right.appendChild(stack(cards.slice(split)));
 
+      // Cake-sprinkle border: four strips, each oriented so the sprinkles
+      // face OUTWARD and the cake faces inward. The vertical edges are the
+      // horizontal strip rotated ±90°; the bottom edge is flipped.
+      if (border) {
+        const url = 'url(/apple-touch-icon.png)';
+        const strip = (css) => { const d = document.createElement('div'); d.style.cssText = css; return d; };
+        const bgH = `background:${url} repeat-x;background-size:auto ${B}px;`;
+        // top — image as-is (sprinkles up)
+        poster.appendChild(strip(`position:absolute;top:0;left:${B}px;right:${B}px;height:${B}px;${bgH}z-index:2;`));
+        // bottom — flipped (sprinkles down)
+        poster.appendChild(strip(`position:absolute;bottom:0;left:${B}px;right:${B}px;height:${B}px;${bgH}transform:scaleY(-1);z-index:2;`));
+        // left — rotated so sprinkles point left
+        const lc = strip(`position:absolute;top:0;bottom:0;left:0;width:${B}px;overflow:hidden;z-index:2;`);
+        lc.appendChild(strip(`position:absolute;top:0;left:0;height:${B}px;width:6000px;${bgH}transform-origin:0 0;transform:translateY(6000px) rotate(-90deg);`));
+        poster.appendChild(lc);
+        // right — rotated so sprinkles point right
+        const rc = strip(`position:absolute;top:0;bottom:0;right:0;width:${B}px;overflow:hidden;z-index:2;`);
+        rc.appendChild(strip(`position:absolute;top:0;left:0;height:${B}px;width:6000px;${bgH}transform-origin:0 0;transform:translateX(${B}px) rotate(90deg);`));
+        poster.appendChild(rc);
+      }
+
       document.body.appendChild(poster);
       const canvas = await html2canvas(poster, {
         backgroundColor: border ? null : bg,
@@ -271,30 +279,29 @@ export default function StatsTab({
       return canvas;
     } finally {
       if (poster && poster.parentNode) poster.parentNode.removeChild(poster);
-      if (need) { setColorMode(origCm); setTheme(origDk ? 'dark' : 'light'); }
     }
   };
 
-  // Regenerate the preview when the chosen variant / border changes.
+  // Regenerate the preview when the theme / border changes.
   useEffect(() => {
     if (!stats) return;
     let cancelled = false;
     const id = setTimeout(async () => {
       setPreviewing(true);
       try {
-        const canvas = await renderPosterCanvas({ cm: exportCm, dk: exportDk, border: useBorder, scale: 0.55 });
+        const canvas = await renderPosterCanvas({ border: useBorder, scale: 0.55 });
         if (canvas && !cancelled) setPreviewUrl(canvas.toDataURL('image/png'));
       } catch (err) { console.error('Preview failed:', err); }
       finally { if (!cancelled) setPreviewing(false); }
     }, 200);
     return () => { cancelled = true; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exportCm, exportDk, useBorder, stats, periodLabel]);
+  }, [colorMode, isDarkMode, useBorder, stats, periodLabel]);
 
   const handleExportImage = async () => {
     setExporting(true);
     try {
-      const canvas = await renderPosterCanvas({ cm: exportCm, dk: exportDk, border: useBorder, scale: 2 });
+      const canvas = await renderPosterCanvas({ border: useBorder, scale: 2 });
       if (!canvas) return;
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
       const url = URL.createObjectURL(blob);
@@ -658,11 +665,11 @@ export default function StatsTab({
                 { cm: 'minimal', dk: false, label: 'Minimal light' },
                 { cm: 'minimal', dk: true, label: 'Minimal dark' },
               ];
-              const isActive = (m) => m.cm === exportCm && m.dk === exportDk;
+              const isActive = (m) => m.cm === colorMode && m.dk === isDarkMode;
               const modeBtn = (m) => (
                 <button
                   key={m.label}
-                  onClick={() => { setExportCm(m.cm); setExportDk(m.dk); }}
+                  onClick={() => { setColorMode(m.cm); setTheme(m.dk ? 'dark' : 'light'); }}
                   className={`px-2.5 py-1.5 rounded text-xs font-medium border transition-colors ${
                     isActive(m)
                       ? (colorMode === 'colorful' ? 'bg-indigo-600 text-white border-indigo-600' : (isDarkMode ? 'bg-white text-black border-white' : 'bg-black text-white border-black'))
@@ -686,7 +693,7 @@ export default function StatsTab({
                   <div className="flex-1 flex flex-col gap-3">
                     <div className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>Share your stats as an image</div>
                     <div>
-                      <div className={`text-xs mb-1.5 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>Theme</div>
+                      <div className={`text-xs mb-1.5 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>Theme (switches the whole app)</div>
                       <div className="grid grid-cols-2 gap-1.5 max-w-xs">{modes.map(modeBtn)}</div>
                     </div>
                     <label className={`flex items-center gap-2 text-sm cursor-pointer ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
