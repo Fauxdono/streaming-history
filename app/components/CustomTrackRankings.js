@@ -34,6 +34,12 @@ const CustomTrackRankings = ({
   // Themed colors from the shared design system (see theme.js)
   const colors = getRankingColors({ colorTheme, textTheme, backgroundTheme, isColorful, isDarkMode });
 
+
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [topN, setTopN] = useState(100);
+  const [sortBy, setSortBy] = useState('totalPlayed');
+
   // Previous-period song ranks for rank-movement chips. Year mode uses
   // statsSongsByYear (capped at its top 100, so absence isn't conclusive
   // and "new" is suppressed); month mode ranks the previous month from
@@ -65,11 +71,6 @@ const CustomTrackRankings = ({
     return null;
   }, [statsSongsByYear, rawPlayData, selectedYear, yearRangeMode, sortBy]);
 
-  
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [topN, setTopN] = useState(100);
-  const [sortBy, setSortBy] = useState('totalPlayed');
   const [sortByPress, setSortByPress] = useState(0);
   const [viewModePress, setViewModePress] = useState(0);
   useEffect(() => { setSortByPress(0); setViewModePress(0); }, [isDarkMode, colorMode]);
