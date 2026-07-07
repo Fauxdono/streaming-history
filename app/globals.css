@@ -361,3 +361,31 @@ html.text-xlarge { font-size: 20px; }
   border: 1px solid var(--border) !important;
   color: var(--fg) !important;
 }
+
+/* ============================================
+   🌈 SECRET RAINBOW MODE
+   Unlocked by cycling through all four themes twice.
+   A single animated hue on the root cascades to all text
+   (color only — backgrounds and layout are untouched).
+   ============================================ */
+
+@property --rainbow-hue {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@keyframes rainbow-hue-cycle {
+  to { --rainbow-hue: 360deg; }
+}
+
+html.rainbow-mode {
+  animation: rainbow-hue-cycle 6s linear infinite;
+}
+
+html.rainbow-mode :is(h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, strong, b, em, label, div, button, input, textarea, summary) {
+  color: hsl(var(--rainbow-hue) 85% 55%) !important;
+}
+
+/* Keep the cake sprinkle strip and chart fills out of it */
+html.rainbow-mode .recharts-text { fill: hsl(var(--rainbow-hue) 85% 55%) !important; }

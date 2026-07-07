@@ -129,6 +129,37 @@ const SpotifyAnalyzer = ({
   const [artistsSortPress, setArtistsSortPress] = useState(0);
   const [artistsViewPress, setArtistsViewPress] = useState(0);
   const [colorMode, setColorMode] = useState('colorful'); // 'minimal' or 'colorful'
+
+  // 🌈 Secret rainbow mode — cycle through all four theme variants
+  // (colorful/minimal x light/dark) twice each to toggle animated rainbow
+  // text across every page. Doing the sequence again turns it back off.
+  const rainbowRef = useRef(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (localStorage.getItem('rainbowMode') === '1') {
+        rainbowRef.current = true;
+        document.documentElement.classList.add('rainbow-mode');
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const key = `${colorMode}-${theme}`;
+    let counts;
+    try { counts = JSON.parse(localStorage.getItem('themeVariantCounts') || '{}'); } catch { counts = {}; }
+    counts[key] = (counts[key] || 0) + 1;
+    const variants = ['colorful-light', 'colorful-dark', 'minimal-light', 'minimal-dark'];
+    if (variants.every(v => (counts[v] || 0) >= 2)) {
+      const next = !rainbowRef.current;
+      rainbowRef.current = next;
+      document.documentElement.classList.toggle('rainbow-mode', next);
+      try { localStorage.setItem('rainbowMode', next ? '1' : '0'); } catch {}
+      counts = {}; // reset for the next toggle
+    }
+    try { localStorage.setItem('themeVariantCounts', JSON.stringify(counts)); } catch {}
+  }, [colorMode, theme]);
+
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
   const [expandedAlbumListRows, setExpandedAlbumListRows] = useState({});
