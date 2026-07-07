@@ -176,6 +176,7 @@ export default function StatsTab({
   const overviewRef = useRef(null);
   const recordsRef = useRef(null);
   const [exporting, setExporting] = useState(false);
+  const [exported, setExported] = useState(false);
 
   // Shared wrapper style for both exportable panels (also gives the live page
   // a subtle framed look). The branded ExportHeader inside is hidden on the
@@ -247,10 +248,19 @@ export default function StatsTab({
           doc.querySelectorAll('[data-vlabel]').forEach(el => { el.style.writingMode = 'horizontal-tb'; el.style.transform = 'none'; });
         },
       });
+      // Blob + object URL is more reliable across browsers than a data: href,
+      // and the anchor must be in the DOM for the click to register in some.
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
+      a.href = url;
       a.download = `cakeculator-stats-${periodLabel.replace(/\s+/g, '-')}.png`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      setExported(true);
+      setTimeout(() => setExported(false), 4000);
     } catch (err) {
       console.error('Image export failed:', err);
     } finally {
@@ -593,7 +603,7 @@ export default function StatsTab({
             </div>
 
             {/* Share as image */}
-            <div className="mt-4">
+            <div className="mt-4 flex items-center gap-3">
               <button
                 onClick={handleExportImage}
                 disabled={exporting}
@@ -606,6 +616,11 @@ export default function StatsTab({
                 <ImageIcon size={16} />
                 {exporting ? 'Rendering…' : 'Share as Image'}
               </button>
+              {exported && (
+                <span className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-70'}`}>
+                  ✓ Saved to your downloads
+                </span>
+              )}
             </div>
 
             <div className="space-y-4">
