@@ -373,7 +373,7 @@ export default function ArtistsTab({
                                 }}
                                 className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-[#4169E1] hover:bg-gray-800' : 'border-black hover:bg-gray-100')} ${artistSelectionMode ? 'cursor-pointer' : ''}`}
                               >
-                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}>{originalRank}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{originalRank}{prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.get(artist.name)} prevYear={parseInt(selectedArtistYear, 10) - 1} />}</span></td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{artist.name}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{formatDuration(artist.totalPlayed)}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.playCount?.toLocaleString() || 0}</td>

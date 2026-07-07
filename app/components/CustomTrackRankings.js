@@ -1117,7 +1117,7 @@ const CustomTrackRankings = ({
           key={song.key} 
           className={`border-b ${colors.border} dark:${colors.borderDark} hover:${colors.bg} dark:${colors.hoverBgDark} ${song.isFeatured ? `${colors.bgLight} dark:${colors.hoverBgDark}` : ''}`}
         >
-          <td className={`p-1 sm:p-2 ${colors.text} font-medium text-xs sm:text-sm`}>{index + 1}</td>
+          <td className={`p-1 sm:p-2 ${colors.text} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{index + 1}{prevSongRanks && <RankChip rank={index + 1} prevRank={prevSongRanks.get(song.key) ?? prevSongRanks.get(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`)} prevYear={parseInt(selectedYear, 10) - 1} showNew={false} />}</span></td>
           <td className={`p-1 sm:p-2 ${colors.text} text-xs sm:text-sm`}>
             <div className="flex items-center">
               {song.isFeatured && (

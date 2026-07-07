@@ -304,7 +304,7 @@ export default function AlbumsTab({
                                   key={rowKey}
                                   className={`border-b ${colorMode === 'colorful' ? 'border-cyan-300 dark:border-cyan-600 hover:bg-cyan-100 dark:hover:bg-cyan-700' : (isDarkMode ? 'border-[#4169E1] hover:bg-gray-800' : 'border-black hover:bg-gray-100')}`}
                                 >
-                                  <td className={`p-1 sm:p-2 ${colorClass} font-medium text-xs sm:text-sm`}>{index + 1}</td>
+                                  <td className={`p-1 sm:p-2 ${colorClass} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{index + 1}{prevAlbumRanks && <RankChip rank={index + 1} prevRank={prevAlbumRanks.get(`${(album.name || '').toLowerCase()}|||${(album.artist || '').toLowerCase()}`)} prevYear={parseInt(selectedAlbumYear, 10) - 1} />}</span></td>
                                   <td className={`p-1 sm:p-2 ${colorClass} text-xs sm:text-sm whitespace-nowrap`}>
                                     {album.name.length >= 30 ? album.name.slice(0, 27) + '…' : album.name}
                                     <span className={`sm:hidden italic opacity-60 text-xs ml-1`}>{album.artist}</span>
@@ -403,7 +403,7 @@ export default function AlbumsTab({
                           <div className="flex justify-between items-center text-sm">
                             <div className="flex-1">
                               <div className={`font-bold ${albumCardText} text-sm`}>
-                                #{index + 1} {album.name}
+                                #{index + 1}{' '}{prevAlbumRanks && <RankChip rank={index + 1} prevRank={prevAlbumRanks.get(`${(album.name || '').toLowerCase()}|||${(album.artist || '').toLowerCase()}`)} prevYear={parseInt(selectedAlbumYear, 10) - 1} />}{' '}{album.name}
                               </div>
                               <div className={`${albumCardTextLight} text-xs`}>
                                 {album.artist}
