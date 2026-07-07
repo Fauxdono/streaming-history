@@ -7,7 +7,7 @@ import { useRef } from 'react';
  * Settings Panel - Customize appearance and analysis
  * Mode, font size, font family, analysis settings
  */
-export default function SettingsPanel({ colorMode, setColorMode }) {
+export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, setRainbowMode, rainbowDiscovered }) {
   const {
     theme,
     setTheme,
@@ -354,6 +354,16 @@ export default function SettingsPanel({ colorMode, setColorMode }) {
         onChange={setDyslexicSpacing}
         label="Dyslexia-friendly spacing"
       />
+
+      {rainbowDiscovered && (
+        <div className="mt-1">
+          <RetroToggle
+            checked={!!rainbowMode}
+            onChange={setRainbowMode}
+            label="🌈 Rainbow mode"
+          />
+        </div>
+      )}
     </div>
   );
 }

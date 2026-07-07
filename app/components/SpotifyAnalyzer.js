@@ -133,14 +133,21 @@ const SpotifyAnalyzer = ({
   // 🌈 Secret rainbow mode — cycle through all four theme variants
   // (colorful/minimal x light/dark) twice each to toggle animated rainbow
   // text across every page. Doing the sequence again turns it back off.
+  // Once discovered, a plain toggle also appears at the bottom of Settings.
   const rainbowRef = useRef(false);
+  const [rainbowMode, setRainbowMode] = useState(false);
+  const [rainbowDiscovered, setRainbowDiscovered] = useState(false);
+  const applyRainbow = useCallback((on) => {
+    rainbowRef.current = on;
+    setRainbowMode(on);
+    if (typeof document !== 'undefined') document.documentElement.classList.toggle('rainbow-mode', on);
+    try { localStorage.setItem('rainbowMode', on ? '1' : '0'); } catch {}
+  }, []);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      if (localStorage.getItem('rainbowMode') === '1') {
-        rainbowRef.current = true;
-        document.documentElement.classList.add('rainbow-mode');
-      }
+      if (localStorage.getItem('rainbowDiscovered') === '1') setRainbowDiscovered(true);
+      if (localStorage.getItem('rainbowMode') === '1') { rainbowRef.current = true; setRainbowMode(true); document.documentElement.classList.add('rainbow-mode'); }
     } catch {}
   }, []);
   useEffect(() => {
@@ -151,14 +158,13 @@ const SpotifyAnalyzer = ({
     counts[key] = (counts[key] || 0) + 1;
     const variants = ['colorful-light', 'colorful-dark', 'minimal-light', 'minimal-dark'];
     if (variants.every(v => (counts[v] || 0) >= 2)) {
-      const next = !rainbowRef.current;
-      rainbowRef.current = next;
-      document.documentElement.classList.toggle('rainbow-mode', next);
-      try { localStorage.setItem('rainbowMode', next ? '1' : '0'); } catch {}
+      applyRainbow(!rainbowRef.current);
+      setRainbowDiscovered(true);
+      try { localStorage.setItem('rainbowDiscovered', '1'); } catch {}
       counts = {}; // reset for the next toggle
     }
     try { localStorage.setItem('themeVariantCounts', JSON.stringify(counts)); } catch {}
-  }, [colorMode, theme]);
+  }, [colorMode, theme, applyRainbow]);
 
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
   const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
@@ -2493,7 +2499,13 @@ const SpotifyAnalyzer = ({
               ? 'p-2 sm:p-4 bg-gray-100 dark:bg-gray-800 rounded border-2 border-gray-300 dark:border-gray-600'
               : 'p-2 sm:p-4'
           }>
-            <SettingsPanel colorMode={colorMode} setColorMode={setColorMode} />
+            <SettingsPanel
+              colorMode={colorMode}
+              setColorMode={setColorMode}
+              rainbowMode={rainbowMode}
+              setRainbowMode={applyRainbow}
+              rainbowDiscovered={rainbowDiscovered}
+            />
           </div>
         );
 
@@ -2580,7 +2592,10 @@ const SpotifyAnalyzer = ({
     expandedArtistCards,
     expandedAlbumListRows,
     filteredStats,
-    filteredStreaks
+    filteredStreaks,
+    rainbowMode,
+    rainbowDiscovered,
+    applyRainbow
   ]);
 
   // Get/set current view mode for mobile settings bar
