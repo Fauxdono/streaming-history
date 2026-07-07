@@ -89,6 +89,41 @@ export function monthLabel(ym) {
   return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
+// Rank every entity for one calendar day straight from the raw play data.
+export function dayRanksFromRaw(rawPlayData, ymd, keyOf, metric = 'totalPlayed') {
+  const totals = new Map();
+  for (const e of rawPlayData || []) {
+    if (!e.ms_played || e.ms_played < 30000) continue;
+    const d = new Date(e.ts);
+    if (isNaN(d.getTime())) continue;
+    const entryYmd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (entryYmd !== ymd) continue;
+    const key = keyOf(e);
+    if (!key) continue;
+    const t = totals.get(key) || { ms: 0, count: 0 };
+    t.ms += e.ms_played;
+    t.count++;
+    totals.set(key, t);
+  }
+  const ranked = [...totals.entries()].sort((a, b) =>
+    metric === 'playCount' ? b[1].count - a[1].count : b[1].ms - a[1].ms
+  );
+  const map = new Map();
+  ranked.forEach(([key], i) => map.set(key, i + 1));
+  return map;
+}
+
+export function prevDayOf(ymd) {
+  const [y, m, day] = ymd.split('-').map(Number);
+  const d = new Date(y, m - 1, day - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function dayLabel(ymd) {
+  const [y, m, day] = ymd.split('-').map(Number);
+  return new Date(y, m - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 // Slim bar showing this item's metric relative to rank #1 (max), with a label.
 export function RankBar({ value = 0, max = 0, label, className = '' }) {
   const pct = max > 0 ? Math.max(3, Math.round((Math.min(value, max) / max) * 100)) : 0;

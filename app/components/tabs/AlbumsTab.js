@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo } from 'react';
 import AlbumCard from '../albumcard.js';
-import { RankChip, monthRanksFromRaw, prevMonthOf, monthLabel } from '../RankCardBits.js';
+import { RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from '../RankCardBits.js';
 
 // Albums tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -58,6 +58,12 @@ export default function AlbumsTab({
       const map = monthRanksFromRaw(rawPlayData, prevYm, albumKeyOf, albumsSortBy);
       if (map.size === 0) return null;
       return { map, label: monthLabel(prevYm) };
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(sel)) {
+      const prevYmd = prevDayOf(sel);
+      const map = dayRanksFromRaw(rawPlayData, prevYmd, albumKeyOf, albumsSortBy);
+      if (map.size === 0) return null;
+      return { map, label: dayLabel(prevYmd) };
     }
     return null;
   }, [albumsByYear, rawPlayData, selectedAlbumYear, albumYearRangeMode, albumsSortBy]);

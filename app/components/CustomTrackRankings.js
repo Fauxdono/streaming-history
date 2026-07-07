@@ -5,7 +5,7 @@ const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
-import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel } from './RankCardBits.js';
+import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from './RankCardBits.js';
 import { getRankingColors } from './theme.js';
 
 const CustomTrackRankings = ({
@@ -67,6 +67,17 @@ const CustomTrackRankings = ({
       );
       if (map.size === 0) return null;
       return { map, label: monthLabel(prevYm), showNew: true };
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(sel)) {
+      const prevYmd = prevDayOf(sel);
+      const map = dayRanksFromRaw(
+        rawPlayData,
+        prevYmd,
+        e => e.master_metadata_track_name ? createMatchKey(e.master_metadata_track_name, e.master_metadata_album_artist_name) : null,
+        sortBy
+      );
+      if (map.size === 0) return null;
+      return { map, label: dayLabel(prevYmd), showNew: true };
     }
     return null;
   }, [statsSongsByYear, rawPlayData, selectedYear, yearRangeMode, sortBy]);

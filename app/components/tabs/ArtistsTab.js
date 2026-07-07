@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo } from 'react';
-import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel } from '../RankCardBits.js';
+import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from '../RankCardBits.js';
 
 // Artists tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -58,6 +58,12 @@ export default function ArtistsTab({
       const map = monthRanksFromRaw(rawPlayData, prevYm, e => e.master_metadata_album_artist_name, artistsSortBy);
       if (map.size === 0) return null;
       return { map, label: monthLabel(prevYm) };
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(sel)) {
+      const prevYmd = prevDayOf(sel);
+      const map = dayRanksFromRaw(rawPlayData, prevYmd, e => e.master_metadata_album_artist_name, artistsSortBy);
+      if (map.size === 0) return null;
+      return { map, label: dayLabel(prevYmd) };
     }
     return null;
   }, [artistsByYear, rawPlayData, selectedArtistYear, yearRangeMode, artistsSortBy]);
