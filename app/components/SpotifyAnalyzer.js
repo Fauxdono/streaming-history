@@ -2180,6 +2180,7 @@ const SpotifyAnalyzer = ({
           <StatsTab
             briefObsessions={briefObsessions}
             colorMode={colorMode}
+            setColorMode={setColorMode}
             isDarkMode={isDarkMode}
             displayedAlbums={displayedAlbums}
             displayedArtists={displayedArtists}

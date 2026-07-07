@@ -1,9 +1,10 @@
 'use client';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Download, Image as ImageIcon } from 'lucide-react';
 import ExportButton from '../ExportButton.js';
 import Top100Export from '../Top100Export.js';
 import { filterDataByDate } from '../streaming-adapter.js';
+import { useTheme } from '../themeprovider.js';
 
 const localDayKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -12,6 +13,7 @@ const localDayKey = (d) =>
 export default function StatsTab({
   briefObsessions,
   colorMode,
+  setColorMode,
   isDarkMode,
   displayedAlbums,
   displayedArtists,
@@ -171,12 +173,19 @@ export default function StatsTab({
       ? (() => { const p = selectedStreaksYear.split('-'); const monthName = new Date(2024, parseInt(p[1]) - 1).toLocaleDateString('en-US', { month: 'long' }); return p.length === 3 ? `Every ${monthName} ${parseInt(p[2])}` : `Every ${monthName}`; })()
       : selectedStreaksYear;
 
-  // Shareable-image export — two images (Overview + Records), so neither
-  // gets squished. Excludes the Download Your Data section.
+  // Shareable-image export. Renders a two-column poster (Overview + Records,
+  // excludes Download Your Data) in a chosen theme variant with an optional
+  // cake-sprinkle border, previewed live before download.
   const overviewRef = useRef(null);
   const recordsRef = useRef(null);
+  const { setTheme } = useTheme();
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
+  const [exportCm, setExportCm] = useState(colorMode);       // 'colorful' | 'minimal'
+  const [exportDk, setExportDk] = useState(isDarkMode);      // dark?
+  const [useBorder, setUseBorder] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewing, setPreviewing] = useState(false);
 
   // Shared wrapper style for both exportable panels (also gives the live page
   // a subtle framed look). The branded ExportHeader inside is hidden on the
@@ -192,39 +201,53 @@ export default function StatsTab({
     </div>
   );
 
-  const handleExportImage = async () => {
-    if (!overviewRef.current || !recordsRef.current) return;
-    setExporting(true);
+  const rafPaint = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 30))));
+
+  // Render the poster to a canvas in the given theme variant. Because Tailwind
+  // dark mode + colorMode are ancestor/class driven, we briefly swap the live
+  // app to (cm, dk), clone the now-correctly-themed sections, capture, restore.
+  const renderPosterCanvas = async ({ cm, dk, border, scale }) => {
+    if (!overviewRef.current || !recordsRef.current) return null;
+    const { default: html2canvas } = await import('html2canvas');
+    const need = cm !== colorMode || dk !== isDarkMode;
+    const origCm = colorMode, origDk = isDarkMode;
     let poster;
     try {
-      const { default: html2canvas } = await import('html2canvas');
-      const bg = isDarkMode ? '#000000' : (colorMode === 'colorful' ? '#c7d2fe' : '#ffffff');
-      const headColor = colorMode === 'colorful' ? (isDarkMode ? '#c7d2fe' : '#3730a3') : (isDarkMode ? '#ffffff' : '#000000');
+      if (need) {
+        setColorMode(cm);
+        setTheme(dk ? 'dark' : 'light');
+        await rafPaint();
+      }
+      const bg = dk ? '#000000' : (cm === 'colorful' ? '#c7d2fe' : '#ffffff');
+      const headColor = cm === 'colorful' ? (dk ? '#c7d2fe' : '#3730a3') : (dk ? '#ffffff' : '#000000');
 
-      // Build an off-screen two-column poster from clones of the live sections
-      // (left: overview + records through Longest relationships; right: the rest).
+      // Outer frame (sprinkle border when enabled) wraps the solid content panel
       poster = document.createElement('div');
-      poster.style.cssText = `position:fixed;left:-99999px;top:0;width:1120px;padding:20px;box-sizing:border-box;background:${bg};`;
+      poster.style.cssText = `position:fixed;left:-99999px;top:0;width:1160px;box-sizing:border-box;`
+        + (border
+          ? `padding:28px;background:url(/apple-touch-icon.png) repeat;background-size:56px auto;`
+          : `padding:0;background:${bg};`);
+      const content = document.createElement('div');
+      content.style.cssText = `padding:20px;box-sizing:border-box;background:${bg};${border ? 'border-radius:10px;' : ''}`;
+      poster.appendChild(content);
 
       const header = document.createElement('div');
       header.style.cssText = `display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;color:${headColor};`;
       header.innerHTML = `<div style="font-weight:700;font-size:20px;">Statistics <span style="font-size:12px;font-weight:400;opacity:.75;">${periodLabel}</span></div><div style="font-size:12px;font-weight:500;opacity:.5;">🎂 cakeculator</div>`;
-      poster.appendChild(header);
+      content.appendChild(header);
 
       const cols = document.createElement('div');
       cols.style.cssText = 'display:flex;gap:16px;align-items:flex-start;';
       const mkCol = () => { const d = document.createElement('div'); d.style.cssText = 'flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;'; return d; };
       const left = mkCol(), right = mkCol();
       cols.appendChild(left); cols.appendChild(right);
-      poster.appendChild(cols);
+      content.appendChild(cols);
 
-      // Overview clone — drop its outer panel framing so it sits flush on the poster
       const ov = overviewRef.current.cloneNode(true);
       ov.querySelectorAll('[data-export-only]').forEach(e => e.remove());
       ov.className = 'space-y-4';
       left.appendChild(ov);
 
-      // Record cards, split at "Longest sessions" (left ends after Busiest days)
       const grid = recordsRef.current.querySelector('[data-rec-grid]');
       const cards = Array.from(grid.children).map(c => c.cloneNode(true));
       let split = cards.findIndex(c => (c.textContent || '').includes('Longest sessions'));
@@ -235,21 +258,44 @@ export default function StatsTab({
 
       document.body.appendChild(poster);
       const canvas = await html2canvas(poster, {
-        backgroundColor: bg,
-        scale: 2,
+        backgroundColor: border ? null : bg,
+        scale,
         useCORS: true,
         logging: false,
         ignoreElements: (el) => el.hasAttribute && el.hasAttribute('data-export-ignore'),
         onclone: (doc) => {
-          // Relax line-height so html2canvas's tight line-boxes don't clip
-          // descenders (it renders them shorter than the browser does).
           doc.querySelectorAll('[data-rec-grid] div, [data-rec-grid] span, [data-hero] div').forEach(el => { el.style.lineHeight = '1.7'; });
-          // Flatten Your Years bar labels (vertical-rl + rotate renders upside-down).
           doc.querySelectorAll('[data-vlabel]').forEach(el => { el.style.writingMode = 'horizontal-tb'; el.style.transform = 'none'; });
         },
       });
-      // Blob + object URL is more reliable across browsers than a data: href,
-      // and the anchor must be in the DOM for the click to register in some.
+      return canvas;
+    } finally {
+      if (poster && poster.parentNode) poster.parentNode.removeChild(poster);
+      if (need) { setColorMode(origCm); setTheme(origDk ? 'dark' : 'light'); }
+    }
+  };
+
+  // Regenerate the preview when the chosen variant / border changes.
+  useEffect(() => {
+    if (!stats) return;
+    let cancelled = false;
+    const id = setTimeout(async () => {
+      setPreviewing(true);
+      try {
+        const canvas = await renderPosterCanvas({ cm: exportCm, dk: exportDk, border: useBorder, scale: 0.55 });
+        if (canvas && !cancelled) setPreviewUrl(canvas.toDataURL('image/png'));
+      } catch (err) { console.error('Preview failed:', err); }
+      finally { if (!cancelled) setPreviewing(false); }
+    }, 200);
+    return () => { cancelled = true; clearTimeout(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exportCm, exportDk, useBorder, stats, periodLabel]);
+
+  const handleExportImage = async () => {
+    setExporting(true);
+    try {
+      const canvas = await renderPosterCanvas({ cm: exportCm, dk: exportDk, border: useBorder, scale: 2 });
+      if (!canvas) return;
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -264,7 +310,6 @@ export default function StatsTab({
     } catch (err) {
       console.error('Image export failed:', err);
     } finally {
-      if (poster && poster.parentNode) poster.parentNode.removeChild(poster);
       setExporting(false);
     }
   };
@@ -602,26 +647,73 @@ export default function StatsTab({
               })()}
             </div>
 
-            {/* Share as image */}
-            <div className="mt-4 flex items-center gap-3">
-              <button
-                onClick={handleExportImage}
-                disabled={exporting}
-                className={
-                  colorMode === 'colorful'
-                    ? 'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60'
-                    : `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-60 ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
-                }
-              >
-                <ImageIcon size={16} />
-                {exporting ? 'Rendering…' : 'Share as Image'}
-              </button>
-              {exported && (
-                <span className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-70'}`}>
-                  ✓ Saved to your downloads
-                </span>
-              )}
-            </div>
+            {/* Share as image — preview + variant controls */}
+            {(() => {
+              const panelBase = colorMode === 'colorful'
+                ? 'border border-indigo-300 dark:border-indigo-700 bg-indigo-100 dark:bg-indigo-800'
+                : `border ${isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white'}`;
+              const modes = [
+                { cm: 'colorful', dk: false, label: 'Colorful light' },
+                { cm: 'colorful', dk: true, label: 'Colorful dark' },
+                { cm: 'minimal', dk: false, label: 'Minimal light' },
+                { cm: 'minimal', dk: true, label: 'Minimal dark' },
+              ];
+              const isActive = (m) => m.cm === exportCm && m.dk === exportDk;
+              const modeBtn = (m) => (
+                <button
+                  key={m.label}
+                  onClick={() => { setExportCm(m.cm); setExportDk(m.dk); }}
+                  className={`px-2.5 py-1.5 rounded text-xs font-medium border transition-colors ${
+                    isActive(m)
+                      ? (colorMode === 'colorful' ? 'bg-indigo-600 text-white border-indigo-600' : (isDarkMode ? 'bg-white text-black border-white' : 'bg-black text-white border-black'))
+                      : (colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-700' : `${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`)
+                  }`}
+                >{m.label}</button>
+              );
+              return (
+                <div className={`mt-4 p-4 rounded-lg ${panelBase} flex flex-col sm:flex-row gap-4`}>
+                  {/* Preview */}
+                  <div className={`relative shrink-0 w-full sm:w-64 rounded border overflow-hidden ${colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600' : (isDarkMode ? 'border-gray-700' : 'border-gray-300')}`}>
+                    {previewUrl
+                      ? <img src={previewUrl} alt="Export preview" className="w-full block" />
+                      : <div className="aspect-[1160/900] w-full" />}
+                    {previewing && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 text-xs font-medium text-white">Rendering…</div>
+                    )}
+                  </div>
+
+                  {/* Controls */}
+                  <div className="flex-1 flex flex-col gap-3">
+                    <div className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>Share your stats as an image</div>
+                    <div>
+                      <div className={`text-xs mb-1.5 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>Theme</div>
+                      <div className="grid grid-cols-2 gap-1.5 max-w-xs">{modes.map(modeBtn)}</div>
+                    </div>
+                    <label className={`flex items-center gap-2 text-sm cursor-pointer ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
+                      <input type="checkbox" checked={useBorder} onChange={(e) => setUseBorder(e.target.checked)} />
+                      🎂 Sprinkle border
+                    </label>
+                    <div className="flex items-center gap-3 mt-1">
+                      <button
+                        onClick={handleExportImage}
+                        disabled={exporting || previewing}
+                        className={
+                          colorMode === 'colorful'
+                            ? 'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60'
+                            : `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-60 ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
+                        }
+                      >
+                        <ImageIcon size={16} />
+                        {exporting ? 'Rendering…' : 'Share as Image'}
+                      </button>
+                      {exported && (
+                        <span className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-70'}`}>✓ Saved to your downloads</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="space-y-4">
               {/* Download Data Section */}
