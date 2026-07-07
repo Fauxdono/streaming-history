@@ -250,16 +250,22 @@ export default function StatsTab({
         const url = 'url(/apple-touch-icon.png)';
         const strip = (css) => { const d = document.createElement('div'); d.style.cssText = css; return d; };
         const bgH = `background:${url} repeat-x;background-size:auto ${B}px;`;
+        // Miter clips: each strip is a trapezoid so corners meet at 45°.
+        // Horizontal strips are wide at their (local) top edge; the bottom
+        // strip is scaleY-flipped, which flips this to wide-at-bottom.
+        const miterH = `clip-path:polygon(0 0, 100% 0, calc(100% - ${B}px) 100%, ${B}px 100%);`;
+        const miterL = `clip-path:polygon(0 0, 100% ${B}px, 100% calc(100% - ${B}px), 0 100%);`;
+        const miterR = `clip-path:polygon(0 ${B}px, 100% 0, 100% 100%, 0 calc(100% - ${B}px));`;
         // top — image as-is (sprinkles up)
-        poster.appendChild(strip(`position:absolute;top:0;left:${B}px;right:${B}px;height:${B}px;${bgH}z-index:2;`));
+        poster.appendChild(strip(`position:absolute;top:0;left:0;right:0;height:${B}px;${bgH}${miterH}z-index:2;`));
         // bottom — flipped (sprinkles down)
-        poster.appendChild(strip(`position:absolute;bottom:0;left:${B}px;right:${B}px;height:${B}px;${bgH}transform:scaleY(-1);z-index:2;`));
+        poster.appendChild(strip(`position:absolute;bottom:0;left:0;right:0;height:${B}px;${bgH}transform:scaleY(-1);${miterH}z-index:2;`));
         // left — rotated so sprinkles point left
-        const lc = strip(`position:absolute;top:0;bottom:0;left:0;width:${B}px;overflow:hidden;z-index:2;`);
+        const lc = strip(`position:absolute;top:0;bottom:0;left:0;width:${B}px;overflow:hidden;${miterL}z-index:2;`);
         lc.appendChild(strip(`position:absolute;top:0;left:0;height:${B}px;width:6000px;${bgH}transform-origin:0 0;transform:translateY(6000px) rotate(-90deg);`));
         poster.appendChild(lc);
         // right — rotated so sprinkles point right
-        const rc = strip(`position:absolute;top:0;bottom:0;right:0;width:${B}px;overflow:hidden;z-index:2;`);
+        const rc = strip(`position:absolute;top:0;bottom:0;right:0;width:${B}px;overflow:hidden;${miterR}z-index:2;`);
         rc.appendChild(strip(`position:absolute;top:0;left:0;height:${B}px;width:6000px;${bgH}transform-origin:0 0;transform:translateX(${B}px) rotate(90deg);`));
         poster.appendChild(rc);
       }
