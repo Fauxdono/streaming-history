@@ -1,6 +1,6 @@
 'use client';
-import React, { useMemo } from 'react';
-import { Download } from 'lucide-react';
+import React, { useMemo, useRef, useState } from 'react';
+import { Download, Image as ImageIcon } from 'lucide-react';
 import ExportButton from '../ExportButton.js';
 import Top100Export from '../Top100Export.js';
 import { filterDataByDate } from '../streaming-adapter.js';
@@ -164,6 +164,101 @@ export default function StatsTab({
     };
   }, [rawPlayData, selectedStreaksYear]);
 
+  // Human-readable period label for the export header
+  const periodLabel = selectedStreaksYear === 'all'
+    ? 'all-time'
+    : selectedStreaksYear.startsWith('all-')
+      ? (() => { const p = selectedStreaksYear.split('-'); const monthName = new Date(2024, parseInt(p[1]) - 1).toLocaleDateString('en-US', { month: 'long' }); return p.length === 3 ? `Every ${monthName} ${parseInt(p[2])}` : `Every ${monthName}`; })()
+      : selectedStreaksYear;
+
+  // Shareable-image export — two images (Overview + Records), so neither
+  // gets squished. Excludes the Download Your Data section.
+  const overviewRef = useRef(null);
+  const recordsRef = useRef(null);
+  const [exporting, setExporting] = useState(false);
+
+  // Shared wrapper style for both exportable panels (also gives the live page
+  // a subtle framed look). The branded ExportHeader inside is hidden on the
+  // live page and only revealed in the captured clone.
+  const shareWrapCls = colorMode === 'colorful'
+    ? 'space-y-4 p-4 rounded-lg bg-indigo-200 dark:bg-indigo-900'
+    : `space-y-4 p-4 rounded-lg ${isDarkMode ? 'bg-black' : 'bg-white'}`;
+
+  const ExportHeader = ({ subtitle }) => (
+    <div data-export-only className={`hidden items-baseline justify-between ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
+      <h3 className="text-lg font-bold">Statistics <span className="text-xs font-normal opacity-75">{periodLabel} · {subtitle}</span></h3>
+      <span className="text-xs font-medium opacity-50">🎂 cakeculator</span>
+    </div>
+  );
+
+  const handleExportImage = async () => {
+    if (!overviewRef.current || !recordsRef.current) return;
+    setExporting(true);
+    let poster;
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const bg = isDarkMode ? '#000000' : (colorMode === 'colorful' ? '#c7d2fe' : '#ffffff');
+      const headColor = colorMode === 'colorful' ? (isDarkMode ? '#c7d2fe' : '#3730a3') : (isDarkMode ? '#ffffff' : '#000000');
+
+      // Build an off-screen two-column poster from clones of the live sections
+      // (left: overview + records through Longest relationships; right: the rest).
+      poster = document.createElement('div');
+      poster.style.cssText = `position:fixed;left:-99999px;top:0;width:1120px;padding:20px;box-sizing:border-box;background:${bg};`;
+
+      const header = document.createElement('div');
+      header.style.cssText = `display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;color:${headColor};`;
+      header.innerHTML = `<div style="font-weight:700;font-size:20px;">Statistics <span style="font-size:12px;font-weight:400;opacity:.75;">${periodLabel}</span></div><div style="font-size:12px;font-weight:500;opacity:.5;">🎂 cakeculator</div>`;
+      poster.appendChild(header);
+
+      const cols = document.createElement('div');
+      cols.style.cssText = 'display:flex;gap:16px;align-items:flex-start;';
+      const mkCol = () => { const d = document.createElement('div'); d.style.cssText = 'flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;'; return d; };
+      const left = mkCol(), right = mkCol();
+      cols.appendChild(left); cols.appendChild(right);
+      poster.appendChild(cols);
+
+      // Overview clone — drop its outer panel framing so it sits flush on the poster
+      const ov = overviewRef.current.cloneNode(true);
+      ov.querySelectorAll('[data-export-only]').forEach(e => e.remove());
+      ov.className = 'space-y-4';
+      left.appendChild(ov);
+
+      // Record cards, split at "Longest sessions" (left ends after Busiest days)
+      const grid = recordsRef.current.querySelector('[data-rec-grid]');
+      const cards = Array.from(grid.children).map(c => c.cloneNode(true));
+      let split = cards.findIndex(c => (c.textContent || '').includes('Longest sessions'));
+      if (split < 0) split = Math.ceil(cards.length / 2);
+      const stack = (arr) => { const d = document.createElement('div'); d.setAttribute('data-rec-grid', ''); d.style.cssText = 'display:flex;flex-direction:column;gap:12px;'; arr.forEach(c => { c.classList.remove('col-span-2'); d.appendChild(c); }); return d; };
+      left.appendChild(stack(cards.slice(0, split)));
+      right.appendChild(stack(cards.slice(split)));
+
+      document.body.appendChild(poster);
+      const canvas = await html2canvas(poster, {
+        backgroundColor: bg,
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        ignoreElements: (el) => el.hasAttribute && el.hasAttribute('data-export-ignore'),
+        onclone: (doc) => {
+          // Relax line-height so html2canvas's tight line-boxes don't clip
+          // descenders (it renders them shorter than the browser does).
+          doc.querySelectorAll('[data-rec-grid] div, [data-rec-grid] span, [data-hero] div').forEach(el => { el.style.lineHeight = '1.7'; });
+          // Flatten Your Years bar labels (vertical-rl + rotate renders upside-down).
+          doc.querySelectorAll('[data-vlabel]').forEach(el => { el.style.writingMode = 'horizontal-tb'; el.style.transform = 'none'; });
+        },
+      });
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `cakeculator-stats-${periodLabel.replace(/\s+/g, '-')}.png`;
+      a.click();
+    } catch (err) {
+      console.error('Image export failed:', err);
+    } finally {
+      if (poster && poster.parentNode) poster.parentNode.removeChild(poster);
+      setExporting(false);
+    }
+  };
+
   // "% of waking hours" equivalence for the hero (16 waking hours/day)
   const wakingPct = useMemo(() => {
     if (!records || records.spanDays < 60 || !filteredStats?.totalListeningTime) return null;
@@ -190,10 +285,11 @@ export default function StatsTab({
                 </p>
               )}
             </div>
-            <div className="space-y-4">
+            <div ref={overviewRef} className={shareWrapCls}>
+              <ExportHeader subtitle="Overview" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Hero: the number that matters */}
-                <div className="flex flex-col justify-center py-2">
+                <div data-hero className="flex flex-col justify-center py-2">
                   <div className={
                     colorMode === 'colorful'
                       ? 'text-sm font-medium text-indigo-600 dark:text-indigo-400'
@@ -227,7 +323,7 @@ export default function StatsTab({
                   }>only counting plays over 30 seconds</div>
 
                   {/* Data quality footnote */}
-                  <details className={`mt-3 text-sm ${
+                  <details data-export-ignore className={`mt-3 text-sm ${
                     colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-70'
                   }`}>
                     <summary className="cursor-pointer select-none hover:opacity-80">Data details</summary>
@@ -318,6 +414,7 @@ export default function StatsTab({
                           {/* Too short for knockout text — hours float above the bar */}
                           {!fitsInside && (
                             <span
+                              data-vlabel
                               className={`text-[10px] leading-none mb-1 ${isPeak ? 'font-bold' : 'font-medium'} ${yearLabelColor}`}
                               style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
                             >{label}</span>
@@ -329,6 +426,7 @@ export default function StatsTab({
                             {/* Hours knocked out of the middle of the bar, reading bottom-to-top */}
                             {fitsInside && (
                               <span
+                                data-vlabel
                                 className={`text-[10px] leading-none ${isPeak ? 'font-bold' : 'font-medium'} ${
                                   colorMode === 'colorful'
                                     ? 'text-indigo-100 dark:text-indigo-900'
@@ -346,6 +444,10 @@ export default function StatsTab({
                 </div>
               )}
 
+            </div>
+
+            <div ref={recordsRef} className={`${shareWrapCls} mt-4`}>
+              <ExportHeader subtitle="Records & Firsts" />
               {/* Records & Firsts */}
               {records && (() => {
                 const cardCls = colorMode === 'colorful'
@@ -391,7 +493,7 @@ export default function StatsTab({
                         ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
                         : 'text-lg font-semibold mb-4'
                     }>Records &amp; Firsts</h4>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div data-rec-grid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       {records.first && (
                         <Card label="First play:">
                           <div className={`${mainCls} truncate`} title={records.first.track}>&quot;{records.first.track}&quot;</div>
@@ -488,7 +590,25 @@ export default function StatsTab({
                   </div>
                 );
               })()}
+            </div>
 
+            {/* Share as image */}
+            <div className="mt-4">
+              <button
+                onClick={handleExportImage}
+                disabled={exporting}
+                className={
+                  colorMode === 'colorful'
+                    ? 'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60'
+                    : `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-60 ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
+                }
+              >
+                <ImageIcon size={16} />
+                {exporting ? 'Rendering…' : 'Share as Image'}
+              </button>
+            </div>
+
+            <div className="space-y-4">
               {/* Download Data Section */}
               {stats && processedData.length > 0 && (
                 <div className={
