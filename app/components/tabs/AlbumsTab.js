@@ -1,6 +1,7 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import AlbumCard from '../albumcard.js';
+import { RankChip } from '../RankCardBits.js';
 
 // Albums tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -23,6 +24,8 @@ export default function AlbumsTab({
   getAlbumsTabLabel,
   processedData,
   selectedAlbumYear,
+  albumsByYear,
+  albumYearRangeMode,
   selectedArtists,
   setSelectedArtists,
   expandedAlbumListRows,
@@ -32,6 +35,17 @@ export default function AlbumsTab({
   albumTextTheme,
   albumBackgroundTheme,
 }) {
+  // Previous-year album ranks (same sort metric) for rank-movement chips
+  const prevAlbumRanks = useMemo(() => {
+    if (albumYearRangeMode || !selectedAlbumYear || selectedAlbumYear === 'all' || !/^\d{4}$/.test(String(selectedAlbumYear))) return null;
+    const prev = albumsByYear?.[String(parseInt(selectedAlbumYear, 10) - 1)];
+    if (!prev || prev.length === 0) return null;
+    const sorted = [...prev].sort((a, b) => (b[albumsSortBy] || 0) - (a[albumsSortBy] || 0));
+    const map = new Map();
+    sorted.forEach((a, i) => map.set(`${(a.name || '').toLowerCase()}|||${(a.artist || '').toLowerCase()}`, i + 1));
+    return map;
+  }, [albumsByYear, selectedAlbumYear, albumYearRangeMode, albumsSortBy]);
+
   return (
           <div className={
             colorMode === 'colorful'
@@ -373,6 +387,13 @@ export default function AlbumsTab({
                           colorMode={colorMode}
                           sortBy={albumsSortBy}
                           maxValue={albumsSortBy === 'playCount' ? (displayedAlbums[0]?.playCount || 0) : (displayedAlbums[0]?.totalPlayed || 0)}
+                          rankChip={prevAlbumRanks && (
+                            <RankChip
+                              rank={index + 1}
+                              prevRank={prevAlbumRanks.get(`${(album.name || '').toLowerCase()}|||${(album.artist || '').toLowerCase()}`)}
+                              prevYear={parseInt(selectedAlbumYear, 10) - 1}
+                            />
+                          )}
                         />
                       ) : (
                         <div

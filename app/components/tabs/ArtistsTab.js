@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo } from 'react';
-import { RankBadge, RankBar } from '../RankCardBits.js';
+import { RankBadge, RankBar, RankChip } from '../RankCardBits.js';
 
 // Artists tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -49,26 +49,6 @@ export default function ArtistsTab({
     sorted.forEach((a, i) => map.set(a.name, i + 1));
     return map;
   }, [artistsByYear, selectedArtistYear, yearRangeMode, artistsSortBy]);
-
-  const rankChip = (name, rank) => {
-    if (!prevRanks) return null;
-    const prev = prevRanks.get(name);
-    const delta = prev ? prev - rank : null;
-    const prevYear = parseInt(selectedArtistYear, 10) - 1;
-    return (
-      <span
-        className={`shrink-0 text-[10px] font-bold leading-none ${
-          delta === null ? 'italic opacity-60'
-          : delta > 0 ? 'text-green-600 dark:text-green-400'
-          : delta < 0 ? 'text-red-500 dark:text-red-400'
-          : 'opacity-40'
-        }`}
-        title={prev ? `#${prev} in ${prevYear}` : `not ranked in ${prevYear}`}
-      >
-        {delta === null ? 'new' : delta > 0 ? `\u25B2${delta}` : delta < 0 ? `\u25BC${-delta}` : '='}
-      </span>
-    );
-  };
 
   return (
           <div className={
@@ -468,7 +448,7 @@ export default function ArtistsTab({
                             {/* Row 1: position + name + toggle */}
                             <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${cardText}`}>
                               <RankBadge rank={originalRank} isDarkMode={isDarkMode} />
-                              {rankChip(artist.name, originalRank)}
+                              {prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.get(artist.name)} prevYear={parseInt(selectedArtistYear, 10) - 1} />}
                               <span
                                 className="flex-1 text-center cursor-pointer hover:underline"
                                 title={`See your ${artist.name} songs`}

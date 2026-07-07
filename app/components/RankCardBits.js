@@ -23,6 +23,32 @@ export function RankBadge({ rank, isDarkMode, className = '' }) {
   return <span className={`shrink-0 min-w-[1.25rem] pr-1 text-left text-sm opacity-50 ${className}`}>#{rank}</span>;
 }
 
+// Rank-movement chip vs the previous period: green climb, red drop,
+// italic "new" for unranked (suppressable via showNew when the previous
+// list is capped and absence isn't conclusive). Renders nothing on a hold.
+export function RankChip({ rank, prevRank, prevYear, showNew = true }) {
+  if (prevRank == null) {
+    if (!showNew) return null;
+    return (
+      <span className="shrink-0 text-[10px] font-bold leading-none italic opacity-60" title={`not ranked in ${prevYear}`}>
+        new
+      </span>
+    );
+  }
+  const delta = prevRank - rank;
+  if (delta === 0) return null;
+  return (
+    <span
+      className={`shrink-0 text-[10px] font-bold leading-none ${
+        delta > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
+      }`}
+      title={`#${prevRank} in ${prevYear}`}
+    >
+      {delta > 0 ? `▲${delta}` : `▼${-delta}`}
+    </span>
+  );
+}
+
 // Slim bar showing this item's metric relative to rank #1 (max), with a label.
 export function RankBar({ value = 0, max = 0, label, className = '' }) {
   const pct = max > 0 ? Math.max(3, Math.round((Math.min(value, max) / max) * 100)) : 0;

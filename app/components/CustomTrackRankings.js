@@ -5,7 +5,7 @@ const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
-import { RankBadge, RankBar } from './RankCardBits.js';
+import { RankBadge, RankBar, RankChip } from './RankCardBits.js';
 import { getRankingColors } from './theme.js';
 
 const CustomTrackRankings = ({
@@ -24,6 +24,7 @@ const CustomTrackRankings = ({
   backgroundTheme = null,
   colorMode = 'minimal',
   viewMode = 'grid',
+  statsSongsByYear = {},
   setViewMode = () => {}
 }) => {
   const { theme, fontSize, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
@@ -32,6 +33,22 @@ const CustomTrackRankings = ({
 
   // Themed colors from the shared design system (see theme.js)
   const colors = getRankingColors({ colorTheme, textTheme, backgroundTheme, isColorful, isDarkMode });
+
+  // Previous-year song ranks for rank-movement chips (single-year view only).
+  // statsSongsByYear is capped at its top 100, so absence isn't conclusive —
+  // the chip suppresses "new" via showNew={false}.
+  const prevSongRanks = useMemo(() => {
+    if (yearRangeMode || !selectedYear || selectedYear === 'all' || !/^\d{4}$/.test(String(selectedYear))) return null;
+    const prev = statsSongsByYear?.[String(parseInt(selectedYear, 10) - 1)];
+    if (!prev || prev.length === 0) return null;
+    const map = new Map();
+    prev.forEach((song, i) => {
+      if (song.key) map.set(song.key, i + 1);
+      map.set(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`, i + 1);
+    });
+    return map;
+  }, [statsSongsByYear, selectedYear, yearRangeMode]);
+
   
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -1540,6 +1557,14 @@ return (
                     {/* Row 1: rank + name + toggle */}
                     <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${colors.text}`}>
                       <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                      {prevSongRanks && (
+                        <RankChip
+                          rank={index + 1}
+                          prevRank={prevSongRanks.get(song.key) ?? prevSongRanks.get(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`)}
+                          prevYear={parseInt(selectedYear, 10) - 1}
+                          showNew={false}
+                        />
+                      )}
                       <div className="flex-1 text-center px-1">
                         {song.isFeatured && <span className={`inline-block px-1 py-0.5 mr-1 ${colors.bgMed} rounded text-xs font-normal`}>FEAT</span>}
                         <div>{song.displayName || song.trackName}</div>
