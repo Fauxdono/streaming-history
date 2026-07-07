@@ -5,7 +5,7 @@ const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 import { Download, Plus, XCircle, Eye } from 'lucide-react';
 import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
-import { RankBadge, RankBar, RankChip } from './RankCardBits.js';
+import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel } from './RankCardBits.js';
 import { getRankingColors } from './theme.js';
 
 const CustomTrackRankings = ({
@@ -34,20 +34,36 @@ const CustomTrackRankings = ({
   // Themed colors from the shared design system (see theme.js)
   const colors = getRankingColors({ colorTheme, textTheme, backgroundTheme, isColorful, isDarkMode });
 
-  // Previous-year song ranks for rank-movement chips (single-year view only).
-  // statsSongsByYear is capped at its top 100, so absence isn't conclusive —
-  // the chip suppresses "new" via showNew={false}.
+  // Previous-period song ranks for rank-movement chips. Year mode uses
+  // statsSongsByYear (capped at its top 100, so absence isn't conclusive
+  // and "new" is suppressed); month mode ranks the previous month from
+  // raw plays (uncapped, so "new" is honest).
   const prevSongRanks = useMemo(() => {
-    if (yearRangeMode || !selectedYear || selectedYear === 'all' || !/^\d{4}$/.test(String(selectedYear))) return null;
-    const prev = statsSongsByYear?.[String(parseInt(selectedYear, 10) - 1)];
-    if (!prev || prev.length === 0) return null;
-    const map = new Map();
-    prev.forEach((song, i) => {
-      if (song.key) map.set(song.key, i + 1);
-      map.set(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`, i + 1);
-    });
-    return map;
-  }, [statsSongsByYear, selectedYear, yearRangeMode]);
+    if (yearRangeMode || !selectedYear) return null;
+    const sel = String(selectedYear);
+    if (/^\d{4}$/.test(sel)) {
+      const prev = statsSongsByYear?.[String(parseInt(sel, 10) - 1)];
+      if (!prev || prev.length === 0) return null;
+      const map = new Map();
+      prev.forEach((song, i) => {
+        if (song.key) map.set(song.key, i + 1);
+        map.set(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`, i + 1);
+      });
+      return { map, label: String(parseInt(sel, 10) - 1), showNew: false };
+    }
+    if (/^\d{4}-\d{2}$/.test(sel)) {
+      const prevYm = prevMonthOf(sel);
+      const map = monthRanksFromRaw(
+        rawPlayData,
+        prevYm,
+        e => e.master_metadata_track_name ? createMatchKey(e.master_metadata_track_name, e.master_metadata_album_artist_name) : null,
+        sortBy
+      );
+      if (map.size === 0) return null;
+      return { map, label: monthLabel(prevYm), showNew: true };
+    }
+    return null;
+  }, [statsSongsByYear, rawPlayData, selectedYear, yearRangeMode, sortBy]);
 
   
   const [startDate, setStartDate] = useState('');
@@ -1117,7 +1133,7 @@ const CustomTrackRankings = ({
           key={song.key} 
           className={`border-b ${colors.border} dark:${colors.borderDark} hover:${colors.bg} dark:${colors.hoverBgDark} ${song.isFeatured ? `${colors.bgLight} dark:${colors.hoverBgDark}` : ''}`}
         >
-          <td className={`p-1 sm:p-2 ${colors.text} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{index + 1}{prevSongRanks && <RankChip rank={index + 1} prevRank={prevSongRanks.get(song.key) ?? prevSongRanks.get(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`)} prevYear={parseInt(selectedYear, 10) - 1} showNew={false} />}</span></td>
+          <td className={`p-1 sm:p-2 ${colors.text} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{index + 1}{prevSongRanks && <RankChip rank={index + 1} prevRank={prevSongRanks.map.get(song.key) ?? prevSongRanks.map.get(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`)} prevLabel={prevSongRanks.label} showNew={prevSongRanks.showNew} />}</span></td>
           <td className={`p-1 sm:p-2 ${colors.text} text-xs sm:text-sm`}>
             <div className="flex items-center">
               {song.isFeatured && (
@@ -1560,9 +1576,9 @@ return (
                       {prevSongRanks && (
                         <RankChip
                           rank={index + 1}
-                          prevRank={prevSongRanks.get(song.key) ?? prevSongRanks.get(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`)}
-                          prevYear={parseInt(selectedYear, 10) - 1}
-                          showNew={false}
+                          prevRank={prevSongRanks.map.get(song.key) ?? prevSongRanks.map.get(`${(song.trackName || '').toLowerCase()}|||${(song.artist || '').toLowerCase()}`)}
+                          prevLabel={prevSongRanks.label}
+                          showNew={prevSongRanks.showNew}
                         />
                       )}
                       <div className="flex-1 text-center px-1">

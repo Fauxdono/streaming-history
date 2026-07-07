@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo } from 'react';
-import { RankBadge, RankBar, RankChip } from '../RankCardBits.js';
+import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel } from '../RankCardBits.js';
 
 // Artists tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -27,6 +27,7 @@ export default function ArtistsTab({
   selectedArtistYear,
   setSelectedArtistYear,
   artistsByYear,
+  rawPlayData,
   selectedArtists,
   setSelectedArtists,
   setActiveTab,
@@ -38,17 +39,28 @@ export default function ArtistsTab({
   yearRangeMode,
   setYearRangeMode,
 }) {
-  // Previous-year ranks (same sort metric) for rank-movement chips.
-  // Only meaningful when a single year is selected.
+  // Previous-period ranks (same sort metric) for rank-movement chips:
+  // a single year compares against the previous year; a single month
+  // compares against the previous month (ranked from raw plays).
   const prevRanks = useMemo(() => {
-    if (yearRangeMode || !selectedArtistYear || selectedArtistYear === 'all' || !/^\d{4}$/.test(String(selectedArtistYear))) return null;
-    const prev = artistsByYear?.[String(parseInt(selectedArtistYear, 10) - 1)];
-    if (!prev || prev.length === 0) return null;
-    const sorted = [...prev].sort((a, b) => (b[artistsSortBy] || 0) - (a[artistsSortBy] || 0));
-    const map = new Map();
-    sorted.forEach((a, i) => map.set(a.name, i + 1));
-    return map;
-  }, [artistsByYear, selectedArtistYear, yearRangeMode, artistsSortBy]);
+    if (yearRangeMode || !selectedArtistYear) return null;
+    const sel = String(selectedArtistYear);
+    if (/^\d{4}$/.test(sel)) {
+      const prev = artistsByYear?.[String(parseInt(sel, 10) - 1)];
+      if (!prev || prev.length === 0) return null;
+      const sorted = [...prev].sort((a, b) => (b[artistsSortBy] || 0) - (a[artistsSortBy] || 0));
+      const map = new Map();
+      sorted.forEach((a, i) => map.set(a.name, i + 1));
+      return { map, label: String(parseInt(sel, 10) - 1) };
+    }
+    if (/^\d{4}-\d{2}$/.test(sel)) {
+      const prevYm = prevMonthOf(sel);
+      const map = monthRanksFromRaw(rawPlayData, prevYm, e => e.master_metadata_album_artist_name, artistsSortBy);
+      if (map.size === 0) return null;
+      return { map, label: monthLabel(prevYm) };
+    }
+    return null;
+  }, [artistsByYear, rawPlayData, selectedArtistYear, yearRangeMode, artistsSortBy]);
 
   return (
           <div className={
@@ -373,7 +385,7 @@ export default function ArtistsTab({
                                 }}
                                 className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-[#4169E1] hover:bg-gray-800' : 'border-black hover:bg-gray-100')} ${artistSelectionMode ? 'cursor-pointer' : ''}`}
                               >
-                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{originalRank}{prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.get(artist.name)} prevYear={parseInt(selectedArtistYear, 10) - 1} />}</span></td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{originalRank}{prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.map.get(artist.name)} prevLabel={prevRanks.label} />}</span></td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{artist.name}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{formatDuration(artist.totalPlayed)}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.playCount?.toLocaleString() || 0}</td>
@@ -448,7 +460,7 @@ export default function ArtistsTab({
                             {/* Row 1: position + name + toggle */}
                             <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${cardText}`}>
                               <RankBadge rank={originalRank} isDarkMode={isDarkMode} />
-                              {prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.get(artist.name)} prevYear={parseInt(selectedArtistYear, 10) - 1} />}
+                              {prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.map.get(artist.name)} prevLabel={prevRanks.label} />}
                               <span
                                 className="flex-1 text-center cursor-pointer hover:underline"
                                 title={`See your ${artist.name} songs`}
