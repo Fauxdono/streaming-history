@@ -826,8 +826,8 @@ const filteredData = useMemo(() => {
     return { pieData, categoryDetails, tempData, rainyVsSunny, totalPlays };
   }, [filteredData, weatherData, deferredActiveTab, activeTab, homeCity]);
 
-  // Pie slice % labels — ink picked per slice, slice color read off the datum
-  const renderCustomizedLabel = useMemo(() => makePieLabel(), []);
+  // Pie slice % labels — ink picked per slice, thin slices labeled outside
+  const renderCustomizedLabel = useMemo(() => makePieLabel({ outsideInk: chart.axis }), [chart]);
 
   // Memoized donut with a headline stat in the hole; used for shuffle,
   // completion, session-duration, and weather pies.

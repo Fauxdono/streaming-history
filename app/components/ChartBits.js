@@ -51,19 +51,26 @@ export function inkFor(hex) {
 
 // Pie slice % label renderer. `colors` must be the same array the Cells use;
 // omit it (or pass a datum without color) and the label falls back to dark ink.
-export function makePieLabel({ colors = [], withName = false } = {}) {
+// Slices too thin to hold their label get it just outside the ring instead,
+// in `outsideInk` (pass the chart theme's axis ink so it reads on the card).
+export function makePieLabel({ colors = [], withName = false, outsideInk } = {}) {
   const renderer = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, payload }) => {
-    if (percent < 0.04) return null; // slivers: legend + tooltip carry them
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    if (percent < 0.005) return null; // invisible slivers: legend + tooltip carry them
+    const outside = percent < 0.08;
+    const radius = outside
+      ? outerRadius + 10
+      : innerRadius + (outerRadius - innerRadius) * 0.6;
     const x = cx + radius * Math.cos((-midAngle * Math.PI) / 180);
     const y = cy + radius * Math.sin((-midAngle * Math.PI) / 180);
-    const fill = colors[index] ?? payload?.color;
+    const fill = outside
+      ? (outsideInk || '#27272a')
+      : inkFor((colors[index] ?? payload?.color) || '#ffffff');
     return (
       <text
         x={x}
         y={y}
-        fill={inkFor(fill || '#ffffff')}
-        textAnchor="middle"
+        fill={fill}
+        textAnchor={outside ? (x >= cx ? 'start' : 'end') : 'middle'}
         dominantBaseline="central"
         fontSize="11px"
         fontWeight="bold"

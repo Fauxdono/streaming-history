@@ -532,7 +532,7 @@ const filteredData = useMemo(() => {
   // Loyalty donut: 2 ramp steps; the legend carries the names, the hole
   // carries the headline share
   const loyaltyColors = chart.ramp(2);
-  const loyaltyLabel = makePieLabel({ colors: loyaltyColors });
+  const loyaltyLabel = makePieLabel({ colors: loyaltyColors, outsideInk: chart.axis });
 
 
   const TimeframeButton = ({ id, label }) => (

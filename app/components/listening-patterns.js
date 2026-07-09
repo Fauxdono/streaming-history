@@ -616,8 +616,8 @@ const ListeningPatterns = ({
     return { locationData: matched, unmatchedCodes: unmatched, regionData: regionDataFinal, countrySongs: countrySongsFinal };
   }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
-  // Pie slice % labels — ink picked per slice, slice color read off the datum
-  const pieLabel = makePieLabel();
+  // Pie slice % labels — ink picked per slice, thin slices labeled outside
+  const pieLabel = makePieLabel({ outsideInk: chart.axis });
 
   const TabButton = ({ id, label }) => (
     <button
