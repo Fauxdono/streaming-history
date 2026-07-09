@@ -1,5 +1,86 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTheme } from './themeprovider.js';
+import { getAnalysisChartTheme } from './theme.js';
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const dayKey = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// One year strip of the "Year at a Glance" heatmap: columns are weeks,
+// rows are weekdays, cells tinted by that day's listening time.
+function YearStrip({ year, days, maxMs, scale, gridColor, labelClass, formatDuration, onDayClick }) {
+  // Back the grid up to the Sunday on or before Jan 1
+  const first = new Date(year, 0, 1);
+  const start = new Date(first);
+  start.setDate(first.getDate() - first.getDay());
+
+  const weeks = [];
+  for (let w = 0; w < 54; w++) {
+    const col = [];
+    for (let r = 0; r < 7; r++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + w * 7 + r);
+      col.push(d);
+    }
+    if (col[0].getFullYear() > year) break;
+    weeks.push(col);
+  }
+
+  const cellColor = (ms) => {
+    if (!ms || maxMs <= 0) return null;
+    const idx = Math.min(4, Math.floor(Math.sqrt(ms / maxMs) * 5));
+    return scale[idx];
+  };
+
+  // Label a column when it contains the first day of a month
+  const monthLabelFor = (col) => {
+    const firstOfMonth = col.find((d) => d.getFullYear() === year && d.getDate() === 1);
+    return firstOfMonth ? MONTH_LABELS[firstOfMonth.getMonth()] : '';
+  };
+
+  return (
+    <div className="min-w-max">
+      <div className="flex gap-[2px] ml-9 mb-0.5">
+        {weeks.map((col, i) => (
+          <span key={i} className={`w-[14px] shrink-0 text-[9px] whitespace-nowrap overflow-visible ${labelClass}`}>
+            {monthLabelFor(col)}
+          </span>
+        ))}
+      </div>
+      <div className="flex flex-col gap-[2px]">
+        {Array.from({ length: 7 }, (_, r) => (
+          <div key={r} className="flex items-center gap-[2px]">
+            <span className={`w-8 shrink-0 text-[10px] font-bold ${labelClass}`}>{DAY_LABELS[r]}</span>
+            {weeks.map((col, w) => {
+              const d = col[r];
+              if (d.getFullYear() !== year) {
+                return <span key={w} className="w-[14px] h-[14px] shrink-0" />;
+              }
+              const stat = days.get(dayKey(d));
+              const color = stat ? cellColor(stat.ms) : null;
+              return (
+                <span
+                  key={w}
+                  onClick={stat ? () => onDayClick(dayKey(d)) : undefined}
+                  className={`w-[14px] h-[14px] shrink-0 rounded-[2px] ${stat ? 'cursor-pointer' : ''}`}
+                  style={{
+                    backgroundColor: color || 'transparent',
+                    boxShadow: color ? 'none' : `inset 0 0 0 1px ${gridColor}`,
+                  }}
+                  title={`${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${
+                    stat ? ` — ${stat.plays} play${stat.plays === 1 ? '' : 's'} · ${formatDuration(stat.ms)}` : ' — no plays'
+                  }`}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const CalendarView = ({
   rawPlayData = [],
@@ -57,7 +138,13 @@ const CalendarView = ({
     buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
 
-  
+  // Sequential green ramp for the heatmap (grays in minimal mode)
+  const chart = useMemo(
+    () => getAnalysisChartTheme('green', isColorful, isDarkMode),
+    [isColorful, isDarkMode]
+  );
+  const heatScale = useMemo(() => [...chart.ramp(5)].reverse(), [chart]);
+
   // Month names constants
   const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -222,7 +309,41 @@ const CalendarView = ({
   
   // Check if we're viewing a specific month (YYYY-MM format)
   const isMonthView = selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 2 && !selectedYear.startsWith('all-');
-  
+
+  // Per-day listening totals for the "Year at a Glance" heatmap
+  const yearHeatmap = useMemo(() => {
+    if (activeTab !== 'calendar' || isMonthView) return null;
+
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
+    const days = new Map(); // 'YYYY-MM-DD' → { ms, plays }
+    filteredData.forEach((entry) => {
+      if (!passesFilters(entry)) return;
+      const d = new Date(entry.ts);
+      if (isNaN(d.getTime())) return;
+      const key = dayKey(d);
+      const t = days.get(key) || { ms: 0, plays: 0 };
+      t.ms += entry.ms_played;
+      t.plays += 1;
+      days.set(key, t);
+    });
+
+    let maxMs = 0;
+    days.forEach((v) => { if (v.ms > maxMs) maxMs = v.ms; });
+    const years = [...new Set([...days.keys()].map((k) => parseInt(k.slice(0, 4))))].sort((a, b) => a - b);
+    return { days, maxMs, years };
+  }, [filteredData, activeTab, isMonthView, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+
   // Listening history data for daily history tab
   const historyData = useMemo(() => {
     if (activeTab !== 'history') {
@@ -712,6 +833,45 @@ const CalendarView = ({
 
       {activeTab === 'calendar' && (
         <div className="space-y-6">
+          {!isMonthView && yearHeatmap && yearHeatmap.maxMs > 0 && (
+            <div>
+              <h3 className={`text-sm sm:text-lg font-bold mb-1 ${modeColors.text}`}>Year at a Glance</h3>
+              <p className={`mb-3 text-sm ${modeColors.textLight}`}>
+                Daily listening time — click a day to open it in Daily History
+              </p>
+              <div className={`p-3 sm:p-4 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'} overflow-x-auto`}>
+                <div className="space-y-4 min-w-max">
+                  {yearHeatmap.years.map((year) => (
+                    <div key={year}>
+                      {yearHeatmap.years.length > 1 && (
+                        <div className={`text-xs font-bold mb-1 ${modeColors.textLight}`}>{year}</div>
+                      )}
+                      <YearStrip
+                        year={year}
+                        days={yearHeatmap.days}
+                        maxMs={yearHeatmap.maxMs}
+                        scale={heatScale}
+                        gridColor={chart.grid}
+                        labelClass={modeColors.textLighter}
+                        formatDuration={formatDuration}
+                        onDayClick={(date) => {
+                          if (onYearChange) onYearChange(date);
+                          setActiveTab('history');
+                        }}
+                      />
+                    </div>
+                  ))}
+                  <div className={`flex items-center justify-end gap-1 text-[10px] ${modeColors.textLighter}`}>
+                    fewer
+                    {heatScale.map((c) => (
+                      <span key={c} className="inline-block w-3 h-3 rounded-[2px]" style={{ backgroundColor: c }} />
+                    ))}
+                    more
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <div>
             {/* Monthly View - Grid */}
             {!isMonthView && viewMode === 'grid' && (

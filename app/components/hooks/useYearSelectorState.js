@@ -289,8 +289,13 @@ function reducer(state, action) {
         const parts = year.split('-');
         const month = parts[1] ? parseInt(parts[1]) : 1;
         const day   = parts[2] ? parseInt(parts[2]) : 1;
+        // A granular date synced from the parent (e.g. a heatmap/day-card
+        // click) is a deliberate choice: mark the selectors user-enabled so
+        // SYNC_ACTIVE_TAB doesn't immediately collapse them and re-emit a
+        // bare year, wiping out the month/day.
         return { ...state, selectedYear: parts[0], selectedMonth: month, selectedDay: day,
-          showMonthSelector: parts.length >= 2, showDaySelector: parts.length >= 3, mode: 'single' };
+          showMonthSelector: parts.length >= 2, showDaySelector: parts.length >= 3, mode: 'single',
+          userEnabledSelectors: true };
       }
       return { ...state, selectedYear: year };
     }
