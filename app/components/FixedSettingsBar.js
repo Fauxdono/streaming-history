@@ -6,6 +6,7 @@ import SupportDropdown from './SupportDropdown.js';
 import AnalysisSettingsDropdown from './AnalysisSettingsDropdown.js';
 import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings, Sun, Moon, Palette } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
+import { TAB_ACCENT_HEX } from './theme.js';
 
 const FixedSettingsBar = ({
   togglePosition,
@@ -22,21 +23,7 @@ const FixedSettingsBar = ({
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
 
-  const tabAccentColors = {
-    upload:    isDarkMode ? '#4c1d95' : '#ddd6fe',
-    stats:     isDarkMode ? '#312e81' : '#c7d2fe',
-    artists:   isDarkMode ? '#1e3a8a' : '#bfdbfe',
-    albums:    isDarkMode ? '#164e63' : '#a5f3fc',
-    custom:    isDarkMode ? '#064e3b' : '#a7f3d0',
-    tracks:    isDarkMode ? '#7f1d1d' : '#fecaca',
-    calendar:  isDarkMode ? '#14532d' : '#bbf7d0',
-    patterns:  isDarkMode ? '#713f12' : '#fef08a',
-    behavior:  isDarkMode ? '#78350f' : '#fde68a',
-    discovery: isDarkMode ? '#7c2d12' : '#fed7aa',
-    podcasts:  isDarkMode ? '#7f1d1d' : '#fecaca',
-    playlists: isDarkMode ? '#881337' : '#fecdd3',
-    updates:   isDarkMode ? '#701a75' : '#f5d0fe',
-  };
+  const tabAccentColors = isDarkMode ? TAB_ACCENT_HEX.dark : TAB_ACCENT_HEX.light;
   const colorfulBg = colorMode === 'colorful' ? (tabAccentColors[activeTab] || null) : null;
   const mobileBarHeight = isLandscapeMobile ? 64 : 85;
   // Tabs that support grid/list view (mobile only)

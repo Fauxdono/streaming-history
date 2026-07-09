@@ -21,7 +21,7 @@ import ArtistsTab from './tabs/ArtistsTab.js';
 import StatsTab from './tabs/StatsTab.js';
 import UploadTab from './tabs/UploadTab.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
-import { getTabColors as getSharedTabColors } from './theme.js';
+import { getTabColors as getSharedTabColors, getChromeTint } from './theme.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
@@ -193,11 +193,8 @@ const SpotifyAnalyzer = ({
     const stale = document.getElementById('tab-tint-style');
     if (stale) stale.remove();
 
-    const light = { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe' };
-    const dark  = { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75' };
-    const color = colorMode === 'colorful' ? ((isDarkMode ? dark : light)[activeTab] || '') : '';
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', color || (isDarkMode ? '#000000' : '#ffffff'));
+    if (meta) meta.setAttribute('content', getChromeTint(activeTab, colorMode === 'colorful', isDarkMode));
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [enableEnrichment, setEnableEnrichment] = useState(() => {
@@ -2647,6 +2644,21 @@ const SpotifyAnalyzer = ({
 
   return (
     <div className={`w-full h-full min-h-screen ${getPageBackground()}`} data-bg-debug={getPageBackground()}>
+      {/* Always own the iOS status-bar strip: when TopTabs isn't docked at the
+          top, nothing else paints under the notch and iOS keeps showing the
+          last color it saw. Sits below TopTabs (z-99), which covers it with
+          the same accent when docked top. */}
+      {mounted && isMobile && (
+        <div
+          aria-hidden
+          className="fixed top-0 left-0 right-0 z-[98] pointer-events-none"
+          style={{
+            height: 'env(safe-area-inset-top)',
+            backgroundColor: getChromeTint(activeTab, colorMode === 'colorful', isDarkMode),
+            transform: 'translateZ(0)',
+          }}
+        />
+      )}
       <FixedSettingsBar
         togglePosition={togglePosition}
         toggleCollapsed={toggleCollapsed}
