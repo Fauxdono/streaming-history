@@ -720,3 +720,152 @@ export function getObsessionColors({ textTheme = 'rose', backgroundTheme = 'red'
     ...(bgs[backgroundTheme] || bgs.red),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Analysis-page colors (Listening Patterns / Listening Behavior / Music
+// Discovery). Phase A of the analysis-page redesign: the three pages used to
+// carry near-identical hand-rolled color objects; they now share these maps.
+// One accent per page: Patterns=yellow, Behavior=amber, Discovery=orange.
+// Cards wear the app-wide 1px hard-offset shadow (buttons keep 2px).
+// ---------------------------------------------------------------------------
+
+const ANALYSIS_COLORFUL = (isDarkMode) => ({
+  yellow: {
+    text:           isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
+    textLight:      isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
+    textLighter:    'text-yellow-500',
+    bg:             isDarkMode ? 'bg-yellow-900' : 'bg-yellow-200',
+    bgLight:        isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    bgCard:         isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    bgCardAlt:      isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    border:         isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
+    borderLight:    isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
+    shadow:         isDarkMode ? 'shadow-[1px_1px_0_0_#ca8a04]' : 'shadow-[1px_1px_0_0_#a16207]',
+    buttonActive:   isDarkMode ? 'bg-yellow-800 text-yellow-300 border border-yellow-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#ca8a04]' : 'bg-yellow-100 text-yellow-700 border border-yellow-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#a16207]',
+    buttonInactive: isDarkMode ? 'bg-yellow-800 text-yellow-300 border border-yellow-600 hover:bg-yellow-700 shadow-[2px_2px_0_0_#ca8a04]' : 'bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 shadow-[2px_2px_0_0_#a16207]',
+    toggleBg:       isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
+    toggleActive:   isDarkMode ? 'bg-yellow-500 text-black' : 'bg-yellow-600 text-white',
+    toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-700' : 'text-yellow-700 hover:bg-yellow-200',
+    input:          isDarkMode ? 'border-yellow-600 bg-yellow-800' : 'border-yellow-300 bg-yellow-100',
+  },
+  amber: {
+    text:           isDarkMode ? 'text-amber-300' : 'text-amber-700',
+    textLight:      isDarkMode ? 'text-amber-400' : 'text-amber-600',
+    textLighter:    'text-amber-500',
+    bg:             isDarkMode ? 'bg-amber-900' : 'bg-amber-200',
+    bgLight:        isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
+    bgCard:         isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
+    bgCardAlt:      isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
+    border:         isDarkMode ? 'border-amber-600' : 'border-amber-300',
+    borderLight:    isDarkMode ? 'border-amber-600' : 'border-amber-300',
+    shadow:         isDarkMode ? 'shadow-[1px_1px_0_0_#d97706]' : 'shadow-[1px_1px_0_0_#b45309]',
+    buttonActive:   isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#d97706]' : 'bg-amber-100 text-amber-700 border border-amber-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#b45309]',
+    buttonInactive: isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 hover:bg-amber-700 shadow-[2px_2px_0_0_#d97706]' : 'bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200 shadow-[2px_2px_0_0_#b45309]',
+    toggleBg:       isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
+    toggleActive:   isDarkMode ? 'bg-amber-500 text-black' : 'bg-amber-600 text-white',
+    toggleInactive: isDarkMode ? 'text-amber-300 hover:bg-amber-700' : 'text-amber-700 hover:bg-amber-200',
+    input:          isDarkMode ? 'border-amber-600 bg-amber-800' : 'border-amber-300 bg-amber-100',
+  },
+  orange: {
+    text:           isDarkMode ? 'text-orange-300' : 'text-orange-700',
+    textLight:      isDarkMode ? 'text-orange-400' : 'text-orange-600',
+    textLighter:    'text-orange-500',
+    bg:             isDarkMode ? 'bg-orange-900' : 'bg-orange-200',
+    bgLight:        isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
+    bgCard:         isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
+    bgCardAlt:      isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
+    border:         isDarkMode ? 'border-orange-600' : 'border-orange-300',
+    borderLight:    isDarkMode ? 'border-orange-600' : 'border-orange-300',
+    shadow:         isDarkMode ? 'shadow-[1px_1px_0_0_#ea580c]' : 'shadow-[1px_1px_0_0_#c2410c]',
+    buttonActive:   isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#c2410c]',
+    buttonInactive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 hover:bg-orange-700 shadow-[2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 hover:bg-orange-200 shadow-[2px_2px_0_0_#c2410c]',
+    toggleBg:       isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
+    toggleActive:   isDarkMode ? 'bg-orange-500 text-black' : 'bg-orange-600 text-white',
+    toggleInactive: isDarkMode ? 'text-orange-300 hover:bg-orange-700' : 'text-orange-700 hover:bg-orange-200',
+    input:          isDarkMode ? 'border-orange-600 bg-orange-800' : 'border-orange-300 bg-orange-100',
+  },
+});
+
+const ANALYSIS_MINIMAL = (isDarkMode) => ({
+  text:           isDarkMode ? 'text-white' : 'text-black',
+  textLight:      isDarkMode ? 'text-gray-400' : 'text-gray-600',
+  textLighter:    'text-gray-500',
+  bg:             isDarkMode ? 'bg-black' : 'bg-white',
+  bgLight:        isDarkMode ? 'bg-black' : 'bg-white',
+  bgCard:         isDarkMode ? 'bg-black' : 'bg-white',
+  bgCardAlt:      isDarkMode ? 'bg-black' : 'bg-white',
+  border:         isDarkMode ? 'border-[#4169E1]' : 'border-black',
+  borderLight:    isDarkMode ? 'border-[#4169E1]' : 'border-black',
+  shadow:         isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
+  buttonActive:   isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
+  buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
+  toggleBg:       isDarkMode ? 'bg-black' : 'bg-white',
+  toggleActive:   isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
+  toggleInactive: isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100',
+  input:          isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white',
+});
+
+export function getAnalysisPageColors(accent, isColorful, isDarkMode) {
+  if (!isColorful) {
+    const m = ANALYSIS_MINIMAL(isDarkMode);
+    return { ...m, card: `rounded border ${m.bgCard} ${m.border} ${m.shadow}` };
+  }
+  const maps = ANALYSIS_COLORFUL(isDarkMode);
+  const c = maps[accent] || maps.yellow;
+  return { ...c, card: `rounded border ${c.bgCard} ${c.border} ${c.shadow}` };
+}
+
+// ---------------------------------------------------------------------------
+// Analysis chart theme — raw hex values for recharts SVG props.
+//
+// Ordered categories (time periods, seasons, session-duration buckets) are
+// colored with a sequential single-hue ramp (monotonic lightness, so it stays
+// CVD-safe); pie slices are separated by a surface-colored stroke and carry
+// direct % labels, which is the relief for the low-contrast light steps.
+// ---------------------------------------------------------------------------
+
+function analysisRamps(p, isDarkMode) {
+  return isDarkMode
+    ? { r4: [p.c200, p.c300, p.c500, p.c600], r5: [p.c100, p.c200, p.c300, p.c500, p.c600] }
+    : { r4: [p.c800, p.c600, p.c500, p.c300], r5: [p.c900, p.c700, p.c500, p.c300, p.c200] };
+}
+
+const MINIMAL_RAMPS = (isDarkMode) => isDarkMode
+  ? { r4: ['#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563'], r5: ['#E5E7EB', '#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563'] }
+  : { r4: ['#374151', '#4B5563', '#6B7280', '#9CA3AF'], r5: ['#374151', '#4B5563', '#6B7280', '#9CA3AF', '#D1D5DB'] };
+
+export function getAnalysisChartTheme(accent, isColorful, isDarkMode) {
+  if (!isColorful) {
+    const { r4, r5 } = MINIMAL_RAMPS(isDarkMode);
+    return {
+      ramp: (n) => (n >= 5 ? r5 : n === 4 ? r4 : n === 3 ? [r4[0], r4[1], r4[3]] : [r4[0], r4[2]]),
+      series1: isDarkMode ? '#9CA3AF' : '#6B7280',
+      series2: isDarkMode ? '#6B7280' : '#9CA3AF',
+      grid:    isDarkMode ? '#374151' : '#e5e7eb',
+      axis:    isDarkMode ? '#9CA3AF' : '#374151',
+      legendText: isDarkMode ? '#ffffff' : '#000000',
+      pieStroke:  isDarkMode ? '#000000' : '#ffffff',
+      tooltip: {
+        backgroundColor: isDarkMode ? '#000000' : '#ffffff',
+        border: `1px solid ${isDarkMode ? '#4169E1' : '#000000'}`,
+        color: isDarkMode ? '#ffffff' : '#000000',
+      },
+    };
+  }
+  const p = PALETTES[accent] || PALETTES.yellow;
+  const { r4, r5 } = analysisRamps(p, isDarkMode);
+  return {
+    ramp: (n) => (n >= 5 ? r5 : n === 4 ? r4 : n === 3 ? [r4[0], r4[1], r4[3]] : [r4[0], r4[2]]),
+    series1: isDarkMode ? p.c300 : p.c700,
+    series2: isDarkMode ? p.c600 : p.c500,
+    grid:    isDarkMode ? p.c700 : p.c300,
+    axis:    isDarkMode ? p.c200 : p.c800,
+    legendText: isDarkMode ? p.c200 : p.c800,
+    pieStroke:  isDarkMode ? p.c800 : p.c100,
+    tooltip: {
+      backgroundColor: isDarkMode ? p.c900 : p.c50,
+      border: `1px solid ${isDarkMode ? p.c600 : p.c300}`,
+      color: isDarkMode ? p.c100 : p.c900,
+    },
+  };
+}

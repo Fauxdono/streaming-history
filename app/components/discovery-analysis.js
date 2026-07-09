@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import { useTheme } from './themeprovider.js';
+import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
+import { StatTile, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
 
 const DiscoveryAnalysis = ({
   rawPlayData = [],
@@ -24,138 +26,9 @@ const DiscoveryAnalysis = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat (Orange theme)
-  const modeColors = isColorful ? {
-    text: isDarkMode ? 'text-orange-300' : 'text-orange-700',
-    textLight: isDarkMode ? 'text-orange-400' : 'text-orange-600',
-    textLighter: isDarkMode ? 'text-orange-500' : 'text-orange-500',
-    bg: isDarkMode ? 'bg-orange-900' : 'bg-orange-200',
-    bgLight: isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
-    bgCard: isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
-    bgCardAlt: isDarkMode ? 'bg-orange-800' : 'bg-orange-100',
-    border: isDarkMode ? 'border-orange-600' : 'border-orange-300',
-    borderLight: isDarkMode ? 'border-orange-600' : 'border-orange-300',
-    buttonActive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#c2410c]',
-    buttonInactive: isDarkMode ? 'bg-orange-800 text-orange-300 border border-orange-600 hover:bg-orange-700 shadow-[2px_2px_0_0_#ea580c]' : 'bg-orange-100 text-orange-700 border border-orange-300 hover:bg-orange-200 shadow-[2px_2px_0_0_#c2410c]',
-  } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
-    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
-    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
-    bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
-    border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    borderLight: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
-  };
-
-  // Color theme for legends - grey in minimal mode
-  const getLegendTextColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000';
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#C4B5FD';
-        case 'indigo': return '#A5B4FC';
-        case 'green': return '#86EFAC';
-        case 'blue': return '#93C5FD';
-        case 'orange': return '#FDBA74';
-        default: return '#86EFAC';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#7C3AED';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#14532D';
-        case 'blue': return '#1E40AF';
-        case 'orange': return '#9a3412';
-        default: return '#14532D';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
-
-  // Color theme for pie chart strokes - grey in minimal mode
-  const getStrokeColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000';
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#d8b4fe';
-        case 'indigo': return '#a5b4fc';
-        case 'green': return '#86efac';
-        case 'blue': return '#93c5fd';
-        case 'teal': return '#5eead4';
-        case 'orange': return '#fdba74';
-        case 'pink': return '#f9a8d4';
-        case 'red': return '#fca5a5';
-        case 'yellow': return '#fde047';
-        case 'cyan': return '#67e8f9';
-        case 'emerald': return '#6ee7b7';
-        case 'rose': return '#fda4af';
-        default: return '#86efac';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#6b21a8';
-        case 'indigo': return '#3730a3';
-        case 'green': return '#14532d';
-        case 'blue': return '#1e40af';
-        case 'teal': return '#115e59';
-        case 'orange': return '#9a3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7f1d1d';
-        case 'yellow': return '#713f12';
-        case 'cyan': return '#155e75';
-        case 'emerald': return '#065f46';
-        case 'rose': return '#9f1239';
-        default: return '#14532d';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
-
-  // Color theme for pie chart text labels - grey in minimal mode
-  const getTextColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000';
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#d8b4fe';
-        case 'indigo': return '#a5b4fc';
-        case 'green': return '#86efac';
-        case 'blue': return '#93c5fd';
-        case 'teal': return '#5eead4';
-        case 'orange': return '#fdba74';
-        case 'pink': return '#f9a8d4';
-        case 'red': return '#fca5a5';
-        case 'yellow': return '#fde047';
-        case 'cyan': return '#67e8f9';
-        case 'emerald': return '#6ee7b7';
-        case 'rose': return '#fda4af';
-        default: return '#86efac';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#6b21a8';
-        case 'indigo': return '#3730a3';
-        case 'green': return '#14532d';
-        case 'blue': return '#1e40af';
-        case 'teal': return '#115e59';
-        case 'orange': return '#9a3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7f1d1d';
-        case 'yellow': return '#713f12';
-        case 'cyan': return '#155e75';
-        case 'emerald': return '#065f46';
-        case 'rose': return '#9f1239';
-        default: return '#14532d';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
+  // Page + chart theming (shared with the other analysis pages via theme.js)
+  const modeColors = getAnalysisPageColors('orange', isColorful, isDarkMode);
+  const chart = getAnalysisChartTheme('orange', isColorful, isDarkMode);
   
 // Update the filteredData useMemo in DiscoveryAnalysis.js
 const filteredData = useMemo(() => {
@@ -404,11 +277,11 @@ const filteredData = useMemo(() => {
     const top5PlayTime = top5Artists.reduce((sum, artist) => sum + artist.time, 0);
     const top5Percentage = Math.round((top5PlayTime / totalPlayTime) * 100);
     
-    // Format for loyalty pie chart - grey in minimal mode
+    // Loyalty pie data — slice colors come from the accent ramp at render time
     const otherPlayTime = totalPlayTime - top5PlayTime;
     const loyaltyData = [
-      { name: 'Top 5 Artists', value: top5PlayTime, color: isColorful ? (isDarkMode ? '#4C1D95' : '#8884d8') : (isDarkMode ? '#6B7280' : '#9CA3AF') },
-      { name: 'All Other Artists', value: otherPlayTime, color: isColorful ? (isDarkMode ? '#065F46' : '#82ca9d') : (isDarkMode ? '#374151' : '#D1D5DB') }
+      { name: 'Top 5 Artists', value: top5PlayTime },
+      { name: 'All Other Artists', value: otherPlayTime }
     ];
 
     return {
@@ -422,7 +295,7 @@ const filteredData = useMemo(() => {
       uniqueArtistsCount: sortedArtists.length,
       artistPlayCounts
     };
-  }, [filteredData, isDarkMode, isColorful, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Analyze listening depth
   const depthData = useMemo(() => {
@@ -656,28 +529,12 @@ const filteredData = useMemo(() => {
     </button>
   );
 
-  // Custom pie chart label renderer
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
-    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
-    
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill={getTextColor}
-        style={{ fill: getTextColor }}
-        textAnchor="middle" 
-        dominantBaseline="central"
-        fontSize="11px"
-        fontWeight="bold"
-      >
-        {`${name} ${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
-  
+  // Loyalty donut: 2 ramp steps; the legend carries the names, the hole
+  // carries the headline share
+  const loyaltyColors = chart.ramp(2);
+  const loyaltyLabel = makePieLabel({ colors: loyaltyColors });
+
+
   const TimeframeButton = ({ id, label }) => (
     <button
       onClick={() => setTimeframe(id)}
@@ -735,77 +592,59 @@ const filteredData = useMemo(() => {
 
       {activeTab === 'discovery' && (
         <div className="space-y-6">
-          <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
-            <h3 className={`text-sm sm:text-lg font-bold mb-4 ${modeColors.text}`}>Artist Discovery Stats</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
-                <div className={`text-sm ${modeColors.textLight}`}>Total Unique Artists</div>
-                <div className={`text-3xl font-bold ${modeColors.text}`}>{discoveryData.uniqueArtistsCount}</div>
-              </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
-                <div className={`text-sm ${modeColors.textLight}`}>Average New Artists per Month</div>
-                <div className={`text-3xl font-bold ${modeColors.text}`}>
-                  {discoveryData.newArtistsByMonth.length > 0 ?
-                    Math.round(discoveryData.totalArtistsDiscovered / discoveryData.newArtistsByMonth.length) : 0
-                  }
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <StatTile
+              label="Total Unique Artists"
+              value={discoveryData.uniqueArtistsCount}
+              colors={modeColors}
+            />
+            <StatTile
+              label="Average New Artists per Month"
+              value={discoveryData.newArtistsByMonth.length > 0 ?
+                Math.round(discoveryData.totalArtistsDiscovered / discoveryData.newArtistsByMonth.length) : 0}
+              colors={modeColors}
+            />
           </div>
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Artist Discovery Rate</h3>
             <p className={`mb-4 ${modeColors.textLight}`}>New artists discovered over time</p>
 
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-48 sm:h-64 w-full p-1 sm:p-2 ${modeColors.card}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={discoveryData.newArtistsByMonth}
                   margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis 
-                    dataKey="month" 
-                    angle={-45} 
-                    textAnchor="end" 
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                  <XAxis
+                    dataKey="month"
+                    angle={-45}
+                    textAnchor="end"
                     height={60}
-                    stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                    {...axisProps(chart)}
                   />
-                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <Tooltip 
+                  <YAxis {...axisProps(chart)} />
+                  <Tooltip
                     formatter={(value) => [value, 'New Artists']}
                     labelFormatter={(value, payload) => payload[0]?.payload?.fullLabel || value}
-                  />
-                  <Legend 
-                    wrapperStyle={{ 
-                      color: getLegendTextColor,
-                      fontSize: '12px'
-                    }}
-                    contentStyle={{
-                      color: getLegendTextColor
-                    }}
-                    iconType="rect"
-                    formatter={(value) => (
-                      <span style={{ color: getLegendTextColor }}>
-                        {value}
-                      </span>
-                    )}
+                    {...tooltipProps(chart)}
                   />
                   <Line
                     type="monotone"
                     dataKey="count"
-                    stroke={isColorful ? (isDarkMode ? '#059669' : '#82ca9d') : (isDarkMode ? '#9CA3AF' : '#6B7280')}
+                    stroke={chart.series1}
                     name="New Artists Discovered"
                     strokeWidth={2}
-                    dot={{ r: 3 }}
+                    dot={{ r: 3, fill: chart.series1 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
-          
-          <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+
+          <div className={`p-4 ${modeColors.card}`}>
             <h3 className={`text-sm sm:text-lg font-bold ${modeColors.text}`}>Discovery Insights</h3>
             <ul className="mt-2 space-y-2">
               <li className={modeColors.textLight}>
@@ -841,7 +680,7 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Artist Loyalty</h3>
               <p className={`mb-4 ${modeColors.textLight}`}>Your listening time distribution</p>
 
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+              <div className={`h-48 sm:h-64 p-1 sm:p-2 ${modeColors.card}`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -850,16 +689,24 @@ const filteredData = useMemo(() => {
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      outerRadius="70%"
-                      label={renderCustomizedLabel}
-                      stroke={getStrokeColor}
+                      innerRadius="52%"
+                      outerRadius="80%"
+                      label={loyaltyLabel}
+                      labelLine={false}
+                      stroke={chart.pieStroke}
                       strokeWidth={2}
                     >
                       {discoveryData.loyaltyData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={loyaltyColors[index]} />
                       ))}
+                      <Label content={donutCenter({
+                        value: `${discoveryData.top5Percentage}%`,
+                        caption: 'top 5 artists',
+                        ink: chart.axis,
+                      })} />
                     </Pie>
-                    <Tooltip formatter={(value) => formatDuration(value)} />
+                    <Tooltip formatter={(value) => formatDuration(value)} {...tooltipProps(chart)} />
+                    <Legend {...legendProps(chart)} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -872,7 +719,7 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Your Top 5 Artists</h3>
               <div className="space-y-3">
                 {discoveryData.top5Artists.map((artist, index) => (
-                  <div key={index} className={`p-3 rounded flex justify-between items-center border ${modeColors.bgCard} ${modeColors.border}`}>
+                  <div key={index} className={`p-3 flex justify-between items-center ${modeColors.card}`}>
                     <div>
                       <span className={`font-bold text-lg ${modeColors.text}`}>{index + 1}. {artist.name}</span>
                       <div className={`text-sm ${modeColors.textLight}`}>
@@ -888,7 +735,7 @@ const filteredData = useMemo(() => {
             </div>
           </div>
 
-          <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+          <div className={`p-4 ${modeColors.card}`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Loyalty Profile</h3>
             <div className={modeColors.textLight}>
               {discoveryData.top5Percentage > 75 ? (
@@ -907,70 +754,58 @@ const filteredData = useMemo(() => {
       
       {activeTab === 'depth' && (
         <div className="space-y-6">
-          <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
-            <h3 className={`text-sm sm:text-lg font-bold mb-4 ${modeColors.text}`}>Artist Catalog Exploration</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
-                <div className={`text-sm ${modeColors.textLight}`}>Average Listening Depth Score</div>
-                <div className={`text-3xl font-bold ${modeColors.text}`}>{depthData.averageDepth} / 100</div>
-                <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Higher scores indicate deeper exploration of artists' catalogs</div>
-              </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
-                <div className={`text-sm ${modeColors.textLight}`}>Most Explored Artist</div>
-                <div className={`text-3xl font-bold ${modeColors.text}`}>
-                  {depthData.artistDepths[0]?.name || "N/A"}
-                </div>
-                <div className={`text-xs mt-1 ${modeColors.textLighter}`}>
-                  {depthData.artistDepths[0] ?
-                    `${depthData.artistDepths[0].uniqueTracks} unique tracks listened to` : ""}
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <StatTile
+              label="Average Listening Depth Score"
+              value={`${depthData.averageDepth} / 100`}
+              sub="Higher scores indicate deeper exploration of artists' catalogs"
+              colors={modeColors}
+            />
+            <StatTile
+              label="Most Explored Artist"
+              value={depthData.artistDepths[0]?.name || "N/A"}
+              sub={depthData.artistDepths[0] ?
+                `${depthData.artistDepths[0].uniqueTracks} unique tracks listened to` : ""}
+              colors={modeColors}
+            />
           </div>
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Artist Catalog Depth</h3>
-            <p className={`mb-4 ${modeColors.textLight}`}>How deeply you explore your favorite artists' music</p>
+            <p className={`mb-4 ${modeColors.textLight}`}>Unique tracks you've played per artist, for your most-played artists</p>
 
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-64 sm:h-80 w-full p-1 sm:p-2 ${modeColors.card}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={depthData.artistDepths.slice(0, 10)}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
+                  data={[...depthData.artistDepths].sort((a, b) => b.uniqueTracks - a.uniqueTracks).slice(0, 10)}
+                  margin={{ top: 5, right: 45, left: 8, bottom: 5 }}
                   layout="vertical"
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    width={120}
-                    tick={{ fontSize: 12 }}
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} horizontal={false} />
+                  <XAxis type="number" {...axisProps(chart)} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={140}
+                    {...axisProps(chart)}
+                    tick={{ fill: chart.axis, fontSize: 11 }}
                   />
-                  <Tooltip 
-                    formatter={(value, name, props) => {
-                      if (name === 'depthScore') return [`${value.toFixed(1)} / 100`, 'Depth Score'];
-                      if (name === 'uniqueTracks') return [value, 'Unique Tracks'];
-                      return [value, name];
-                    }}
+                  <Tooltip
+                    formatter={(value, name, props) => [
+                      `${value} unique tracks across ${props.payload.totalPlays.toLocaleString()} plays`,
+                      'Catalog depth',
+                    ]}
+                    {...tooltipProps(chart)}
                   />
-                  <Legend 
-                    wrapperStyle={{ 
-                      color: getLegendTextColor,
-                      fontSize: '12px'
-                    }}
-                    contentStyle={{
-                      color: getLegendTextColor
-                    }}
-                    iconType="rect"
-                    formatter={(value) => (
-                      <span style={{ color: getLegendTextColor }}>
-                        {value}
-                      </span>
-                    )}
-                  />
-                  <Bar name="Unique Tracks" dataKey="uniqueTracks" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
-                  <Bar name="Depth Score" dataKey="depthScore" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#6B7280" : "#9CA3AF")} />
+                  <Bar dataKey="uniqueTracks" fill={chart.series1} radius={[0, 4, 4, 0]}>
+                    <LabelList
+                      dataKey="uniqueTracks"
+                      position="right"
+                      fill={chart.axis}
+                      fontSize={10}
+                      fontWeight={700}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -982,7 +817,7 @@ const filteredData = useMemo(() => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {depthData.replayValue.map((track, index) => (
-                <div key={index} className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+                <div key={index} className={`p-3 ${modeColors.card}`}>
                   <div className={`font-bold ${modeColors.text}`}>{index + 1}. {track.track}</div>
                   <div className={`text-sm ${modeColors.textLight}`}>
                     Played <span className="font-bold">{track.plays}</span> times
@@ -1002,25 +837,25 @@ const filteredData = useMemo(() => {
             <TimeframeButton id="month" label="Monthly" />
           </div>
 
-          <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
-            <h3 className={`text-sm sm:text-lg font-bold mb-4 ${modeColors.text}`}>Music Variety Overview</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
-                <div className={`text-sm ${modeColors.textLight}`}>Daily Variety Score</div>
-                <div className={`text-3xl font-bold ${modeColors.text}`}>{Math.round(varietyData.avgDailyVariety)}%</div>
-                <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Average percentage of unique tracks in a day</div>
-              </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
-                <div className={`text-sm ${modeColors.textLight}`}>Weekly Variety Score</div>
-                <div className={`text-3xl font-bold ${modeColors.text}`}>{Math.round(varietyData.avgWeeklyVariety)}%</div>
-                <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Average percentage of unique tracks in a week</div>
-              </div>
-              <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow'}`}>
-                <div className={`text-sm ${modeColors.textLight}`}>Monthly Variety Score</div>
-                <div className={`text-3xl font-bold ${modeColors.text}`}>{Math.round(varietyData.avgMonthlyVariety)}%</div>
-                <div className={`text-xs mt-1 ${modeColors.textLighter}`}>Average percentage of unique tracks in a month</div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StatTile
+              label="Daily Variety Score"
+              value={`${Math.round(varietyData.avgDailyVariety)}%`}
+              sub="Average percentage of unique tracks in a day"
+              colors={modeColors}
+            />
+            <StatTile
+              label="Weekly Variety Score"
+              value={`${Math.round(varietyData.avgWeeklyVariety)}%`}
+              sub="Average percentage of unique tracks in a week"
+              colors={modeColors}
+            />
+            <StatTile
+              label="Monthly Variety Score"
+              value={`${Math.round(varietyData.avgMonthlyVariety)}%`}
+              sub="Average percentage of unique tracks in a month"
+              colors={modeColors}
+            />
           </div>
 
           <div>
@@ -1029,7 +864,7 @@ const filteredData = useMemo(() => {
               Higher percentages indicate more unique tracks (less repetition)
             </p>
 
-            <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border}`}>
+            <div className={`h-48 sm:h-64 w-full p-1 sm:p-2 ${modeColors.card}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={
@@ -1039,15 +874,16 @@ const filteredData = useMemo(() => {
                   }
                   margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis 
-                    dataKey={timeframe === 'month' ? 'label' : 'timeframe'} 
-                    angle={-45} 
-                    textAnchor="end" 
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                  <XAxis
+                    dataKey={timeframe === 'month' ? 'label' : 'timeframe'}
+                    angle={-45}
+                    textAnchor="end"
                     height={60}
+                    {...axisProps(chart)}
                   />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip 
+                  <YAxis domain={[0, 100]} {...axisProps(chart)} />
+                  <Tooltip
                     formatter={(value) => [`${value.toFixed(1)}%`, 'Variety Score']}
                     labelFormatter={(value, payload) => {
                       if (timeframe === 'week' || timeframe === 'month') {
@@ -1055,37 +891,23 @@ const filteredData = useMemo(() => {
                       }
                       return new Date(value).toLocaleDateString();
                     }}
-                  />
-                  <Legend 
-                    wrapperStyle={{ 
-                      color: getLegendTextColor,
-                      fontSize: '12px'
-                    }}
-                    contentStyle={{
-                      color: getLegendTextColor
-                    }}
-                    iconType="rect"
-                    formatter={(value) => (
-                      <span style={{ color: getLegendTextColor }}>
-                        {value}
-                      </span>
-                    )}
+                    {...tooltipProps(chart)}
                   />
                   <Line
                     type="monotone"
                     dataKey="varietyScore"
-                    stroke={isColorful ? (isDarkMode ? "#059669" : "#82ca9d") : (isDarkMode ? "#9CA3AF" : "#6B7280")}
+                    stroke={chart.series1}
                     name="Variety Score"
                     strokeWidth={2}
-                    dot={{ r: 3 }}
+                    dot={{ r: 3, fill: chart.series1 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
-          
-          <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border}`}>
+
+          <div className={`p-4 ${modeColors.card}`}>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Variety Profile</h3>
             <div className={modeColors.textLight}>
               {Math.round(

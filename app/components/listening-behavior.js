@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, ScatterChart, Scatter, ZAxis, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, ScatterChart, Scatter, ZAxis, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Label, LabelList } from 'recharts';
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 import { useTheme } from './themeprovider.js';
+import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
+import { StatTile, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
 import {
   COUNTRY_CAPITALS, categorizeWeatherCode, broadWeatherCategory, tempBucket,
   TEMP_BUCKETS, WEATHER_COLORS, TEMP_COLORS,
@@ -36,6 +38,55 @@ function extractIPhoneModel(raw) {
   const match = raw.match(/\((iPhone\d+,\d+)\)/);
   if (match) return IPHONE_MODELS[match[1]] || match[1];
   return null;
+}
+
+// Human labels for Spotify's reason_start / reason_end enums — the raw values
+// (fwdbtn, trackdone, …) should never reach the UI.
+const REASON_LABELS = {
+  trackdone: 'Track finished',
+  fwdbtn: 'Skip button',
+  backbtn: 'Back button',
+  clickrow: 'Clicked a song',
+  clickside: 'Clicked in sidebar',
+  appload: 'App opened',
+  playbtn: 'Play button',
+  remote: 'Remote control',
+  trackerror: 'Track error',
+  endplay: 'Stopped playback',
+  logout: 'Logged out',
+  'unexpected-exit': 'App closed',
+  'unexpected-exit-while-paused': 'Closed while paused',
+  popup: 'Popup',
+  uriopen: 'Opened via link',
+  'switched-to-audiocast': 'Switched to cast',
+  unknown: 'Unknown',
+  undefined: 'Unknown',
+  '': 'Unknown',
+};
+
+function reasonLabel(reason) {
+  const key = String(reason ?? '').trim();
+  if (REASON_LABELS[key]) return REASON_LABELS[key];
+  const pretty = key.replace(/[-_]+/g, ' ');
+  return pretty.charAt(0).toUpperCase() + pretty.slice(1);
+}
+
+// Top 7 reasons + an aggregated "Other" row, with share-of-total percentages.
+function foldReasons(counts, total) {
+  const rows = Object.entries(counts)
+    .map(([reason, count]) => ({
+      name: reasonLabel(reason),
+      count,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count);
+  if (rows.length <= 8) return rows;
+  const rest = rows.slice(7);
+  const restCount = rest.reduce((sum, r) => sum + r.count, 0);
+  return [
+    ...rows.slice(0, 7),
+    { name: 'Other', count: restCount, percentage: total > 0 ? Math.round((restCount / total) * 100) : 0 },
+  ];
 }
 
 function categorizePlatform(raw) {
@@ -131,226 +182,13 @@ const ListeningBehavior = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat (Amber theme)
-  const modeColors = isColorful ? {
-    text: isDarkMode ? 'text-amber-300' : 'text-amber-700',
-    textLight: isDarkMode ? 'text-amber-400' : 'text-amber-600',
-    textLighter: isDarkMode ? 'text-amber-500' : 'text-amber-500',
-    bg: isDarkMode ? 'bg-amber-900' : 'bg-amber-200',
-    bgLight: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
-    bgCard: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
-    bgCardAlt: isDarkMode ? 'bg-amber-800' : 'bg-amber-100',
-    border: isDarkMode ? 'border-amber-600' : 'border-amber-300',
-    borderLight: isDarkMode ? 'border-amber-600' : 'border-amber-300',
-    buttonActive: isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#d97706]' : 'bg-amber-100 text-amber-700 border border-amber-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#b45309]',
-    buttonInactive: isDarkMode ? 'bg-amber-800 text-amber-300 border border-amber-600 hover:bg-amber-700 shadow-[2px_2px_0_0_#d97706]' : 'bg-amber-100 text-amber-700 border border-amber-300 hover:bg-amber-200 shadow-[2px_2px_0_0_#b45309]',
-  } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
-    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
-    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
-    bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
-    border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    borderLight: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
-  };
+  // Page + chart theming (shared with the other analysis pages via theme.js)
+  const modeColors = getAnalysisPageColors('amber', isColorful, isDarkMode);
+  const chart = useMemo(
+    () => getAnalysisChartTheme('amber', isColorful, isDarkMode),
+    [isColorful, isDarkMode]
+  );
 
-  // Color theme for legends - grey in minimal mode
-  const getLegendTextColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000'; // White/black in minimal mode
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#C4B5FD';
-        case 'indigo': return '#A5B4FC';
-        case 'green': return '#86EFAC';
-        case 'blue': return '#93C5FD';
-        case 'amber': return '#FCD34D';  // amber-300 hex - lighter amber for dark mode
-        case 'yellow': return '#FCD34D';  // amber-300 hex - lighter amber for dark mode
-        default: return '#A5B4FC';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#7C3AED';
-        case 'indigo': return '#3730A3';
-        case 'green': return '#14532D';
-        case 'blue': return '#1E40AF';
-        case 'amber': return '#B45309';  // amber-700 hex - darker for light mode
-        case 'yellow': return '#92400E';  // yellow-800 - darker for light mode
-        default: return '#3730A3';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
-
-  // Color theme mapping function
-  const getColors = (colorTheme) => {
-    console.log('🔍 getColors called with:', colorTheme);
-    switch (colorTheme) {
-      case 'amber':
-        console.log('✅ Using amber color case - copying CustomTrackRankings approach');
-        return {
-          text: 'text-amber-700',
-          textLight: 'text-amber-600', 
-          textLighter: 'text-amber-500',
-          textDark: 'text-amber-800',
-          primary: 'text-amber-600',
-          primaryLight: 'text-amber-500',
-          primaryLighter: 'text-amber-400',
-          primaryDark: 'text-amber-300',    // For dark mode
-          primaryDarker: 'text-amber-200',
-          bg: 'bg-amber-50',
-          bgLight: 'bg-amber-100',
-          bgLighter: 'bg-amber-50',
-          bgMed: 'bg-amber-200',
-          bgDark: 'bg-amber-600',
-          border: 'border-amber-200',
-          borderMed: 'border-amber-300',
-          borderDark: 'border-amber-400',
-          borderStrong: 'border-amber-600',
-          hoverBg: 'hover:bg-amber-100',
-          textVeryLight: 'text-amber-400'
-        };
-      case 'yellow':
-        return {
-          primary: 'yellow-700',
-          primaryLight: 'yellow-600',
-          primaryLighter: 'yellow-500',
-          primaryDark: 'amber-300',    // Use amber-300 for lighter amber in dark mode
-          primaryDarker: 'amber-400',  // Use amber-400 for slightly darker amber in dark mode
-          bg: 'yellow-600',
-          bgLight: 'yellow-200',
-          bgLighter: 'yellow-100',
-          bgMed: 'yellow-300',
-          border: 'yellow-200',
-          borderMed: 'yellow-300',
-          borderDark: 'yellow-400',
-          borderStrong: 'yellow-600',
-          hoverBg: 'yellow-300',
-          text: 'yellow-700',
-          textDark: 'amber-300',       // Use amber-300 for lighter amber text in dark mode
-          textLight: 'amber-400',      // Use amber-400 for amber text in dark mode
-          textLighter: 'amber-200',    // Use amber-200 for lightest amber text in dark mode
-          textVeryLight: 'yellow-500'
-        };
-      case 'indigo':
-      default:
-        return {
-          primary: 'indigo-700',
-          primaryLight: 'indigo-600',
-          primaryLighter: 'indigo-500',
-          primaryDark: 'indigo-400',
-          primaryDarker: 'indigo-300',
-          bg: 'indigo-600',
-          bgLight: 'indigo-200',
-          bgLighter: 'indigo-100',
-          bgMed: 'indigo-300',
-          border: 'indigo-200',
-          borderMed: 'indigo-300',
-          borderDark: 'indigo-400',
-          borderStrong: 'indigo-600',
-          hoverBg: 'indigo-300',
-          text: 'indigo-700',
-          textDark: 'indigo-200',
-          textLight: 'indigo-300',
-          textLighter: 'indigo-400',
-          textVeryLight: 'indigo-500'
-        };
-    }
-  };
-
-  const colors = getColors(colorTheme);
-  console.log('🎯 Final colors object:', colors);
-
-  // Color theme for pie chart strokes - use actual hex values instead of CSS variables for SVG compatibility
-  // In minimal mode, use grey; in colorful mode, use theme colors
-  const getStrokeColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000'; // White/black stroke in minimal mode
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#d8b4fe';
-        case 'indigo': return '#a5b4fc';
-        case 'green': return '#86efac';
-        case 'blue': return '#93c5fd';
-        case 'teal': return '#5eead4';
-        case 'orange': return '#fdba74';
-        case 'pink': return '#f9a8d4';
-        case 'red': return '#fca5a5';
-        case 'yellow': return '#fde047';
-        case 'cyan': return '#67e8f9';
-        case 'emerald': return '#6ee7b7';
-        case 'rose': return '#fda4af';
-        case 'amber': return '#fcd34d';
-        default: return '#a5b4fc';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#6b21a8';
-        case 'indigo': return '#3730a3';
-        case 'green': return '#14532d';
-        case 'blue': return '#1e40af';
-        case 'teal': return '#115e59';
-        case 'orange': return '#9a3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7f1d1d';
-        case 'yellow': return '#713f12';
-        case 'cyan': return '#155e75';
-        case 'emerald': return '#065f46';
-        case 'rose': return '#9f1239';
-        case 'amber': return '#b45309';
-        default: return '#3730a3';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
-
-  // Color theme for pie chart text labels - use actual hex values instead of CSS variables for SVG compatibility
-  // In minimal mode, use grey; in colorful mode, use theme colors
-  const getTextColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000'; // White/black text in minimal mode
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#d8b4fe';
-        case 'indigo': return '#a5b4fc';
-        case 'green': return '#86efac';
-        case 'blue': return '#93c5fd';
-        case 'teal': return '#5eead4';
-        case 'orange': return '#fdba74';
-        case 'pink': return '#f9a8d4';
-        case 'red': return '#fca5a5';
-        case 'yellow': return '#fde047';
-        case 'cyan': return '#67e8f9';
-        case 'emerald': return '#6ee7b7';
-        case 'rose': return '#fda4af';
-        case 'amber': return '#fcd34d';
-        default: return '#a5b4fc';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#6b21a8';
-        case 'indigo': return '#3730a3';
-        case 'green': return '#14532d';
-        case 'blue': return '#1e40af';
-        case 'teal': return '#115e59';
-        case 'orange': return '#9a3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7f1d1d';
-        case 'yellow': return '#713f12';
-        case 'cyan': return '#155e75';
-        case 'emerald': return '#065f46';
-        case 'rose': return '#9f1239';
-        case 'amber': return '#b45309';
-        default: return '#3730a3';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
-  
 // Update the filteredData useMemo in ListeningBehavior.js
 const filteredData = useMemo(() => {
   // Use deferred data for non-blocking computation
@@ -565,30 +403,23 @@ const filteredData = useMemo(() => {
       }
     });
     
-    // Format for pie charts - grey in minimal mode, colorful otherwise
+    // Pie data — slice colors from the accent ramp
+    const shuffle2 = chart.ramp(2);
     const shuffleData = [
-      { name: 'Shuffle On', value: shufflePlays, color: isColorful ? (isDarkMode ? '#4C1D95' : '#8884d8') : (isDarkMode ? '#6B7280' : '#9CA3AF') },
-      { name: 'Shuffle Off', value: normalPlays, color: isColorful ? (isDarkMode ? '#065F46' : '#82ca9d') : (isDarkMode ? '#374151' : '#D1D5DB') }
+      { name: 'Shuffle On', value: shufflePlays, color: shuffle2[0] },
+      { name: 'Shuffle Off', value: normalPlays, color: shuffle2[1] }
     ];
 
+    const skip3 = chart.ramp(3);
     const skipData = [
-      { name: 'Completed', value: completedTracks, color: isColorful ? (isDarkMode ? '#065F46' : '#82ca9d') : (isDarkMode ? '#4B5563' : '#9CA3AF') },
-      { name: 'Skipped', value: skippedTracks, color: isColorful ? (isDarkMode ? '#DC2626' : '#ff8042') : (isDarkMode ? '#6B7280' : '#6B7280') },
-      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: isColorful ? (isDarkMode ? '#4C1D95' : '#8884d8') : (isDarkMode ? '#374151' : '#D1D5DB') }
+      { name: 'Completed', value: completedTracks, color: skip3[0] },
+      { name: 'Skipped', value: skippedTracks, color: skip3[1] },
+      { name: 'Other End', value: totalTracks - completedTracks - skippedTracks, color: skip3[2] }
     ];
     
-    // Format reasons for bar charts
-    const endReasons = Object.entries(reasonEndCounts).map(([reason, count]) => ({
-      name: reason,
-      count,
-      percentage: Math.round((count / totalTracks) * 100)
-    })).sort((a, b) => b.count - a.count);
-    
-    const startReasons = Object.entries(reasonStartCounts).map(([reason, count]) => ({
-      name: reason,
-      count,
-      percentage: Math.round((count / totalTracks) * 100)
-    })).sort((a, b) => b.count - a.count);
+    // Format reasons for bar charts — human labels, top 7 + "Other"
+    const endReasons = foldReasons(reasonEndCounts, totalTracks);
+    const startReasons = foldReasons(reasonStartCounts, totalTracks);
     
     // Format platforms for bar chart
     const platformData = Object.entries(platforms).map(([platform, count]) => ({
@@ -647,7 +478,7 @@ const filteredData = useMemo(() => {
       platformNames,
       iphoneModels
     };
-  }, [filteredData, deferredActiveTab, activeTab, isDarkMode, isColorful]);
+  }, [filteredData, deferredActiveTab, activeTab, chart]);
   
   // Analyze listening sessions - only compute for active sessions tab
   const sessionData = useMemo(() => {
@@ -785,12 +616,13 @@ const filteredData = useMemo(() => {
       .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
     
     // Group sessions by duration - grey in minimal mode, colorful otherwise
+    const duration5 = chart.ramp(5);
     const durationGroups = [
-      { name: "< 15 min", count: 0, color: isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#374151" : "#D1D5DB") },
-      { name: "15-30 min", count: 0, color: isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#4B5563" : "#9CA3AF") },
-      { name: "30-60 min", count: 0, color: isColorful ? (isDarkMode ? "#D97706" : "#ffc658") : (isDarkMode ? "#6B7280" : "#6B7280") },
-      { name: "1-2 hours", count: 0, color: isColorful ? (isDarkMode ? "#DC2626" : "#ff8042") : (isDarkMode ? "#9CA3AF" : "#4B5563") },
-      { name: "> 2 hours", count: 0, color: isColorful ? (isDarkMode ? "#1E40AF" : "#8dd1e1") : (isDarkMode ? "#D1D5DB" : "#374151") }
+      { name: "< 15 min", count: 0, color: duration5[0] },
+      { name: "15-30 min", count: 0, color: duration5[1] },
+      { name: "30-60 min", count: 0, color: duration5[2] },
+      { name: "1-2 hours", count: 0, color: duration5[3] },
+      { name: "> 2 hours", count: 0, color: duration5[4] }
     ];
     
     sessionLengths.forEach(session => {
@@ -835,7 +667,7 @@ const filteredData = useMemo(() => {
       longestListeningDay,
       mostActiveMonth
     };
-  }, [filteredData, isDarkMode, isColorful, deferredActiveTab, activeTab, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, chart, deferredActiveTab, activeTab, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Update selectedDate when selectedYear changes to a specific date
   React.useEffect(() => {
@@ -994,119 +826,34 @@ const filteredData = useMemo(() => {
     return { pieData, categoryDetails, tempData, rainyVsSunny, totalPlays };
   }, [filteredData, weatherData, deferredActiveTab, activeTab, homeCity]);
 
-  // Custom pie chart label renderer - just show the percentage inside
-  const renderCustomizedLabel = useCallback(({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
-    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
-    
-    console.log('Pie chart render - Theme:', theme, 'isDarkMode:', isDarkMode, 'textColor:', getTextColor, 'strokeColor:', getStrokeColor);
-    
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill={getTextColor}
-        style={{ fill: getTextColor }}
-        textAnchor="middle" 
-        dominantBaseline="central"
-        fontSize="12px"
-        fontWeight="bold"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  }, [getTextColor]);
+  // Pie slice % labels — ink picked per slice, slice color read off the datum
+  const renderCustomizedLabel = useMemo(() => makePieLabel(), []);
 
-  // Memoized chart components to prevent unnecessary re-renders
-  const ShuffleChart = React.memo(({ data, isDarkMode, colorTheme }) => (
+  // Memoized donut with a headline stat in the hole; used for shuffle,
+  // completion, session-duration, and weather pies.
+  const DonutChart = React.memo(({ data, center, chartKey, isDarkMode, colorTheme, tooltipFormatter }) => (
     <ResponsiveContainer width="100%" height="100%">
-      <PieChart key={`pie-shuffle-${isDarkMode}-${colorTheme}`}>
+      <PieChart key={`pie-${chartKey}-${isDarkMode}-${colorTheme}`}>
         <Pie
           data={data}
           dataKey="value"
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius="70%"
+          innerRadius="52%"
+          outerRadius="80%"
           labelLine={false}
           label={renderCustomizedLabel}
-          stroke={getStrokeColor}
+          stroke={chart.pieStroke}
           strokeWidth={2}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} />
           ))}
+          {center && <Label content={donutCenter({ ...center, ink: chart.axis })} />}
         </Pie>
-        <Tooltip
-          formatter={(value) => value}
-          contentStyle={{
-            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-            border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-            color: isDarkMode ? '#ffffff' : '#000000'
-          }}
-        />
-        <Legend
-          wrapperStyle={{
-            color: getLegendTextColor,
-            fontSize: '12px'
-          }}
-          contentStyle={{
-            color: getLegendTextColor
-          }}
-          iconType="rect"
-          formatter={(value) => (
-            <span style={{ color: getLegendTextColor }}>
-              {value}
-            </span>
-          )}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  ));
-
-  const CompletionChart = React.memo(({ data, isDarkMode, colorTheme }) => (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart key={`pie-completion-${isDarkMode}-${colorTheme}`}>
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          outerRadius="70%"
-          labelLine={false}
-          label={renderCustomizedLabel}
-          stroke={getStrokeColor}
-          strokeWidth={2}
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip 
-          formatter={(value) => value}
-          contentStyle={{
-            backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-            border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-            color: isDarkMode ? '#ffffff' : '#000000'
-          }}
-        />
-        <Legend 
-          wrapperStyle={{ 
-            color: getLegendTextColor,
-            fontSize: '12px'
-          }}
-          contentStyle={{
-            color: getLegendTextColor
-          }}
-          iconType="rect"
-          formatter={(value) => (
-            <span style={{ color: getLegendTextColor }}>
-              {value}
-            </span>
-          )}
-        />
+        <Tooltip formatter={tooltipFormatter || ((value) => value)} {...tooltipProps(chart)} />
+        <Legend {...legendProps(chart)} />
       </PieChart>
     </ResponsiveContainer>
   ));
@@ -1173,9 +920,11 @@ const filteredData = useMemo(() => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Shuffle vs. Normal Play</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-                <ShuffleChart
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
+                <DonutChart
                   data={behaviorData.shuffleData}
+                  center={{ value: `${behaviorData.shufflePercentage}%`, caption: 'shuffle on' }}
+                  chartKey="shuffle"
                   isDarkMode={isDarkMode}
                   colorTheme={colorTheme}
                 />
@@ -1188,9 +937,11 @@ const filteredData = useMemo(() => {
 
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Track Completion</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-                <CompletionChart
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
+                <DonutChart
                   data={behaviorData.skipData}
+                  center={{ value: `${behaviorData.completedPercentage}%`, caption: 'completed' }}
+                  chartKey="completion"
                   isDarkMode={isDarkMode}
                   colorTheme={colorTheme}
                 />
@@ -1203,26 +954,36 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How You Start Tracks</h3>
-            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.startReasons}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
+                  layout="vertical"
+                  margin={{ top: 5, right: 45, left: 8, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis dataKey="name" stroke={isDarkMode ? '#9CA3AF' : '#374151'} angle={-45} textAnchor="end" height={80} />
-                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <Tooltip 
-                    formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                      color: isDarkMode ? '#ffffff' : '#000000'
-                    }}
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} horizontal={false} />
+                  <XAxis type="number" {...axisProps(chart)} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={140}
+                    {...axisProps(chart)}
+                    tick={{ fill: chart.axis, fontSize: 11 }}
                   />
-                  <Legend />
-                  <Bar name="Count" dataKey="count" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
-                  <Bar name="Percentage" dataKey="percentage" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#6B7280" : "#9CA3AF")} unit="%" />
+                  <Tooltip
+                    formatter={(value, name, props) => [`${value.toLocaleString()} plays (${props.payload.percentage}%)`, 'Started']}
+                    {...tooltipProps(chart)}
+                  />
+                  <Bar dataKey="count" fill={chart.series1} radius={[0, 4, 4, 0]}>
+                    <LabelList
+                      dataKey="percentage"
+                      position="right"
+                      formatter={(v) => `${v}%`}
+                      fill={chart.axis}
+                      fontSize={10}
+                      fontWeight={700}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1230,26 +991,36 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>How Tracks End</h3>
-            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+            <div className={`h-64 sm:h-80 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={behaviorData.endReasons}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
+                  layout="vertical"
+                  margin={{ top: 5, right: 45, left: 8, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis dataKey="name" stroke={isDarkMode ? '#9CA3AF' : '#374151'} angle={-45} textAnchor="end" height={80} />
-                  <YAxis stroke={isDarkMode ? '#9CA3AF' : '#374151'} />
-                  <Tooltip
-                    formatter={(value, name) => [value, name === 'count' ? 'Count' : 'Percentage']}
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                      color: isDarkMode ? '#ffffff' : '#000000'
-                    }}
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} horizontal={false} />
+                  <XAxis type="number" {...axisProps(chart)} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    width={140}
+                    {...axisProps(chart)}
+                    tick={{ fill: chart.axis, fontSize: 11 }}
                   />
-                  <Legend />
-                  <Bar name="Count" dataKey="count" fill={isColorful ? (isDarkMode ? "#4C1D95" : "#8884d8") : (isDarkMode ? "#9CA3AF" : "#6B7280")} />
-                  <Bar name="Percentage" dataKey="percentage" fill={isColorful ? (isDarkMode ? "#065F46" : "#82ca9d") : (isDarkMode ? "#6B7280" : "#9CA3AF")} unit="%" />
+                  <Tooltip
+                    formatter={(value, name, props) => [`${value.toLocaleString()} plays (${props.payload.percentage}%)`, 'Ended']}
+                    {...tooltipProps(chart)}
+                  />
+                  <Bar dataKey="count" fill={chart.series1} radius={[0, 4, 4, 0]}>
+                    <LabelList
+                      dataKey="percentage"
+                      position="right"
+                      formatter={(v) => `${v}%`}
+                      fill={chart.axis}
+                      fontSize={10}
+                      fontWeight={700}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1257,10 +1028,10 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Platforms Used</h3>
-            <div className={`h-72 sm:h-96 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+            <div className={`h-72 sm:h-96 w-full rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                   <XAxis
                     type="number"
                     dataKey="date"
@@ -1275,7 +1046,8 @@ const filteredData = useMemo(() => {
                       return ticks;
                     })()}
                     tickFormatter={(ts) => new Date(ts).getFullYear()}
-                    stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                    stroke={chart.axis}
+                    tick={{ fill: chart.axis, fontSize: 10 }}
                     name="Date"
                   />
                   <YAxis
@@ -1284,7 +1056,8 @@ const filteredData = useMemo(() => {
                     domain={[-0.5, (behaviorData.platformNames?.length || 1) - 0.5]}
                     ticks={behaviorData.platformNames?.map((_, i) => i) || []}
                     tickFormatter={(i) => behaviorData.platformNames?.[i] || ''}
-                    stroke={isDarkMode ? '#9CA3AF' : '#374151'}
+                    stroke={chart.axis}
+                    tick={{ fill: chart.axis, fontSize: 10 }}
                     width={80}
                     name="Platform"
                   />
@@ -1297,9 +1070,7 @@ const filteredData = useMemo(() => {
                       const date = new Date(d.date);
                       return (
                         <div style={{
-                          backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                          border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                          color: isDarkMode ? '#ffffff' : '#000000',
+                          ...chart.tooltip,
                           padding: '8px 12px',
                           borderRadius: '4px',
                           fontSize: '12px'
@@ -1361,47 +1132,29 @@ const filteredData = useMemo(() => {
       {activeTab === 'sessions' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-              <h3 className={`font-bold ${modeColors.text}`}>Total Sessions</h3>
-              <p className={`text-3xl ${modeColors.text}`}>{sessionData.totalSessions}</p>
-            </div>
-
-            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-              <h3 className={`font-bold ${modeColors.text}`}>Avg. Session Length</h3>
-              <p className={`text-3xl ${modeColors.text}`}>{sessionData.averageSessionDuration} min</p>
-            </div>
-
-            <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-              <h3 className={`font-bold ${modeColors.text}`}>Avg. Tracks per Session</h3>
-              <p className={`text-3xl ${modeColors.text}`}>{sessionData.averageTracksPerSession}</p>
-            </div>
+            <StatTile label="Total Sessions" value={sessionData.totalSessions} colors={modeColors} />
+            <StatTile label="Avg. Session Length" value={`${sessionData.averageSessionDuration} min`} colors={modeColors} />
+            <StatTile label="Avg. Tracks per Session" value={sessionData.averageTracksPerSession} colors={modeColors} />
           </div>
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Duration Distribution</h3>
-            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart key={`pie-session-${isDarkMode}-${colorTheme}`}>
-                  <Pie
-                    data={sessionData.durationGroups}
-                    dataKey="count"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius="70%"
-                    labelLine={false}
-                    label={renderCustomizedLabel}
-                    stroke={getStrokeColor}
-                    strokeWidth={2}
-                  >
-                    {sessionData.durationGroups.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => value} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
+              {(() => {
+                const topGroup = [...sessionData.durationGroups].sort((a, b) => b.count - a.count)[0];
+                const center = topGroup && sessionData.totalSessions > 0
+                  ? { value: `${Math.round((topGroup.count / sessionData.totalSessions) * 100)}%`, caption: topGroup.name }
+                  : null;
+                return (
+                  <DonutChart
+                    data={sessionData.durationGroups.map(g => ({ name: g.name, value: g.count, color: g.color }))}
+                    center={center}
+                    chartKey="session"
+                    isDarkMode={isDarkMode}
+                    colorTheme={colorTheme}
+                  />
+                );
+              })()}
             </div>
           </div>
           
@@ -1410,7 +1163,7 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Statistics</h3>
               <ul className="space-y-2">
                 {sessionData.longestSession && (
-                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                     <span className={`font-bold ${modeColors.text}`}>Longest Session:</span>
                     <span className={`ml-2 ${modeColors.text}`}>{sessionData.longestSession.durationMinutes} minutes</span>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1425,7 +1178,7 @@ const filteredData = useMemo(() => {
                 )}
 
                 {sessionData.mostTracksSession && (
-                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                     <span className={`font-bold ${modeColors.text}`}>Most Tracks in a Session:</span>
                     <span className={`ml-2 ${modeColors.text}`}>{sessionData.mostTracksSession.tracksCount} tracks</span>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1439,7 +1192,7 @@ const filteredData = useMemo(() => {
                   </li>
                 )}
 
-                <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                   <span className={`font-bold ${modeColors.text}`}>Total Listening Time:</span>
                   <span className={`ml-2 ${modeColors.text}`}>
                     {formatDuration(sessionData.sessionLengths.reduce((sum, session) => sum + (session.durationMinutes * 60000), 0))}
@@ -1452,7 +1205,7 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Notable Days & Months</h3>
               <div className="space-y-3">
                 {sessionData.mostActiveDay && (
-                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                     <h4 className={`font-medium ${modeColors.text}`}>Most Active Day:</h4>
                     <div className={`font-bold ${modeColors.text}`}>{sessionData.mostActiveDay.displayDate}</div>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1462,7 +1215,7 @@ const filteredData = useMemo(() => {
                 )}
 
                 {sessionData.longestListeningDay && (
-                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                     <h4 className={`font-medium ${modeColors.text}`}>Longest Listening Day:</h4>
                     <div className={`font-bold ${modeColors.text}`}>{sessionData.longestListeningDay.displayDate}</div>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1472,7 +1225,7 @@ const filteredData = useMemo(() => {
                 )}
 
                 {sessionData.mostActiveMonth && (
-                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <div className={`p-3 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                     <h4 className={`font-medium ${modeColors.text}`}>Most Active Month:</h4>
                     <div className={`font-bold ${modeColors.text}`}>{sessionData.mostActiveMonth.displayDate}</div>
                     <div className={`text-sm ${modeColors.textLight}`}>
@@ -1486,11 +1239,11 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Insights</h3>
-            <div className={`p-3 rounded space-y-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+            <div className={`p-3 rounded space-y-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
               <p className={modeColors.textLight}>
                 Most of your listening sessions are
                 <span className="font-bold"> {
-                  sessionData.durationGroups.sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
+                  [...sessionData.durationGroups].sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
                 }</span>.
               </p>
               <p className={modeColors.textLight}>
@@ -1514,7 +1267,7 @@ const filteredData = useMemo(() => {
     {activeTab === 'weather' && (
       <div className="space-y-6">
         {/* City Setup */}
-        <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+        <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
           <h3 className={`text-sm sm:text-lg font-bold mb-3 ${modeColors.text}`}>Home City</h3>
           {homeCity && (
             <div className={`mb-3 text-sm ${modeColors.text}`}>
@@ -1535,7 +1288,7 @@ const filteredData = useMemo(() => {
                 onChange={(e) => setCitySearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCitySearch()}
                 placeholder="Search for your city..."
-                className={`flex-1 px-3 py-1.5 rounded border text-sm ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-black placeholder-gray-400'}`}
+                className={`flex-1 px-3 py-1.5 rounded border text-sm ${modeColors.input} ${modeColors.text}`}
               />
               <button
                 onClick={handleCitySearch}
@@ -1579,42 +1332,23 @@ const filteredData = useMemo(() => {
             {/* Weather Mood Breakdown - Pie Chart */}
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Weather Mood Breakdown</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
+                {(() => {
+                  const topCat = [...weatherAnalysis.pieData].sort((a, b) => b.value - a.value)[0];
+                  const center = topCat && weatherAnalysis.totalPlays > 0
+                    ? { value: `${Math.round((topCat.value / weatherAnalysis.totalPlays) * 100)}%`, caption: topCat.name.toLowerCase() }
+                    : null;
+                  return (
+                    <DonutChart
                       data={weatherAnalysis.pieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius="70%"
-                      labelLine={false}
-                      label={renderCustomizedLabel}
-                      stroke={getStrokeColor}
-                      strokeWidth={2}
-                    >
-                      {weatherAnalysis.pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value, name, props) => [`${value} plays (${props.payload.hours}h)`, name]}
-                      contentStyle={{
-                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                        border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                        color: isDarkMode ? '#ffffff' : '#000000'
-                      }}
+                      center={center}
+                      chartKey="weather"
+                      isDarkMode={isDarkMode}
+                      colorTheme={colorTheme}
+                      tooltipFormatter={(value, name, props) => [`${value} plays (${props.payload.hours}h)`, name]}
                     />
-                    <Legend
-                      wrapperStyle={{ color: getLegendTextColor, fontSize: '12px' }}
-                      iconType="rect"
-                      formatter={(value) => (
-                        <span style={{ color: getLegendTextColor }}>{value}</span>
-                      )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                  );
+                })()}
               </div>
               <div className={`text-sm text-center mt-2 ${modeColors.textLight}`}>
                 {weatherAnalysis.totalPlays.toLocaleString()} plays matched with weather data
@@ -1628,7 +1362,7 @@ const filteredData = useMemo(() => {
                 {Object.entries(weatherAnalysis.categoryDetails)
                   .sort((a, b) => b[1].plays - a[1].plays)
                   .map(([cat, detail]) => (
-                  <div key={cat} className={`rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                  <div key={cat} className={`rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                     <button
                       onClick={() => setExpandedWeatherCards(prev => ({ ...prev, [cat]: !prev[cat] }))}
                       className={`w-full text-left p-3 flex items-center justify-between ${modeColors.text}`}
@@ -1672,29 +1406,23 @@ const filteredData = useMemo(() => {
             {/* Temperature Analysis - Bar Chart */}
             <div>
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Listening by Temperature</h3>
-              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+              <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weatherAnalysis.tempData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                     <XAxis
                       dataKey="name"
-                      tick={{ fill: getTextColor, fontSize: 11 }}
-                      tickLine={{ stroke: getStrokeColor }}
-                      axisLine={{ stroke: getStrokeColor }}
+                      {...axisProps(chart)}
+                      tick={{ fill: chart.axis, fontSize: 11 }}
                     />
                     <YAxis
-                      tick={{ fill: getTextColor, fontSize: 11 }}
-                      tickLine={{ stroke: getStrokeColor }}
-                      axisLine={{ stroke: getStrokeColor }}
-                      label={{ value: 'Hours', angle: -90, position: 'insideLeft', fill: getTextColor, fontSize: 12 }}
+                      {...axisProps(chart)}
+                      tick={{ fill: chart.axis, fontSize: 11 }}
+                      label={{ value: 'Hours', angle: -90, position: 'insideLeft', fill: chart.axis, fontSize: 12 }}
                     />
                     <Tooltip
                       formatter={(value, name, props) => [`${value}h (${props.payload.plays} plays)`, 'Listening']}
-                      contentStyle={{
-                        backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                        border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                        color: isDarkMode ? '#ffffff' : '#000000'
-                      }}
+                      {...tooltipProps(chart)}
                     />
                     <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
                       {weatherAnalysis.tempData.map((entry, index) => (
@@ -1725,7 +1453,7 @@ const filteredData = useMemo(() => {
                     };
                     const isExpanded = expandedWeatherCards['playlist_' + cat];
                     return (
-                      <div key={cat} className={`rounded border overflow-hidden ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                      <div key={cat} className={`rounded border overflow-hidden ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                         <button
                           onClick={() => setExpandedWeatherCards(prev => ({ ...prev, ['playlist_' + cat]: !prev['playlist_' + cat] }))}
                           className={`w-full text-left p-3 flex items-center justify-between`}
@@ -1782,7 +1510,7 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Rainy vs Sunny Days</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Rainy */}
-                <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                   <h4 className={`font-bold mb-2 flex items-center gap-2 ${modeColors.text}`}>
                     <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: WEATHER_COLORS['Rain'] }}></span>
                     Rainy Days
@@ -1804,7 +1532,7 @@ const filteredData = useMemo(() => {
                   )}
                 </div>
                 {/* Sunny */}
-                <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <div className={`p-4 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                   <h4 className={`font-bold mb-2 flex items-center gap-2 ${modeColors.text}`}>
                     <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: WEATHER_COLORS['Clear'] }}></span>
                     Sunny Days

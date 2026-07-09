@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
 import TrackRankings from './TrackRankings.js';
 import { useTheme } from './themeprovider.js'; // Import the theme hook
+import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
+import { SliceDot, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
 
 const WorldMap = dynamic(() => import('react-svg-worldmap').then(mod => mod.WorldMap ? { default: mod.WorldMap } : mod), { ssr: false });
 const HologramGlobe = dynamic(() => import('./HologramGlobe.js'), { ssr: false });
@@ -75,198 +77,34 @@ const ListeningPatterns = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat
-  const colors = isColorful ? {
-    text: isDarkMode ? 'text-yellow-300' : 'text-yellow-700',
-    textLight: isDarkMode ? 'text-yellow-400' : 'text-yellow-600',
-    textLighter: isDarkMode ? 'text-yellow-500' : 'text-yellow-500',
-    bg: isDarkMode ? 'bg-yellow-900' : 'bg-yellow-200',
-    bgLight: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
-    bgCard: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
-    bgCardAlt: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
-    border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
-    buttonActive: isDarkMode ? 'bg-yellow-800 text-yellow-300 border border-yellow-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#ca8a04]' : 'bg-yellow-100 text-yellow-700 border border-yellow-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#a16207]',
-    buttonInactive: isDarkMode ? 'bg-yellow-800 text-yellow-300 border border-yellow-600 hover:bg-yellow-700 shadow-[2px_2px_0_0_#ca8a04]' : 'bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-200 shadow-[2px_2px_0_0_#a16207]',
-    toggleBg: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
-    toggleActive: isDarkMode ? 'bg-yellow-500 text-black' : 'bg-yellow-600 text-white',
-    toggleInactive: isDarkMode ? 'text-yellow-300 hover:bg-yellow-700' : 'text-yellow-700 hover:bg-yellow-200',
-    barColor: isDarkMode ? '#fde047' : '#a16207', // yellow-300 / yellow-700
-    barColorAlt: isDarkMode ? '#facc15' : '#ca8a04', // yellow-400 / yellow-600
-    gridColor: isDarkMode ? '#a16207' : '#ca8a04', // yellow-700 / yellow-600
-  } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
-    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
-    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
-    bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
-    border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
-    toggleBg: isDarkMode ? 'bg-black' : 'bg-white',
-    toggleActive: isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-    toggleInactive: isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100',
-    barColor: isDarkMode ? '#9CA3AF' : '#6B7280', // gray-400 / gray-500
-    barColorAlt: isDarkMode ? '#6B7280' : '#9CA3AF', // gray-500 / gray-400
-    gridColor: isDarkMode ? '#4B5563' : '#D1D5DB', // gray-600 / gray-300
-  };
+  // Page + chart theming (shared with the other analysis pages via theme.js)
+  const colors = getAnalysisPageColors('yellow', isColorful, isDarkMode);
+  const chart = useMemo(
+    () => getAnalysisChartTheme('yellow', isColorful, isDarkMode),
+    [isColorful, isDarkMode]
+  );
 
-  // Color theme for legends - grey in minimal mode
-  const getLegendTextColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000';
-    }
-    const color = isDarkMode ?
-      (colorTheme === 'purple' ? '#C4B5FD' :
-       colorTheme === 'indigo' ? '#A5B4FC' :
-       colorTheme === 'green' ? '#86EFAC' :
-       colorTheme === 'blue' ? '#93C5FD' :
-       colorTheme === 'yellow' ? '#FDE047' : '#C4B5FD') :
-      (colorTheme === 'purple' ? '#7C3AED' :
-       colorTheme === 'indigo' ? '#3730A3' :
-       colorTheme === 'green' ? '#14532D' :
-       colorTheme === 'blue' ? '#1E40AF' :
-       colorTheme === 'yellow' ? '#A16207' : '#7C3AED');
-
-    return color;
-  }, [colorTheme, isDarkMode, isColorful]);
-
-  // Color theme for pie chart strokes - grey in minimal mode
-  const getStrokeColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000';
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#d8b4fe';
-        case 'indigo': return '#a5b4fc';
-        case 'green': return '#86efac';
-        case 'blue': return '#93c5fd';
-        case 'teal': return '#5eead4';
-        case 'orange': return '#fdba74';
-        case 'pink': return '#f9a8d4';
-        case 'red': return '#fca5a5';
-        case 'yellow': return '#fde047';
-        case 'cyan': return '#67e8f9';
-        case 'emerald': return '#6ee7b7';
-        case 'rose': return '#fda4af';
-        default: return '#d8b4fe';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#6b21a8';
-        case 'indigo': return '#3730a3';
-        case 'green': return '#14532d';
-        case 'blue': return '#1e40af';
-        case 'teal': return '#115e59';
-        case 'orange': return '#9a3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7f1d1d';
-        case 'yellow': return '#713f12';
-        case 'cyan': return '#155e75';
-        case 'emerald': return '#065f46';
-        case 'rose': return '#9f1239';
-        default: return '#6b21a8';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
-
-  // Color theme for pie chart text labels - grey in minimal mode
-  const getTextColor = useMemo(() => {
-    if (!isColorful) {
-      return isDarkMode ? '#ffffff' : '#000000';
-    }
-    if (isDarkMode) {
-      switch (colorTheme) {
-        case 'purple': return '#d8b4fe';
-        case 'indigo': return '#a5b4fc';
-        case 'green': return '#86efac';
-        case 'blue': return '#93c5fd';
-        case 'teal': return '#5eead4';
-        case 'orange': return '#fdba74';
-        case 'pink': return '#f9a8d4';
-        case 'red': return '#fca5a5';
-        case 'yellow': return '#fde047';
-        case 'cyan': return '#67e8f9';
-        case 'emerald': return '#6ee7b7';
-        case 'rose': return '#fda4af';
-        default: return '#d8b4fe';
-      }
-    } else {
-      switch (colorTheme) {
-        case 'purple': return '#6b21a8';
-        case 'indigo': return '#3730a3';
-        case 'green': return '#14532d';
-        case 'blue': return '#1e40af';
-        case 'teal': return '#115e59';
-        case 'orange': return '#9a3412';
-        case 'pink': return '#831843';
-        case 'red': return '#7f1d1d';
-        case 'yellow': return '#713f12';
-        case 'cyan': return '#155e75';
-        case 'emerald': return '#065f46';
-        case 'rose': return '#9f1239';
-        default: return '#6b21a8';
-      }
-    }
-  }, [colorTheme, isDarkMode, isColorful]);
-  
-  
-  // Removed useEffect that updated exported variables (now handled by SpotifyAnalyzer state)
-  
-  // Chart colors that adjust with theme - grey in minimal mode
+  // Ordered-category colors: sequential accent ramps from the chart theme
   const chartColors = useMemo(() => {
-    // Grey shades for minimal mode
-    const greyShades = isDarkMode
-      ? ['#374151', '#4B5563', '#6B7280', '#9CA3AF', '#D1D5DB']
-      : ['#D1D5DB', '#9CA3AF', '#6B7280', '#4B5563', '#374151'];
-
+    const ramp4 = chart.ramp(4);
     return {
-      // Time periods
+      // Time periods (morning → night)
       timePeriods: [
-        { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0,
-          color: isColorful ? (isDarkMode ? '#059669' : '#8884d8') : greyShades[0],
-          textColor: isColorful ? (isDarkMode ? '#8B5CF6' : '#8884d8') : (isDarkMode ? '#ffffff' : '#000000') },
-        { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0,
-          color: isColorful ? (isDarkMode ? '#D97706' : '#82ca9d') : greyShades[1],
-          textColor: isColorful ? (isDarkMode ? '#10B981' : '#82ca9d') : (isDarkMode ? '#ffffff' : '#000000') },
-        { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0,
-          color: isColorful ? (isDarkMode ? '#DC2626' : '#ffc658') : greyShades[2],
-          textColor: isColorful ? (isDarkMode ? '#F59E0B' : '#ffc658') : (isDarkMode ? '#ffffff' : '#000000') },
-        { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0,
-          color: isColorful ? (isDarkMode ? '#1E40AF' : '#4B9CD3') : greyShades[3],
-          textColor: isColorful ? (isDarkMode ? '#3B82F6' : '#4B9CD3') : (isDarkMode ? '#ffffff' : '#000000') }
+        { name: 'Morning', fullName: 'Morning (5-11)', count: 0, totalMs: 0, color: ramp4[0] },
+        { name: 'Afternoon', fullName: 'Afternoon (12-16)', count: 0, totalMs: 0, color: ramp4[1] },
+        { name: 'Evening', fullName: 'Evening (17-21)', count: 0, totalMs: 0, color: ramp4[2] },
+        { name: 'Night', fullName: 'Night (22-4)', count: 0, totalMs: 0, color: ramp4[3] }
       ],
 
-      // Days of week
-      dayColors: isColorful ? [
-        isDarkMode ? '#DC2626' : '#FF8042', // Sun
-        isDarkMode ? '#059669' : '#00C49F', // Mon
-        isDarkMode ? '#D97706' : '#FFBB28', // Tue
-        isDarkMode ? '#DC2626' : '#FF8042', // Wed
-        isDarkMode ? '#2563EB' : '#0088FE', // Thu
-        isDarkMode ? '#7C3AED' : '#8884d8', // Fri
-        isDarkMode ? '#059669' : '#82ca9d'  // Sat
-      ] : [
-        greyShades[0], greyShades[1], greyShades[2], greyShades[3],
-        greyShades[4], greyShades[0], greyShades[1]
-      ],
-
-      // Months/seasons
-      seasonColors: isColorful ? {
-        spring: isDarkMode ? '#059669' : '#82ca9d',
-        summer: isDarkMode ? '#D97706' : '#ffc658',
-        fall: isDarkMode ? '#DC2626' : '#FF8042',
-        winter: isDarkMode ? '#1E40AF' : '#4B9CD3'
-      } : {
-        spring: greyShades[0],
-        summer: greyShades[1],
-        fall: greyShades[2],
-        winter: greyShades[3]
+      // Seasons (spring → winter)
+      seasonColors: {
+        spring: ramp4[0],
+        summer: ramp4[1],
+        fall: ramp4[2],
+        winter: ramp4[3]
       }
     };
-  }, [isDarkMode, isColorful]);
+  }, [chart]);
 
   // Update the filteredData useMemo in ListeningPatterns.js
   const filteredData = useMemo(() => {
@@ -485,15 +323,41 @@ const ListeningPatterns = ({
     return { hourly: hourlyData, periods: timePeriods };
   }, [filteredData, chartColors.timePeriods, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
+  // Hour-of-day × day-of-week play counts for the weekly rhythm heatmap
+  const heatmapData = useMemo(() => {
+    const passesFilters = (entry) => {
+      if (entry.ms_played < minPlayDuration) return false;
+      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+        if (!skipEndThreshold || !trackDurationMap) return false;
+        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+        const est = trackDurationMap.get(key);
+        if (!est || entry.ms_played < est - skipEndThreshold) return false;
+      }
+      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+      return true;
+    };
+
+    const grid = Array.from({ length: 7 }, () => Array(24).fill(0));
+    filteredData.forEach(entry => {
+      if (!passesFilters(entry)) return;
+      const date = new Date(entry.ts);
+      if (isNaN(date.getTime())) return;
+      grid[date.getDay()][date.getHours()] += 1;
+    });
+    let max = 0;
+    grid.forEach(row => row.forEach(v => { if (v > max) max = v; }));
+    return { grid, max };
+  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+
   const dayOfWeekData = useMemo(() => {
     const days = [
-      { name: 'Sun', fullName: 'Sunday', dayNum: 0, count: 0, totalMs: 0, color: chartColors.dayColors[0] },
-      { name: 'Mon', fullName: 'Monday', dayNum: 1, count: 0, totalMs: 0, color: chartColors.dayColors[1] },
-      { name: 'Tue', fullName: 'Tuesday', dayNum: 2, count: 0, totalMs: 0, color: chartColors.dayColors[2] },
-      { name: 'Wed', fullName: 'Wednesday', dayNum: 3, count: 0, totalMs: 0, color: chartColors.dayColors[3] },
-      { name: 'Thu', fullName: 'Thursday', dayNum: 4, count: 0, totalMs: 0, color: chartColors.dayColors[4] },
-      { name: 'Fri', fullName: 'Friday', dayNum: 5, count: 0, totalMs: 0, color: chartColors.dayColors[5] },
-      { name: 'Sat', fullName: 'Saturday', dayNum: 6, count: 0, totalMs: 0, color: chartColors.dayColors[6] }
+      { name: 'Sun', fullName: 'Sunday', dayNum: 0, count: 0, totalMs: 0 },
+      { name: 'Mon', fullName: 'Monday', dayNum: 1, count: 0, totalMs: 0 },
+      { name: 'Tue', fullName: 'Tuesday', dayNum: 2, count: 0, totalMs: 0 },
+      { name: 'Wed', fullName: 'Wednesday', dayNum: 3, count: 0, totalMs: 0 },
+      { name: 'Thu', fullName: 'Thursday', dayNum: 4, count: 0, totalMs: 0 },
+      { name: 'Fri', fullName: 'Friday', dayNum: 5, count: 0, totalMs: 0 },
+      { name: 'Sat', fullName: 'Saturday', dayNum: 6, count: 0, totalMs: 0 }
     ];
     
     const passesFilters = (entry) => {
@@ -551,7 +415,7 @@ const ListeningPatterns = ({
     });
 
     return days;
-  }, [filteredData, chartColors.dayColors, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
   
   // Monthly/seasonal analysis
   const monthlyData = useMemo(() => {
@@ -752,27 +616,8 @@ const ListeningPatterns = ({
     return { locationData: matched, unmatchedCodes: unmatched, regionData: regionDataFinal, countrySongs: countrySongsFinal };
   }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
-  // Custom pie chart label renderer - just show the percentage inside
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-    const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
-    const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
-    
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill={getTextColor}
-        style={{ fill: getTextColor }}
-        textAnchor="middle" 
-        dominantBaseline="central"
-        fontSize="10px"
-        fontWeight="bold"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
+  // Pie slice % labels — ink picked per slice, slice color read off the datum
+  const pieLabel = makePieLabel();
 
   const TabButton = ({ id, label }) => (
     <button
@@ -833,7 +678,7 @@ const ListeningPatterns = ({
               key={`topn-${obsTopN}`}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
               onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 250) setObsTopN(v); else e.target.value = obsTopN; }}
-              className={`border rounded w-14 px-1 py-1 text-xs ${colors.text} ${isColorful ? (isDarkMode ? 'border-yellow-600 bg-yellow-800' : 'border-yellow-300 bg-yellow-100') : (isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white')}`}
+              className={`border rounded w-14 px-1 py-1 text-xs ${colors.text} ${colors.input}`}
             />
           </div>
           <div className={`flex items-center gap-1 ${colors.text}`}>
@@ -844,7 +689,7 @@ const ListeningPatterns = ({
               max="20"
               value={obsIntensityThreshold}
               onChange={(e) => setObsIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
-              className={`border rounded w-14 px-1 py-1 text-xs ${colors.text} ${isColorful ? (isDarkMode ? 'border-yellow-600 bg-yellow-800' : 'border-yellow-300 bg-yellow-100') : (isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white')}`}
+              className={`border rounded w-14 px-1 py-1 text-xs ${colors.text} ${colors.input}`}
             />
           </div>
           <button
@@ -922,51 +767,94 @@ const ListeningPatterns = ({
             colors.textLight
           }`}>When do you listen to music the most?</p>
           
-          <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            colors.bgCard
-          }`}>
+          <div className={`h-48 sm:h-64 w-full p-1 sm:p-2 ${colors.card}`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={timeOfDayData.hourly}
                 margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={colors.gridColor} />
-                <XAxis 
-                  dataKey="displayHour" 
-                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
-                  tick={{ fontSize: 10 }}
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                <XAxis
+                  dataKey="displayHour"
                   interval="preserveStartEnd"
+                  {...axisProps(chart)}
                 />
-                <YAxis 
-                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
-                  tick={{ fontSize: 10 }}
-                />
-                <Tooltip 
+                <YAxis {...axisProps(chart)} />
+                <Tooltip
                   formatter={(value, name) => {
                     return name === 'totalMs' ? formatDuration(value) : value;
                   }}
                   labelFormatter={(value) => `Hour: ${value}`}
-                  contentStyle={{
-                    backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                    border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                    color: isDarkMode ? '#ffffff' : '#000000'
-                  }}
+                  {...tooltipProps(chart)}
                 />
-                <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill={colors.barColor} />
+                <Bar name="Number of Plays" dataKey="count" fill={chart.series1} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
-        
+
+        {heatmapData.max > 0 && (
+          <div>
+            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${colors.text}`}>Weekly Rhythm</h3>
+            <p className={`mb-4 ${colors.textLight}`}>Your listening by hour and day of the week</p>
+            <div className={`p-3 sm:p-4 ${colors.card} overflow-x-auto`}>
+              <div className="min-w-[560px]">
+                {(() => {
+                  const scale = [...chart.ramp(5)].reverse();
+                  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                  const cellColor = (count) => {
+                    if (count === 0) return null;
+                    const idx = Math.min(4, Math.floor(Math.sqrt(count / heatmapData.max) * 5));
+                    return scale[idx];
+                  };
+                  const hourName = (h) => (h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`);
+                  return (
+                    <>
+                      {DAYS.map((day, d) => (
+                        <div key={day} className="flex items-center gap-[2px] mb-[2px]">
+                          <span className={`w-9 shrink-0 text-[10px] font-bold ${colors.textLight}`}>{day}</span>
+                          {heatmapData.grid[d].map((count, h) => (
+                            <div
+                              key={h}
+                              className="flex-1 h-4 rounded-[2px]"
+                              style={{
+                                backgroundColor: cellColor(count) || 'transparent',
+                                boxShadow: count === 0 ? `inset 0 0 0 1px ${chart.grid}` : 'none',
+                              }}
+                              title={`${day} ${hourName(h)} — ${count} play${count === 1 ? '' : 's'}`}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                      <div className="flex items-center gap-[2px]">
+                        <span className="w-9 shrink-0" />
+                        {Array.from({ length: 24 }, (_, h) => (
+                          <span key={h} className={`flex-1 text-center text-[9px] ${colors.textLighter}`}>
+                            {h % 6 === 0 ? hourName(h).replace(' ', '') : ''}
+                          </span>
+                        ))}
+                      </div>
+                      <div className={`mt-3 flex items-center justify-end gap-1 text-[10px] ${colors.textLighter}`}>
+                        fewer
+                        {scale.map((c) => (
+                          <span key={c} className="inline-block w-3 h-3 rounded-[2px]" style={{ backgroundColor: c }} />
+                        ))}
+                        more
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div id="timeOfDay">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               colors.text
             }`}>Time Periods</h3>
-            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              colors.bgCard
-            }`}>
+            <div className={`h-48 sm:h-64 p-1 sm:p-2 ${colors.card}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -975,57 +863,54 @@ const ListeningPatterns = ({
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius="70%"
+                    innerRadius="52%"
+                    outerRadius="80%"
                     labelLine={false}
-                    label={renderCustomizedLabel}
-                    stroke={getStrokeColor}
+                    label={pieLabel}
+                    stroke={chart.pieStroke}
                     strokeWidth={2}
                   >
                     {timeOfDayData.periods.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
+                    {(() => {
+                      const total = timeOfDayData.periods.reduce((sum, p) => sum + p.count, 0);
+                      const peak = timeOfDayData.periods.reduce((m, p) => (p.count > (m?.count || 0) ? p : m), null);
+                      return peak && total > 0 ? (
+                        <Label content={donutCenter({
+                          value: `${Math.round((peak.count / total) * 100)}%`,
+                          caption: peak.name.toLowerCase(),
+                          ink: chart.axis,
+                        })} />
+                      ) : null;
+                    })()}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => value}
                     labelFormatter={(name) => {
                       const period = timeOfDayData.periods.find(p => p.name === name);
                       return period ? period.fullName : name;
                     }}
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                      color: isDarkMode ? '#ffffff' : '#000000'
-                    }}
+                    {...tooltipProps(chart)}
                   />
-                  <Legend 
-                    wrapperStyle={{ 
-                      color: getLegendTextColor,
-                      fontSize: '12px'
-                    }}
-                    contentStyle={{
-                      color: getLegendTextColor
-                    }}
-                    iconType="rect"
-                    formatter={(value) => (
-                      <span style={{ color: getLegendTextColor }}>
-                        {value}
-                      </span>
-                    )}
-                  />
+                  <Legend {...legendProps(chart)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
-          
+
           <div className="flex flex-col justify-center">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               colors.text
             }`}>Time Period Stats</h3>
             <ul className="space-y-2">
               {timeOfDayData.periods.map((period, index) => (
-                <li key={index} className={`p-2 rounded ${colors.bgCard} border ${colors.border}`}>
-                  <span className="font-bold" style={{ color: period.textColor || period.color }}>{period.fullName}:</span>
-                  <div className="ml-2" style={{ color: period.textColor || period.color }}>
+                <li key={index} className={`p-2 ${colors.card}`}>
+                  <span className={`font-bold flex items-center gap-2 ${colors.text}`}>
+                    <SliceDot color={period.color} />
+                    {period.fullName}:
+                  </span>
+                  <div className={`ml-5 ${colors.textLight}`}>
                     <div>{period.count} plays</div>
                     <div>{formatDuration(period.totalMs)} listening time</div>
                   </div>
@@ -1069,40 +954,32 @@ const ListeningPatterns = ({
             </div>
           </div>
           
-          <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            colors.bgCard
-          }`}>
+          <div className={`h-48 sm:h-64 w-full p-1 sm:p-2 ${colors.card}`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={dayOfWeekData}
                 margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={colors.gridColor} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis 
-                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
-                  tick={{ fontSize: 10 }}
-                />
-                <Tooltip 
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                <XAxis dataKey="name" {...axisProps(chart)} />
+                <YAxis {...axisProps(chart)} />
+                <Tooltip
                   formatter={(value, name) => {
                     if (name === 'totalMs') return formatDuration(value);
-                    if (name === 'count') return `${value} plays`;
-                    if (name === 'avgPerDay') return `${value.toFixed(1)} plays per day`;
+                    if (name === 'Number of Plays') return `${value} plays`;
+                    if (name === 'Average per Day') return `${value.toFixed(1)} plays per day`;
                     return value;
                   }}
                   labelFormatter={(label) => {
                     const day = dayOfWeekData.find(d => d.name === label);
                     return day ? day.fullName : label;
                   }}
+                  {...tooltipProps(chart)}
                 />
-                <Legend />
                 {dayOfWeekViewMode === 'plays' ? (
-                  <Bar name="Number of Plays" dataKey="count" fill={colors.barColor} />
+                  <Bar name="Number of Plays" dataKey="count" fill={chart.series1} radius={[4, 4, 0, 0]} />
                 ) : (
-                  <Bar name="Average per Day" dataKey="avgPerDay" fill={colors.barColorAlt} />
+                  <Bar name="Average per Day" dataKey="avgPerDay" fill={chart.series2} radius={[4, 4, 0, 0]} />
                 )}
               </BarChart>
             </ResponsiveContainer>
@@ -1115,8 +992,8 @@ const ListeningPatterns = ({
           }`}>Day of Week Stats</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
             {dayOfWeekData.map((day, index) => (
-              <div key={index} className={`p-3 rounded border relative ${colors.bgCardAlt}`} style={{ borderColor: day.color }}>
-                {(dayOfWeekViewMode === 'plays' && day.isTopByCount) || 
+              <div key={index} className={`p-3 relative ${colors.card}`}>
+                {(dayOfWeekViewMode === 'plays' && day.isTopByCount) ||
                 (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
                   <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
                 ) : null}
@@ -1154,24 +1031,16 @@ const ListeningPatterns = ({
             </button>
           </div>
           
-          <div className={`h-48 sm:h-64 w-full rounded p-1 sm:p-2 ${
-            colors.bgCard
-          }`}>
+          <div className={`h-48 sm:h-64 w-full p-1 sm:p-2 ${colors.card}`}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={monthlyData.months}
                 margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke={colors.gridColor} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis 
-                  stroke={isDarkMode ? '#9CA3AF' : '#374151'}
-                  tick={{ fontSize: 10 }}
-                />
-                <Tooltip 
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                <XAxis dataKey="name" {...axisProps(chart)} />
+                <YAxis {...axisProps(chart)} />
+                <Tooltip
                   formatter={(value, name) => {
                     return name === 'totalMs' ? formatDuration(value) : value;
                   }}
@@ -1179,9 +1048,13 @@ const ListeningPatterns = ({
                     const month = monthlyData.months.find(m => m.name === label);
                     return month ? month.fullName : label;
                   }}
+                  {...tooltipProps(chart)}
                 />
-                <Legend />
-                <Bar name="Number of Plays" dataKey="count" fill={colors.barColor} />
+                <Bar name="Number of Plays" dataKey="count" radius={[4, 4, 0, 0]}>
+                  {monthlyData.months.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1192,9 +1065,7 @@ const ListeningPatterns = ({
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               colors.text
             }`}>Seasonal Listening</h3>
-            <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 ${
-              colors.bgCard
-            }`}>
+            <div className={`h-48 sm:h-64 p-1 sm:p-2 ${colors.card}`}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -1203,57 +1074,54 @@ const ListeningPatterns = ({
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius="70%"
+                    innerRadius="52%"
+                    outerRadius="80%"
                     labelLine={false}
-                    label={renderCustomizedLabel}
-                    stroke={getStrokeColor}
+                    label={pieLabel}
+                    stroke={chart.pieStroke}
                     strokeWidth={2}
                   >
                     {monthlyData.seasons.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
+                    {(() => {
+                      const total = monthlyData.seasons.reduce((sum, s) => sum + s.count, 0);
+                      const peak = monthlyData.seasons.reduce((m, s) => (s.count > (m?.count || 0) ? s : m), null);
+                      return peak && total > 0 ? (
+                        <Label content={donutCenter({
+                          value: `${Math.round((peak.count / total) * 100)}%`,
+                          caption: peak.name.toLowerCase(),
+                          ink: chart.axis,
+                        })} />
+                      ) : null;
+                    })()}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => value}
                     labelFormatter={(name) => {
                       const season = monthlyData.seasons.find(s => s.name === name);
                       return season ? season.fullName : name;
                     }}
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#1F2937' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                      color: isDarkMode ? '#ffffff' : '#000000'
-                    }}
+                    {...tooltipProps(chart)}
                   />
-                  <Legend 
-                    wrapperStyle={{ 
-                      color: getLegendTextColor,
-                      fontSize: '12px'
-                    }}
-                    contentStyle={{
-                      color: getLegendTextColor
-                    }}
-                    iconType="rect"
-                    formatter={(value) => (
-                      <span style={{ color: getLegendTextColor }}>
-                        {value}
-                      </span>
-                    )}
-                  />
+                  <Legend {...legendProps(chart)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
-          
+
           <div className="flex flex-col justify-center">
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${
               colors.text
             }`}>Seasonal Stats</h3>
             <ul className="space-y-2">
               {monthlyData.seasons.map((season, index) => (
-                <li key={index} className={`p-2 rounded ${colors.bgCard} border ${colors.border}`}>
-                  <span className="font-bold" style={{ color: season.color }}>{season.fullName}:</span>
-                  <div className="ml-2" style={{ color: season.color }}>
+                <li key={index} className={`p-2 ${colors.card}`}>
+                  <span className={`font-bold flex items-center gap-2 ${colors.text}`}>
+                    <SliceDot color={season.color} />
+                    {season.fullName}:
+                  </span>
+                  <div className={`ml-5 ${colors.textLight}`}>
                     <div>{season.count} plays</div>
                     <div>{formatDuration(season.totalMs)} listening time</div>
                   </div>
@@ -1349,16 +1217,16 @@ const ListeningPatterns = ({
                     </button>
                   </div>
                   {mapView === 'flat' ? (
-                    <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center overflow-x-auto`}>
+                    <div className={`p-2 sm:p-4 ${colors.card} flex justify-center overflow-x-auto`}>
                       <WorldMap
-                        color={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
+                        color={isColorful ? chart.series1 : (isDarkMode ? '#ffffff' : '#000000')}
                         valueSuffix=" plays"
                         size="xxl"
                         data={locationData}
-                        backgroundColor={isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#000000' : '#ffffff')}
-                        tooltipBgColor={isDarkMode ? '#1F2937' : '#ffffff'}
-                        tooltipTextColor={isDarkMode ? '#ffffff' : '#000000'}
-                        borderColor={isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000')}
+                        backgroundColor={isColorful ? chart.pieStroke : (isDarkMode ? '#000000' : '#ffffff')}
+                        tooltipBgColor={chart.tooltip.backgroundColor}
+                        tooltipTextColor={chart.tooltip.color}
+                        borderColor={isColorful ? chart.series1 : (isDarkMode ? '#ffffff' : '#000000')}
                         strokeOpacity={isColorful ? 0.6 : 0.3}
                         richInteraction
                         onClickFunction={({ countryCode, countryName }) => {
@@ -1367,8 +1235,8 @@ const ListeningPatterns = ({
                           if (loc) setSelectedCountry({ code, name: loc.name });
                         }}
                         styleFunction={({ countryCode, color, minValue, maxValue, countryValue }) => ({
-                          fill: countryValue ? color : isColorful ? (isDarkMode ? '#854d0e' : '#fef9c3') : (isDarkMode ? '#1a1a1a' : '#f0f0f0'),
-                          stroke: isColorful ? (isDarkMode ? '#fde047' : '#a16207') : (isDarkMode ? '#ffffff' : '#000000'),
+                          fill: countryValue ? color : isColorful ? chart.pieStroke : (isDarkMode ? '#1a1a1a' : '#f0f0f0'),
+                          stroke: isColorful ? chart.series1 : (isDarkMode ? '#ffffff' : '#000000'),
                           strokeWidth: 0.5,
                           strokeOpacity: isColorful ? 0.6 : 0.3,
                           cursor: countryValue ? 'pointer' : 'default',
@@ -1376,7 +1244,7 @@ const ListeningPatterns = ({
                       />
                     </div>
                   ) : (
-                    <div className={`rounded p-2 sm:p-4 ${colors.bgCard} border ${colors.border} flex justify-center`}>
+                    <div className={`p-2 sm:p-4 ${colors.card} flex justify-center`}>
                       <HologramGlobe
                         locationData={locationData}
                         onCountryClick={({ countryCode, countryName }) => {
@@ -1399,7 +1267,7 @@ const ListeningPatterns = ({
                 return (
                   <div className="space-y-4">
                     {/* Country summary */}
-                    <div className={`p-4 rounded border ${colors.bgCard} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                    <div className={`p-4 ${colors.card}`}>
                       <div className={`grid grid-cols-2 sm:grid-cols-4 gap-3 text-center`}>
                         <div>
                           <div className={`text-lg font-bold ${colors.text}`}>{countryLoc?.plays.toLocaleString() || 0}</div>
@@ -1429,7 +1297,7 @@ const ListeningPatterns = ({
                             {viewMode === 'grid' ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                                 {rd.regions.map((r, i) => (
-                                  <div key={r.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                                  <div key={r.name} className={`p-3 relative ${colors.card}`}>
                                     <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
                                     <h4 className={`font-bold ${colors.text}`}>{r.name}</h4>
                                     <div className={`text-sm ${colors.textLight}`}>
@@ -1479,7 +1347,7 @@ const ListeningPatterns = ({
                             {viewMode === 'grid' ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                                 {rd.cities.map((c, i) => (
-                                  <div key={c.name} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                                  <div key={c.name} className={`p-3 relative ${colors.card}`}>
                                     <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
                                     <h4 className={`font-bold ${colors.text}`}>{c.name}</h4>
                                     <div className={`text-sm ${colors.textLight}`}>
@@ -1524,7 +1392,7 @@ const ListeningPatterns = ({
                       </>
                     ) : (
                       <div className="space-y-4">
-                        <div className={`p-4 rounded border ${colors.border} ${colors.bgCard} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                        <div className={`p-4 ${colors.card}`}>
                           <p className={`text-sm ${colors.textLight}`}>Regional data is only available for Tidal plays. This country only has country-level data from Spotify.</p>
                         </div>
 
@@ -1534,7 +1402,7 @@ const ListeningPatterns = ({
                             {viewMode === 'grid' ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
                                 {countrySongs[selectedCountry.code].slice(0, 50).map((s, i) => (
-                                  <div key={`${s.track}-${s.artist}`} className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                                  <div key={`${s.track}-${s.artist}`} className={`p-3 relative ${colors.card}`}>
                                     <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{i + 1}</div>
                                     <h4 className={`font-bold text-sm ${colors.text} pr-8`}>{s.track}</h4>
                                     <div className={`text-xs ${colors.textLight}`}>{s.artist}</div>
@@ -1585,7 +1453,7 @@ const ListeningPatterns = ({
                       {locationData.map((loc, index) => (
                         <div
                           key={loc.code}
-                          className={`p-3 rounded border relative ${colors.bgCardAlt} ${colors.border} cursor-pointer hover:opacity-80 transition-opacity`}
+                          className={`p-3 relative ${colors.card} cursor-pointer hover:opacity-80 transition-opacity`}
                           onClick={() => setSelectedCountry({ code: loc.code, name: loc.name })}
                         >
                           <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{index + 1}</div>
@@ -1639,7 +1507,7 @@ const ListeningPatterns = ({
           )}
 
           {unmatchedCodes.length > 0 && (
-            <div className={`mt-6 p-3 rounded border ${colors.border} ${colors.bgCard} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+            <div className={`mt-6 p-3 ${colors.card}`}>
               <h4 className={`text-sm font-bold mb-2 ${colors.textLight}`}>Unrecognized region codes</h4>
               <div className={`text-xs space-y-1 ${colors.textLighter}`}>
                 {unmatchedCodes.map(u => (
