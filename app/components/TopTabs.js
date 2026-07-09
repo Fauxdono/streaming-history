@@ -233,6 +233,8 @@ const TopTabs = ({
         return '🎧';
       case 'playlists':
         return '📋';
+      case 'data':
+        return '💾';
       case 'settings':
         return '⚙️';
       default:
@@ -304,6 +306,11 @@ const TopTabs = ({
           return activeTab === tabId
             ? 'bg-rose-50 text-rose-600 border-b-2 border-rose-600 dark:bg-rose-900 dark:text-rose-300 dark:border-rose-400'
             : 'bg-rose-200 text-rose-600 hover:bg-rose-300 dark:bg-rose-800 dark:text-rose-300 dark:hover:bg-rose-700';
+        case 'data':
+          // Terminal look: black shell with green accents in both light and dark
+          return activeTab === tabId
+            ? 'bg-black text-green-400 border-b-2 border-green-400 dark:bg-black dark:text-green-400 dark:border-green-400'
+            : 'bg-gray-900 text-green-600 hover:bg-black hover:text-green-400 dark:bg-gray-900 dark:text-green-600 dark:hover:bg-black dark:hover:text-green-400';
         case 'settings':
           return activeTab === tabId
             ? 'bg-gray-50 text-gray-600 border-b-2 border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-400'
@@ -387,6 +394,7 @@ const TopTabs = ({
       podcasts: 'bg-red-200 dark:bg-red-900',
       playlists: 'bg-rose-200 dark:bg-rose-900',
       updates: 'bg-fuchsia-200 dark:bg-fuchsia-900',
+      data: 'bg-black dark:bg-black',
     };
     const bgStyles = colorMode === 'minimal'
       ? 'bg-white dark:bg-black'
@@ -455,6 +463,7 @@ const TopTabs = ({
       {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
       {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
       {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+      {rawPlayData.length > 0 && <TabButton id="data" label="Your Data" />}
       <TabButton id="settings" label="Settings" />
     </div>
   );
@@ -512,6 +521,7 @@ const TopTabs = ({
               {processedData.length > 0 && <TabButton id="discovery" label="Music Discovery" />}
               {rawPlayData.length > 0 && <TabButton id="podcasts" label="Podcasts" />}
               {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
+              {rawPlayData.length > 0 && <TabButton id="data" label="Your Data" />}
               <TabButton id="settings" label="Settings" />
             </div>
           </div>

@@ -17,7 +17,8 @@
 // ---------------------------------------------------------------------------
 
 export { STREAMING_TYPES, STREAMING_SERVICES } from './streaming/constants.js';
-export { streamingProcessor } from './streaming/processor.js';
+export { streamingProcessor, computeStatsFromEntries } from './streaming/processor.js';
+export { loadOverrides, saveOverrides, clearOverrides, countOverrides, applyOverrides, entryMatchKey, playOverrideKey } from './streaming/overrides.js';
 export { normalizeString, normalizeArtistName, createMatchKey } from './streaming/normalize.js';
 export { filterDataByDate } from './streaming/dates.js';
 export {

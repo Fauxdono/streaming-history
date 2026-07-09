@@ -13,9 +13,130 @@ import { processRockboxScrobblerLog } from './parsers/rockbox.js';
 import { processSoundcloudCSV } from './parsers/soundcloud.js';
 import { processTidalCSV } from './parsers/tidal.js';
 import { calculateArtistStreaks, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopAlbumDailyStreak, calculateTopSongDailyStreak } from './streaks.js';
+import { applyOverrides, countOverrides } from './overrides.js';
+
+// Everything derived from a flat array of play entries: stats, rankings,
+// yearly breakdowns, streaks. Split out of processFiles so user edits can
+// recompute without re-parsing the uploaded files.
+export async function computeStatsFromEntries(allProcessedData, { totalFiles = 0, enrichResult = null } = {}) {
+  console.log(`Calculating stats for ${allProcessedData.length} entries`);
+  const stats = await calculatePlayStats(allProcessedData);
+
+  // Pre-build a map of songs by normalized artist name for faster lookup
+  console.log('Processing artist statistics...');
+  const songsByArtist = new Map();
+  stats.songs.forEach(song => {
+    const normalizedName = normalizeArtistName(song.fullArtist || song.artist);
+    if (!songsByArtist.has(normalizedName)) {
+      songsByArtist.set(normalizedName, []);
+    }
+    songsByArtist.get(normalizedName).push(song);
+  });
+
+  // Pre-build a map of albums by normalized artist name for mostPlayedAlbum
+  const albumsByArtist = new Map();
+  Object.values(stats.albums).forEach(album => {
+    const normalizedName = normalizeArtistName(album.artist);
+    if (!albumsByArtist.has(normalizedName)) {
+      albumsByArtist.set(normalizedName, []);
+    }
+    albumsByArtist.get(normalizedName).push(album);
+  });
+
+  const sortedArtists = Object.values(stats.artists)
+    .map(artist => {
+      const normalizedArtistName = normalizeArtistName(artist.name);
+      const artistSongs = songsByArtist.get(normalizedArtistName) || [];
+
+      const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
+
+      // Find most played album for this artist
+      const artistAlbums = albumsByArtist.get(normalizedArtistName) || [];
+      const topAlbum = _.maxBy(artistAlbums, 'playCount');
+      const mostPlayedAlbum = topAlbum ? { albumName: topAlbum.name, playCount: topAlbum.playCount } : null;
+
+      // Get all play timestamps for this artist
+      const artistPlays = [];
+      artistSongs.forEach(song => {
+        if (stats.playHistory[song.key]) {
+          artistPlays.push(...stats.playHistory[song.key]);
+        }
+      });
+
+      const streaks = calculateArtistStreaks(artistPlays);
+
+      return {
+        ...artist,
+        mostPlayedSong: mostPlayed,
+        mostPlayedAlbum,
+        ...streaks
+      };
+    })
+    .sort((a, b) => b.totalPlayed - a.totalPlayed);
+
+  console.log('Processing album statistics...');
+  const sortedAlbums = _.orderBy(
+    Object.values(stats.albums).map(album => ({
+      ...album,
+      trackCount: album.trackCount.size
+    })),
+    ['totalPlayed'],
+    ['desc']
+  );
+
+  console.log('Processing song rankings...');
+  const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
+
+  console.log('Calculating yearly breakdowns...');
+  const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
+
+  console.log('Calculating brief obsessions...');
+  const briefObsessions = calculateBriefObsessions(stats.songs, stats.playHistory);
+
+  console.log('Processing artists by year...');
+  const artistsByYear = calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData);
+
+  console.log('Processing albums by year...');
+  const albumsByYear = calculateAlbumsByYear(sortedAlbums, allProcessedData);
+
+  console.log('Calculating streak statistics...');
+  const consecutivePlayStreaks = calculateConsecutivePlayStreaks(allProcessedData);
+  const overallDailyStreak = calculateOverallDailyStreak(allProcessedData);
+  const topSongDailyStreak = calculateTopSongDailyStreak(stats.songs, stats.playHistory);
+  const topAlbumDailyStreak = calculateTopAlbumDailyStreak(sortedAlbums, allProcessedData);
+
+  return {
+    stats: {
+      totalFiles,
+      totalEntries: allProcessedData.length,
+      processedSongs: stats.processedSongs,
+      nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
+      uniqueSongs: stats.songs.length,
+      shortPlays: stats.shortPlays,
+      totalListeningTime: stats.totalListeningTime,
+      serviceListeningTime: stats.serviceListeningTime,
+      albumEnrichment: enrichResult
+    },
+    topArtists: sortedArtists,
+    topAlbums: sortedAlbums,
+    processedTracks: sortedSongs,
+    songsByYear: songsByYear,
+    briefObsessions: briefObsessions,
+    artistsByYear: artistsByYear,
+    albumsByYear: albumsByYear,
+    rawPlayData: allProcessedData,
+    trackDurationMap: stats.trackDurationMap,
+    streaks: {
+      consecutivePlays: consecutivePlayStreaks,
+      overallDaily: overallDailyStreak,
+      topSongDaily: topSongDailyStreak,
+      topAlbumDaily: topAlbumDailyStreak
+    }
+  };
+}
 
 export const streamingProcessor = {
-  async processFiles(files, { enableEnrichment = false, onEnrichmentProgress } = {}) {
+  async processFiles(files, { enableEnrichment = false, onEnrichmentProgress, overrides = null } = {}) {
     console.time('processFiles');
     try {
       const allProcessedArrays = [];
@@ -185,121 +306,21 @@ export const streamingProcessor = {
         }
       }
 
-      console.log(`Calculating stats for ${allProcessedData.length} entries`);
-      const stats = await calculatePlayStats(allProcessedData);
+      // Keep the pristine parse output, then apply any saved user edits
+      // before stats are computed (see streaming/overrides.js).
+      const basePlayData = allProcessedData;
+      if (overrides && countOverrides(overrides) > 0) {
+        allProcessedData = applyOverrides(allProcessedData, overrides);
+        console.log(`Applied ${countOverrides(overrides)} saved data edits`);
+      }
 
-      // Pre-build a map of songs by normalized artist name for faster lookup
-      console.log('Processing artist statistics...');
-      const songsByArtist = new Map();
-      stats.songs.forEach(song => {
-        const normalizedName = normalizeArtistName(song.fullArtist || song.artist);
-        if (!songsByArtist.has(normalizedName)) {
-          songsByArtist.set(normalizedName, []);
-        }
-        songsByArtist.get(normalizedName).push(song);
+      const result = await computeStatsFromEntries(allProcessedData, {
+        totalFiles: files.length,
+        enrichResult
       });
-
-      // Pre-build a map of albums by normalized artist name for mostPlayedAlbum
-      const albumsByArtist = new Map();
-      Object.values(stats.albums).forEach(album => {
-        const normalizedName = normalizeArtistName(album.artist);
-        if (!albumsByArtist.has(normalizedName)) {
-          albumsByArtist.set(normalizedName, []);
-        }
-        albumsByArtist.get(normalizedName).push(album);
-      });
-
-      const sortedArtists = Object.values(stats.artists)
-        .map(artist => {
-          const normalizedArtistName = normalizeArtistName(artist.name);
-          const artistSongs = songsByArtist.get(normalizedArtistName) || [];
-
-          const mostPlayed = _.maxBy(artistSongs, 'playCount') || { trackName: 'Unknown', playCount: 0 };
-
-          // Find most played album for this artist
-          const artistAlbums = albumsByArtist.get(normalizedArtistName) || [];
-          const topAlbum = _.maxBy(artistAlbums, 'playCount');
-          const mostPlayedAlbum = topAlbum ? { albumName: topAlbum.name, playCount: topAlbum.playCount } : null;
-
-          // Get all play timestamps for this artist
-          const artistPlays = [];
-          artistSongs.forEach(song => {
-            if (stats.playHistory[song.key]) {
-              artistPlays.push(...stats.playHistory[song.key]);
-            }
-          });
-
-          const streaks = calculateArtistStreaks(artistPlays);
-
-          return {
-            ...artist,
-            mostPlayedSong: mostPlayed,
-            mostPlayedAlbum,
-            ...streaks
-          };
-        })
-        .sort((a, b) => b.totalPlayed - a.totalPlayed);
-
-      console.log('Processing album statistics...');
-      const sortedAlbums = _.orderBy(
-        Object.values(stats.albums).map(album => ({
-          ...album,
-          trackCount: album.trackCount.size
-        })),
-        ['totalPlayed'],
-        ['desc']
-      );
-
-      console.log('Processing song rankings...');
-      const sortedSongs = _.orderBy(stats.songs, ['totalPlayed'], ['desc']).slice(0, 250);
-
-      console.log('Calculating yearly breakdowns...');
-      const songsByYear = calculateSongsByYear(stats.songs, stats.playHistory);
-
-      console.log('Calculating brief obsessions...');
-      const briefObsessions = calculateBriefObsessions(stats.songs, stats.playHistory);
-
-      console.log('Processing artists by year...');
-      const artistsByYear = calculateArtistsByYear(stats.songs, stats.playHistory, allProcessedData);
-
-      console.log('Processing albums by year...');
-      const albumsByYear = calculateAlbumsByYear(sortedAlbums, allProcessedData);
-
-      console.log('Calculating streak statistics...');
-      const consecutivePlayStreaks = calculateConsecutivePlayStreaks(allProcessedData);
-      const overallDailyStreak = calculateOverallDailyStreak(allProcessedData);
-      const topSongDailyStreak = calculateTopSongDailyStreak(stats.songs, stats.playHistory);
-      const topAlbumDailyStreak = calculateTopAlbumDailyStreak(sortedAlbums, allProcessedData);
 
       console.timeEnd('processFiles');
-      return {
-        stats: {
-          totalFiles: files.length,
-          totalEntries: allProcessedData.length,
-          processedSongs: stats.processedSongs,
-          nullTrackNames: allProcessedData.filter(e => !e.master_metadata_track_name).length,
-          uniqueSongs: stats.songs.length,
-          shortPlays: stats.shortPlays,
-          totalListeningTime: stats.totalListeningTime,
-          serviceListeningTime: stats.serviceListeningTime,
-          albumEnrichment: enrichResult
-        },
-        topArtists: sortedArtists,
-        topAlbums: sortedAlbums,
-        processedTracks: sortedSongs,
-        songsByYear: songsByYear,
-        briefObsessions: briefObsessions,
-        artistsByYear: artistsByYear,
-        albumsByYear: albumsByYear,
-        rawPlayData: allProcessedData,
-        trackDurationMap: stats.trackDurationMap,
-        streaks: {
-          consecutivePlays: consecutivePlayStreaks,
-          overallDaily: overallDailyStreak,
-          topSongDaily: topSongDailyStreak,
-          topAlbumDaily: topAlbumDailyStreak
-        }
-      };
+      return { ...result, basePlayData };
     } catch (error) {
       console.error('Error processing files:', error);
       throw error;

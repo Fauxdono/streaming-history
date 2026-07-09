@@ -1,8 +1,6 @@
 'use client';
 import React, { useMemo, useRef, useState, useEffect } from 'react';
-import { Download, Image as ImageIcon } from 'lucide-react';
-import ExportButton from '../ExportButton.js';
-import Top100Export from '../Top100Export.js';
+import { Image as ImageIcon } from 'lucide-react';
 import { filterDataByDate } from '../streaming-adapter.js';
 import { useTheme } from '../themeprovider.js';
 
@@ -11,23 +9,15 @@ const localDayKey = (d) =>
 
 // Statistics tab content.
 export default function StatsTab({
-  briefObsessions,
   colorMode,
   setColorMode,
   isDarkMode,
-  displayedAlbums,
-  displayedArtists,
   filteredStats,
   filteredStreaks,
   formatDuration,
-  processedData,
   rawPlayData,
   selectedStreaksYear,
-  streaks,
-  songsByYear,
   stats,
-  topAlbums,
-  topArtists,
 }) {
   // Listening hours per calendar year (all-time context strip)
   const yearlyTotals = useMemo(() => {
@@ -728,62 +718,6 @@ export default function StatsTab({
               );
             })()}
 
-            <div className="space-y-4">
-              {/* Download Data Section */}
-              {stats && processedData.length > 0 && (
-                <div className={
-                  colorMode === 'colorful'
-                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-800'
-                    : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
-                }>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Download size={18} className={colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : ''} />
-                    <h4 className={
-                      colorMode === 'colorful'
-                        ? 'font-medium text-indigo-700 dark:text-indigo-300'
-                        : 'font-medium'
-                    }>Download Your Data</h4>
-                  </div>
-                  <p className={
-                    colorMode === 'colorful'
-                      ? 'text-sm text-indigo-600 dark:text-indigo-400 mb-3'
-                      : `text-sm mb-3 ${isDarkMode ? 'text-white' : 'text-black'}`
-                  }>
-                    Save your streaming analysis to your device as Excel or JSON.
-                  </p>
-                  <ExportButton
-                    stats={stats}
-                    topArtists={displayedArtists || []}
-                    topAlbums={displayedAlbums || []}
-                    processedData={processedData || []}
-                    briefObsessions={briefObsessions || []}
-                    songsByYear={songsByYear || {}}
-                    rawPlayData={rawPlayData || []}
-                    formatDuration={formatDuration}
-                    colorMode={colorMode}
-                  />
-                  <div className={`mt-3 pt-3 border-t ${colorMode === 'colorful' ? 'border-indigo-200 dark:border-indigo-600' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <p className={
-                      colorMode === 'colorful'
-                        ? 'text-sm text-indigo-600 dark:text-indigo-400 mb-2'
-                        : `text-sm mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`
-                    }>
-                      Lightweight export of your top 100 rankings — paste into AI chats or save for later.
-                    </p>
-                    <Top100Export
-                      processedData={processedData || []}
-                      songsByYear={songsByYear || {}}
-                      topArtists={displayedArtists || []}
-                      topAlbums={displayedAlbums || []}
-                      formatDuration={formatDuration}
-                      colorMode={colorMode}
-                    />
-                  </div>
-                </div>
-              )}
-
-
-            </div>
           </div>
   ) : null;
 }

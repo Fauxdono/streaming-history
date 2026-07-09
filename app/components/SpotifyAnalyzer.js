@@ -4,7 +4,7 @@
 const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { streamingProcessor, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';
+import { streamingProcessor, computeStatsFromEntries, loadOverrides, applyOverrides, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import CalendarView from './CalendarView.js';
@@ -18,6 +18,7 @@ import { YearSelectorCompat as YearSelector } from './YearSelector.js';
 import AlbumCard from './albumcard.js';
 import AlbumsTab from './tabs/AlbumsTab.js';
 import ArtistsTab from './tabs/ArtistsTab.js';
+import DataTab from './tabs/DataTab.js';
 import StatsTab from './tabs/StatsTab.js';
 import UploadTab from './tabs/UploadTab.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
@@ -210,6 +211,9 @@ const SpotifyAnalyzer = ({
   const [yearRangeMode, setYearRangeMode] = useState(false);
   const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [rawPlayData, setRawPlayData] = useState([]);
+  // Pristine parse output, before user edits — overrides are always
+  // re-applied to this so edits stay idempotent and resettable.
+  const [basePlayData, setBasePlayData] = useState([]);
   const [streaks, setStreaks] = useState(null);
   const [selectedStreaksYear, setSelectedStreaksYear] = useState('all');
   const [selectedArtists, setSelectedArtists] = useState([]);
@@ -1131,6 +1135,7 @@ const SpotifyAnalyzer = ({
       const results = await streamingProcessor.processFiles(fileList, {
         enableEnrichment: shouldEnrich,
         onEnrichmentProgress: (done, total) => setEnrichmentProgress({ done, total }),
+        overrides: loadOverrides(),
       });
       
       // Update all state in batch
@@ -1147,6 +1152,7 @@ const SpotifyAnalyzer = ({
       setSongsByYear(results.songsByYear);
       setBriefObsessions(results.briefObsessions);
       setRawPlayData(results.rawPlayData);
+      setBasePlayData(results.basePlayData || results.rawPlayData);
       setTrackDurationMap(results.trackDurationMap || null);
       setStreaks(results.streaks);
 
@@ -1169,6 +1175,29 @@ const SpotifyAnalyzer = ({
       setEnrichmentProgress(null);
     }
   }, []);
+
+  // Re-derive all stats after the user edits their data on the Your Data
+  // tab. Overrides are re-applied to the pristine base, so no file re-parse
+  // is needed and edits/reverts are always consistent.
+  const handleDataEdited = useCallback(async () => {
+    const base = basePlayData.length > 0 ? basePlayData : rawPlayData;
+    if (base.length === 0) return;
+    const effective = applyOverrides(base, loadOverrides());
+    const results = await computeStatsFromEntries(effective, {
+      totalFiles: stats?.totalFiles || 0,
+    });
+    setStats(results.stats);
+    setTopArtists(results.topArtists);
+    setArtistsByYear(results.artistsByYear || {});
+    setTopAlbums(results.topAlbums);
+    setAlbumsByYear(results.albumsByYear || {});
+    setProcessedData(_.orderBy(results.processedTracks, ['totalPlayed'], ['desc']));
+    setSongsByYear(results.songsByYear);
+    setBriefObsessions(results.briefObsessions);
+    setRawPlayData(results.rawPlayData);
+    setTrackDurationMap(results.trackDurationMap || null);
+    setStreaks(results.streaks);
+  }, [basePlayData, rawPlayData, stats]);
 
   // Handle file upload with useCallback
   const handleFileUpload = useCallback((e) => {
@@ -1410,6 +1439,8 @@ const SpotifyAnalyzer = ({
       console.log('🔧 Setting raw play data...');
       if (loadedData.rawPlayData) {
         setRawPlayData(loadedData.rawPlayData);
+        // Saved snapshots are treated as the pristine base for future edits
+        setBasePlayData(loadedData.rawPlayData);
         // Rebuild trackDurationMap from rawPlayData (Map doesn't survive serialization)
         const durMap = new Map();
         loadedData.rawPlayData.forEach(entry => {
@@ -1793,6 +1824,9 @@ const SpotifyAnalyzer = ({
       case 'playlists':
         setSidebarColorTheme('rose'); // Original TopTabs color for playlists
         break;
+      case 'data':
+        setSidebarColorTheme('green'); // Terminal green for data
+        break;
       default:
         setSidebarColorTheme('blue');
     }
@@ -1834,6 +1868,9 @@ const SpotifyAnalyzer = ({
         break;
       case 'playlists':
         setSidebarTextTheme('blue'); // Shifted text color for playlists
+        break;
+      case 'data':
+        setSidebarTextTheme('green'); // Terminal green for data
         break;
       default:
         setSidebarTextTheme('blue');
@@ -2212,23 +2249,15 @@ const SpotifyAnalyzer = ({
       case 'stats':
         return (
           <StatsTab
-            briefObsessions={briefObsessions}
             colorMode={colorMode}
             setColorMode={setColorMode}
             isDarkMode={isDarkMode}
-            displayedAlbums={displayedAlbums}
-            displayedArtists={displayedArtists}
             filteredStats={filteredStats}
             filteredStreaks={filteredStreaks}
             formatDuration={formatDuration}
-            processedData={processedData}
             rawPlayData={rawPlayData}
             selectedStreaksYear={selectedStreaksYear}
-            streaks={streaks}
-            songsByYear={songsByYear}
             stats={stats}
-            topAlbums={topAlbums}
-            topArtists={topArtists}
           />
         );
 
@@ -2489,6 +2518,29 @@ const SpotifyAnalyzer = ({
           </div>
         );
 
+      case 'data':
+        return (
+          <div className={
+            colorMode === 'colorful'
+              ? 'p-2 sm:p-4 bg-black rounded border-2 border-green-600'
+              : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
+          }>
+            <DataTab
+              stats={stats}
+              processedData={processedData}
+              rawPlayData={rawPlayData}
+              onDataEdited={handleDataEdited}
+              topArtists={topArtists}
+              topAlbums={topAlbums}
+              briefObsessions={briefObsessions}
+              songsByYear={songsByYear}
+              formatDuration={formatDuration}
+              colorMode={colorMode}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        );
+
       case 'settings':
         return (
           <div className={
@@ -2549,6 +2601,7 @@ const SpotifyAnalyzer = ({
     handleDeleteFile,
     handleProcessFiles,
     processFiles,
+    handleDataEdited,
     topArtists,
     topAlbums,
     briefObsessions,
@@ -2636,7 +2689,8 @@ const SpotifyAnalyzer = ({
       discovery: isDarkMode ? 'bg-orange-900' : 'bg-orange-200',
       podcasts: isDarkMode ? 'bg-red-900' : 'bg-red-200',
       playlists: isDarkMode ? 'bg-rose-900' : 'bg-rose-200',
-      updates: isDarkMode ? 'bg-fuchsia-900' : 'bg-fuchsia-200'
+      updates: isDarkMode ? 'bg-fuchsia-900' : 'bg-fuchsia-200',
+      data: 'bg-black'
     };
 
     return tabColors[activeTab] || '';
