@@ -19,6 +19,24 @@ export function StatTile({ label, value, sub, colors, className = '' }) {
   );
 }
 
+// Insight callout: icon + title row, optional filled verdict chip, prose body.
+export function Callout({ icon, title, verdict, colors, children, className = '' }) {
+  return (
+    <div className={`p-4 ${colors.card} ${className}`}>
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        {icon && <span className="text-xl leading-none">{icon}</span>}
+        <h3 className={`text-sm sm:text-base font-bold ${colors.text}`}>{title}</h3>
+        {verdict && (
+          <span className={`ml-auto px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${colors.toggleActive}`}>
+            {verdict}
+          </span>
+        )}
+      </div>
+      <div className={`text-sm space-y-2 ${colors.textLight}`}>{children}</div>
+    </div>
+  );
+}
+
 // Small square swatch that ties a stat card to its slice in a chart,
 // so the text itself can stay in ink colors.
 export function SliceDot({ color, className = '' }) {

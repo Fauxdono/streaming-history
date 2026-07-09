@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label, LabelList } from 'recharts';
 import { useTheme } from './themeprovider.js';
 import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
-import { StatTile, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
+import { StatTile, Callout, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
+import { RankBadge, RankBar } from './RankCardBits.js';
 
 const DiscoveryAnalysis = ({
   rawPlayData = [],
@@ -644,32 +645,29 @@ const filteredData = useMemo(() => {
             </div>
           </div>
 
-          <div className={`p-4 ${modeColors.card}`}>
-            <h3 className={`text-sm sm:text-lg font-bold ${modeColors.text}`}>Discovery Insights</h3>
-            <ul className="mt-2 space-y-2">
-              <li className={modeColors.textLight}>
-                {discoveryData.newArtistsByMonth.length > 0 ? (
-                  <>
-                    Your peak discovery month was
-                    <span className="font-bold">{' '}
-                      {discoveryData.peakDiscoveryMonth?.fullLabel}
-                    </span> when you discovered
-                    <span className="font-bold">{' '}
-                      {discoveryData.peakDiscoveryMonth?.count}
-                    </span> new artists.
-                  </>
-                ) : 'No discovery data available.'}
-              </li>
-              {discoveryData.newArtistsByMonth.length > 6 && (
-                <li className={modeColors.textLight}>
-                  In the last 6 months, you've discovered
+          <Callout icon="🔍" title="Discovery Insights" colors={modeColors}>
+            <p>
+              {discoveryData.newArtistsByMonth.length > 0 ? (
+                <>
+                  Your peak discovery month was
                   <span className="font-bold">{' '}
-                    {discoveryData.newArtistsByMonth.slice(-6).reduce((sum, month) => sum + month.count, 0)}
+                    {discoveryData.peakDiscoveryMonth?.fullLabel}
+                  </span> when you discovered
+                  <span className="font-bold">{' '}
+                    {discoveryData.peakDiscoveryMonth?.count}
                   </span> new artists.
-                </li>
-              )}
-            </ul>
-          </div>
+                </>
+              ) : 'No discovery data available.'}
+            </p>
+            {discoveryData.newArtistsByMonth.length > 6 && (
+              <p>
+                In the last 6 months, you've discovered
+                <span className="font-bold">{' '}
+                  {discoveryData.newArtistsByMonth.slice(-6).reduce((sum, month) => sum + month.count, 0)}
+                </span> new artists.
+              </p>
+            )}
+          </Callout>
         </div>
       )}
 
@@ -719,36 +717,38 @@ const filteredData = useMemo(() => {
               <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Your Top 5 Artists</h3>
               <div className="space-y-3">
                 {discoveryData.top5Artists.map((artist, index) => (
-                  <div key={index} className={`p-3 flex justify-between items-center ${modeColors.card}`}>
-                    <div>
-                      <span className={`font-bold text-lg ${modeColors.text}`}>{index + 1}. {artist.name}</span>
-                      <div className={`text-sm ${modeColors.textLight}`}>
-                        {formatDuration(artist.time)} total listening time
-                      </div>
+                  <div key={index} className={`p-3 ${modeColors.card} ${modeColors.text}`}>
+                    <div className="flex items-center gap-2">
+                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                      <span className="font-bold truncate min-w-0" title={artist.name}>{artist.name}</span>
+                      <span className={`ml-auto text-sm font-bold shrink-0 ${modeColors.textLight}`}>
+                        {Math.round((artist.time / discoveryData.loyaltyData[0].value) * 100)}%
+                      </span>
                     </div>
-                    <div className={`font-bold ${modeColors.textLight}`}>
-                      {Math.round((artist.time / discoveryData.loyaltyData[0].value) * 100)}%
-                    </div>
+                    <RankBar
+                      value={artist.time}
+                      max={discoveryData.top5Artists[0]?.time || 0}
+                      label={formatDuration(artist.time)}
+                    />
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className={`p-4 ${modeColors.card}`}>
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Loyalty Profile</h3>
-            <div className={modeColors.textLight}>
-              {discoveryData.top5Percentage > 75 ? (
-                <p>You're a <span className="font-bold">super fan</span>! You spend most of your time with your favorite artists.</p>
-              ) : discoveryData.top5Percentage > 50 ? (
-                <p>You're a <span className="font-bold">loyal listener</span>. You balance favorites with musical exploration.</p>
-              ) : discoveryData.top5Percentage > 30 ? (
-                <p>You're an <span className="font-bold">eclectic explorer</span>. You enjoy variety and discovering new music.</p>
-              ) : (
-                <p>You're a true <span className="font-bold">music adventurer</span>! You rarely stick to the same artists for long.</p>
-              )}
-            </div>
-          </div>
+          {(() => {
+            const p = discoveryData.top5Percentage;
+            const [verdict, blurb] =
+              p > 75 ? ['super fan', 'You spend most of your time with your favorite artists.'] :
+              p > 50 ? ['loyal listener', 'You balance favorites with musical exploration.'] :
+              p > 30 ? ['eclectic explorer', 'You enjoy variety and discovering new music.'] :
+              ['music adventurer', 'You rarely stick to the same artists for long.'];
+            return (
+              <Callout icon="❤️" title="Loyalty Profile" verdict={verdict} colors={modeColors}>
+                <p>{blurb} Your top 5 artists account for {p}% of your listening time.</p>
+              </Callout>
+            );
+          })()}
         </div>
       )}
       
@@ -816,14 +816,28 @@ const filteredData = useMemo(() => {
             <p className={`mb-4 ${modeColors.textLight}`}>Your most repeated tracks</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {depthData.replayValue.map((track, index) => (
-                <div key={index} className={`p-3 ${modeColors.card}`}>
-                  <div className={`font-bold ${modeColors.text}`}>{index + 1}. {track.track}</div>
-                  <div className={`text-sm ${modeColors.textLight}`}>
-                    Played <span className="font-bold">{track.plays}</span> times
+              {depthData.replayValue.map((track, index) => {
+                // trackPlays keys are "Artist - Track"
+                const sep = track.track.indexOf(' - ');
+                const artist = sep > 0 ? track.track.slice(0, sep) : '';
+                const title = sep > 0 ? track.track.slice(sep + 3) : track.track;
+                return (
+                  <div key={index} className={`p-3 ${modeColors.card} ${modeColors.text}`}>
+                    <div className="flex items-center gap-2">
+                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                      <div className="min-w-0">
+                        <div className="font-bold truncate" title={title}>{title}</div>
+                        {artist && <div className={`text-xs truncate ${modeColors.textLight}`}>{artist}</div>}
+                      </div>
+                    </div>
+                    <RankBar
+                      value={track.plays}
+                      max={depthData.replayValue[0]?.plays || 0}
+                      label={`${track.plays} plays`}
+                    />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -907,26 +921,21 @@ const filteredData = useMemo(() => {
             </div>
           </div>
 
-          <div className={`p-4 ${modeColors.card}`}>
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Variety Profile</h3>
-            <div className={modeColors.textLight}>
-              {Math.round(
-                (varietyData.avgDailyVariety + varietyData.avgWeeklyVariety + varietyData.avgMonthlyVariety) / 3
-              ) > 80 ? (
-                <p>You're a <span className="font-bold">variety seeker</span>! You rarely repeat the same tracks and constantly explore new music.</p>
-              ) : Math.round(
-                (varietyData.avgDailyVariety + varietyData.avgWeeklyVariety + varietyData.avgMonthlyVariety) / 3
-              ) > 60 ? (
-                <p>You have <span className="font-bold">diverse taste</span> with a good balance between favorites and new discoveries.</p>
-              ) : Math.round(
-                (varietyData.avgDailyVariety + varietyData.avgWeeklyVariety + varietyData.avgMonthlyVariety) / 3
-              ) > 40 ? (
-                <p>You're a <span className="font-bold">balanced listener</span> who enjoys both familiar tracks and occasional new music.</p>
-              ) : (
-                <p>You're a <span className="font-bold">comfort listener</span> who sticks to favorite tracks and enjoys repeating them.</p>
-              )}
-            </div>
-          </div>
+          {(() => {
+            const avg = Math.round(
+              (varietyData.avgDailyVariety + varietyData.avgWeeklyVariety + varietyData.avgMonthlyVariety) / 3
+            );
+            const [verdict, blurb] =
+              avg > 80 ? ['variety seeker', 'You rarely repeat the same tracks and constantly explore new music.'] :
+              avg > 60 ? ['diverse taste', 'You keep a good balance between favorites and new discoveries.'] :
+              avg > 40 ? ['balanced listener', 'You enjoy both familiar tracks and occasional new music.'] :
+              ['comfort listener', 'You stick to favorite tracks and enjoy repeating them.'];
+            return (
+              <Callout icon="🎲" title="Variety Profile" verdict={verdict} colors={modeColors}>
+                <p>{blurb} On average, {avg}% of what you play in a stretch is unique tracks.</p>
+              </Callout>
+            );
+          })()}
         </div>
       )}
     </div>

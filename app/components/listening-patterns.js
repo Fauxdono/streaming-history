@@ -7,6 +7,7 @@ import TrackRankings from './TrackRankings.js';
 import { useTheme } from './themeprovider.js'; // Import the theme hook
 import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
 import { SliceDot, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
+import { RankBadge, RankBar } from './RankCardBits.js';
 
 const WorldMap = dynamic(() => import('react-svg-worldmap').then(mod => mod.WorldMap ? { default: mod.WorldMap } : mod), { ssr: false });
 const HologramGlobe = dynamic(() => import('./HologramGlobe.js'), { ssr: false });
@@ -991,7 +992,10 @@ const ListeningPatterns = ({
             colors.text
           }`}>Day of Week Stats</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
-            {dayOfWeekData.map((day, index) => (
+            {dayOfWeekData.map((day, index) => {
+              const byAverage = dayOfWeekViewMode === 'average';
+              const maxVal = Math.max(...dayOfWeekData.map(d => (byAverage ? d.avgPerDay : d.count)), 0);
+              return (
               <div key={index} className={`p-3 relative ${colors.card}`}>
                 {(dayOfWeekViewMode === 'plays' && day.isTopByCount) ||
                 (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
@@ -1007,8 +1011,17 @@ const ListeningPatterns = ({
                   <div>Listening Time: {formatDuration(day.totalMs)}</div>
                   <div>Avg. Plays Per Day: {day.avgPerDay.toFixed(1)}</div>
                 </div>
+                {/* Relative to the busiest day, following the Total/Average toggle */}
+                <div className={colors.text}>
+                  <RankBar
+                    value={byAverage ? day.avgPerDay : day.count}
+                    max={maxVal}
+                    label={byAverage ? `${day.avgPerDay.toFixed(1)}/day` : `${day.count.toLocaleString()} plays`}
+                  />
+                </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -1453,17 +1466,23 @@ const ListeningPatterns = ({
                       {locationData.map((loc, index) => (
                         <div
                           key={loc.code}
-                          className={`p-3 relative ${colors.card} cursor-pointer hover:opacity-80 transition-opacity`}
+                          className={`p-3 ${colors.card} ${colors.text} cursor-pointer hover:opacity-80 transition-opacity`}
                           onClick={() => setSelectedCountry({ code: loc.code, name: loc.name })}
                         >
-                          <div className={`absolute top-2 right-2 text-xs font-bold ${colors.textLighter}`}>#{index + 1}</div>
-                          <h4 className={`font-bold ${colors.text}`}>{loc.name}</h4>
-                          <div className={`text-sm ${colors.textLight}`}>
-                            <div>{loc.plays.toLocaleString()} plays</div>
+                          <div className="flex items-center gap-2">
+                            <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                            <h4 className="font-bold truncate min-w-0" title={loc.name}>{loc.name}</h4>
+                          </div>
+                          <div className={`text-sm mt-1 ${colors.textLight}`}>
                             <div>{formatDuration(loc.totalMs)}</div>
                             <div>{loc.artists.toLocaleString()} artists</div>
                             <div>{loc.songs.toLocaleString()} songs</div>
                           </div>
+                          <RankBar
+                            value={loc.plays}
+                            max={locationData[0]?.plays || 0}
+                            label={`${loc.plays.toLocaleString()} plays`}
+                          />
                         </div>
                       ))}
                     </div>

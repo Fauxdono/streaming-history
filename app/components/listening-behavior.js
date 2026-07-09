@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, ScatterChart, Scatter, ZAxis, XAxis
 import ArtistByTimeOfDay from './ArtistByTimeOfDay.js';
 import { useTheme } from './themeprovider.js';
 import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
-import { StatTile, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
+import { StatTile, Callout, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
 import {
   COUNTRY_CAPITALS, categorizeWeatherCode, broadWeatherCategory, tempBucket,
   TEMP_BUCKETS, WEATHER_COLORS, TEMP_COLORS,
@@ -1237,21 +1237,21 @@ const filteredData = useMemo(() => {
             </div>
           </div>
 
-          <div>
-            <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Insights</h3>
-            <div className={`p-3 rounded space-y-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
-              <p className={modeColors.textLight}>
-                Most of your listening sessions are
-                <span className="font-bold"> {
-                  [...sessionData.durationGroups].sort((a, b) => b.count - a.count)[0]?.name.toLowerCase()
-                }</span>.
-              </p>
-              <p className={modeColors.textLight}>
-                On average, you listen to {sessionData.averageTracksPerSession} tracks per session
-                for about {sessionData.averageSessionDuration} minutes.
-              </p>
-            </div>
-          </div>
+          {(() => {
+            const topGroup = [...sessionData.durationGroups].sort((a, b) => b.count - a.count)[0];
+            return (
+              <Callout icon="⏱️" title="Session Insights" verdict={topGroup?.name} colors={modeColors}>
+                <p>
+                  Most of your listening sessions are
+                  <span className="font-bold"> {topGroup?.name.toLowerCase()}</span>.
+                </p>
+                <p>
+                  On average, you listen to {sessionData.averageTracksPerSession} tracks per session
+                  for about {sessionData.averageSessionDuration} minutes.
+                </p>
+              </Callout>
+            );
+          })()}
         </div>
       )}
     
@@ -1560,16 +1560,24 @@ const filteredData = useMemo(() => {
 
         {/* Empty state when no weather data yet */}
         {!weatherAnalysis && homeCity && !weatherLoading && Object.keys(weatherData).length === 0 && (
-          <div className={`text-center py-8 ${modeColors.textLight}`}>
-            <p className="text-lg mb-2">Click "Fetch Weather Data" to load historical weather</p>
-            <p className="text-sm">This will fetch weather for all dates in your listening history using the Open-Meteo API.</p>
+          <div className={`p-6 sm:p-8 rounded border text-center ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
+            <div className="text-4xl mb-3">⛅</div>
+            <p className={`text-base font-bold mb-2 ${modeColors.text}`}>Almost there — fetch the weather</p>
+            <p className={`text-sm max-w-md mx-auto ${modeColors.textLight}`}>
+              Click &ldquo;Fetch Weather Data&rdquo; above to load historical weather for every date in your
+              listening history (via the Open-Meteo API), and see what you play when it rains.
+            </p>
           </div>
         )}
 
         {!homeCity && (
-          <div className={`text-center py-8 ${modeColors.textLight}`}>
-            <p className="text-lg mb-2">Set your home city to get started</p>
-            <p className="text-sm">We'll use your city's weather to correlate with your listening habits.</p>
+          <div className={`p-6 sm:p-8 rounded border text-center ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
+            <div className="text-4xl mb-3">🌦️</div>
+            <p className={`text-base font-bold mb-2 ${modeColors.text}`}>Set your home city to get started</p>
+            <p className={`text-sm max-w-md mx-auto ${modeColors.textLight}`}>
+              We&rsquo;ll match your city&rsquo;s historical weather against your listening history —
+              rainy-day playlists, sunny-day artists, and what you play in a thunderstorm.
+            </p>
           </div>
         )}
       </div>
