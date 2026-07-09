@@ -784,6 +784,24 @@ const ANALYSIS_COLORFUL = (isDarkMode) => ({
     toggleInactive: isDarkMode ? 'text-orange-300 hover:bg-orange-700' : 'text-orange-700 hover:bg-orange-200',
     input:          isDarkMode ? 'border-orange-600 bg-orange-800' : 'border-orange-300 bg-orange-100',
   },
+  green: {
+    text:           isDarkMode ? 'text-green-300' : 'text-green-700',
+    textLight:      isDarkMode ? 'text-green-400' : 'text-green-600',
+    textLighter:    'text-green-500',
+    bg:             isDarkMode ? 'bg-green-900' : 'bg-green-200',
+    bgLight:        isDarkMode ? 'bg-green-800' : 'bg-green-100',
+    bgCard:         isDarkMode ? 'bg-green-800' : 'bg-green-100',
+    bgCardAlt:      isDarkMode ? 'bg-green-800' : 'bg-green-100',
+    border:         isDarkMode ? 'border-green-600' : 'border-green-300',
+    borderLight:    isDarkMode ? 'border-green-600' : 'border-green-300',
+    shadow:         isDarkMode ? 'shadow-[1px_1px_0_0_#16a34a]' : 'shadow-[1px_1px_0_0_#15803d]',
+    buttonActive:   isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#16a34a]' : 'bg-green-100 text-green-700 border border-green-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#15803d]',
+    buttonInactive: isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 hover:bg-green-700 shadow-[2px_2px_0_0_#16a34a]' : 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 shadow-[2px_2px_0_0_#15803d]',
+    toggleBg:       isDarkMode ? 'bg-green-800' : 'bg-green-100',
+    toggleActive:   isDarkMode ? 'bg-green-500 text-black' : 'bg-green-600 text-white',
+    toggleInactive: isDarkMode ? 'text-green-300 hover:bg-green-700' : 'text-green-700 hover:bg-green-200',
+    input:          isDarkMode ? 'border-green-600 bg-green-800' : 'border-green-300 bg-green-100',
+  },
 });
 
 const ANALYSIS_MINIMAL = (isDarkMode) => ({

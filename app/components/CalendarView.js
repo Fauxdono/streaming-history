@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTheme } from './themeprovider.js';
-import { getAnalysisChartTheme } from './theme.js';
+import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
+import { RankBar } from './RankCardBits.js';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -111,44 +112,29 @@ const CalendarView = ({
   const isDarkMode = theme === 'dark';
   const isColorful = colorMode === 'colorful';
 
-  // Color system for colorful/minimal modes - colorful has contrast, minimal is flat (Green theme)
-  const modeColors = isColorful ? {
-    text: isDarkMode ? 'text-green-300' : 'text-green-700',
-    textLight: isDarkMode ? 'text-green-400' : 'text-green-600',
-    textLighter: isDarkMode ? 'text-green-500' : 'text-green-500',
-    bg: isDarkMode ? 'bg-green-900' : 'bg-green-200',
-    bgLight: isDarkMode ? 'bg-green-800' : 'bg-green-100',
-    bgCard: isDarkMode ? 'bg-green-800' : 'bg-green-100',
-    bgCardAlt: isDarkMode ? 'bg-green-800' : 'bg-green-100',
-    border: isDarkMode ? 'border-green-600' : 'border-green-300',
-    borderLight: isDarkMode ? 'border-green-600' : 'border-green-300',
-    buttonActive: isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#16a34a]' : 'bg-green-100 text-green-700 border border-green-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#15803d]',
-    buttonInactive: isDarkMode ? 'bg-green-800 text-green-300 border border-green-600 hover:bg-green-700 shadow-[2px_2px_0_0_#16a34a]' : 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 shadow-[2px_2px_0_0_#15803d]',
-  } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
-    textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
-    textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
-    bg: isDarkMode ? 'bg-black' : 'bg-white',
-    bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCard: isDarkMode ? 'bg-black' : 'bg-white',
-    bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
-    border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    borderLight: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
-  };
+  // Page theming (shared with the analysis pages via theme.js; green accent)
+  const modeColors = getAnalysisPageColors('green', isColorful, isDarkMode);
 
-  // Sequential green ramp for the heatmap (grays in minimal mode)
+  // Global play filters from the settings panel, shared by every memo below
+  const passesFilters = useMemo(() => (entry) => {
+    if (entry.ms_played < minPlayDuration) return false;
+    if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
+      if (!skipEndThreshold || !trackDurationMap) return false;
+      const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
+      const est = trackDurationMap.get(key);
+      if (!est || entry.ms_played < est - skipEndThreshold) return false;
+    }
+    if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
+    return true;
+  }, [minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+
+// Sequential green ramp for the heatmap (grays in minimal mode)
   const chart = useMemo(
     () => getAnalysisChartTheme('green', isColorful, isDarkMode),
     [isColorful, isDarkMode]
   );
   const heatScale = useMemo(() => [...chart.ramp(5)].reverse(), [chart]);
 
-  // Month names constants
-  const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  
   // Filtered data based on year selection
   const filteredData = useMemo(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
@@ -314,18 +300,6 @@ const CalendarView = ({
   const yearHeatmap = useMemo(() => {
     if (activeTab !== 'calendar' || isMonthView) return null;
 
-    const passesFilters = (entry) => {
-      if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
-        if (!skipEndThreshold || !trackDurationMap) return false;
-        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
-        const est = trackDurationMap.get(key);
-        if (!est || entry.ms_played < est - skipEndThreshold) return false;
-      }
-      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
-      return true;
-    };
-
     const days = new Map(); // 'YYYY-MM-DD' → { ms, plays }
     filteredData.forEach((entry) => {
       if (!passesFilters(entry)) return;
@@ -342,7 +316,7 @@ const CalendarView = ({
     days.forEach((v) => { if (v.ms > maxMs) maxMs = v.ms; });
     const years = [...new Set([...days.keys()].map((k) => parseInt(k.slice(0, 4))))].sort((a, b) => a - b);
     return { days, maxMs, years };
-  }, [filteredData, activeTab, isMonthView, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, activeTab, isMonthView, passesFilters]);
 
   // Listening history data for daily history tab
   const historyData = useMemo(() => {
@@ -357,18 +331,6 @@ const CalendarView = ({
     if (!isAllTimeDay && !isSpecificDay) {
       return { tracks: [], totalTracks: 0, totalListeningTime: 0, uniqueTracks: 0, uniqueArtists: 0, sessions: 0, formattedDate: 'No date selected' };
     }
-
-    const passesFilters = (entry) => {
-      if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
-        if (!skipEndThreshold || !trackDurationMap) return false;
-        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
-        const est = trackDurationMap.get(key);
-        if (!est || entry.ms_played < est - skipEndThreshold) return false;
-      }
-      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
-      return true;
-    };
 
     let dayTracks;
     let formattedDate;
@@ -458,7 +420,7 @@ const CalendarView = ({
       sessions: sessions.length,
       formattedDate
     };
-  }, [filteredData, selectedYear, formatDuration, activeTab, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, selectedYear, formatDuration, activeTab, passesFilters, minPlayDuration]);
   
   // Daily data for when a specific month is selected
   const dailyCalendarData = useMemo(() => {
@@ -485,18 +447,6 @@ const CalendarView = ({
     const dailyAlbums = Array.from({ length: daysInMonth }, () => new Map());
     const dailySongs = Array.from({ length: daysInMonth }, () => new Set());
     
-    const passesFilters = (entry) => {
-      if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
-        if (!skipEndThreshold || !trackDurationMap) return false;
-        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
-        const est = trackDurationMap.get(key);
-        if (!est || entry.ms_played < est - skipEndThreshold) return false;
-      }
-      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
-      return true;
-    };
-
     filteredData.forEach(entry => {
       if (passesFilters(entry)) {
         const date = new Date(entry.ts);
@@ -555,23 +505,26 @@ const CalendarView = ({
       }
     });
     
-    // Find top artist and album for each day
+    // Find top artist and album for each day ("Unknown …" placeholders are
+    // data artifacts, not real top picks)
     daysData.forEach((dayData, index) => {
       // Top artist
-      if (dailyArtists[index].size > 0) {
-        const topArtist = [...dailyArtists[index].entries()]
-          .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      const topArtist = [...dailyArtists[index].entries()]
+        .filter(([name]) => name !== 'Unknown Artist')
+        .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      if (topArtist) {
         dayData.topArtist = {
           name: topArtist[0],
           playCount: topArtist[1].playCount,
           totalTime: topArtist[1].totalTime
         };
       }
-      
+
       // Top album
-      if (dailyAlbums[index].size > 0) {
-        const topAlbum = [...dailyAlbums[index].entries()]
-          .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      const topAlbum = [...dailyAlbums[index].entries()]
+        .filter(([name]) => name !== 'Unknown Album')
+        .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      if (topAlbum) {
         dayData.topAlbum = {
           name: topAlbum[0],
           artist: topAlbum[1].artist,
@@ -590,7 +543,7 @@ const CalendarView = ({
     });
 
     return daysData;
-  }, [filteredData, selectedYear, isMonthView, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, selectedYear, isMonthView, passesFilters]);
 
   // Calendar view data - monthly insights with top artist, album, and first listens
   const calendarData = useMemo(() => {
@@ -598,7 +551,7 @@ const CalendarView = ({
     
     const monthsData = Array.from({ length: 12 }, (_, i) => ({
       month: i + 1,
-      name: monthNamesShort[i],
+      name: MONTH_LABELS[i],
       fullName: ['January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'][i],
       totalPlays: 0,
@@ -617,20 +570,8 @@ const CalendarView = ({
     const monthlySongs = Array.from({ length: 12 }, () => new Set());
     const monthlyTrackedSongs = Array.from({ length: 12 }, () => new Map());
     
-    const passesFilters2 = (entry) => {
-      if (entry.ms_played < minPlayDuration) return false;
-      if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
-        if (!skipEndThreshold || !trackDurationMap) return false;
-        const key = `${(entry.master_metadata_track_name || '').toLowerCase().trim()}|||${(entry.master_metadata_album_artist_name || '').toLowerCase().trim()}`;
-        const est = trackDurationMap.get(key);
-        if (!est || entry.ms_played < est - skipEndThreshold) return false;
-      }
-      if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
-      return true;
-    };
-
     filteredData.forEach(entry => {
-      if (passesFilters2(entry)) {
+      if (passesFilters(entry)) {
         const date = new Date(entry.ts);
         const month = date.getMonth(); // 0-based
         const artistName = entry.master_metadata_album_artist_name || 'Unknown Artist';
@@ -697,23 +638,26 @@ const CalendarView = ({
       }
     });
     
-    // Find top artist and album for each month
+    // Find top artist and album for each month ("Unknown …" placeholders are
+    // data artifacts, not real top picks)
     monthsData.forEach((monthData, index) => {
       // Top artist
-      if (monthlyArtists[index].size > 0) {
-        const topArtist = [...monthlyArtists[index].entries()]
-          .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      const topArtist = [...monthlyArtists[index].entries()]
+        .filter(([name]) => name !== 'Unknown Artist')
+        .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      if (topArtist) {
         monthData.topArtist = {
           name: topArtist[0],
           playCount: topArtist[1].playCount,
           totalTime: topArtist[1].totalTime
         };
       }
-      
+
       // Top album
-      if (monthlyAlbums[index].size > 0) {
-        const topAlbum = [...monthlyAlbums[index].entries()]
-          .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      const topAlbum = [...monthlyAlbums[index].entries()]
+        .filter(([name]) => name !== 'Unknown Album')
+        .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      if (topAlbum) {
         monthData.topAlbum = {
           name: topAlbum[0],
           artist: topAlbum[1].artist,
@@ -721,11 +665,12 @@ const CalendarView = ({
           totalTime: topAlbum[1].totalTime
         };
       }
-      
+
       // Top song
-      if (monthlyTrackedSongs[index].size > 0) {
-        const topSong = [...monthlyTrackedSongs[index].entries()]
-          .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      const topSong = [...monthlyTrackedSongs[index].entries()]
+        .filter(([, s]) => s.name !== 'Unknown Song')
+        .sort((a, b) => b[1].playCount - a[1].playCount)[0];
+      if (topSong) {
         monthData.topSong = {
           name: topSong[1].name,
           artist: topSong[1].artist,
@@ -744,8 +689,38 @@ const CalendarView = ({
     });
 
     return monthsData;
-  }, [filteredData, isMonthView, monthNamesShort, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+  }, [filteredData, isMonthView, passesFilters]);
   
+  // Peaks for the intensity bars on month/day cards
+  const peakMonthTime = useMemo(
+    () => calendarData.reduce((max, m) => Math.max(max, m.totalTime), 0),
+    [calendarData]
+  );
+  const peakDayTime = useMemo(
+    () => dailyCalendarData.reduce((max, d) => Math.max(max, d.totalTime), 0),
+    [dailyCalendarData]
+  );
+
+  // Biggest listening day across the whole library, for the Daily History
+  // empty state (days over 24h are data artifacts, not real listening days)
+  const biggestDay = useMemo(() => {
+    if (activeTab !== 'history') return null;
+    const dayMs = new Map();
+    rawPlayData.forEach((entry) => {
+      if (!entry.ms_played || entry.ms_played < 30000) return;
+      const d = new Date(entry.ts);
+      if (isNaN(d.getTime())) return;
+      const key = dayKey(d);
+      dayMs.set(key, (dayMs.get(key) || 0) + entry.ms_played);
+    });
+    let best = null;
+    dayMs.forEach((ms, date) => {
+      if (ms > 86400000) return;
+      if (!best || ms > best.ms) best = { date, ms };
+    });
+    return best;
+  }, [rawPlayData, activeTab]);
+
   const TabButton = ({ id, label }) => (
     <button
       onClick={() => setActiveTab(id)}
@@ -839,7 +814,7 @@ const CalendarView = ({
               <p className={`mb-3 text-sm ${modeColors.textLight}`}>
                 Daily listening time — click a day to open it in Daily History
               </p>
-              <div className={`p-3 sm:p-4 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'} overflow-x-auto`}>
+              <div className={`p-3 sm:p-4 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${modeColors.shadow} overflow-x-auto`}>
                 <div className="space-y-4 min-w-max">
                   {yearHeatmap.years.map((year) => (
                     <div key={year}>
@@ -879,7 +854,10 @@ const CalendarView = ({
                 {calendarData.map((monthData, index) => {
                   const isExpanded = !!expandedMonthCards[index];
                   return (
-                    <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border ${modeColors.border} text-center ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                    <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border ${modeColors.border} text-center relative ${modeColors.shadow}`}>
+                      {peakMonthTime > 0 && monthData.totalTime === peakMonthTime && (
+                        <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl" title="Biggest month">★</div>
+                      )}
                       {/* Row 1: name + toggle */}
                       <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
                         <span className="w-5 shrink-0" />
@@ -919,6 +897,14 @@ const CalendarView = ({
                           <span className="opacity-60 shrink-0">New Songs</span>
                           <span className="font-bold">{monthData.firstListens.length}</span>
                         </div>
+                      </div>
+                      {/* Listening time relative to the biggest month */}
+                      <div className={modeColors.text}>
+                        <RankBar
+                          value={monthData.totalTime}
+                          max={peakMonthTime}
+                          label={formatDuration(monthData.totalTime)}
+                        />
                       </div>
                     </div>
                   );
@@ -961,7 +947,7 @@ const CalendarView = ({
                 {/* Mobile cards */}
                 <div className="sm:hidden space-y-2">
                   {calendarData.map((monthData, index) => (
-                    <div key={index} className={`p-3 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                    <div key={index} className={`p-3 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${modeColors.shadow}`}>
                       <div className="flex justify-between items-baseline mb-1">
                         <span className={`font-bold ${modeColors.text}`}>{monthData.fullName}</span>
                         <span className={`text-xs ${modeColors.textLight}`}>{monthData.totalPlays} plays</span>
@@ -1007,9 +993,9 @@ const CalendarView = ({
                   <div
                     key={index}
                     onClick={handleDayClick}
-                    className={`p-3 ${modeColors.bgCardAlt} rounded border text-center ${
+                    className={`p-3 ${modeColors.bgCardAlt} rounded border text-center relative ${
                       daySelectionMode ? 'cursor-pointer' : 'cursor-default'
-                    } ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'} ${
+                    } ${modeColors.border} ${modeColors.shadow} ${
                       daySelectionMode
                         ? isColorful
                           ? 'hover:opacity-80 ring-2 ring-green-500 ring-opacity-50'
@@ -1018,6 +1004,9 @@ const CalendarView = ({
                             : 'hover:bg-gray-100 ring-2 ring-black ring-opacity-30'
                         : ''
                     }`}>
+                    {peakDayTime > 0 && dayData.totalTime === peakDayTime && (
+                      <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl" title="Biggest day this month">★</div>
+                    )}
                     {/* Row 1: date + toggle */}
                     <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
                       <span className="w-5 shrink-0" />
@@ -1046,6 +1035,14 @@ const CalendarView = ({
                     <div className={`text-xs text-center mt-1 ${modeColors.textLight}`}>
                       <div className="opacity-60">New Songs</div>
                       <div className="font-bold">{dayData.firstListens.length}</div>
+                    </div>
+                    {/* Listening time relative to the biggest day this month */}
+                    <div className={modeColors.text}>
+                      <RankBar
+                        value={dayData.totalTime}
+                        max={peakDayTime}
+                        label={formatDuration(dayData.totalTime)}
+                      />
                     </div>
                   </div>
                   );
@@ -1118,7 +1115,7 @@ const CalendarView = ({
                           if (onYearChange) onYearChange(dayData.date);
                           setActiveTab('history');
                         }}
-                        className={`p-3 rounded border cursor-pointer ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                        className={`p-3 rounded border cursor-pointer ${modeColors.bgCardAlt} ${modeColors.border} ${modeColors.shadow}`}
                       >
                         <div className="flex justify-between items-baseline mb-1">
                           <span className={`font-bold ${modeColors.text}`}>
@@ -1153,14 +1150,36 @@ const CalendarView = ({
           <div className="flex flex-col gap-4">
             <div>
               {selectedYear && selectedYear.includes('-') && selectedYear.split('-').length === 3 && (
-                <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <div className={`mt-2 text-sm px-3 py-2 rounded ${modeColors.bgCardAlt} ${modeColors.text} border ${modeColors.border} ${modeColors.shadow}`}>
                   Viewing data for: <span className="font-semibold">{historyData.formattedDate}</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className={`p-3 sm:p-4 rounded ${modeColors.bgCard} border ${modeColors.borderLight} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+          {historyData.formattedDate === 'No date selected' ? (
+            <div className={`p-6 sm:p-8 rounded ${modeColors.bgCard} border ${modeColors.borderLight} ${modeColors.shadow} text-center`}>
+              <h4 className={`font-bold text-base mb-2 ${modeColors.text}`}>Pick a day to see its full story</h4>
+              <p className={`text-sm mb-4 max-w-md mx-auto ${modeColors.textLight}`}>
+                Click a day in the Year at a Glance heatmap, open a day card from any month,
+                or use the Day control in the year selector.
+              </p>
+              {biggestDay && (() => {
+                const [y, m, d] = biggestDay.date.split('-').map(Number);
+                const label = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                return (
+                  <button
+                    onClick={() => { if (onYearChange) onYearChange(biggestDay.date); }}
+                    className={`px-3 py-1.5 rounded text-sm font-medium ${modeColors.buttonInactive}`}
+                  >
+                    Jump to your biggest day — {label} · {formatDuration(biggestDay.ms)}
+                  </button>
+                );
+              })()}
+            </div>
+          ) : (
+          <>
+          <div className={`p-3 sm:p-4 rounded ${modeColors.bgCard} border ${modeColors.borderLight} ${modeColors.shadow}`}>
             <h4 className={`font-bold mb-3 sm:mb-2 text-sm sm:text-base ${modeColors.text}`}>Summary for {historyData.formattedDate}</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-sm">
               <div>
@@ -1194,7 +1213,7 @@ const CalendarView = ({
                 {historyData.tracks.map((track, index) => {
                   const isExpanded = !!expandedHistoryCards[index];
                   return (
-                    <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border text-center ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                    <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border text-center ${modeColors.border} ${modeColors.shadow}`}>
                       {/* Row 1: rank + name + artist subline + toggle */}
                       <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
                         <span className="opacity-50 text-sm w-5 text-left shrink-0">#{index + 1}</span>
@@ -1266,7 +1285,7 @@ const CalendarView = ({
                 {/* Mobile cards */}
                 <div className="sm:hidden space-y-2">
                   {historyData.tracks.map((track, index) => (
-                    <div key={index} className={`p-3 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+                    <div key={index} className={`p-3 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${modeColors.shadow}`}>
                       <div className="flex justify-between items-start mb-1">
                         <span className={`font-bold ${modeColors.text} truncate mr-2`} style={{maxWidth: 'calc(100% - 70px)'}}>
                           {track.master_metadata_track_name || 'Unknown Track'}
@@ -1290,6 +1309,8 @@ const CalendarView = ({
               </>
             )}
           </div>
+          </>
+          )}
         </div>
       )}
     </div>
