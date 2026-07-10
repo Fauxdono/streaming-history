@@ -7,7 +7,7 @@ import { detectFileType } from './detect.js';
 import { normalizeArtistName } from './normalize.js';
 import { processAppleMusicCSV } from './parsers/apple-music.js';
 import { processCakeExcelFile } from './parsers/cake.js';
-import { processDeezerXLSX, extractDeezerPlaylists } from './parsers/deezer.js';
+import { processDeezerXLSX, extractDeezerPlaylists, extractDeezerFavorites } from './parsers/deezer.js';
 import { processLastfmJSON, processLastfmCSV } from './parsers/lastfm.js';
 import { processRockboxScrobblerLog } from './parsers/rockbox.js';
 import { processSoundcloudCSV } from './parsers/soundcloud.js';
@@ -140,9 +140,11 @@ export const streamingProcessor = {
     console.time('processFiles');
     try {
       const allProcessedArrays = [];
-      // Playlists ride along with the play entries but stay separate from
-      // stats: collected per-file here, returned as importedPlaylists.
+      // Playlists and favorites ride along with the play entries but stay
+      // separate from stats: collected per-file here, returned as
+      // importedPlaylists / importedFavorites (one bundle per service).
       const importedPlaylists = [];
+      const importedFavorites = [];
 
       // Process files in smaller batches to prevent memory issues
       const batchSize = Math.min(3, files.length); // Reduce batch size for better memory management
@@ -178,6 +180,10 @@ export const streamingProcessor = {
                 const playlists = await extractDeezerPlaylists(file);
                 if (playlists.length > 0) {
                   importedPlaylists.push(...playlists);
+                }
+                const favorites = await extractDeezerFavorites(file);
+                if (favorites) {
+                  importedFavorites.push(favorites);
                 }
                 return await processDeezerXLSX(file);
               } else {
@@ -327,7 +333,7 @@ export const streamingProcessor = {
       });
 
       console.timeEnd('processFiles');
-      return { ...result, basePlayData, importedPlaylists };
+      return { ...result, basePlayData, importedPlaylists, importedFavorites };
     } catch (error) {
       console.error('Error processing files:', error);
       throw error;

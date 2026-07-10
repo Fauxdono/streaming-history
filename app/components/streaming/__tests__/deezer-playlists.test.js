@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import * as XLSX from 'xlsx';
-import { extractDeezerPlaylists } from '../parsers/deezer.js';
+import { extractDeezerPlaylists, extractDeezerFavorites } from '../parsers/deezer.js';
 
 // Build an in-memory Deezer export xlsx and wrap it like a browser File
-function makeDeezerFile(playlistRows, { includePlaylistSheet = true } = {}) {
+function makeDeezerFile(playlistRows, { includePlaylistSheet = true, favoriteSheets = null } = {}) {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(
     workbook,
@@ -12,6 +12,11 @@ function makeDeezerFile(playlistRows, { includePlaylistSheet = true } = {}) {
   );
   if (includePlaylistSheet) {
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(playlistRows), '11_playlistCreated');
+  }
+  if (favoriteSheets) {
+    Object.entries(favoriteSheets).forEach(([name, sheetRows]) => {
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(sheetRows), name);
+    });
   }
   const buffer = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
   return { arrayBuffer: async () => buffer };
@@ -59,5 +64,32 @@ describe('extractDeezerPlaylists', () => {
   it('returns empty array when the playlist sheet is absent', async () => {
     const playlists = await extractDeezerPlaylists(makeDeezerFile([], { includePlaylistSheet: false }));
     expect(playlists).toEqual([]);
+  });
+});
+
+describe('extractDeezerFavorites', () => {
+  it('bundles favorite songs, albums and artists for the service', async () => {
+    const file = makeDeezerFile([], {
+      favoriteSheets: {
+        '8_favoriteSong': [
+          { 'Song Title': 'Runnin On E', Artists: '2Pac', 'Album Title': 'Until The End Of Time', ISRC: 'USIR10110236' },
+          { 'Song Title': '', Artists: 'dropped' }
+        ],
+        '5_favoriteAlbum': [{ 'Album Title': 'Madvillainy', Artist: 'Madvillain' }],
+        '4_favoriteArtist': [{ Artist: 'MF DOOM' }, { Artist: 'MAC MILLER' }]
+      }
+    });
+    const favorites = await extractDeezerFavorites(file);
+    expect(favorites.service).toBe('deezer');
+    expect(favorites.songs).toEqual([
+      { trackName: 'Runnin On E', artist: '2Pac', albumName: 'Until The End Of Time', isrc: 'USIR10110236' }
+    ]);
+    expect(favorites.albums).toEqual([{ albumName: 'Madvillainy', artist: 'Madvillain' }]);
+    expect(favorites.artists).toEqual([{ artist: 'MF DOOM' }, { artist: 'MAC MILLER' }]);
+  });
+
+  it('returns null when the export has no favorites sheets', async () => {
+    const favorites = await extractDeezerFavorites(makeDeezerFile([]));
+    expect(favorites).toBeNull();
   });
 });

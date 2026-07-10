@@ -214,9 +214,11 @@ const SpotifyAnalyzer = ({
   // Pristine parse output, before user edits — overrides are always
   // re-applied to this so edits stay idempotent and resettable.
   const [basePlayData, setBasePlayData] = useState([]);
-  // Playlists found inside uploaded exports (e.g. Deezer's 11_playlistCreated
-  // sheet) — surfaced on the Playlists tab as importable starting points.
+  // Playlists and favorites found inside uploaded exports (e.g. Deezer's
+  // 11_playlistCreated / 8_favoriteSong sheets) — surfaced on the Playlists
+  // tab as importable starting points and smart-rule input.
   const [importedPlaylists, setImportedPlaylists] = useState([]);
+  const [importedFavorites, setImportedFavorites] = useState([]);
   const [streaks, setStreaks] = useState(null);
   const [selectedStreaksYear, setSelectedStreaksYear] = useState('all');
   const [selectedArtists, setSelectedArtists] = useState([]);
@@ -1159,6 +1161,7 @@ const SpotifyAnalyzer = ({
       setTrackDurationMap(results.trackDurationMap || null);
       setStreaks(results.streaks);
       setImportedPlaylists(results.importedPlaylists || []);
+      setImportedFavorites(results.importedFavorites || []);
 
       // Update file list
       const fileNames = Array.from(fileList).map(file => file.name);
@@ -2572,7 +2575,7 @@ const SpotifyAnalyzer = ({
               ? 'p-2 sm:p-4 bg-rose-200 dark:bg-rose-900 rounded border-2 border-rose-300 dark:border-rose-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
           }>
-            <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} colorMode={colorMode} trackDurationMap={trackDurationMap} rawPlayData={rawPlayData} importedPlaylists={importedPlaylists} />
+            <CustomPlaylistCreator processedData={processedData} formatDuration={formatDuration} colorMode={colorMode} trackDurationMap={trackDurationMap} rawPlayData={rawPlayData} importedPlaylists={importedPlaylists} importedFavorites={importedFavorites} />
           </div>
         );
       
@@ -2648,6 +2651,7 @@ const SpotifyAnalyzer = ({
     processedData,
     rawPlayData,
     importedPlaylists,
+    importedFavorites,
     customTrackYear,
     customYearRangeMode,
     customYearRange,

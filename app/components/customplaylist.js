@@ -8,7 +8,8 @@ const CustomPlaylistCreator = ({
   rawPlayData = [],
   colorMode = 'minimal',
   trackDurationMap = null,
-  importedPlaylists = []
+  importedPlaylists = [],
+  importedFavorites = []
 }) => {
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
@@ -318,6 +319,33 @@ const createDateFilterIndex = (rawData) => {
   const allTracks = useMemo(() => {
     return Array.from(trackMap.values());
   }, [trackMap]);
+
+  // Lookup sets for favorited songs across all services, keyed the same way
+  // as trackMap (exact) plus a normalized fallback for spelling variants.
+  const favoritesIndex = useMemo(() => {
+    const exact = new Set();
+    const normalized = new Set();
+    importedFavorites.forEach(bundle => {
+      (bundle.songs || []).forEach(song => {
+        const title = String(song.trackName || '').toLowerCase();
+        const fullArtist = String(song.artist || '').toLowerCase();
+        const primaryArtist = fullArtist.split(',')[0].trim();
+        exact.add(`${title}-${fullArtist}`);
+        exact.add(`${title}-${primaryArtist}`);
+        normalized.add(`${normalizeTrackTitle(song.trackName)}-${normalizeArtistName(primaryArtist)}`);
+      });
+    });
+    return { exact, normalized };
+  }, [importedFavorites]);
+
+  const isFavoriteTrack = (track) => {
+    const key = `${String(track.trackName || '').toLowerCase()}-${String(track.artist || '').toLowerCase()}`;
+    if (favoritesIndex.exact.has(key)) return true;
+    return favoritesIndex.normalized.has(`${normalizeTrackTitle(track.trackName)}-${normalizeArtistName(track.artist)}`);
+  };
+
+  const hasImports = importedPlaylists.length > 0 || importedFavorites.length > 0;
+  const importCount = importedPlaylists.length + importedFavorites.length;
   
   // Filter tracks based on search term - more efficient approach with fuzzy matching
   const filteredTracks = useMemo(() => {
@@ -461,6 +489,13 @@ const updateRule = (id, field, value) => {
         // Create updated rule with new field value
         const updatedRule = { ...rule, [field]: value };
         
+        // Favorite rules have no value input; give them a fixed value so the
+        // "rule has a value" validation passes, and a matching operator.
+        if (field === 'type' && value === 'favorite') {
+          updatedRule.value = 'favorite';
+          updatedRule.operator = 'is';
+        }
+
         // If changing to a date field type, ensure value is properly formatted
         if (field === 'type' && value === 'playDate') {
           // For date fields, initialize with today's date if empty
@@ -624,6 +659,11 @@ const generateFromRules = () => {
                 }
                 
                 return false;
+              }
+
+              case 'favorite': {
+                const fav = isFavoriteTrack(track);
+                return rule.operator === 'isNot' ? !fav : fav;
               }
 
               case 'playDate': {
@@ -1194,13 +1234,13 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
           <h3 className={`text-xl ${modeColors.text} truncate`}>
-            Custom Playlists <span className="opacity-50">/</span> <span className="text-base">{{ create: 'Create', import: `Import (${importedPlaylists.length})`, saved: `Saved (${savedPlaylists.length})`, export: 'Export' }[activeTab]}</span>
+            Custom Playlists <span className="opacity-50">/</span> <span className="text-base">{{ create: 'Create', import: `Import (${importCount})`, saved: `Saved (${savedPlaylists.length})`, export: 'Export' }[activeTab]}</span>
           </h3>
         </div>
         <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
           <TabButton id="create" label="Create" />
-          {importedPlaylists.length > 0 && (
-            <TabButton id="import" label={`Import (${importedPlaylists.length})`} />
+          {hasImports && (
+            <TabButton id="import" label={`Import (${importCount})`} />
           )}
           <TabButton id="saved" label={`Saved (${savedPlaylists.length})`} />
           <TabButton id="export" label="Export" />
@@ -1212,8 +1252,8 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       <div className="block sm:hidden mb-4">
         <div className="flex flex-wrap gap-1">
           <TabButton id="create" label="Create" />
-          {importedPlaylists.length > 0 && (
-            <TabButton id="import" label={`Import (${importedPlaylists.length})`} />
+          {hasImports && (
+            <TabButton id="import" label={`Import (${importCount})`} />
           )}
           <TabButton id="saved" label={`Saved (${savedPlaylists.length})`} />
           <TabButton id="export" label="Export" />
@@ -1400,6 +1440,9 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     <option value="playCount">Play Count</option>
                     <option value="playTime">Play Time (minutes)</option>
                     <option value="playDate">Play Date</option>
+                    {favoritesIndex.exact.size > 0 && (
+                      <option value="favorite">Favorite</option>
+                    )}
                   </select>
 
                   <select
@@ -1420,6 +1463,11 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         <option value="before">before</option>
                         <option value="between">between</option>
                         <option value="on">on</option>
+                      </>
+                    ) : rule.type === 'favorite' ? (
+                      <>
+                        <option value="is">is a favorite</option>
+                        <option value="isNot">is not a favorite</option>
                       </>
                     ) : (
                       <>
@@ -1460,7 +1508,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                       />
                     )
-                  ) : (
+                  ) : rule.type === 'favorite' ? null : (
                     <input
                       type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
                       value={rule.value}
@@ -1653,13 +1701,51 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             </div>
           </div>
 
-          <input
-            type="text"
-            value={importSearchTerm}
-            onChange={(e) => setImportSearchTerm(e.target.value)}
-            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-            placeholder="Filter playlists by name..."
-          />
+          {importedFavorites.map(bundle => (
+            <div
+              key={`favorites-${bundle.service}`}
+              className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}
+            >
+              <div className="flex justify-between items-center gap-2">
+                <h4 className={`font-bold ${modeColors.text}`}>
+                  ♥ {bundle.service === 'deezer' ? 'Deezer' : bundle.service} Favorites
+                </h4>
+                <div className={`text-xs px-2 py-0.5 rounded shrink-0 ${modeColors.buttonInactive}`}>
+                  {bundle.service === 'deezer' ? 'Deezer' : bundle.service}
+                </div>
+              </div>
+              <div className={`text-sm ${modeColors.textLight} mt-1`}>
+                {bundle.songs.length} songs{bundle.albums.length > 0 ? ` • ${bundle.albums.length} albums` : ''}{bundle.artists.length > 0 ? ` • ${bundle.artists.length} artists` : ''}
+              </div>
+              <div className={`text-xs ${modeColors.textLighter} mt-1`}>
+                Load your favorited songs as a playlist, or use the &quot;Favorite&quot; rule in Smart Playlists.
+              </div>
+              {bundle.songs.length > 0 && (
+                <div className="mt-3">
+                  <button
+                    onClick={() => loadImportedPlaylist({
+                      name: `${bundle.service === 'deezer' ? 'Deezer' : bundle.service} Favorites`,
+                      service: bundle.service,
+                      tracks: bundle.songs
+                    })}
+                    className={`px-3 py-1 text-sm rounded hover:opacity-80 ${modeColors.buttonActive}`}
+                  >
+                    <Music size={14} className="inline mr-1" /> Load
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {importedPlaylists.length > 0 && (
+            <input
+              type="text"
+              value={importSearchTerm}
+              onChange={(e) => setImportSearchTerm(e.target.value)}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              placeholder="Filter playlists by name..."
+            />
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {importedPlaylists
@@ -1700,7 +1786,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               ))}
           </div>
 
-          {importedPlaylists.filter(playlist => playlist.name.toLowerCase().includes(importSearchTerm.toLowerCase())).length === 0 && (
+          {importedPlaylists.length > 0 && importedPlaylists.filter(playlist => playlist.name.toLowerCase().includes(importSearchTerm.toLowerCase())).length === 0 && (
             <div className={`p-4 text-center border border-dashed rounded ${modeColors.textLighter} ${modeColors.border}`}>
               No playlists match that filter.
             </div>
