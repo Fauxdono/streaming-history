@@ -98,21 +98,24 @@ export default function DataTab({
   }, [onDataEdited]);
 
   // Whole-library track aggregation from raw plays (processedData is capped
-  // at the top 250 songs, so it can't back this table). Play counts use the
-  // same >=30s rule as the rest of the app. Rows group by the ORIGINAL
-  // identity (__origKey survives renames) so edits chain and revert cleanly.
+  // at the top 250 songs, so it can't back this table). Rows group by the
+  // DISPLAYED identity, so tracks merged via rename collapse into one row;
+  // each row remembers the original keys (okeys) of every variant it
+  // contains, and edits/reverts fan out over all of them.
   const allTracks = useMemo(() => {
     const map = new Map();
     for (const play of rawPlayData || []) {
       const name = play.master_metadata_track_name;
       if (!name) continue;
       const artist = play.master_metadata_album_artist_name || 'Unknown Artist';
-      const key = play.__origKey || createMatchKey(name, artist) || `${name}:::${artist}`;
+      const key = createMatchKey(name, artist) || `${name}:::${artist}`;
+      const okey = play.__origKey || key;
       let t = map.get(key);
       if (!t) {
-        t = { key, name, artist, albums: new Map(), maxMs: 0, doneMs: [], correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [] };
+        t = { key, name, artist, albums: new Map(), maxMs: 0, doneMs: [], correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [], okeys: new Set() };
         map.set(key, t);
       }
+      t.okeys.add(okey);
       if (play.track_length_ms) t.correctedLengthMs = play.track_length_ms;
       const ms = play.ms_played || 0;
       if (ms > t.maxMs) t.maxMs = ms;
@@ -126,7 +129,7 @@ export default function DataTab({
         t.albums.set(album, (t.albums.get(album) || 0) + 1);
       }
       if (play.source) t.sources.add(play.source);
-      t.plays.push({ ts: play.ts, ms: play.ms_played || 0, source: play.source });
+      t.plays.push({ ts: play.ts, ms: play.ms_played || 0, source: play.source, okey });
     }
     const arr = [];
     for (const t of map.values()) {
@@ -159,6 +162,7 @@ export default function DataTab({
         releaseYear: t.releaseYear || 0,
         sources,
         plays: t.plays,
+        okeys: [...t.okeys],
       });
     }
     return arr;
@@ -240,25 +244,30 @@ export default function DataTab({
     const lengthChanged = lengthMs != null && lengthMs > 0 && lengthMs !== t.lengthMs;
     const yearChanged = releaseYear != null && releaseYear !== t.releaseYear;
     if (name === t.name && artist === t.artist && album === t.album && !lengthChanged && !yearChanged) return;
-    const edit = { name, artist, album };
-    if (lengthChanged) edit.lengthMs = lengthMs;
-    else if (overrides.tracks[t.key]?.lengthMs != null) edit.lengthMs = overrides.tracks[t.key].lengthMs;
-    if (releaseYear != null) edit.releaseYear = releaseYear;
-    else if (overrides.tracks[t.key]?.releaseYear != null) edit.releaseYear = overrides.tracks[t.key].releaseYear;
-    persist({
-      ...overrides,
-      tracks: { ...overrides.tracks, [t.key]: edit },
-    });
+    // Fan the edit out over every original variant this row contains
+    const tracks = { ...overrides.tracks };
+    for (const okey of t.okeys) {
+      const edit = { name, artist, album };
+      if (lengthChanged) edit.lengthMs = lengthMs;
+      else if (tracks[okey]?.lengthMs != null) edit.lengthMs = tracks[okey].lengthMs;
+      if (releaseYear != null) edit.releaseYear = releaseYear;
+      else if (tracks[okey]?.releaseYear != null) edit.releaseYear = tracks[okey].releaseYear;
+      tracks[okey] = edit;
+    }
+    persist({ ...overrides, tracks });
   };
 
-  // Undo every edit saved for this track: the rename and all play edits
+  // Undo every edit saved for this track: renames/merges and all play edits
   const revertTrack = (t) => {
     const tracks = { ...overrides.tracks };
-    delete tracks[t.key];
+    const prefixes = [];
+    for (const okey of t.okeys) {
+      delete tracks[okey];
+      prefixes.push(`${okey}|`);
+    }
     const plays = {};
-    const prefix = `${t.key}|`;
     for (const [k, v] of Object.entries(overrides.plays)) {
-      if (!k.startsWith(prefix)) plays[k] = v;
+      if (!prefixes.some(p => k.startsWith(p))) plays[k] = v;
     }
     persist({ ...overrides, tracks, plays });
   };
@@ -268,15 +277,56 @@ export default function DataTab({
     if (ms == null || ms === play.ms) return;
     persist({
       ...overrides,
-      plays: { ...overrides.plays, [playOverrideKey(t.key, play.ts)]: { ms_played: ms } },
+      plays: { ...overrides.plays, [playOverrideKey(play.okey, play.ts)]: { ms_played: ms } },
     });
   };
 
   const deletePlay = (t, play) => {
     persist({
       ...overrides,
-      plays: { ...overrides.plays, [playOverrideKey(t.key, play.ts)]: { removed: true } },
+      plays: { ...overrides.plays, [playOverrideKey(play.okey, play.ts)]: { removed: true } },
     });
+  };
+
+  // ---- Merge: combine several versions of a song into one --------------
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set());
+  const [mergeCanonicalKey, setMergeCanonicalKey] = useState(null);
+
+  const toggleSelected = (key) => {
+    setSelectedKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const selectedTracks = useMemo(
+    () => allTracks.filter(t => selectedKeys.has(t.key)),
+    [allTracks, selectedKeys]
+  );
+  // Default canonical version: the most-played selection
+  const canonicalKey = mergeCanonicalKey && selectedKeys.has(mergeCanonicalKey)
+    ? mergeCanonicalKey
+    : selectedTracks.reduce((max, t) => (!max || t.plays.length > max.plays.length ? t : max), null)?.key;
+
+  const mergeSelected = () => {
+    const canon = selectedTracks.find(t => t.key === canonicalKey);
+    if (!canon || selectedTracks.length < 2) return;
+    const tracks = { ...overrides.tracks };
+    for (const t of selectedTracks) {
+      if (t.key === canon.key) continue;
+      for (const okey of t.okeys) {
+        const edit = { name: canon.name, artist: canon.artist, album: canon.album };
+        // A variant's own length correction stays with its plays
+        if (tracks[okey]?.lengthMs != null) edit.lengthMs = tracks[okey].lengthMs;
+        if (canon.releaseYear) edit.releaseYear = canon.releaseYear;
+        tracks[okey] = edit;
+      }
+    }
+    setSelectedKeys(new Set());
+    setMergeCanonicalKey(null);
+    persist({ ...overrides, tracks });
   };
 
   const resetAll = () => {
@@ -348,6 +398,47 @@ export default function DataTab({
         <h3 className={`text-xl ${headingClass}`}>Your Data</h3>
       </div>
 
+      {/* Download Data Section */}
+      {stats && processedData.length > 0 && (
+        <div className={cardClass}>
+          <div className="flex items-center gap-2 mb-3">
+            <Download size={18} className={isColorful ? 'text-black dark:text-green-400' : ''} />
+            <h4 className={`font-medium ${headingClass}`}>Download Your Data</h4>
+          </div>
+          <p className={`text-sm mb-3 ${bodyClass}`}>
+            Save your streaming analysis to your device as Excel or JSON — your whole library,
+            every service and all your edits, combined into one file. Keep <span className="font-bold">Complete History</span> selected
+            and next time you can upload that single file instead of the separate service exports.
+          </p>
+          <ExportButton
+            stats={stats}
+            topArtists={topArtists || []}
+            topAlbums={topAlbums || []}
+            processedData={processedData || []}
+            briefObsessions={briefObsessions || []}
+            songsByYear={songsByYear || {}}
+            rawPlayData={rawPlayData || []}
+            formatDuration={formatDuration}
+            colorMode={colorMode}
+          />
+          <div className={`mt-3 pt-3 border-t ${isColorful ? 'border-green-600 dark:border-green-800' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+            <p className={`text-sm mb-2 ${bodyClass}`}>
+              Lightweight export of your top 100 rankings — paste into AI chats or save for later.
+            </p>
+            <Top100Export
+              processedData={processedData || []}
+              songsByYear={songsByYear || {}}
+              topArtists={topArtists || []}
+              topAlbums={topAlbums || []}
+              formatDuration={formatDuration}
+              colorMode={colorMode}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Library summary + MusicBrainz, side by side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Library summary */}
       <div className={cardClass}>
         <p className={`text-sm ${bodyClass}`}>
@@ -447,6 +538,7 @@ export default function DataTab({
           })()}
         </div>
       )}
+      </div>
 
       {/* All tracks table */}
       {allTracks.length > 0 && (
@@ -492,13 +584,66 @@ export default function DataTab({
             </div>
           </div>
           <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
-            Edit song details (name, artist, album, release year, length) for any track. Length edits only change listening-time stats for scrobbles (Last.fm, iPod), where the log stores the song length; streamed play times are never rewritten. Expand a row to adjust or remove individual scrobble plays.
+            Edit song details (name, artist, album, release year, length) for any track, or tick two or more versions of the same song — &quot;Remastered&quot;, &quot;Mono&quot;, different albums — and merge them into one. Length edits only change listening-time stats for scrobbles (Last.fm, iPod), where the log stores the song length; streamed play times are never rewritten. Expand a row to adjust or remove individual scrobble plays.
           </p>
 
+          {selectedTracks.length >= 2 && (
+            <div className={
+              isColorful
+                ? 'mb-3 p-3 rounded border border-black bg-green-200 dark:border-green-500 dark:bg-green-950'
+                : `mb-3 p-3 rounded border ${isDarkMode ? 'border-[#4169E1] bg-gray-900' : 'border-black bg-gray-50'}`
+            }>
+              <p className={`text-sm font-medium mb-2 ${headingClass}`}>
+                Merge {selectedTracks.length} versions — keep which one?
+              </p>
+              <div className="space-y-1 mb-3">
+                {selectedTracks.map(t => (
+                  <label key={t.key} className={`flex items-center gap-2 text-sm cursor-pointer ${bodyClass}`}>
+                    <input
+                      type="radio"
+                      name="merge-canonical"
+                      checked={canonicalKey === t.key}
+                      onChange={() => setMergeCanonicalKey(t.key)}
+                      className={isColorful ? 'accent-black dark:accent-green-500' : 'accent-black dark:accent-[#4169E1]'}
+                    />
+                    <span className="truncate">
+                      <span className="font-bold">{t.name}</span>
+                      {t.album ? ` · ${t.album}` : ''}
+                      <span className={isColorful ? 'opacity-60' : 'opacity-60'}> · {t.plays.length} plays</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={mergeSelected}
+                  className={
+                    isColorful
+                      ? 'px-3 py-1.5 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
+                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
+                  }
+                >
+                  Merge into one song
+                </button>
+                <button
+                  onClick={() => { setSelectedKeys(new Set()); setMergeCanonicalKey(null); }}
+                  className={
+                    isColorful
+                      ? 'px-3 py-1.5 text-sm rounded border border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900'
+                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-gray-600 text-white hover:bg-gray-900' : 'border-gray-400 text-black hover:bg-gray-100'}`
+                  }
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px]">
+            <table className="w-full min-w-[760px]">
               <thead>
                 <tr className={isColorful ? 'border-b border-black dark:border-green-700' : `border-b ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`}>
+                  <th className={`${thClass} cursor-default w-6`} title="Select versions to merge"></th>
                   <th className={`${thClass} cursor-default w-6`}></th>
                   <SortHeader column="name" label="Track" />
                   <SortHeader column="artist" label="Artist" />
@@ -511,7 +656,7 @@ export default function DataTab({
               </thead>
               <tbody>
                 {pageTracks.map((t) => {
-                  const isEdited = !!overrides.tracks[t.key] || playEditedKeys.has(t.key);
+                  const isEdited = t.okeys.some(k => overrides.tracks[k] || playEditedKeys.has(k));
                   const isEditing = editingKey === t.key;
                   const isExpanded = expandedKey === t.key;
                   const rowClass = isColorful
@@ -520,6 +665,15 @@ export default function DataTab({
                   return (
                     <React.Fragment key={t.key}>
                       <tr className={rowClass}>
+                        <td className={`${tdClass} w-6`}>
+                          <input
+                            type="checkbox"
+                            checked={selectedKeys.has(t.key)}
+                            onChange={() => toggleSelected(t.key)}
+                            title="Select to merge with another version"
+                            className={isColorful ? 'accent-black dark:accent-green-500' : 'accent-black dark:accent-[#4169E1]'}
+                          />
+                        </td>
                         <td className={`${tdClass} w-6`}>
                           <button
                             onClick={() => { setExpandedKey(isExpanded ? null : t.key); setEditingKey(null); }}
@@ -602,7 +756,7 @@ export default function DataTab({
                       </tr>
                       {isExpanded && (
                         <tr className={rowClass}>
-                          <td colSpan={8} className="px-2 pb-2">
+                          <td colSpan={9} className="px-2 pb-2">
                             <div className={`mt-1 max-h-64 overflow-y-auto rounded border ${isColorful ? 'border-green-500 dark:border-green-900' : isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
                               <table className="w-full">
                                 <tbody>
@@ -676,42 +830,6 @@ export default function DataTab({
         </div>
       )}
 
-      {/* Download Data Section (moved from Statistics tab) */}
-      {stats && processedData.length > 0 && (
-        <div className={cardClass}>
-          <div className="flex items-center gap-2 mb-3">
-            <Download size={18} className={isColorful ? 'text-black dark:text-green-400' : ''} />
-            <h4 className={`font-medium ${headingClass}`}>Download Your Data</h4>
-          </div>
-          <p className={`text-sm mb-3 ${bodyClass}`}>
-            Save your streaming analysis to your device as Excel or JSON.
-          </p>
-          <ExportButton
-            stats={stats}
-            topArtists={topArtists || []}
-            topAlbums={topAlbums || []}
-            processedData={processedData || []}
-            briefObsessions={briefObsessions || []}
-            songsByYear={songsByYear || {}}
-            rawPlayData={rawPlayData || []}
-            formatDuration={formatDuration}
-            colorMode={colorMode}
-          />
-          <div className={`mt-3 pt-3 border-t ${isColorful ? 'border-green-600 dark:border-green-800' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <p className={`text-sm mb-2 ${bodyClass}`}>
-              Lightweight export of your top 100 rankings — paste into AI chats or save for later.
-            </p>
-            <Top100Export
-              processedData={processedData || []}
-              songsByYear={songsByYear || {}}
-              topArtists={topArtists || []}
-              topAlbums={topAlbums || []}
-              formatDuration={formatDuration}
-              colorMode={colorMode}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

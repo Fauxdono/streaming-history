@@ -27,7 +27,6 @@ import { getTabColors as getSharedTabColors, getChromeTint } from './theme.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
-import ExportButton from './ExportButton.js';
 import Top100Export from './Top100Export.js';
 // Removed imports of exported variables that were conflicting with local state
 import { useTheme } from './themeprovider.js';
