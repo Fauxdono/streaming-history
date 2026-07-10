@@ -1,8 +1,9 @@
 'use client';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { Download, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, RotateCcw } from 'lucide-react';
+import { Download, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, RotateCcw, Disc3 } from 'lucide-react';
 import ExportButton from '../ExportButton.js';
 import Top100Export from '../Top100Export.js';
+import ServiceIcon from '../ServiceIcons.js';
 import { createMatchKey } from '../streaming/normalize.js';
 import { loadOverrides, saveOverrides, clearOverrides, countOverrides, playOverrideKey } from '../streaming/overrides.js';
 
@@ -59,6 +60,9 @@ export default function DataTab({
   processedData,
   rawPlayData,
   onDataEdited,
+  onRunEnrichment,
+  enableEnrichment,
+  setEnableEnrichment,
   topArtists,
   topAlbums,
   briefObsessions,
@@ -283,15 +287,50 @@ export default function DataTab({
 
   const editCount = countOverrides(overrides);
 
-  // Per-service play counts from the raw data's source tags
+  // Per-service play counts from the raw data's source tags (cake and
+  // cake-export share a label, so group by label but keep a source for
+  // the icon)
   const serviceCounts = useMemo(() => {
-    const counts = {};
+    const byLabel = new Map();
     for (const play of rawPlayData || []) {
       const label = serviceLabel(play.source);
-      counts[label] = (counts[label] || 0) + 1;
+      const cur = byLabel.get(label);
+      if (cur) cur.count += 1;
+      else byLabel.set(label, { source: play.source, count: 1 });
     }
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return [...byLabel.entries()].sort((a, b) => b[1].count - a[1].count);
   }, [rawPlayData]);
+
+  // MusicBrainz lookup state (the actual run lives in SpotifyAnalyzer so it
+  // survives tab switches)
+  const [enriching, setEnriching] = useState(false);
+  const [enrichProgress, setEnrichProgress] = useState(null);
+  const [enrichResult, setEnrichResult] = useState(null);
+
+  const missingAlbumCount = useMemo(() => {
+    const set = new Set();
+    for (const e of rawPlayData || []) {
+      const album = e.master_metadata_album_album_name;
+      if (album && album !== 'Unknown Album') continue;
+      if (!e.master_metadata_track_name || !e.master_metadata_album_artist_name) continue;
+      set.add(`${e.master_metadata_track_name}|${e.master_metadata_album_artist_name}`.toLowerCase());
+    }
+    return set.size;
+  }, [rawPlayData]);
+
+  const runEnrichment = async () => {
+    if (!onRunEnrichment || enriching) return;
+    setEnriching(true);
+    setEnrichResult(null);
+    setEnrichProgress(null);
+    try {
+      const res = await onRunEnrichment((done, total) => setEnrichProgress({ done, total }));
+      setEnrichResult(res);
+    } finally {
+      setEnriching(false);
+      setEnrichProgress(null);
+    }
+  };
 
   // Colorful mode: green page with black accents in light, black terminal
   // with green accents in dark (dark: variants carry the inversion).
@@ -347,14 +386,69 @@ export default function DataTab({
         </p>
         {serviceCounts.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
-            {serviceCounts.map(([label, count]) => (
-              <span key={label} className={badgeClass.replace('text-[10px]', 'text-xs')}>
+            {serviceCounts.map(([label, { source, count }]) => (
+              <span key={label} className={`${badgeClass.replace('text-[10px]', 'text-xs')} inline-flex items-center gap-1.5`}>
+                <ServiceIcon source={source} size={12} />
                 {label} · {count.toLocaleString()}
               </span>
             ))}
           </div>
         )}
       </div>
+
+      {/* MusicBrainz lookup */}
+      {rawPlayData.length > 0 && (
+        <div className={cardClass}>
+          <div className="flex items-center gap-2 mb-2">
+            <Disc3 size={18} className={isColorful ? 'text-black dark:text-green-400' : ''} />
+            <h4 className={`font-medium ${headingClass}`}>MusicBrainz Lookup</h4>
+          </div>
+          <p className={`text-sm mb-2 ${bodyClass}`}>
+            Fills in missing albums and release years from the open MusicBrainz database
+            (about one lookup per second — you can browse other tabs while it runs).
+          </p>
+          <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+            {missingAlbumCount > 0
+              ? `${missingAlbumCount.toLocaleString()} tracks are missing album info.`
+              : 'No tracks are missing album info.'}
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={runEnrichment}
+              disabled={enriching || missingAlbumCount === 0}
+              className={
+                isColorful
+                  ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
+                  : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+              }
+            >
+              {enriching
+                ? enrichProgress
+                  ? `Looking up… ${enrichProgress.done} / ${enrichProgress.total}`
+                  : 'Looking up…'
+                : 'Run lookup now'}
+            </button>
+            {enrichResult && !enriching && (
+              <span className={`text-sm ${bodyClass}`}>
+                ✓ Updated {enrichResult.enriched.toLocaleString()} plays
+                {enrichResult.cached > 0 ? ` (${enrichResult.cached.toLocaleString()} from cache)` : ''}
+              </span>
+            )}
+            <label className={`flex items-center gap-2 cursor-pointer select-none text-sm ${bodyClass}`}>
+              <input
+                type="checkbox"
+                checked={!!enableEnrichment}
+                onChange={(e) => {
+                  setEnableEnrichment?.(e.target.checked);
+                  try { localStorage.setItem('enableAlbumEnrichment', JSON.stringify(e.target.checked)); } catch {}
+                }}
+                className={isColorful ? 'w-4 h-4 accent-black dark:accent-green-500' : 'w-4 h-4 accent-black dark:accent-[#4169E1]'}
+              />
+              Also run automatically when processing uploads
+            </label>
+          </div>
+        </div>
+      )}
 
       {/* All tracks table */}
       {allTracks.length > 0 && (
@@ -479,7 +573,14 @@ export default function DataTab({
                         <td className={tdClass}>
                           <div className="flex flex-wrap gap-1">
                             {t.sources.map((s) => (
-                              <span key={s} className={badgeClass}>{serviceLabel(s)}</span>
+                              <span
+                                key={s}
+                                className={`${badgeClass} inline-flex items-center`}
+                                title={serviceLabel(s)}
+                                aria-label={serviceLabel(s)}
+                              >
+                                <ServiceIcon source={s} size={12} />
+                              </span>
                             ))}
                           </div>
                         </td>
@@ -526,7 +627,11 @@ export default function DataTab({
                                             <span className="tabular-nums">{formatDurationInput(play.ms)}</span>
                                           )}
                                         </td>
-                                        <td className={tdClass}><span className={badgeClass}>{serviceLabel(play.source)}</span></td>
+                                        <td className={tdClass}>
+                                          <span className={`${badgeClass} inline-flex items-center`} title={serviceLabel(play.source)} aria-label={serviceLabel(play.source)}>
+                                            <ServiceIcon source={play.source} size={12} />
+                                          </span>
+                                        </td>
                                         <td className={`${tdClass} w-8 text-right`}>
                                           {canEditPlay && (
                                             <button

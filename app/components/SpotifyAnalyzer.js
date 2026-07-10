@@ -19,6 +19,7 @@ import AlbumCard from './albumcard.js';
 import AlbumsTab from './tabs/AlbumsTab.js';
 import ArtistsTab from './tabs/ArtistsTab.js';
 import DataTab from './tabs/DataTab.js';
+import { enrichAlbums } from './albumEnrichment.js';
 import StatsTab from './tabs/StatsTab.js';
 import UploadTab from './tabs/UploadTab.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
@@ -1197,6 +1198,34 @@ const SpotifyAnalyzer = ({
     setRawPlayData(results.rawPlayData);
     setTrackDurationMap(results.trackDurationMap || null);
     setStreaks(results.streaks);
+  }, [basePlayData, rawPlayData, stats]);
+
+  // Run MusicBrainz enrichment on the already-loaded library (Your Data tab)
+  // — no re-upload needed. Mutates the base entries, then recomputes stats
+  // with overrides re-applied.
+  const handleRunEnrichment = useCallback(async (onProgress) => {
+    const base = basePlayData.length > 0 ? basePlayData : rawPlayData;
+    if (base.length === 0) return null;
+    const enrichResult = await enrichAlbums(base, onProgress);
+    const newBase = [...base];
+    setBasePlayData(newBase);
+    const effective = applyOverrides(newBase, loadOverrides());
+    const results = await computeStatsFromEntries(effective, {
+      totalFiles: stats?.totalFiles || 0,
+      enrichResult,
+    });
+    setStats(results.stats);
+    setTopArtists(results.topArtists);
+    setArtistsByYear(results.artistsByYear || {});
+    setTopAlbums(results.topAlbums);
+    setAlbumsByYear(results.albumsByYear || {});
+    setProcessedData(_.orderBy(results.processedTracks, ['totalPlayed'], ['desc']));
+    setSongsByYear(results.songsByYear);
+    setBriefObsessions(results.briefObsessions);
+    setRawPlayData(results.rawPlayData);
+    setTrackDurationMap(results.trackDurationMap || null);
+    setStreaks(results.streaks);
+    return enrichResult;
   }, [basePlayData, rawPlayData, stats]);
 
   // Handle file upload with useCallback
@@ -2530,6 +2559,9 @@ const SpotifyAnalyzer = ({
               processedData={processedData}
               rawPlayData={rawPlayData}
               onDataEdited={handleDataEdited}
+              onRunEnrichment={handleRunEnrichment}
+              enableEnrichment={enableEnrichment}
+              setEnableEnrichment={setEnableEnrichment}
               topArtists={topArtists}
               topAlbums={topAlbums}
               briefObsessions={briefObsessions}
@@ -2602,6 +2634,7 @@ const SpotifyAnalyzer = ({
     handleProcessFiles,
     processFiles,
     handleDataEdited,
+    handleRunEnrichment,
     topArtists,
     topAlbums,
     briefObsessions,
