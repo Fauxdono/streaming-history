@@ -58,30 +58,45 @@ async function queryMusicBrainz(artist, track) {
   return res.json();
 }
 
+function releaseYear(rel) {
+  const date = rel['release-group']?.['first-release-date'] || rel.date || '';
+  const y = parseInt(String(date).slice(0, 4), 10);
+  return y >= 1000 && y <= 9999 ? y : null;
+}
+
+// Returns { album, year } or null. Year is the earliest release date seen
+// across credit-matched releases (original release beats reissues).
 function extractAlbum(data, artistHint) {
   if (!data?.recordings?.length) return null;
 
   const artistLower = artistHint.toLowerCase();
+  let album = null;
+  let year = null;
 
   for (const rec of data.recordings) {
-    // Prefer official album releases over singles/compilations
     const releases = rec.releases ?? [];
+    // Check the recording's artist credit matches
+    const creditMatch = rec['artist-credit']?.some(
+      ac => ac.artist?.name?.toLowerCase().includes(artistLower) ||
+            artistLower.includes(ac.artist?.name?.toLowerCase() ?? '')
+    );
+    if (!creditMatch) continue;
+
     for (const rel of releases) {
-      // Check the recording's artist credit matches
-      const creditMatch = rec['artist-credit']?.some(
-        ac => ac.artist?.name?.toLowerCase().includes(artistLower) ||
-              artistLower.includes(ac.artist?.name?.toLowerCase() ?? '')
-      );
-      if (!creditMatch) continue;
+      const y = releaseYear(rel);
+      if (y && (!year || y < year)) year = y;
 
       // Skip compilations and prefer albums
-      const group = rel['release-group'];
-      const type = group?.['primary-type'] ?? '';
-      if (type === 'Album' || type === 'EP') {
-        return rel.title;
+      if (!album) {
+        const type = rel['release-group']?.['primary-type'] ?? '';
+        if (type === 'Album' || type === 'EP') {
+          album = rel.title;
+        }
       }
     }
   }
+
+  if (album) return { album, year };
 
   // Fallback: take first release from first matching recording
   for (const rec of data.recordings) {
@@ -90,11 +105,11 @@ function extractAlbum(data, artistHint) {
             artistLower.includes(ac.artist?.name?.toLowerCase() ?? '')
     );
     if (creditMatch && rec.releases?.length) {
-      return rec.releases[0].title;
+      return { album: rec.releases[0].title, year };
     }
   }
 
-  return null;
+  return year ? { album: null, year } : null;
 }
 
 function sleep(ms) {
@@ -140,14 +155,22 @@ export async function enrichAlbums(entries, onProgress) {
   let done = 0;
   const total = needsLookup.size;
 
+  // Cache values: legacy plain string (album only), { album, year }, or null.
+  const applyResult = (result, indices) => {
+    const album = typeof result === 'string' ? result : result?.album;
+    const year = typeof result === 'object' ? result?.year : null;
+    if (!album && !year) return false;
+    indices.forEach(i => {
+      if (album) entries[i].master_metadata_album_album_name = album;
+      if (year && !entries[i].release_year) entries[i].release_year = year;
+    });
+    return !!album;
+  };
+
   for (const [key, { artist, track, indices }] of needsLookup) {
     // Check cache first
     if (key in cache) {
-      const albumName = cache[key];
-      if (albumName) {
-        indices.forEach(i => {
-          entries[i].master_metadata_album_album_name = albumName;
-        });
+      if (applyResult(cache[key], indices)) {
         enriched += indices.length;
       }
       cached++;
@@ -163,15 +186,12 @@ export async function enrichAlbums(entries, onProgress) {
     // Query MusicBrainz
     try {
       const data = await queryMusicBrainz(artist, track);
-      const albumName = extractAlbum(data, artist);
+      const result = extractAlbum(data, artist);
 
       // Cache the result (even null, to avoid re-querying)
-      cache[key] = albumName;
+      cache[key] = result;
 
-      if (albumName) {
-        indices.forEach(i => {
-          entries[i].master_metadata_album_album_name = albumName;
-        });
+      if (applyResult(result, indices)) {
         enriched += indices.length;
       }
     } catch (err) {

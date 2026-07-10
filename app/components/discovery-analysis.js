@@ -489,7 +489,59 @@ const filteredData = useMemo(() => {
       avgMonthlyVariety
     };
   }, [filteredData, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
-  
+
+  // Listening by release decade, from release_year (user edits on the Your
+  // Data tab and MusicBrainz enrichment). Coverage is reported honestly —
+  // most libraries only have years for part of the catalog.
+  const erasData = useMemo(() => {
+    const perDecade = {}; // decade -> { ms, tracks: Set }
+    const allTracks = new Set();
+    const datedTracks = new Set();
+    let oldest = null;
+
+    for (const entry of filteredData) {
+      const name = entry.master_metadata_track_name;
+      if (!name) continue;
+      const trackKey = `${name}|${entry.master_metadata_album_artist_name || ''}`.toLowerCase();
+      allTracks.add(trackKey);
+      const year = entry.release_year;
+      if (!year) continue;
+      datedTracks.add(trackKey);
+      if (!oldest || year < oldest.year) {
+        oldest = { year, name, artist: entry.master_metadata_album_artist_name || '' };
+      }
+      if ((entry.ms_played || 0) < 30000) continue;
+      const decade = Math.floor(year / 10) * 10;
+      if (!perDecade[decade]) perDecade[decade] = { ms: 0, tracks: new Set() };
+      perDecade[decade].ms += entry.ms_played;
+      perDecade[decade].tracks.add(trackKey);
+    }
+
+    const decades = Object.keys(perDecade).map(Number).sort((a, b) => a - b);
+    const bars = [];
+    if (decades.length > 0) {
+      // Include empty decades so the time axis isn't misleading
+      for (let d = decades[0]; d <= decades[decades.length - 1]; d += 10) {
+        const bucket = perDecade[d];
+        bars.push({
+          decade: `${d}s`,
+          ms: bucket?.ms || 0,
+          hours: Math.round(((bucket?.ms || 0) / 3600000) * 10) / 10,
+          trackCount: bucket?.tracks.size || 0,
+        });
+      }
+    }
+
+    const topDecade = bars.reduce((max, b) => (b.ms > (max?.ms || 0) ? b : max), null);
+    return {
+      bars,
+      topDecade,
+      oldest,
+      datedTrackCount: datedTracks.size,
+      totalTrackCount: allTracks.size,
+    };
+  }, [filteredData]);
+
   // Helper function to get ISO week number
   function getWeekNumber(date) {
     const d = new Date(date);
@@ -560,7 +612,7 @@ const filteredData = useMemo(() => {
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
           <h3 className={`text-xl ${modeColors.text} truncate`}>
-            {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ discovery: 'Discovery', loyalty: 'Loyalty', depth: 'Depth', variety: 'Variety' }[activeTab]}</span>
+            {getPageTitle()} <span className="opacity-50">/</span> <span className="text-base">{{ discovery: 'Discovery', loyalty: 'Loyalty', depth: 'Depth', variety: 'Variety', eras: 'Eras' }[activeTab]}</span>
           </h3>
         </div>
         <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
@@ -568,6 +620,7 @@ const filteredData = useMemo(() => {
           <TabButton id="loyalty" label="Loyalty" />
           <TabButton id="depth" label="Depth" />
           <TabButton id="variety" label="Variety" />
+          <TabButton id="eras" label="Eras" />
         </div>
         <div className="flex-1 flex justify-end">
           {activeTab === 'variety' && (
@@ -588,6 +641,7 @@ const filteredData = useMemo(() => {
           <TabButton id="loyalty" label="Loyalty" />
           <TabButton id="depth" label="Depth" />
           <TabButton id="variety" label="Variety" />
+          <TabButton id="eras" label="Eras" />
         </div>
       </div>
 
@@ -661,7 +715,7 @@ const filteredData = useMemo(() => {
             </p>
             {discoveryData.newArtistsByMonth.length > 6 && (
               <p>
-                In the last 6 months, you've discovered
+                In the last 6 months, you&apos;ve discovered
                 <span className="font-bold">{' '}
                   {discoveryData.newArtistsByMonth.slice(-6).reduce((sum, month) => sum + month.count, 0)}
                 </span> new artists.
@@ -772,7 +826,7 @@ const filteredData = useMemo(() => {
 
           <div>
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Artist Catalog Depth</h3>
-            <p className={`mb-4 ${modeColors.textLight}`}>Unique tracks you've played per artist, for your most-played artists</p>
+            <p className={`mb-4 ${modeColors.textLight}`}>Unique tracks you&apos;ve played per artist, for your most-played artists</p>
 
             <div className={`h-64 sm:h-80 w-full p-1 sm:p-2 ${modeColors.card}`}>
               <ResponsiveContainer width="100%" height="100%">
@@ -843,6 +897,96 @@ const filteredData = useMemo(() => {
         </div>
       )}
       
+      {activeTab === 'eras' && (
+        <div className="space-y-6">
+          {erasData.datedTrackCount === 0 ? (
+            <Callout icon="📅" title="No release years yet" colors={modeColors}>
+              <p>
+                This page shows which musical eras you listen to, based on each song&apos;s release year —
+                but none of your tracks have one yet.
+              </p>
+              <p>
+                Add years on the <span className="font-bold">Your Data</span> tab (pencil icon on any track),
+                or enable album enrichment on the Upload tab and re-process — MusicBrainz lookups now fill in
+                release years automatically where they can.
+              </p>
+            </Callout>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatTile
+                  label="Most-Listened Decade"
+                  value={erasData.topDecade ? erasData.topDecade.decade : '—'}
+                  sub={erasData.topDecade ? `${formatDuration(erasData.topDecade.ms)} across ${erasData.topDecade.trackCount} song${erasData.topDecade.trackCount === 1 ? '' : 's'}` : ''}
+                  colors={modeColors}
+                />
+                <StatTile
+                  label="Oldest Song Played"
+                  value={erasData.oldest ? String(erasData.oldest.year) : '—'}
+                  sub={erasData.oldest ? `${erasData.oldest.name}${erasData.oldest.artist ? ` — ${erasData.oldest.artist}` : ''}` : ''}
+                  colors={modeColors}
+                />
+                <StatTile
+                  label="Songs With a Known Year"
+                  value={`${Math.round((erasData.datedTrackCount / Math.max(1, erasData.totalTrackCount)) * 100)}%`}
+                  sub={`${erasData.datedTrackCount.toLocaleString()} of ${erasData.totalTrackCount.toLocaleString()} tracks`}
+                  colors={modeColors}
+                />
+              </div>
+
+              <div>
+                <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Listening Time by Release Decade</h3>
+                <p className={`mb-4 ${modeColors.textLight}`}>When the music you play was originally released</p>
+
+                <div className={`h-64 sm:h-80 w-full p-1 sm:p-2 ${modeColors.card}`}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={erasData.bars}
+                      margin={{ top: 20, right: 10, left: 8, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
+                      <XAxis dataKey="decade" {...axisProps(chart)} />
+                      <YAxis
+                        {...axisProps(chart)}
+                        label={{ value: 'hours', angle: -90, position: 'insideLeft', fill: chart.axis, fontSize: 10 }}
+                      />
+                      <Tooltip
+                        formatter={(value, name, props) => [
+                          `${formatDuration(props.payload.ms)} across ${props.payload.trackCount} song${props.payload.trackCount === 1 ? '' : 's'}`,
+                          'Listened',
+                        ]}
+                        {...tooltipProps(chart)}
+                      />
+                      <Bar dataKey="hours" fill={chart.series1} radius={[4, 4, 0, 0]}>
+                        <LabelList
+                          dataKey="hours"
+                          position="top"
+                          fill={chart.axis}
+                          fontSize={10}
+                          fontWeight={700}
+                          formatter={(v) => (v > 0 ? `${v}h` : '')}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {erasData.datedTrackCount < erasData.totalTrackCount && (
+                <Callout icon="🧮" title="Partial picture" colors={modeColors}>
+                  <p>
+                    Only songs with a known release year are counted here
+                    ({erasData.datedTrackCount.toLocaleString()} of {erasData.totalTrackCount.toLocaleString()} tracks).
+                    Add more years on the <span className="font-bold">Your Data</span> tab, or enable album
+                    enrichment on the Upload tab to fill some in automatically.
+                  </p>
+                </Callout>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       {activeTab === 'variety' && (
         <div className="space-y-6">
           <div className="flex justify-center gap-3 mb-4 overflow-x-auto pb-1 sm:hidden">
