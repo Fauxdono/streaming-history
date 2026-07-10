@@ -1202,31 +1202,59 @@ const SpotifyAnalyzer = ({
 
   // Run MusicBrainz enrichment on the already-loaded library (Your Data tab)
   // — no re-upload needed. Mutates the base entries, then recomputes stats
-  // with overrides re-applied.
-  const handleRunEnrichment = useCallback(async (onProgress, shouldStop) => {
+  // with overrides re-applied. All run state lives HERE (not in DataTab) so
+  // the lookup keeps its progress/Stop UI across tab switches and can't be
+  // double-started.
+  const [enrichRunning, setEnrichRunning] = useState(false);
+  const [enrichProgress, setEnrichProgress] = useState(null);
+  const [enrichResult, setEnrichResult] = useState(null);
+  const enrichRunningRef = useRef(false);
+  const enrichStopRef = useRef(false);
+
+  const handleRunEnrichment = useCallback(async () => {
+    if (enrichRunningRef.current) return;
     const base = basePlayData.length > 0 ? basePlayData : rawPlayData;
-    if (base.length === 0) return null;
-    const enrichResult = await enrichAlbums(base, onProgress, { lookupYears: true, shouldStop });
-    const newBase = [...base];
-    setBasePlayData(newBase);
-    const effective = applyOverrides(newBase, loadOverrides());
-    const results = await computeStatsFromEntries(effective, {
-      totalFiles: stats?.totalFiles || 0,
-      enrichResult,
-    });
-    setStats(results.stats);
-    setTopArtists(results.topArtists);
-    setArtistsByYear(results.artistsByYear || {});
-    setTopAlbums(results.topAlbums);
-    setAlbumsByYear(results.albumsByYear || {});
-    setProcessedData(_.orderBy(results.processedTracks, ['totalPlayed'], ['desc']));
-    setSongsByYear(results.songsByYear);
-    setBriefObsessions(results.briefObsessions);
-    setRawPlayData(results.rawPlayData);
-    setTrackDurationMap(results.trackDurationMap || null);
-    setStreaks(results.streaks);
-    return enrichResult;
+    if (base.length === 0) return;
+    enrichRunningRef.current = true;
+    enrichStopRef.current = false;
+    setEnrichRunning(true);
+    setEnrichResult(null);
+    setEnrichProgress(null);
+    try {
+      const result = await enrichAlbums(
+        base,
+        (done, total) => setEnrichProgress({ done, total }),
+        { lookupYears: true, shouldStop: () => enrichStopRef.current }
+      );
+      const newBase = [...base];
+      setBasePlayData(newBase);
+      const effective = applyOverrides(newBase, loadOverrides());
+      const results = await computeStatsFromEntries(effective, {
+        totalFiles: stats?.totalFiles || 0,
+        enrichResult: result,
+      });
+      setStats(results.stats);
+      setTopArtists(results.topArtists);
+      setArtistsByYear(results.artistsByYear || {});
+      setTopAlbums(results.topAlbums);
+      setAlbumsByYear(results.albumsByYear || {});
+      setProcessedData(_.orderBy(results.processedTracks, ['totalPlayed'], ['desc']));
+      setSongsByYear(results.songsByYear);
+      setBriefObsessions(results.briefObsessions);
+      setRawPlayData(results.rawPlayData);
+      setTrackDurationMap(results.trackDurationMap || null);
+      setStreaks(results.streaks);
+      setEnrichResult(result);
+    } finally {
+      enrichRunningRef.current = false;
+      setEnrichRunning(false);
+      setEnrichProgress(null);
+    }
   }, [basePlayData, rawPlayData, stats]);
+
+  const handleStopEnrichment = useCallback(() => {
+    enrichStopRef.current = true;
+  }, []);
 
   // Handle file upload with useCallback
   const handleFileUpload = useCallback((e) => {
@@ -2560,6 +2588,10 @@ const SpotifyAnalyzer = ({
               rawPlayData={rawPlayData}
               onDataEdited={handleDataEdited}
               onRunEnrichment={handleRunEnrichment}
+              onStopEnrichment={handleStopEnrichment}
+              enrichRunning={enrichRunning}
+              enrichProgress={enrichProgress}
+              enrichResult={enrichResult}
               enableEnrichment={enableEnrichment}
               setEnableEnrichment={setEnableEnrichment}
               topArtists={topArtists}
@@ -2635,6 +2667,10 @@ const SpotifyAnalyzer = ({
     processFiles,
     handleDataEdited,
     handleRunEnrichment,
+    handleStopEnrichment,
+    enrichRunning,
+    enrichProgress,
+    enrichResult,
     topArtists,
     topAlbums,
     briefObsessions,

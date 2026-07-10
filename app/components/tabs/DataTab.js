@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Download, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, RotateCcw, Disc3 } from 'lucide-react';
 import ExportButton from '../ExportButton.js';
 import Top100Export from '../Top100Export.js';
@@ -61,6 +61,10 @@ export default function DataTab({
   rawPlayData,
   onDataEdited,
   onRunEnrichment,
+  onStopEnrichment,
+  enrichRunning,
+  enrichProgress,
+  enrichResult,
   enableEnrichment,
   setEnableEnrichment,
   topArtists,
@@ -301,30 +305,9 @@ export default function DataTab({
     return [...byLabel.entries()].sort((a, b) => b[1].count - a[1].count);
   }, [rawPlayData]);
 
-  // MusicBrainz lookup state (the actual run lives in SpotifyAnalyzer so it
-  // survives tab switches)
-  const [enriching, setEnriching] = useState(false);
-  const [enrichProgress, setEnrichProgress] = useState(null);
-  const [enrichResult, setEnrichResult] = useState(null);
-  const stopEnrichRef = useRef(false);
-
-  const runEnrichment = async () => {
-    if (!onRunEnrichment || enriching) return;
-    stopEnrichRef.current = false;
-    setEnriching(true);
-    setEnrichResult(null);
-    setEnrichProgress(null);
-    try {
-      const res = await onRunEnrichment(
-        (done, total) => setEnrichProgress({ done, total }),
-        () => stopEnrichRef.current
-      );
-      setEnrichResult(res);
-    } finally {
-      setEnriching(false);
-      setEnrichProgress(null);
-    }
-  };
+  // MusicBrainz run state lives in SpotifyAnalyzer (enrichRunning /
+  // enrichProgress / enrichResult props) so the lookup keeps running — and
+  // keeps its progress + Stop UI — while other tabs are open.
 
   // Colorful mode: green page with black accents in light, black terminal
   // with green accents in dark (dark: variants carry the inversion).
@@ -414,9 +397,9 @@ export default function DataTab({
                     : 'Every track already has an album and a release year.'}
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
-                  {enriching ? (
+                  {enrichRunning ? (
                     <button
-                      onClick={() => { stopEnrichRef.current = true; }}
+                      onClick={onStopEnrichment}
                       className={
                         isColorful
                           ? 'px-4 py-2 text-sm rounded border border-red-600 text-red-700 hover:bg-red-200 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-950'
@@ -429,7 +412,7 @@ export default function DataTab({
                     </button>
                   ) : (
                     <button
-                      onClick={runEnrichment}
+                      onClick={onRunEnrichment}
                       disabled={lookupCount === 0}
                       className={
                         isColorful
@@ -440,7 +423,7 @@ export default function DataTab({
                       Run lookup now
                     </button>
                   )}
-                  {enrichResult && !enriching && (
+                  {enrichResult && !enrichRunning && (
                     <span className={`text-sm ${bodyClass}`}>
                       {enrichResult.stopped ? '⏹ Stopped early — updated' : '✓ Updated'} {enrichResult.enriched.toLocaleString()} plays
                       {enrichResult.cached > 0 ? ` (${enrichResult.cached.toLocaleString()} from cache)` : ''}
