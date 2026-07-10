@@ -61,3 +61,53 @@ export async function processDeezerXLSX(file) {
   }
 }
 
+// The Deezer GDPR export also carries every playlist the user created, one
+// row per track, in a separate sheet. Extracted independently of the
+// listening history so playlist import works even for tracks never played.
+export async function extractDeezerPlaylists(file) {
+  try {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+
+    const playlistSheetName = '11_playlistCreated';
+    if (!workbook.SheetNames.includes(playlistSheetName)) {
+      return [];
+    }
+
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[playlistSheetName]);
+    const byPlaylist = new Map();
+
+    rows.forEach(row => {
+      const playlistName = row['Playlist Title'];
+      const trackName = row['Song Title'];
+      if (!playlistName || !trackName) return;
+
+      if (!byPlaylist.has(playlistName)) {
+        byPlaylist.set(playlistName, {
+          name: playlistName,
+          url: row['Playlist Link'] || null,
+          status: row['Status'] || null,
+          service: 'deezer',
+          tracks: []
+        });
+      }
+
+      byPlaylist.get(playlistName).tracks.push({
+        trackName,
+        artist: row['Artists'] || 'Unknown Artist',
+        albumName: row['Album Title'] || 'Unknown Album',
+        isrc: row['ISRC'] || null
+      });
+    });
+
+    const playlists = Array.from(byPlaylist.values());
+    if (playlists.length > 0) {
+      console.log(`Extracted ${playlists.length} Deezer playlists (${rows.length} track entries)`);
+    }
+    return playlists;
+  } catch (error) {
+    console.error('Error extracting Deezer playlists:', error);
+    return [];
+  }
+}
+

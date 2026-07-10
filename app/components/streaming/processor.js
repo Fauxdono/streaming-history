@@ -7,7 +7,7 @@ import { detectFileType } from './detect.js';
 import { normalizeArtistName } from './normalize.js';
 import { processAppleMusicCSV } from './parsers/apple-music.js';
 import { processCakeExcelFile } from './parsers/cake.js';
-import { processDeezerXLSX } from './parsers/deezer.js';
+import { processDeezerXLSX, extractDeezerPlaylists } from './parsers/deezer.js';
 import { processLastfmJSON, processLastfmCSV } from './parsers/lastfm.js';
 import { processRockboxScrobblerLog } from './parsers/rockbox.js';
 import { processSoundcloudCSV } from './parsers/soundcloud.js';
@@ -140,7 +140,10 @@ export const streamingProcessor = {
     console.time('processFiles');
     try {
       const allProcessedArrays = [];
-      
+      // Playlists ride along with the play entries but stay separate from
+      // stats: collected per-file here, returned as importedPlaylists.
+      const importedPlaylists = [];
+
       // Process files in smaller batches to prevent memory issues
       const batchSize = Math.min(3, files.length); // Reduce batch size for better memory management
       const fileBatches = [];
@@ -172,6 +175,10 @@ export const streamingProcessor = {
                 
                 // Fallback to Deezer
                 console.log(`Auto-detected as Deezer Excel file: ${file.name}`);
+                const playlists = await extractDeezerPlaylists(file);
+                if (playlists.length > 0) {
+                  importedPlaylists.push(...playlists);
+                }
                 return await processDeezerXLSX(file);
               } else {
                 // For text files, read content and detect type
@@ -320,7 +327,7 @@ export const streamingProcessor = {
       });
 
       console.timeEnd('processFiles');
-      return { ...result, basePlayData };
+      return { ...result, basePlayData, importedPlaylists };
     } catch (error) {
       console.error('Error processing files:', error);
       throw error;

@@ -7,7 +7,8 @@ const CustomPlaylistCreator = ({
   formatDuration,
   rawPlayData = [],
   colorMode = 'minimal',
-  trackDurationMap = null
+  trackDurationMap = null,
+  importedPlaylists = []
 }) => {
   // Get the current theme
   const { theme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
@@ -65,6 +66,8 @@ const CustomPlaylistCreator = ({
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [customTrackPosition, setCustomTrackPosition] = useState("");
   const [activeTrackForPosition, setActiveTrackForPosition] = useState(null);
+  const [importSearchTerm, setImportSearchTerm] = useState('');
+  const [importSummary, setImportSummary] = useState(null);
   
  // Create a normalized track map for faster searching
 const trackMap = useMemo(() => {
@@ -1101,6 +1104,64 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
     setSelectedTracks(playlist.tracks);
     setActiveTab('create');
   };
+
+  // Match a track from an imported service playlist against the library.
+  // Service exports list all credited artists ("J. Cole, Bas, Central Cee")
+  // while play history usually carries only the primary artist, so try the
+  // full string first, then the primary artist, then the fuzzy index.
+  const matchImportedTrack = (imported) => {
+    const title = String(imported.trackName || '');
+    const fullArtist = String(imported.artist || '');
+    const primaryArtist = fullArtist.split(',')[0].trim();
+
+    const directKeys = [
+      `${title.toLowerCase()}-${fullArtist.toLowerCase()}`,
+      `${title.toLowerCase()}-${primaryArtist.toLowerCase()}`
+    ];
+    for (const key of directKeys) {
+      if (trackMap.has(key)) return trackMap.get(key);
+    }
+
+    const normalizedKey = `${normalizeTrackTitle(title)}-${normalizeArtistName(primaryArtist)}`;
+    const candidates = trackMap.normalizedMap.get(normalizedKey);
+    if (candidates && candidates.length > 0 && trackMap.has(candidates[0])) {
+      return trackMap.get(candidates[0]);
+    }
+
+    return null;
+  };
+
+  // Load an imported service playlist as the current selection. Tracks that
+  // match the library get real play stats; the rest keep their export
+  // metadata with a default 3-minute duration (same as manual adds).
+  const loadImportedPlaylist = (playlist) => {
+    let matched = 0;
+    const tracks = playlist.tracks.map((importedTrack, index) => {
+      const libraryTrack = matchImportedTrack(importedTrack);
+      if (libraryTrack) {
+        matched++;
+        return { ...libraryTrack, id: `import-${index}-${libraryTrack.id}` };
+      }
+      return {
+        trackName: importedTrack.trackName,
+        artist: importedTrack.artist,
+        albumName: importedTrack.albumName || 'Unknown Album',
+        playCount: 1,
+        totalPlayed: 180000,
+        id: `import-${index}-unmatched`
+      };
+    });
+
+    setPlaylistName(playlist.name);
+    setSelectedTracks(tracks);
+    setImportSummary({
+      name: playlist.name,
+      service: playlist.service,
+      matched,
+      total: tracks.length
+    });
+    setActiveTab('create');
+  };
   
   // Track stats (exclude system messages)
   const totalDuration = useMemo(() => {
@@ -1133,11 +1194,14 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
           <h3 className={`text-xl ${modeColors.text} truncate`}>
-            Custom Playlists <span className="opacity-50">/</span> <span className="text-base">{{ create: 'Create', saved: `Saved (${savedPlaylists.length})`, export: 'Export' }[activeTab]}</span>
+            Custom Playlists <span className="opacity-50">/</span> <span className="text-base">{{ create: 'Create', import: `Import (${importedPlaylists.length})`, saved: `Saved (${savedPlaylists.length})`, export: 'Export' }[activeTab]}</span>
           </h3>
         </div>
         <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
           <TabButton id="create" label="Create" />
+          {importedPlaylists.length > 0 && (
+            <TabButton id="import" label={`Import (${importedPlaylists.length})`} />
+          )}
           <TabButton id="saved" label={`Saved (${savedPlaylists.length})`} />
           <TabButton id="export" label="Export" />
         </div>
@@ -1148,6 +1212,9 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       <div className="block sm:hidden mb-4">
         <div className="flex flex-wrap gap-1">
           <TabButton id="create" label="Create" />
+          {importedPlaylists.length > 0 && (
+            <TabButton id="import" label={`Import (${importedPlaylists.length})`} />
+          )}
           <TabButton id="saved" label={`Saved (${savedPlaylists.length})`} />
           <TabButton id="export" label="Export" />
         </div>
@@ -1155,6 +1222,22 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       
       {activeTab === 'create' && (
         <div className="space-y-4">
+          {/* Import result banner */}
+          {importSummary && (
+            <div className={`flex justify-between items-start gap-2 border rounded p-3 text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}>
+              <span>
+                Imported &quot;{importSummary.name}&quot; from {importSummary.service === 'deezer' ? 'Deezer' : importSummary.service} — {importSummary.matched} of {importSummary.total} tracks matched your listening history{importSummary.matched < importSummary.total ? '; unmatched tracks keep their export info with a default 3-minute duration' : ''}.
+              </span>
+              <button
+                onClick={() => setImportSummary(null)}
+                className={`${modeColors.textLight} hover:opacity-80 shrink-0`}
+                title="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Playlist Name */}
           <div>
             <label className={`block ${modeColors.text} mb-1`}>Playlist Name:</label>
@@ -1428,7 +1511,8 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
 
             {selectedTracks.length > 0 ? (
               <div className={`mt-2 border rounded overflow-hidden ${modeColors.border}`}>
-                {selectedTracks.map((track, index) => {
+                {/* Rendering thousands of rows freezes the page; save/export always use the full list */}
+                {selectedTracks.slice(0, 500).map((track, index) => {
                   // Special handling for system messages
                   if (['processing', 'no-matches', 'error'].includes(track.id)) {
                     return (
@@ -1525,6 +1609,11 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     </div>
                   );
                 })}
+                {selectedTracks.length > 500 && (
+                  <div className={`p-3 text-center text-sm ${modeColors.bgCard} ${modeColors.textLight}`}>
+                    Showing the first 500 of {selectedTracks.length} tracks — the full playlist is used when saving or exporting.
+                  </div>
+                )}
               </div>
             ) : (
               <div className={`mt-2 p-4 text-center border border-dashed rounded ${modeColors.textLighter} ${modeColors.border}`}>
@@ -1555,6 +1644,70 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
         </div>
       )}
       
+      {activeTab === 'import' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className={`font-bold ${modeColors.text}`}>Playlists From Your Exports</h3>
+            <div className={`text-sm ${modeColors.textLight}`}>
+              Found inside your uploaded service export files
+            </div>
+          </div>
+
+          <input
+            type="text"
+            value={importSearchTerm}
+            onChange={(e) => setImportSearchTerm(e.target.value)}
+            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+            placeholder="Filter playlists by name..."
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {importedPlaylists
+              .filter(playlist => playlist.name.toLowerCase().includes(importSearchTerm.toLowerCase()))
+              .map((playlist, index) => (
+                <div
+                  key={`${playlist.service}-${playlist.name}-${index}`}
+                  className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}
+                >
+                  <div className="flex justify-between items-center gap-2">
+                    <h4 className={`font-bold ${modeColors.text} truncate`}>{playlist.name}</h4>
+                    <div className={`text-xs px-2 py-0.5 rounded shrink-0 ${modeColors.buttonInactive}`}>
+                      {playlist.service === 'deezer' ? 'Deezer' : playlist.service}
+                    </div>
+                  </div>
+                  <div className={`text-sm ${modeColors.textLight} mt-1`}>
+                    {playlist.tracks.length} tracks{playlist.status ? ` • ${playlist.status}` : ''}
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <button
+                      onClick={() => loadImportedPlaylist(playlist)}
+                      className={`px-3 py-1 text-sm rounded hover:opacity-80 ${modeColors.buttonActive}`}
+                    >
+                      <Music size={14} className="inline mr-1" /> Load
+                    </button>
+                    {playlist.url && (
+                      <a
+                        href={playlist.url.startsWith('http') ? playlist.url : `https://${playlist.url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-sm ${modeColors.textLight} hover:opacity-80`}
+                      >
+                        View on service
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {importedPlaylists.filter(playlist => playlist.name.toLowerCase().includes(importSearchTerm.toLowerCase())).length === 0 && (
+            <div className={`p-4 text-center border border-dashed rounded ${modeColors.textLighter} ${modeColors.border}`}>
+              No playlists match that filter.
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'saved' && (
         <div className="space-y-4">
           <h3 className={`font-bold ${modeColors.text}`}>Saved Playlists</h3>
