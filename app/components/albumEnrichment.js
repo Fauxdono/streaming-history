@@ -119,19 +119,25 @@ function sleep(ms) {
 // ---- Public API -----------------------------------------------------------
 
 /**
- * Enrich entries that have "Unknown Album" with album names from MusicBrainz.
+ * Enrich entries with album names and release years from MusicBrainz.
+ * By default only tracks with "Unknown Album" are looked up (the upload-time
+ * behavior); pass lookupYears to also cover tracks that have an album but no
+ * release year (the Your Data tab's Run-now behavior).
  *
  * @param {Array} entries - Processed streaming entries (mutated in place)
  * @param {Function} onProgress - Optional callback: (done, total) => void
- * @returns {Object} { enriched: number, total: number, cached: number }
+ * @param {Object} options - { lookupYears?: boolean, shouldStop?: () => boolean }
+ * @returns {Object} { enriched: number, total: number, cached: number, stopped: boolean }
  */
-export async function enrichAlbums(entries, onProgress) {
+export async function enrichAlbums(entries, onProgress, { lookupYears = false, shouldStop } = {}) {
   // Collect unique artist+track combos that need enrichment
   const needsLookup = new Map(); // cacheKey → { artist, track, indices[] }
 
   entries.forEach((entry, i) => {
     const album = entry.master_metadata_album_album_name;
-    if (album && album !== 'Unknown Album') return;
+    const albumMissing = !album || album === 'Unknown Album';
+    const yearMissing = lookupYears && !entry.release_year;
+    if (!albumMissing && !yearMissing) return;
 
     const artist = entry.master_metadata_album_artist_name;
     const track = entry.master_metadata_track_name;
@@ -146,30 +152,49 @@ export async function enrichAlbums(entries, onProgress) {
   });
 
   if (needsLookup.size === 0) {
-    return { enriched: 0, total: 0, cached: 0 };
+    return { enriched: 0, total: 0, cached: 0, stopped: false };
   }
 
   const cache = loadCache();
   let enriched = 0;
   let cached = 0;
   let done = 0;
+  let stopped = false;
   const total = needsLookup.size;
 
   // Cache values: legacy plain string (album only), { album, year }, or null.
+  // Never overwrite an album the data already knows; years fill blanks only.
   const applyResult = (result, indices) => {
     const album = typeof result === 'string' ? result : result?.album;
-    const year = typeof result === 'object' ? result?.year : null;
+    const year = typeof result === 'object' && result ? result.year : null;
     if (!album && !year) return false;
+    let applied = false;
     indices.forEach(i => {
-      if (album) entries[i].master_metadata_album_album_name = album;
-      if (year && !entries[i].release_year) entries[i].release_year = year;
+      const cur = entries[i].master_metadata_album_album_name;
+      if (album && (!cur || cur === 'Unknown Album')) {
+        entries[i].master_metadata_album_album_name = album;
+        applied = true;
+      }
+      if (year && !entries[i].release_year) {
+        entries[i].release_year = year;
+        applied = true;
+      }
     });
-    return !!album;
+    return applied;
   };
 
+  // A legacy string cache entry has no year info — when years are wanted,
+  // re-query it once so the cache upgrades to { album, year }.
+  const cacheIsFinal = (value) =>
+    value === null || typeof value === 'object' || !lookupYears;
+
   for (const [key, { artist, track, indices }] of needsLookup) {
+    if (shouldStop?.()) {
+      stopped = true;
+      break;
+    }
     // Check cache first
-    if (key in cache) {
+    if (key in cache && cacheIsFinal(cache[key])) {
       if (applyResult(cache[key], indices)) {
         enriched += indices.length;
       }
@@ -211,8 +236,8 @@ export async function enrichAlbums(entries, onProgress) {
 
   saveCache(cache);
 
-  console.log(`Album enrichment: ${enriched} entries enriched, ${cached} from cache, ${total} unique lookups`);
-  return { enriched, total, cached };
+  console.log(`Album enrichment: ${enriched} entries enriched, ${cached} from cache, ${total} unique lookups${stopped ? ' (stopped early)' : ''}`);
+  return { enriched, total, cached, stopped };
 }
 
 /**

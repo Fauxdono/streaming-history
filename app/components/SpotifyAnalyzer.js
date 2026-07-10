@@ -1203,10 +1203,10 @@ const SpotifyAnalyzer = ({
   // Run MusicBrainz enrichment on the already-loaded library (Your Data tab)
   // — no re-upload needed. Mutates the base entries, then recomputes stats
   // with overrides re-applied.
-  const handleRunEnrichment = useCallback(async (onProgress) => {
+  const handleRunEnrichment = useCallback(async (onProgress, shouldStop) => {
     const base = basePlayData.length > 0 ? basePlayData : rawPlayData;
     if (base.length === 0) return null;
-    const enrichResult = await enrichAlbums(base, onProgress);
+    const enrichResult = await enrichAlbums(base, onProgress, { lookupYears: true, shouldStop });
     const newBase = [...base];
     setBasePlayData(newBase);
     const effective = applyOverrides(newBase, loadOverrides());

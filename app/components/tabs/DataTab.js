@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { Download, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, RotateCcw, Disc3 } from 'lucide-react';
 import ExportButton from '../ExportButton.js';
 import Top100Export from '../Top100Export.js';
@@ -208,7 +208,7 @@ export default function DataTab({
       setSortDesc(d => !d);
     } else {
       setSortBy(column);
-      setSortDesc(column === 'lengthMs');
+      setSortDesc(column === 'lengthMs' || column === 'releaseYear');
     }
     setPage(0);
   };
@@ -306,25 +306,19 @@ export default function DataTab({
   const [enriching, setEnriching] = useState(false);
   const [enrichProgress, setEnrichProgress] = useState(null);
   const [enrichResult, setEnrichResult] = useState(null);
-
-  const missingAlbumCount = useMemo(() => {
-    const set = new Set();
-    for (const e of rawPlayData || []) {
-      const album = e.master_metadata_album_album_name;
-      if (album && album !== 'Unknown Album') continue;
-      if (!e.master_metadata_track_name || !e.master_metadata_album_artist_name) continue;
-      set.add(`${e.master_metadata_track_name}|${e.master_metadata_album_artist_name}`.toLowerCase());
-    }
-    return set.size;
-  }, [rawPlayData]);
+  const stopEnrichRef = useRef(false);
 
   const runEnrichment = async () => {
     if (!onRunEnrichment || enriching) return;
+    stopEnrichRef.current = false;
     setEnriching(true);
     setEnrichResult(null);
     setEnrichProgress(null);
     try {
-      const res = await onRunEnrichment((done, total) => setEnrichProgress({ done, total }));
+      const res = await onRunEnrichment(
+        (done, total) => setEnrichProgress({ done, total }),
+        () => stopEnrichRef.current
+      );
       setEnrichResult(res);
     } finally {
       setEnriching(false);
@@ -405,48 +399,69 @@ export default function DataTab({
           </div>
           <p className={`text-sm mb-2 ${bodyClass}`}>
             Fills in missing albums and release years from the open MusicBrainz database
-            (about one lookup per second — you can browse other tabs while it runs).
+            (about one lookup per second — you can browse other tabs while it runs, or stop anytime).
           </p>
-          <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
-            {missingAlbumCount > 0
-              ? `${missingAlbumCount.toLocaleString()} tracks are missing album info.`
-              : 'No tracks are missing album info.'}
-          </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={runEnrichment}
-              disabled={enriching || missingAlbumCount === 0}
-              className={
-                isColorful
-                  ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
-                  : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
-              }
-            >
-              {enriching
-                ? enrichProgress
-                  ? `Looking up… ${enrichProgress.done} / ${enrichProgress.total}`
-                  : 'Looking up…'
-                : 'Run lookup now'}
-            </button>
-            {enrichResult && !enriching && (
-              <span className={`text-sm ${bodyClass}`}>
-                ✓ Updated {enrichResult.enriched.toLocaleString()} plays
-                {enrichResult.cached > 0 ? ` (${enrichResult.cached.toLocaleString()} from cache)` : ''}
-              </span>
-            )}
-            <label className={`flex items-center gap-2 cursor-pointer select-none text-sm ${bodyClass}`}>
-              <input
-                type="checkbox"
-                checked={!!enableEnrichment}
-                onChange={(e) => {
-                  setEnableEnrichment?.(e.target.checked);
-                  try { localStorage.setItem('enableAlbumEnrichment', JSON.stringify(e.target.checked)); } catch {}
-                }}
-                className={isColorful ? 'w-4 h-4 accent-black dark:accent-green-500' : 'w-4 h-4 accent-black dark:accent-[#4169E1]'}
-              />
-              Also run automatically when processing uploads
-            </label>
-          </div>
+          {(() => {
+            const missingAlbums = allTracks.filter(t => !t.album).length;
+            const missingYears = allTracks.filter(t => !t.releaseYear).length;
+            const lookupCount = allTracks.filter(t => !t.album || !t.releaseYear).length;
+            const estMinutes = Math.ceil(lookupCount / 60);
+            return (
+              <>
+                <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+                  {lookupCount > 0
+                    ? `${missingAlbums.toLocaleString()} tracks missing album info · ${missingYears.toLocaleString()} missing a release year — roughly ${lookupCount.toLocaleString()} lookups (~${estMinutes} min, previously seen tracks are instant).`
+                    : 'Every track already has an album and a release year.'}
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {enriching ? (
+                    <button
+                      onClick={() => { stopEnrichRef.current = true; }}
+                      className={
+                        isColorful
+                          ? 'px-4 py-2 text-sm rounded border border-red-600 text-red-700 hover:bg-red-200 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-950'
+                          : `px-4 py-2 text-sm rounded border ${isDarkMode ? 'border-red-500 text-red-400 hover:bg-red-950' : 'border-red-600 text-red-700 hover:bg-red-100'}`
+                      }
+                    >
+                      {enrichProgress
+                        ? `Stop — ${enrichProgress.done.toLocaleString()} / ${enrichProgress.total.toLocaleString()} done`
+                        : 'Stop'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={runEnrichment}
+                      disabled={lookupCount === 0}
+                      className={
+                        isColorful
+                          ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
+                          : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                      }
+                    >
+                      Run lookup now
+                    </button>
+                  )}
+                  {enrichResult && !enriching && (
+                    <span className={`text-sm ${bodyClass}`}>
+                      {enrichResult.stopped ? '⏹ Stopped early — updated' : '✓ Updated'} {enrichResult.enriched.toLocaleString()} plays
+                      {enrichResult.cached > 0 ? ` (${enrichResult.cached.toLocaleString()} from cache)` : ''}
+                    </span>
+                  )}
+                  <label className={`flex items-center gap-2 cursor-pointer select-none text-sm ${bodyClass}`}>
+                    <input
+                      type="checkbox"
+                      checked={!!enableEnrichment}
+                      onChange={(e) => {
+                        setEnableEnrichment?.(e.target.checked);
+                        try { localStorage.setItem('enableAlbumEnrichment', JSON.stringify(e.target.checked)); } catch {}
+                      }}
+                      className={isColorful ? 'w-4 h-4 accent-black dark:accent-green-500' : 'w-4 h-4 accent-black dark:accent-[#4169E1]'}
+                    />
+                    Also run automatically when processing uploads
+                  </label>
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
 
