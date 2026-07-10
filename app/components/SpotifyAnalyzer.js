@@ -4,7 +4,7 @@
 const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { streamingProcessor, computeStatsFromEntries, loadOverrides, applyOverrides, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';
+import { streamingProcessor, computeStatsFromEntries, loadOverrides, applyOverrides, entryMatchKey, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';
 import CustomTrackRankings from './CustomTrackRankings.js';
 import TrackRankings from './TrackRankings.js';
 import CalendarView from './CalendarView.js';
@@ -1210,7 +1210,9 @@ const SpotifyAnalyzer = ({
   const enrichRunningRef = useRef(false);
   const enrichStopRef = useRef(false);
 
-  const handleRunEnrichment = useCallback(async () => {
+  // scopeOkeys: optional array of original track keys — limits the lookup to
+  // those tracks (the Data tab passes the user's current search/filter).
+  const handleRunEnrichment = useCallback(async (scopeOkeys = null) => {
     if (enrichRunningRef.current) return;
     const base = basePlayData.length > 0 ? basePlayData : rawPlayData;
     if (base.length === 0) return;
@@ -1220,10 +1222,15 @@ const SpotifyAnalyzer = ({
     setEnrichResult(null);
     setEnrichProgress(null);
     try {
+      let entryFilter = null;
+      if (Array.isArray(scopeOkeys) && scopeOkeys.length > 0) {
+        const scope = new Set(scopeOkeys);
+        entryFilter = (e) => e.master_metadata_track_name && scope.has(entryMatchKey(e));
+      }
       const result = await enrichAlbums(
         base,
         (done, total) => setEnrichProgress({ done, total }),
-        { lookupYears: true, shouldStop: () => enrichStopRef.current }
+        { lookupYears: true, shouldStop: () => enrichStopRef.current, entryFilter }
       );
       const newBase = [...base];
       setBasePlayData(newBase);

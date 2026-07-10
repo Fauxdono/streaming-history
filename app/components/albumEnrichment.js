@@ -126,14 +126,17 @@ function sleep(ms) {
  *
  * @param {Array} entries - Processed streaming entries (mutated in place)
  * @param {Function} onProgress - Optional callback: (done, total) => void
- * @param {Object} options - { lookupYears?: boolean, shouldStop?: () => boolean }
+ * @param {Object} options - { lookupYears?: boolean, shouldStop?: () => boolean,
+ *                             entryFilter?: (entry) => boolean } — entryFilter
+ *                             scopes the run (e.g. to the user's current search)
  * @returns {Object} { enriched: number, total: number, cached: number, stopped: boolean }
  */
-export async function enrichAlbums(entries, onProgress, { lookupYears = false, shouldStop } = {}) {
+export async function enrichAlbums(entries, onProgress, { lookupYears = false, shouldStop, entryFilter } = {}) {
   // Collect unique artist+track combos that need enrichment
   const needsLookup = new Map(); // cacheKey → { artist, track, indices[] }
 
   entries.forEach((entry, i) => {
+    if (entryFilter && !entryFilter(entry)) return;
     const album = entry.master_metadata_album_album_name;
     const albumMissing = !album || album === 'Unknown Album';
     const yearMissing = lookupYears && !entry.release_year;

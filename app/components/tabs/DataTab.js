@@ -179,6 +179,7 @@ export default function DataTab({
   }, [overrides]);
 
   const [trackSearch, setTrackSearch] = useState('');
+  const [serviceFilter, setServiceFilter] = useState(null); // service label or null
   const [sortBy, setSortBy] = useState('artist');
   const [sortDesc, setSortDesc] = useState(false);
   const [page, setPage] = useState(0);
@@ -186,6 +187,9 @@ export default function DataTab({
 
   const visibleTracks = useMemo(() => {
     let list = allTracks;
+    if (serviceFilter) {
+      list = list.filter(t => t.sources.some(s => serviceLabel(s) === serviceFilter));
+    }
     const q = trackSearch.trim().toLowerCase();
     if (q) {
       list = list.filter(t =>
@@ -202,7 +206,16 @@ export default function DataTab({
       return dir * (av - bv);
     });
     return list;
-  }, [allTracks, trackSearch, sortBy, sortDesc]);
+  }, [allTracks, trackSearch, serviceFilter, sortBy, sortDesc]);
+
+  // Scope for a targeted MusicBrainz run: tracks matching the current
+  // search/service filter that still miss an album or release year
+  const scopeActive = !!(trackSearch.trim() || serviceFilter);
+  const scopedLookup = useMemo(() => {
+    if (!scopeActive) return { count: 0, okeys: [] };
+    const needing = visibleTracks.filter(t => !t.album || !t.releaseYear);
+    return { count: needing.length, okeys: needing.flatMap(t => t.okeys) };
+  }, [scopeActive, visibleTracks]);
 
   // Keep the page in range when the filter shrinks the list
   const pageCount = Math.max(1, Math.ceil(visibleTracks.length / PAGE_SIZE));
@@ -502,17 +515,32 @@ export default function DataTab({
                         : 'Stop'}
                     </button>
                   ) : (
-                    <button
-                      onClick={onRunEnrichment}
-                      disabled={lookupCount === 0}
-                      className={
-                        isColorful
-                          ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
-                          : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
-                      }
-                    >
-                      Run lookup now
-                    </button>
+                    <>
+                      <button
+                        onClick={() => onRunEnrichment?.()}
+                        disabled={lookupCount === 0}
+                        className={
+                          isColorful
+                            ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
+                            : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                        }
+                      >
+                        Run lookup now
+                      </button>
+                      {scopeActive && scopedLookup.count > 0 && (
+                        <button
+                          onClick={() => onRunEnrichment?.(scopedLookup.okeys)}
+                          className={
+                            isColorful
+                              ? 'px-4 py-2 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
+                              : `px-4 py-2 text-sm rounded border font-medium ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                          }
+                          title="Only the tracks matching the search/service filter in the table below"
+                        >
+                          Look up current {trackSearch.trim() ? 'search' : 'filter'} only ({scopedLookup.count.toLocaleString()})
+                        </button>
+                      )}
+                    </>
                   )}
                   {enrichResult && !enrichRunning && (
                     <span className={`text-sm ${bodyClass}`}>
@@ -528,7 +556,7 @@ export default function DataTab({
                         setEnableEnrichment?.(e.target.checked);
                         try { localStorage.setItem('enableAlbumEnrichment', JSON.stringify(e.target.checked)); } catch {}
                       }}
-                      className={isColorful ? 'w-4 h-4 accent-black dark:accent-green-500' : 'w-4 h-4 accent-black dark:accent-[#4169E1]'}
+                      className={isColorful ? 'cake-check' : 'cake-check-mono'}
                     />
                     Also run automatically when processing uploads
                   </label>
@@ -583,6 +611,34 @@ export default function DataTab({
               </div>
             </div>
           </div>
+          {serviceCounts.length > 1 && (
+            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+              <span className={`text-xs ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>Service:</span>
+              {[null, ...serviceCounts.map(([label]) => label)].map((label) => {
+                const active = serviceFilter === label;
+                const source = label ? serviceCounts.find(([l]) => l === label)[1].source : null;
+                return (
+                  <button
+                    key={label ?? 'all'}
+                    onClick={() => { setServiceFilter(active ? null : label); setPage(0); }}
+                    className={
+                      isColorful
+                        ? `inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded border ${active
+                            ? 'bg-black text-green-400 border-black dark:bg-green-600 dark:text-black dark:border-green-600'
+                            : 'border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-500 dark:hover:bg-green-950'}`
+                        : `inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded border ${active
+                            ? (isDarkMode ? 'bg-[#4169E1] text-white border-[#4169E1]' : 'bg-black text-white border-black')
+                            : (isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100')}`
+                    }
+                  >
+                    {source && <ServiceIcon source={source} size={11} />}
+                    {label ?? 'All'}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
             Edit song details (name, artist, album, release year, length) for any track, or tick two or more versions of the same song — &quot;Remastered&quot;, &quot;Mono&quot;, different albums — and merge them into one. Length edits only change listening-time stats for scrobbles (Last.fm, iPod), where the log stores the song length; streamed play times are never rewritten. Expand a row to adjust or remove individual scrobble plays.
           </p>
@@ -604,7 +660,7 @@ export default function DataTab({
                       name="merge-canonical"
                       checked={canonicalKey === t.key}
                       onChange={() => setMergeCanonicalKey(t.key)}
-                      className={isColorful ? 'accent-black dark:accent-green-500' : 'accent-black dark:accent-[#4169E1]'}
+                      className={isColorful ? 'cake-check' : 'cake-check-mono'}
                     />
                     <span className="truncate">
                       <span className="font-bold">{t.name}</span>
@@ -671,7 +727,7 @@ export default function DataTab({
                             checked={selectedKeys.has(t.key)}
                             onChange={() => toggleSelected(t.key)}
                             title="Select to merge with another version"
-                            className={isColorful ? 'accent-black dark:accent-green-500' : 'accent-black dark:accent-[#4169E1]'}
+                            className={isColorful ? 'cake-check' : 'cake-check-mono'}
                           />
                         </td>
                         <td className={`${tdClass} w-6`}>

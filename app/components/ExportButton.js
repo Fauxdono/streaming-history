@@ -518,7 +518,7 @@ const ExportButton = ({
   const ink = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-white' : 'text-black';
   const inkStrong = isColorful ? 'text-black dark:text-green-400' : isDarkMode ? 'text-white' : 'text-black';
   const inkFaint = isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : `opacity-60 ${isDarkMode ? 'text-white' : 'text-black'}`;
-  const checkClass = isColorful ? 'accent-black dark:accent-green-500' : 'accent-black dark:accent-[#4169E1]';
+  const checkClass = isColorful ? 'cake-check' : 'cake-check-mono';
   const panelClass = isColorful
     ? 'p-3 rounded border mb-2 bg-green-100 border-black dark:bg-black dark:border-green-600'
     : `p-3 rounded border mb-2 ${isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black'}`;
