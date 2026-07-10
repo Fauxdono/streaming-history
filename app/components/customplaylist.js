@@ -346,6 +346,11 @@ const createDateFilterIndex = (rawData) => {
 
   const hasImports = importedPlaylists.length > 0 || importedFavorites.length > 0;
   const importCount = importedPlaylists.length + importedFavorites.length;
+
+  const serviceLabel = (service) => {
+    const labels = { deezer: 'Deezer', spotify: 'Spotify', tidal: 'TIDAL', youtube: 'YouTube', tunemymusic: 'TuneMyMusic' };
+    return labels[service] || (service ? service.charAt(0).toUpperCase() + service.slice(1) : 'Unknown');
+  };
   
   // Filter tracks based on search term - more efficient approach with fuzzy matching
   const filteredTracks = useMemo(() => {
@@ -1266,7 +1271,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
           {importSummary && (
             <div className={`flex justify-between items-start gap-2 border rounded p-3 text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}>
               <span>
-                Imported &quot;{importSummary.name}&quot; from {importSummary.service === 'deezer' ? 'Deezer' : importSummary.service} — {importSummary.matched} of {importSummary.total} tracks matched your listening history{importSummary.matched < importSummary.total ? '; unmatched tracks keep their export info with a default 3-minute duration' : ''}.
+                Imported &quot;{importSummary.name}&quot; from {serviceLabel(importSummary.service)} — {importSummary.matched} of {importSummary.total} tracks matched your listening history{importSummary.matched < importSummary.total ? '; unmatched tracks keep their export info with a default 3-minute duration' : ''}.
               </span>
               <button
                 onClick={() => setImportSummary(null)}
@@ -1701,17 +1706,17 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             </div>
           </div>
 
-          {importedFavorites.map(bundle => (
+          {importedFavorites.map((bundle, bundleIndex) => (
             <div
-              key={`favorites-${bundle.service}`}
+              key={`favorites-${bundle.service}-${bundleIndex}`}
               className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}
             >
               <div className="flex justify-between items-center gap-2">
                 <h4 className={`font-bold ${modeColors.text}`}>
-                  ♥ {bundle.service === 'deezer' ? 'Deezer' : bundle.service} Favorites
+                  ♥ {serviceLabel(bundle.service)} Favorites
                 </h4>
                 <div className={`text-xs px-2 py-0.5 rounded shrink-0 ${modeColors.buttonInactive}`}>
-                  {bundle.service === 'deezer' ? 'Deezer' : bundle.service}
+                  {serviceLabel(bundle.service)}
                 </div>
               </div>
               <div className={`text-sm ${modeColors.textLight} mt-1`}>
@@ -1724,7 +1729,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                 <div className="mt-3">
                   <button
                     onClick={() => loadImportedPlaylist({
-                      name: `${bundle.service === 'deezer' ? 'Deezer' : bundle.service} Favorites`,
+                      name: `${serviceLabel(bundle.service)} Favorites`,
                       service: bundle.service,
                       tracks: bundle.songs
                     })}
@@ -1758,7 +1763,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                   <div className="flex justify-between items-center gap-2">
                     <h4 className={`font-bold ${modeColors.text} truncate`}>{playlist.name}</h4>
                     <div className={`text-xs px-2 py-0.5 rounded shrink-0 ${modeColors.buttonInactive}`}>
-                      {playlist.service === 'deezer' ? 'Deezer' : playlist.service}
+                      {serviceLabel(playlist.service)}
                     </div>
                   </div>
                   <div className={`text-sm ${modeColors.textLight} mt-1`}>

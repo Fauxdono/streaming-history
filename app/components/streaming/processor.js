@@ -11,6 +11,7 @@ import { processDeezerXLSX, extractDeezerPlaylists, extractDeezerFavorites } fro
 import { processLastfmJSON, processLastfmCSV } from './parsers/lastfm.js';
 import { processRockboxScrobblerLog } from './parsers/rockbox.js';
 import { processSoundcloudCSV } from './parsers/soundcloud.js';
+import { parseTuneMyMusicCSV } from './parsers/tunemymusic.js';
 import { processTidalCSV } from './parsers/tidal.js';
 import { calculateArtistStreaks, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopAlbumDailyStreak, calculateTopSongDailyStreak } from './streaks.js';
 import { applyOverrides, countOverrides } from './overrides.js';
@@ -223,6 +224,18 @@ export const streamingProcessor = {
                   
                 case 'soundcloud':
                   return await processSoundcloudCSV(content);
+
+                case 'tunemymusic': {
+                  // Playlist/library export only — no play history entries
+                  const { playlists, favorites } = parseTuneMyMusicCSV(content);
+                  if (playlists.length > 0) {
+                    importedPlaylists.push(...playlists);
+                  }
+                  if (favorites) {
+                    importedFavorites.push(favorites);
+                  }
+                  return [];
+                }
                   
                 case 'tidal':
                   return await processTidalCSV(content);

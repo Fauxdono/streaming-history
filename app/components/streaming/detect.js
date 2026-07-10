@@ -73,8 +73,15 @@ export function detectFileType(filename, content) {
       return 'tidal';
     }
     
+    // TuneMyMusic playlist/library export — must run before Apple Music,
+    // whose 'track name' check would also match this header
+    if (firstLine.includes('track name') && firstLine.includes('artist name') &&
+        firstLine.includes('playlist name') && firstLine.includes('isrc')) {
+      return 'tunemymusic';
+    }
+
     // Apple Music detection (various formats)
-    if (firstLine.includes('track description') || 
+    if (firstLine.includes('track description') ||
         firstLine.includes('track name') || 
         (firstLine.includes('date played') && firstLine.includes('track')) ||
         firstLine.includes('apple music') ||
