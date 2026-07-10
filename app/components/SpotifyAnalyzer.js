@@ -1230,7 +1230,13 @@ const SpotifyAnalyzer = ({
       const result = await enrichAlbums(
         base,
         (done, total) => setEnrichProgress({ done, total }),
-        { lookupYears: true, shouldStop: () => enrichStopRef.current, entryFilter }
+        {
+          lookupYears: true,
+          shouldStop: () => enrichStopRef.current,
+          entryFilter,
+          // Look tracks up under their merged/corrected identities
+          trackOverrides: loadOverrides().tracks,
+        }
       );
       const newBase = [...base];
       setBasePlayData(newBase);

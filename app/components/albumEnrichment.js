@@ -8,6 +8,8 @@
 // MusicBrainz rate limit: 1 request per second (we use 1.1s spacing).
 // ---------------------------------------------------------------------------
 
+import { entryMatchKey } from './streaming/overrides.js';
+
 const CACHE_KEY = 'albumEnrichmentCache';
 const REQUEST_INTERVAL = 1100; // ms between API calls
 const MB_BASE = 'https://musicbrainz.org/ws/2';
@@ -127,24 +129,35 @@ function sleep(ms) {
  * @param {Array} entries - Processed streaming entries (mutated in place)
  * @param {Function} onProgress - Optional callback: (done, total) => void
  * @param {Object} options - { lookupYears?: boolean, shouldStop?: () => boolean,
- *                             entryFilter?: (entry) => boolean } — entryFilter
- *                             scopes the run (e.g. to the user's current search)
+ *                             entryFilter?: (entry) => boolean,
+ *                             trackOverrides?: object } — entryFilter scopes the
+ *                             run (e.g. to the user's current search);
+ *                             trackOverrides (overrides.tracks) makes lookups
+ *                             use the user's merged/corrected names, so merged
+ *                             variants share ONE query and clean names search
+ *                             better
  * @returns {Object} { enriched: number, total: number, cached: number, stopped: boolean }
  */
-export async function enrichAlbums(entries, onProgress, { lookupYears = false, shouldStop, entryFilter } = {}) {
+export async function enrichAlbums(entries, onProgress, { lookupYears = false, shouldStop, entryFilter, trackOverrides } = {}) {
   // Collect unique artist+track combos that need enrichment
   const needsLookup = new Map(); // cacheKey → { artist, track, indices[] }
 
   entries.forEach((entry, i) => {
     if (entryFilter && !entryFilter(entry)) return;
+    const rawArtist = entry.master_metadata_album_artist_name;
+    const rawTrack = entry.master_metadata_track_name;
+    if (!rawArtist || !rawTrack) return;
+
+    const edit = trackOverrides ? trackOverrides[entryMatchKey(entry)] : null;
     const album = entry.master_metadata_album_album_name;
-    const albumMissing = !album || album === 'Unknown Album';
-    const yearMissing = lookupYears && !entry.release_year;
+    // A user-supplied album or year counts as known
+    const albumMissing = !edit?.album && (!album || album === 'Unknown Album');
+    const yearMissing = lookupYears && !entry.release_year && edit?.releaseYear == null;
     if (!albumMissing && !yearMissing) return;
 
-    const artist = entry.master_metadata_album_artist_name;
-    const track = entry.master_metadata_track_name;
-    if (!artist || !track) return;
+    // Query under the user's corrected identity when there is one
+    const artist = edit?.artist || rawArtist;
+    const track = edit?.name || rawTrack;
 
     const key = cacheKey(artist, track);
     if (needsLookup.has(key)) {

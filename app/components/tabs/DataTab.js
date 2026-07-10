@@ -112,7 +112,7 @@ export default function DataTab({
       const okey = play.__origKey || key;
       let t = map.get(key);
       if (!t) {
-        t = { key, name, artist, albums: new Map(), maxMs: 0, doneMs: [], correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [], okeys: new Set() };
+        t = { key, name, artist, albums: new Map(), maxMs: 0, doneMs: [], correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [], okeys: new Set(), variants: new Map() };
         map.set(key, t);
       }
       t.okeys.add(okey);
@@ -130,6 +130,14 @@ export default function DataTab({
       }
       if (play.source) t.sources.add(play.source);
       t.plays.push({ ts: play.ts, ms: play.ms_played || 0, source: play.source, okey });
+      // Provenance: which original title/album/service each play came from
+      // (__origName/__origAlbum survive renames and merges)
+      const origName = play.__origName || name;
+      const origAlbum = play.__origAlbum || play.master_metadata_album_album_name || '';
+      const vkey = `${origName}|||${origAlbum}|||${play.source || ''}`;
+      const variant = t.variants.get(vkey);
+      if (variant) variant.count += 1;
+      else t.variants.set(vkey, { origName, origAlbum, source: play.source, count: 1 });
     }
     const arr = [];
     for (const t of map.values()) {
@@ -163,6 +171,7 @@ export default function DataTab({
         sources,
         plays: t.plays,
         okeys: [...t.okeys],
+        variants: [...t.variants.values()].sort((a, b) => b.count - a.count),
       });
     }
     return arr;
@@ -813,7 +822,25 @@ export default function DataTab({
                       {isExpanded && (
                         <tr className={rowClass}>
                           <td colSpan={9} className="px-2 pb-2">
-                            <div className={`mt-1 max-h-64 overflow-y-auto rounded border ${isColorful ? 'border-green-500 dark:border-green-900' : isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                            {/* Provenance: original title/album per source */}
+                            <div className="mt-1 mb-1.5">
+                              <div className={`text-[10px] uppercase tracking-wider font-bold mb-1 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+                                Where this song comes from
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {t.variants.map((v, i) => (
+                                  <span key={i} className={`${badgeClass} inline-flex items-center gap-1.5 !text-xs py-1`}>
+                                    <ServiceIcon source={v.source} size={11} />
+                                    <span>
+                                      {v.origName !== t.name && <span className="font-bold">{v.origName} · </span>}
+                                      {v.origAlbum || 'Unknown Album'}
+                                      <span className="opacity-60"> · {v.count} {v.count === 1 ? 'play' : 'plays'}</span>
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className={`max-h-64 overflow-y-auto rounded border ${isColorful ? 'border-green-500 dark:border-green-900' : isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
                               <table className="w-full">
                                 <tbody>
                                   {[...t.plays].sort((a, b) => new Date(b.ts) - new Date(a.ts)).map((play) => {

@@ -69,6 +69,10 @@ export function applyOverrides(entries, overrides) {
     if (playEdit && playEdit.removed) continue;
     const copy = { ...entry, __origKey: key };
     if (trackEdit) {
+      // Keep the pre-edit identity visible for the UI's provenance view
+      copy.__origName = entry.master_metadata_track_name;
+      copy.__origArtist = entry.master_metadata_album_artist_name;
+      copy.__origAlbum = entry.master_metadata_album_album_name;
       if (trackEdit.name) copy.master_metadata_track_name = trackEdit.name;
       if (trackEdit.artist) copy.master_metadata_album_artist_name = trackEdit.artist;
       if (trackEdit.album) copy.master_metadata_album_album_name = trackEdit.album;

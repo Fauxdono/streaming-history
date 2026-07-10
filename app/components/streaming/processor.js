@@ -301,7 +301,7 @@ export const streamingProcessor = {
             if (done % 50 === 0 || done === total) {
               console.log(`Album enrichment: ${done}/${total} lookups complete`);
             }
-          });
+          }, { trackOverrides: overrides?.tracks });
           console.log(`Album enrichment complete: ${enrichResult.enriched} entries updated`);
         }
       }

@@ -19,6 +19,18 @@ describe('applyOverrides', () => {
     expect(applyOverrides(entries, null)).toBe(entries);
   });
 
+  it('keeps the pre-edit identity on renamed plays for the provenance view', () => {
+    const e1 = entry('Song A - Remastered', 'Artist X', '2024-01-01T10:00:00Z');
+    const key = entryMatchKey(e1);
+    const out = applyOverrides([e1], {
+      ...empty,
+      tracks: { [key]: { name: 'Song A', album: 'Original Album' } },
+    });
+    expect(out[0].master_metadata_track_name).toBe('Song A');
+    expect(out[0].__origName).toBe('Song A - Remastered');
+    expect(out[0].__origAlbum).toBe('Some Album');
+  });
+
   it('renames track/artist/album on all matching plays and stamps __origKey', () => {
     const e1 = entry('Song A', 'Artist X', '2024-01-01T10:00:00Z');
     const e2 = entry('Song A', 'Artist X', '2024-02-01T10:00:00Z');
