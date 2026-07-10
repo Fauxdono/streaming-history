@@ -56,17 +56,32 @@ describe('applyOverrides', () => {
     expect(out[1].ms_played).toBe(200000);
   });
 
-  it('applies a track-level length correction to every play, per-play edits win', () => {
-    const e1 = entry('Song A', 'Artist X', '2024-01-01T10:00:00Z');
-    const e2 = entry('Song A', 'Artist X', '2024-02-01T10:00:00Z');
+  it('length correction rewrites ms_played only for scrobble sources, per-play edits win', () => {
+    const e1 = entry('Song A', 'Artist X', '2024-01-01T10:00:00Z', 200000, 'lastfm');
+    const e2 = entry('Song A', 'Artist X', '2024-02-01T10:00:00Z', 200000, 'lastfm');
+    const e3 = entry('Song A', 'Artist X', '2024-03-01T10:00:00Z', 47000, 'spotify');
     const key = entryMatchKey(e1);
-    const out = applyOverrides([e1, e2], {
+    const out = applyOverrides([e1, e2, e3], {
       ...empty,
       tracks: { [key]: { lengthMs: 180000 } },
       plays: { [playOverrideKey(key, e2.ts)]: { ms_played: 90000 } },
     });
     expect(out[0].ms_played).toBe(180000);
     expect(out[1].ms_played).toBe(90000);
+    // Spotify play: actual listening time untouched, runtime carried as metadata
+    expect(out[2].ms_played).toBe(47000);
+    expect(out[2].track_length_ms).toBe(180000);
+  });
+
+  it('applies a release-year correction to every play', () => {
+    const e1 = entry('Song A', 'Artist X', '2024-01-01T10:00:00Z', 200000, 'spotify');
+    const key = entryMatchKey(e1);
+    const out = applyOverrides([e1], {
+      ...empty,
+      tracks: { [key]: { releaseYear: 1997 } },
+    });
+    expect(out[0].release_year).toBe(1997);
+    expect(out[0].ms_played).toBe(200000);
   });
 
   it('removes deleted plays', () => {

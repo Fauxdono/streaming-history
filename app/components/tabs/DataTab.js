@@ -75,7 +75,7 @@ export default function DataTab({
   const [resetArmed, setResetArmed] = useState(false);
   const [expandedKey, setExpandedKey] = useState(null);
   const [editingKey, setEditingKey] = useState(null);
-  const [editDraft, setEditDraft] = useState({ name: '', artist: '', album: '', length: '' });
+  const [editDraft, setEditDraft] = useState({ name: '', artist: '', album: '', year: '', length: '' });
 
   const persist = useCallback(async (next) => {
     setOverrides(next);
@@ -102,11 +102,14 @@ export default function DataTab({
       const key = play.__origKey || createMatchKey(name, artist) || `${name}:::${artist}`;
       let t = map.get(key);
       if (!t) {
-        t = { key, name, artist, albums: new Map(), lengthMs: 0, sources: new Set(), plays: [] };
+        t = { key, name, artist, albums: new Map(), lengthMs: 0, correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [] };
         map.set(key, t);
       }
-      // Best available song length: the longest play we have on file
+      // Best available song length: a user correction wins, otherwise the
+      // longest play we have on file
+      if (play.track_length_ms) t.correctedLengthMs = play.track_length_ms;
       if ((play.ms_played || 0) > t.lengthMs) t.lengthMs = play.ms_played;
+      if (play.release_year) t.releaseYear = play.release_year;
       const album = play.master_metadata_album_album_name;
       if (album && album !== 'Unknown Album') {
         t.albums.set(album, (t.albums.get(album) || 0) + 1);
@@ -127,10 +130,10 @@ export default function DataTab({
         name: t.name,
         artist: t.artist,
         album,
-        lengthMs: t.lengthMs,
+        lengthMs: t.correctedLengthMs || t.lengthMs,
+        releaseYear: t.releaseYear || 0,
         sources,
         plays: t.plays,
-        editable: sources.length > 0 && sources.every(s => EDITABLE_SOURCES.has(s)),
       });
     }
     return arr;
@@ -191,7 +194,13 @@ export default function DataTab({
 
   const startEdit = (t) => {
     setEditingKey(t.key);
-    setEditDraft({ name: t.name, artist: t.artist, album: t.album, length: formatDurationInput(t.lengthMs) });
+    setEditDraft({
+      name: t.name,
+      artist: t.artist,
+      album: t.album,
+      year: t.releaseYear ? String(t.releaseYear) : '',
+      length: formatDurationInput(t.lengthMs),
+    });
   };
 
   const saveEdit = (t) => {
@@ -199,13 +208,18 @@ export default function DataTab({
     const artist = editDraft.artist.trim();
     const album = editDraft.album.trim();
     const lengthMs = parseDurationInput(editDraft.length);
+    const year = parseInt(editDraft.year, 10);
+    const releaseYear = year >= 1000 && year <= 9999 ? year : null;
     setEditingKey(null);
     if (!name || !artist) return;
     const lengthChanged = lengthMs != null && lengthMs > 0 && lengthMs !== t.lengthMs;
-    if (name === t.name && artist === t.artist && album === t.album && !lengthChanged) return;
+    const yearChanged = releaseYear != null && releaseYear !== t.releaseYear;
+    if (name === t.name && artist === t.artist && album === t.album && !lengthChanged && !yearChanged) return;
     const edit = { name, artist, album };
     if (lengthChanged) edit.lengthMs = lengthMs;
     else if (overrides.tracks[t.key]?.lengthMs != null) edit.lengthMs = overrides.tracks[t.key].lengthMs;
+    if (releaseYear != null) edit.releaseYear = releaseYear;
+    else if (overrides.tracks[t.key]?.releaseYear != null) edit.releaseYear = overrides.tracks[t.key].releaseYear;
     persist({
       ...overrides,
       tracks: { ...overrides.tracks, [t.key]: edit },
@@ -262,28 +276,30 @@ export default function DataTab({
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
   }, [rawPlayData]);
 
-  const headingClass = isColorful ? 'text-green-400' : '';
-  const bodyClass = isColorful ? 'text-green-500' : isDarkMode ? 'text-white' : 'text-black';
+  // Colorful mode: green page with black accents in light, black terminal
+  // with green accents in dark (dark: variants carry the inversion).
+  const headingClass = isColorful ? 'text-black dark:text-green-400' : '';
+  const bodyClass = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-white' : 'text-black';
   const cardClass = isColorful
-    ? 'p-4 border border-green-500 rounded bg-black shadow-[2px_2px_0_0_#22c55e]'
+    ? 'p-4 border border-black rounded bg-green-100 shadow-[2px_2px_0_0_black] dark:border-green-500 dark:bg-black dark:shadow-[2px_2px_0_0_#22c55e]'
     : `p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`;
   const thClass = isColorful
-    ? 'px-2 py-2 text-left text-xs font-bold uppercase tracking-wider text-green-400 cursor-pointer select-none hover:text-green-300'
+    ? 'px-2 py-2 text-left text-xs font-bold uppercase tracking-wider text-black cursor-pointer select-none hover:opacity-70 dark:text-green-400 dark:hover:text-green-300 dark:hover:opacity-100'
     : `px-2 py-2 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none ${isDarkMode ? 'text-white' : 'text-black'}`;
   const tdClass = isColorful
-    ? 'px-2 py-1.5 text-sm text-green-500'
+    ? 'px-2 py-1.5 text-sm text-black dark:text-green-500'
     : `px-2 py-1.5 text-sm ${isDarkMode ? 'text-white' : 'text-black'}`;
   const inputClass = isColorful
-    ? 'px-1.5 py-1 w-full text-sm rounded bg-black border border-green-600 text-green-300 focus:outline-none focus:border-green-400'
+    ? 'px-1.5 py-1 w-full text-sm rounded bg-green-50 border border-black text-black focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-300 dark:focus:border-green-400'
     : `px-1.5 py-1 w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black'}`;
   const iconBtnClass = isColorful
-    ? 'p-1 rounded text-green-500 hover:text-green-300 hover:bg-green-950'
+    ? 'p-1 rounded text-black hover:bg-green-300 dark:text-green-500 dark:hover:text-green-300 dark:hover:bg-green-950'
     : `p-1 rounded ${isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100'}`;
   const badgeClass = isColorful
-    ? 'px-1.5 py-0.5 text-[10px] rounded border border-green-700 bg-green-950 text-green-400 whitespace-nowrap'
+    ? 'px-1.5 py-0.5 text-[10px] rounded border border-black bg-green-200 text-black whitespace-nowrap dark:border-green-700 dark:bg-green-950 dark:text-green-400'
     : `px-1.5 py-0.5 text-[10px] rounded border whitespace-nowrap ${isDarkMode ? 'border-[#4169E1] text-white' : 'border-black text-black'}`;
   const pageBtnClass = isColorful
-    ? 'flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-green-600 text-green-400 hover:bg-green-950 disabled:opacity-30 disabled:cursor-not-allowed'
+    ? 'flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
     : `flex items-center gap-1 px-3 py-1.5 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`;
 
   const SortHeader = ({ column, label, className = '' }) => (
@@ -306,10 +322,10 @@ export default function DataTab({
           {' · '}
           <span className="font-bold">{allTracks.length.toLocaleString()}</span> tracks
           {editCount > 0 && (
-            <span className={isColorful ? 'text-green-600' : 'opacity-60'}> · {editCount.toLocaleString()} {editCount === 1 ? 'edit' : 'edits'}</span>
+            <span className={isColorful ? 'opacity-60 dark:opacity-100 dark:text-green-600' : 'opacity-60'}> · {editCount.toLocaleString()} {editCount === 1 ? 'edit' : 'edits'}</span>
           )}
           {applying && (
-            <span className={isColorful ? 'text-green-300 animate-pulse' : 'opacity-60 animate-pulse'}> · updating stats…</span>
+            <span className={isColorful ? 'text-green-800 animate-pulse dark:text-green-300' : 'opacity-60 animate-pulse'}> · updating stats…</span>
           )}
         </p>
         {serviceCounts.length > 0 && (
@@ -340,9 +356,9 @@ export default function DataTab({
                   onBlur={() => setResetArmed(false)}
                   className={
                     resetArmed
-                      ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-red-500 text-red-400 bg-red-950'
+                      ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-red-600 text-red-700 bg-red-200 dark:border-red-500 dark:text-red-400 dark:bg-red-950'
                       : isColorful
-                        ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-green-700 text-green-500 hover:bg-green-950'
+                        ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-500 dark:hover:bg-green-950'
                         : `flex items-center gap-1 px-2 py-1.5 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
                   }
                 >
@@ -351,7 +367,7 @@ export default function DataTab({
                 </button>
               )}
               <div className="relative">
-                <Search size={14} className={`absolute left-2 top-1/2 -translate-y-1/2 ${isColorful ? 'text-green-600' : 'opacity-50'}`} />
+                <Search size={14} className={`absolute left-2 top-1/2 -translate-y-1/2 ${isColorful ? 'text-black opacity-50 dark:text-green-600 dark:opacity-100' : 'opacity-50'}`} />
                 <input
                   type="text"
                   value={trackSearch}
@@ -359,25 +375,26 @@ export default function DataTab({
                   placeholder="Search track, artist, album…"
                   className={
                     isColorful
-                      ? 'pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded bg-black border border-green-600 text-green-400 placeholder-green-800 focus:outline-none focus:border-green-400'
+                      ? 'pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded bg-green-50 border border-black text-black placeholder-green-700 focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-400 dark:placeholder-green-800 dark:focus:border-green-400'
                       : `pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-white border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
                   }
                 />
               </div>
             </div>
           </div>
-          <p className={`text-xs mb-3 ${isColorful ? 'text-green-700' : 'opacity-60'}`}>
-            Tracks from Cake imports and scrobbles (Last.fm, iPod) can be renamed and their song length corrected; expand a row to adjust or remove individual plays. Official service exports are read-only.
+          <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+            Edit song details (name, artist, album, release year, length) for any track. Length edits only change listening-time stats for scrobbles (Last.fm, iPod), where the log stores the song length; streamed play times are never rewritten. Expand a row to adjust or remove individual scrobble plays.
           </p>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px]">
               <thead>
-                <tr className={isColorful ? 'border-b border-green-700' : `border-b ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`}>
+                <tr className={isColorful ? 'border-b border-black dark:border-green-700' : `border-b ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`}>
                   <th className={`${thClass} cursor-default w-6`}></th>
                   <SortHeader column="name" label="Track" />
                   <SortHeader column="artist" label="Artist" />
                   <SortHeader column="album" label="Album" />
+                  <SortHeader column="releaseYear" label="Year" className="text-right" />
                   <SortHeader column="lengthMs" label="Length" className="text-right" />
                   <th className={`${thClass} cursor-default`}>Service</th>
                   <th className={`${thClass} cursor-default w-20`}></th>
@@ -389,7 +406,7 @@ export default function DataTab({
                   const isEditing = editingKey === t.key;
                   const isExpanded = expandedKey === t.key;
                   const rowClass = isColorful
-                    ? 'border-b border-green-900 hover:bg-green-950'
+                    ? 'border-b border-green-400 hover:bg-green-200 dark:border-green-900 dark:hover:bg-green-950'
                     : `border-b ${isDarkMode ? 'border-gray-800 hover:bg-gray-900' : 'border-gray-200 hover:bg-gray-50'}`;
                   return (
                     <React.Fragment key={t.key}>
@@ -415,6 +432,9 @@ export default function DataTab({
                               <input className={inputClass} value={editDraft.album} onChange={(e) => setEditDraft(d => ({ ...d, album: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} />
                             </td>
                             <td className={`${tdClass} text-right`}>
+                              <input className={`${inputClass} w-16 text-right tabular-nums`} value={editDraft.year} onChange={(e) => setEditDraft(d => ({ ...d, year: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Year" title="Release year" />
+                            </td>
+                            <td className={`${tdClass} text-right`}>
                               <input className={`${inputClass} w-20 text-right tabular-nums`} value={editDraft.length} onChange={(e) => setEditDraft(d => ({ ...d, length: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} title="Song length (m:ss)" />
                             </td>
                           </>
@@ -428,6 +448,7 @@ export default function DataTab({
                             </td>
                             <td className={`${tdClass} max-w-[160px] truncate`} title={t.artist}>{t.artist}</td>
                             <td className={`${tdClass} max-w-[180px] truncate opacity-80`} title={t.album}>{t.album}</td>
+                            <td className={`${tdClass} text-right tabular-nums`}>{t.releaseYear || '—'}</td>
                             <td className={`${tdClass} text-right tabular-nums whitespace-nowrap`}>{formatDurationInput(t.lengthMs)}</td>
                           </>
                         )}
@@ -447,9 +468,7 @@ export default function DataTab({
                               </>
                             ) : (
                               <>
-                                {t.editable && (
-                                  <button onClick={() => startEdit(t)} className={iconBtnClass} title="Rename track / artist / album"><Pencil size={14} /></button>
-                                )}
+                                <button onClick={() => startEdit(t)} className={iconBtnClass} title="Edit song details"><Pencil size={14} /></button>
                                 {isEdited && (
                                   <button onClick={() => revertTrack(t)} className={iconBtnClass} title="Undo all edits to this track"><RotateCcw size={14} /></button>
                                 )}
@@ -460,15 +479,15 @@ export default function DataTab({
                       </tr>
                       {isExpanded && (
                         <tr className={rowClass}>
-                          <td colSpan={7} className="px-2 pb-2">
-                            <div className={`mt-1 max-h-64 overflow-y-auto rounded border ${isColorful ? 'border-green-900' : isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+                          <td colSpan={8} className="px-2 pb-2">
+                            <div className={`mt-1 max-h-64 overflow-y-auto rounded border ${isColorful ? 'border-green-500 dark:border-green-900' : isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
                               <table className="w-full">
                                 <tbody>
                                   {[...t.plays].sort((a, b) => new Date(b.ts) - new Date(a.ts)).map((play) => {
                                     const canEditPlay = EDITABLE_SOURCES.has(play.source);
                                     const pk = playOverrideKey(t.key, play.ts);
                                     return (
-                                      <tr key={`${play.ts}-${play.source}`} className={isColorful ? 'border-b border-green-950' : `border-b ${isDarkMode ? 'border-gray-900' : 'border-gray-100'}`}>
+                                      <tr key={`${play.ts}-${play.source}`} className={isColorful ? 'border-b border-green-300 dark:border-green-950' : `border-b ${isDarkMode ? 'border-gray-900' : 'border-gray-100'}`}>
                                         <td className={`${tdClass} whitespace-nowrap`}>{new Date(play.ts).toLocaleString()}</td>
                                         <td className={`${tdClass} w-28`}>
                                           {canEditPlay ? (
@@ -488,7 +507,7 @@ export default function DataTab({
                                           {canEditPlay && (
                                             <button
                                               onClick={() => deletePlay(t, play)}
-                                              className={isColorful ? 'p-1 rounded text-green-700 hover:text-red-400 hover:bg-red-950' : `p-1 rounded ${isDarkMode ? 'text-white hover:text-red-400' : 'text-black hover:text-red-600'}`}
+                                              className={isColorful ? 'p-1 rounded text-black hover:text-red-600 hover:bg-red-200 dark:text-green-700 dark:hover:text-red-400 dark:hover:bg-red-950' : `p-1 rounded ${isDarkMode ? 'text-white hover:text-red-400' : 'text-black hover:text-red-600'}`}
                                               title="Remove this play"
                                             >
                                               <Trash2 size={13} />
@@ -534,7 +553,7 @@ export default function DataTab({
       {stats && processedData.length > 0 && (
         <div className={cardClass}>
           <div className="flex items-center gap-2 mb-3">
-            <Download size={18} className={isColorful ? 'text-green-400' : ''} />
+            <Download size={18} className={isColorful ? 'text-black dark:text-green-400' : ''} />
             <h4 className={`font-medium ${headingClass}`}>Download Your Data</h4>
           </div>
           <p className={`text-sm mb-3 ${bodyClass}`}>
@@ -551,7 +570,7 @@ export default function DataTab({
             formatDuration={formatDuration}
             colorMode={colorMode}
           />
-          <div className={`mt-3 pt-3 border-t ${isColorful ? 'border-green-800' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className={`mt-3 pt-3 border-t ${isColorful ? 'border-green-600 dark:border-green-800' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <p className={`text-sm mb-2 ${bodyClass}`}>
               Lightweight export of your top 100 rankings — paste into AI chats or save for later.
             </p>

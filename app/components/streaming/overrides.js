@@ -6,6 +6,10 @@ import { createMatchKey } from './normalize.js';
 
 const STORAGE_KEY = 'cakeculator_data_overrides';
 
+// Sources whose ms_played field holds the track length rather than the
+// actually-listened duration (scrobble logs record whole-song lengths).
+export const LENGTH_IS_DURATION_SOURCES = new Set(['lastfm', 'ipod']);
+
 export function entryMatchKey(entry) {
   const name = entry.master_metadata_track_name;
   const artist = entry.master_metadata_album_artist_name || 'Unknown Artist';
@@ -68,9 +72,17 @@ export function applyOverrides(entries, overrides) {
       if (trackEdit.name) copy.master_metadata_track_name = trackEdit.name;
       if (trackEdit.artist) copy.master_metadata_album_artist_name = trackEdit.artist;
       if (trackEdit.album) copy.master_metadata_album_album_name = trackEdit.album;
-      // Song-length correction: scrobble-type sources store the track length
-      // as the play duration, so it applies to every play of the song.
-      if (trackEdit.lengthMs != null) copy.ms_played = trackEdit.lengthMs;
+      if (trackEdit.releaseYear != null) copy.release_year = trackEdit.releaseYear;
+      if (trackEdit.lengthMs != null) {
+        // Corrected song runtime, carried as metadata on every play.
+        copy.track_length_ms = trackEdit.lengthMs;
+        // Only scrobble logs store the track length as the play duration;
+        // for real streaming exports ms_played is actual listening time
+        // and must not be rewritten.
+        if (LENGTH_IS_DURATION_SOURCES.has(entry.source)) {
+          copy.ms_played = trackEdit.lengthMs;
+        }
+      }
     }
     // A per-play time edit wins over the track-level length
     if (playEdit && playEdit.ms_played != null) copy.ms_played = playEdit.ms_played;

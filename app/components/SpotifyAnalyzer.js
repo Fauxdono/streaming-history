@@ -2522,7 +2522,7 @@ const SpotifyAnalyzer = ({
         return (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-black rounded border-2 border-green-600'
+              ? 'p-2 sm:p-4 bg-green-200 rounded border-2 border-black dark:bg-black dark:border-green-600'
               : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             <DataTab
@@ -2690,7 +2690,7 @@ const SpotifyAnalyzer = ({
       podcasts: isDarkMode ? 'bg-red-900' : 'bg-red-200',
       playlists: isDarkMode ? 'bg-rose-900' : 'bg-rose-200',
       updates: isDarkMode ? 'bg-fuchsia-900' : 'bg-fuchsia-200',
-      data: 'bg-black'
+      data: isDarkMode ? 'bg-black' : 'bg-green-200'
     };
 
     return tabColors[activeTab] || '';

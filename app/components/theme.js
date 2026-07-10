@@ -895,7 +895,7 @@ export function getAnalysisChartTheme(accent, isColorful, isDarkMode) {
 // ---------------------------------------------------------------------------
 
 export const TAB_ACCENT_HEX = {
-  light: { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe', data: '#000000' },
+  light: { upload: '#ddd6fe', stats: '#c7d2fe', artists: '#bfdbfe', albums: '#a5f3fc', custom: '#a7f3d0', tracks: '#fecaca', calendar: '#bbf7d0', patterns: '#fef08a', behavior: '#fde68a', discovery: '#fed7aa', podcasts: '#fecaca', playlists: '#fecdd3', updates: '#f5d0fe', data: '#bbf7d0' },
   dark:  { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75', data: '#000000' },
 };
 
