@@ -102,13 +102,16 @@ export default function DataTab({
       const key = play.__origKey || createMatchKey(name, artist) || `${name}:::${artist}`;
       let t = map.get(key);
       if (!t) {
-        t = { key, name, artist, albums: new Map(), lengthMs: 0, correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [] };
+        t = { key, name, artist, albums: new Map(), maxMs: 0, doneMs: [], correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [] };
         map.set(key, t);
       }
-      // Best available song length: a user correction wins, otherwise the
-      // longest play we have on file
       if (play.track_length_ms) t.correctedLengthMs = play.track_length_ms;
-      if ((play.ms_played || 0) > t.lengthMs) t.lengthMs = play.ms_played;
+      const ms = play.ms_played || 0;
+      if (ms > t.maxMs) t.maxMs = ms;
+      // Completed plays carry the real song length; single entries can still
+      // be corrupted (loop sessions logged as one play), so we take the
+      // median of them later rather than the max.
+      if (play.reason_end === 'trackdone' && ms > 0) t.doneMs.push(ms);
       if (play.release_year) t.releaseYear = play.release_year;
       const album = play.master_metadata_album_album_name;
       if (album && album !== 'Unknown Album') {
@@ -125,12 +128,26 @@ export default function DataTab({
         if (c > best) { best = c; album = a; }
       }
       const sources = [...t.sources].sort();
+      // Song length: user correction > median completed play > longest
+      // partial listen (shown as a lower bound — the song was never finished)
+      let lengthMs;
+      let lengthIsPartial = false;
+      if (t.correctedLengthMs) {
+        lengthMs = t.correctedLengthMs;
+      } else if (t.doneMs.length > 0) {
+        const sortedDone = t.doneMs.sort((a, b) => a - b);
+        lengthMs = sortedDone[Math.floor(sortedDone.length / 2)];
+      } else {
+        lengthMs = t.maxMs;
+        lengthIsPartial = true;
+      }
       arr.push({
         key: t.key,
         name: t.name,
         artist: t.artist,
         album,
-        lengthMs: t.correctedLengthMs || t.lengthMs,
+        lengthMs,
+        lengthIsPartial,
         releaseYear: t.releaseYear || 0,
         sources,
         plays: t.plays,
@@ -281,7 +298,7 @@ export default function DataTab({
   const headingClass = isColorful ? 'text-black dark:text-green-400' : '';
   const bodyClass = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-white' : 'text-black';
   const cardClass = isColorful
-    ? 'p-4 border border-black rounded bg-green-100 shadow-[2px_2px_0_0_black] dark:border-green-500 dark:bg-black dark:shadow-[2px_2px_0_0_#22c55e]'
+    ? 'p-4 border border-black rounded bg-green-200 shadow-[2px_2px_0_0_black] dark:border-green-500 dark:bg-black dark:shadow-[2px_2px_0_0_#22c55e]'
     : `p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`;
   const thClass = isColorful
     ? 'px-2 py-2 text-left text-xs font-bold uppercase tracking-wider text-black cursor-pointer select-none hover:opacity-70 dark:text-green-400 dark:hover:text-green-300 dark:hover:opacity-100'
@@ -290,13 +307,13 @@ export default function DataTab({
     ? 'px-2 py-1.5 text-sm text-black dark:text-green-500'
     : `px-2 py-1.5 text-sm ${isDarkMode ? 'text-white' : 'text-black'}`;
   const inputClass = isColorful
-    ? 'px-1.5 py-1 w-full text-sm rounded bg-green-50 border border-black text-black focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-300 dark:focus:border-green-400'
+    ? 'px-1.5 py-1 w-full text-sm rounded bg-green-100 border border-black text-black focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-300 dark:focus:border-green-400'
     : `px-1.5 py-1 w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black'}`;
   const iconBtnClass = isColorful
     ? 'p-1 rounded text-black hover:bg-green-300 dark:text-green-500 dark:hover:text-green-300 dark:hover:bg-green-950'
     : `p-1 rounded ${isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100'}`;
   const badgeClass = isColorful
-    ? 'px-1.5 py-0.5 text-[10px] rounded border border-black bg-green-200 text-black whitespace-nowrap dark:border-green-700 dark:bg-green-950 dark:text-green-400'
+    ? 'px-1.5 py-0.5 text-[10px] rounded border border-black bg-green-300 text-black whitespace-nowrap dark:border-green-700 dark:bg-green-950 dark:text-green-400'
     : `px-1.5 py-0.5 text-[10px] rounded border whitespace-nowrap ${isDarkMode ? 'border-[#4169E1] text-white' : 'border-black text-black'}`;
   const pageBtnClass = isColorful
     ? 'flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
@@ -375,7 +392,7 @@ export default function DataTab({
                   placeholder="Search track, artist, album…"
                   className={
                     isColorful
-                      ? 'pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded bg-green-50 border border-black text-black placeholder-green-700 focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-400 dark:placeholder-green-800 dark:focus:border-green-400'
+                      ? 'pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded bg-green-100 border border-black text-black placeholder-green-700 focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-400 dark:placeholder-green-800 dark:focus:border-green-400'
                       : `pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-white border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
                   }
                 />
@@ -406,7 +423,7 @@ export default function DataTab({
                   const isEditing = editingKey === t.key;
                   const isExpanded = expandedKey === t.key;
                   const rowClass = isColorful
-                    ? 'border-b border-green-400 hover:bg-green-200 dark:border-green-900 dark:hover:bg-green-950'
+                    ? 'border-b border-green-400 hover:bg-green-300 dark:border-green-900 dark:hover:bg-green-950'
                     : `border-b ${isDarkMode ? 'border-gray-800 hover:bg-gray-900' : 'border-gray-200 hover:bg-gray-50'}`;
                   return (
                     <React.Fragment key={t.key}>
@@ -449,7 +466,14 @@ export default function DataTab({
                             <td className={`${tdClass} max-w-[160px] truncate`} title={t.artist}>{t.artist}</td>
                             <td className={`${tdClass} max-w-[180px] truncate opacity-80`} title={t.album}>{t.album}</td>
                             <td className={`${tdClass} text-right tabular-nums`}>{t.releaseYear || '—'}</td>
-                            <td className={`${tdClass} text-right tabular-nums whitespace-nowrap`}>{formatDurationInput(t.lengthMs)}</td>
+                            <td
+                              className={`${tdClass} text-right tabular-nums whitespace-nowrap ${t.lengthIsPartial ? 'opacity-60' : ''}`}
+                              title={t.lengthIsPartial ? 'Never played to the end — longest partial listen; edit to set the real length' : undefined}
+                            >
+                              {t.lengthIsPartial
+                                ? (t.lengthMs >= 1000 ? `≥ ${formatDurationInput(t.lengthMs)}` : '—')
+                                : formatDurationInput(t.lengthMs)}
+                            </td>
                           </>
                         )}
                         <td className={tdClass}>
