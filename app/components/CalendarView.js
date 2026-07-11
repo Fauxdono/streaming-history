@@ -83,6 +83,62 @@ function YearStrip({ year, days, maxMs, scale, gridColor, labelClass, formatDura
   );
 }
 
+// Phone variant of the heatmap: months down the side, day-of-month across,
+// so a whole year fits the screen width without horizontal scrolling.
+function YearGridMonths({ year, days, maxMs, scale, gridColor, labelClass, formatDuration, onDayClick }) {
+  const cellColor = (ms) => {
+    if (!ms || maxMs <= 0) return null;
+    const idx = Math.min(4, Math.floor(Math.sqrt(ms / maxMs) * 5));
+    return scale[idx];
+  };
+  const cols = { display: 'grid', gridTemplateColumns: 'repeat(31, minmax(0, 1fr))', gap: '2px' };
+
+  return (
+    <div>
+      {/* Day-of-month header — number every fifth column */}
+      <div className="ml-[34px] mb-0.5" style={cols}>
+        {Array.from({ length: 31 }, (_, i) => (
+          <span key={i} className={`text-[8px] text-center ${labelClass}`}>
+            {i === 0 || (i + 1) % 5 === 0 ? i + 1 : ''}
+          </span>
+        ))}
+      </div>
+      <div className="flex flex-col gap-[2px]">
+        {MONTH_LABELS.map((m, mi) => {
+          const daysInMonth = new Date(year, mi + 1, 0).getDate();
+          return (
+            <div key={m} className="flex items-center gap-[2px]">
+              <span className={`w-8 shrink-0 text-[10px] font-bold ${labelClass}`}>{m}</span>
+              <div className="flex-1 min-w-0" style={cols}>
+                {Array.from({ length: 31 }, (_, di) => {
+                  if (di + 1 > daysInMonth) return <span key={di} className="aspect-square" />;
+                  const d = new Date(year, mi, di + 1);
+                  const stat = days.get(dayKey(d));
+                  const color = stat ? cellColor(stat.ms) : null;
+                  return (
+                    <span
+                      key={di}
+                      onClick={stat ? () => onDayClick(dayKey(d)) : undefined}
+                      className={`aspect-square rounded-[1px] ${stat ? 'cursor-pointer' : ''}`}
+                      style={{
+                        backgroundColor: color || 'transparent',
+                        boxShadow: color ? 'none' : `inset 0 0 0 1px ${gridColor}`,
+                      }}
+                      title={`${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${
+                        stat ? ` — ${stat.plays} play${stat.plays === 1 ? '' : 's'} · ${formatDuration(stat.ms)}` : ' — no plays'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const CalendarView = ({
   rawPlayData = [],
   formatDuration,
@@ -100,6 +156,20 @@ const CalendarView = ({
 }) => {
   const [activeTab, setActiveTab] = useState('calendar');
   const [daySelectionMode, setDaySelectionMode] = useState(false);
+
+  // Phones get the month×day heatmap (one year at a time); desktop keeps the
+  // week-strip layout. Same detection convention as TopTabs/SpotifyAnalyzer.
+  const [isMobile, setIsMobile] = useState(false);
+  const [heatmapYear, setHeatmapYear] = useState(null);
+  useEffect(() => {
+    const check = () => {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(window.innerWidth < 640 || (isTouch && window.innerHeight < 500));
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const [viewPress, setViewPress] = useState(0);
   const [expandedMonthCards, setExpandedMonthCards] = useState({});
   const [expandedDayCards, setExpandedDayCards] = useState({});
@@ -815,6 +885,53 @@ const CalendarView = ({
                 Daily listening time — click a day to open it in Daily History
               </p>
               <div className={`p-3 sm:p-4 rounded border ${modeColors.bgCardAlt} ${modeColors.border} ${modeColors.shadow} overflow-x-auto`}>
+                {isMobile ? (() => {
+                  // One year at a time on phones, with a ‹ year › switcher
+                  const years = yearHeatmap.years;
+                  const shownYear = years.includes(heatmapYear) ? heatmapYear : years[years.length - 1];
+                  const idx = years.indexOf(shownYear);
+                  return (
+                    <div className="space-y-3">
+                      {years.length > 1 && (
+                        <div className="flex items-center justify-center gap-4">
+                          <button
+                            onClick={() => setHeatmapYear(years[idx - 1])}
+                            disabled={idx === 0}
+                            className={`px-2 py-0.5 rounded text-sm font-bold ${modeColors.buttonInactive} disabled:opacity-30`}
+                            aria-label="Previous year"
+                          >‹</button>
+                          <span className={`text-sm font-bold ${modeColors.text}`}>{shownYear}</span>
+                          <button
+                            onClick={() => setHeatmapYear(years[idx + 1])}
+                            disabled={idx === years.length - 1}
+                            className={`px-2 py-0.5 rounded text-sm font-bold ${modeColors.buttonInactive} disabled:opacity-30`}
+                            aria-label="Next year"
+                          >›</button>
+                        </div>
+                      )}
+                      <YearGridMonths
+                        year={shownYear}
+                        days={yearHeatmap.days}
+                        maxMs={yearHeatmap.maxMs}
+                        scale={heatScale}
+                        gridColor={chart.grid}
+                        labelClass={modeColors.textLighter}
+                        formatDuration={formatDuration}
+                        onDayClick={(date) => {
+                          if (onYearChange) onYearChange(date);
+                          setActiveTab('history');
+                        }}
+                      />
+                      <div className={`flex items-center justify-end gap-1 text-[10px] ${modeColors.textLighter}`}>
+                        fewer
+                        {heatScale.map((c) => (
+                          <span key={c} className="inline-block w-3 h-3 rounded-[2px]" style={{ backgroundColor: c }} />
+                        ))}
+                        more
+                      </div>
+                    </div>
+                  );
+                })() : (
                 <div className="space-y-4 min-w-max">
                   {yearHeatmap.years.map((year) => (
                     <div key={year}>
@@ -844,6 +961,7 @@ const CalendarView = ({
                     more
                   </div>
                 </div>
+                )}
               </div>
             </div>
           )}
