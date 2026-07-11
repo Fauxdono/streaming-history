@@ -521,13 +521,15 @@ export default function StatsTab({
                     {children}
                   </div>
                 );
+                // Phones: entries stack as compact wrapping rows (three ~70px
+                // columns truncate everything); sm+ keeps them side by side.
                 const Top3 = ({ label, items, render }) => (
                   items && items.length > 0 ? (
-                    <div className={`${cardCls} col-span-2`}>
+                    <div className={`${cardCls} sm:col-span-2`}>
                       <div className={labelCls}>{label}</div>
-                      <div className="flex gap-3">
+                      <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-3">
                         {items.map((item, i) => (
-                          <div key={i} className="flex-1 min-w-0">{render(item, i)}</div>
+                          <div key={i} className="min-w-0 flex flex-wrap items-baseline gap-x-2 [&>div]:max-w-full sm:block sm:flex-1">{render(item, i)}</div>
                         ))}
                       </div>
                     </div>
@@ -551,7 +553,7 @@ export default function StatsTab({
                         ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
                         : 'text-lg font-semibold mb-4'
                     }>Records &amp; Firsts</h4>
-                    <div data-rec-grid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div data-rec-grid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       {records.first && (
                         <Card label="First play:">
                           <div className={`${mainCls} truncate`} title={records.first.track}>&quot;{records.first.track}&quot;</div>
