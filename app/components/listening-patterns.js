@@ -47,6 +47,16 @@ const ListeningPatterns = ({
 }) => {
   const [activeTab, setActiveTab] = useState('timeOfDay');
 
+  // Narrow screens transpose the Weekly Rhythm heatmap (hours down, days
+  // across) so it fits without horizontal scrolling.
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    const check = () => setIsNarrow(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // Which hemisphere's season definitions to use (persisted)
   const [hemisphere, setHemisphere] = useState(() => {
     if (typeof window === 'undefined') return 'north';
@@ -799,7 +809,7 @@ const ListeningPatterns = ({
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${colors.text}`}>Weekly Rhythm</h3>
             <p className={`mb-4 ${colors.textLight}`}>Your listening by hour and day of the week</p>
             <div className={`p-3 sm:p-4 ${colors.card} overflow-x-auto`}>
-              <div className="min-w-[560px]">
+              <div className={isNarrow ? undefined : 'min-w-[560px]'}>
                 {(() => {
                   const scale = [...chart.ramp(5)].reverse();
                   const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -809,6 +819,52 @@ const ListeningPatterns = ({
                     return scale[idx];
                   };
                   const hourName = (h) => (h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`);
+                  const legend = (
+                    <div className={`mt-3 flex items-center justify-end gap-1 text-[10px] ${colors.textLighter}`}>
+                      fewer
+                      {scale.map((c) => (
+                        <span key={c} className="inline-block w-3 h-3 rounded-[2px]" style={{ backgroundColor: c }} />
+                      ))}
+                      more
+                    </div>
+                  );
+
+                  if (isNarrow) {
+                    // Transposed for phones: hours run down, days across
+                    return (
+                      <>
+                        <div className="flex items-center gap-[2px] mb-0.5">
+                          <span className="w-9 shrink-0" />
+                          {DAYS.map((day) => (
+                            <span key={day} className={`flex-1 text-center text-[10px] font-bold ${colors.textLight}`}>{day}</span>
+                          ))}
+                        </div>
+                        {Array.from({ length: 24 }, (_, h) => (
+                          <div key={h} className="flex items-center gap-[2px] mb-[2px]">
+                            <span className={`w-9 shrink-0 text-[9px] ${colors.textLighter}`}>
+                              {h % 3 === 0 ? hourName(h).replace(' ', '') : ''}
+                            </span>
+                            {DAYS.map((day, d) => {
+                              const count = heatmapData.grid[d][h];
+                              return (
+                                <div
+                                  key={d}
+                                  className="flex-1 h-3.5 rounded-[2px]"
+                                  style={{
+                                    backgroundColor: cellColor(count) || 'transparent',
+                                    boxShadow: count === 0 ? `inset 0 0 0 1px ${chart.grid}` : 'none',
+                                  }}
+                                  title={`${day} ${hourName(h)} — ${count} play${count === 1 ? '' : 's'}`}
+                                />
+                              );
+                            })}
+                          </div>
+                        ))}
+                        {legend}
+                      </>
+                    );
+                  }
+
                   return (
                     <>
                       {DAYS.map((day, d) => (
@@ -835,13 +891,7 @@ const ListeningPatterns = ({
                           </span>
                         ))}
                       </div>
-                      <div className={`mt-3 flex items-center justify-end gap-1 text-[10px] ${colors.textLighter}`}>
-                        fewer
-                        {scale.map((c) => (
-                          <span key={c} className="inline-block w-3 h-3 rounded-[2px]" style={{ backgroundColor: c }} />
-                        ))}
-                        more
-                      </div>
+                      {legend}
                     </>
                   );
                 })()}
