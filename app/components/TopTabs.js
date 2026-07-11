@@ -4,6 +4,24 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Minimize2, Maximize2 } from 'lucide-react';
 import { useTheme } from './themeprovider';
 
+// Tab-bar background per tab (colorful mode)
+const COLORFUL_TAB_BG = {
+  upload: 'bg-violet-200 dark:bg-violet-900',
+  stats: 'bg-indigo-200 dark:bg-indigo-900',
+  artists: 'bg-blue-200 dark:bg-blue-900',
+  albums: 'bg-cyan-200 dark:bg-cyan-900',
+  custom: 'bg-emerald-200 dark:bg-emerald-900',
+  tracks: 'bg-red-200 dark:bg-red-900',
+  calendar: 'bg-green-200 dark:bg-green-900',
+  patterns: 'bg-yellow-200 dark:bg-yellow-900',
+  behavior: 'bg-amber-200 dark:bg-amber-900',
+  discovery: 'bg-orange-200 dark:bg-orange-900',
+  podcasts: 'bg-red-200 dark:bg-red-900',
+  playlists: 'bg-rose-200 dark:bg-rose-900',
+  updates: 'bg-fuchsia-200 dark:bg-fuchsia-900',
+  data: 'bg-green-200 dark:bg-black',
+};
+
 // Plain-text tab names for icon-mode tooltips (the label props are JSX)
 const TAB_NAMES = {
   updates: 'Updates', upload: 'Upload', stats: 'Statistics', artists: 'Artists',
@@ -55,8 +73,8 @@ const TopTabs = ({
   const toggleCollapsed = () => onCollapseChange?.(!isCollapsed);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Get font size for re-measuring when it changes
-  const { fontSize } = useTheme();
+  // Get font size for re-measuring when it changes (theme keys the edge sliver)
+  const { fontSize, theme } = useTheme();
 
   // Check for mobile viewport
   const [isMobile, setIsMobile] = useState(false);
@@ -379,25 +397,9 @@ const TopTabs = ({
   const getContainerStyles = () => {
     // Faster transitions on mobile to reduce lag
     const transitionClass = isMobile ? 'transition-all duration-150' : 'transition-all duration-300';
-    const colorfulTabBg = {
-      upload: 'bg-violet-200 dark:bg-violet-900',
-      stats: 'bg-indigo-200 dark:bg-indigo-900',
-      artists: 'bg-blue-200 dark:bg-blue-900',
-      albums: 'bg-cyan-200 dark:bg-cyan-900',
-      custom: 'bg-emerald-200 dark:bg-emerald-900',
-      tracks: 'bg-red-200 dark:bg-red-900',
-      calendar: 'bg-green-200 dark:bg-green-900',
-      patterns: 'bg-yellow-200 dark:bg-yellow-900',
-      behavior: 'bg-amber-200 dark:bg-amber-900',
-      discovery: 'bg-orange-200 dark:bg-orange-900',
-      podcasts: 'bg-red-200 dark:bg-red-900',
-      playlists: 'bg-rose-200 dark:bg-rose-900',
-      updates: 'bg-fuchsia-200 dark:bg-fuchsia-900',
-      data: 'bg-green-200 dark:bg-black',
-    };
     const bgStyles = colorMode === 'minimal'
       ? 'bg-white dark:bg-black'
-      : (colorfulTabBg[activeTab] || 'bg-white dark:bg-black');
+      : (COLORFUL_TAB_BG[activeTab] || 'bg-white dark:bg-black');
     const borderColor = colorMode === 'minimal'
       ? 'border-black dark:border-[#4169E1]'
       : 'border-violet-200 dark:border-gray-600';
@@ -469,9 +471,27 @@ const TopTabs = ({
 
   return (
     <>
-      
+      {/* A sliver of the tab bar that always touches the top safe area: iOS
+          only refreshes the status-bar color when visible content at that
+          edge changes, so this 1px overhang (invisible against the
+          identically-colored inset strip behind it) carries the accent there
+          even when the bar is docked elsewhere. Keyed so every color change
+          is a freshly painted element. */}
+      {mounted && isMobile && (
+        <div
+          key={`edge-${activeTab}-${colorMode}-${theme}`}
+          aria-hidden
+          className={`fixed top-0 left-0 right-0 z-[98] pointer-events-none ${
+            colorMode === 'minimal'
+              ? 'bg-white dark:bg-black'
+              : (COLORFUL_TAB_BG[activeTab] || 'bg-white dark:bg-black')
+          }`}
+          style={{ height: 'calc(env(safe-area-inset-top, 0px) + 1px)' }}
+        />
+      )}
+
       {/* Positioned tabs container */}
-      <div 
+      <div
         className={`toptabs-container ${mounted ? '' : 'premount-toptabs'} ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
           // Pre-calculate positions to avoid layout shifts
