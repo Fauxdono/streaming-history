@@ -328,16 +328,16 @@ const TopTabs = ({
           isCollapsed && isMobile
             ? 'p-2 text-base'
             : 'px-2 sm:px-4 py-2 text-sm sm:text-base'
-        } font-medium ${getTabColor(id)} ${isMobile && !isCollapsed ? '[&>span]:flex [&>span]:flex-col [&>span]:items-center [&>span]:leading-tight [&>span>span]:text-[10px]' : ''}`}
+        } font-medium ${getTabColor(id)} ${isMobile && !isCollapsed ? '[&>span]:flex [&>span]:flex-col [&>span]:items-center [&>span]:leading-tight [&>span>span]:text-[10px]' : ''} ${isLandscapeMobile ? '[&>span>span]:hidden' : ''}`}
         title={isCollapsed && isMobile ? label : undefined}
       >
         {isCollapsed && isMobile ? getTabIcon(id) : label}
       </button>
     );
-  }, [activeTab, setActiveTab, isCollapsed, isMobile, getTabIcon, colorMode]);
+  }, [activeTab, setActiveTab, isCollapsed, isMobile, isLandscapeMobile, getTabIcon, colorMode]);
 
   // Settings bar height calculation - measure actual height on desktop
-  const mobileBarHeight = isLandscapeMobile ? 64 : 85;
+  const mobileBarHeight = isLandscapeMobile ? 48 : 85;
   const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? `${mobileBarHeight}px` : '40px');
   
   // Measure actual SettingsBar height on desktop, use fixed value on mobile

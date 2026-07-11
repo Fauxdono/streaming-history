@@ -25,7 +25,7 @@ const FixedSettingsBar = ({
 
   const tabAccentColors = isDarkMode ? TAB_ACCENT_HEX.dark : TAB_ACCENT_HEX.light;
   const colorfulBg = colorMode === 'colorful' ? (tabAccentColors[activeTab] || null) : null;
-  const mobileBarHeight = isLandscapeMobile ? 64 : 85;
+  const mobileBarHeight = isLandscapeMobile ? 48 : 85;
   // Tabs that support grid/list view (mobile only)
   const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns', 'calendar'];
   const showViewToggle = isMobile && tabsWithViewMode.includes(activeTab);

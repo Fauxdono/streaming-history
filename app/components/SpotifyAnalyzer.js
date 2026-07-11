@@ -2198,7 +2198,7 @@ const SpotifyAnalyzer = ({
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     // FixedSettingsBar is always 40px on desktop (icon buttons only, no text)
-    const settingsBarHeight = isMobile ? 85 : 40;
+    const settingsBarHeight = isMobile ? (isLandscapeMobile ? 48 : 85) : 40;
     
     let leftSpace = 0;
     let rightSpace = 0;
@@ -2249,7 +2249,7 @@ const SpotifyAnalyzer = ({
       paddingLeft: `${leftSpace}px`,
       paddingRight: `${rightSpace}px`,
     };
-  }, [mounted, topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorWidth, showYearSidebar, isMobile, yearSelectorHeight, fontSize]);
+  }, [mounted, topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorWidth, showYearSidebar, isMobile, isLandscapeMobile, yearSelectorHeight, fontSize]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {

@@ -278,23 +278,27 @@ function ModeControls({ sel, panel, c, asSidebar }) {
   );
 
   if (isHorizontal) {
+    // Mobile landscape: vertical space is scarce — lay every control out in
+    // one row so the docked bar stays a single line tall.
+    const flat = isMobile && panel.isLandscape;
+    const group = flat ? 'flex flex-row gap-1 items-center' : 'flex flex-col gap-1 items-center';
     // Compact columns mirroring the vertical order:
     // Single/Range · move/float · Month/Day
     return (
       <div className="flex flex-row gap-1 items-center shrink-0">
-        <div className="flex flex-col gap-1 items-center">
+        <div className={group}>
           <PressButton active={sel.mode === 'single'} c={c} onClick={() => sel.setMode('single')}>Single</PressButton>
           <PressButton active={sel.mode === 'range'}  c={c} onClick={() => sel.setMode('range')}>Range</PressButton>
         </div>
         {asSidebar && (
-          <div className="flex flex-col gap-1 items-center">
+          <div className={group}>
             <button onClick={panel.togglePosition} className={iconBtn(c)} aria-label="Move panel">⇄</button>
             {!isMobile && (
               <button onClick={panel.toggleFloating} className={iconBtn(c)} title="Float as dial">◎</button>
             )}
           </div>
         )}
-        <div className="flex flex-col gap-1 items-center empty:hidden">
+        <div className={`${group} empty:hidden`}>
           {monthDayToggles}
         </div>
       </div>
@@ -352,25 +356,28 @@ function SelectionContent({ sel, panel, c }) {
 // ---------------------------------------------------------------------------
 
 function SingleContent({ sel, panel, c, stacked }) {
-  const { isHorizontal, isMobile, isLandscape } = panel;
+  const { isHorizontal, isMobile } = panel;
   const pinnedHz = isHorizontal && !stacked && !isMobile;
-  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2)  : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : 2;
-  const monthCols = pinnedHz ? 6                                : isHorizontal && !stacked ? 6 : 2;
-  const dayCols   = pinnedHz ? Math.ceil(sel.days.length / 2)  : isHorizontal && !stacked ? 7 : 3;
+  // Mobile docked bars (portrait stacked or landscape single-line) size by
+  // min item width so the grid fills the full bar width.
+  const mobileHz  = isHorizontal && isMobile;
+  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2)  : 2;
+  const monthCols = pinnedHz ? 6                                : 2;
+  const dayCols   = pinnedHz ? Math.ceil(sel.days.length / 2)  : 3;
 
   return (
     <>
       {/* Year grid */}
-      <YearGrid years={sel.years} selected={sel.selectedYear} onSelect={sel.setYear} cols={yearCols} minItemWidth={stacked && isMobile ? 36 : undefined} c={c} showAll />
+      <YearGrid years={sel.years} selected={sel.selectedYear} onSelect={sel.setYear} cols={yearCols} minItemWidth={mobileHz ? 36 : undefined} c={c} showAll />
 
       {/* Month grid */}
       {sel.showMonthSelector && sel.selectedYear !== 'all' && (
-        <MonthGrid selected={sel.selectedMonth} onSelect={sel.setMonth} cols={monthCols} minItemWidth={stacked && isMobile ? 30 : undefined} c={c} />
+        <MonthGrid selected={sel.selectedMonth} onSelect={sel.setMonth} cols={monthCols} minItemWidth={mobileHz ? 30 : undefined} c={c} />
       )}
 
       {/* Day grid */}
       {sel.showDaySelector && sel.showMonthSelector && sel.selectedYear !== 'all' && (
-        <DayGrid days={sel.days} selected={sel.selectedDay} onSelect={sel.setDay} cols={dayCols} minItemWidth={stacked && isMobile ? 24 : undefined} c={c} />
+        <DayGrid days={sel.days} selected={sel.selectedDay} onSelect={sel.setDay} cols={dayCols} minItemWidth={mobileHz ? 24 : undefined} c={c} />
       )}
     </>
   );
@@ -381,27 +388,28 @@ function SingleContent({ sel, panel, c, stacked }) {
 // ---------------------------------------------------------------------------
 
 function RangeContent({ sel, panel, c, stacked }) {
-  const { isHorizontal, isMobile, isLandscape } = panel;
+  const { isHorizontal, isMobile } = panel;
   const pinnedHz  = isHorizontal && !stacked && !isMobile;
-  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2) : isHorizontal && !stacked ? Math.min(sel.years.length, isLandscape ? 3 : 6) : 2;
-  const monthCols = pinnedHz ? 6                               : isHorizontal && !stacked ? 6 : 2;
+  const mobileHz  = isHorizontal && isMobile;
+  const yearCols  = pinnedHz ? Math.ceil(sel.years.length / 2) : 2;
+  const monthCols = pinnedHz ? 6                               : 2;
   const maxDay    = Math.max(
     getDaysInMonthLocal(sel.yearRange.startYear, sel.startMonth),
     getDaysInMonthLocal(sel.yearRange.endYear,   sel.endMonth),
   );
-  const dayCols   = pinnedHz ? Math.ceil(maxDay / 2)           : isHorizontal && !stacked ? 7 : 3;
+  const dayCols   = pinnedHz ? Math.ceil(maxDay / 2)           : 3;
 
   return (
     <>
       {/* Range year grid */}
-      <RangeYearGrid sel={sel} c={c} cols={yearCols} minItemWidth={stacked && isMobile ? 36 : undefined} />
+      <RangeYearGrid sel={sel} c={c} cols={yearCols} minItemWidth={mobileHz ? 36 : undefined} />
 
       {sel.showRangeMonthDaySelectors && (
-        <RangeMonthGrid sel={sel} c={c} cols={monthCols} minItemWidth={stacked && isMobile ? 30 : undefined} />
+        <RangeMonthGrid sel={sel} c={c} cols={monthCols} minItemWidth={mobileHz ? 30 : undefined} />
       )}
 
       {sel.showRangeDaySelectors && sel.showRangeMonthDaySelectors && (
-        <RangeDayGrid sel={sel} c={c} cols={dayCols} minItemWidth={stacked && isMobile ? 24 : undefined} />
+        <RangeDayGrid sel={sel} c={c} cols={dayCols} minItemWidth={mobileHz ? 24 : undefined} />
       )}
 
       {/* Trailing hint — follows the last visible grid */}
@@ -677,7 +685,7 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
   }
 
   // Desktop: use the measured settings-bar height (scales with font size)
-  const settingsBar = isMobile ? (isLandscape ? 64 : 85) : settingsBarHeight;
+  const settingsBar = isMobile ? (isLandscape ? 48 : 85) : settingsBarHeight;
   const tabsH = topTabsHeight ?? (isMobile ? 48 : 56);
   const tabsW = topTabsWidth ?? (isMobile ? 160 : 192);
   const sameSide = topTabsPosition === currentPosition;
