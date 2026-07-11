@@ -195,8 +195,12 @@ const SpotifyAnalyzer = ({
     const stale = document.getElementById('tab-tint-style');
     if (stale) stale.remove();
 
+    const tint = getChromeTint(activeTab, colorMode === 'colorful', isDarkMode);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', getChromeTint(activeTab, colorMode === 'colorful', isDarkMode));
+    if (meta) meta.setAttribute('content', tint);
+    // iOS paints overscroll and any un-painted safe-area region with the html
+    // background — keep it on the current tint so those never show stale color.
+    document.documentElement.style.backgroundColor = tint;
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [enableEnrichment, setEnableEnrichment] = useState(() => {
@@ -2239,10 +2243,11 @@ const SpotifyAnalyzer = ({
     }
     
     return {
-      // On mobile with top-positioned TopTabs, the TopTabs height (JS-measured) excludes the
-      // safe-area inset. We add env(safe-area-inset-top) in CSS so it's always in sync with
-      // the actual device inset, regardless of orientation-change timing issues.
-      paddingTop: (isMobile && topTabsPosition === 'top')
+      // On mobile the top chrome heights (JS-measured) exclude the safe-area
+      // inset, and with no top-docked chrome the content would start under the
+      // notch — so always add env(safe-area-inset-top) in CSS; it stays in sync
+      // with the actual device inset regardless of orientation-change timing.
+      paddingTop: isMobile
         ? `calc(env(safe-area-inset-top) + ${topSpace}px)`
         : `${topSpace}px`,
       paddingBottom: `${bottomSpace}px`,
@@ -2796,20 +2801,34 @@ const SpotifyAnalyzer = ({
 
   return (
     <div className={`w-full h-full min-h-screen ${getPageBackground()}`} data-bg-debug={getPageBackground()}>
-      {/* Always own the iOS status-bar strip: when TopTabs isn't docked at the
-          top, nothing else paints under the notch and iOS keeps showing the
-          last color it saw. Sits below TopTabs (z-99), which covers it with
-          the same accent when docked top. */}
+      {/* Always own the iOS safe-area regions: when TopTabs isn't docked on an
+          edge, nothing else paints under the notch there and iOS keeps showing
+          the last color it saw. Top strip for portrait, side strips for the
+          landscape notch. Keyed by tint: Safari can leave a composited fixed
+          layer stale when only its background-color changes — a fresh DOM node
+          per color forces a repaint. Sits below TopTabs (z-99) and the settings
+          bar (z-100), which cover their edge with the same accent when docked
+          there, and above the YearSelector rails (z-89/90), which clear the
+          insets with their own safe-area padding. */}
       {mounted && isMobile && (
-        <div
-          aria-hidden
-          className="fixed top-0 left-0 right-0 z-[98] pointer-events-none"
-          style={{
-            height: 'env(safe-area-inset-top)',
-            backgroundColor: getChromeTint(activeTab, colorMode === 'colorful', isDarkMode),
-            transform: 'translateZ(0)',
-          }}
-        />
+        <React.Fragment key={getChromeTint(activeTab, colorMode === 'colorful', isDarkMode)}>
+          {[
+            { top: 0, left: 0, right: 0, height: 'env(safe-area-inset-top)' },
+            { top: 0, bottom: 0, left: 0, width: 'env(safe-area-inset-left)' },
+            { top: 0, bottom: 0, right: 0, width: 'env(safe-area-inset-right)' },
+          ].map((pos, i) => (
+            <div
+              key={i}
+              aria-hidden
+              className="fixed z-[98] pointer-events-none"
+              style={{
+                ...pos,
+                backgroundColor: getChromeTint(activeTab, colorMode === 'colorful', isDarkMode),
+                transform: 'translateZ(0)',
+              }}
+            />
+          ))}
+        </React.Fragment>
       )}
       <FixedSettingsBar
         togglePosition={togglePosition}
@@ -2894,14 +2913,22 @@ const SpotifyAnalyzer = ({
                  if (totalWidthReduction === 0) return '100%';
                  return `calc(100% - ${totalWidthReduction}px)`;
                })(),
-               // Keep original padding for top/bottom spacing
+               // Keep original padding for top/bottom spacing. On mobile, add
+               // the side safe-area insets (landscape notch) when no rail on
+               // that side already clears them with its own padding.
                paddingLeft: (() => {
-                 if (yearSelectorPosition === 'left' || topTabsPosition === 'left') return '0px';
-                 return contentAreaStyles.paddingLeft;
+                 const railLeft = showYearSidebar && shouldShowSidebar(activeTab) && yearSelectorPosition === 'left';
+                 if (railLeft || topTabsPosition === 'left') return '0px';
+                 return isMobile
+                   ? `calc(env(safe-area-inset-left, 0px) + ${contentAreaStyles.paddingLeft})`
+                   : contentAreaStyles.paddingLeft;
                })(),
                paddingRight: (() => {
-                 if (yearSelectorPosition === 'right' || topTabsPosition === 'right') return '0px';
-                 return contentAreaStyles.paddingRight;
+                 const railRight = showYearSidebar && shouldShowSidebar(activeTab) && yearSelectorPosition === 'right';
+                 if (railRight || topTabsPosition === 'right') return '0px';
+                 return isMobile
+                   ? `calc(env(safe-area-inset-right, 0px) + ${contentAreaStyles.paddingRight})`
+                   : contentAreaStyles.paddingRight;
                })(),
                // Add safe area support on mobile
                paddingBottom: isMobile ? `calc(${contentAreaStyles.paddingBottom} + env(safe-area-inset-bottom, 0px))` : contentAreaStyles.paddingBottom

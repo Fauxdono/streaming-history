@@ -696,13 +696,25 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
   const z = isMobile ? 1 : (fontScale || 1);
   const px = (n) => `${Math.round(n / z)}px`;
 
+  // Mobile: keep panel content clear of the notch. The safe-area strips
+  // (z-98) tint the inset itself; this padding stops content underlapping it.
+  // Top inset only matters when the panel reaches the very top of the screen
+  // (i.e. TopTabs isn't docked top to cover it).
+  const safePad = !isMobile ? {} : {
+    paddingLeft:  currentPosition !== 'right' ? 'env(safe-area-inset-left, 0px)'  : undefined,
+    paddingRight: currentPosition !== 'left'  ? 'env(safe-area-inset-right, 0px)' : undefined,
+    paddingTop:   (currentPosition === 'left' || currentPosition === 'right') && topTabsPosition !== 'top'
+      ? 'env(safe-area-inset-top, 0px)' : undefined,
+  };
+
   switch (currentPosition) {
     case 'top': return {
       className: 'fixed z-[89]',
       style: {
+        ...safePad,
         top:   sameSide
           ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH}px)` : px(settingsBar + tabsH))
-          : (isMobile ? '0px' : px(settingsBar)),
+          : (isMobile ? 'env(safe-area-inset-top, 0px)' : px(settingsBar)),
         left:  topTabsPosition === 'left'  ? px(tabsW) : '0px',
         right: topTabsPosition === 'right' ? px(tabsW) : '0px',
       }
@@ -710,6 +722,7 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
     case 'bottom': return {
       className: 'fixed z-[89]',
       style: {
+        ...safePad,
         bottom: sameSide
           ? (isMobile ? `${settingsBar + tabsH}px` : px(tabsH))
           : (isMobile ? `${settingsBar}px` : '0px'),
@@ -720,6 +733,7 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
     case 'left': return {
       className: 'fixed z-[90]',
       style: {
+        ...safePad,
         left:   sameSide ? px(tabsW) : '0px',
         top:    topTabsPosition === 'top'
           ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : px(settingsBar + tabsH - 1))
@@ -732,6 +746,7 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
     case 'right': return {
       className: 'fixed z-[90]',
       style: {
+        ...safePad,
         right:  sameSide ? px(tabsW) : '0px',
         top:    topTabsPosition === 'top'
           ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : px(settingsBar + tabsH - 1))

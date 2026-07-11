@@ -477,13 +477,19 @@ const TopTabs = ({
         className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
           // Pre-calculate positions to avoid layout shifts
+          // Side safe-area padding keeps tab content clear of the landscape
+          // notch; the container background still paints edge to edge.
           ...(currentPosition === 'top' && {
             top: isMobile ? '0px' : settingsBarHeight,
             paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
+            paddingLeft: isMobile ? 'env(safe-area-inset-left)' : undefined,
+            paddingRight: isMobile ? 'env(safe-area-inset-right)' : undefined,
             transform: isMobile ? 'translateZ(0)' : undefined // Hardware acceleration on mobile
           }),
           ...(currentPosition === 'bottom' && isMobile && {
             bottom: `${mobileBarHeight}px`,
+            paddingLeft: 'env(safe-area-inset-left)',
+            paddingRight: 'env(safe-area-inset-right)',
             transform: 'translateZ(0)' // Hardware acceleration
           }),
           ...(currentPosition === 'bottom' && !isMobile && {
@@ -492,11 +498,13 @@ const TopTabs = ({
           ...(currentPosition === 'left' && {
             top: isMobile ? '0px' : settingsBarHeight,
             paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
+            paddingLeft: isMobile ? 'env(safe-area-inset-left)' : undefined,
             transform: isMobile ? 'translateZ(0)' : undefined
           }),
           ...(currentPosition === 'right' && {
             top: isMobile ? '0px' : settingsBarHeight,
             paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined,
+            paddingRight: isMobile ? 'env(safe-area-inset-right)' : undefined,
             transform: isMobile ? 'translateZ(0)' : undefined
           })
         }}

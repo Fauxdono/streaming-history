@@ -68,7 +68,17 @@ const FixedSettingsBar = ({
           })
         }}
       >
-        <div className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center'}`} style={{height: isMobile ? `${mobileBarHeight}px` : 'auto', ...((!isMobile) && { paddingTop: '8px' })}}>
+        <div
+          className={`flex ${isMobile ? 'justify-between items-center px-4' : 'justify-center'}`}
+          style={{
+            height: isMobile ? `${mobileBarHeight}px` : 'auto',
+            // Keep buttons clear of the landscape notch; bar bg still spans edge to edge
+            ...(isMobile && {
+              paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+              paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            }),
+            ...((!isMobile) && { paddingTop: '8px' })
+          }}>
           {isMobile ? (
             <>
               {/* Left side buttons */}
