@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportDropdown from './SupportDropdown.js';
 import AnalysisSettingsDropdown from './AnalysisSettingsDropdown.js';
@@ -22,6 +22,11 @@ const FixedSettingsBar = ({
 }) => {
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
+
+  // Until mount, isMobile is still the SSR default (false) — the premount
+  // class lets CSS put the bar at the bottom on phones for that first paint.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const tabAccentColors = isDarkMode ? TAB_ACCENT_HEX.dark : TAB_ACCENT_HEX.light;
   const colorfulBg = colorMode === 'colorful' ? (tabAccentColors[activeTab] || null) : null;
@@ -49,8 +54,8 @@ const FixedSettingsBar = ({
 
   return (
     <>
-      <div 
-        className={`fixed left-0 right-0 w-full z-[100] ${isMobile ? 'border-t' : 'border-b'} border-violet-200 dark:border-gray-600`}
+      <div
+        className={`fixed left-0 right-0 w-full z-[100] ${mounted ? '' : 'premount-settings-bar'} ${isMobile ? 'border-t' : 'border-b'} border-violet-200 dark:border-gray-600`}
         style={{
           backgroundImage: 'url(/apple-touch-icon.png)',
           backgroundRepeat: 'repeat-x',

@@ -56,6 +56,12 @@ const TopTabs = ({
   const [isMobile, setIsMobile] = useState(false);
   const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
 
+  // Until mount, isMobile is still the SSR default (false) — the premount
+  // class lets CSS pin the tabs to the very top on phones for that first
+  // paint instead of leaving a gap for a top-docked settings bar.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     const checkMobile = () => {
       const isNarrow = window.innerWidth < 640;
@@ -474,7 +480,7 @@ const TopTabs = ({
       
       {/* Positioned tabs container */}
       <div 
-        className={`toptabs-container ${getPositionStyles()} ${getContainerStyles()}`}
+        className={`toptabs-container ${mounted ? '' : 'premount-toptabs'} ${getPositionStyles()} ${getContainerStyles()}`}
         style={{
           // Pre-calculate positions to avoid layout shifts
           // Side safe-area padding keeps tab content clear of the landscape

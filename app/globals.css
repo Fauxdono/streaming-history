@@ -458,3 +458,33 @@ html.rainbow-mode .recharts-text { fill: hsl(var(--rainbow-hue) 85% 55%) !import
 
 .cake-check:focus-visible { outline: 2px solid #16a34a; outline-offset: 1px; }
 .cake-check-mono:focus-visible { outline: 2px solid #4169E1; outline-offset: 1px; }
+
+/* ---------------------------------------------------------------------------
+   Pre-hydration mobile layout.
+   The server HTML is rendered with isMobile=false (JS can't know the viewport),
+   so until React mounts, the fixed chrome would sit in its desktop positions:
+   settings bar at the top, TopTabs pushed 40px down for it. These premount-*
+   classes are present only until mount and reposition that first paint via
+   media queries; the !important lets them beat the desktop inline styles.
+   Mobile = narrow (portrait phone) or short touch screen (landscape phone).
+--------------------------------------------------------------------------- */
+@media (max-width: 639px), (pointer: coarse) and (max-height: 500px) {
+  .premount-settings-bar {
+    top: auto !important;
+    bottom: calc(-1 * env(safe-area-inset-bottom, 0px)) !important;
+    border-top-width: 1px !important;
+    border-bottom-width: 0 !important;
+  }
+  .premount-toptabs {
+    top: 0 !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-left: env(safe-area-inset-left, 0px) !important;
+    padding-right: env(safe-area-inset-right, 0px) !important;
+  }
+  .premount-content {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 56px) !important;
+    padding-left: env(safe-area-inset-left, 0px) !important;
+    padding-right: env(safe-area-inset-right, 0px) !important;
+    padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

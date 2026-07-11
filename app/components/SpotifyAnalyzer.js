@@ -2870,8 +2870,11 @@ const SpotifyAnalyzer = ({
       )}
       
       <div className="flex h-full w-full justify-start">
-        {/* Main content area that adjusts based on year selector state */}
-        <div style={{
+        {/* Main content area that adjusts based on year selector state.
+            premount-content: mobile-correct padding for the pre-mount paint,
+            when contentAreaStyles still holds SSR (desktop) values. */}
+        <div className={mounted ? undefined : 'premount-content'}
+             style={{
                ...contentAreaStyles,
                // Use GPU-accelerated transform for smooth positioning
                transform: (() => {
