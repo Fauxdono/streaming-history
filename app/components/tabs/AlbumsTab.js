@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import AlbumCard from '../albumcard.js';
 import { RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from '../RankCardBits.js';
+import { isFavoriteAlbum } from '../streaming/favorites.js';
 
 // Albums tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -35,7 +36,14 @@ export default function AlbumsTab({
   setTopAlbumsCount,
   albumTextTheme,
   albumBackgroundTheme,
+  favoritesIndex = null,
 }) {
+  // ♥ marker for albums favorited on the user's streaming service
+  const favHeart = (album) => (
+    favoritesIndex && isFavoriteAlbum(favoritesIndex, album.name, album.artist)
+      ? <span title="Favorited on your streaming service" className="opacity-70"> ♥</span>
+      : null
+  );
   // Previous-period album ranks (same sort metric) for rank-movement chips
   const albumKeyOf = (e) => {
     const name = e.master_metadata_album_album_name;
@@ -328,7 +336,7 @@ export default function AlbumsTab({
                                 >
                                   <td className={`p-1 sm:p-2 ${colorClass} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{index + 1}{prevAlbumRanks && <RankChip rank={index + 1} prevRank={prevAlbumRanks.map.get(`${(album.name || '').toLowerCase()}|||${(album.artist || '').toLowerCase()}`)} prevLabel={prevAlbumRanks.label} />}</span></td>
                                   <td className={`p-1 sm:p-2 ${colorClass} text-xs sm:text-sm whitespace-nowrap`}>
-                                    {album.name.length >= 30 ? album.name.slice(0, 27) + '…' : album.name}
+                                    {album.name.length >= 30 ? album.name.slice(0, 27) + '…' : album.name}{favHeart(album)}
                                     <span className={`sm:hidden italic opacity-60 text-xs ml-1`}>{album.artist}</span>
                                   </td>
                                   <td className={`p-1 sm:p-2 ${colorClass} text-xs sm:text-sm whitespace-nowrap hidden sm:table-cell`}>{album.artist}</td>
@@ -401,6 +409,7 @@ export default function AlbumsTab({
                         <AlbumCard
                           key={`${album.artist}-${album.name}`}
                           album={{...album, rank: index + 1}}
+                          favoriteHeart={favHeart(album)}
                           index={index}
                           processedData={processedData}
                           formatDuration={formatDuration}
@@ -425,7 +434,7 @@ export default function AlbumsTab({
                           <div className="flex justify-between items-center text-sm">
                             <div className="flex-1">
                               <div className={`font-bold ${albumCardText} text-sm`}>
-                                #{index + 1}{' '}{prevAlbumRanks && <RankChip rank={index + 1} prevRank={prevAlbumRanks.map.get(`${(album.name || '').toLowerCase()}|||${(album.artist || '').toLowerCase()}`)} prevLabel={prevAlbumRanks.label} />}{' '}{album.name}
+                                #{index + 1}{' '}{prevAlbumRanks && <RankChip rank={index + 1} prevRank={prevAlbumRanks.map.get(`${(album.name || '').toLowerCase()}|||${(album.artist || '').toLowerCase()}`)} prevLabel={prevAlbumRanks.label} />}{' '}{album.name}{favHeart(album)}
                               </div>
                               <div className={`${albumCardTextLight} text-xs`}>
                                 {album.artist}

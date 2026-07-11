@@ -6,6 +6,7 @@ import Top100Export from '../Top100Export.js';
 import ServiceIcon from '../ServiceIcons.js';
 import { createMatchKey } from '../streaming/normalize.js';
 import { loadOverrides, saveOverrides, clearOverrides, countOverrides, playOverrideKey } from '../streaming/overrides.js';
+import { isrcMergeGroups } from '../streaming/isrc.js';
 
 // Display names for the per-play `source` field set by each parser.
 export const SERVICE_LABELS = {
@@ -74,6 +75,8 @@ export default function DataTab({
   formatDuration,
   colorMode,
   isDarkMode,
+  importedPlaylists = [],
+  importedFavorites = [],
 }) {
   const isColorful = colorMode === 'colorful';
 
@@ -332,11 +335,9 @@ export default function DataTab({
     ? mergeCanonicalKey
     : selectedTracks.reduce((max, t) => (!max || t.plays.length > max.plays.length ? t : max), null)?.key;
 
-  const mergeSelected = () => {
-    const canon = selectedTracks.find(t => t.key === canonicalKey);
-    if (!canon || selectedTracks.length < 2) return;
+  const mergeTracks = (tracksToMerge, canon) => {
     const tracks = { ...overrides.tracks };
-    for (const t of selectedTracks) {
+    for (const t of tracksToMerge) {
       if (t.key === canon.key) continue;
       for (const okey of t.okeys) {
         const edit = { name: canon.name, artist: canon.artist, album: canon.album };
@@ -346,9 +347,50 @@ export default function DataTab({
         tracks[okey] = edit;
       }
     }
+    persist({ ...overrides, tracks });
+  };
+
+  const mergeSelected = () => {
+    const canon = selectedTracks.find(t => t.key === canonicalKey);
+    if (!canon || selectedTracks.length < 2) return;
     setSelectedKeys(new Set());
     setMergeCanonicalKey(null);
-    persist({ ...overrides, tracks });
+    mergeTracks(selectedTracks, canon);
+  };
+
+  // ---- ISRC merge suggestions -------------------------------------------
+  // Library rows that resolve to the same recording via ISRCs from Deezer
+  // plays and imported playlist/favorites catalogs (see streaming/isrc.js).
+  const [dismissedIsrcs, setDismissedIsrcs] = useState(() => new Set());
+
+  const trackByKey = useMemo(() => new Map(allTracks.map(t => [t.key, t])), [allTracks]);
+
+  const mergeSuggestions = useMemo(() => {
+    if (allTracks.length === 0) return [];
+    const groups = isrcMergeGroups({
+      plays: rawPlayData || [],
+      importedPlaylists,
+      importedFavorites,
+      knownKeys: new Set(trackByKey.keys()),
+    });
+    return groups
+      .map(group => ({
+        isrc: group.isrc,
+        // Most-played variant first — it becomes the merge target
+        tracks: group.keys
+          .map(key => trackByKey.get(key))
+          .filter(Boolean)
+          .sort((a, b) => b.plays.length - a.plays.length),
+      }))
+      .filter(group => group.tracks.length >= 2)
+      .sort((a, b) => b.tracks[0].plays.length - a.tracks[0].plays.length);
+  }, [allTracks.length, rawPlayData, importedPlaylists, importedFavorites, trackByKey]);
+
+  const visibleSuggestions = mergeSuggestions.filter(g => !dismissedIsrcs.has(g.isrc));
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
+
+  const dismissSuggestion = (isrc) => {
+    setDismissedIsrcs(prev => new Set(prev).add(isrc));
   };
 
   const resetAll = () => {
@@ -651,6 +693,66 @@ export default function DataTab({
           <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
             Edit song details (name, artist, album, release year, length) for any track, or tick two or more versions of the same song — &quot;Remastered&quot;, &quot;Mono&quot;, different albums — and merge them into one. Length edits only change listening-time stats for scrobbles (Last.fm, iPod), where the log stores the song length; streamed play times are never rewritten. Expand a row to adjust or remove individual scrobble plays.
           </p>
+
+          {visibleSuggestions.length > 0 && (
+            <div className={
+              isColorful
+                ? 'mb-3 p-3 rounded border border-black bg-green-200 dark:border-green-500 dark:bg-green-950'
+                : `mb-3 p-3 rounded border ${isDarkMode ? 'border-[#4169E1] bg-gray-900' : 'border-black bg-gray-50'}`
+            }>
+              <p className={`text-sm font-medium mb-1 ${headingClass}`}>
+                Merge suggestions ({visibleSuggestions.length})
+              </p>
+              <p className={`text-xs mb-2 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+                These versions share an ISRC (the industry recording ID, found in your service exports), so they are the same recording under different spellings. Merging folds their plays into the most-played version.
+              </p>
+              <div className="space-y-2">
+                {(showAllSuggestions ? visibleSuggestions : visibleSuggestions.slice(0, 8)).map(group => (
+                  <div key={group.isrc} className={`flex flex-wrap items-center justify-between gap-2 text-sm ${bodyClass}`}>
+                    <span className="min-w-0">
+                      {group.tracks.map((t, i) => (
+                        <span key={t.key}>
+                          {i > 0 && <span className="opacity-60"> + </span>}
+                          <span className={i === 0 ? 'font-bold' : ''}>{t.name}</span>
+                          <span className="opacity-60"> — {t.artist} · {t.plays.length} plays</span>
+                        </span>
+                      ))}
+                    </span>
+                    <span className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => mergeTracks(group.tracks, group.tracks[0])}
+                        className={
+                          isColorful
+                            ? 'px-2 py-1 text-xs rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
+                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
+                        }
+                      >
+                        Merge
+                      </button>
+                      <button
+                        onClick={() => dismissSuggestion(group.isrc)}
+                        className={
+                          isColorful
+                            ? 'px-2 py-1 text-xs rounded border border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900'
+                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-gray-600 text-white hover:bg-gray-900' : 'border-gray-400 text-black hover:bg-gray-100'}`
+                        }
+                      >
+                        Dismiss
+                      </button>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {visibleSuggestions.length > 8 && (
+                <button
+                  onClick={() => setShowAllSuggestions(s => !s)}
+                  className={`mt-2 text-xs underline ${bodyClass} opacity-70 hover:opacity-100`}
+                >
+                  {showAllSuggestions ? 'Show fewer' : `Show all ${visibleSuggestions.length} suggestions`}
+                </button>
+              )}
+            </div>
+          )}
 
           {selectedTracks.length >= 2 && (
             <div className={

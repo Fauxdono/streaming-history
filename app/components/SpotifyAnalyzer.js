@@ -37,6 +37,7 @@ import LastfmConnect from './LastfmConnect.js';
 import { getTotalCount as getLastfmCount, loadAllScrobbles as loadLastfmScrobbles } from './lastfm-db.js';
 import FixedSettingsBar from './FixedSettingsBar.js';
 import SettingsPanel from './SettingsPanel.js';
+import { buildFavoritesIndex } from './streaming/favorites.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -219,6 +220,7 @@ const SpotifyAnalyzer = ({
   // tab as importable starting points and smart-rule input.
   const [importedPlaylists, setImportedPlaylists] = useState([]);
   const [importedFavorites, setImportedFavorites] = useState([]);
+  const favoritesIndex = useMemo(() => buildFavoritesIndex(importedFavorites), [importedFavorites]);
   const [streaks, setStreaks] = useState(null);
   const [selectedStreaksYear, setSelectedStreaksYear] = useState('all');
   const [selectedArtists, setSelectedArtists] = useState([]);
@@ -2373,12 +2375,14 @@ const SpotifyAnalyzer = ({
             yearRange={yearRange}
             yearRangeMode={yearRangeMode}
             setYearRangeMode={setYearRangeMode}
+            favoritesIndex={favoritesIndex}
           />
         );
 
       case 'albums':
         return (
           <AlbumsTab
+            favoritesIndex={favoritesIndex}
             albumsSortBy={albumsSortBy}
             setAlbumsSortBy={setAlbumsSortBy}
             albumsSortPress={albumsSortPress}
@@ -2432,6 +2436,7 @@ const SpotifyAnalyzer = ({
               colorMode={colorMode}
               viewMode={customViewMode}
               setViewMode={setCustomViewMode}
+              favoritesIndex={favoritesIndex}
             />
           </div>
         );
@@ -2605,6 +2610,8 @@ const SpotifyAnalyzer = ({
               stats={stats}
               processedData={processedData}
               rawPlayData={rawPlayData}
+              importedPlaylists={importedPlaylists}
+              importedFavorites={importedFavorites}
               onDataEdited={handleDataEdited}
               onRunEnrichment={handleRunEnrichment}
               onStopEnrichment={handleStopEnrichment}
@@ -2652,6 +2659,7 @@ const SpotifyAnalyzer = ({
     rawPlayData,
     importedPlaylists,
     importedFavorites,
+    favoritesIndex,
     customTrackYear,
     customYearRangeMode,
     customYearRange,

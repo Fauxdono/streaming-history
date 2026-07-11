@@ -3,7 +3,7 @@ import { useTheme } from './themeprovider.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
 import { getAlbumCardColors } from './theme.js';
 
-const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan', colorMode = 'minimal', sortBy = 'totalPlayed', maxValue = 0, rankChip = null }) => {
+const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'cyan', backgroundTheme = 'cyan', colorMode = 'minimal', sortBy = 'totalPlayed', maxValue = 0, rankChip = null, favoriteHeart = null }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showTracks, setShowTracks] = useState(false);
 
@@ -33,7 +33,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
         <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
         {rankChip}
         <div className="flex-1 text-center px-1">
-          <div>{album.name}</div>
+          <div>{album.name}{favoriteHeart}</div>
           <div className={`text-xs font-normal opacity-70 ${colors.textLight}`}>{album.artist}</div>
         </div>
         <button

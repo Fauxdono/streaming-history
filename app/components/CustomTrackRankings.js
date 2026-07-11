@@ -7,6 +7,7 @@ import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
 import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from './RankCardBits.js';
 import { getRankingColors } from './theme.js';
+import { isFavoriteSong } from './streaming/favorites.js';
 
 const CustomTrackRankings = ({
   rawPlayData = [],
@@ -25,7 +26,8 @@ const CustomTrackRankings = ({
   colorMode = 'minimal',
   viewMode = 'grid',
   statsSongsByYear = {},
-  setViewMode = () => {}
+  setViewMode = () => {},
+  favoritesIndex = null
 }) => {
   const { theme, fontSize, minPlayDuration, skipFilter, fullListenOnly } = useTheme();
   const isDarkMode = theme === 'dark';
@@ -1098,6 +1100,14 @@ const CustomTrackRankings = ({
     return "Custom Date Range";
   };
 
+  // ♥ marker for tracks favorited on the user's streaming service (from
+  // imported export data); nothing renders when no favorites were imported
+  const favHeart = (song) => (
+    favoritesIndex && isFavoriteSong(favoritesIndex, song.trackName, song.artist)
+      ? <span title="Favorited on your streaming service" className="opacity-70"> ♥</span>
+      : null
+  );
+
   // Updated renderTrackRow function with omit buttons preserved
   const renderTrackRow = (song, index) => {
     if (viewMode === 'mobile') {
@@ -1110,7 +1120,7 @@ const CustomTrackRankings = ({
           <td className={`p-2 ${colors.text}`}>
             <div className="flex items-center justify-between">
               <div>
-                <div className="font-medium">#{index + 1} {song.displayName || song.trackName}</div>
+                <div className="font-medium">#{index + 1} {song.displayName || song.trackName}{favHeart(song)}</div>
                 <div className={`text-sm ${colors.textLighter}`}>
                   {song.displayArtist || song.artist}
                   {song.isFeatured && (
@@ -1153,7 +1163,7 @@ const CustomTrackRankings = ({
                   FEAT
                 </span>
               )}
-              <div>{song.displayName || song.trackName}</div>
+              <div>{song.displayName || song.trackName}{favHeart(song)}</div>
             </div>
           </td>
           <td className={`p-1 sm:p-2 ${colors.text} text-xs sm:text-sm`}>{song.displayArtist || song.artist}</td>
@@ -1595,7 +1605,7 @@ return (
                       )}
                       <div className="flex-1 text-center px-1">
                         {song.isFeatured && <span className={`inline-block px-1 py-0.5 mr-1 ${colors.bgMed} rounded text-xs font-normal`}>FEAT</span>}
-                        <div>{song.displayName || song.trackName}</div>
+                        <div>{song.displayName || song.trackName}{favHeart(song)}</div>
                         <div
                           className={`text-xs font-normal opacity-70 cursor-pointer hover:underline ${colors.textLight}`}
                           onClick={() => addArtistFromTrack(song.displayArtist || song.artist)}

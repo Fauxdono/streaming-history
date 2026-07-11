@@ -1,6 +1,7 @@
 'use client';
 import React, { useMemo } from 'react';
 import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from '../RankCardBits.js';
+import { isFavoriteArtist } from '../streaming/favorites.js';
 
 // Artists tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -38,7 +39,14 @@ export default function ArtistsTab({
   yearRange,
   yearRangeMode,
   setYearRangeMode,
+  favoritesIndex = null,
 }) {
+  // ♥ marker for artists favorited on the user's streaming service
+  const favHeart = (name) => (
+    favoritesIndex && isFavoriteArtist(favoritesIndex, name)
+      ? <span title="Favorited on your streaming service" className="opacity-70"> ♥</span>
+      : null
+  );
   // Previous-period ranks (same sort metric) for rank-movement chips:
   // a single year compares against the previous year; a single month
   // compares against the previous month (ranked from raw plays).
@@ -392,7 +400,7 @@ export default function ArtistsTab({
                                 className={`border-b ${colorMode === 'colorful' ? 'border-blue-300 dark:border-blue-600 hover:bg-blue-100 dark:hover:bg-blue-700' : (isDarkMode ? 'border-[#4169E1] hover:bg-gray-800' : 'border-black hover:bg-gray-100')} ${artistSelectionMode ? 'cursor-pointer' : ''}`}
                               >
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} font-medium text-xs sm:text-sm`}><span className="inline-flex items-center gap-1">{originalRank}{prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.map.get(artist.name)} prevLabel={prevRanks.label} />}</span></td>
-                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{artist.name}</td>
+                                <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{artist.name}{favHeart(artist.name)}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm whitespace-nowrap`}>{formatDuration(artist.totalPlayed)}</td>
                                 <td className={`p-1 sm:p-2 text-right ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm`}>{artist.playCount?.toLocaleString() || 0}</td>
                                 <td className={`p-1 sm:p-2 ${colorMode === 'colorful' ? 'text-blue-700 dark:text-blue-200' : ''} text-xs sm:text-sm hidden md:table-cell`}>{artist.mostPlayedSong?.trackName || '-'}</td>
@@ -471,7 +479,7 @@ export default function ArtistsTab({
                                 className="flex-1 text-center cursor-pointer hover:underline"
                                 title={`See your ${artist.name} songs`}
                                 onClick={(e) => { e.stopPropagation(); goToArtistSongs(); }}
-                              >{artist.name}</span>
+                              >{artist.name}{favHeart(artist.name)}</span>
                               <button
                                 type="button"
                                 onClick={toggleExpanded}

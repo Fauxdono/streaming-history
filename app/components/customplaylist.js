@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Download, Plus, Trash2, Save, Music, Filter, PlusSquare, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 
@@ -320,29 +320,54 @@ const createDateFilterIndex = (rawData) => {
     return Array.from(trackMap.values());
   }, [trackMap]);
 
-  // Lookup sets for favorited songs across all services, keyed the same way
-  // as trackMap (exact) plus a normalized fallback for spelling variants.
-  const favoritesIndex = useMemo(() => {
-    const exact = new Set();
-    const normalized = new Set();
-    importedFavorites.forEach(bundle => {
-      (bundle.songs || []).forEach(song => {
-        const title = String(song.trackName || '').toLowerCase();
-        const fullArtist = String(song.artist || '').toLowerCase();
-        const primaryArtist = fullArtist.split(',')[0].trim();
-        exact.add(`${title}-${fullArtist}`);
-        exact.add(`${title}-${primaryArtist}`);
-        normalized.add(`${normalizeTrackTitle(song.trackName)}-${normalizeArtistName(primaryArtist)}`);
-      });
+  // Key sets for a list of imported tracks: exact keys the same way as
+  // trackMap plus a normalized fallback for spelling variants. Shared by the
+  // favorites index and the per-playlist indexes behind smart rules.
+  const buildTrackKeySets = (tracks, into = null) => {
+    const sets = into || { exact: new Set(), normalized: new Set() };
+    tracks.forEach(song => {
+      const title = String(song.trackName || '').toLowerCase();
+      const fullArtist = String(song.artist || '').toLowerCase();
+      // Comma may be a multi-artist join OR part of the name ("Tyler, The
+      // Creator"), so index both interpretations
+      const primaryArtist = fullArtist.split(',')[0].trim();
+      sets.exact.add(`${title}-${fullArtist}`);
+      sets.exact.add(`${title}-${primaryArtist}`);
+      const normalizedTitle = normalizeTrackTitle(song.trackName);
+      sets.normalized.add(`${normalizedTitle}-${normalizeArtistName(fullArtist)}`);
+      sets.normalized.add(`${normalizedTitle}-${normalizeArtistName(primaryArtist)}`);
     });
-    return { exact, normalized };
+    return sets;
+  };
+
+  const keySetsHaveTrack = (sets, track) => {
+    const key = `${String(track.trackName || '').toLowerCase()}-${String(track.artist || '').toLowerCase()}`;
+    if (sets.exact.has(key)) return true;
+    return sets.normalized.has(`${normalizeTrackTitle(track.trackName)}-${normalizeArtistName(track.artist)}`);
+  };
+
+  const favoritesIndex = useMemo(() => {
+    const sets = { exact: new Set(), normalized: new Set() };
+    importedFavorites.forEach(bundle => buildTrackKeySets(bundle.songs || [], sets));
+    return sets;
   }, [importedFavorites]);
 
-  const isFavoriteTrack = (track) => {
-    const key = `${String(track.trackName || '').toLowerCase()}-${String(track.artist || '').toLowerCase()}`;
-    if (favoritesIndex.exact.has(key)) return true;
-    return favoritesIndex.normalized.has(`${normalizeTrackTitle(track.trackName)}-${normalizeArtistName(track.artist)}`);
-  };
+  const isFavoriteTrack = (track) => keySetsHaveTrack(favoritesIndex, track);
+
+  // Per-playlist key sets plus the union of all of them, for the
+  // "in playlist / not in any playlist" smart rules.
+  const playlistIndex = useMemo(() => {
+    const byName = new Map();
+    const any = { exact: new Set(), normalized: new Set() };
+    importedPlaylists.forEach(playlist => {
+      const sets = byName.get(playlist.name) || { exact: new Set(), normalized: new Set() };
+      buildTrackKeySets(playlist.tracks, sets);
+      byName.set(playlist.name, sets);
+      sets.exact.forEach(k => any.exact.add(k));
+      sets.normalized.forEach(k => any.normalized.add(k));
+    });
+    return { byName, any };
+  }, [importedPlaylists]);
 
   const hasImports = importedPlaylists.length > 0 || importedFavorites.length > 0;
   const importCount = importedPlaylists.length + importedFavorites.length;
@@ -499,6 +524,12 @@ const updateRule = (id, field, value) => {
         if (field === 'type' && value === 'favorite') {
           updatedRule.value = 'favorite';
           updatedRule.operator = 'is';
+        }
+
+        // Playlist rules pick from a dropdown; default to "any playlist"
+        if (field === 'type' && value === 'playlist') {
+          updatedRule.value = '__any__';
+          updatedRule.operator = 'in';
         }
 
         // If changing to a date field type, ensure value is properly formatted
@@ -669,6 +700,14 @@ const generateFromRules = () => {
               case 'favorite': {
                 const fav = isFavoriteTrack(track);
                 return rule.operator === 'isNot' ? !fav : fav;
+              }
+
+              case 'playlist': {
+                const sets = rule.value === '__any__'
+                  ? playlistIndex.any
+                  : playlistIndex.byName.get(rule.value);
+                const inPlaylist = sets ? keySetsHaveTrack(sets, track) : false;
+                return rule.operator === 'notIn' ? !inPlaylist : inPlaylist;
               }
 
               case 'playDate': {
@@ -1154,7 +1193,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
   // Service exports list all credited artists ("J. Cole, Bas, Central Cee")
   // while play history usually carries only the primary artist, so try the
   // full string first, then the primary artist, then the fuzzy index.
-  const matchImportedTrack = (imported) => {
+  const matchImportedTrack = useCallback((imported) => {
     const title = String(imported.trackName || '');
     const fullArtist = String(imported.artist || '');
     const primaryArtist = fullArtist.split(',')[0].trim();
@@ -1167,13 +1206,35 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
       if (trackMap.has(key)) return trackMap.get(key);
     }
 
-    const normalizedKey = `${normalizeTrackTitle(title)}-${normalizeArtistName(primaryArtist)}`;
-    const candidates = trackMap.normalizedMap.get(normalizedKey);
-    if (candidates && candidates.length > 0 && trackMap.has(candidates[0])) {
-      return trackMap.get(candidates[0]);
+    const normalizedTitle = normalizeTrackTitle(title);
+    for (const artistVariant of [fullArtist, primaryArtist]) {
+      const candidates = trackMap.normalizedMap.get(`${normalizedTitle}-${normalizeArtistName(artistVariant)}`);
+      if (candidates && candidates.length > 0 && trackMap.has(candidates[0])) {
+        return trackMap.get(candidates[0]);
+      }
     }
 
     return null;
+  }, [trackMap]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // How much of each imported playlist / favorites bundle exists in the
+  // library, keyed by the imported object itself. Shown on the Import cards.
+  const importMatchStats = useMemo(() => {
+    const stats = new Map();
+    const measure = (tracks) => {
+      let matched = 0;
+      tracks.forEach(track => { if (matchImportedTrack(track)) matched++; });
+      return { matched, total: tracks.length };
+    };
+    importedPlaylists.forEach(playlist => stats.set(playlist, measure(playlist.tracks)));
+    importedFavorites.forEach(bundle => stats.set(bundle, measure(bundle.songs || [])));
+    return stats;
+  }, [importedPlaylists, importedFavorites, matchImportedTrack]);
+
+  const matchPercent = (item) => {
+    const s = importMatchStats.get(item);
+    if (!s || s.total === 0) return null;
+    return Math.round((s.matched / s.total) * 100);
   };
 
   // Load an imported service playlist as the current selection. Tracks that
@@ -1448,6 +1509,9 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     {favoritesIndex.exact.size > 0 && (
                       <option value="favorite">Favorite</option>
                     )}
+                    {importedPlaylists.length > 0 && (
+                      <option value="playlist">Playlist</option>
+                    )}
                   </select>
 
                   <select
@@ -1473,6 +1537,11 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                       <>
                         <option value="is">is a favorite</option>
                         <option value="isNot">is not a favorite</option>
+                      </>
+                    ) : rule.type === 'playlist' ? (
+                      <>
+                        <option value="in">is in</option>
+                        <option value="notIn">is not in</option>
                       </>
                     ) : (
                       <>
@@ -1513,7 +1582,18 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                       />
                     )
-                  ) : rule.type === 'favorite' ? null : (
+                  ) : rule.type === 'favorite' ? null : rule.type === 'playlist' ? (
+                    <select
+                      value={rule.value}
+                      onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
+                      className={`flex-1 min-w-0 px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                    >
+                      <option value="__any__">any imported playlist</option>
+                      {[...playlistIndex.byName.keys()].map(name => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                    </select>
+                  ) : (
                     <input
                       type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
                       value={rule.value}
@@ -1720,7 +1800,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                 </div>
               </div>
               <div className={`text-sm ${modeColors.textLight} mt-1`}>
-                {bundle.songs.length} songs{bundle.albums.length > 0 ? ` • ${bundle.albums.length} albums` : ''}{bundle.artists.length > 0 ? ` • ${bundle.artists.length} artists` : ''}
+                {bundle.songs.length} songs{bundle.albums.length > 0 ? ` • ${bundle.albums.length} albums` : ''}{bundle.artists.length > 0 ? ` • ${bundle.artists.length} artists` : ''}{matchPercent(bundle) != null ? ` • ${matchPercent(bundle)}% in library` : ''}
               </div>
               <div className={`text-xs ${modeColors.textLighter} mt-1`}>
                 Load your favorited songs as a playlist, or use the &quot;Favorite&quot; rule in Smart Playlists.
@@ -1767,7 +1847,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     </div>
                   </div>
                   <div className={`text-sm ${modeColors.textLight} mt-1`}>
-                    {playlist.tracks.length} tracks{playlist.status ? ` • ${playlist.status}` : ''}
+                    {playlist.tracks.length} tracks{playlist.status ? ` • ${playlist.status}` : ''}{matchPercent(playlist) != null ? ` • ${matchPercent(playlist)}% in library` : ''}
                   </div>
                   <div className="mt-3 flex justify-between items-center">
                     <button
