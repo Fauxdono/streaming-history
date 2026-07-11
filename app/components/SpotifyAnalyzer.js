@@ -2195,6 +2195,16 @@ const SpotifyAnalyzer = ({
     }
   }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
+  // Portrait status-bar band: iOS draws an opaque status bar (safe-area-inset
+  // is 0) and picks its color by sampling the content just below it — a 1px
+  // sliver was ignored, but a band the size of real chrome registers. So when
+  // nothing tab-colored is docked at the top, keep a ~24px accent band there
+  // (visually just page background) and reserve layout space for it.
+  const TOP_BAND_PX = 24;
+  const needsTopBand = mounted && isMobile && !isLandscapeMobile
+    && topTabsPosition !== 'top'
+    && !(showYearSidebar && shouldShowSidebar(activeTab) && yearSelectorPosition === 'top');
+
   // Simple content area calculation: screen size minus component widths/heights
   const contentAreaStyles = useMemo(() => {
     // Return SSR-matching values until after mount to avoid hydration mismatch
@@ -2250,7 +2260,12 @@ const SpotifyAnalyzer = ({
         bottomSpace += yearSelectorHeight;
       }
     }
-    
+
+    // Reserve room for the portrait status-bar band
+    if (needsTopBand) {
+      topSpace += TOP_BAND_PX;
+    }
+
     return {
       // On mobile the top chrome heights (JS-measured) exclude the safe-area
       // inset, and with no top-docked chrome the content would start under the
@@ -2263,7 +2278,7 @@ const SpotifyAnalyzer = ({
       paddingLeft: `${leftSpace}px`,
       paddingRight: `${rightSpace}px`,
     };
-  }, [mounted, topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorWidth, showYearSidebar, isMobile, isLandscapeMobile, yearSelectorHeight, fontSize]);
+  }, [mounted, topTabsPosition, topTabsWidth, topTabsHeight, yearSelectorPosition, yearSelectorWidth, showYearSidebar, isMobile, isLandscapeMobile, yearSelectorHeight, fontSize, needsTopBand]);
 
   // Toggle position function for settings bar
   const togglePosition = useCallback(() => {
@@ -2817,7 +2832,9 @@ const SpotifyAnalyzer = ({
       {mounted && isMobile && (
         <React.Fragment key={getChromeTint(activeTab, colorMode === 'colorful', isDarkMode)}>
           {[
-            { top: 0, left: 0, right: 0, height: 'env(safe-area-inset-top)' },
+            // In portrait the top strip grows into the sampling band (see
+            // needsTopBand); the content area reserves matching space.
+            { top: 0, left: 0, right: 0, height: needsTopBand ? `calc(env(safe-area-inset-top, 0px) + ${TOP_BAND_PX}px)` : 'env(safe-area-inset-top)' },
             { top: 0, bottom: 0, left: 0, width: 'env(safe-area-inset-left)' },
             { top: 0, bottom: 0, right: 0, width: 'env(safe-area-inset-right)' },
           ].map((pos, i) => (

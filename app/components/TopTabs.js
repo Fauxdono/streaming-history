@@ -73,8 +73,8 @@ const TopTabs = ({
   const toggleCollapsed = () => onCollapseChange?.(!isCollapsed);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Get font size for re-measuring when it changes (theme keys the edge sliver)
-  const { fontSize, theme } = useTheme();
+  // Get font size for re-measuring when it changes
+  const { fontSize } = useTheme();
 
   // Check for mobile viewport
   const [isMobile, setIsMobile] = useState(false);
@@ -471,25 +471,6 @@ const TopTabs = ({
 
   return (
     <>
-      {/* A sliver of the tab bar that always touches the top safe area: iOS
-          only refreshes the status-bar color when visible content at that
-          edge changes, so this 1px overhang (invisible against the
-          identically-colored inset strip behind it) carries the accent there
-          even when the bar is docked elsewhere. Keyed so every color change
-          is a freshly painted element. */}
-      {mounted && isMobile && (
-        <div
-          key={`edge-${activeTab}-${colorMode}-${theme}`}
-          aria-hidden
-          className={`fixed top-0 left-0 right-0 z-[98] pointer-events-none ${
-            colorMode === 'minimal'
-              ? 'bg-white dark:bg-black'
-              : (COLORFUL_TAB_BG[activeTab] || 'bg-white dark:bg-black')
-          }`}
-          style={{ height: 'calc(env(safe-area-inset-top, 0px) + 1px)' }}
-        />
-      )}
-
       {/* Positioned tabs container */}
       <div
         className={`toptabs-container ${mounted ? '' : 'premount-toptabs'} ${getPositionStyles()} ${getContainerStyles()}`}
