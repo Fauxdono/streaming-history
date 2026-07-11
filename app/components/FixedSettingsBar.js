@@ -91,7 +91,7 @@ const FixedSettingsBar = ({
                 {/* Dark mode toggle */}
                 <button
                   onClick={toggleTheme}
-                  className={`p-1.5 rounded-full transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center ${
+                  className={`p-1.5 rounded-full transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center ${
                     isDarkMode
                       ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
                       : 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
@@ -104,7 +104,7 @@ const FixedSettingsBar = ({
                 {/* Color mode toggle */}
                 <button
                   onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
-                  className={`p-1.5 rounded-full transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center ${
+                  className={`p-1.5 rounded-full transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center ${
                     colorMode === 'colorful'
                       ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
                       : isDarkMode
@@ -120,7 +120,7 @@ const FixedSettingsBar = ({
                 <button
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Font & Display Settings"
                 >
                   <Type size={16} />
@@ -130,7 +130,7 @@ const FixedSettingsBar = ({
                 <button
                   ref={supportButtonRef}
                   onClick={() => setShowSupportDropdown(!showSupportDropdown)}
-                  className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Support"
                 >
                   <Heart size={16} fill="white" />
@@ -142,7 +142,7 @@ const FixedSettingsBar = ({
                 {showViewToggle && (
                   <button
                     onClick={toggleViewMode}
-                    className="p-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                    className="p-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                     title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                   >
                     {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
@@ -150,7 +150,7 @@ const FixedSettingsBar = ({
                 )}
                 <button
                   onClick={togglePosition}
-                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[33px] h-[33px] flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Change tab position"
                 >
                   <ArrowLeftRight size={16} />
@@ -167,7 +167,7 @@ const FixedSettingsBar = ({
                     ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
                     : 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
                 }`}
-                style={{width: '32px', height: '32px', padding: '6px'}}
+                style={{width: '26px', height: '26px', padding: '6px'}}
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
@@ -183,7 +183,7 @@ const FixedSettingsBar = ({
                       ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                       : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                 }`}
-                style={{width: '32px', height: '32px', padding: '6px'}}
+                style={{width: '26px', height: '26px', padding: '6px'}}
                 title={colorMode === 'minimal' ? 'Switch to colorful mode' : 'Switch to minimal mode'}
               >
                 <Palette size={14} />
@@ -194,7 +194,7 @@ const FixedSettingsBar = ({
                 ref={settingsButtonRef}
                 onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
                 className="rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
-                style={{width: '32px', height: '32px', padding: '6px'}}
+                style={{width: '26px', height: '26px', padding: '6px'}}
                 title="Font & Display Settings"
               >
                 <Type size={14} />
@@ -205,7 +205,7 @@ const FixedSettingsBar = ({
                 ref={supportButtonRef}
                 onClick={() => setShowSupportDropdown(!showSupportDropdown)}
                 className="rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
-                style={{width: '32px', height: '32px', padding: '6px'}}
+                style={{width: '26px', height: '26px', padding: '6px'}}
                 title="Support"
               >
                 <Heart size={14} fill="white" />
@@ -216,7 +216,7 @@ const FixedSettingsBar = ({
                 ref={analysisButtonRef}
                 onClick={() => setShowAnalysisSettings(!showAnalysisSettings)}
                 className="rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
-                style={{width: '32px', height: '32px', padding: '6px'}}
+                style={{width: '26px', height: '26px', padding: '6px'}}
                 title="Analysis Settings"
               >
                 <Settings size={14} />
@@ -226,7 +226,7 @@ const FixedSettingsBar = ({
               <button
                 onClick={togglePosition}
                 className="rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg flex items-center justify-center flex-shrink-0"
-                style={{width: '32px', height: '32px', padding: '6px'}}
+                style={{width: '26px', height: '26px', padding: '6px'}}
                 title="Change tab position"
               >
                 <ArrowLeftRight size={14} />
