@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import FontSizeDropdown from './FontSizeDropdown.js';
 import SupportDropdown from './SupportDropdown.js';
 import AnalysisSettingsDropdown from './AnalysisSettingsDropdown.js';
-import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings, Sun, Moon, Palette } from 'lucide-react';
+import { ArrowLeftRight, Type, LayoutGrid, List, Heart, Settings, Sun, Moon, Palette, Minimize2, Maximize2 } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 import { TAB_ACCENT_HEX } from './theme.js';
 
@@ -148,6 +148,14 @@ const FixedSettingsBar = ({
                     {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
                   </button>
                 )}
+                {/* Tab labels: words <-> icons (mirrors the toggle on the tab strip) */}
+                <button
+                  onClick={toggleCollapsed}
+                  className="p-1.5 rounded-full bg-sky-600 text-white hover:bg-sky-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
+                  title={isCollapsed ? 'Show tab labels' : 'Show tab icons'}
+                >
+                  {isCollapsed ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
+                </button>
                 <button
                   onClick={togglePosition}
                   className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"

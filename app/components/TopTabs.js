@@ -48,9 +48,11 @@ const TopTabs = ({
     }
   }, [position, currentPosition]);
   
-  // Words vs icons for the tab labels. Owned here (the toggle button lives in
-  // the tab strip); the parent only mirrors it via onCollapseChange.
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Words vs icons for the tab labels. Owned by the parent (SpotifyAnalyzer)
+  // so both the strip's own toggle and the settings-bar button can drive it;
+  // toggling here just reports the flip via onCollapseChange.
+  const isCollapsed = externalIsCollapsed ?? false;
+  const toggleCollapsed = () => onCollapseChange?.(!isCollapsed);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Get font size for re-measuring when it changes
@@ -124,13 +126,6 @@ const TopTabs = ({
       onPositionChange(currentPosition);
     }
   }, [currentPosition, onPositionChange]);
-
-  // Communicate collapse state changes to parent
-  useEffect(() => {
-    if (onCollapseChange) {
-      onCollapseChange(isCollapsed);
-    }
-  }, [isCollapsed, onCollapseChange]);
 
   // Communicate height changes to parent using ResizeObserver for accurate, real-time measurement
   useEffect(() => {
@@ -206,13 +201,6 @@ const TopTabs = ({
     
     return () => clearTimeout(timer);
   }, [currentPosition, isMobile]);
-
-  // Toggle collapsed state - only available on mobile
-  const toggleCollapsed = useCallback(() => {
-    if (isMobile) {
-      setIsCollapsed(prev => !prev);
-    }
-  }, [isMobile]);
 
   // Get icon for tab
   const getTabIcon = useCallback((tabId) => {
@@ -524,7 +512,7 @@ const TopTabs = ({
           <div className="flex items-stretch">
             <CollapseToggle
               isCollapsed={isCollapsed}
-              onToggle={() => setIsCollapsed(prev => !prev)}
+              onToggle={toggleCollapsed}
               className="px-1.5"
             />
             <div className="overflow-x-auto main-tabs-scrollbar flex-1 min-w-0">
@@ -536,7 +524,7 @@ const TopTabs = ({
           <div className="flex flex-col h-full">
             <CollapseToggle
               isCollapsed={isCollapsed}
-              onToggle={() => setIsCollapsed(prev => !prev)}
+              onToggle={toggleCollapsed}
               className="py-1.5"
             />
             <div className="overflow-y-auto main-tabs-scrollbar flex-1 min-h-0 pb-4">
