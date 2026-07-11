@@ -198,9 +198,12 @@ const SpotifyAnalyzer = ({
     const tint = getChromeTint(activeTab, colorMode === 'colorful', isDarkMode);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', tint);
-    // iOS paints overscroll and any un-painted safe-area region with the html
-    // background — keep it on the current tint so those never show stale color.
+    // iOS paints overscroll, rotation-animation gaps, and any un-painted
+    // safe-area region with the html/body background — keep both on the
+    // current tint (body's stylesheet bg is plain white/black and would
+    // otherwise flash as a mismatched band while rotating).
     document.documentElement.style.backgroundColor = tint;
+    document.body.style.backgroundColor = tint;
   }, [activeTab, isDarkMode, colorMode]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [enableEnrichment, setEnableEnrichment] = useState(() => {
