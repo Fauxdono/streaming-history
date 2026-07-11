@@ -698,14 +698,15 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
 
   // Mobile: keep panel content clear of the notch. The safe-area strips
   // (z-98) tint the inset itself; this padding stops content underlapping it.
-  // Top inset only matters when the panel reaches the very top of the screen
-  // (i.e. TopTabs isn't docked top to cover it).
   const safePad = !isMobile ? {} : {
     paddingLeft:  currentPosition !== 'right' ? 'env(safe-area-inset-left, 0px)'  : undefined,
     paddingRight: currentPosition !== 'left'  ? 'env(safe-area-inset-right, 0px)' : undefined,
-    paddingTop:   (currentPosition === 'left' || currentPosition === 'right') && topTabsPosition !== 'top'
-      ? 'env(safe-area-inset-top, 0px)' : undefined,
   };
+
+  // Portrait keeps a 24px status-bar sampling band at the top whenever TopTabs
+  // isn't docked there (TOP_BAND_PX in SpotifyAnalyzer) — rails that reach the
+  // top must start below it or the band (z-98) covers their first rows.
+  const railTop = isLandscape ? '0px' : 'calc(env(safe-area-inset-top, 0px) + 24px)';
 
   switch (currentPosition) {
     case 'top': return {
@@ -737,7 +738,7 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
         left:   sameSide ? px(tabsW) : '0px',
         top:    topTabsPosition === 'top'
           ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : px(settingsBar + tabsH - 1))
-          : (isMobile ? '0px' : px(settingsBar)),
+          : (isMobile ? railTop : px(settingsBar)),
         bottom: topTabsPosition === 'bottom'
           ? (isMobile ? `${settingsBar + tabsH}px` : px(tabsH))
           : (isMobile ? `${settingsBar}px` : '0px'),
@@ -750,7 +751,7 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
         right:  sameSide ? px(tabsW) : '0px',
         top:    topTabsPosition === 'top'
           ? (isMobile ? `calc(env(safe-area-inset-top) + ${tabsH - 1}px)` : px(settingsBar + tabsH - 1))
-          : (isMobile ? '0px' : px(settingsBar)),
+          : (isMobile ? railTop : px(settingsBar)),
         bottom: topTabsPosition === 'bottom'
           ? (isMobile ? `${settingsBar + tabsH}px` : px(tabsH))
           : (isMobile ? `${settingsBar}px` : '0px'),
