@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Minimize2, Maximize2 } from 'lucide-react';
 import { useTheme } from './themeprovider';
+
+// Plain-text tab names for icon-mode tooltips (the label props are JSX)
+const TAB_NAMES = {
+  updates: 'Updates', upload: 'Upload', stats: 'Statistics', artists: 'Artists',
+  albums: 'Albums', custom: 'Songs', tracks: 'Tracks', calendar: 'Calendar',
+  patterns: 'Patterns', behavior: 'Behavior', discovery: 'Music Discovery',
+  podcasts: 'Podcasts', playlists: 'Custom Playlists', data: 'Your Data',
+  settings: 'Settings',
+};
 
 const TopTabs = ({
   activeTab,
@@ -38,15 +48,9 @@ const TopTabs = ({
     }
   }, [position, currentPosition]);
   
-  // Collapsed state for mobile - shows icons instead of full text
+  // Words vs icons for the tab labels. Owned here (the toggle button lives in
+  // the tab strip); the parent only mirrors it via onCollapseChange.
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Sync internal collapsed state with external prop
-  useEffect(() => {
-    if (externalIsCollapsed !== undefined && externalIsCollapsed !== isCollapsed) {
-      setIsCollapsed(externalIsCollapsed);
-    }
-  }, [externalIsCollapsed, isCollapsed]);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Get font size for re-measuring when it changes
@@ -331,13 +335,13 @@ const TopTabs = ({
       <button
         onClick={() => setActiveTab(id)}
         className={`${
-          isCollapsed && isMobile
+          isCollapsed
             ? 'p-2 text-base'
             : 'px-2 sm:px-4 py-2 text-sm sm:text-base'
         } font-medium ${getTabColor(id)} ${isMobile && !isCollapsed ? '[&>span]:flex [&>span]:flex-col [&>span]:items-center [&>span]:leading-tight [&>span>span]:text-[10px]' : ''} ${isLandscapeMobile ? '[&>span>span]:hidden' : ''}`}
-        title={isCollapsed && isMobile ? label : undefined}
+        title={isCollapsed ? TAB_NAMES[id] : undefined}
       >
-        {isCollapsed && isMobile ? getTabIcon(id) : label}
+        {isCollapsed ? getTabIcon(id) : label}
       </button>
     );
   }, [activeTab, setActiveTab, isCollapsed, isMobile, isLandscapeMobile, getTabIcon, colorMode]);
@@ -517,13 +521,26 @@ const TopTabs = ({
       >
         {currentPosition === 'top' || currentPosition === 'bottom' ? (
           // Horizontal layout for top and bottom positions
-          <div className="overflow-x-auto main-tabs-scrollbar">
-            <TabsContainer />
+          <div className="flex items-stretch">
+            <CollapseToggle
+              isCollapsed={isCollapsed}
+              onToggle={() => setIsCollapsed(prev => !prev)}
+              className="px-1.5"
+            />
+            <div className="overflow-x-auto main-tabs-scrollbar flex-1 min-w-0">
+              <TabsContainer />
+            </div>
           </div>
         ) : (
           // Vertical layout for left and right positions
-          <div className="overflow-y-auto main-tabs-scrollbar max-h-full py-4">
-            <div className="flex flex-col gap-0 min-h-max text-sm sm:text-base">
+          <div className="flex flex-col h-full">
+            <CollapseToggle
+              isCollapsed={isCollapsed}
+              onToggle={() => setIsCollapsed(prev => !prev)}
+              className="py-1.5"
+            />
+            <div className="overflow-y-auto main-tabs-scrollbar flex-1 min-h-0 pb-4">
+              <div className="flex flex-col gap-0 min-h-max text-sm sm:text-base">
               <TabButton id="updates" label="Updates" />
               <TabButton id="upload" label="Upload" />
               {stats && <TabButton id="stats" label="Statistics" />}
@@ -538,13 +555,29 @@ const TopTabs = ({
               {processedData.length > 0 && <TabButton id="playlists" label="Custom Playlists" />}
               {rawPlayData.length > 0 && <TabButton id="data" label="Your Data" />}
               <TabButton id="settings" label="Settings" />
+              </div>
             </div>
           </div>
         )}
       </div>
-      
+
     </>
   );
 };
+
+// Small words↔icons switch pinned at the start of the tab strip (outside the
+// scroll area so it stays visible however far the tabs are scrolled).
+function CollapseToggle({ isCollapsed, onToggle, className = '' }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`shrink-0 flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-white/10 transition-colors ${className}`}
+      title={isCollapsed ? 'Show tab labels' : 'Show tab icons'}
+      aria-label={isCollapsed ? 'Show tab labels' : 'Show tab icons'}
+    >
+      {isCollapsed ? <Maximize2 size={14} /> : <Minimize2 size={14} />}
+    </button>
+  );
+}
 
 export default TopTabs;

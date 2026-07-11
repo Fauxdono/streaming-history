@@ -2275,14 +2275,9 @@ const SpotifyAnalyzer = ({
     });
   }, [isMobile]);
 
-  // Toggle collapsed function for settings bar
+  // Toggle words/icons on the tabs (settings-bar button, all viewports)
   const toggleCollapsed = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      const isMobile = window.innerWidth < 640;
-      if (isMobile) {
-        setTopTabsCollapsed(prev => !prev);
-      }
-    }
+    setTopTabsCollapsed(prev => !prev);
   }, []);
 
   // Memoized tab content renderer for performance optimization
