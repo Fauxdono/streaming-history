@@ -196,8 +196,14 @@ const SpotifyAnalyzer = ({
     if (stale) stale.remove();
 
     const tint = getChromeTint(activeTab, colorMode === 'colorful', isDarkMode);
+    // Replace the meta node rather than mutating it — iOS standalone web apps
+    // often ignore in-place theme-color updates but notice a fresh element.
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', tint);
+    if (meta) {
+      const fresh = meta.cloneNode();
+      fresh.setAttribute('content', tint);
+      meta.replaceWith(fresh);
+    }
     // iOS paints overscroll, rotation-animation gaps, and any un-painted
     // safe-area region with the html/body background — keep both on the
     // current tint (body's stylesheet bg is plain white/black and would
