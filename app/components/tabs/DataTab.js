@@ -197,6 +197,15 @@ export default function DataTab({
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
 
+  // Narrow screens swap the 760px tracks table for a stacked card list
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    const check = () => setIsNarrow(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const visibleTracks = useMemo(() => {
     let list = allTracks;
     if (serviceFilter) {
@@ -453,6 +462,78 @@ export default function DataTab({
     <th className={`${thClass} ${className}`} onClick={() => toggleSort(column)}>
       {label}{sortBy === column ? (sortDesc ? ' ▼' : ' ▲') : ''}
     </th>
+  );
+
+  // Expanded row content (provenance + individual plays), shared by the
+  // desktop table and the narrow-screen card list
+  const renderExpandedPanel = (t) => (
+    <>
+      {/* Provenance: original title/album per source */}
+      <div className="mt-1 mb-1.5">
+        <div className={`text-[10px] uppercase tracking-wider font-bold mb-1 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+          Where this song comes from
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {t.variants.map((v, i) => (
+            <span key={i} className={`${badgeClass} inline-flex items-center gap-1.5 !text-xs py-1`}>
+              <ServiceIcon source={v.source} size={11} />
+              <span>
+                {v.origName !== t.name && <span className="font-bold">{v.origName} · </span>}
+                {v.origAlbum || 'Unknown Album'}
+                <span className="opacity-60"> · {v.count} {v.count === 1 ? 'play' : 'plays'}</span>
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className={`max-h-64 overflow-auto rounded border ${isColorful ? 'border-green-500 dark:border-green-900' : isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+        <table className="w-full">
+          <tbody>
+            {[...t.plays].sort((a, b) => new Date(b.ts) - new Date(a.ts)).map((play) => {
+              const canEditPlay = EDITABLE_SOURCES.has(play.source);
+              const pk = playOverrideKey(t.key, play.ts);
+              return (
+                <tr key={`${play.ts}-${play.source}`} className={isColorful ? 'border-b border-green-300 dark:border-green-950' : `border-b ${isDarkMode ? 'border-gray-900' : 'border-gray-100'}`}>
+                  <td className={`${tdClass} whitespace-nowrap`}>{new Date(play.ts).toLocaleString()}</td>
+                  <td className={`${tdClass} w-28`}>
+                    {canEditPlay ? (
+                      <input
+                        className={`${inputClass} w-24 text-right tabular-nums`}
+                        defaultValue={formatDurationInput(play.ms)}
+                        onBlur={(e) => commitPlayTime(t, play, e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                        title="Play duration (m:ss) — edit and press Enter"
+                      />
+                    ) : (
+                      <span className="tabular-nums">{formatDurationInput(play.ms)}</span>
+                    )}
+                  </td>
+                  <td className={tdClass}>
+                    <span className={`${badgeClass} inline-flex items-center`} title={serviceLabel(play.source)} aria-label={serviceLabel(play.source)}>
+                      <ServiceIcon source={play.source} size={12} />
+                    </span>
+                  </td>
+                  <td className={`${tdClass} w-8 text-right`}>
+                    {canEditPlay && (
+                      <button
+                        onClick={() => deletePlay(t, play)}
+                        className={isColorful ? 'p-1 rounded text-black hover:text-red-600 hover:bg-red-200 dark:text-green-700 dark:hover:text-red-400 dark:hover:bg-red-950' : `p-1 rounded ${isDarkMode ? 'text-white hover:text-red-400' : 'text-black hover:text-red-600'}`}
+                        title="Remove this play"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                    {overrides.plays[pk] && !overrides.plays[pk].removed && (
+                      <span className={`ml-1 ${badgeClass}`}>edited</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 
   return (
@@ -806,6 +887,112 @@ export default function DataTab({
             </div>
           )}
 
+          {isNarrow ? (() => {
+            // Narrow screens: stacked card list instead of the wide table
+            const rowClass = isColorful
+              ? 'border-b border-green-400 dark:border-green-900'
+              : `border-b ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`;
+            const metaCls = isColorful ? 'text-xs text-black opacity-70 dark:text-green-600 dark:opacity-100' : `text-xs opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`;
+            const SORTS = [['name', 'Track'], ['artist', 'Artist'], ['album', 'Album'], ['releaseYear', 'Year'], ['lengthMs', 'Length']];
+            return (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-xs uppercase font-bold ${metaCls}`}>Sort</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setSortDesc(e.target.value === 'lengthMs' || e.target.value === 'releaseYear');
+                      setPage(0);
+                    }}
+                    className={`${inputClass} !w-auto`}
+                  >
+                    {SORTS.map(([col, label]) => <option key={col} value={col}>{label}</option>)}
+                  </select>
+                  <button onClick={() => setSortDesc(d => !d)} className={iconBtnClass} title="Reverse order">
+                    {sortDesc ? '▼' : '▲'}
+                  </button>
+                </div>
+                {pageTracks.map((t) => {
+                  const isEdited = t.okeys.some(k => overrides.tracks[k] || playEditedKeys.has(k));
+                  const isEditing = editingKey === t.key;
+                  const isExpanded = expandedKey === t.key;
+                  return (
+                    <div key={t.key} className={`${rowClass} py-2`}>
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedKeys.has(t.key)}
+                          onChange={() => toggleSelected(t.key)}
+                          title="Select to merge with another version"
+                          className={`mt-1 ${isColorful ? 'cake-check' : 'cake-check-mono'}`}
+                        />
+                        <button
+                          onClick={() => { setExpandedKey(isExpanded ? null : t.key); setEditingKey(null); }}
+                          className={`${iconBtnClass} mt-0.5`}
+                          title={isExpanded ? 'Hide plays' : 'Show plays'}
+                        >
+                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          {isEditing ? (
+                            <div className="flex flex-col gap-1.5">
+                              <input className={inputClass} value={editDraft.name} onChange={(e) => setEditDraft(d => ({ ...d, name: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} autoFocus placeholder="Track" />
+                              <input className={inputClass} value={editDraft.artist} onChange={(e) => setEditDraft(d => ({ ...d, artist: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Artist" />
+                              <input className={inputClass} value={editDraft.album} onChange={(e) => setEditDraft(d => ({ ...d, album: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Album" />
+                              <div className="flex gap-1.5">
+                                <input className={`${inputClass} !w-20 text-right tabular-nums`} value={editDraft.year} onChange={(e) => setEditDraft(d => ({ ...d, year: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Year" title="Release year" />
+                                <input className={`${inputClass} !w-24 text-right tabular-nums`} value={editDraft.length} onChange={(e) => setEditDraft(d => ({ ...d, length: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} title="Song length (m:ss)" placeholder="m:ss" />
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className={`${tdClass} !p-0 font-medium truncate`} title={t.name}>
+                                {t.name}
+                                {isEdited && <span className={`ml-1.5 ${badgeClass}`}>edited</span>}
+                              </div>
+                              <div className={`${tdClass} !p-0 truncate opacity-80`} title={`${t.artist}${t.album ? ` · ${t.album}` : ''}`}>
+                                {t.artist}{t.album ? ` · ${t.album}` : ''}
+                              </div>
+                              <div className={`${metaCls} mt-0.5 flex items-center flex-wrap gap-x-2 gap-y-1 tabular-nums`}>
+                                <span>{t.releaseYear || '—'}</span>
+                                <span>
+                                  {t.lengthIsPartial
+                                    ? (t.lengthMs >= 1000 ? `≥ ${formatDurationInput(t.lengthMs)}` : '—')
+                                    : formatDurationInput(t.lengthMs)}
+                                </span>
+                                {t.sources.map((s) => (
+                                  <span key={s} className={`${badgeClass} inline-flex items-center`} title={serviceLabel(s)} aria-label={serviceLabel(s)}>
+                                    <ServiceIcon source={s} size={12} />
+                                  </span>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          {isEditing ? (
+                            <>
+                              <button onClick={() => saveEdit(t)} className={iconBtnClass} title="Save"><Check size={14} /></button>
+                              <button onClick={() => setEditingKey(null)} className={iconBtnClass} title="Cancel"><X size={14} /></button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => startEdit(t)} className={iconBtnClass} title="Edit song details"><Pencil size={14} /></button>
+                              {isEdited && (
+                                <button onClick={() => revertTrack(t)} className={iconBtnClass} title="Undo all edits to this track"><RotateCcw size={14} /></button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {isExpanded && <div className="mt-2">{renderExpandedPanel(t)}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })() : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px]">
               <thead>
@@ -924,71 +1111,7 @@ export default function DataTab({
                       {isExpanded && (
                         <tr className={rowClass}>
                           <td colSpan={9} className="px-2 pb-2">
-                            {/* Provenance: original title/album per source */}
-                            <div className="mt-1 mb-1.5">
-                              <div className={`text-[10px] uppercase tracking-wider font-bold mb-1 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
-                                Where this song comes from
-                              </div>
-                              <div className="flex flex-wrap gap-1.5">
-                                {t.variants.map((v, i) => (
-                                  <span key={i} className={`${badgeClass} inline-flex items-center gap-1.5 !text-xs py-1`}>
-                                    <ServiceIcon source={v.source} size={11} />
-                                    <span>
-                                      {v.origName !== t.name && <span className="font-bold">{v.origName} · </span>}
-                                      {v.origAlbum || 'Unknown Album'}
-                                      <span className="opacity-60"> · {v.count} {v.count === 1 ? 'play' : 'plays'}</span>
-                                    </span>
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            <div className={`max-h-64 overflow-y-auto rounded border ${isColorful ? 'border-green-500 dark:border-green-900' : isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
-                              <table className="w-full">
-                                <tbody>
-                                  {[...t.plays].sort((a, b) => new Date(b.ts) - new Date(a.ts)).map((play) => {
-                                    const canEditPlay = EDITABLE_SOURCES.has(play.source);
-                                    const pk = playOverrideKey(t.key, play.ts);
-                                    return (
-                                      <tr key={`${play.ts}-${play.source}`} className={isColorful ? 'border-b border-green-300 dark:border-green-950' : `border-b ${isDarkMode ? 'border-gray-900' : 'border-gray-100'}`}>
-                                        <td className={`${tdClass} whitespace-nowrap`}>{new Date(play.ts).toLocaleString()}</td>
-                                        <td className={`${tdClass} w-28`}>
-                                          {canEditPlay ? (
-                                            <input
-                                              className={`${inputClass} w-24 text-right tabular-nums`}
-                                              defaultValue={formatDurationInput(play.ms)}
-                                              onBlur={(e) => commitPlayTime(t, play, e.target.value)}
-                                              onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-                                              title="Play duration (m:ss) — edit and press Enter"
-                                            />
-                                          ) : (
-                                            <span className="tabular-nums">{formatDurationInput(play.ms)}</span>
-                                          )}
-                                        </td>
-                                        <td className={tdClass}>
-                                          <span className={`${badgeClass} inline-flex items-center`} title={serviceLabel(play.source)} aria-label={serviceLabel(play.source)}>
-                                            <ServiceIcon source={play.source} size={12} />
-                                          </span>
-                                        </td>
-                                        <td className={`${tdClass} w-8 text-right`}>
-                                          {canEditPlay && (
-                                            <button
-                                              onClick={() => deletePlay(t, play)}
-                                              className={isColorful ? 'p-1 rounded text-black hover:text-red-600 hover:bg-red-200 dark:text-green-700 dark:hover:text-red-400 dark:hover:bg-red-950' : `p-1 rounded ${isDarkMode ? 'text-white hover:text-red-400' : 'text-black hover:text-red-600'}`}
-                                              title="Remove this play"
-                                            >
-                                              <Trash2 size={13} />
-                                            </button>
-                                          )}
-                                          {overrides.plays[pk] && !overrides.plays[pk].removed && (
-                                            <span className={`ml-1 ${badgeClass}`}>edited</span>
-                                          )}
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                            </div>
+                            {renderExpandedPanel(t)}
                           </td>
                         </tr>
                       )}
@@ -998,6 +1121,7 @@ export default function DataTab({
               </tbody>
             </table>
           </div>
+          )}
 
           {pageCount > 1 && (
             <div className="flex items-center justify-between mt-3">
