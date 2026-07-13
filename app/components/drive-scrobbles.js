@@ -32,6 +32,57 @@ async function authFetch(url, opts, token) {
   return res;
 }
 
+// Pull Google's real reason out of a failed Drive response (or a thrown
+// gapi.client error) so the UI shows something actionable instead of a code.
+async function describeError(resOrErr, status) {
+  let reason = '', message = '';
+  try {
+    if (resOrErr && typeof resOrErr.text === 'function') {
+      const body = JSON.parse(await resOrErr.text());
+      reason = body?.error?.errors?.[0]?.reason || '';
+      message = body?.error?.message || '';
+    } else {
+      const e = resOrErr?.result?.error || resOrErr;
+      reason = e?.errors?.[0]?.reason || '';
+      message = e?.message || resOrErr?.message || '';
+    }
+  } catch { /* fall through to the generic message */ }
+
+  if (reason === 'storageQuotaExceeded')
+    return 'Your Google Drive is full — free up space, then try again.';
+  if (reason === 'insufficientPermissions' || reason === 'insufficientFilePermissions' || reason === 'appNotAuthorizedToFile')
+    return 'Google Drive denied access to this file. Disconnect and reconnect Google Drive on the Upload tab, then try again.';
+  if (reason.includes('RateLimit') || reason === 'userRateLimitExceeded')
+    return 'Google Drive is rate-limiting requests — wait a moment and try again.';
+  return message
+    ? `Google Drive error (${status}): ${message}`
+    : `Google Drive request failed (${status}).`;
+}
+
+// Use gapi.client.request for writes when it's loaded — that's the exact path
+// GoogleDriveSync uses successfully. Falls back to raw fetch otherwise.
+async function driveWrite({ url, method, headers, body }, token) {
+  if (typeof window !== 'undefined' && window.gapi?.client?.request) {
+    const u = new URL(url);
+    const params = Object.fromEntries(u.searchParams.entries());
+    try {
+      return await window.gapi.client.request({
+        path: u.origin + u.pathname,
+        method,
+        params,
+        headers,
+        body,
+      });
+    } catch (err) {
+      if (err?.status === 401) throw new Error('Google Drive session expired — reconnect it on the Upload tab, then try again.');
+      throw new Error(await describeError(err, err?.status || '?'));
+    }
+  }
+  const res = await authFetch(url, { method, headers, body }, token);
+  if (!res.ok) throw new Error(await describeError(res, res.status));
+  return await res.json();
+}
+
 async function findFolderId(token) {
   const q = encodeURIComponent(`name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
   const res = await authFetch(`${API}?q=${q}&spaces=drive`, {}, token);
@@ -41,13 +92,13 @@ async function findFolderId(token) {
 }
 
 async function createFolder(token) {
-  const res = await authFetch(API, {
+  const result = await driveWrite({
+    url: API,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
   }, token);
-  if (!res.ok) throw new Error(`Could not create the cakeculator folder (${res.status}).`);
-  return (await res.json()).id;
+  return (result.result || result).id;
 }
 
 async function findFileId(fileName, folderId, token) {
@@ -83,13 +134,13 @@ export async function saveScrobblesToDrive(fileName, data) {
   const url = existingId
     ? `${UPLOAD_API}/${existingId}?uploadType=multipart`
     : `${UPLOAD_API}?uploadType=multipart`;
-  const res = await authFetch(url, {
+  const result = await driveWrite({
+    url,
     method: existingId ? 'PATCH' : 'POST',
-    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+    headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
     body,
   }, token);
-  if (!res.ok) throw new Error(`Save to Google Drive failed (${res.status}).`);
-  return await res.json();
+  return result.result || result;
 }
 
 // Read <cakeculator>/<fileName> back as parsed JSON. Returns null if the folder
