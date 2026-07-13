@@ -319,7 +319,7 @@ export default function UploadTab({
                 colorMode === 'colorful'
                   ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
                   : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black')
-              }`}>
+              } ${uploadShadow}`}>
                 <h4 className={`font-semibold mb-1 text-lg ${uploadText}`}>Uploaded Files:</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
                   {uploadedFiles.map((fileName, index) => (
@@ -327,7 +327,7 @@ export default function UploadTab({
                       colorMode === 'colorful'
                         ? 'bg-violet-100 dark:bg-violet-700'
                         : (isDarkMode ? 'bg-gray-900' : 'bg-white')
-                    }`}>
+                    } ${uploadShadow}`}>
                       <span className={`text-sm font-medium truncate mr-3 ${uploadTextLight}`}>
                         {fileName}
                       </span>
