@@ -81,14 +81,28 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
   const textMain = isColorful ? 'text-violet-700 dark:text-violet-300' : '';
   const textLight = isColorful ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400';
   const shadow = isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]') : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
+  // Action buttons indent on press (active:), matching the tab buttons' feel.
   const btnSecondary = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-colors border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed]'
-    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-all border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
+    : isDarkMode
+      ? 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
   const btnDanger = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
-    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-red-400 border-red-600 hover:bg-gray-800' : 'bg-white text-red-600 border-red-400 hover:bg-red-50'}`;
-  const segActive = isColorful ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-white text-black' : 'bg-black text-white');
-  const segInactive = isColorful ? 'bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black');
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-all shadow-[2px_2px_0_0_#7c3aed] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
+    : isDarkMode
+      ? 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-black text-red-400 border-red-600 hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-white text-red-600 border-red-400 hover:bg-red-50 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
+  // Toggle matches the tab buttons: active is pressed-in, inactive is raised.
+  const segActive = isColorful
+    ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
+    : isDarkMode
+      ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
+  const segInactive = isColorful
+    ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 hover:opacity-80 shadow-[2px_2px_0_0_#7c3aed]'
+    : isDarkMode
+      ? 'bg-black text-white border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
+      : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
   const rowBg = isColorful ? 'bg-violet-50 dark:bg-violet-900/30' : isDarkMode ? 'bg-black' : 'bg-white';
 
   const triggerDownload = (data, name) => {

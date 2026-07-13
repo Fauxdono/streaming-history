@@ -439,8 +439,17 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
   // Style helpers
   const isColorful = colorMode === 'colorful';
   const [lastfmView, setLastfmView] = useState('account'); // 'account' | 'scrobble'
-  const segActive = isColorful ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-white text-black' : 'bg-black text-white');
-  const segInactive = isColorful ? 'bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black');
+  // Same look/behaviour as the Upload|Scrobbles tab buttons: active is pressed-in, inactive is raised.
+  const segActive = isColorful
+    ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
+    : isDarkMode
+      ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
+  const segInactive = isColorful
+    ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 hover:opacity-80 shadow-[2px_2px_0_0_#7c3aed]'
+    : isDarkMode
+      ? 'bg-black text-white border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
+      : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
   const border = isColorful ? 'border-violet-300 dark:border-violet-700' : isDarkMode ? 'border-[#4169E1]' : 'border-black';
   const cardBg = isColorful ? 'bg-violet-100 dark:bg-violet-800' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
   const textMain = isColorful ? 'text-violet-700 dark:text-violet-300' : '';
