@@ -67,10 +67,6 @@ export default function UploadTab({
         const uploadShadow = colorMode === 'colorful'
           ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]')
           : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
-        // The individual uploaded-file rows get a deeper (2px) shadow.
-        const fileRowShadow = colorMode === 'colorful'
-          ? (isDarkMode ? 'shadow-[2px_2px_0_0_#7c3aed]' : 'shadow-[2px_2px_0_0_#6d28d9]')
-          : (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]');
 
         const uploadInnerBtnActive = colorMode === 'colorful'
           ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
@@ -321,17 +317,17 @@ export default function UploadTab({
             {uploadedFiles.length > 0 && (
               <div className={`mt-4 p-2 rounded-lg border ${
                 colorMode === 'colorful'
-                  ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
-                  : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black')
+                  ? 'bg-violet-100 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
+                  : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-white border-black')
               } ${uploadShadow}`}>
                 <h4 className={`font-semibold mb-1 text-lg ${uploadText}`}>Uploaded Files:</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                   {uploadedFiles.map((fileName, index) => (
-                    <div key={index} className={`flex items-center justify-between gap-2 px-2 py-0.5 rounded ${
+                    <div key={index} className={`flex items-center justify-between gap-2 px-2 py-0.5 rounded border ${uploadBorder} ${
                       colorMode === 'colorful'
                         ? 'bg-violet-100 dark:bg-violet-700'
                         : (isDarkMode ? 'bg-gray-900' : 'bg-white')
-                    } ${fileRowShadow}`}>
+                    } ${uploadShadow}`}>
                       <span className={`text-sm font-medium truncate ${uploadTextLight}`}>
                         {fileName}
                       </span>
