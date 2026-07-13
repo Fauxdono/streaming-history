@@ -1165,7 +1165,7 @@ const GoogleDriveSync = ({
       )}
 
       {!isConnected ? (
-        <div className={`p-3 sm:p-4 rounded-lg border text-center ${cardBg}`}>
+        <div className={`p-3 sm:p-4 rounded-lg border text-center ${cardBg} ${containerShadow}`}>
           <p className={`mb-3 text-xs sm:text-sm ${subText}`}>
             Save analysis to Google Drive for cloud access
           </p>
@@ -1247,7 +1247,7 @@ const GoogleDriveSync = ({
 
           {/* Desktop: full cards side by side */}
           <div className="hidden sm:grid sm:grid-cols-2 gap-4">
-            <div className={`p-4 border rounded-lg ${cardBg}`}>
+            <div className={`p-4 border rounded-lg ${cardBg} ${containerShadow}`}>
               <h4 className={`font-semibold mb-2 text-base ${headerText}`}>💾 Save Analysis</h4>
               <p className={`text-sm mb-3 ${subText}`}>
                 Save analysis + original files to "cakeculator" folder
@@ -1265,7 +1265,7 @@ const GoogleDriveSync = ({
               </button>
             </div>
 
-            <div className={`p-4 border rounded-lg ${cardBg}`}>
+            <div className={`p-4 border rounded-lg ${cardBg} ${containerShadow}`}>
               <h4 className={`font-semibold mb-2 text-base ${headerText}`}>📥 Load Analysis</h4>
               <p className={`text-sm mb-3 ${subText}`}>
                 Restore saved analysis from Google Drive
