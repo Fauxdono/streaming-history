@@ -323,24 +323,24 @@ export default function UploadTab({
                 <h4 className={`font-semibold mb-1 text-lg ${uploadText}`}>Uploaded Files:</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
                   {uploadedFiles.map((fileName, index) => (
-                    <div key={index} className={`flex items-center justify-between px-2 py-1 rounded ${
+                    <div key={index} className={`flex items-center justify-between gap-2 px-2 py-0.5 rounded ${
                       colorMode === 'colorful'
                         ? 'bg-violet-100 dark:bg-violet-700'
                         : (isDarkMode ? 'bg-gray-900' : 'bg-white')
                     } ${uploadShadow}`}>
-                      <span className={`text-sm font-medium truncate mr-3 ${uploadTextLight}`}>
+                      <span className={`text-sm font-medium truncate ${uploadTextLight}`}>
                         {fileName}
                       </span>
                       <button
                         onClick={() => handleDeleteFile(index)}
                         className={
                           colorMode === 'colorful'
-                            ? 'p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0 shadow-[2px_2px_0_0_#b91c1c]'
-                            : `p-2 rounded-lg transition-colors shrink-0 ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                            ? 'p-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors shrink-0 shadow-[2px_2px_0_0_#b91c1c]'
+                            : `p-1 rounded transition-colors shrink-0 ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
                         }
                         title="Remove file"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   ))}
