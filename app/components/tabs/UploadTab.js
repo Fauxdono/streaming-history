@@ -321,7 +321,7 @@ export default function UploadTab({
                   : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black')
               } ${uploadShadow}`}>
                 <h4 className={`font-semibold mb-1 text-lg ${uploadText}`}>Uploaded Files:</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                   {uploadedFiles.map((fileName, index) => (
                     <div key={index} className={`flex items-center justify-between gap-2 px-2 py-0.5 rounded ${
                       colorMode === 'colorful'
