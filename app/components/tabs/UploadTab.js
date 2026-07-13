@@ -408,7 +408,7 @@ export default function UploadTab({
                 colorMode === 'colorful'
                   ? 'bg-violet-50 dark:bg-violet-800 border-violet-300 dark:border-violet-600'
                   : isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black'
-              }`}>
+              } ${uploadShadow}`}>
                 {storedScrobbleCount > 0 && (
                   <label className={`flex items-center gap-2 cursor-pointer select-none text-sm mb-3 ${uploadTextLight}`}>
                     <input

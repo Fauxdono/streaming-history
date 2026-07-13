@@ -1132,9 +1132,13 @@ const GoogleDriveSync = ({
     ? (isDarkMode ? 'bg-violet-700 border-violet-500' : 'bg-violet-100 border-violet-300')
     : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300');
   const minBtn = isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]';
+  // Card press-shadow, matching the other Upload-page containers (violet in colorful).
+  const containerShadow = isColorful
+    ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]')
+    : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
 
   return (
-    <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg}`}>
+    <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg} ${containerShadow}`}>
       <div className="flex items-center space-x-2 sm:space-x-3">
         <div className="flex-1">
           <h2 className={`text-sm font-semibold ${headerText}`}>Google Drive Storage</h2>
