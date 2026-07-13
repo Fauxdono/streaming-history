@@ -401,13 +401,13 @@ export default function StatsTab({
                       >{m.label}</button>
                     );
                     return (
-                      <details data-export-ignore className="mt-3">
-                        <summary className={`inline-flex items-center gap-2 w-fit cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden px-3 py-1.5 rounded-lg font-medium text-sm border transition-all ${
+                      <details data-export-ignore className="mt-3 group">
+                        <summary className={`inline-flex items-center gap-2 w-fit cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden px-3 py-1.5 rounded-lg font-medium text-sm border transition-all group-open:translate-x-[2px] group-open:translate-y-[2px] ${
                           colorMode === 'colorful'
-                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-700 shadow-[2px_2px_0_0_#4338ca] dark:shadow-[2px_2px_0_0_#4f46e5] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4338ca] dark:active:shadow-[inset_2px_2px_0_0_#4f46e5]'
+                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-700 shadow-[2px_2px_0_0_#4338ca] dark:shadow-[2px_2px_0_0_#4f46e5] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4338ca] dark:active:shadow-[inset_2px_2px_0_0_#4f46e5] group-open:shadow-[inset_2px_2px_0_0_#4338ca] dark:group-open:shadow-[inset_2px_2px_0_0_#4f46e5]'
                             : (isDarkMode
-                                ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
-                                : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]')
+                                ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1] group-open:shadow-[inset_2px_2px_0_0_#4169E1]'
+                                : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black] group-open:shadow-[inset_2px_2px_0_0_black]')
                         }`}>
                           <ImageIcon size={16} />
                           Share as image
