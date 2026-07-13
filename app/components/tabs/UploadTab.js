@@ -148,7 +148,7 @@ export default function UploadTab({
                     />
                   }
                 />
-                <StoredScrobbles colorMode={colorMode} isDarkMode={isDarkMode} refreshKey={storedRefresh} />
+                <StoredScrobbles colorMode={colorMode} isDarkMode={isDarkMode} refreshKey={storedRefresh} onGoToUpload={() => setUploadInnerTab('upload')} />
               </div>
             ) : (<>
             {/* Storage Notification */}

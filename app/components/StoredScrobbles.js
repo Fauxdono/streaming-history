@@ -41,7 +41,7 @@ function normalize(entry, source) {
 // views with a button. Each view shows that source's own stored scrobbles
 // (read straight from its store), so it works regardless of which inner tab
 // is active. Bump `refreshKey` after an import/clear to re-read.
-export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = false, refreshKey = 0 }) {
+export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = false, refreshKey = 0, onGoToUpload = null }) {
   const isColorful = colorMode === 'colorful';
   const [source, setSource] = useState('lastfm');
   const [lastfmByYear, setLastfmByYear] = useState({});
@@ -162,7 +162,10 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
               <span className="shrink-0">⚠️</span>
               <span>
                 <strong>{untaggedCount}</strong> scrobble{untaggedCount !== 1 ? 's' : ''} with missing metadata (filenames instead of track names).
-                Fix the ID3 tags on the iPod with Mp3tag or MusicBrainz Picard.
+                Fix the ID3 tags with Mp3tag or MusicBrainz Picard, or include them on the{' '}
+                {onGoToUpload
+                  ? <button type="button" onClick={onGoToUpload} className="font-semibold hover:opacity-80" style={{ textDecoration: 'underline' }}>Upload page</button>
+                  : 'Upload page'} and adjust them from Your Data.
               </span>
             </div>
           )}
