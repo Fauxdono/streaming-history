@@ -221,7 +221,7 @@ export default function StatsTab({
       content.appendChild(cols);
 
       const ov = overviewRef.current.cloneNode(true);
-      ov.querySelectorAll('[data-export-only]').forEach(e => e.remove());
+      ov.querySelectorAll('[data-export-only], [data-export-ignore]').forEach(e => e.remove());
       ov.className = 'space-y-4';
       left.appendChild(ov);
 
@@ -327,11 +327,11 @@ export default function StatsTab({
   return stats ? (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
-              : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
+              ? 'p-2 sm:px-0 sm:py-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
+              : `p-2 sm:px-0 sm:py-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             {/* Desktop title */}
-            <div className="hidden sm:block mb-4">
+            <div className="hidden sm:block mb-4 px-4">
               <h3 className={
                 colorMode === 'colorful'
                   ? 'text-xl text-indigo-700 dark:text-indigo-300'
@@ -379,6 +379,79 @@ export default function StatsTab({
                       ? 'text-xs mt-1 text-indigo-500 dark:text-indigo-500'
                       : 'text-xs mt-1 opacity-50'
                   }>only counting plays over 30 seconds</div>
+
+                  {/* Share as image — collapsible poster-export controls */}
+                  {(() => {
+                    const modes = [
+                      { cm: 'colorful', dk: false, label: 'Colorful light' },
+                      { cm: 'colorful', dk: true, label: 'Colorful dark' },
+                      { cm: 'minimal', dk: false, label: 'Minimal light' },
+                      { cm: 'minimal', dk: true, label: 'Minimal dark' },
+                    ];
+                    const isActive = (m) => m.cm === colorMode && m.dk === isDarkMode;
+                    const modeBtn = (m) => (
+                      <button
+                        key={m.label}
+                        onClick={() => { setColorMode(m.cm); setTheme(m.dk ? 'dark' : 'light'); }}
+                        className={`px-2.5 py-1.5 rounded text-xs font-medium border transition-colors ${
+                          isActive(m)
+                            ? (colorMode === 'colorful' ? 'bg-indigo-600 text-white border-indigo-600' : (isDarkMode ? 'bg-white text-black border-white' : 'bg-black text-white border-black'))
+                            : (colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-700' : `${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`)
+                        }`}
+                      >{m.label}</button>
+                    );
+                    return (
+                      <details data-export-ignore className="mt-3">
+                        <summary className={`inline-flex items-center gap-2 w-fit cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden px-3 py-1.5 rounded-lg font-medium text-sm border transition-all ${
+                          colorMode === 'colorful'
+                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-700 shadow-[2px_2px_0_0_#4338ca] dark:shadow-[2px_2px_0_0_#4f46e5] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4338ca] dark:active:shadow-[inset_2px_2px_0_0_#4f46e5]'
+                            : (isDarkMode
+                                ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+                                : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]')
+                        }`}>
+                          <ImageIcon size={16} />
+                          Share as image
+                        </summary>
+                        <div className="mt-3 space-y-3">
+                          {/* Preview */}
+                          <div className={`relative w-full max-w-xs rounded border overflow-hidden ${colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600' : (isDarkMode ? 'border-gray-700' : 'border-gray-300')}`}>
+                            {previewUrl
+                              ? <img src={previewUrl} alt="Export preview" className="w-full block" />
+                              : <div className="aspect-[1160/900] w-full" />}
+                            {previewing && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/20 text-xs font-medium text-white">Rendering…</div>
+                            )}
+                          </div>
+                          {/* Theme */}
+                          <div>
+                            <div className={`text-xs mb-1.5 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>Theme (switches the whole app)</div>
+                            <div className="grid grid-cols-2 gap-1.5 max-w-xs">{modes.map(modeBtn)}</div>
+                          </div>
+                          <label className={`flex items-center gap-2 text-sm cursor-pointer ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
+                            <input type="checkbox" checked={useBorder} onChange={(e) => setUseBorder(e.target.checked)} />
+                            🎂 Sprinkle border
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={handleExportImage}
+                              disabled={exporting || previewing}
+                              className={
+                                colorMode === 'colorful'
+                                  ? 'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60'
+                                  : `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-60 ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
+                              }
+                            >
+                              <ImageIcon size={16} />
+                              {exporting ? 'Rendering…' : 'Share as Image'}
+                            </button>
+                            {exported && (
+                              <span className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-70'}`}>✓ Saved to your downloads</span>
+                            )}
+                          </div>
+                        </div>
+                      </details>
+                    );
+                  })()}
 
                   {/* Data quality footnote */}
                   <details data-export-ignore className={`mt-3 text-sm ${
@@ -651,74 +724,6 @@ export default function StatsTab({
                 );
               })()}
             </div>
-
-            {/* Share as image — preview + variant controls */}
-            {(() => {
-              const panelBase = colorMode === 'colorful'
-                ? 'border border-indigo-300 dark:border-indigo-700 bg-indigo-100 dark:bg-indigo-800'
-                : `border ${isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white'}`;
-              const modes = [
-                { cm: 'colorful', dk: false, label: 'Colorful light' },
-                { cm: 'colorful', dk: true, label: 'Colorful dark' },
-                { cm: 'minimal', dk: false, label: 'Minimal light' },
-                { cm: 'minimal', dk: true, label: 'Minimal dark' },
-              ];
-              const isActive = (m) => m.cm === colorMode && m.dk === isDarkMode;
-              const modeBtn = (m) => (
-                <button
-                  key={m.label}
-                  onClick={() => { setColorMode(m.cm); setTheme(m.dk ? 'dark' : 'light'); }}
-                  className={`px-2.5 py-1.5 rounded text-xs font-medium border transition-colors ${
-                    isActive(m)
-                      ? (colorMode === 'colorful' ? 'bg-indigo-600 text-white border-indigo-600' : (isDarkMode ? 'bg-white text-black border-white' : 'bg-black text-white border-black'))
-                      : (colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-700' : `${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`)
-                  }`}
-                >{m.label}</button>
-              );
-              return (
-                <div className={`mt-4 p-4 rounded-lg ${panelBase} flex flex-col sm:flex-row gap-4`}>
-                  {/* Preview */}
-                  <div className={`relative shrink-0 w-full sm:w-64 rounded border overflow-hidden ${colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600' : (isDarkMode ? 'border-gray-700' : 'border-gray-300')}`}>
-                    {previewUrl
-                      ? <img src={previewUrl} alt="Export preview" className="w-full block" />
-                      : <div className="aspect-[1160/900] w-full" />}
-                    {previewing && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 text-xs font-medium text-white">Rendering…</div>
-                    )}
-                  </div>
-
-                  {/* Controls */}
-                  <div className="flex-1 flex flex-col gap-3">
-                    <div className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>Share your stats as an image</div>
-                    <div>
-                      <div className={`text-xs mb-1.5 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>Theme (switches the whole app)</div>
-                      <div className="grid grid-cols-2 gap-1.5 max-w-xs">{modes.map(modeBtn)}</div>
-                    </div>
-                    <label className={`flex items-center gap-2 text-sm cursor-pointer ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
-                      <input type="checkbox" checked={useBorder} onChange={(e) => setUseBorder(e.target.checked)} />
-                      🎂 Sprinkle border
-                    </label>
-                    <div className="flex items-center gap-3 mt-1">
-                      <button
-                        onClick={handleExportImage}
-                        disabled={exporting || previewing}
-                        className={
-                          colorMode === 'colorful'
-                            ? 'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60'
-                            : `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-60 ${isDarkMode ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`
-                        }
-                      >
-                        <ImageIcon size={16} />
-                        {exporting ? 'Rendering…' : 'Share as Image'}
-                      </button>
-                      {exported && (
-                        <span className={`text-sm font-medium ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-70'}`}>✓ Saved to your downloads</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
 
           </div>
   ) : null;
