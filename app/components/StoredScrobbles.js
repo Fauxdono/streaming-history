@@ -46,32 +46,29 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
   const [source, setSource] = useState('lastfm');
   const [lastfmByYear, setLastfmByYear] = useState({});
   const [rockboxByYear, setRockboxByYear] = useState({});
-  const didInit = useRef(false);
+  const userPicked = useRef(false);
 
   useEffect(() => {
     setRockboxByYear(readRockbox());
     let cancelled = false;
     (async () => {
       try {
-        const all = await lastfmDb.loadAllScrobbles();
-        const byYear = {};
-        for (const e of all) {
-          const y = new Date(e.date).getFullYear();
-          (byYear[y] = byYear[y] || []).push(e);
-        }
-        if (!cancelled) setLastfmByYear(byYear);
+        // loadAllScrobbles() already returns a { year: [entries] } map.
+        const byYear = await lastfmDb.loadAllScrobbles();
+        if (!cancelled) setLastfmByYear(byYear && typeof byYear === 'object' ? byYear : {});
       } catch { if (!cancelled) setLastfmByYear({}); }
     })();
     return () => { cancelled = true; };
   }, [refreshKey]);
 
-  // On first data load, land on whichever source actually has scrobbles.
+  // Default to whichever source has data (prefer Last.fm), until the user picks
+  // a view manually. Last.fm loads async, so this re-runs when it arrives.
   useEffect(() => {
-    if (didInit.current) return;
+    if (userPicked.current) return;
     const lfm = Object.values(lastfmByYear).flat().length;
     const rb = Object.values(rockboxByYear).flat().length;
-    if (lfm === 0 && rb > 0) setSource('rockbox');
-    if (lfm > 0 || rb > 0) didInit.current = true;
+    if (lfm > 0) setSource('lastfm');
+    else if (rb > 0) setSource('rockbox');
   }, [lastfmByYear, rockboxByYear]);
 
   const byYear = source === 'lastfm' ? lastfmByYear : rockboxByYear;
@@ -127,8 +124,8 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h4 className={`font-semibold text-sm ${textMain}`}>Stored scrobbles</h4>
         <div className="flex gap-1">
-          <button onClick={() => setSource('lastfm')} className={`px-3 py-1 text-xs rounded font-medium ${source === 'lastfm' ? segActive : segInactive}`}>Last.fm</button>
-          <button onClick={() => setSource('rockbox')} className={`px-3 py-1 text-xs rounded font-medium ${source === 'rockbox' ? segActive : segInactive}`}>iPod</button>
+          <button onClick={() => { userPicked.current = true; setSource('lastfm'); }} className={`px-3 py-1 text-xs rounded font-medium ${source === 'lastfm' ? segActive : segInactive}`}>Last.fm</button>
+          <button onClick={() => { userPicked.current = true; setSource('rockbox'); }} className={`px-3 py-1 text-xs rounded font-medium ${source === 'rockbox' ? segActive : segInactive}`}>iPod</button>
         </div>
       </div>
 
