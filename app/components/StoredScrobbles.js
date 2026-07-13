@@ -2,14 +2,45 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import * as lastfmDb from './lastfm-db.js';
+import { isDriveConnected, saveScrobblesToDrive, loadScrobblesFromDrive } from './drive-scrobbles.js';
 
 const ROCKBOX_KEY = 'rockbox_scrobbles';
+// iPod/Rockbox scrobbles live only in this browser's localStorage, so they're
+// the ones worth backing up to Drive. One file, read/merge/write, deduped by key.
+const ROCKBOX_DRIVE_FILE = 'rockbox-scrobbles.json';
 
 function readRockbox() {
   try {
     const raw = localStorage.getItem(ROCKBOX_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
+}
+
+// Same dedupe identity RockboxScrobbler uses when importing from a device.
+function rockboxKey(e) {
+  return `${e.ts}|${e.master_metadata_album_artist_name}|${e.master_metadata_track_name}`;
+}
+
+// Merge scrobbles pulled from Drive into the local store, skipping duplicates.
+// Accepts either a { year: [...] } map or a flat array. Returns the count added
+// and the updated by-year map (also persisted to localStorage).
+function mergeRockbox(incoming) {
+  const arr = Array.isArray(incoming) ? incoming : Object.values(incoming || {}).flat();
+  const existing = readRockbox();
+  const keys = new Set(Object.values(existing).flat().map(rockboxKey));
+  let added = 0;
+  for (const e of arr) {
+    if (!e || !e.ts || !e.master_metadata_track_name) continue;
+    const key = rockboxKey(e);
+    if (keys.has(key)) continue;
+    const year = new Date(e.ts).getFullYear().toString();
+    if (!existing[year]) existing[year] = [];
+    existing[year].push(e);
+    keys.add(key);
+    added++;
+  }
+  if (added > 0) localStorage.setItem(ROCKBOX_KEY, JSON.stringify(existing));
+  return { added, map: existing };
 }
 
 // Both sources store different entry shapes; normalize for display.
@@ -47,6 +78,54 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
   const [lastfmByYear, setLastfmByYear] = useState({});
   const [rockboxByYear, setRockboxByYear] = useState({});
   const userPicked = useRef(false);
+  // Google Drive backup state (iPod source only).
+  const [driveBusy, setDriveBusy] = useState(null); // 'save' | 'load' | null
+  const [driveMsg, setDriveMsg] = useState(null);    // { type, text }
+
+  const notConnectedMsg = () =>
+    setDriveMsg({ type: 'error', text: 'Connect Google Drive first — use the Google Drive box on the Upload tab, then come back.' });
+
+  const saveToGoogle = async () => {
+    if (!isDriveConnected()) return notConnectedMsg();
+    setDriveBusy('save');
+    setDriveMsg(null);
+    try {
+      const map = readRockbox();
+      const count = Object.values(map).flat().length;
+      if (count === 0) {
+        setDriveMsg({ type: 'info', text: 'No iPod scrobbles in this browser to save yet.' });
+        return;
+      }
+      await saveScrobblesToDrive(ROCKBOX_DRIVE_FILE, map);
+      setDriveMsg({ type: 'success', text: `Saved ${count.toLocaleString()} iPod scrobble${count !== 1 ? 's' : ''} to Google Drive.` });
+    } catch (err) {
+      setDriveMsg({ type: 'error', text: err.message });
+    } finally {
+      setDriveBusy(null);
+    }
+  };
+
+  const loadFromGoogle = async () => {
+    if (!isDriveConnected()) return notConnectedMsg();
+    setDriveBusy('load');
+    setDriveMsg(null);
+    try {
+      const data = await loadScrobblesFromDrive(ROCKBOX_DRIVE_FILE);
+      if (!data) {
+        setDriveMsg({ type: 'info', text: 'No saved iPod scrobbles found on Google Drive yet.' });
+        return;
+      }
+      const { added, map } = mergeRockbox(data);
+      setRockboxByYear({ ...map });
+      setDriveMsg(added > 0
+        ? { type: 'success', text: `Loaded ${added.toLocaleString()} new scrobble${added !== 1 ? 's' : ''} from Google Drive.` }
+        : { type: 'info', text: 'Already up to date — nothing new on Google Drive.' });
+    } catch (err) {
+      setDriveMsg({ type: 'error', text: err.message });
+    } finally {
+      setDriveBusy(null);
+    }
+  };
 
   useEffect(() => {
     setRockboxByYear(readRockbox());
@@ -142,6 +221,31 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
           <button onClick={() => { userPicked.current = true; setSource('rockbox'); }} className={`px-3 py-1 text-xs rounded font-medium ${source === 'rockbox' ? segActive : segInactive}`}>iPod</button>
         </div>
       </div>
+
+      {/* Google Drive backup — iPod scrobbles only, and shown even with no local
+          data so a fresh device can pull them down. */}
+      {source === 'rockbox' && (
+        <div className="mb-3">
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={saveToGoogle} disabled={!!driveBusy} className={`${btnSecondary} disabled:opacity-50`}>
+              {driveBusy === 'save' ? 'Saving…' : '☁️ Save to Google'}
+            </button>
+            <button onClick={loadFromGoogle} disabled={!!driveBusy} className={`${btnSecondary} disabled:opacity-50`}>
+              {driveBusy === 'load' ? 'Loading…' : '☁️ Load from Google'}
+            </button>
+          </div>
+          {driveMsg && (
+            <div className={`mt-2 px-3 py-2 rounded text-xs flex items-start justify-between gap-2 ${
+              driveMsg.type === 'success' ? (isDarkMode ? 'bg-green-900/30 text-green-300 border border-green-800' : 'bg-green-50 text-green-800 border border-green-200') :
+              driveMsg.type === 'error'   ? (isDarkMode ? 'bg-red-900/30 text-red-300 border border-red-800'     : 'bg-red-50 text-red-800 border border-red-200')     :
+                                            (isDarkMode ? 'bg-blue-900/30 text-blue-300 border border-blue-800'  : 'bg-blue-50 text-blue-800 border border-blue-200')
+            }`}>
+              <span>{driveMsg.text}</span>
+              <button onClick={() => setDriveMsg(null)} className="opacity-50 hover:opacity-100 shrink-0">✕</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {total === 0 ? (
         <p className={`text-sm ${textLight}`}>
