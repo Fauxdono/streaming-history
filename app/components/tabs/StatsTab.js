@@ -328,7 +328,7 @@ export default function StatsTab({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
-              : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4">
@@ -397,7 +397,7 @@ export default function StatsTab({
                 </div>
                 <div className={
                   colorMode === 'colorful'
-                    ? 'p-4 border space-y-2 bg-indigo-100 dark:bg-indigo-900 border-indigo-300 dark:border-indigo-700 rounded text-indigo-700 dark:text-indigo-300'
+                    ? 'p-4 border space-y-2 bg-indigo-100 dark:bg-indigo-900 border-indigo-300 dark:border-indigo-700 rounded text-indigo-700 dark:text-indigo-300 shadow-[1px_1px_0_0_#4338ca] dark:shadow-[1px_1px_0_0_#4f46e5]'
                     : `p-4 border space-y-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
                 }>
                   {/* Service breakdown */}
@@ -436,7 +436,7 @@ export default function StatsTab({
               {yearlyTotals.length > 1 && (
                 <div className={
                   colorMode === 'colorful'
-                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300'
+                    ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 shadow-[1px_1px_0_0_#4338ca] dark:shadow-[1px_1px_0_0_#4f46e5]'
                     : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
                 }>
                   <div className="flex items-baseline justify-between mb-3">
@@ -529,7 +529,7 @@ export default function StatsTab({
                       <div className={labelCls}>{label}</div>
                       <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-3">
                         {items.map((item, i) => (
-                          <div key={i} className="min-w-0 flex flex-wrap items-baseline gap-x-2 [&>div]:max-w-full sm:block sm:flex-1">{render(item, i)}</div>
+                          <div key={i} className="min-w-0 flex flex-wrap items-baseline gap-x-2 [&>div]:max-w-full sm:block sm:flex-1 text-sm">{render(item, i)}</div>
                         ))}
                       </div>
                     </div>
@@ -545,7 +545,7 @@ export default function StatsTab({
                 return (
                   <div className={
                     colorMode === 'colorful'
-                      ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900'
+                      ? 'mt-4 p-4 border border-indigo-300 dark:border-indigo-700 rounded bg-indigo-100 dark:bg-indigo-900 shadow-[1px_1px_0_0_#4338ca] dark:shadow-[1px_1px_0_0_#4f46e5]'
                       : `mt-4 p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`
                   }>
                     <h4 className={

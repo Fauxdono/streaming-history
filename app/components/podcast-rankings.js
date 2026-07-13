@@ -67,6 +67,7 @@ const PodcastRankings = ({
     bgCardAlt: isDarkMode ? 'bg-red-800' : 'bg-red-100',
     border: isDarkMode ? 'border-red-600' : 'border-red-300',
     borderLight: isDarkMode ? 'border-red-600' : 'border-red-300',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#dc2626]' : 'shadow-[1px_1px_0_0_#b91c1c]',
     buttonActive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#b91c1c]',
     buttonInactive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 hover:bg-red-700 shadow-[2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 shadow-[2px_2px_0_0_#b91c1c]',
   } : {
@@ -79,6 +80,7 @@ const PodcastRankings = ({
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     borderLight: isDarkMode ? 'border-[#4169E1]' : 'border-black',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
     buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
@@ -992,7 +994,7 @@ const PodcastRankings = ({
               return (
               <div
                 key={episode.key}
-                className={`p-3 ${modeColors.bgCard} rounded border ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                className={`p-3 ${modeColors.bgCard} rounded border ${modeColors.border} ${modeColors.shadow}`}
               >
                 {/* Row 1: rank + name + toggle */}
                 <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>

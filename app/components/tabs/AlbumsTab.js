@@ -80,7 +80,7 @@ export default function AlbumsTab({
           <div className={
             colorMode === 'colorful'
               ? 'p-2 sm:p-4 bg-cyan-200 dark:bg-cyan-900 rounded border-2 border-cyan-300 dark:border-cyan-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'border-black shadow-[1px_1px_0_0_black]'}`
+              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             {/* Desktop layout - title, controls, and search on same row */}
             <div className={`hidden sm:flex justify-between items-center gap-2 mb-2 ${colorMode === 'colorful' ? 'text-cyan-700 dark:text-cyan-300' : ''}`}>

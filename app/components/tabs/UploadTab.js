@@ -1,10 +1,11 @@
 'use client';
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Download, Trash2 } from 'lucide-react';
 import ExcelPreview from '../excelpreview.js';
 import GoogleDriveSync from '../GoogleDriveSync.js';
 import LastfmConnect from '../LastfmConnect.js';
 import RockboxScrobbler from '../RockboxScrobbler.js';
+import StoredScrobbles from '../StoredScrobbles.js';
 
 // Upload tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 export default function UploadTab({
@@ -44,6 +45,9 @@ export default function UploadTab({
   uploadedFileList,
   uploadedFiles,
 }) {
+        // Shared refresh signal for the unified Stored scrobbles view.
+        const [storedRefresh, setStoredRefresh] = useState(0);
+        const bumpStored = useCallback(() => setStoredRefresh(k => k + 1), []);
         // Upload tab colors based on colorMode
         const uploadBg = colorMode === 'colorful'
           ? 'bg-violet-200 dark:bg-violet-900'
@@ -60,6 +64,9 @@ export default function UploadTab({
         const uploadCardBg = colorMode === 'colorful'
           ? 'bg-violet-100 dark:bg-violet-800'
           : (isDarkMode ? 'bg-black' : 'bg-white');
+        const uploadShadow = colorMode === 'colorful'
+          ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]')
+          : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
 
         const uploadInnerBtnActive = colorMode === 'colorful'
           ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
@@ -73,16 +80,15 @@ export default function UploadTab({
             : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
 
         return (
-          <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+          <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder}`}>
             {/* Title + inner tabs + web app row */}
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <h3 className={`text-xl hidden sm:block ${uploadText}`}>
-                {uploadInnerTab === 'upload' ? 'Upload Files' : uploadInnerTab === 'lastfm' ? 'Last.fm' : 'Scrobbler'}
+                {uploadInnerTab === 'upload' ? 'Upload Files' : 'Scrobbles'}
               </h3>
               <div className="flex gap-1">
                 <button onClick={() => setUploadInnerTab('upload')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'upload' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Upload</button>
-                <button onClick={() => setUploadInnerTab('scrobbler')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'scrobbler' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Scrobbler</button>
-                <button onClick={() => setUploadInnerTab('lastfm')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'lastfm' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Last.fm</button>
+                <button onClick={() => setUploadInnerTab('scrobbles')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'scrobbles' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Scrobbles</button>
               </div>
               <div className={`ml-auto ${
                 colorMode === 'colorful'
@@ -93,48 +99,57 @@ export default function UploadTab({
               </div>
             </div>
             <div>
-            {uploadInnerTab === 'scrobbler' ? (
-              <RockboxScrobbler
-                isDarkMode={isDarkMode}
-                colorMode={colorMode}
-                onScrobblesLoaded={(entries) => {
-                  const content = entries.map(e =>
-                    [
-                      e.master_metadata_album_artist_name,
-                      e.master_metadata_album_album_name || '',
-                      e.master_metadata_track_name,
-                      '',
-                      Math.round((e.ms_played || 210000) / 1000),
-                      e.skipped ? 'S' : '',
-                      Math.floor(new Date(e.ts).getTime() / 1000),
-                      ''
-                    ].join('\t')
-                  ).join('\n');
-                  const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
-                  const blob = new Blob([header + content], { type: 'text/plain' });
-                  const file = new File([blob], '.scrobbler.log', { type: 'text/plain' });
-                  const dt = new DataTransfer();
-                  dt.items.add(file);
-                  processFiles(dt.files);
-                }}
-              />
-            ) : uploadInnerTab === 'lastfm' ? (
-              <LastfmConnect
-                isDarkMode={isDarkMode}
-                colorMode={colorMode}
-                onScrobblesLoaded={(entries) => {
-                  // Convert Last.fm scrobbles to JSON file for processing
-                  const lastfmData = entries.map(e => ({
-                    ...e,
-                    source: 'lastfm'
-                  }));
-                  const blob = new Blob([JSON.stringify(lastfmData)], { type: 'application/json' });
-                  const file = new File([blob], 'lastfm-scrobbles.json', { type: 'application/json' });
-                  const dt = new DataTransfer();
-                  dt.items.add(file);
-                  processFiles(dt.files);
-                }}
-              />
+            {uploadInnerTab === 'scrobbles' ? (
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+                <LastfmConnect
+                  isDarkMode={isDarkMode}
+                  colorMode={colorMode}
+                  hideStored
+                  onStoredChange={bumpStored}
+                  onScrobblesLoaded={(entries) => {
+                    // Convert Last.fm scrobbles to JSON file for processing
+                    const lastfmData = entries.map(e => ({
+                      ...e,
+                      source: 'lastfm'
+                    }));
+                    const blob = new Blob([JSON.stringify(lastfmData)], { type: 'application/json' });
+                    const file = new File([blob], 'lastfm-scrobbles.json', { type: 'application/json' });
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    processFiles(dt.files);
+                  }}
+                  rockboxSlot={
+                    <RockboxScrobbler
+                      isDarkMode={isDarkMode}
+                      colorMode={colorMode}
+                      bare
+                      hideStored
+                      onStoredChange={bumpStored}
+                      onScrobblesLoaded={(entries) => {
+                        const content = entries.map(e =>
+                          [
+                            e.master_metadata_album_artist_name,
+                            e.master_metadata_album_album_name || '',
+                            e.master_metadata_track_name,
+                            '',
+                            Math.round((e.ms_played || 210000) / 1000),
+                            e.skipped ? 'S' : '',
+                            Math.floor(new Date(e.ts).getTime() / 1000),
+                            ''
+                          ].join('\t')
+                        ).join('\n');
+                        const header = '#AUDIOSCROBBLER/1.1\n#TZ/UNKNOWN\n#CLIENT/Rockbox\n';
+                        const blob = new Blob([header + content], { type: 'text/plain' });
+                        const file = new File([blob], '.scrobbler.log', { type: 'text/plain' });
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        processFiles(dt.files);
+                      }}
+                    />
+                  }
+                />
+                <StoredScrobbles colorMode={colorMode} isDarkMode={isDarkMode} refreshKey={storedRefresh} />
+              </div>
             ) : (<>
             {/* Storage Notification */}
             {storageNotification && (
@@ -174,7 +189,7 @@ export default function UploadTab({
             {/* How to Use + Google Drive - side by side on desktop */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {/* How to Use section */}
-              <div className={`p-4 border rounded-lg flex flex-col ${uploadCardBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+              <div className={`p-4 border rounded-lg flex flex-col ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
                 <h3 className={`font-semibold mb-3 text-sm ${uploadText}`}>How to use:</h3>
                 <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                   <div className="flex items-start gap-3 mb-2">
@@ -232,7 +247,7 @@ export default function UploadTab({
             </div>
 
               
-            <div className={`p-4 rounded-lg border ${uploadCardBg} ${uploadBorder} ${colorMode !== 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+            <div className={`p-4 rounded-lg border ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
               <p className={`mb-3 font-semibold text-sm ${uploadText}`}>
                 Upload your streaming history files:
               </p>
@@ -320,7 +335,7 @@ export default function UploadTab({
                         onClick={() => handleDeleteFile(index)}
                         className={
                           colorMode === 'colorful'
-                            ? 'p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0'
+                            ? 'p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shrink-0 shadow-[2px_2px_0_0_#b91c1c]'
                             : `p-2 rounded-lg transition-colors shrink-0 ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
                         }
                         title="Remove file"

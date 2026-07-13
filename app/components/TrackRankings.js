@@ -391,7 +391,7 @@ return (
       </div>
       <button
         onClick={() => setShowExporter(!showExporter)}
-        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''}`}
+        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${getThemedColors().buttonShadow}`}
       >
         <Download size={12} />
         M3U
@@ -399,7 +399,7 @@ return (
       <button
         key={`obsessions-sort-${sortPress}`}
         onClick={() => { setSortBy(sortBy === 'playsInWeek' ? 'playCount' : sortBy === 'playCount' ? 'weekStart' : 'playsInWeek'); if (!isColorful) setSortPress(p => p + 1); }}
-        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${!isColorful ? (isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]') : ''} ${sortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
+        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${getThemedColors().buttonShadow} ${sortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`}
       >
         {{ playsInWeek: 'Weekly Plays', playCount: 'Total Plays', weekStart: 'Recent First' }[sortBy]}
       </button>
@@ -444,7 +444,7 @@ return (
               return (
                 <div
                   key={key}
-                  className={`p-3 ${c.bgLight} rounded border ${c.border} text-center ${colorMode === 'minimal' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                  className={`p-3 ${c.bgLight} rounded border ${c.border} text-center ${c.shadow}`}
                 >
                   {/* Row 1: rank + name + artist subline + toggle */}
                   <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${!isExpanded ? 'overflow-hidden' : ''} ${c.text}`}>

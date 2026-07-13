@@ -1,0 +1,195 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from 'react';
+import * as lastfmDb from './lastfm-db.js';
+
+const ROCKBOX_KEY = 'rockbox_scrobbles';
+
+function readRockbox() {
+  try {
+    const raw = localStorage.getItem(ROCKBOX_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+// Both sources store different entry shapes; normalize for display.
+function normalize(entry, source) {
+  if (source === 'lastfm') {
+    return {
+      track: entry.name || '',
+      artist: entry.artist || '',
+      album: entry.album && entry.album !== 'Unknown Album' ? entry.album : '',
+      ts: entry.date,
+      skipped: false,
+      untagged: false,
+    };
+  }
+  const track = entry.master_metadata_track_name || '';
+  const untagged = entry.master_metadata_album_artist_name === '<Untagged>' || /\.\w{2,4}$/.test(track);
+  return {
+    track,
+    artist: entry.master_metadata_album_artist_name || '',
+    album: entry.master_metadata_album_album_name && entry.master_metadata_album_album_name !== 'Unknown Album'
+      ? entry.master_metadata_album_album_name : '',
+    ts: entry.ts,
+    skipped: !!entry.skipped,
+    untagged,
+  };
+}
+
+// One "Stored scrobbles" card that switches between the Last.fm and iPod
+// views with a button. Each view shows that source's own stored scrobbles
+// (read straight from its store), so it works regardless of which inner tab
+// is active. Bump `refreshKey` after an import/clear to re-read.
+export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = false, refreshKey = 0 }) {
+  const isColorful = colorMode === 'colorful';
+  const [source, setSource] = useState('lastfm');
+  const [lastfmByYear, setLastfmByYear] = useState({});
+  const [rockboxByYear, setRockboxByYear] = useState({});
+  const didInit = useRef(false);
+
+  useEffect(() => {
+    setRockboxByYear(readRockbox());
+    let cancelled = false;
+    (async () => {
+      try {
+        const all = await lastfmDb.loadAllScrobbles();
+        const byYear = {};
+        for (const e of all) {
+          const y = new Date(e.date).getFullYear();
+          (byYear[y] = byYear[y] || []).push(e);
+        }
+        if (!cancelled) setLastfmByYear(byYear);
+      } catch { if (!cancelled) setLastfmByYear({}); }
+    })();
+    return () => { cancelled = true; };
+  }, [refreshKey]);
+
+  // On first data load, land on whichever source actually has scrobbles.
+  useEffect(() => {
+    if (didInit.current) return;
+    const lfm = Object.values(lastfmByYear).flat().length;
+    const rb = Object.values(rockboxByYear).flat().length;
+    if (lfm === 0 && rb > 0) setSource('rockbox');
+    if (lfm > 0 || rb > 0) didInit.current = true;
+  }, [lastfmByYear, rockboxByYear]);
+
+  const byYear = source === 'lastfm' ? lastfmByYear : rockboxByYear;
+  const years = Object.keys(byYear).sort((a, b) => b - a);
+  const all = Object.values(byYear).flat();
+  const total = all.length;
+
+  const border = isColorful ? 'border-violet-300 dark:border-violet-700' : isDarkMode ? 'border-[#4169E1]' : 'border-black';
+  const cardBg = isColorful ? 'bg-violet-100 dark:bg-violet-800' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
+  const textMain = isColorful ? 'text-violet-700 dark:text-violet-300' : '';
+  const textLight = isColorful ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400';
+  const shadow = isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]') : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
+  const btnSecondary = isColorful
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-colors border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed]'
+    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
+  const btnDanger = isColorful
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
+    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-red-400 border-red-600 hover:bg-gray-800' : 'bg-white text-red-600 border-red-400 hover:bg-red-50'}`;
+  const segActive = isColorful ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-white text-black' : 'bg-black text-white');
+  const segInactive = isColorful ? 'bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black');
+  const rowBg = isColorful ? 'bg-violet-50 dark:bg-violet-900/30' : isDarkMode ? 'bg-black' : 'bg-white';
+
+  const triggerDownload = (data, name) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const prefix = source === 'lastfm' ? 'lastfm' : 'rockbox';
+  const downloadAll = () => triggerDownload(all, `${prefix}-scrobbles-all.json`);
+  const downloadYear = (year) => triggerDownload(byYear[year], `${prefix}-scrobbles-${year}.json`);
+  const clearAll = async () => {
+    if (source === 'lastfm') {
+      await lastfmDb.clearAll();
+      setLastfmByYear({});
+    } else {
+      localStorage.removeItem(ROCKBOX_KEY);
+      localStorage.removeItem('rockbox_last_sync');
+      setRockboxByYear({});
+    }
+  };
+
+  const untaggedCount = source === 'rockbox'
+    ? all.filter(e => e.master_metadata_album_artist_name === '<Untagged>' || /\.\w{2,4}$/.test(e.master_metadata_track_name || '')).length
+    : 0;
+  const recent = all.map(e => normalize(e, source)).sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 100);
+
+  return (
+    <div className={`p-4 rounded-lg border ${cardBg} ${border} ${shadow}`}>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h4 className={`font-semibold text-sm ${textMain}`}>Stored scrobbles</h4>
+        <div className="flex gap-1">
+          <button onClick={() => setSource('lastfm')} className={`px-3 py-1 text-xs rounded font-medium ${source === 'lastfm' ? segActive : segInactive}`}>Last.fm</button>
+          <button onClick={() => setSource('rockbox')} className={`px-3 py-1 text-xs rounded font-medium ${source === 'rockbox' ? segActive : segInactive}`}>iPod</button>
+        </div>
+      </div>
+
+      {total === 0 ? (
+        <p className={`text-sm ${textLight}`}>
+          No {source === 'lastfm' ? 'Last.fm' : 'iPod'} scrobbles stored yet.
+        </p>
+      ) : (
+        <>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <span className={`text-sm ${textLight}`}>{total.toLocaleString()} scrobble{total !== 1 ? 's' : ''}</span>
+            <div className="flex gap-2">
+              <button onClick={downloadAll} className={btnSecondary}>Download all ({total.toLocaleString()})</button>
+              <button onClick={clearAll} className={btnDanger}>Clear</button>
+            </div>
+          </div>
+
+          {untaggedCount > 0 && (
+            <div className={`mb-3 px-3 py-2 rounded text-xs flex items-start gap-2 ${isDarkMode ? 'bg-yellow-900/30 text-yellow-300 border border-yellow-800' : 'bg-yellow-50 text-yellow-800 border border-yellow-200'}`}>
+              <span className="shrink-0">⚠️</span>
+              <span>
+                <strong>{untaggedCount}</strong> scrobble{untaggedCount !== 1 ? 's' : ''} with missing metadata (filenames instead of track names).
+                Fix the ID3 tags on the iPod with Mp3tag or MusicBrainz Picard.
+              </span>
+            </div>
+          )}
+
+          <div className="space-y-1 mb-4">
+            {years.map(year => (
+              <div key={year} className="flex items-center justify-between">
+                <span className={`text-sm ${textLight}`}>
+                  <strong>{year}</strong> — {byYear[year].length.toLocaleString()} scrobble{byYear[year].length !== 1 ? 's' : ''}
+                </span>
+                <button onClick={() => downloadYear(year)} className={btnSecondary}>{year}.json</button>
+              </div>
+            ))}
+          </div>
+
+          <h4 className={`font-semibold text-sm mb-2 ${textMain}`}>Recent scrobbles</h4>
+          <div className="space-y-1 max-h-72 overflow-y-auto">
+            {recent.map((e, i) => {
+              const d = new Date(e.ts);
+              return (
+                <div key={i} className={`flex items-center justify-between gap-3 px-3 py-1.5 rounded text-xs ${rowBg} ${e.skipped ? 'opacity-40' : ''} ${e.untagged ? 'opacity-50' : ''}`}>
+                  <div className="min-w-0 flex-1">
+                    <span className={`font-medium block truncate ${isColorful ? 'text-violet-800 dark:text-violet-200' : ''}`}>
+                      {e.track}
+                      {e.untagged && <span className={`ml-1.5 text-[10px] font-normal px-1 py-0.5 rounded ${isDarkMode ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>untagged</span>}
+                    </span>
+                    <span className={`block truncate ${textLight}`}>{e.artist}{e.album ? ` · ${e.album}` : ''}</span>
+                  </div>
+                  <div className={`text-right shrink-0 ${textLight}`}>
+                    <span className="block">{d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span className="block">{d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

@@ -27,8 +27,9 @@ const CustomPlaylistCreator = ({
     bgCardAlt: isDarkMode ? 'bg-rose-800' : 'bg-rose-100',
     border: isDarkMode ? 'border-rose-600' : 'border-rose-300',
     borderLight: isDarkMode ? 'border-rose-600' : 'border-rose-300',
-    buttonActive: isDarkMode ? 'bg-rose-600 text-white' : 'bg-rose-500 text-white',
-    buttonInactive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 hover:bg-rose-700' : 'bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#e11d48]' : 'shadow-[1px_1px_0_0_#be123c]',
+    buttonActive: isDarkMode ? 'bg-rose-600 text-white translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#e11d48]' : 'bg-rose-500 text-white translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#be123c]',
+    buttonInactive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 hover:bg-rose-700 shadow-[2px_2px_0_0_#e11d48]' : 'bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200 shadow-[2px_2px_0_0_#be123c]',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
@@ -39,6 +40,7 @@ const CustomPlaylistCreator = ({
     bgCardAlt: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     borderLight: isDarkMode ? 'border-[#4169E1]' : 'border-black',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
     buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
@@ -1789,7 +1791,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
           {importedFavorites.map((bundle, bundleIndex) => (
             <div
               key={`favorites-${bundle.service}-${bundleIndex}`}
-              className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}
+              className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}
             >
               <div className="flex justify-between items-center gap-2">
                 <h4 className={`font-bold ${modeColors.text}`}>
@@ -1838,7 +1840,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               .map((playlist, index) => (
                 <div
                   key={`${playlist.service}-${playlist.name}-${index}`}
-                  className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}
+                  className={`border rounded p-4 ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}
                 >
                   <div className="flex justify-between items-center gap-2">
                     <h4 className={`font-bold ${modeColors.text} truncate`}>{playlist.name}</h4>
@@ -1886,7 +1888,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
           {savedPlaylists.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {savedPlaylists.map(playlist => (
-                <div key={playlist.id} className={`border rounded p-4 hover:opacity-80 ${modeColors.bgCard} ${modeColors.border} ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : ''}`}>
+                <div key={playlist.id} className={`border rounded p-4 hover:opacity-80 ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                   <div className="flex justify-between items-center">
                     <h4 className={`font-bold ${modeColors.text}`}>{playlist.name}</h4>
                     <div className={`text-sm ${modeColors.textLighter}`}>

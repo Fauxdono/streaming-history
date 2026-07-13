@@ -19,11 +19,13 @@ function loadRockboxScrobbles() {
   } catch { return {}; }
 }
 
-export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded }) {
+export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded, hideStored = false, onStoredChange, rockboxSlot = null }) {
   const [username, setUsername] = useState('');
   const [savedUsername, setSavedUsername] = useState('');
   const [userInfo, setUserInfo] = useState(null);
   const [scrobblesByYear, setScrobblesByYear] = useState({});
+  // Tell the parent to refresh the shared Stored scrobbles view after imports/clears.
+  useEffect(() => { if (onStoredChange) onStoredChange(); }, [scrobblesByYear]); // eslint-disable-line react-hooks/exhaustive-deps
   const [status, setStatus] = useState(null);
   const [fetching, setFetching] = useState(false);
   const [progress, setProgress] = useState(null);
@@ -436,31 +438,44 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
 
   // Style helpers
   const isColorful = colorMode === 'colorful';
-  const border = isColorful ? 'border-red-300 dark:border-red-700' : isDarkMode ? 'border-[#4169E1]' : 'border-black';
-  const cardBg = isColorful ? 'bg-red-100 dark:bg-red-900/40' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
-  const textMain = isColorful ? 'text-red-700 dark:text-red-300' : '';
-  const textLight = isColorful ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400';
-  const shadow = !isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : '';
+  const [lastfmView, setLastfmView] = useState('account'); // 'account' | 'scrobble'
+  const segActive = isColorful ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-white text-black' : 'bg-black text-white');
+  const segInactive = isColorful ? 'bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black');
+  const border = isColorful ? 'border-violet-300 dark:border-violet-700' : isDarkMode ? 'border-[#4169E1]' : 'border-black';
+  const cardBg = isColorful ? 'bg-violet-100 dark:bg-violet-800' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
+  const textMain = isColorful ? 'text-violet-700 dark:text-violet-300' : '';
+  const textLight = isColorful ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400';
+  const shadow = isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]') : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
 
   const btnPrimary = isColorful
-    ? 'px-4 py-2 rounded-lg font-medium text-sm bg-red-600 text-white hover:bg-red-700 transition-colors shadow-[2px_2px_0_0_#dc2626]'
+    ? 'px-4 py-2 rounded-lg font-medium text-sm bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
     : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
   const btnSecondary = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors border border-red-300 dark:border-red-700 shadow-[2px_2px_0_0_#dc2626]'
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-colors border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed]'
     : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
   const btnDanger = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#dc2626]'
+    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
     : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-red-400 border-red-600 hover:bg-gray-800' : 'bg-white text-red-600 border-red-400 hover:bg-red-50'}`;
 
   if (!dbReady) return null; // Wait for IndexedDB to load
 
   return (
     <div className="space-y-4">
-      {/* Connect section */}
+      {/* Last.fm account + scrobble — one card, toggle between the two views */}
       <div className={`p-4 rounded-lg border ${cardBg} ${border} ${shadow}`}>
-        <h4 className={`font-semibold text-sm mb-3 ${textMain}`}>Connect your Last.fm account</h4>
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h4 className={`font-semibold text-sm ${textMain}`}>{lastfmView === 'rockbox' ? 'Sync your Rockbox device' : lastfmView === 'account' ? 'Connect your Last.fm account' : 'Scrobble to Last.fm'}</h4>
+          <div className="flex gap-1">
+            <button onClick={() => setLastfmView('account')} className={`px-3 py-1 text-xs rounded font-medium ${lastfmView === 'account' ? segActive : segInactive}`}>Account</button>
+            <button onClick={() => setLastfmView('scrobble')} className={`px-3 py-1 text-xs rounded font-medium ${lastfmView === 'scrobble' ? segActive : segInactive}`}>Scrobble</button>
+            {rockboxSlot && <button onClick={() => setLastfmView('rockbox')} className={`px-3 py-1 text-xs rounded font-medium ${lastfmView === 'rockbox' ? segActive : segInactive}`}>Rockbox</button>}
+          </div>
+        </div>
 
-        {!savedUsername ? (
+        {lastfmView === 'rockbox' ? (
+          rockboxSlot
+        ) : lastfmView === 'account' ? (
+          !savedUsername ? (
           <div className="space-y-3">
             <p className={`text-sm ${textLight}`}>
               Enter your Last.fm username to import your scrobble history. Your profile must be public.
@@ -488,7 +503,7 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
-                isColorful ? 'bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200' : isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'
+                isColorful ? 'bg-violet-200 dark:bg-violet-800 text-violet-800 dark:text-violet-200' : isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'
               }`}>
                 <span className="text-base">🎵</span>
                 <span className="font-medium">{savedUsername}</span>
@@ -519,7 +534,7 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                 {progress.total && (
                   <div className={`w-full h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                     <div
-                      className={`h-full rounded-full transition-all duration-300 ${isColorful ? 'bg-red-500' : 'bg-[#4169E1]'}`}
+                      className={`h-full rounded-full transition-all duration-300 ${isColorful ? 'bg-violet-500' : 'bg-[#4169E1]'}`}
                       style={{ width: `${Math.min(100, (progress.fetched / progress.total) * 100)}%` }}
                     />
                   </div>
@@ -527,15 +542,11 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
               </div>
             )}
           </div>
-        )}
-      </div>
-
-      {/* Scrobble to Last.fm section */}
-      {savedUsername && (
-        <div className={`p-4 rounded-lg border ${cardBg} ${border} ${shadow}`}>
-          <h4 className={`font-semibold text-sm mb-3 ${textMain}`}>Scrobble to Last.fm</h4>
-
-          {!sessionKey ? (
+          )
+        ) : (
+          !savedUsername ? (
+            <p className={`text-sm ${textLight}`}>Connect your Last.fm account first — switch to the Account view above.</p>
+          ) : !sessionKey ? (
             <div className="space-y-3">
               <p className={`text-sm ${textLight}`}>
                 Authorize Cake to scrobble your iPod/Rockbox plays to your Last.fm account.
@@ -577,16 +588,16 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                   </div>
                   <div className={`w-full h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                     <div
-                      className={`h-full rounded-full transition-all duration-300 ${isColorful ? 'bg-red-500' : 'bg-[#4169E1]'}`}
+                      className={`h-full rounded-full transition-all duration-300 ${isColorful ? 'bg-violet-500' : 'bg-[#4169E1]'}`}
                       style={{ width: `${Math.min(100, (scrobbleProgress.sent / scrobbleProgress.total) * 100)}%` }}
                     />
                   </div>
                 </div>
               )}
             </div>
-          )}
-        </div>
-      )}
+          )
+        )}
+      </div>
 
       {/* Status message */}
       {status && (
@@ -601,7 +612,7 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
       )}
 
       {/* Stored scrobbles */}
-      {years.length > 0 && (
+      {!hideStored && years.length > 0 && (
         <div className={`p-4 rounded-lg border ${cardBg} ${border} ${shadow}`}>
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h4 className={`font-semibold text-sm ${textMain}`}>
@@ -634,10 +645,10 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
                 const d = new Date(entry.date);
                 return (
                   <div key={i} className={`flex items-center justify-between gap-3 px-3 py-1.5 rounded text-xs ${
-                    isColorful ? 'bg-red-50 dark:bg-red-900/30' : isDarkMode ? 'bg-black' : 'bg-white'
+                    isColorful ? 'bg-violet-50 dark:bg-violet-900/30' : isDarkMode ? 'bg-black' : 'bg-white'
                   }`}>
                     <div className="min-w-0 flex-1">
-                      <span className={`font-medium block truncate ${isColorful ? 'text-red-800 dark:text-red-200' : ''}`}>{entry.name}</span>
+                      <span className={`font-medium block truncate ${isColorful ? 'text-violet-800 dark:text-violet-200' : ''}`}>{entry.name}</span>
                       <span className={`block truncate ${textLight}`}>
                         {entry.artist}{entry.album && entry.album !== 'Unknown Album' ? ` · ${entry.album}` : ''}
                       </span>

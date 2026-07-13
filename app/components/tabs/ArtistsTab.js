@@ -462,7 +462,7 @@ export default function ArtistsTab({
                             className={`
                               ${artistSelectionMode ? 'cursor-pointer' : 'cursor-default'}
                               p-3 ${cardBg} rounded border ${cardBorder} text-center
-                              ${colorMode === 'minimal' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}
+                              ${colorMode === 'colorful' ? (isDarkMode ? 'shadow-[1px_1px_0_0_#2563eb]' : 'shadow-[1px_1px_0_0_#1d4ed8]') : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]')}
                               ${artistSelectionMode
                                 ? (colorMode === 'colorful'
                                     ? 'ring-2 ring-blue-300 ring-opacity-50 hover:bg-blue-100 dark:hover:bg-blue-700'
@@ -548,7 +548,7 @@ export default function ArtistsTab({
               ) : (
                 <div className={
                   colorMode === 'colorful'
-                    ? 'p-6 text-center bg-blue-100 dark:bg-blue-800 rounded border-2 border-blue-300 dark:border-blue-600'
+                    ? 'p-6 text-center bg-blue-100 dark:bg-blue-800 rounded border-2 border-blue-300 dark:border-blue-600 shadow-[1px_1px_0_0_#1d4ed8] dark:shadow-[1px_1px_0_0_#2563eb]'
                     : `p-6 text-center rounded border-2 ${isDarkMode ? 'bg-black border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white border-black shadow-[1px_1px_0_0_black]'}`
                 }>
                   <h4 className={

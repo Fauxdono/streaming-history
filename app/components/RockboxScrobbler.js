@@ -20,9 +20,11 @@ function scrobbleKey(entry) {
   return `${entry.ts}|${entry.master_metadata_album_artist_name}|${entry.master_metadata_track_name}`;
 }
 
-export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoaded }) {
+export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoaded, hideStored = false, onStoredChange, bare = false }) {
   const [status, setStatus] = useState(null);
   const [scrobblesByYear, setScrobblesByYear] = useState({});
+  // Tell the parent to refresh the shared Stored scrobbles view after imports/clears.
+  useEffect(() => { if (onStoredChange) onStoredChange(); }, [scrobblesByYear]); // eslint-disable-line react-hooks/exhaustive-deps
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState(null);
   const [directoryPickerSupported, setDirectoryPickerSupported] = useState(false);
@@ -239,7 +241,7 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
   const cardBg = isColorful ? 'bg-violet-100 dark:bg-violet-800' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
   const textMain = isColorful ? 'text-violet-700 dark:text-violet-300' : '';
   const textLight = isColorful ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-gray-400';
-  const shadow = !isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : '';
+  const shadow = isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]') : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
 
   const btnPrimary = isColorful
     ? 'px-4 py-2 rounded-lg font-medium text-sm bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
@@ -256,9 +258,9 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
   return (
     <div className="space-y-4">
 
-      {/* How to sync section */}
-      <div className={`p-4 rounded-lg border ${cardBg} ${border} ${shadow}`}>
-        <h4 className={`font-semibold text-sm mb-3 ${textMain}`}>How to sync your Rockbox device</h4>
+      {/* How to sync section — `bare` drops the card chrome so it can nest inside another card */}
+      <div className={bare ? '' : `p-4 rounded-lg border ${cardBg} ${border} ${shadow}`}>
+        {!bare && <h4 className={`font-semibold text-sm mb-3 ${textMain}`}>How to sync your Rockbox device</h4>}
 
         {directoryPickerSupported ? (
           // Chrome/Edge: auto-connect path
@@ -359,7 +361,7 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
       )}
 
       {/* Stored scrobbles */}
-      {years.length > 0 && (
+      {!hideStored && years.length > 0 && (
         <div className={`p-4 rounded-lg border ${cardBg} ${border} ${shadow}`}>
           <div className="flex items-center justify-between mb-3">
             <h4 className={`font-semibold text-sm ${textMain}`}>

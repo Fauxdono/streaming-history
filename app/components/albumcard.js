@@ -26,7 +26,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
   const remainingTracks = actualTrackCount - (topTrack ? 1 : 0);
 
   return (
-    <div className={`p-3 ${colors.bg} rounded border ${colors.border} text-center ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}>
+    <div className={`p-3 ${colors.bg} rounded border ${colors.border} text-center ${colors.shadow}`}>
 
       {/* Row 1: rank + album name + artist + toggle */}
       <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${colors.text}`}>

@@ -56,8 +56,8 @@ const ExcelPreview = ({ file }) => {
           <thead className="sticky top-0 bg-orange-100">
             <tr>
               {columns.map((column, index) => (
-                <th 
-                  key={index} 
+                <th
+                  key={index}
                   className="px-3 py-2 text-left text-orange-700 border-b"
                 >
                   {column}
@@ -67,13 +67,13 @@ const ExcelPreview = ({ file }) => {
           </thead>
           <tbody>
             {sheetData.map((row, rowIndex) => (
-              <tr 
-                key={rowIndex} 
+              <tr
+                key={rowIndex}
                 className={`${rowIndex % 2 === 0 ? 'bg-white' : 'bg-orange-50'} hover:bg-orange-100`}
               >
                 {row.map((cell, cellIndex) => (
-                  <td 
-                    key={cellIndex} 
+                  <td
+                    key={cellIndex}
                     className="px-3 py-2 text-orange-600 border-b text-sm"
                   >
                     {cell !== null && cell !== undefined ? String(cell) : 'N/A'}

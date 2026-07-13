@@ -391,6 +391,19 @@ const ALBUM_BG = (isDarkMode) => ({
   emerald: { bg: isDarkMode ? 'bg-emerald-800' : 'bg-emerald-50',  border: isDarkMode ? 'border-emerald-600' : 'border-emerald-300', bgLight: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-100', bgButton: isDarkMode ? 'bg-emerald-700' : 'bg-emerald-100', bgStripe: isDarkMode ? 'bg-emerald-900' : 'bg-emerald-100', bgHeader: isDarkMode ? 'bg-emerald-700' : 'bg-emerald-200' },
 });
 
+// 1px card press-shadow per album accent (600 hex dark / 700 hex light).
+// Full literal strings so Tailwind's JIT keeps them — never interpolate.
+const ALBUM_SHADOW = (isDarkMode) => ({
+  cyan:    isDarkMode ? 'shadow-[1px_1px_0_0_#0891b2]' : 'shadow-[1px_1px_0_0_#0e7490]',
+  blue:    isDarkMode ? 'shadow-[1px_1px_0_0_#2563eb]' : 'shadow-[1px_1px_0_0_#1d4ed8]',
+  green:   isDarkMode ? 'shadow-[1px_1px_0_0_#16a34a]' : 'shadow-[1px_1px_0_0_#15803d]',
+  amber:   isDarkMode ? 'shadow-[1px_1px_0_0_#d97706]' : 'shadow-[1px_1px_0_0_#b45309]',
+  orange:  isDarkMode ? 'shadow-[1px_1px_0_0_#ea580c]' : 'shadow-[1px_1px_0_0_#c2410c]',
+  red:     isDarkMode ? 'shadow-[1px_1px_0_0_#dc2626]' : 'shadow-[1px_1px_0_0_#b91c1c]',
+  indigo:  isDarkMode ? 'shadow-[1px_1px_0_0_#4f46e5]' : 'shadow-[1px_1px_0_0_#4338ca]',
+  emerald: isDarkMode ? 'shadow-[1px_1px_0_0_#059669]' : 'shadow-[1px_1px_0_0_#047857]',
+});
+
 export function getAlbumCardColors({ textTheme = 'cyan', backgroundTheme = 'cyan', isColorful, isDarkMode }) {
   if (!isColorful) {
     return {
@@ -402,13 +415,16 @@ export function getAlbumCardColors({ textTheme = 'cyan', backgroundTheme = 'cyan
       bgButton: isDarkMode ? 'bg-black border border-[#4169E1]' : 'bg-white border border-black',
       bgStripe: isDarkMode ? 'bg-black' : 'bg-white',
       bgHeader: isDarkMode ? 'bg-black' : 'bg-white',
+      shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
     };
   }
   const texts = ALBUM_TEXT(isDarkMode);
   const bgs = ALBUM_BG(isDarkMode);
+  const shadows = ALBUM_SHADOW(isDarkMode);
   return {
     ...(texts[textTheme] || texts.cyan),
     ...(bgs[backgroundTheme] || bgs.cyan),
+    shadow: shadows[backgroundTheme] || shadows.cyan,
   };
 }
 
@@ -613,8 +629,21 @@ const RANKING_MINIMAL = (isDarkMode) => ({
   placeholder: isDarkMode ? 'placeholder-gray-500' : 'placeholder-gray-400',
 });
 
+// 1px card press-shadow per ranking accent (600 hex dark / 700 hex light).
+// Full literal strings so Tailwind's JIT keeps them — never interpolate.
+const RANKING_SHADOW = (isDarkMode) => ({
+  emerald: isDarkMode ? 'shadow-[1px_1px_0_0_#059669]' : 'shadow-[1px_1px_0_0_#047857]',
+  red:     isDarkMode ? 'shadow-[1px_1px_0_0_#dc2626]' : 'shadow-[1px_1px_0_0_#b91c1c]',
+  violet:  isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]',
+  orange:  isDarkMode ? 'shadow-[1px_1px_0_0_#ea580c]' : 'shadow-[1px_1px_0_0_#c2410c]',
+});
+
+const RANKING_MINIMAL_SHADOW = (isDarkMode) => (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
+
 export function getRankingColors({ colorTheme = 'orange', textTheme, backgroundTheme, isColorful, isDarkMode }) {
-  if (!isColorful) return RANKING_MINIMAL(isDarkMode);
+  if (!isColorful) return { ...RANKING_MINIMAL(isDarkMode), shadow: RANKING_MINIMAL_SHADOW(isDarkMode) };
+
+  const shadows = RANKING_SHADOW(isDarkMode);
 
   if (textTheme && backgroundTheme) {
     const texts = RANKING_TEXT(isDarkMode);
@@ -622,11 +651,12 @@ export function getRankingColors({ colorTheme = 'orange', textTheme, backgroundT
     return {
       ...(texts[textTheme] || texts.orange),
       ...(bgs[backgroundTheme] || bgs.orange),
+      shadow: shadows[backgroundTheme] || shadows.orange,
     };
   }
 
   const full = RANKING_COLORFUL(isDarkMode);
-  return full[colorTheme] || full.orange;
+  return { ...(full[colorTheme] || full.orange), shadow: shadows[colorTheme] || shadows.orange };
 }
 
 // ---------------------------------------------------------------------------
@@ -650,6 +680,8 @@ const OBSESSION_BG = (isDarkMode) => ({
     bgButton: isDarkMode ? 'bg-red-700 text-red-100' : 'bg-red-200 text-red-800', bgButtonHover: isDarkMode ? 'hover:bg-red-600' : 'hover:bg-red-300',
     bgButtonLight: isDarkMode ? 'bg-red-800 text-red-200' : 'bg-red-100 text-red-700', bgButtonLightHover: isDarkMode ? 'hover:bg-red-700' : 'hover:bg-red-200',
     bgSelected: isDarkMode ? 'bg-red-500 text-white' : 'bg-red-600 text-white', bgSelectedHover: isDarkMode ? 'hover:bg-red-400' : 'hover:bg-red-700',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#dc2626]' : 'shadow-[1px_1px_0_0_#b91c1c]',
+    buttonShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]',
     focusRing: 'focus:ring-red-400',
     focus: isDarkMode ? 'border-red-600 bg-red-800 text-red-100' : 'border-red-300 bg-red-100 text-red-800',
   },
@@ -658,6 +690,8 @@ const OBSESSION_BG = (isDarkMode) => ({
     borderHover: isDarkMode ? 'border-rose-500' : 'border-rose-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-rose-50',
     bgButton: isDarkMode ? 'bg-gray-800' : 'bg-rose-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-rose-200',
     bgSelected: 'bg-rose-600', bgSelectedHover: 'hover:bg-rose-700',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#e11d48]' : 'shadow-[1px_1px_0_0_#be123c]',
+    buttonShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#e11d48]' : 'shadow-[2px_2px_0_0_#be123c]',
     focusRing: 'focus:ring-rose-400',
   },
   blue: {
@@ -665,6 +699,8 @@ const OBSESSION_BG = (isDarkMode) => ({
     borderHover: isDarkMode ? 'border-blue-500' : 'border-blue-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-blue-50',
     bgButton: isDarkMode ? 'bg-gray-800' : 'bg-blue-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-blue-200',
     bgSelected: 'bg-blue-600', bgSelectedHover: 'hover:bg-blue-700',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#2563eb]' : 'shadow-[1px_1px_0_0_#1d4ed8]',
+    buttonShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#2563eb]' : 'shadow-[2px_2px_0_0_#1d4ed8]',
     focusRing: 'focus:ring-blue-400',
   },
   amber: {
@@ -672,6 +708,8 @@ const OBSESSION_BG = (isDarkMode) => ({
     borderHover: isDarkMode ? 'border-amber-500' : 'border-amber-400', bgLight: isDarkMode ? 'bg-gray-900' : 'bg-amber-50',
     bgButton: isDarkMode ? 'bg-gray-800' : 'bg-amber-100', bgButtonHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-amber-200',
     bgSelected: 'bg-amber-600', bgSelectedHover: 'hover:bg-amber-700',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#d97706]' : 'shadow-[1px_1px_0_0_#b45309]',
+    buttonShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#d97706]' : 'shadow-[2px_2px_0_0_#b45309]',
     focusRing: 'focus:ring-amber-400',
   },
   yellow: {
@@ -686,6 +724,8 @@ const OBSESSION_BG = (isDarkMode) => ({
     bgButtonLightHover: isDarkMode ? 'hover:bg-yellow-700' : 'hover:bg-yellow-200',
     bgSelected: isDarkMode ? 'bg-yellow-600 text-black' : 'bg-yellow-500 text-black',
     bgSelectedHover: isDarkMode ? 'hover:bg-yellow-500' : 'hover:bg-yellow-600',
+    shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#ca8a04]' : 'shadow-[1px_1px_0_0_#a16207]',
+    buttonShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#ca8a04]' : 'shadow-[2px_2px_0_0_#a16207]',
     focusRing: 'focus:ring-yellow-400',
     focus: isDarkMode ? 'border-yellow-600 bg-yellow-800 text-yellow-300' : 'border-yellow-300 bg-yellow-100 text-yellow-700',
   },
@@ -707,6 +747,8 @@ const OBSESSION_MINIMAL = (isDarkMode) => ({
   bgButtonLightHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
   bgSelected: isDarkMode ? 'bg-white text-black border border-[#4169E1]' : 'bg-black text-white border border-black',
   bgSelectedHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
+  shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
+  buttonShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]',
   focusRing: 'focus:ring-gray-400',
   focus: isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black',
 });

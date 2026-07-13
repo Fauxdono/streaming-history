@@ -1341,26 +1341,24 @@ const CalendarView = ({
                         </div>
                         <button type="button" onClick={() => setExpandedHistoryCards(p => ({ ...p, [index]: !p[index] }))} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">{isExpanded ? '−' : '+'}</button>
                       </div>
-                      {/* Row 2: collapsible time + duration */}
+                      {/* Row 2: collapsible status + duration */}
                       {isExpanded && (
                         <div className={`grid grid-cols-2 gap-1 mb-2 text-xs ${modeColors.textLight}`}>
-                          <div><div className="opacity-60">Played at</div><div className="font-bold font-mono">{track.formattedTime}</div></div>
+                          <div>
+                            <div className="opacity-60">Status</div>
+                            <div className={`font-bold ${track.reason_end === 'trackdone' ? 'text-green-600' : (track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') ? 'text-orange-600' : ''}`}>
+                              {track.reason_end === 'trackdone' ? 'Completed' : (track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') ? 'Skipped' : '—'}
+                            </div>
+                          </div>
                           <div><div className="opacity-60">Duration</div><div className="font-bold">{track.formattedDuration}</div></div>
                         </div>
                       )}
-                      {/* Row 3: album + status */}
+                      {/* Row 3: album + played at */}
                       <div className={`flex flex-wrap gap-y-1 text-xs text-center ${modeColors.textLight}`}>
                         {track.master_metadata_album_album_name && (
                           <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Album</div><div className={`font-bold ${isExpanded ? 'break-words' : 'truncate'}`}>{track.master_metadata_album_album_name}</div></div>
                         )}
-                        {(track.reason_end === 'trackdone' || track.reason_end === 'fwdbtn' || track.reason_end === 'backbtn') && (
-                          <div className="flex-1 min-w-0 px-1">
-                            <div className="opacity-60">Status</div>
-                            <div className={`font-bold ${track.reason_end === 'trackdone' ? 'text-green-600' : 'text-orange-600'}`}>
-                              {track.reason_end === 'trackdone' ? 'Completed' : 'Skipped'}
-                            </div>
-                          </div>
-                        )}
+                        <div className="flex-1 min-w-0 px-1"><div className="opacity-60">Played at</div><div className="font-bold font-mono">{track.formattedTime}</div></div>
                       </div>
                     </div>
                   );

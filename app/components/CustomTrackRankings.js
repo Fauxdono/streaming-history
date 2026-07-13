@@ -1569,7 +1569,7 @@ return (
                 return (
                   <div
                     key={song.key}
-                    className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} relative text-center ${!isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]') : 'shadow-sm'}`}
+                    className={`p-3 border rounded-lg ${colors.bgLight} ${colors.border} relative text-center ${colors.shadow}`}
                   >
                     {/* Omit button */}
                     <div className={`absolute top-0 right-0 ${colors.text}`} style={{ transform: 'translate(14%, -14%)', zIndex: 10 }}>
