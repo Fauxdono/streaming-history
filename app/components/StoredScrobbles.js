@@ -90,14 +90,25 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
     setDriveBusy('save');
     setDriveMsg(null);
     try {
-      const map = readRockbox();
-      const count = Object.values(map).flat().length;
-      if (count === 0) {
+      if (Object.values(readRockbox()).flat().length === 0) {
         setDriveMsg({ type: 'info', text: 'No iPod scrobbles in this browser to save yet.' });
         return;
       }
+      // Merge, don't overwrite: pull whatever is already on Drive and fold it
+      // into this browser first, then write the union back. That way saving
+      // from a second computer can never clobber scrobbles saved from another.
+      const remote = await loadScrobblesFromDrive(ROCKBOX_DRIVE_FILE);
+      const pulled = remote ? mergeRockbox(remote).added : 0;
+      const map = readRockbox();
+      const count = Object.values(map).flat().length;
       await saveScrobblesToDrive(ROCKBOX_DRIVE_FILE, map);
-      setDriveMsg({ type: 'success', text: `Saved ${count.toLocaleString()} iPod scrobble${count !== 1 ? 's' : ''} to Google Drive.` });
+      if (pulled > 0) setRockboxByYear({ ...map });
+      setDriveMsg({
+        type: 'success',
+        text: pulled > 0
+          ? `Saved ${count.toLocaleString()} iPod scrobbles to Google Drive (merged in ${pulled.toLocaleString()} that were only on Drive).`
+          : `Saved ${count.toLocaleString()} iPod scrobble${count !== 1 ? 's' : ''} to Google Drive.`,
+      });
     } catch (err) {
       setDriveMsg({ type: 'error', text: err.message });
     } finally {
