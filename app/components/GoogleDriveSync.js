@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { getAnalysisPageColors } from './theme.js';
 
 const GoogleDriveSync = ({
   stats,
@@ -43,7 +44,7 @@ const GoogleDriveSync = ({
   const [loadProgress, setLoadProgress] = useState({ step: 0, total: 0, message: '' });
   const [saveCompleted, setSaveCompleted] = useState(false);
   const [loadCompleted, setLoadCompleted] = useState(false);
-  const [hasTriedRestore, setHasTriedRestore] = useState(false);
+  const tokenClientRef = useRef(null);
 
   const clearMessage = () => setMessage('');
 
@@ -76,7 +77,7 @@ const GoogleDriveSync = ({
       : isDarkMode ? 'border-[#4169E1]' : 'border-black';
 
     return (
-      <div className={`mb-3 font-mono ${termBg} border ${termBorder} p-2 rounded-sm`}>
+      <div className={`font-mono ${termBg} border ${termBorder} p-2 rounded-sm`}>
         <div className={`text-[11px] ${termColor} mb-1`}>
           {isCompleted ? '> TRANSFER COMPLETE' : `> ${progress.message.toUpperCase()}`}
         </div>
@@ -165,119 +166,6 @@ const GoogleDriveSync = ({
     
     return () => clearTimeout(timeoutId);
   }, [isInitialized]);
-
-  // DISABLED: Check for stored connection once when APIs are initialized
-  // This was causing refreshes, so we rely only on the initial useState restoration
-  /*
-  useEffect(() => {
-    const restoreConnection = async () => {
-      // Only run once when initialized and haven't tried restore yet
-      if (!isInitialized || isInitializing || hasTriedRestore) return;
-      
-      console.log('🔍 Checking for stored Google Drive connection (one-time)...', {
-        isInitialized,
-        isConnected, 
-        isConnecting,
-        isInitializing,
-        hasTriedRestore
-      });
-      
-      setHasTriedRestore(true); // Mark that we've attempted restoration
-      
-      // Check if we have a stored access token that's still valid
-      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
-      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
-      
-      if (storedToken && storedExpiry) {
-        const now = Date.now();
-        const expiry = parseInt(storedExpiry);
-        
-        if (now < expiry) {
-          console.log('🔄 Setting stored token in Google API client...');
-          
-          try {
-            window.gapi.client.setToken({
-              access_token: storedToken
-            });
-            console.log('🔧 Token set in gapi client');
-            
-            // Test the connection by making a simple API call
-            const aboutResponse = await window.gapi.client.drive.about.get();
-            console.log('✅ Connection test successful:', aboutResponse?.result);
-            
-            // Update connection state if needed
-            if (!isConnected) {
-              setIsConnected(true);
-              console.log('✅ Google Drive connection restored successfully');
-            } else {
-              console.log('✅ Google Drive connection confirmed active');
-            }
-          } catch (testError) {
-            console.error('❌ Connection test failed:', testError);
-            console.log('🔍 RESTORE CONNECTION: 🔄 Stored token expired or invalid, need to reconnect');
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('google_drive_token');
-              localStorage.removeItem('google_drive_token_expiry');
-            }
-            setIsConnected(false);
-          }
-        }
-      }
-    };
-
-    restoreConnection();
-  }, [isInitialized, isInitializing, hasTriedRestore]);
-  */
-
-  // DISABLED: Window focus handler was causing refreshes after tab navigation
-  // Connection persistence will rely solely on initial state restoration
-  /*
-  useEffect(() => {
-    let focusTimeout;
-    
-    const handleWindowFocus = () => {
-      // Clear any existing timeout to debounce rapid focus events
-      if (focusTimeout) clearTimeout(focusTimeout);
-      
-      // Only check if APIs are initialized and not currently connected
-      if (!isInitialized || isInitializing || isConnected) return;
-      
-      // Debounce - wait 1 second before checking to avoid conflicts
-      focusTimeout = setTimeout(async () => {
-        console.log('👁️ Window focused - checking if connection needs restoration...');
-        
-        const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
-        const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
-        
-        if (storedToken && storedExpiry) {
-          const now = Date.now();
-          const expiry = parseInt(storedExpiry);
-          
-          if (now < expiry) {
-            try {
-              window.gapi.client.setToken({ access_token: storedToken });
-              await window.gapi.client.drive.about.get();
-              setIsConnected(true);
-              console.log('✅ Connection restored on window focus');
-            } catch (error) {
-              console.log('🔍 FOCUS RESTORE: 🔄 Focus restore failed - token invalid');
-              if (typeof window !== 'undefined') {
-                localStorage.removeItem('google_drive_token');
-                localStorage.removeItem('google_drive_token_expiry');
-              }
-            }
-          }
-        }
-      }, 1000);
-    };
-
-    window.addEventListener('focus', handleWindowFocus);
-    return () => {
-      if (focusTimeout) clearTimeout(focusTimeout);
-      window.removeEventListener('focus', handleWindowFocus);
-    };
-  }, [isInitialized, isInitializing, isConnected]);
-  */
 
   // Restore token before operations - no validation call, just set it
   const ensureConnection = () => {
@@ -607,62 +495,81 @@ const GoogleDriveSync = ({
     }
   };
 
+  // Lazily create the GIS token client once; reused across connect attempts.
+  const getTokenClient = () => {
+    if (!tokenClientRef.current && window.google?.accounts?.oauth2) {
+      tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (tokenResponse) => {
+          if (tokenResponse.error) {
+            showMessage(`Authentication failed: ${tokenResponse.error}`, true);
+            setIsConnecting(false);
+            return;
+          }
+
+          window.gapi.client.setToken({ access_token: tokenResponse.access_token });
+
+          const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('google_drive_token', tokenResponse.access_token);
+            localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
+          }
+
+          setIsConnected(true);
+          setIsConnecting(false);
+          showMessage('Connected to Google Drive!');
+        },
+        error_callback: (err) => {
+          setIsConnecting(false);
+          if (err?.type === 'popup_failed_to_open') {
+            showMessage('Popup blocked — allow popups for this site, then tap Connect again.', true);
+          } else if (err?.type === 'popup_closed') {
+            showMessage('Sign-in window was closed before finishing.', true);
+          } else {
+            showMessage(`Connection failed: ${err?.type || err?.message || 'unknown error'}`, true);
+          }
+        },
+      });
+    }
+    return tokenClientRef.current;
+  };
+
   const handleConnect = async () => {
-    setIsConnecting(true);
     clearMessage();
 
+    // If we have a valid stored token, restore it silently — no popup needed
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
+    const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
+    if (storedToken && storedExpiry && Date.now() < parseInt(storedExpiry) && window.gapi?.client) {
+      window.gapi.client.setToken({ access_token: storedToken });
+      setIsConnected(true);
+      showMessage('Connected to Google Drive!');
+      return;
+    }
+
+    // Mobile browsers only allow the OAuth popup when it opens synchronously
+    // inside the tap gesture, so requestAccessToken must run without awaits
+    // in between whenever the APIs are already loaded (they pre-load on mount).
+    let tokenClient = getTokenClient();
+    if (tokenClient) {
+      setIsConnecting(true);
+      tokenClient.requestAccessToken({ prompt: '' });
+      return;
+    }
+
+    // APIs not ready yet (slow network / pre-load failed): load them first.
+    // The popup may get blocked on this path; the error_callback tells the
+    // user to tap again, and the second tap takes the synchronous path above.
+    setIsConnecting(true);
     try {
-      // Initialize APIs if not already done
       if (!isInitialized) {
         await initializeGoogleAPIs();
         setIsInitialized(true);
       }
-
-      // If we have a valid stored token, restore it silently — no popup needed
-      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token') : null;
-      const storedExpiry = typeof window !== 'undefined' ? localStorage.getItem('google_drive_token_expiry') : null;
-      if (storedToken && storedExpiry && Date.now() < parseInt(storedExpiry)) {
-        window.gapi.client.setToken({ access_token: storedToken });
-        setIsConnected(true);
-        setIsConnecting(false);
-        showMessage('Connected to Google Drive successfully!');
-        return;
-      }
-
-      const onTokenReceived = (tokenResponse) => {
-        if (tokenResponse.error) {
-          // interaction_required means silent auth failed — retry with the full popup
-          if (tokenResponse.error === 'interaction_required' || tokenResponse.error === 'access_denied') {
-            tokenClient.requestAccessToken({ prompt: '' });
-          } else {
-            showMessage(`Authentication failed: ${tokenResponse.error}`, true);
-            setIsConnecting(false);
-          }
-          return;
-        }
-
-        window.gapi.client.setToken({ access_token: tokenResponse.access_token });
-
-        const expiryTime = Date.now() + (tokenResponse.expires_in * 1000);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('google_drive_token', tokenResponse.access_token);
-          localStorage.setItem('google_drive_token_expiry', expiryTime.toString());
-        }
-
-        setIsConnected(true);
-        setIsConnecting(false);
-        showMessage('Connected to Google Drive successfully!');
-      };
-
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: onTokenReceived,
-      });
-
-      // Try silent auth first — no popup if Google already has a session with permission
-      tokenClient.requestAccessToken({ prompt: 'none' });
-
+      tokenClient = getTokenClient();
+      if (!tokenClient) throw new Error('Google sign-in failed to load');
+      tokenClient.requestAccessToken({ prompt: '' });
     } catch (error) {
       showMessage(`Connection failed: ${error.message}`, true);
       setIsConnecting(false);
@@ -1118,193 +1025,88 @@ const GoogleDriveSync = ({
     setLoadingStep('');
   };
 
-  // Container styling based on colorMode - use violet to match Upload tab
-  const containerBg = isColorful
-    ? (isDarkMode ? 'bg-violet-800 border-violet-600' : 'bg-violet-50 border-violet-300')
-    : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-white border-black');
-  const headerText = isColorful
-    ? (isDarkMode ? 'text-violet-100' : 'text-violet-800')
-    : '';
-  const subText = isColorful
-    ? (isDarkMode ? 'text-violet-200' : 'text-violet-700')
-    : (isDarkMode ? 'text-gray-400' : 'text-gray-600');
-  const cardBg = isColorful
-    ? (isDarkMode ? 'bg-violet-700 border-violet-500' : 'bg-violet-100 border-violet-300')
-    : (isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300');
-  const minBtn = isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]';
-  // Card press-shadow, matching the other Upload-page containers (violet in colorful).
-  const containerShadow = isColorful
-    ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]')
-    : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
+  // Upload-tab violet in colorful mode, standard black/royal-blue in minimal —
+  // same press-shadow language as the rest of the page (theme.js is canonical).
+  const colors = getAnalysisPageColors('violet', isColorful, isDarkMode);
+  const canSave = stats && processedData && processedData.length > 0;
+
+  const actionBtn = `px-3 py-2 rounded-lg text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${colors.buttonInactive}`;
 
   return (
-    <div className={`p-4 sm:p-6 border rounded-lg space-y-3 sm:space-y-4 ${containerBg} ${containerShadow}`}>
-      <div className="flex items-center space-x-2 sm:space-x-3">
-        <div className="flex-1">
-          <h2 className={`text-sm font-semibold ${headerText}`}>Google Drive Storage</h2>
-          <p className={`text-xs hidden sm:block ${subText}`}>Save to organized "cakeculator" folder with original files</p>
-          <p className={`text-xs sm:hidden ${subText}`}>Save to Google Drive</p>
+    <div className={`h-full p-4 border rounded-lg flex flex-col gap-3 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
+      {/* Header: title + connection status */}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h2 className={`text-sm font-semibold ${colors.text}`}>Google Drive Storage</h2>
+          <p className={`text-xs ${colors.textLight}`}>
+            Back up your analysis to a &quot;cakeculator&quot; folder in your own Drive
+          </p>
         </div>
         {isConnected && (
-          <button
-            onClick={handleDisconnect}
-            className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 underline"
-          >
-            Disconnect
-          </button>
+          <span className={`flex items-center gap-1.5 shrink-0 text-xs ${colors.textLight}`}>
+            <span className="w-2 h-2 rounded-full bg-green-500" />
+            Connected
+          </span>
         )}
       </div>
 
       {message && (
-        <div className={`p-2 sm:p-3 rounded text-sm ${message.startsWith('❌') 
-          ? 'bg-red-50 border border-red-200 text-red-800' 
-          : 'bg-green-50 border border-green-200 text-green-800'
+        <div className={`p-2 rounded border text-xs sm:text-sm ${message.startsWith('❌')
+          ? (isDarkMode ? 'bg-red-900/20 border-red-600/30 text-red-300' : 'bg-red-100 border-red-300 text-red-700')
+          : (isDarkMode ? 'bg-green-900/20 border-green-600/30 text-green-300' : 'bg-green-100 border-green-300 text-green-700')
         }`}>
           {message}
         </div>
       )}
 
       {!isConnected ? (
-        <div className={`p-3 sm:p-4 rounded-lg border text-center ${cardBg} ${containerShadow}`}>
-          <p className={`mb-3 text-xs sm:text-sm ${subText}`}>
-            Save analysis to Google Drive for cloud access
-          </p>
+        <div className="flex flex-col gap-2 my-auto">
           <button
             onClick={handleConnect}
             disabled={isConnecting || isInitializing}
-            className={isColorful
-              ? `px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#2563eb]' : 'shadow-[2px_2px_0_0_#1d4ed8]'}`
-              : `px-3 sm:px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm ${minBtn}`
-            }
+            className={`w-full sm:w-auto sm:self-start px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed ${colors.buttonInactive}`}
           >
-            {isInitializing ? 'Initializing...' : isConnecting ? 'Connecting...' : 'Connect Google Drive'}
+            {isInitializing ? 'Initializing…' : isConnecting ? 'Connecting…' : 'Connect Google Drive'}
           </button>
-          <p className={`text-xs mt-2 sm:mt-3 ${isColorful ? 'text-blue-600' : (isDarkMode ? 'text-white' : 'text-black')}`}>
-            Your data stays private - saved to YOUR Google Drive
+          <p className={`text-xs ${colors.textLighter}`}>
+            Your data stays private — it&apos;s saved to your own Google Drive only.
           </p>
-          {!isInitialized && !isInitializing && (
-            <p className={`text-xs mt-1 sm:mt-2 ${isColorful ? 'text-orange-600' : (isDarkMode ? 'text-white' : 'text-black')}`}>
-              ⚡ APIs will load when you first connect
-            </p>
-          )}
-          {isInitialized && (
-            <p className={`text-xs mt-1 sm:mt-2 ${isColorful ? 'text-green-600' : (isDarkMode ? 'text-white' : 'text-black')}`}>
-              ✅ Ready to connect
-            </p>
-          )}
         </div>
       ) : (
-        <div className="space-y-3 sm:space-y-4">
-          {/* Mobile: buttons side by side */}
-          <div className="flex gap-2 sm:hidden">
-            <button
-              onClick={handleSave}
-              disabled={isSaving || !stats || !processedData || processedData.length === 0}
-              className={isColorful
-                ? `flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#2563eb]' : 'shadow-[2px_2px_0_0_#1d4ed8]'}`
-                : `flex-1 px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm ${minBtn}`
-              }
-            >
-              {isSaving ? 'Saving...' : '💾 Save'}
+        <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn}>
+              {isSaving ? 'Saving…' : '💾 Save to Drive'}
             </button>
-            <button
-              onClick={handleLoad}
-              disabled={isLoading}
-              className={isColorful
-                ? `flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#16a34a]' : 'shadow-[2px_2px_0_0_#15803d]'}`
-                : `flex-1 px-3 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-sm ${minBtn}`
-              }
-            >
-              {isLoading ? 'Loading...' : '📥 Load'}
+            <button onClick={handleLoad} disabled={isLoading} className={actionBtn}>
+              {isLoading ? 'Loading…' : '📥 Load from Drive'}
             </button>
           </div>
 
-          {/* Mobile: Progress bars */}
-          <div className="sm:hidden">
-            <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
-            <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
-            {isLoading && loadingStep && (
-              <div className={`p-2 rounded text-xs ${
-                isColorful
-                  ? (isDarkMode ? 'bg-violet-600 text-violet-100' : 'bg-violet-200 text-violet-800')
-                  : (isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700')
-              }`}>
-                🔄 {loadingStep}
-              </div>
-            )}
-            {showCancelButton && (
-              <button
-                onClick={cancelLoad}
-                className={isColorful
-                  ? `w-full mt-2 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`
-                  : `w-full mt-2 px-3 py-2 rounded text-xs ${minBtn}`
-                }
-              >
-                Cancel Loading
-              </button>
-            )}
-          </div>
+          {!canSave && !isLoading && (
+            <p className={`text-xs ${colors.textLighter}`}>
+              Save is available after you calculate statistics; Load restores a previous backup.
+            </p>
+          )}
 
-          {/* Desktop: full cards side by side */}
-          <div className="hidden sm:grid sm:grid-cols-2 gap-4">
-            <div className={`p-4 border rounded-lg ${cardBg} ${containerShadow}`}>
-              <h4 className={`font-semibold mb-2 text-base ${headerText}`}>💾 Save Analysis</h4>
-              <p className={`text-sm mb-3 ${subText}`}>
-                Save analysis + original files to "cakeculator" folder
-              </p>
-              <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
-              <button
-                onClick={handleSave}
-                disabled={isSaving || !stats || !processedData || processedData.length === 0}
-                className={isColorful
-                  ? `w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-base ${isDarkMode ? 'shadow-[2px_2px_0_0_#2563eb]' : 'shadow-[2px_2px_0_0_#1d4ed8]'}`
-                  : `w-full px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-base ${minBtn}`
-                }
-              >
-                {isSaving ? 'Saving...' : 'Save to Drive'}
-              </button>
-            </div>
+          <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
+          <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
 
-            <div className={`p-4 border rounded-lg ${cardBg} ${containerShadow}`}>
-              <h4 className={`font-semibold mb-2 text-base ${headerText}`}>📥 Load Analysis</h4>
-              <p className={`text-sm mb-3 ${subText}`}>
-                Restore saved analysis from Google Drive
-              </p>
-              <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
-              {isLoading && loadingStep && (
-                <div className={`mb-3 p-2 rounded text-sm ${
-                  isColorful
-                    ? (isDarkMode ? 'bg-violet-600 text-violet-100' : 'bg-violet-200 text-violet-800')
-                    : (isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700')
-                }`}>
-                  🔄 {loadingStep}
-                </div>
-              )}
-              <div className="space-y-2">
-                <button
-                  onClick={handleLoad}
-                  disabled={isLoading}
-                  className={isColorful
-                    ? `w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-base ${isDarkMode ? 'shadow-[2px_2px_0_0_#16a34a]' : 'shadow-[2px_2px_0_0_#15803d]'}`
-                    : `w-full px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed text-base ${minBtn}`
-                  }
-                >
-                  {isLoading ? 'Loading...' : 'Load from Drive'}
-                </button>
-                {showCancelButton && (
-                  <button
-                    onClick={cancelLoad}
-                    className={isColorful
-                      ? `w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`
-                      : `w-full px-4 py-2 rounded text-sm ${minBtn}`
-                    }
-                  >
-                    Cancel Loading
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          {showCancelButton && (
+            <button
+              onClick={cancelLoad}
+              className={`w-full px-3 py-2 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`}
+            >
+              Cancel Loading
+            </button>
+          )}
+
+          <button
+            onClick={handleDisconnect}
+            className={`self-start text-xs underline hover:opacity-70 ${colors.textLight}`}
+          >
+            Disconnect
+          </button>
         </div>
       )}
     </div>

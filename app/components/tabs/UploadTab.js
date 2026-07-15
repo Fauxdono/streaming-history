@@ -225,8 +225,7 @@ export default function UploadTab({
               </div>
 
               {/* Google Drive Storage */}
-              <div>
-                <GoogleDriveSync
+              <GoogleDriveSync
                   stats={stats}
                   processedData={processedData}
                   topArtists={topArtists}
@@ -243,7 +242,6 @@ export default function UploadTab({
                   isDarkMode={isDarkMode}
                   colorMode={colorMode}
                 />
-              </div>
             </div>
 
               
