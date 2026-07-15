@@ -77,7 +77,7 @@ const GoogleDriveSync = ({
       : isDarkMode ? 'border-[#4169E1]' : 'border-black';
 
     return (
-      <div className={`font-mono ${termBg} border ${termBorder} p-2 rounded-sm`}>
+      <div className={`w-full text-left font-mono ${termBg} border ${termBorder} p-2 rounded-sm`}>
         <div className={`text-[11px] ${termColor} mb-1`}>
           {isCompleted ? '> TRANSFER COMPLETE' : `> ${progress.message.toUpperCase()}`}
         </div>
@@ -1060,11 +1060,11 @@ const GoogleDriveSync = ({
       )}
 
       {!isConnected ? (
-        <div className="flex flex-col gap-2 my-auto">
+        <div className="flex flex-col gap-2 my-auto sm:items-center sm:text-center">
           <button
             onClick={handleConnect}
             disabled={isConnecting || isInitializing}
-            className={`w-full sm:w-auto sm:self-start px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed ${colors.buttonInactive}`}
+            className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed ${colors.buttonInactive}`}
           >
             {isInitializing ? 'Initializing…' : isConnecting ? 'Connecting…' : 'Connect Google Drive'}
           </button>
@@ -1073,8 +1073,8 @@ const GoogleDriveSync = ({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2 my-auto w-full sm:items-center sm:text-center">
+          <div className="grid grid-cols-2 gap-2 w-full">
             <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn}>
               {isSaving ? 'Saving…' : '💾 Save to Drive'}
             </button>
@@ -1103,7 +1103,7 @@ const GoogleDriveSync = ({
 
           <button
             onClick={handleDisconnect}
-            className={`self-start text-xs underline hover:opacity-70 ${colors.textLight}`}
+            className={`self-start sm:self-center text-xs underline hover:opacity-70 ${colors.textLight}`}
           >
             Disconnect
           </button>

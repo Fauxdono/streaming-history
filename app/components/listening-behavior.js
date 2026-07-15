@@ -351,9 +351,14 @@ const filteredData = useMemo(() => {
   }
 }, [deferredRawPlayData, selectedYear, yearRangeMode, yearRange]);
   
-  // Add loading state for heavy computations
-  const [isComputing, setIsComputing] = useState(false);
-  
+  // Sessions results persist once computed; this flag only gates the first
+  // computation so users who never open the subtab don't pay for it.
+  const [sessionsVisited, setSessionsVisited] = useState(false);
+  useEffect(() => {
+    if (activeTab === 'sessions') setSessionsVisited(true);
+  }, [activeTab]);
+
+
   // Analyze user behavior (skips, shuffle, etc.) - only compute for active behavior tab
   const behaviorData = useMemo(() => {
     if (deferredActiveTab !== 'behavior' && activeTab !== 'behavior') {
@@ -480,81 +485,38 @@ const filteredData = useMemo(() => {
     };
   }, [filteredData, deferredActiveTab, activeTab, chart]);
   
-  // Analyze listening sessions - only compute for active sessions tab
+  // Analyze listening sessions — computed once the Sessions tab is first
+  // opened, then kept until the data or filters change (leaving the subtab no
+  // longer discards the result). Single numeric pass: no per-entry Date or
+  // Intl formatting, and no per-entry references retained in the result —
+  // the old version's millions of throwaway Date objects froze desktop and
+  // crashed mobile Safari on large libraries.
   const sessionData = useMemo(() => {
-    if (deferredActiveTab !== 'sessions' && activeTab !== 'sessions') {
-      return { sessions: [], sessionLengths: [], totalSessions: 0, durationGroups: [] };
-    }
-    // Define a session as listening activity with gaps less than 30 minutes
-    const SESSION_GAP_MS = 30 * 60 * 1000; // 30 minutes
-    const sessions = [];
-    let currentSession = null;
-    
-    // Sort all entries by timestamp
-    const sortedEntries = [...filteredData].sort((a, b) => {
-      return new Date(a.ts) - new Date(b.ts);
-    });
-    
-    sortedEntries.forEach(entry => {
-      if (entry.ms_played < 5000) return; // Ignore very short plays
-      
-      const timestamp = new Date(entry.ts);
-      
-      if (!currentSession) {
-        // Start a new session
-        currentSession = {
-          start: timestamp,
-          end: new Date(timestamp.getTime() + entry.ms_played),
-          tracks: [entry],
-          totalDuration: entry.ms_played
-        };
-      } else {
-        const timeSinceLastTrack = timestamp - currentSession.end;
-        
-        if (timeSinceLastTrack <= SESSION_GAP_MS) {
-          // Continue current session
-          currentSession.end = new Date(timestamp.getTime() + entry.ms_played);
-          currentSession.tracks.push(entry);
-          currentSession.totalDuration += entry.ms_played;
-        } else {
-          // End current session and start a new one
-          sessions.push(currentSession);
-          currentSession = {
-            start: timestamp,
-            end: new Date(timestamp.getTime() + entry.ms_played),
-            tracks: [entry],
-            totalDuration: entry.ms_played
-          };
-        }
-      }
-    });
-    
-    // Add the last session if it exists
-    if (currentSession) {
-      sessions.push(currentSession);
-    }
-    
-    // Calculate session stats
-    const sessionLengths = sessions.map(session => {
-      const durationMinutes = Math.round(session.totalDuration / 60000);
-      const dayOfWeek = session.start.getDay();
-      const hour = session.start.getHours();
+    if (!sessionsVisited) {
       return {
-        date: session.start.toLocaleDateString(),
-        fullDate: session.start,
-        dayOfWeek,
-        hour,
-        tracksCount: session.tracks.length,
-        durationMinutes,
-        sessionDuration: session.end - session.start,
-        averageTrackLength: Math.round(session.totalDuration / session.tracks.length)
+        totalSessions: 0,
+        averageSessionDuration: 0,
+        averageTracksPerSession: 0,
+        totalListeningTimeMs: 0,
+        durationGroups: [],
+        topDurationGroup: null,
+        longestSession: null,
+        mostTracksSession: null,
+        mostActiveDay: null,
+        longestListeningDay: null,
+        mostActiveMonth: null
       };
-    });
-    
-    // Find days with most activity
-    const dayStats = {};
-    const monthStats = {};
-    
+    }
+
+    // Define a session as listening activity with gaps less than 30 minutes
+    const SESSION_GAP_MS = 30 * 60 * 1000;
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    // Sort by precomputed numeric timestamp — no allocations in the comparator
+    const sorted = filteredData
+      .map(e => ({ e, t: Date.parse(e.ts) }))
+      .sort((a, b) => a.t - b.t);
+
     const passesFilters = (entry) => {
       if (entry.ms_played < minPlayDuration) return false;
       if (skipFilter && (entry.reason_end === 'fwdbtn' || entry.reason_end === 'backbtn')) {
@@ -566,55 +528,7 @@ const filteredData = useMemo(() => {
       if (fullListenOnly && entry.reason_end !== 'trackdone') return false;
       return true;
     };
-    sortedEntries.forEach(entry => {
-      if (!passesFilters(entry)) return;
-      
-      const date = new Date(entry.ts);
-      const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; // YYYY-MM
-      
-      // Track day stats
-      if (!dayStats[dayKey]) {
-        dayStats[dayKey] = {
-          date: date,
-          displayDate: date.toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          }),
-          totalPlays: 0,
-          totalTime: 0
-        };
-      }
-      dayStats[dayKey].totalPlays++;
-      dayStats[dayKey].totalTime += entry.ms_played;
-      
-      // Track month stats
-      if (!monthStats[monthKey]) {
-        monthStats[monthKey] = {
-          date: new Date(date.getFullYear(), date.getMonth(), 1),
-          displayDate: date.toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long'
-          }),
-          totalPlays: 0,
-          totalTime: 0
-        };
-      }
-      monthStats[monthKey].totalPlays++;
-      monthStats[monthKey].totalTime += entry.ms_played;
-    });
-    
-    // Find top days and months
-    const mostActiveDay = Object.values(dayStats)
-      .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
-    
-    const longestListeningDay = Object.values(dayStats)
-      .sort((a, b) => b.totalTime - a.totalTime)[0] || null;
-    
-    const mostActiveMonth = Object.values(monthStats)
-      .sort((a, b) => b.totalPlays - a.totalPlays)[0] || null;
-    
+
     // Group sessions by duration - grey in minimal mode, colorful otherwise
     const duration5 = chart.ramp(5);
     const durationGroups = [
@@ -624,50 +538,114 @@ const filteredData = useMemo(() => {
       { name: "1-2 hours", count: 0, color: duration5[3] },
       { name: "> 2 hours", count: 0, color: duration5[4] }
     ];
-    
-    sessionLengths.forEach(session => {
-      if (session.durationMinutes < 15) {
-        durationGroups[0].count++;
-      } else if (session.durationMinutes < 30) {
-        durationGroups[1].count++;
-      } else if (session.durationMinutes < 60) {
-        durationGroups[2].count++;
-      } else if (session.durationMinutes < 120) {
-        durationGroups[3].count++;
-      } else {
-        durationGroups[4].count++;
+
+    let totalSessions = 0;
+    let sumDurationMinutes = 0;
+    let sumTrackCounts = 0;
+    let longestSession = null;
+    let mostTracksSession = null;
+    let current = null; // { startMs, endMs, trackCount, totalDuration }
+
+    // Fold a finished session straight into the aggregates instead of
+    // keeping the session (and its track entries) around.
+    const closeSession = () => {
+      const durationMinutes = Math.round(current.totalDuration / 60000);
+      totalSessions++;
+      sumDurationMinutes += durationMinutes;
+      sumTrackCounts += current.trackCount;
+      if (durationMinutes < 15) durationGroups[0].count++;
+      else if (durationMinutes < 30) durationGroups[1].count++;
+      else if (durationMinutes < 60) durationGroups[2].count++;
+      else if (durationMinutes < 120) durationGroups[3].count++;
+      else durationGroups[4].count++;
+      if (!longestSession || durationMinutes > longestSession.durationMinutes) {
+        longestSession = { durationMinutes, tracksCount: current.trackCount, startMs: current.startMs };
       }
-    });
-    
-    // Calculate session averages
-    const totalSessions = sessions.length;
-    const averageSessionDuration = totalSessions ? 
-      Math.round(sessionLengths.reduce((sum, session) => sum + session.durationMinutes, 0) / totalSessions) : 0;
-    const averageTracksPerSession = totalSessions ? 
-      Math.round(sessionLengths.reduce((sum, session) => sum + session.tracksCount, 0) / totalSessions) : 0;
-    
-    // Find longest session with date
-    const longestSession = sessionLengths.length ? 
-      sessionLengths.sort((a, b) => b.durationMinutes - a.durationMinutes)[0] : null;
-    
-    // Find session with most tracks with date
-    const mostTracksSession = sessionLengths.length ?
-      sessionLengths.sort((a, b) => b.tracksCount - a.tracksCount)[0] : null;
-    
-    return {
-      sessions,
-      sessionLengths,
-      totalSessions,
-      averageSessionDuration,
-      averageTracksPerSession,
-      durationGroups,
-      longestSession,
-      mostTracksSession,
-      mostActiveDay,
-      longestListeningDay,
-      mostActiveMonth
+      if (!mostTracksSession || current.trackCount > mostTracksSession.tracksCount) {
+        mostTracksSession = { durationMinutes, tracksCount: current.trackCount, startMs: current.startMs };
+      }
     };
-  }, [filteredData, chart, deferredActiveTab, activeTab, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
+
+    // Day buckets keyed by UTC day (same grouping as the old toISOString
+    // key); month buckets by local year/month via one reused scratch Date.
+    const dayStats = new Map();
+    const monthStats = new Map();
+    const scratch = new Date();
+
+    for (const { e: entry, t } of sorted) {
+      // Session building — ignore very short plays (under 5 seconds)
+      if (entry.ms_played >= 5000) {
+        if (current && t - current.endMs <= SESSION_GAP_MS) {
+          current.endMs = t + entry.ms_played;
+          current.trackCount++;
+          current.totalDuration += entry.ms_played;
+        } else {
+          if (current) closeSession();
+          current = { startMs: t, endMs: t + entry.ms_played, trackCount: 1, totalDuration: entry.ms_played };
+        }
+      }
+
+      // Day/month activity stats (respect the global play filters)
+      if (!passesFilters(entry)) continue;
+
+      const dayKey = Math.floor(t / DAY_MS);
+      let day = dayStats.get(dayKey);
+      if (!day) {
+        day = { firstTsMs: t, totalPlays: 0, totalTime: 0 };
+        dayStats.set(dayKey, day);
+      }
+      day.totalPlays++;
+      day.totalTime += entry.ms_played;
+
+      scratch.setTime(t);
+      const monthKey = scratch.getFullYear() * 12 + scratch.getMonth();
+      let month = monthStats.get(monthKey);
+      if (!month) {
+        month = { firstTsMs: t, totalPlays: 0, totalTime: 0 };
+        monthStats.set(monthKey, month);
+      }
+      month.totalPlays++;
+      month.totalTime += entry.ms_played;
+    }
+    if (current) closeSession();
+
+    // Only the handful of winners get Date objects and Intl formatting
+    const argmax = (map, field) => {
+      let best = null;
+      for (const v of map.values()) {
+        if (!best || v[field] > best[field]) best = v;
+      }
+      return best;
+    };
+    const dayDisplay = (b) => b && {
+      ...b,
+      displayDate: new Date(b.firstTsMs).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    };
+    const monthDisplay = (b) => b && {
+      ...b,
+      displayDate: new Date(b.firstTsMs).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
+    };
+    const withFullDate = (s) => s && { ...s, fullDate: new Date(s.startMs) };
+
+    let topDurationGroup = null;
+    for (const g of durationGroups) {
+      if (!topDurationGroup || g.count > topDurationGroup.count) topDurationGroup = g;
+    }
+
+    return {
+      totalSessions,
+      averageSessionDuration: totalSessions ? Math.round(sumDurationMinutes / totalSessions) : 0,
+      averageTracksPerSession: totalSessions ? Math.round(sumTrackCounts / totalSessions) : 0,
+      totalListeningTimeMs: sumDurationMinutes * 60000,
+      durationGroups,
+      topDurationGroup,
+      longestSession: withFullDate(longestSession),
+      mostTracksSession: withFullDate(mostTracksSession),
+      mostActiveDay: dayDisplay(argmax(dayStats, 'totalPlays')),
+      longestListeningDay: dayDisplay(argmax(dayStats, 'totalTime')),
+      mostActiveMonth: monthDisplay(argmax(monthStats, 'totalPlays'))
+    };
+  }, [filteredData, chart, sessionsVisited, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold, trackDurationMap]);
 
   // Update selectedDate when selectedYear changes to a specific date
   React.useEffect(() => {
@@ -1141,7 +1119,7 @@ const filteredData = useMemo(() => {
             <h3 className={`text-sm sm:text-lg font-bold mb-2 ${modeColors.text}`}>Session Duration Distribution</h3>
             <div className={`h-48 sm:h-64 rounded p-1 sm:p-2 border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
               {(() => {
-                const topGroup = [...sessionData.durationGroups].sort((a, b) => b.count - a.count)[0];
+                const topGroup = sessionData.topDurationGroup;
                 const center = topGroup && sessionData.totalSessions > 0
                   ? { value: `${Math.round((topGroup.count / sessionData.totalSessions) * 100)}%`, caption: topGroup.name }
                   : null;
@@ -1195,7 +1173,7 @@ const filteredData = useMemo(() => {
                 <li className={`p-2 rounded border ${modeColors.bgCard} ${modeColors.border} ${modeColors.shadow}`}>
                   <span className={`font-bold ${modeColors.text}`}>Total Listening Time:</span>
                   <span className={`ml-2 ${modeColors.text}`}>
-                    {formatDuration(sessionData.sessionLengths.reduce((sum, session) => sum + (session.durationMinutes * 60000), 0))}
+                    {formatDuration(sessionData.totalListeningTimeMs)}
                   </span>
                 </li>
               </ul>
@@ -1238,7 +1216,7 @@ const filteredData = useMemo(() => {
           </div>
 
           {(() => {
-            const topGroup = [...sessionData.durationGroups].sort((a, b) => b.count - a.count)[0];
+            const topGroup = sessionData.topDurationGroup;
             return (
               <Callout icon="⏱️" title="Session Insights" verdict={topGroup?.name} colors={modeColors}>
                 <p>
