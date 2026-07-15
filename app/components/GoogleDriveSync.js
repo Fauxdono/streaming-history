@@ -1032,8 +1032,45 @@ const GoogleDriveSync = ({
 
   const actionBtn = `px-3 py-2 rounded-lg text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${colors.buttonInactive}`;
 
+  const messageBanner = message && (
+    <div className={`p-2 rounded border text-xs sm:text-sm ${message.startsWith('❌')
+      ? (isDarkMode ? 'bg-red-900/20 border-red-600/30 text-red-300' : 'bg-red-100 border-red-300 text-red-700')
+      : (isDarkMode ? 'bg-green-900/20 border-green-600/30 text-green-300' : 'bg-green-100 border-green-300 text-green-700')
+    }`}>
+      {message}
+    </div>
+  );
+
+  // Disconnected: no card — just one full-width connect button that
+  // "morphs" into the Save/Load card once connected.
+  if (!isConnected) {
+    return (
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={handleConnect}
+          disabled={isConnecting || isInitializing}
+          className={`w-full px-4 py-1 rounded-lg text-2xl sm:text-4xl font-light leading-tight text-center border hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed ${colors.bgCard} ${colors.border} ${colors.textLight} ${colors.shadow}`}
+        >
+          {isInitializing ? 'initializing…' : isConnecting ? 'connecting…' : (
+            <>
+              connect{' '}
+              <span className="text-[#4285F4]">g</span>
+              <span className="text-[#EA4335]">o</span>
+              <span className="text-[#FBBC05]">o</span>
+              <span className="text-[#4285F4]">g</span>
+              <span className="text-[#34A853]">l</span>
+              <span className="text-[#EA4335]">e</span>
+              {' '}drive
+            </>
+          )}
+        </button>
+        {messageBanner}
+      </div>
+    );
+  }
+
   return (
-    <div className={`h-full p-4 border rounded-lg flex flex-col gap-3 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
+    <div className={`p-4 border rounded-lg flex flex-col gap-3 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
       {/* Header: title + connection status */}
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -1042,38 +1079,15 @@ const GoogleDriveSync = ({
             Back up your analysis to a &quot;cakeculator&quot; folder in your own Drive
           </p>
         </div>
-        {isConnected && (
-          <span className={`flex items-center gap-1.5 shrink-0 text-xs ${colors.textLight}`}>
-            <span className="w-2 h-2 rounded-full bg-green-500" />
-            Connected
-          </span>
-        )}
+        <span className={`flex items-center gap-1.5 shrink-0 text-xs ${colors.textLight}`}>
+          <span className="w-2 h-2 rounded-full bg-green-500" />
+          Connected
+        </span>
       </div>
 
-      {message && (
-        <div className={`p-2 rounded border text-xs sm:text-sm ${message.startsWith('❌')
-          ? (isDarkMode ? 'bg-red-900/20 border-red-600/30 text-red-300' : 'bg-red-100 border-red-300 text-red-700')
-          : (isDarkMode ? 'bg-green-900/20 border-green-600/30 text-green-300' : 'bg-green-100 border-green-300 text-green-700')
-        }`}>
-          {message}
-        </div>
-      )}
+      {messageBanner}
 
-      {!isConnected ? (
-        <div className="flex flex-col gap-2 my-auto sm:items-center sm:text-center">
-          <button
-            onClick={handleConnect}
-            disabled={isConnecting || isInitializing}
-            className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed ${colors.buttonInactive}`}
-          >
-            {isInitializing ? 'Initializing…' : isConnecting ? 'Connecting…' : 'Connect Google Drive'}
-          </button>
-          <p className={`text-xs ${colors.textLighter}`}>
-            Your data stays private — it&apos;s saved to your own Google Drive only.
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2 my-auto w-full sm:items-center sm:text-center">
+      <div className="flex flex-col gap-2 w-full sm:items-center sm:text-center">
           <div className="grid grid-cols-2 gap-2 w-full">
             <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn}>
               {isSaving ? 'Saving…' : '💾 Save to Drive'}
@@ -1107,8 +1121,7 @@ const GoogleDriveSync = ({
           >
             Disconnect
           </button>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

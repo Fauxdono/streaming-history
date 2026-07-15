@@ -81,6 +81,9 @@ export default function UploadTab({
 
         return (
           <div className={`p-2 sm:p-4 rounded border-2 ${uploadBg} ${uploadBorder}`}>
+            {/* Content is capped at a mobile-ish column width and centered;
+                the violet card bg fills the space either side on desktop. */}
+            <div className="max-w-2xl mx-auto">
             {/* Title + inner tabs + web app row */}
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <h3 className={`text-xl hidden sm:block ${uploadText}`}>
@@ -100,7 +103,7 @@ export default function UploadTab({
             </div>
             <div>
             {uploadInnerTab === 'scrobbles' ? (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+              <div className="grid grid-cols-1 gap-6 items-start">
                 <LastfmConnect
                   isDarkMode={isDarkMode}
                   colorMode={colorMode}
@@ -186,8 +189,8 @@ export default function UploadTab({
               </div>
             )}
 
-            {/* How to Use + Google Drive - side by side on desktop */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {/* How to Use + Google Drive - stacked, mobile-style */}
+            <div className="grid grid-cols-1 gap-4 mb-4">
               {/* How to Use section */}
               <div className={`p-4 border rounded-lg flex flex-col ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
                 <h3 className={`font-semibold mb-3 text-sm ${uploadText}`}>How to use:</h3>
@@ -319,7 +322,7 @@ export default function UploadTab({
                   : (isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-white border-black')
               } ${uploadShadow}`}>
                 <h4 className={`font-semibold mb-1 text-lg ${uploadText}`}>Uploaded Files:</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {uploadedFiles.map((fileName, index) => (
                     <div key={index} className={`flex items-center justify-between gap-2 px-2 py-0.5 rounded border ${uploadBorder} ${
                       colorMode === 'colorful'
@@ -461,6 +464,7 @@ export default function UploadTab({
               <a href="/terms" className="underline hover:opacity-70">Terms of Service</a>
             </div>
             </>)}
+            </div>
             </div>
           </div>
         );
