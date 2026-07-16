@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { getAnalysisPageColors } from './theme.js';
+import { exportEnrichmentCache, mergeEnrichmentCache } from './albumEnrichment.js';
 
 const GoogleDriveSync = ({
   stats,
@@ -269,6 +270,34 @@ const GoogleDriveSync = ({
     }
   };
 
+
+  // Multipart upload: creates a new Drive file, or updates one in place when
+  // existingId is given — so repeat saves don't pile up copies in the folder
+  const uploadFileToDrive = async ({ name, mimeType, content, folderId, existingId }) => {
+    const boundary = 'boundary123';
+    // PATCH must not resend parents; the file is already in the folder
+    const metadata = existingId ? { name } : { name, parents: [folderId], mimeType };
+    const multipartBody = [
+      `--${boundary}`,
+      'Content-Type: application/json',
+      '',
+      JSON.stringify(metadata),
+      `--${boundary}`,
+      `Content-Type: ${mimeType}`,
+      '',
+      content,
+      `--${boundary}--`
+    ].join('\r\n');
+
+    const response = await window.gapi.client.request({
+      path: `https://www.googleapis.com/upload/drive/v3/files${existingId ? `/${existingId}` : ''}`,
+      method: existingId ? 'PATCH' : 'POST',
+      params: { uploadType: 'multipart' },
+      headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
+      body: multipartBody
+    });
+    return response.result;
+  };
 
   // Helper function to read file as text
   const readFileAsText = (file) => {
@@ -617,7 +646,29 @@ const GoogleDriveSync = ({
       // Step 1: Get or create the cakeculator folder
       setSaveProgress({ step: 1, total: totalSteps, message: 'Creating cakeculator folder...' });
       const folderId = await getCakeCulatorFolder();
-      
+
+      // Inventory the folder so this save updates existing files in place
+      // instead of accumulating a new copy per save
+      const existingByName = new Map(); // name → { id, size }
+      let newestAnalysis = null;
+      try {
+        const listRes = await window.gapi.client.drive.files.list({
+          q: `'${folderId}' in parents and trashed=false`,
+          fields: 'files(id, name, size, modifiedTime)',
+          pageSize: 1000,
+          spaces: 'drive'
+        });
+        for (const f of listRes.result.files || []) {
+          existingByName.set(f.name, { id: f.id, size: f.size });
+          if (f.name.includes('analysis') && !f.name.startsWith('original_') &&
+              (!newestAnalysis || f.modifiedTime > newestAnalysis.modifiedTime)) {
+            newestAnalysis = f;
+          }
+        }
+      } catch (listError) {
+        console.warn('⚠️ Could not list cakeculator folder, saving as new files:', listError);
+      }
+
       // Step 2+: Upload original files first (if any)
       let originalFiles = [];
       if (hasOriginalFiles) {
@@ -630,42 +681,31 @@ const GoogleDriveSync = ({
           });
           
           try {
-            console.log(`📤 Uploading ${file.name}...`);
-            const fileContent = await readFileAsText(file);
-            
-            const boundary = 'boundary123';
-            const multipartBody = [
-              `--${boundary}`,
-              'Content-Type: application/json',
-              '',
-              JSON.stringify({
-                name: `original_${file.name}`,
-                parents: [folderId],
-                mimeType: file.type || 'text/plain'
-              }),
-              `--${boundary}`,
-              'Content-Type: ' + (file.type || 'text/plain'),
-              '',
-              fileContent,
-              `--${boundary}--`
-            ].join('\r\n');
+            const existing = existingByName.get(`original_${file.name}`);
 
-            const response = await window.gapi.client.request({
-              path: 'https://www.googleapis.com/upload/drive/v3/files',
-              method: 'POST',
-              params: { uploadType: 'multipart' },
-              headers: {
-                'Content-Type': `multipart/related; boundary="${boundary}"`
-              },
-              body: multipartBody
+            // Same name + same size ⇒ already backed up; skip the re-upload
+            if (existing && Number(existing.size) === file.size) {
+              console.log(`⏭️ ${file.name} already on Drive (same size), skipping`);
+              originalFiles.push({ name: file.name, driveId: existing.id, size: file.size });
+              continue;
+            }
+
+            console.log(`📤 ${existing ? 'Updating' : 'Uploading'} ${file.name}...`);
+            const fileContent = await readFileAsText(file);
+            const result = await uploadFileToDrive({
+              name: `original_${file.name}`,
+              mimeType: file.type || 'text/plain',
+              content: fileContent,
+              folderId,
+              existingId: existing?.id
             });
 
             originalFiles.push({
               name: file.name,
-              driveId: response.result.id,
+              driveId: result.id,
               size: file.size
             });
-            
+
             console.log(`✅ Uploaded ${file.name}`);
           } catch (error) {
             console.error(`❌ Failed to upload ${file.name}:`, error);
@@ -696,6 +736,7 @@ const GoogleDriveSync = ({
         if (entry.episode_name) slim.episode_name = entry.episode_name;
         if (entry.episode_show_name) slim.episode_show_name = entry.episode_show_name;
         if (entry.source) slim.source = entry.source;
+        if (entry.release_year) slim.release_year = entry.release_year;
         return slim;
       });
 
@@ -710,10 +751,13 @@ const GoogleDriveSync = ({
         artistsByYear,
         albumsByYear,
         streaks,
+        // MusicBrainz lookup results (album + release year per track) — restored
+        // into localStorage on load so years survive new devices/cleared storage
+        enrichmentCache: exportEnrichmentCache(),
         metadata: {
           savedAt: new Date().toISOString(),
           totalTracks: processedData.length,
-          version: '1.2',
+          version: '1.3',
           originalFiles: originalFiles.map(f => ({ name: f.name, size: f.size })),
           folderStructure: 'cakeculator',
           includesYearData: true
@@ -724,32 +768,14 @@ const GoogleDriveSync = ({
       const fileName = `analysis-${new Date().toISOString().split('T')[0]}.json`;
       const sizeInMB = (jsonString.length / (1024 * 1024)).toFixed(2);
 
-      // Upload the analysis file to the cakeculator folder
-      const boundary = 'boundary123';
-      const multipartBody = [
-        `--${boundary}`,
-        'Content-Type: application/json',
-        '',
-        JSON.stringify({
-          name: fileName,
-          parents: [folderId],
-          mimeType: 'application/json'
-        }),
-        `--${boundary}`,
-        'Content-Type: application/json',
-        '',
-        jsonString,
-        `--${boundary}--`
-      ].join('\r\n');
-
-      await window.gapi.client.request({
-        path: 'https://www.googleapis.com/upload/drive/v3/files',
-        method: 'POST',
-        params: { uploadType: 'multipart' },
-        headers: {
-          'Content-Type': `multipart/related; boundary="${boundary}"`
-        },
-        body: multipartBody
+      // Update the newest analysis file in place (renamed to today's date);
+      // only first-ever saves create a new file
+      await uploadFileToDrive({
+        name: fileName,
+        mimeType: 'application/json',
+        content: jsonString,
+        folderId,
+        existingId: newestAnalysis?.id
       });
 
       const totalFiles = originalFiles.length > 0 ? ` + ${originalFiles.length} original files` : '';
@@ -955,6 +981,14 @@ const GoogleDriveSync = ({
         artists: data.topArtists?.length || 0,
         hasStats: !!data.stats
       });
+
+      // Restore MusicBrainz lookup results saved with the analysis, so album/
+      // year enrichment doesn't need to re-query on a new device
+      if (data.enrichmentCache) {
+        const restored = mergeEnrichmentCache(data.enrichmentCache);
+        if (restored > 0) console.log(`✅ Restored ${restored} MusicBrainz lookups from backup`);
+        delete data.enrichmentCache;
+      }
       
       // Step 6: Load data into app (80-100%)
       setLoadProgress({ step: 6, total: 6, percent: 80, message: 'Loading data into app...' });

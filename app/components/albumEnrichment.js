@@ -264,6 +264,34 @@ export function clearEnrichmentCache() {
 }
 
 /**
+ * Snapshot of the cache for backup (e.g. the Google Drive save file).
+ */
+export function exportEnrichmentCache() {
+  return loadCache();
+}
+
+/**
+ * Merge a backed-up cache into the local one (used when loading from Drive).
+ * Richer values win: { album, year } beats a legacy album-only string, which
+ * beats a cached miss (null) — so a restore never downgrades local lookups.
+ * Returns the number of keys added or upgraded.
+ */
+export function mergeEnrichmentCache(imported) {
+  if (!imported || typeof imported !== 'object') return 0;
+  const rank = (v) => (v && typeof v === 'object' ? 2 : typeof v === 'string' ? 1 : 0);
+  const cache = loadCache();
+  let changed = 0;
+  for (const [key, value] of Object.entries(imported)) {
+    if (!(key in cache) || rank(value) > rank(cache[key])) {
+      cache[key] = value;
+      changed++;
+    }
+  }
+  if (changed > 0) saveCache(cache);
+  return changed;
+}
+
+/**
  * Get stats about the current cache.
  */
 export function getEnrichmentCacheStats() {
