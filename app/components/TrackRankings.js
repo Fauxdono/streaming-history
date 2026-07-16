@@ -411,6 +411,7 @@ return (
         briefObsessions={briefObsessions}
         colorTheme={colorTheme}
         colorMode={colorMode}
+        playlistType="obsessions"
       />
     )}
 

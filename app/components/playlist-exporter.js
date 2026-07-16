@@ -8,7 +8,10 @@ const PlaylistExporter = ({
   selectedYear = 'all',
   briefObsessions = [],
   colorTheme = 'blue',
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  // Fixed by the host page (Songs exports top tracks, Obsessions exports
+  // obsessions) — no longer a user-facing choice
+  playlistType = 'top'
 }) => {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
@@ -18,7 +21,6 @@ const PlaylistExporter = ({
   const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 });
   const [error, setError] = useState(null);
   const [musicBasePath, setMusicBasePath] = useState('/Music/Downloads');
-  const [playlistType, setPlaylistType] = useState('top');
   const [fileExtension, setFileExtension] = useState('mp3');
   const [exportMode, setExportMode] = useState('current'); // 'current' or 'all'
   const [exportCount, setExportCount] = useState(100); // How many tracks to export
@@ -473,31 +475,9 @@ const PlaylistExporter = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className={labelCls}>Playlist type</label>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <label className={radioCls}>
-              <input
-                type="radio"
-                checked={playlistType === 'top'}
-                onChange={() => setPlaylistType('top')}
-                className={modeColors.accent}
-              />
-              <span>Top tracks</span>
-            </label>
-            <label className={radioCls}>
-              <input
-                type="radio"
-                checked={playlistType === 'obsessions'}
-                onChange={() => setPlaylistType('obsessions')}
-                className={modeColors.accent}
-              />
-              <span>Brief obsessions</span>
-            </label>
-          </div>
-        </div>
-
+      {/* Obsessions export is always one all-time file, so the mode choice
+          only exists for top tracks */}
+      {playlistType === 'top' && (
         <div>
           <label className={labelCls}>Export mode</label>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -521,7 +501,7 @@ const PlaylistExporter = ({
             </label>
           </div>
         </div>
-      </div>
+      )}
 
       {error && (
         <div className={`p-2 text-xs ${modeColors.error} border rounded`}>
@@ -544,9 +524,11 @@ const PlaylistExporter = ({
           }
         </p>
         <p className="mt-1">
-          {exportMode === 'current'
-            ? `Top ${exportCount} tracks from ${selectedYear === 'all' ? 'all time' : selectedYear}${playlistType === 'obsessions' ? ' (brief obsessions)' : ''}, sorted by ${sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.`
-            : `Separate playlist files per year plus an all-time playlist, sorted by ${sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}; files download one after another.`}
+          {playlistType === 'obsessions'
+            ? `Top ${exportCount} brief obsessions, sorted by ${sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.`
+            : exportMode === 'current'
+              ? `Top ${exportCount} tracks from ${selectedYear === 'all' ? 'all time' : selectedYear}, sorted by ${sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.`
+              : `Separate playlist files per year plus an all-time playlist, sorted by ${sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}; files download one after another.`}
         </p>
       </div>
 
