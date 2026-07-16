@@ -51,28 +51,69 @@ html {
      still doesn't zoom on focus, but scale the box down so the digits LOOK
      text-xs like the surrounding controls. Pre-scale size 48x34px becomes
      36x25.5px visually; negative margins trim the layout box to match. */
-  /* Visual target: exactly the toolbar-button height (1rem line + py-1 +
-     2px border = 1.5rem + 2px), rem-based so it tracks the font-size
-     setting. Pre-scale height is that divided by 0.75. */
+  /* Visual target: text-xs digits in a toolbar-button-height box (1rem line
+     + py-1 + 2px border), while the COMPUTED font stays 16px for the iOS
+     anti-zoom rule above. The scale factor is therefore 0.75rem/16px, which
+     changes with the html text-size class — each font setting gets its own
+     scale + box math below (pre-scale height = visual height / scale;
+     negative margins trim the layout box to the visual size). */
   .stepper-input-sm {
     font-size: 16px !important;
-    width: 3rem;
-    height: calc(2rem + 2.67px);
+    width: 48px; /* -> 2.25rem visual at every font setting */
+    height: 34.67px;
     transform: scale(0.75);
     transform-origin: center;
-    margin: calc(-0.25rem - 0.34px) -0.375rem;
+    margin: -4.33px -6px;
   }
 
-  /* Same trick for the full-width toolbar search bars: oversize by 4/3 then
-     scale down, anchored left so the visual box still fills the wrapper.
-     Negative margins trim the layout box back to the 26px visual height. */
+  /* Full-width flavor for the toolbar search bars: oversize by 1/scale then
+     scale down, anchored left so the visual box still fills the wrapper. */
   .search-input-sm {
     font-size: 16px !important;
     width: 133.34%;
-    height: calc(2rem + 2.67px);
+    height: 34.67px;
     transform: scale(0.75);
     transform-origin: left center;
-    margin: calc(-0.25rem - 0.34px) -33.34% calc(-0.25rem - 0.34px) 0;
+    margin: -4.33px -33.34% -4.33px 0;
+  }
+
+  /* text-small: root 14px, scale 10.5/16 */
+  html.text-small .stepper-input-sm {
+    height: 35.05px;
+    transform: scale(0.65625);
+    margin: -6.02px -8.25px;
+  }
+  html.text-small .search-input-sm {
+    width: 152.38%;
+    height: 35.05px;
+    transform: scale(0.65625);
+    margin: -6.02px -52.38% -6.02px 0;
+  }
+
+  /* text-large: root 18px, scale 13.5/16 */
+  html.text-large .stepper-input-sm {
+    height: 34.37px;
+    transform: scale(0.84375);
+    margin: -2.69px -3.75px;
+  }
+  html.text-large .search-input-sm {
+    width: 118.52%;
+    height: 34.37px;
+    transform: scale(0.84375);
+    margin: -2.69px -18.52% -2.69px 0;
+  }
+
+  /* text-xlarge: root 20px, scale 15/16 */
+  html.text-xlarge .stepper-input-sm {
+    height: 34.13px;
+    transform: scale(0.9375);
+    margin: -1.07px -1.5px;
+  }
+  html.text-xlarge .search-input-sm {
+    width: 106.67%;
+    height: 34.13px;
+    transform: scale(0.9375);
+    margin: -1.07px -6.67% -1.07px 0;
   }
 }
 
