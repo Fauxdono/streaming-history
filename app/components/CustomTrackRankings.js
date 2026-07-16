@@ -1295,7 +1295,7 @@ return (
           className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? colors.bgDarkActive : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
           <Download size={12} />
-          M3U
+          m3u
         </button>
         <label className={`${colors.text} text-xs`}>Show Top</label>
         <input
@@ -1398,7 +1398,7 @@ return (
           onClick={() => setShowPlaylistExporter(!showPlaylistExporter)}
           className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${showPlaylistExporter ? colors.bgDarkActive : `${colors.bgDark} ${colors.bgDarkHover}`}`}
         >
-          M3U
+          m3u
         </button>
         <TopNStepper
           value={topN}

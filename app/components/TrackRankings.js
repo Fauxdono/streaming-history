@@ -390,7 +390,7 @@ return (
         className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${getThemedColors().buttonShadow}`}
       >
         <Download size={12} />
-        M3U
+        m3u
       </button>
       <button
         key={`obsessions-sort-${sortPress}`}

@@ -31,41 +31,86 @@ const PlaylistExporter = ({
   // Use a ref to track if we're currently processing the queue
   const processingQueueRef = useRef(false);
 
-  // Theme-aware color system
-  const ct = colorTheme; // shorthand
-  const modeColors = isColorful ? (isDarkMode ? {
-    primary: `text-${ct}-300`,
-    lighter: `text-${ct}-400`,
-    bg: `bg-${ct}-900`,
-    bgAccent: `bg-${ct}-800`,
-    border: `border-${ct}-600`,
-    ring: `ring-${ct}-500`,
-    button: `bg-${ct}-600 hover:bg-${ct}-500 text-white`,
-    buttonDisabled: `bg-${ct}-800 text-${ct}-500`,
-    darkest: `text-${ct}-200`,
-    input: `bg-${ct}-800 border-${ct}-600 text-${ct}-200`,
-    option: `bg-${ct}-800 text-${ct}-200`,
-    error: 'text-red-400 border-red-700 bg-red-900/50'
-  } : {
-    primary: `text-${ct}-700`,
-    lighter: `text-${ct}-600`,
-    bg: `bg-${ct}-50`,
-    bgAccent: `bg-${ct}-100`,
-    border: `border-${ct}-200`,
-    ring: `ring-${ct}-500`,
-    button: `bg-${ct}-600 hover:bg-${ct}-700 text-white`,
-    buttonDisabled: `bg-${ct}-300 text-${ct}-500`,
-    darkest: `text-${ct}-800`,
-    input: `bg-white border-${ct}-200 text-${ct}-700`,
-    option: `bg-${ct}-50 text-${ct}-700`,
-    error: 'text-red-500 border-red-200 bg-red-50'
-  }) : (isDarkMode ? {
+  // Theme-aware color system. Classes are STATIC per theme — Tailwind can't
+  // see interpolated names like `text-${ct}-300`, so those never get built.
+  const COLORFUL = {
+    emerald: {
+      dark: {
+        primary: 'text-emerald-300', lighter: 'text-emerald-400', darkest: 'text-emerald-200',
+        bg: 'bg-emerald-900', bgAccent: 'bg-emerald-800', border: 'border-emerald-600',
+        shadow: 'shadow-[1px_1px_0_0_#059669]', accent: 'accent-emerald-400',
+        button: 'bg-emerald-800 text-emerald-300 border border-emerald-600 shadow-[2px_2px_0_0_#059669] hover:bg-emerald-700',
+        buttonDisabled: 'bg-emerald-900 text-emerald-600 border border-emerald-800',
+        input: 'bg-emerald-800 border-emerald-600 text-emerald-200',
+        option: 'bg-emerald-800 text-emerald-200',
+        error: 'text-red-400 border-red-700 bg-red-900/50',
+      },
+      light: {
+        primary: 'text-emerald-700', lighter: 'text-emerald-600', darkest: 'text-emerald-800',
+        bg: 'bg-emerald-100', bgAccent: 'bg-emerald-50', border: 'border-emerald-300',
+        shadow: 'shadow-[1px_1px_0_0_#047857]', accent: 'accent-emerald-600',
+        button: 'bg-emerald-100 text-emerald-700 border border-emerald-700 shadow-[2px_2px_0_0_#047857] hover:bg-emerald-200',
+        buttonDisabled: 'bg-emerald-50 text-emerald-400 border border-emerald-200',
+        input: 'bg-emerald-50 border-emerald-300 text-emerald-800',
+        option: 'bg-emerald-50 text-emerald-700',
+        error: 'text-red-500 border-red-200 bg-red-50',
+      },
+    },
+    yellow: {
+      dark: {
+        primary: 'text-yellow-300', lighter: 'text-yellow-400', darkest: 'text-yellow-200',
+        bg: 'bg-yellow-900', bgAccent: 'bg-yellow-800', border: 'border-yellow-600',
+        shadow: 'shadow-[1px_1px_0_0_#ca8a04]', accent: 'accent-yellow-400',
+        button: 'bg-yellow-800 text-yellow-300 border border-yellow-600 shadow-[2px_2px_0_0_#ca8a04] hover:bg-yellow-700',
+        buttonDisabled: 'bg-yellow-900 text-yellow-600 border border-yellow-800',
+        input: 'bg-yellow-800 border-yellow-600 text-yellow-200',
+        option: 'bg-yellow-800 text-yellow-200',
+        error: 'text-red-400 border-red-700 bg-red-900/50',
+      },
+      light: {
+        primary: 'text-yellow-700', lighter: 'text-yellow-600', darkest: 'text-yellow-800',
+        bg: 'bg-yellow-100', bgAccent: 'bg-yellow-50', border: 'border-yellow-300',
+        shadow: 'shadow-[1px_1px_0_0_#a16207]', accent: 'accent-yellow-600',
+        button: 'bg-yellow-100 text-yellow-700 border border-yellow-700 shadow-[2px_2px_0_0_#a16207] hover:bg-yellow-200',
+        buttonDisabled: 'bg-yellow-50 text-yellow-400 border border-yellow-200',
+        input: 'bg-yellow-50 border-yellow-300 text-yellow-800',
+        option: 'bg-yellow-50 text-yellow-700',
+        error: 'text-red-500 border-red-200 bg-red-50',
+      },
+    },
+    blue: {
+      dark: {
+        primary: 'text-blue-300', lighter: 'text-blue-400', darkest: 'text-blue-200',
+        bg: 'bg-blue-900', bgAccent: 'bg-blue-800', border: 'border-blue-600',
+        shadow: 'shadow-[1px_1px_0_0_#2563eb]', accent: 'accent-blue-400',
+        button: 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb] hover:bg-blue-700',
+        buttonDisabled: 'bg-blue-900 text-blue-600 border border-blue-800',
+        input: 'bg-blue-800 border-blue-600 text-blue-200',
+        option: 'bg-blue-800 text-blue-200',
+        error: 'text-red-400 border-red-700 bg-red-900/50',
+      },
+      light: {
+        primary: 'text-blue-700', lighter: 'text-blue-600', darkest: 'text-blue-800',
+        bg: 'bg-blue-100', bgAccent: 'bg-blue-50', border: 'border-blue-300',
+        shadow: 'shadow-[1px_1px_0_0_#1d4ed8]', accent: 'accent-blue-600',
+        button: 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8] hover:bg-blue-200',
+        buttonDisabled: 'bg-blue-50 text-blue-400 border border-blue-200',
+        input: 'bg-blue-50 border-blue-300 text-blue-800',
+        option: 'bg-blue-50 text-blue-700',
+        error: 'text-red-500 border-red-200 bg-red-50',
+      },
+    },
+  };
+
+  const colorfulTheme = COLORFUL[colorTheme] || COLORFUL.blue;
+  const modeColors = isColorful ? (isDarkMode ? colorfulTheme.dark : colorfulTheme.light) : (isDarkMode ? {
     primary: 'text-white',
     lighter: 'text-gray-400',
     bg: 'bg-black',
     bgAccent: 'bg-black border border-[#4169E1]',
     border: 'border-[#4169E1]',
-    ring: 'ring-[#4169E1]',
+    shadow: 'shadow-[1px_1px_0_0_#4169E1]',
+    accent: 'accent-[#4169E1]',
     button: 'bg-black text-white border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1] hover:bg-gray-900',
     buttonDisabled: 'bg-gray-900 text-gray-600',
     darkest: 'text-white',
@@ -78,7 +123,8 @@ const PlaylistExporter = ({
     bg: 'bg-white',
     bgAccent: 'bg-white border border-black',
     border: 'border-black',
-    ring: 'ring-black',
+    shadow: 'shadow-[1px_1px_0_0_black]',
+    accent: 'accent-black',
     button: 'bg-white text-black border border-black shadow-[2px_2px_0_0_black] hover:bg-gray-100',
     buttonDisabled: 'bg-gray-100 text-gray-400',
     darkest: 'text-black',
@@ -318,44 +364,48 @@ const PlaylistExporter = ({
     }
   };
 
+  const labelCls = `block text-xs font-medium mb-1 ${modeColors.primary}`;
+  const inputCls = `w-full px-2 py-1 text-xs rounded border focus:outline-none ${modeColors.input} ${modeColors.shadow}`;
+  const radioCls = `flex items-center gap-1.5 text-xs ${modeColors.primary}`;
+
   return (
-    <div className={`space-y-4 p-4 ${modeColors.bg} rounded border ${modeColors.border} mb-6`}>
-      <h3 className={`font-bold ${modeColors.primary}`}>Export M3U Playlist</h3>
+    <div className={`space-y-3 p-3 rounded-lg border mb-4 ${modeColors.bg} ${modeColors.border} ${modeColors.shadow}`}>
+      <h3 className={`text-sm font-semibold ${modeColors.primary}`}>export m3u playlist</h3>
 
       <div>
-        <label className={`block ${modeColors.primary} mb-1`}>Base Music Path:</label>
+        <label className={labelCls}>Base music path</label>
         <input
           type="text"
           value={musicBasePath}
           onChange={(e) => setMusicBasePath(e.target.value)}
-          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
+          className={inputCls}
           placeholder="e.g. /Music/Downloads or C:/Music"
         />
         <p className={`text-xs ${modeColors.lighter} mt-1`}>
-          This will be the base path for your music files in the exported playlist.
+          Base path for your music files in the exported playlist.
         </p>
       </div>
 
       <div>
-        <label className={`block ${modeColors.primary} mb-1`}>Path Format:</label>
-        <div className="flex gap-4 mb-2">
-          <label className={`flex items-center ${modeColors.primary}`}>
+        <label className={labelCls}>Path format</label>
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <label className={radioCls}>
             <input
               type="radio"
               checked={pathFormat === 'default'}
               onChange={() => setPathFormat('default')}
-              className="mr-2"
+              className={modeColors.accent}
             />
             <span>Default (BasePath/Artist/Artist-Album/Track.ext)</span>
           </label>
-          <label className={`flex items-center ${modeColors.primary}`}>
+          <label className={radioCls}>
             <input
               type="radio"
               checked={pathFormat === 'custom'}
               onChange={() => setPathFormat('custom')}
-              className="mr-2"
+              className={modeColors.accent}
             />
-            <span>Custom Format</span>
+            <span>Custom format</span>
           </label>
         </div>
 
@@ -365,33 +415,24 @@ const PlaylistExporter = ({
               type="text"
               value={customPathFormat}
               onChange={(e) => setCustomPathFormat(e.target.value)}
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
+              className={inputCls}
               placeholder="Custom path format"
             />
             <div className={`text-xs ${modeColors.lighter} mt-1`}>
-              <p>Available placeholders:</p>
-              <ul className={`list-disc list-inside ml-2 ${modeColors.lighter}`}>
-                <li>{'{basePath}'} - Your base music path</li>
-                <li>{'{artist}'} - Artist name</li>
-                <li>{'{album}'} - Album name</li>
-                <li>{'{track}'} - Track name</li>
-                <li>{'{ext}'} - File extension</li>
-                <li>{'{index}'} - Track number (001, 002, etc.)</li>
-                <li>{'{year}'} - Year (if available)</li>
-              </ul>
+              <p>Placeholders: {'{basePath}'}, {'{artist}'}, {'{album}'}, {'{track}'}, {'{ext}'}, {'{index}'} (001, 002, …), {'{year}'}</p>
               <p className="mt-1">Example: {'{basePath}'}/Music by Artist/{'{artist}'} - {'{album}'}/{'{index}'} - {'{track}'}.{'{ext}'}</p>
             </div>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className={`block ${modeColors.primary} mb-1`}>File Extension:</label>
+          <label className={labelCls}>File extension</label>
           <select
             value={fileExtension}
             onChange={(e) => setFileExtension(e.target.value)}
-            className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
+            className={inputCls}
           >
             <option value="mp3" className={modeColors.option}>mp3</option>
             <option value="flac" className={modeColors.option}>flac</option>
@@ -402,9 +443,10 @@ const PlaylistExporter = ({
         </div>
 
         <div>
-          <label className={`block ${modeColors.primary} mb-1`}>Max Tracks to Export:</label>
+          <label className={labelCls}>Max tracks</label>
           <input
             type="number"
+            inputMode="numeric"
             min="1"
             max="69420"
             value={exportCount}
@@ -412,16 +454,16 @@ const PlaylistExporter = ({
               const val = parseInt(e.target.value);
               if (!isNaN(val)) setExportCount(Math.min(Math.max(val, 1), 69420));
             }}
-            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
+            className={inputCls}
           />
         </div>
 
         <div>
-          <label className={`block ${modeColors.primary} mb-1`}>Sort Tracks By:</label>
+          <label className={labelCls}>Sort tracks by</label>
           <select
             value={sortMethod}
             onChange={(e) => setSortMethod(e.target.value)}
-            className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.ring} ${modeColors.input}`}
+            className={inputCls}
           >
             <option value="totalPlayed" className={modeColors.option}>Total Listening Time</option>
             <option value="playCount" className={modeColors.option}>Play Count</option>
@@ -429,76 +471,64 @@ const PlaylistExporter = ({
         </div>
       </div>
 
-      <div>
-        <label className={`block ${modeColors.primary} mb-1`}>Playlist Type:</label>
-        <div className="flex gap-4">
-          <label className={`flex items-center ${modeColors.primary}`}>
-            <input
-              type="radio"
-              checked={playlistType === 'top'}
-              onChange={() => setPlaylistType('top')}
-              className="mr-2"
-            />
-            <span>Top Tracks</span>
-          </label>
-          <label className={`flex items-center ${modeColors.primary}`}>
-            <input
-              type="radio"
-              checked={playlistType === 'obsessions'}
-              onChange={() => setPlaylistType('obsessions')}
-              className="mr-2"
-            />
-            <span>Brief Obsessions</span>
-          </label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className={labelCls}>Playlist type</label>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <label className={radioCls}>
+              <input
+                type="radio"
+                checked={playlistType === 'top'}
+                onChange={() => setPlaylistType('top')}
+                className={modeColors.accent}
+              />
+              <span>Top tracks</span>
+            </label>
+            <label className={radioCls}>
+              <input
+                type="radio"
+                checked={playlistType === 'obsessions'}
+                onChange={() => setPlaylistType('obsessions')}
+                className={modeColors.accent}
+              />
+              <span>Brief obsessions</span>
+            </label>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <label className={`flex items-center ${modeColors.primary} text-xs sm:text-sm`}>Export Mode:</label>
-        <div className="flex gap-4">
-          <label className={`flex items-center ${modeColors.primary}`}>
-            <input
-              type="radio"
-              checked={exportMode === 'current'}
-              onChange={() => setExportMode('current')}
-              className="mr-2"
-            />
-            <span>Current Selection {selectedYear !== 'all' ? `(${selectedYear})` : '(All-time)'}</span>
-          </label>
-          <label className={`flex items-center ${modeColors.primary}`}>
-            <input
-              type="radio"
-              checked={exportMode === 'all'}
-              onChange={() => setExportMode('all')}
-              className="mr-2"
-            />
-            <span>All Years (Separate Files)</span>
-          </label>
+        <div>
+          <label className={labelCls}>Export mode</label>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <label className={radioCls}>
+              <input
+                type="radio"
+                checked={exportMode === 'current'}
+                onChange={() => setExportMode('current')}
+                className={modeColors.accent}
+              />
+              <span>Current selection {selectedYear !== 'all' ? `(${selectedYear})` : '(all-time)'}</span>
+            </label>
+            <label className={radioCls}>
+              <input
+                type="radio"
+                checked={exportMode === 'all'}
+                onChange={() => setExportMode('all')}
+                className={modeColors.accent}
+              />
+              <span>All years (separate files)</span>
+            </label>
+          </div>
         </div>
-      </div>
-
-      <div className="pt-2">
-        <button
-          onClick={exportPlaylist}
-          disabled={isExporting}
-          className={`flex items-center gap-1 px-2 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm rounded ${isExporting ? modeColors.buttonDisabled + ' cursor-not-allowed' : modeColors.button}`}
-        >
-          <Download size={14} className="hidden sm:inline" />
-          {isExporting
-            ? `Exporting... ${exportProgress.current}/${exportProgress.total}`
-            : 'Export Playlist'}
-        </button>
       </div>
 
       {error && (
-        <div className={`p-3 ${modeColors.error} border rounded`}>
+        <div className={`p-2 text-xs ${modeColors.error} border rounded`}>
           {error}
         </div>
       )}
 
-      <div className={`text-sm ${modeColors.lighter} p-3 ${modeColors.bgAccent} rounded`}>
-        <p className="font-medium">Path Preview:</p>
-        <p className="font-mono mt-1">
+      <div className={`text-xs ${modeColors.lighter} p-2 ${modeColors.bgAccent} rounded ${modeColors.shadow}`}>
+        <p className={`font-mono truncate ${modeColors.primary}`} title="Path preview">
           {pathFormat === 'default'
             ? `${musicBasePath}/Artist/Artist-Album/Track.${fileExtension}`
             : customPathFormat
@@ -511,20 +541,23 @@ const PlaylistExporter = ({
                 .replace('{year}', '2023')
           }
         </p>
-        <p className={`mt-2 ${modeColors.primary}`}>
-          {exportMode === 'current' ? (
-            <>
-              The playlist will include the top {exportCount} tracks from {selectedYear === 'all' ? 'all time' : selectedYear}
-              {playlistType === 'obsessions' ? ' or your brief obsessions' : ''}, sorted by {sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.
-            </>
-          ) : (
-            <>
-              This will export separate playlist files for each year plus an all-time playlist, with tracks sorted by {sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.
-              <span className={`block mt-1 ${modeColors.darkest}`}>Note: Files will download one after another with progress tracking.</span>
-            </>
-          )}
+        <p className="mt-1">
+          {exportMode === 'current'
+            ? `Top ${exportCount} tracks from ${selectedYear === 'all' ? 'all time' : selectedYear}${playlistType === 'obsessions' ? ' (brief obsessions)' : ''}, sorted by ${sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}.`
+            : `Separate playlist files per year plus an all-time playlist, sorted by ${sortMethod === 'totalPlayed' ? 'total listening time' : 'play count'}; files download one after another.`}
         </p>
       </div>
+
+      <button
+        onClick={exportPlaylist}
+        disabled={isExporting}
+        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${isExporting ? modeColors.buttonDisabled + ' cursor-not-allowed shadow-none' : modeColors.button}`}
+      >
+        <Download size={12} />
+        {isExporting
+          ? `Exporting… ${exportProgress.current}/${exportProgress.total}`
+          : 'export playlist'}
+      </button>
     </div>
   );
 };
