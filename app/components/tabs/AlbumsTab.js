@@ -247,8 +247,8 @@ export default function AlbumsTab({
                     }
                     buttonClass={
                       colorMode === 'colorful'
-                        ? `hover:opacity-80 ${isDarkMode ? 'bg-cyan-800 text-cyan-300 border border-cyan-600 shadow-[2px_2px_0_0_#0891b2]' : 'bg-cyan-100 text-cyan-700 border border-cyan-700 shadow-[2px_2px_0_0_#0e7490]'}`
-                        : (isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
+                        ? 'text-cyan-700 dark:text-cyan-300'
+                        : (isDarkMode ? 'text-white' : 'text-black')
                     }
                   />
                   <button

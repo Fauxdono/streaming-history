@@ -935,7 +935,7 @@ const PodcastRankings = ({
             setValue={setTopN}
             max={999}
             inputClass={`${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-            buttonClass={modeColors.buttonInactive}
+            buttonClass={modeColors.text}
           />
           <label className="text-xs">Gap</label>
           <input

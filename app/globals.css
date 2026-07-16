@@ -46,6 +46,19 @@ html {
   textarea {
     font-size: 16px !important;
   }
+
+  /* Compact numeric inputs (TopNStepper): keep the computed 16px so iOS
+     still doesn't zoom on focus, but scale the box down so the digits LOOK
+     text-xs like the surrounding controls. Pre-scale size 48x34px becomes
+     36x25.5px visually; negative margins trim the layout box to match. */
+  .stepper-input-sm {
+    font-size: 16px !important;
+    width: 3rem;
+    height: 34px;
+    transform: scale(0.75);
+    transform-origin: center;
+    margin: -4.25px -6px;
+  }
 }
 
 body {

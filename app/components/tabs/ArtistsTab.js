@@ -283,8 +283,8 @@ export default function ArtistsTab({
                     }
                     buttonClass={
                       colorMode === 'colorful'
-                        ? `hover:opacity-80 ${isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb]' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8]'}`
-                        : (isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
+                        ? 'text-blue-700 dark:text-blue-300'
+                        : (isDarkMode ? 'text-white' : 'text-black')
                     }
                   />
                   <button

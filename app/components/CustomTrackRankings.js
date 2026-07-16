@@ -1405,7 +1405,7 @@ return (
           setValue={setTopN}
           max={999}
           inputClass={`${colors.bg} ${colors.border} ${colors.text}`}
-          buttonClass={`${colors.bgDark} ${colors.bgDarkHover}`}
+          buttonClass={colors.text}
         />
         <button
           key={`sort-mobile-${sortByPress}`}
