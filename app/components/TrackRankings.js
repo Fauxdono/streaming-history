@@ -358,14 +358,8 @@ const filteredObsessions = useMemo(() => {
 return (
   <div className="w-full">
 
-    {/* Mobile title */}
-    <h3 className={`text-xl font-normal sm:hidden mb-2 ${getThemedColors().text}`}>
-      {yearRangeMode && yearRange.startYear && yearRange.endYear
-        ? `Brief Obsessions (${yearRange.startYear}-${yearRange.endYear})`
-        : initialYear === 'all'
-          ? 'Brief Obsessions (All Time)'
-          : `Brief Obsessions (${initialYear})`}
-    </h3>
+    {/* No mobile title — like the Artists/Albums pages, phones go straight to
+        the controls row (the desktop title lives in the parent header) */}
 
     {/* Controls - hidden on desktop when externally controlled, shown on mobile */}
     <div className={`flex flex-wrap gap-2 items-center mb-2${externalControls ? ' sm:hidden' : ''}`}>
