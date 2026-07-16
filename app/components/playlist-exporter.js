@@ -365,7 +365,9 @@ const PlaylistExporter = ({
   };
 
   const labelCls = `block text-xs font-medium mb-1 ${modeColors.primary}`;
-  const inputCls = `w-full px-2 py-1 text-xs rounded border focus:outline-none ${modeColors.input} ${modeColors.shadow}`;
+  // search-input-sm keeps the mobile anti-zoom 16px font but scales the box
+  // so these read text-xs on phones, same as desktop
+  const inputCls = `search-input-sm w-full px-2 py-1 text-xs rounded border focus:outline-none ${modeColors.input} ${modeColors.shadow}`;
   const radioCls = `flex items-center gap-1.5 text-xs ${modeColors.primary}`;
 
   return (
