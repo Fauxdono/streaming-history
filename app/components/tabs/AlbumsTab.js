@@ -196,8 +196,8 @@ export default function AlbumsTab({
                       placeholder="Search..."
                       className={
                         colorMode === 'colorful'
-                          ? 'w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-600 dark:placeholder-cyan-500'
-                          : `w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'search-input-sm w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-600 dark:placeholder-cyan-500'
+                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                     {artistSearch && (

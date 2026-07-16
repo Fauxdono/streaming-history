@@ -59,6 +59,18 @@ html {
     transform-origin: center;
     margin: -4.25px -6px;
   }
+
+  /* Same trick for the full-width toolbar search bars: oversize by 4/3 then
+     scale down, anchored left so the visual box still fills the wrapper.
+     Negative margins trim the layout box back to the 26px visual height. */
+  .search-input-sm {
+    font-size: 16px !important;
+    width: 133.34%;
+    height: 34.66px;
+    transform: scale(0.75);
+    transform-origin: left center;
+    margin: -4.33px -33.34% -4.33px 0;
+  }
 }
 
 body {

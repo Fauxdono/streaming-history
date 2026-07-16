@@ -905,7 +905,7 @@ const PodcastRankings = ({
               value={showSearch}
               onChange={(e) => setShowSearch(e.target.value)}
               placeholder="Search..."
-              className={`w-full border rounded px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              className={`search-input-sm w-full border rounded px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
             />
             {showSearch && (
               <button
@@ -945,7 +945,7 @@ const PodcastRankings = ({
             max="1440"
             value={duplicateThreshold}
             onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
-            className={`border rounded w-10 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+            className={`stepper-input-sm border rounded w-10 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
           />
           <button
             onClick={() => setShowDuplicateStats(!showDuplicateStats)}

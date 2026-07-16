@@ -214,8 +214,8 @@ export default function ArtistsTab({
                       placeholder="Search..."
                       className={
                         colorMode === 'colorful'
-                          ? 'w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-600 dark:placeholder-blue-500'
-                          : `w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'search-input-sm w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-600 dark:placeholder-blue-500'
+                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
                       }
                     />
                     {artistSearch && (
