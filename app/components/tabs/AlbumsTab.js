@@ -196,8 +196,8 @@ export default function AlbumsTab({
                       placeholder="Search..."
                       className={
                         colorMode === 'colorful'
-                          ? 'search-input-sm w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-600 dark:placeholder-cyan-500'
-                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                          ? 'search-input-sm w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-600 dark:placeholder-cyan-500 shadow-[2px_2px_0_0_#0e7490] dark:shadow-[2px_2px_0_0_#0891b2]'
+                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]'}`
                       }
                     />
                     {artistSearch && (
@@ -242,8 +242,8 @@ export default function AlbumsTab({
                     setValue={setTopAlbumsCount}
                     inputClass={
                       colorMode === 'colorful'
-                        ? 'border-cyan-300 dark:border-cyan-600 bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300'
-                        : (isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black')
+                        ? 'border-cyan-300 dark:border-cyan-600 bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 shadow-[2px_2px_0_0_#0e7490] dark:shadow-[2px_2px_0_0_#0891b2]'
+                        : (isDarkMode ? 'border-[#4169E1] bg-black text-white shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
                     }
                     buttonClass={
                       colorMode === 'colorful'

@@ -69,6 +69,8 @@ const PodcastRankings = ({
     border: isDarkMode ? 'border-red-600' : 'border-red-300',
     borderLight: isDarkMode ? 'border-red-600' : 'border-red-300',
     shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#dc2626]' : 'shadow-[1px_1px_0_0_#b91c1c]',
+    inputShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]',
+    placeholder: isDarkMode ? 'placeholder-red-500' : 'placeholder-red-600',
     buttonActive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#b91c1c]',
     buttonInactive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 hover:bg-red-700 shadow-[2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 shadow-[2px_2px_0_0_#b91c1c]',
   } : {
@@ -82,6 +84,8 @@ const PodcastRankings = ({
     border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     borderLight: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
+    inputShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]',
+    placeholder: isDarkMode ? 'placeholder-gray-500' : 'placeholder-gray-400',
     buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
@@ -836,7 +840,7 @@ const PodcastRankings = ({
               value={showSearch}
               onChange={(e) => setShowSearch(e.target.value)}
               placeholder="Search shows..."
-              className={`w-full border rounded px-2 py-1 text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              className={`w-full border rounded px-2 py-1 text-sm ${modeColors.bgCard} ${modeColors.border} ${modeColors.text} ${modeColors.placeholder}`}
             />
             {showSearch && (
               <button
@@ -905,7 +909,7 @@ const PodcastRankings = ({
               value={showSearch}
               onChange={(e) => setShowSearch(e.target.value)}
               placeholder="Search..."
-              className={`search-input-sm w-full border rounded px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              className={`search-input-sm w-full border rounded px-2 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text} ${modeColors.placeholder} ${modeColors.inputShadow}`}
             />
             {showSearch && (
               <button
@@ -934,7 +938,7 @@ const PodcastRankings = ({
             value={topN}
             setValue={setTopN}
             max={999}
-            inputClass={`${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+            inputClass={`${modeColors.bgCard} ${modeColors.border} ${modeColors.text} ${modeColors.inputShadow}`}
             buttonClass={modeColors.text}
           />
           <label className="text-xs">Gap</label>
@@ -945,7 +949,7 @@ const PodcastRankings = ({
             max="1440"
             value={duplicateThreshold}
             onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
-            className={`stepper-input-sm border rounded w-10 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+            className={`stepper-input-sm border rounded w-10 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${modeColors.bgCard} ${modeColors.border} ${modeColors.text} ${modeColors.inputShadow}`}
           />
           <button
             onClick={() => setShowDuplicateStats(!showDuplicateStats)}

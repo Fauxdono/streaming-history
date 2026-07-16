@@ -1338,7 +1338,7 @@ return (
               setAlbumSearch(e.target.value);
             }}
             placeholder="Search..."
-            className={`search-input-sm w-full border rounded px-2 py-1 text-xs ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing} ${colors.placeholder || ''}`}
+            className={`search-input-sm w-full border rounded px-2 py-1 text-xs ${colors.bgLight} ${colors.border} ${colors.text} ${colors.focusBorder} ${colors.focusRing} ${colors.placeholder || ''} ${colors.shadow}`}
           />
           {unifiedSearch && (
             <button
@@ -1404,7 +1404,7 @@ return (
           value={topN}
           setValue={setTopN}
           max={999}
-          inputClass={`${colors.bgLight} ${colors.border} ${colors.text}`}
+          inputClass={`${colors.bgLight} ${colors.border} ${colors.text} ${colors.shadow}`}
           buttonClass={colors.text}
         />
         <button

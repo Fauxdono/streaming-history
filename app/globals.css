@@ -54,10 +54,10 @@ html {
   .stepper-input-sm {
     font-size: 16px !important;
     width: 3rem;
-    height: 34px;
+    height: 34.66px; /* -> 26px visual, same as .search-input-sm and buttons */
     transform: scale(0.75);
     transform-origin: center;
-    margin: -4.25px -6px;
+    margin: -4.33px -6px;
   }
 
   /* Same trick for the full-width toolbar search bars: oversize by 4/3 then

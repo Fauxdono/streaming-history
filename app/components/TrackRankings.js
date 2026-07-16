@@ -369,7 +369,7 @@ return (
           value={topN}
           setValue={setTopN}
           max={250}
-          inputClass={`${getThemedColors().text} ${getThemedColors().focus}`}
+          inputClass={`${getThemedColors().text} ${getThemedColors().focus} ${getThemedColors().buttonShadow}`}
           buttonClass={getThemedColors().text}
         />
       </div>
@@ -382,7 +382,7 @@ return (
           max="20"
           value={intensityThreshold}
           onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
-          className={`stepper-input-sm border rounded w-9 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${getThemedColors().text} ${getThemedColors().focus}`}
+          className={`stepper-input-sm border rounded w-9 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${getThemedColors().text} ${getThemedColors().focus} ${getThemedColors().buttonShadow}`}
         />
       </div>
       <button
