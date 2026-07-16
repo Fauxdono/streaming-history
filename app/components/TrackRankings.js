@@ -420,22 +420,8 @@ return (
       />
     )}
 
-    {/* Results - Grid or List View */}
-    <div className={`border rounded-lg p-3 sm:p-4 ${getThemedColors().bg} ${getThemedColors().border}`}>
-      <div className="flex justify-between items-center flex-wrap gap-2 mb-2">
-        <div className={`${getThemedColors().text} font-medium text-sm`}>
-          {yearRangeMode && yearRange.startYear && yearRange.endYear
-            ? `Brief obsessions for ${yearRange.startYear}-${yearRange.endYear}`
-            : initialYear === 'all'
-              ? 'All-time brief obsessions'
-              : `Brief obsessions for ${initialYear}`}
-        </div>
-        <div className={`${getThemedColors().text} text-sm`}>
-          Found <span className="font-bold">{filteredObsessions.length}</span> obsessions
-        </div>
-      </div>
-
-      {/* Grid View */}
+    {/* Results - Grid or List View (no wrapper card: its border+padding pushed
+        the song cards away from the screen edges on mobile) */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 gap-4 mt-2 items-start">
           {filteredObsessions.length > 0 ? (
@@ -505,7 +491,7 @@ return (
         </div>
       ) : (
         /* List/Table View */
-        <div className="overflow-x-auto -mx-1 sm:-mx-4 px-1 sm:px-4 mt-2">
+        <div className="overflow-x-auto mt-2">
           <div className={isMobile ? "min-w-full" : "min-w-[640px]"}>
             <table className={`w-full border-collapse ${getThemedColors().bg}`}>
               <thead>
@@ -564,7 +550,6 @@ return (
           </div>
         </div>
       )}
-    </div>
   </div>
 );
 };
