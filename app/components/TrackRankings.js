@@ -4,6 +4,7 @@ import PlaylistExporter from './playlist-exporter.js';
 import { useTheme } from './themeprovider.js';
 import { getObsessionColors } from './theme.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
+import TopNStepper from './TopNStepper.js';
 
 const TrackRankings = ({
   processedData = [],
@@ -368,25 +369,24 @@ return (
     <div className={`flex flex-wrap gap-2 items-center mb-2${externalControls ? ' sm:hidden' : ''}`}>
       <div className={`flex items-center gap-1 ${getThemedColors().text}`}>
         <label className={`text-xs sm:text-sm ${getThemedColors().text}`}>Top</label>
-        <input
-          type="number"
-          min="1"
-          max="250"
-          defaultValue={topN}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 250) setTopN(v); else e.target.value = topN; }}
-          className={`border rounded w-14 px-1 py-1 text-xs ${getThemedColors().text} ${getThemedColors().focus}`}
+        <TopNStepper
+          value={topN}
+          setValue={setTopN}
+          max={250}
+          inputClass={`${getThemedColors().text} ${getThemedColors().focus}`}
+          buttonClass={`${getThemedColors().bgButton} ${getThemedColors().bgButtonHover} ${getThemedColors().buttonShadow}`}
         />
       </div>
       <div className={`flex items-center gap-1 ${getThemedColors().text}`}>
         <label className={`text-xs sm:text-sm ${getThemedColors().text}`}>Min/wk</label>
         <input
           type="number"
+          inputMode="numeric"
           min="1"
           max="20"
           value={intensityThreshold}
           onChange={(e) => setIntensityThreshold(Math.min(20, Math.max(1, parseInt(e.target.value) || 1)))}
-          className={`border rounded w-14 px-1 py-1 text-xs ${getThemedColors().text} ${getThemedColors().focus}`}
+          className={`border rounded w-9 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${getThemedColors().text} ${getThemedColors().focus}`}
         />
       </div>
       <button

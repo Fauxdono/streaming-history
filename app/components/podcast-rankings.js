@@ -4,6 +4,7 @@ import {
 } from 'date-fns';
 import { useTheme } from './themeprovider.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
+import TopNStepper from './TopNStepper.js';
 
 // Helper to safely parse dates and check validity
 const safeParseISOAndValidate = (dateString) => {
@@ -877,6 +878,7 @@ const PodcastRankings = ({
           </button>
           <label className="text-xs whitespace-nowrap">Show Top</label>
           <input
+            key={topN}
             type="number"
             min="1"
             max="999"
@@ -928,23 +930,22 @@ const PodcastRankings = ({
             )}
           </div>
           <label className="text-xs">Top</label>
-          <input
-            type="number"
-            min="1"
-            max="999"
-            defaultValue={topN}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-            onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+          <TopNStepper
+            value={topN}
+            setValue={setTopN}
+            max={999}
+            inputClass={`${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+            buttonClass={modeColors.buttonInactive}
           />
           <label className="text-xs">Gap</label>
           <input
             type="number"
+            inputMode="numeric"
             min="1"
             max="1440"
             value={duplicateThreshold}
             onChange={(e) => setDuplicateThreshold(Math.min(1440, Math.max(1, parseInt(e.target.value))))}
-            className={`border rounded w-10 px-1 py-1 text-xs ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+            className={`border rounded w-10 px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
           />
           <button
             onClick={() => setShowDuplicateStats(!showDuplicateStats)}

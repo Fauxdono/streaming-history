@@ -179,8 +179,8 @@ export default function StatsTab({
   // a subtle framed look). The branded ExportHeader inside is hidden on the
   // live page and only revealed in the captured clone.
   const shareWrapCls = colorMode === 'colorful'
-    ? 'space-y-4 p-4 rounded-lg bg-indigo-200 dark:bg-indigo-900'
-    : `space-y-4 p-4 rounded-lg ${isDarkMode ? 'bg-black' : 'bg-white'}`;
+    ? 'space-y-4 p-2 sm:p-4 rounded-lg bg-indigo-200 dark:bg-indigo-900'
+    : `space-y-4 p-2 sm:p-4 rounded-lg ${isDarkMode ? 'bg-black' : 'bg-white'}`;
 
   const ExportHeader = ({ subtitle }) => (
     <div data-export-only className={`hidden items-baseline justify-between ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
@@ -327,8 +327,8 @@ export default function StatsTab({
   return stats ? (
           <div className={
             colorMode === 'colorful'
-              ? 'p-2 sm:px-0 sm:py-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
-              : `p-2 sm:px-0 sm:py-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
+              ? 'px-0 py-2 sm:py-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
+              : `px-0 py-2 sm:py-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4 px-4">

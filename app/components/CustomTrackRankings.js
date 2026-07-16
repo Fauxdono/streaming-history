@@ -8,6 +8,7 @@ import { useTheme } from './themeprovider.js';
 import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from './RankCardBits.js';
 import { getRankingColors } from './theme.js';
 import { isFavoriteSong } from './streaming/favorites.js';
+import TopNStepper from './TopNStepper.js';
 
 const CustomTrackRankings = ({
   rawPlayData = [],
@@ -1298,6 +1299,7 @@ return (
         </button>
         <label className={`${colors.text} text-xs`}>Show Top</label>
         <input
+          key={topN}
           type="number"
           min="1"
           max="999"
@@ -1398,14 +1400,12 @@ return (
         >
           M3U
         </button>
-        <input
-          type="number"
-          min="1"
-          max="999"
-          defaultValue={topN}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-          onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 999) setTopN(v); else e.target.value = topN; }}
-          className={`w-10 border rounded px-1 py-1 ${colors.bg} ${colors.border} ${colors.text} text-xs`}
+        <TopNStepper
+          value={topN}
+          setValue={setTopN}
+          max={999}
+          inputClass={`${colors.bg} ${colors.border} ${colors.text}`}
+          buttonClass={`${colors.bgDark} ${colors.bgDarkHover}`}
         />
         <button
           key={`sort-mobile-${sortByPress}`}

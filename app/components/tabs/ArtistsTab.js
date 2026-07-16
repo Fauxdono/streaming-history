@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { RankBadge, RankBar, RankChip, monthRanksFromRaw, prevMonthOf, monthLabel, dayRanksFromRaw, prevDayOf, dayLabel } from '../RankCardBits.js';
 import { isFavoriteArtist } from '../streaming/favorites.js';
+import TopNStepper from '../TopNStepper.js';
 
 // Artists tab content — extracted verbatim from SpotifyAnalyzer's renderTabContent.
 // All state still lives in the parent; this is a pure presentation move.
@@ -162,6 +163,7 @@ export default function ArtistsTab({
                   </div>
                   <label className="text-xs">Show Top</label>
                   <input
+                    key={topArtistsCount}
                     type="number"
                     min="1"
                     max="500"
@@ -271,17 +273,18 @@ export default function ArtistsTab({
                   >
                     🎵
                   </button>
-                  <input
-                    type="number"
-                    min="1"
-                    max="500"
-                    defaultValue={topArtistsCount}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.target.blur(); } }}
-                    onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopArtistsCount(v); else e.target.value = topArtistsCount; }}
-                    className={
+                  <TopNStepper
+                    value={topArtistsCount}
+                    setValue={setTopArtistsCount}
+                    inputClass={
                       colorMode === 'colorful'
-                        ? 'w-10 border border-blue-300 dark:border-blue-600 rounded px-1 py-1 text-xs bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-                        : `w-10 border rounded px-1 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                        ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
+                        : (isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black')
+                    }
+                    buttonClass={
+                      colorMode === 'colorful'
+                        ? `hover:opacity-80 ${isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb]' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8]'}`
+                        : (isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
                     }
                   />
                   <button
