@@ -78,14 +78,10 @@ const TrackRankings = ({
   // IMPORTANT: We don't maintain our own selectedYear state anymore
   // Instead, we use the initialYear prop directly from parent
 
-  if (!briefObsessions || briefObsessions.length === 0) {
-    return <div>No brief obsessions data available</div>;
-  }
-
-
 const filteredObsessions = useMemo(() => {
   // Use yearRangeMode and yearRange when in range mode, otherwise use initialYear
-  
+  if (!briefObsessions || briefObsessions.length === 0) return [];
+
   // First filter by year
   let yearFiltered = [];
   
@@ -287,7 +283,13 @@ const filteredObsessions = useMemo(() => {
 }, [briefObsessions, initialYear, yearRangeMode, yearRange, sortBy, intensityThreshold, topN, songsByYear]);
 
 // DO NOT add another songsByYear declaration
-  
+
+  // Empty-data return lives BELOW every hook: an early return above them made
+  // the hook count change between renders and crashed once data arrived
+  if (!briefObsessions || briefObsessions.length === 0) {
+    return <div>No brief obsessions data available</div>;
+  }
+
   // Function to format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString);
