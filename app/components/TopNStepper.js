@@ -22,15 +22,18 @@ export default function TopNStepper({ value, setValue, max = 500, inputClass = '
         onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= max) setValue(v); else e.target.value = value; }}
         className={`stepper-input-sm w-9 border rounded px-1 py-1 text-xs text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${inputClass}`}
       />
-      {[['▲', 10], ['▼', -10]].map(([glyph, delta]) => (
-        <button
-          key={glyph}
-          onClick={() => setValue(c => clamp((parseInt(c) || 0) + delta))}
-          className={`px-1 py-0.5 text-base leading-none transition-opacity hover:opacity-60 ${buttonClass}`}
-        >
-          {glyph}
-        </button>
-      ))}
+      {/* Arrows share one flex group so the row gap applies once, not between them */}
+      <span className="flex items-center">
+        {[['▲', 10], ['▼', -10]].map(([glyph, delta]) => (
+          <button
+            key={glyph}
+            onClick={() => setValue(c => clamp((parseInt(c) || 0) + delta))}
+            className={`px-0.5 py-0.5 text-base leading-none transition-opacity hover:opacity-60 ${buttonClass}`}
+          >
+            {glyph}
+          </button>
+        ))}
+      </span>
     </>
   );
 }
