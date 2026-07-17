@@ -30,6 +30,7 @@ const CustomPlaylistCreator = ({
     shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#e11d48]' : 'shadow-[1px_1px_0_0_#be123c]',
     buttonActive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#e11d48]' : 'bg-rose-100 text-rose-700 border border-rose-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#be123c]',
     buttonInactive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 hover:bg-rose-700 shadow-[2px_2px_0_0_#e11d48]' : 'bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200 shadow-[2px_2px_0_0_#be123c]',
+    buttonPress: isDarkMode ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#e11d48]' : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#be123c]',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
@@ -43,6 +44,7 @@ const CustomPlaylistCreator = ({
     shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
     buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
     buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
+    buttonPress: isDarkMode ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]' : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]',
   };
   const [playlistName, setPlaylistName] = useState('My Custom Playlist');
   const [searchTerm, setSearchTerm] = useState('');
@@ -1497,10 +1499,11 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
 
               {smartRules.map((rule) => (
                 <div key={rule.id} className={`flex flex-wrap gap-2 items-center border-b ${modeColors.border} pb-3`}>
+                  <div className="w-full sm:w-auto">
                   <select
                     value={rule.type}
                     onChange={(e) => updateRule(rule.id, 'type', e.target.value)}
-                    className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.buttonActive}`}
+                    className={`search-input-sm px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                   >
                     <option value="artist">Artist</option>
                     <option value="album">Album</option>
@@ -1515,11 +1518,13 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                       <option value="playlist">Playlist</option>
                     )}
                   </select>
+                  </div>
 
+                  <div className="w-full sm:w-auto">
                   <select
                     value={rule.operator}
                     onChange={(e) => updateRule(rule.id, 'operator', e.target.value)}
-                    className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.buttonActive}`}
+                    className={`search-input-sm px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                   >
                     {(rule.type === 'artist' || rule.type === 'album' || rule.type === 'track') ? (
                       <>
@@ -1553,6 +1558,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                       </>
                     )}
                   </select>
+                  </div>
                   {rule.type === 'playDate' ? (
                     rule.operator === 'between' ? (
                       <div className="flex-1 flex gap-2 items-center">
@@ -1585,16 +1591,18 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                       />
                     )
                   ) : rule.type === 'favorite' ? null : rule.type === 'playlist' ? (
+                    <div className="flex-1 min-w-0">
                     <select
                       value={rule.value}
                       onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
-                      className={`flex-1 min-w-0 px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                      className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                     >
                       <option value="__any__">any imported playlist</option>
                       {[...playlistIndex.byName.keys()].map(name => (
                         <option key={name} value={name}>{name}</option>
                       ))}
                     </select>
+                    </div>
                   ) : (
                     <div className="flex-1 min-w-0">
                       <input
@@ -1619,7 +1627,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               <div className="flex justify-between">
                 <button
                   onClick={addRule}
-                  className={`px-3 py-2 rounded hover:opacity-80 ${modeColors.buttonInactive}`}
+                  className={`px-3 py-2 rounded transition-all ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
                 >
                   <Plus size={16} className="inline mr-1" /> Add Rule
                 </button>
@@ -1627,7 +1635,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                 <button
                   onClick={generateFromRules}
                   disabled={smartRules.every(rule => !rule.value)}
-                  className={`px-4 py-2 rounded hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonActive}`}
+                  className={`px-4 py-2 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
                 >
                   <Filter size={16} className="inline mr-1" /> Generate Playlist
                 </button>
@@ -1764,7 +1772,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <button
               onClick={savePlaylist}
               disabled={!selectedTracks.some(t => !['processing', 'no-matches', 'error'].includes(t.id))}
-              className={`flex items-center gap-2 px-4 py-2 rounded hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonActive}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
             >
               <Save size={16} />
               Save Playlist
@@ -1772,7 +1780,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <button
               onClick={exportPlaylist}
               disabled={!selectedTracks.some(t => !['processing', 'no-matches', 'error'].includes(t.id))}
-              className={`flex items-center gap-2 px-4 py-2 rounded hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonActive}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
             >
               <Download size={16} />
               Export as M3U
