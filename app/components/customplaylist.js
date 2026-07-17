@@ -1499,7 +1499,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
 
               {smartRules.map((rule) => (
                 <div key={rule.id} className={`flex flex-wrap gap-2 items-center border-b ${modeColors.border} pb-3`}>
-                  <div className="w-full sm:w-auto">
+                  <div className="flex-1 min-w-0 sm:flex-none sm:w-auto">
                   <select
                     value={rule.type}
                     onChange={(e) => updateRule(rule.id, 'type', e.target.value)}
@@ -1520,7 +1520,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                   </select>
                   </div>
 
-                  <div className="w-full sm:w-auto">
+                  <div className="flex-1 min-w-0 sm:flex-none sm:w-auto">
                   <select
                     value={rule.operator}
                     onChange={(e) => updateRule(rule.id, 'operator', e.target.value)}
