@@ -1167,8 +1167,13 @@ const GoogleDriveSync = ({
 
       {messageBanner}
 
-      <div className="flex flex-col gap-2 w-full sm:items-center sm:text-center">
+      <div className="my-auto flex flex-col gap-2 w-full sm:items-center sm:text-center">
           <div className="flex items-center justify-center gap-3">
+            {!canSave && !isLoading && (
+              <p className={`text-[11px] leading-tight text-left max-w-[11rem] ${colors.textLighter}`}>
+                Save is available after you calculate statistics; Load restores a previous backup.
+              </p>
+            )}
             <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn} title="Save to Drive" aria-label="Save to Drive">
               <span className={isSaving ? 'animate-pulse' : ''}>💾</span>
             </button>
@@ -1189,11 +1194,6 @@ const GoogleDriveSync = ({
             )}
           </div>
 
-          {!canSave && !isLoading && (
-            <p className={`text-[11px] ${colors.textLighter}`}>
-              Save is available after you calculate statistics; Load restores a previous backup.
-            </p>
-          )}
       </div>
     </div>
   );
