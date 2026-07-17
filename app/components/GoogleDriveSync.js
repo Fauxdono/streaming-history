@@ -48,11 +48,16 @@ const GoogleDriveSync = ({
   const [loadCompleted, setLoadCompleted] = useState(false);
   // Fresh-connect feedback: flash the card green, then fade toward the dot
   const [connectFlash, setConnectFlash] = useState(false);
+  const [dotPop, setDotPop] = useState(false);
   const tokenClientRef = useRef(null);
 
   const flashConnected = () => {
     setConnectFlash(true);
-    setTimeout(() => setConnectFlash(false), 1000);
+    setDotPop(true);
+    // Overlay fades after 0.5s; the enlarged dot outlives it so the flash
+    // visibly hands off to the corner signal before shrinking back.
+    setTimeout(() => setConnectFlash(false), 500);
+    setTimeout(() => setDotPop(false), 1300);
   };
 
   const clearMessage = () => setMessage('');
@@ -1138,13 +1143,13 @@ const GoogleDriveSync = ({
   return (
     <div className={`${vertical ? 'absolute inset-0 z-10 overflow-y-auto' : 'relative'} p-3 border rounded-lg flex flex-col gap-2 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
       {/* Fresh-connect flash: solid green, then a slow fade toward the dot */}
-      <div className={`pointer-events-none absolute inset-0 rounded-lg bg-green-500 transition-opacity ${connectFlash ? 'opacity-40 duration-0' : 'opacity-0 duration-1000'}`} />
+      <div className={`pointer-events-none absolute inset-0 rounded-lg bg-green-500 transition-opacity ${connectFlash ? 'opacity-40 duration-0' : 'opacity-0 duration-500'}`} />
       {/* Header: title + connection status + disconnect */}
       <div className="flex items-center justify-between gap-2">
         <h2 className={`text-sm font-semibold ${colors.text}`}>Google Drive</h2>
         <span className={`flex items-center gap-2 shrink-0 text-xs ${colors.textLight}`}>
           <span className="flex items-center gap-1.5">
-            <span className={`w-2 h-2 rounded-full bg-green-500 transition-transform duration-500 ${connectFlash ? 'scale-[2]' : ''}`} />
+            <span className={`relative z-10 w-2 h-2 rounded-full bg-green-500 transition-transform duration-300 ${dotPop ? 'scale-[2.5]' : ''}`} />
             Connected
           </span>
           <button
@@ -1171,21 +1176,22 @@ const GoogleDriveSync = ({
             </button>
             <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
             <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
+            {showCancelButton && (
+              <button
+                onClick={cancelLoad}
+                title="Cancel loading"
+                aria-label="Cancel loading"
+                className={`w-8 h-8 shrink-0 rounded-full bg-red-600 text-white text-sm font-bold flex items-center justify-center transition-all hover:bg-red-700 ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'} active:translate-x-[2px] active:translate-y-[2px] active:shadow-none`}
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           {!canSave && !isLoading && (
             <p className={`text-[11px] ${colors.textLighter}`}>
               Save is available after you calculate statistics; Load restores a previous backup.
             </p>
-          )}
-
-          {showCancelButton && (
-            <button
-              onClick={cancelLoad}
-              className={`w-full px-3 py-1.5 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`}
-            >
-              Cancel Loading
-            </button>
           )}
       </div>
     </div>
