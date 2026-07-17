@@ -63,7 +63,10 @@ export function useFloatPanel({
       const h = window.innerHeight;
       const isTouch      = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const isLandscape  = w > h;
-      const isMobile     = w < 640 || (isTouch && h < 500);
+      // Phone = screen dims, not viewport: mid-rotation iOS mixes new width
+      // with old height, which read as "desktop" for a frame (see checkMobile
+      // in SpotifyAnalyzer).
+      const isMobile     = w < 640 || (isTouch && Math.min(window.screen.width, window.screen.height) < 640);
       setScreen({ isMobile, isLandscape });
     };
     update();

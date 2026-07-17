@@ -163,8 +163,9 @@ const CalendarView = ({
   const [heatmapYear, setHeatmapYear] = useState(null);
   useEffect(() => {
     const check = () => {
+      // Phone = screen dims, not viewport (rotation-proof; see SpotifyAnalyzer)
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      setIsMobile(window.innerWidth < 640 || (isTouch && window.innerHeight < 500));
+      setIsMobile(window.innerWidth < 640 || (isTouch && Math.min(window.screen.width, window.screen.height) < 640));
     };
     check();
     window.addEventListener('resize', check);

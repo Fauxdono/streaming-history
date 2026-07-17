@@ -88,11 +88,13 @@ const TopTabs = ({
 
   useEffect(() => {
     const checkMobile = () => {
-      const isNarrow = window.innerWidth < 640;
+      // Phone = screen dims, not viewport: mid-rotation iOS mixes new width
+      // with old height, which read as "desktop" for a frame (see checkMobile
+      // in SpotifyAnalyzer).
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const landscapeMobile = isTouch && window.innerHeight < 500;
-      setIsMobile(isNarrow || landscapeMobile);
-      setIsLandscapeMobile(landscapeMobile && !isNarrow);
+      const isPhone = isTouch && Math.min(window.screen.width, window.screen.height) < 640;
+      setIsMobile(isPhone || window.innerWidth < 640);
+      setIsLandscapeMobile(isPhone && window.innerWidth > window.innerHeight);
     };
 
     checkMobile();

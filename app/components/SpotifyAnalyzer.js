@@ -307,12 +307,17 @@ const SpotifyAnalyzer = ({
 
   useEffect(() => {
     const checkMobile = () => {
-      const isNarrow = window.innerWidth < 640;
+      // Phone detection uses screen dimensions, not the viewport: mid-rotation
+      // iOS fires resize events where innerWidth/innerHeight disagree (new
+      // width, old height), which used to flip the app into desktop layout for
+      // a frame — both bars at top, full desktop→mobile re-render churn.
+      // screen.width/height never report a transient mix.
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const landscapeMobile = isTouch && window.innerHeight < 500;
-      const isMobileNow = isNarrow || landscapeMobile;
+      const isPhone = isTouch && Math.min(window.screen.width, window.screen.height) < 640;
+      const isNarrow = window.innerWidth < 640;
+      const isMobileNow = isPhone || isNarrow;
       setIsMobile(isMobileNow);
-      setIsLandscapeMobile(landscapeMobile && !isNarrow);
+      setIsLandscapeMobile(isPhone && window.innerWidth > window.innerHeight);
       
       // Allow user to manually control position on both mobile and desktop
       // Remove auto-positioning to prevent oscillation between bottom and top on desktop
