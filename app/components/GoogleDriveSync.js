@@ -350,7 +350,7 @@ const GoogleDriveSync = ({
           const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
           
           // Map download progress (0-100%) to overall progress (5-65%)
-          const overallPercent = 5 + (progressPercent / 100) * 60;
+          const overallPercent = 5 + (progressPercent / 100) * 85;
           onProgress({
             step: 4,
             total: 6,
@@ -427,7 +427,7 @@ const GoogleDriveSync = ({
 
         // Map chunk progress (0-100%) to overall progress (5-65%)
         const chunkPercent = (chunkIndex / totalChunks) * 100;
-        const overallPercent = 5 + (chunkPercent / 100) * 60;
+        const overallPercent = 5 + (chunkPercent / 100) * 85;
         onProgress({
           step: 4,
           total: 6,
@@ -945,7 +945,7 @@ const GoogleDriveSync = ({
       console.log('✅ File download completed');
 
       // Step 5: Parse analysis data (65-80%)
-      setLoadProgress({ step: 5, total: 6, percent: 65, message: 'Parsing analysis data...' });
+      setLoadProgress({ step: 5, total: 6, percent: 91, message: 'Parsing analysis data...' });
       setLoadingStep('Parsing analysis data...');
       console.log('📊 Step 5: Parsing JSON data...');
       console.log('🔍 File content structure:', {
@@ -992,7 +992,7 @@ const GoogleDriveSync = ({
       }
       
       // Step 6: Load data into app (80-100%)
-      setLoadProgress({ step: 6, total: 6, percent: 80, message: 'Loading data into app...' });
+      setLoadProgress({ step: 6, total: 6, percent: 94, message: 'Loading data into app...' });
       setLoadingStep('Loading data into app...');
       console.log('🔄 Step 6: Loading data into app...');
       
@@ -1001,7 +1001,7 @@ const GoogleDriveSync = ({
         if (isMobile && data.processedTracks?.length > 10000) {
           // For mobile devices with large datasets, process in chunks to avoid memory pressure
           console.log('📱 Mobile device detected with large dataset, using chunked processing...');
-          setLoadProgress({ step: 6, total: 6, percent: 80, message: 'Processing data for mobile...' });
+          setLoadProgress({ step: 6, total: 6, percent: 94, message: 'Processing data for mobile...' });
           
           // Add a small delay to let the UI update before heavy processing
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -1014,7 +1014,7 @@ const GoogleDriveSync = ({
             // Show progress for chunked processing
             for (let i = 0; i < totalTracks; i += chunkSize) {
               const progress = Math.round((i / totalTracks) * 100);
-              const overallPercent = 80 + (progress / 100) * 20;
+              const overallPercent = 94 + (progress / 100) * 4;
               setLoadProgress({
                 step: 6,
                 total: 6,
@@ -1065,7 +1065,7 @@ const GoogleDriveSync = ({
   const colors = getAnalysisPageColors('violet', isColorful, isDarkMode);
   const canSave = stats && processedData && processedData.length > 0;
 
-  const actionBtn = `px-3 py-2 rounded-lg text-xs sm:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${colors.buttonInactive}`;
+  const actionBtn = `px-3 py-1.5 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${colors.buttonInactive}`;
 
   const messageBanner = message && (
     <div className={`p-2 rounded border text-xs sm:text-sm ${message.startsWith('❌')
@@ -1131,25 +1131,31 @@ const GoogleDriveSync = ({
   }
 
   return (
-    <div className={`${vertical ? 'absolute inset-0 z-10 overflow-y-auto ' : ''}p-4 border rounded-lg flex flex-col gap-3 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
-      {/* Header: title + connection status */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h2 className={`text-sm font-semibold ${colors.text}`}>Google Drive Storage</h2>
-          <p className={`text-xs ${colors.textLight}`}>
-            Back up your analysis to a &quot;cakeculator&quot; folder in your own Drive
-          </p>
-        </div>
-        <span className={`flex items-center gap-1.5 shrink-0 text-xs ${colors.textLight}`}>
-          <span className="w-2 h-2 rounded-full bg-green-500" />
-          Connected
+    <div className={`${vertical ? 'absolute inset-0 z-10 overflow-y-auto ' : ''}p-3 border rounded-lg flex flex-col gap-2 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
+      {/* Header: title + connection status + disconnect */}
+      <div className="flex items-center justify-between gap-2">
+        <h2 className={`text-sm font-semibold ${colors.text}`}>Google Drive</h2>
+        <span className={`flex items-center gap-2 shrink-0 text-xs ${colors.textLight}`}>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-500" />
+            Connected
+          </span>
+          <button
+            onClick={handleDisconnect}
+            className={`underline hover:opacity-70 ${colors.textLight}`}
+          >
+            Disconnect
+          </button>
         </span>
       </div>
+      <p className={`hidden sm:block text-xs ${colors.textLight}`}>
+        Back up your analysis to a &quot;cakeculator&quot; folder in your own Drive
+      </p>
 
       {messageBanner}
 
       <div className="flex flex-col gap-2 w-full sm:items-center sm:text-center">
-          <div className="grid grid-cols-2 gap-2 w-full">
+          <div className="flex justify-center gap-2">
             <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn}>
               {isSaving ? 'Saving…' : '💾 Save to Drive'}
             </button>
@@ -1159,7 +1165,7 @@ const GoogleDriveSync = ({
           </div>
 
           {!canSave && !isLoading && (
-            <p className={`text-xs ${colors.textLighter}`}>
+            <p className={`text-[11px] ${colors.textLighter}`}>
               Save is available after you calculate statistics; Load restores a previous backup.
             </p>
           )}
@@ -1170,18 +1176,11 @@ const GoogleDriveSync = ({
           {showCancelButton && (
             <button
               onClick={cancelLoad}
-              className={`w-full px-3 py-2 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`}
+              className={`w-full px-3 py-1.5 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 ${isDarkMode ? 'shadow-[2px_2px_0_0_#dc2626]' : 'shadow-[2px_2px_0_0_#b91c1c]'}`}
             >
               Cancel Loading
             </button>
           )}
-
-          <button
-            onClick={handleDisconnect}
-            className={`self-start sm:self-center text-xs underline hover:opacity-70 ${colors.textLight}`}
-          >
-            Disconnect
-          </button>
       </div>
     </div>
   );
