@@ -56,40 +56,38 @@ const GoogleDriveSync = ({
   };
 
   // Retro terminal-style progress bar component
+  // Compact circular progress: a 48px ring with the percentage knocked out
+  // of the middle and the status message beside it.
   const ProgressBar = ({ progress, isActive, isCompleted = false }) => {
     if ((!isActive && !isCompleted) || progress.total === 0) return null;
 
     const percentage = isCompleted ? 100 : (progress.percent != null ? Math.round(progress.percent) : Math.round((progress.step / progress.total) * 100));
-    const blockCount = 24;
-    const filledBlocks = Math.round((percentage / 100) * blockCount);
-    const filled = '█'.repeat(filledBlocks);
-    const empty = '░'.repeat(blockCount - filledBlocks);
+    const r = 20;
+    const circ = 2 * Math.PI * r;
 
-    const termColor = isColorful
+    const ringColor = isColorful
       ? isDarkMode ? 'text-violet-400' : 'text-violet-600'
       : isDarkMode ? 'text-[#4169E1]' : 'text-black';
-    const termDim = isColorful
-      ? isDarkMode ? 'text-violet-800' : 'text-violet-300'
-      : isDarkMode ? 'text-gray-700' : 'text-gray-300';
-    const termBg = isColorful
-      ? isDarkMode ? 'bg-violet-950' : 'bg-violet-50'
-      : isDarkMode ? 'bg-black' : 'bg-white';
-    const termBorder = isColorful
-      ? isDarkMode ? 'border-violet-600' : 'border-violet-300'
-      : isDarkMode ? 'border-[#4169E1]' : 'border-black';
+    const dimColor = isColorful
+      ? isDarkMode ? 'text-violet-500' : 'text-violet-500'
+      : isDarkMode ? 'text-gray-400' : 'text-gray-500';
 
     return (
-      <div className={`w-full text-left font-mono ${termBg} border ${termBorder} p-2 rounded-sm`}>
-        <div className={`text-[11px] ${termColor} mb-1`}>
-          {isCompleted ? '> TRANSFER COMPLETE' : `> ${progress.message.toUpperCase()}`}
-        </div>
-        <div className="text-[13px] leading-none tracking-tight">
-          <span className={termColor}>{filled}</span><span className={termDim}>{empty}</span>
-          <span className={`${termColor} ml-1 text-[11px]`}>{percentage}%</span>
-        </div>
-        <div className={`text-[10px] mt-1 ${termDim}`}>
-          [{progress.step}/{progress.total}] {isCompleted ? 'ALL BLOCKS OK' : 'PROCESSING...'}
-        </div>
+      <div className="flex items-center justify-center gap-2">
+        <svg width="48" height="48" viewBox="0 0 48 48" className={`shrink-0 ${ringColor}`}>
+          <circle cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4" opacity="0.2" />
+          <circle
+            cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4"
+            strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - percentage / 100)}
+            transform="rotate(-90 24 24)" style={{ transition: 'stroke-dashoffset 0.3s' }}
+          />
+          <text x="24" y="25" textAnchor="middle" dominantBaseline="middle" fill="currentColor" fontSize="11" fontWeight="600">
+            {percentage}%
+          </text>
+        </svg>
+        <span className={`text-[10px] leading-tight text-left max-w-[10rem] ${dimColor}`}>
+          {isCompleted ? 'Transfer complete ✓' : progress.message}
+        </span>
       </div>
     );
   };
@@ -1065,7 +1063,15 @@ const GoogleDriveSync = ({
   const colors = getAnalysisPageColors('violet', isColorful, isDarkMode);
   const canSave = stats && processedData && processedData.length > 0;
 
-  const actionBtn = `px-3 py-1.5 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${colors.buttonInactive}`;
+  // Big icon-only Save/Load buttons with the app's press animation
+  const iconBtnPress = isColorful
+    ? (isDarkMode
+        ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
+        : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#6d28d9]')
+    : (isDarkMode
+        ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+        : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]');
+  const actionBtn = `w-14 h-14 flex items-center justify-center text-3xl rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${colors.buttonInactive} ${iconBtnPress}`;
 
   const messageBanner = message && (
     <div className={`p-2 rounded border text-xs sm:text-sm ${message.startsWith('❌')
@@ -1155,12 +1161,12 @@ const GoogleDriveSync = ({
       {messageBanner}
 
       <div className="flex flex-col gap-2 w-full sm:items-center sm:text-center">
-          <div className="flex justify-center gap-2">
-            <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn}>
-              {isSaving ? 'Saving…' : '💾 Save to Drive'}
+          <div className="flex justify-center gap-3">
+            <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn} title="Save to Drive" aria-label="Save to Drive">
+              <span className={isSaving ? 'animate-pulse' : ''}>💾</span>
             </button>
-            <button onClick={handleLoad} disabled={isLoading} className={actionBtn}>
-              {isLoading ? 'Loading…' : '📥 Load from Drive'}
+            <button onClick={handleLoad} disabled={isLoading} className={actionBtn} title="Load from Drive" aria-label="Load from Drive">
+              <span className={isLoading ? 'animate-pulse' : ''}>📥</span>
             </button>
           </div>
 
