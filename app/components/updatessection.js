@@ -466,7 +466,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
 
           {/* Sort & Filter Bar */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap">
               <button
                 onClick={() => setSortBy('newest')}
                 className={`px-3 py-1.5 text-sm rounded font-medium transition-colors ${
