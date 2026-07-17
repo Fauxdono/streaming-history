@@ -222,7 +222,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
     tabActive: isDarkMode ? 'text-fuchsia-300 border-b-2 border-fuchsia-400' : 'text-fuchsia-700 border-b-2 border-fuchsia-600',
     tabInactive: isDarkMode ? 'text-fuchsia-500 hover:text-fuchsia-300' : 'text-fuchsia-400 hover:text-fuchsia-700',
     tabBorder: isDarkMode ? 'border-fuchsia-700' : 'border-fuchsia-200',
-    buttonActive: isDarkMode ? 'bg-fuchsia-600 text-white translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#c026d3]' : 'bg-fuchsia-500 text-white translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#a21caf]',
+    buttonActive: isDarkMode ? 'bg-fuchsia-800 text-fuchsia-300 border border-fuchsia-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#c026d3]' : 'bg-fuchsia-100 text-fuchsia-700 border border-fuchsia-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#a21caf]',
     buttonInactive: isDarkMode ? 'bg-fuchsia-800 text-fuchsia-300 border border-fuchsia-600 hover:bg-fuchsia-700 shadow-[2px_2px_0_0_#c026d3]' : 'bg-fuchsia-100 text-fuchsia-700 border border-fuchsia-300 hover:bg-fuchsia-200 shadow-[2px_2px_0_0_#a21caf]',
     sortBorder: isDarkMode ? 'border-fuchsia-600' : 'border-fuchsia-300',
     sortInactive: isDarkMode ? 'bg-fuchsia-800 text-fuchsia-300 hover:bg-fuchsia-700' : 'bg-fuchsia-100 text-fuchsia-600 hover:bg-fuchsia-200',

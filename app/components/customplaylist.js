@@ -28,7 +28,7 @@ const CustomPlaylistCreator = ({
     border: isDarkMode ? 'border-rose-600' : 'border-rose-300',
     borderLight: isDarkMode ? 'border-rose-600' : 'border-rose-300',
     shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#e11d48]' : 'shadow-[1px_1px_0_0_#be123c]',
-    buttonActive: isDarkMode ? 'bg-rose-600 text-white translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#e11d48]' : 'bg-rose-500 text-white translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#be123c]',
+    buttonActive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#e11d48]' : 'bg-rose-100 text-rose-700 border border-rose-300 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#be123c]',
     buttonInactive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 hover:bg-rose-700 shadow-[2px_2px_0_0_#e11d48]' : 'bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200 shadow-[2px_2px_0_0_#be123c]',
   } : {
     text: isDarkMode ? 'text-white' : 'text-black',
