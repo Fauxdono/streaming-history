@@ -20,7 +20,8 @@ const GoogleDriveSync = ({
   onDataLoaded,
   isDarkMode = false,
   colorMode = 'minimal',
-  vertical = false
+  vertical = false,
+  onConnectionChange
 }) => {
   const isColorful = colorMode === 'colorful';
   // Always start disconnected and let validation determine connection state
@@ -32,6 +33,7 @@ const GoogleDriveSync = ({
       console.log('🚨 DISCONNECTION DETECTED:', new Error().stack);
     }
     setIsConnectedState(newState);
+    onConnectionChange?.(newState);
   };
   
   const [isConnecting, setIsConnecting] = useState(false);
@@ -1142,7 +1144,7 @@ const GoogleDriveSync = ({
   }
 
   return (
-    <div className={`${vertical ? 'absolute inset-0 z-10 overflow-y-auto' : 'relative'} p-3 border rounded-lg flex flex-col gap-2 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
+    <div className={`relative p-3 border rounded-lg flex flex-col gap-2 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
       {/* Fresh-connect flash: solid green, then a slow fade toward the dot */}
       <div className={`pointer-events-none absolute inset-0 rounded-lg bg-green-500 transition-opacity ${connectFlash ? 'opacity-40 duration-0' : 'opacity-0 duration-500'}`} />
       {/* Header: title + connection status + disconnect */}

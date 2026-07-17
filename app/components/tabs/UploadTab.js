@@ -48,6 +48,9 @@ export default function UploadTab({
         // Shared refresh signal for the unified Stored scrobbles view.
         const [storedRefresh, setStoredRefresh] = useState(0);
         const bumpStored = useCallback(() => setStoredRefresh(k => k + 1), []);
+        // Once Drive is connected, the How-to-use card (demo included) makes
+        // way for the compact Drive card.
+        const [driveConnected, setDriveConnected] = useState(false);
         // Upload tab colors based on colorMode
         const uploadBg = colorMode === 'colorful'
           ? 'bg-violet-200 dark:bg-violet-900'
@@ -186,10 +189,11 @@ export default function UploadTab({
                 connect strip is absolutely positioned in the reserved right
                 gutter so its size is identical in every browser (Safari and
                 Chrome measure vertical text differently). Once connected,
-                the Drive card overlays this whole container. */}
-            <div className="relative pr-[52px] mb-4">
+                the How-to-use card disappears and the compact Drive card
+                takes over the row. */}
+            <div className={`relative mb-4 ${driveConnected ? '' : 'pr-[52px]'}`}>
               {/* How to Use section */}
-              <div className={`p-4 border rounded-lg flex flex-col ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
+              <div className={`p-4 border rounded-lg flex-col ${driveConnected ? 'hidden' : 'flex'} ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <h3 className={`font-semibold text-sm ${uploadText}`}>How to use:</h3>
                   <div className={
@@ -236,6 +240,7 @@ export default function UploadTab({
               {/* Google Drive Storage */}
               <GoogleDriveSync
                   vertical
+                  onConnectionChange={setDriveConnected}
                   stats={stats}
                   processedData={processedData}
                   topArtists={topArtists}
