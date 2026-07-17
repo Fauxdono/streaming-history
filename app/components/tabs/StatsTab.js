@@ -179,8 +179,8 @@ export default function StatsTab({
   // a subtle framed look). The branded ExportHeader inside is hidden on the
   // live page and only revealed in the captured clone.
   const shareWrapCls = colorMode === 'colorful'
-    ? 'space-y-4 p-2 sm:p-4 rounded-lg bg-indigo-200 dark:bg-indigo-900'
-    : `space-y-4 p-2 sm:p-4 rounded-lg ${isDarkMode ? 'bg-black' : 'bg-white'}`;
+    ? 'space-y-4 px-2 pb-2 pt-0 sm:p-4 rounded-lg bg-indigo-200 dark:bg-indigo-900'
+    : `space-y-4 px-2 pb-2 pt-0 sm:p-4 rounded-lg ${isDarkMode ? 'bg-black' : 'bg-white'}`;
 
   const ExportHeader = ({ subtitle }) => (
     <div data-export-only className={`hidden items-baseline justify-between ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
