@@ -120,7 +120,7 @@ const FixedSettingsBar = ({
                 <button
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                  className="p-[6px] rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
+                  className="p-[6px] rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Font & Display Settings"
                 >
                   <Settings size={16} />
