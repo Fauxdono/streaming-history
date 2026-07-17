@@ -123,7 +123,7 @@ const FixedSettingsBar = ({
                   className="p-[6px] rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Font & Display Settings"
                 >
-                  <Type size={16} />
+                  <Settings size={16} />
                 </button>
 
                 {/* Support/donate */}
