@@ -46,7 +46,14 @@ const GoogleDriveSync = ({
   const [loadProgress, setLoadProgress] = useState({ step: 0, total: 0, message: '' });
   const [saveCompleted, setSaveCompleted] = useState(false);
   const [loadCompleted, setLoadCompleted] = useState(false);
+  // Fresh-connect feedback: flash the card green, then fade toward the dot
+  const [connectFlash, setConnectFlash] = useState(false);
   const tokenClientRef = useRef(null);
+
+  const flashConnected = () => {
+    setConnectFlash(true);
+    setTimeout(() => setConnectFlash(false), 1000);
+  };
 
   const clearMessage = () => setMessage('');
 
@@ -68,27 +75,19 @@ const GoogleDriveSync = ({
     const ringColor = isColorful
       ? isDarkMode ? 'text-violet-400' : 'text-violet-600'
       : isDarkMode ? 'text-[#4169E1]' : 'text-black';
-    const dimColor = isColorful
-      ? isDarkMode ? 'text-violet-500' : 'text-violet-500'
-      : isDarkMode ? 'text-gray-400' : 'text-gray-500';
 
     return (
-      <div className="flex items-center justify-center gap-2">
-        <svg width="48" height="48" viewBox="0 0 48 48" className={`shrink-0 ${ringColor}`}>
-          <circle cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4" opacity="0.2" />
-          <circle
-            cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4"
-            strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - percentage / 100)}
-            transform="rotate(-90 24 24)" style={{ transition: 'stroke-dashoffset 0.3s' }}
-          />
-          <text x="24" y="25" textAnchor="middle" dominantBaseline="middle" fill="currentColor" fontSize="11" fontWeight="600">
-            {percentage}%
-          </text>
-        </svg>
-        <span className={`text-[10px] leading-tight text-left max-w-[10rem] ${dimColor}`}>
-          {isCompleted ? 'Transfer complete ✓' : progress.message}
-        </span>
-      </div>
+      <svg width="48" height="48" viewBox="0 0 48 48" className={`shrink-0 ${ringColor}`}>
+        <circle cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4" opacity="0.2" />
+        <circle
+          cx="24" cy="24" r={r} fill="none" stroke="currentColor" strokeWidth="4"
+          strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - percentage / 100)}
+          transform="rotate(-90 24 24)" style={{ transition: 'stroke-dashoffset 0.3s' }}
+        />
+        {isCompleted && (
+          <path d="M16 24.5 L21.5 30 L32 19" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        )}
+      </svg>
     );
   };
 
@@ -546,7 +545,7 @@ const GoogleDriveSync = ({
 
           setIsConnected(true);
           setIsConnecting(false);
-          showMessage('Connected to Google Drive!');
+          flashConnected();
         },
         error_callback: (err) => {
           setIsConnecting(false);
@@ -572,7 +571,7 @@ const GoogleDriveSync = ({
     if (storedToken && storedExpiry && Date.now() < parseInt(storedExpiry) && window.gapi?.client) {
       window.gapi.client.setToken({ access_token: storedToken });
       setIsConnected(true);
-      showMessage('Connected to Google Drive!');
+      flashConnected();
       return;
     }
 
@@ -1137,13 +1136,15 @@ const GoogleDriveSync = ({
   }
 
   return (
-    <div className={`${vertical ? 'absolute inset-0 z-10 overflow-y-auto ' : ''}p-3 border rounded-lg flex flex-col gap-2 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
+    <div className={`${vertical ? 'absolute inset-0 z-10 overflow-y-auto' : 'relative'} p-3 border rounded-lg flex flex-col gap-2 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
+      {/* Fresh-connect flash: solid green, then a slow fade toward the dot */}
+      <div className={`pointer-events-none absolute inset-0 rounded-lg bg-green-500 transition-opacity ${connectFlash ? 'opacity-40 duration-0' : 'opacity-0 duration-1000'}`} />
       {/* Header: title + connection status + disconnect */}
       <div className="flex items-center justify-between gap-2">
         <h2 className={`text-sm font-semibold ${colors.text}`}>Google Drive</h2>
         <span className={`flex items-center gap-2 shrink-0 text-xs ${colors.textLight}`}>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-green-500" />
+            <span className={`w-2 h-2 rounded-full bg-green-500 transition-transform duration-500 ${connectFlash ? 'scale-[2]' : ''}`} />
             Connected
           </span>
           <button
@@ -1161,13 +1162,15 @@ const GoogleDriveSync = ({
       {messageBanner}
 
       <div className="flex flex-col gap-2 w-full sm:items-center sm:text-center">
-          <div className="flex justify-center gap-3">
+          <div className="flex items-center justify-center gap-3">
             <button onClick={handleSave} disabled={isSaving || !canSave} className={actionBtn} title="Save to Drive" aria-label="Save to Drive">
               <span className={isSaving ? 'animate-pulse' : ''}>💾</span>
             </button>
             <button onClick={handleLoad} disabled={isLoading} className={actionBtn} title="Load from Drive" aria-label="Load from Drive">
               <span className={isLoading ? 'animate-pulse' : ''}>📥</span>
             </button>
+            <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
+            <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
           </div>
 
           {!canSave && !isLoading && (
@@ -1175,9 +1178,6 @@ const GoogleDriveSync = ({
               Save is available after you calculate statistics; Load restores a previous backup.
             </p>
           )}
-
-          <ProgressBar progress={saveProgress} isActive={isSaving} isCompleted={saveCompleted} />
-          <ProgressBar progress={loadProgress} isActive={isLoading} isCompleted={loadCompleted} />
 
           {showCancelButton && (
             <button
