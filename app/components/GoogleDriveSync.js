@@ -19,7 +19,8 @@ const GoogleDriveSync = ({
   uploadedFileList = null,
   onDataLoaded,
   isDarkMode = false,
-  colorMode = 'minimal'
+  colorMode = 'minimal',
+  vertical = false
 }) => {
   const isColorful = colorMode === 'colorful';
   // Always start disconnected and let validation determine connection state
@@ -1075,9 +1076,46 @@ const GoogleDriveSync = ({
     </div>
   );
 
-  // Disconnected: no card — just one full-width connect button that
-  // "morphs" into the Save/Load card once connected.
+  const connectLabel = isInitializing ? 'initializing…' : isConnecting ? 'connecting…' : (
+    <>
+      connect{' '}
+      <span className="text-[#4285F4]">g</span>
+      <span className="text-[#EA4335]">o</span>
+      <span className="text-[#FBBC05]">o</span>
+      <span className="text-[#4285F4]">g</span>
+      <span className="text-[#34A853]">l</span>
+      <span className="text-[#EA4335]">e</span>
+      {' '}drive
+    </>
+  );
+
+  // Disconnected: no card — just one connect button that "morphs" into
+  // the Save/Load card once connected. The vertical variant renders as a
+  // narrow strip (rotated text, letter bottoms facing right) meant to sit
+  // beside the How-to-use card inside a relative container; once connected
+  // the card overlays that container.
   if (!isConnected) {
+    if (vertical) {
+      return (
+        <>
+          <button
+            onClick={handleConnect}
+            disabled={isConnecting || isInitializing}
+            className={`self-stretch shrink-0 w-11 py-4 rounded-lg text-xl font-light leading-none border flex items-center justify-center hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed ${colors.bgCard} ${colors.border} ${colors.textLight} ${colors.shadow}`}
+          >
+            <span
+              className="whitespace-nowrap"
+              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+            >
+              {connectLabel}
+            </span>
+          </button>
+          {messageBanner && (
+            <div className="absolute inset-x-0 bottom-0 z-20">{messageBanner}</div>
+          )}
+        </>
+      );
+    }
     return (
       <div className="flex flex-col gap-2">
         <button
@@ -1085,18 +1123,7 @@ const GoogleDriveSync = ({
           disabled={isConnecting || isInitializing}
           className={`w-full px-4 py-1 rounded-lg text-2xl sm:text-4xl font-light leading-tight text-center border hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed ${colors.bgCard} ${colors.border} ${colors.textLight} ${colors.shadow}`}
         >
-          {isInitializing ? 'initializing…' : isConnecting ? 'connecting…' : (
-            <>
-              connect{' '}
-              <span className="text-[#4285F4]">g</span>
-              <span className="text-[#EA4335]">o</span>
-              <span className="text-[#FBBC05]">o</span>
-              <span className="text-[#4285F4]">g</span>
-              <span className="text-[#34A853]">l</span>
-              <span className="text-[#EA4335]">e</span>
-              {' '}drive
-            </>
-          )}
+          {connectLabel}
         </button>
         {messageBanner}
       </div>
@@ -1104,7 +1131,7 @@ const GoogleDriveSync = ({
   }
 
   return (
-    <div className={`p-4 border rounded-lg flex flex-col gap-3 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
+    <div className={`${vertical ? 'absolute inset-0 z-10 overflow-y-auto ' : ''}p-4 border rounded-lg flex flex-col gap-3 ${colors.bgCard} ${colors.border} ${colors.shadow}`}>
       {/* Header: title + connection status */}
       <div className="flex items-start justify-between gap-2">
         <div>

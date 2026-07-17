@@ -85,15 +85,15 @@ export default function UploadTab({
                 the violet card bg fills the space either side on desktop. */}
             <div className="max-w-2xl mx-auto">
             {/* Title + inner tabs + web app row */}
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <div className="relative flex items-center gap-3 mb-4 flex-wrap">
               <h3 className={`text-xl hidden sm:block ${uploadText}`}>
                 {uploadInnerTab === 'upload' ? 'Upload Files' : 'Scrobbles'}
               </h3>
-              <div className="flex gap-1">
+              <div className="w-full sm:w-auto flex justify-center sm:justify-start gap-1">
                 <button onClick={() => setUploadInnerTab('upload')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'upload' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Upload</button>
                 <button onClick={() => setUploadInnerTab('scrobbles')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'scrobbles' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Scrobbles</button>
               </div>
-              <div className={`ml-auto ${
+              <div className={`absolute right-0 top-1/2 -translate-y-1/2 sm:static sm:translate-y-0 sm:ml-auto ${
                 colorMode === 'colorful'
                   ? 'px-2 py-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
                   : `px-2 py-1 rounded border ${isDarkMode ? 'bg-black text-white border-[#4169E1]' : 'bg-white text-black border-black'}`
@@ -189,10 +189,12 @@ export default function UploadTab({
               </div>
             )}
 
-            {/* How to Use + Google Drive - stacked, mobile-style */}
-            <div className="grid grid-cols-1 gap-4 mb-4">
+            {/* How to Use + Google Drive: the connect strip sits along the
+                right edge of the card; once connected, the Drive card
+                overlays this whole container. */}
+            <div className="relative flex items-stretch gap-2 mb-4">
               {/* How to Use section */}
-              <div className={`p-4 border rounded-lg flex flex-col ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
+              <div className={`p-4 border rounded-lg flex flex-col flex-1 min-w-0 ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
                 <h3 className={`font-semibold mb-3 text-sm ${uploadText}`}>How to use:</h3>
                 <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                   <div className="flex items-start gap-3 mb-2">
@@ -229,6 +231,7 @@ export default function UploadTab({
 
               {/* Google Drive Storage */}
               <GoogleDriveSync
+                  vertical
                   stats={stats}
                   processedData={processedData}
                   topArtists={topArtists}
