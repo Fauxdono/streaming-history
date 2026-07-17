@@ -466,19 +466,19 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
 
           {/* Sort & Filter Bar */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className={`flex rounded-lg overflow-hidden border ${modeColors.sortBorder}`}>
+            <div className="flex flex-wrap gap-1">
               <button
                 onClick={() => setSortBy('newest')}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  sortBy === 'newest' ? modeColors.buttonActive : modeColors.sortInactive
+                className={`px-3 py-1.5 text-sm rounded font-medium transition-colors ${
+                  sortBy === 'newest' ? modeColors.buttonActive : modeColors.buttonInactive
                 }`}
               >
                 Newest
               </button>
               <button
                 onClick={() => setSortBy('most-voted')}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  sortBy === 'most-voted' ? modeColors.buttonActive : modeColors.sortInactive
+                className={`px-3 py-1.5 text-sm rounded font-medium transition-colors ${
+                  sortBy === 'most-voted' ? modeColors.buttonActive : modeColors.buttonInactive
                 }`}
               >
                 Most Voted

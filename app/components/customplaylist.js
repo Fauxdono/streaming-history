@@ -1359,10 +1359,10 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
           </div>
 
           {/* Creation Mode Switch */}
-          <div className={`flex ${modeColors.border} border-b mb-4`}>
+          <div className="flex flex-wrap gap-1 mb-4">
             <button
               onClick={() => setCreationMode('manual')}
-              className={`px-4 py-2 font-medium ${
+              className={`px-3 py-1.5 text-sm rounded font-medium transition-colors ${
                 creationMode === 'manual'
                   ? modeColors.buttonActive
                   : modeColors.buttonInactive
@@ -1372,7 +1372,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             </button>
             <button
               onClick={() => setCreationMode('smart')}
-              className={`px-4 py-2 font-medium ${
+              className={`px-3 py-1.5 text-sm rounded font-medium transition-colors ${
                 creationMode === 'smart'
                   ? modeColors.buttonActive
                   : modeColors.buttonInactive
