@@ -1101,7 +1101,7 @@ const GoogleDriveSync = ({
           <button
             onClick={handleConnect}
             disabled={isConnecting || isInitializing}
-            className={`self-stretch shrink-0 w-11 py-4 rounded-lg text-xl font-light leading-none border flex items-center justify-center hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed ${colors.bgCard} ${colors.border} ${colors.textLight} ${colors.shadow}`}
+            className={`absolute inset-y-0 right-0 w-11 rounded-lg text-lg font-light leading-none border flex items-center justify-center overflow-hidden hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed ${colors.bgCard} ${colors.border} ${colors.textLight} ${colors.shadow}`}
           >
             <span
               className="whitespace-nowrap"

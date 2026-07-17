@@ -189,12 +189,14 @@ export default function UploadTab({
               </div>
             )}
 
-            {/* How to Use + Google Drive: the connect strip sits along the
-                right edge of the card; once connected, the Drive card
-                overlays this whole container. */}
-            <div className="relative flex items-stretch gap-2 mb-4">
+            {/* How to Use + Google Drive: the card defines the height; the
+                connect strip is absolutely positioned in the reserved right
+                gutter so its size is identical in every browser (Safari and
+                Chrome measure vertical text differently). Once connected,
+                the Drive card overlays this whole container. */}
+            <div className="relative pr-[52px] mb-4">
               {/* How to Use section */}
-              <div className={`p-4 border rounded-lg flex flex-col flex-1 min-w-0 ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
+              <div className={`p-4 border rounded-lg flex flex-col ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
                 <h3 className={`font-semibold mb-3 text-sm ${uploadText}`}>How to use:</h3>
                 <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                   <div className="flex items-start gap-3 mb-2">
