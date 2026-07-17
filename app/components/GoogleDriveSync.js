@@ -1067,15 +1067,16 @@ const GoogleDriveSync = ({
   const colors = getAnalysisPageColors('violet', isColorful, isDarkMode);
   const canSave = stats && processedData && processedData.length > 0;
 
-  // Big icon-only Save/Load buttons with the app's press animation
-  const iconBtnPress = isColorful
+  // Bare icon Save/Load buttons: the emoji IS the button — no box, just a
+  // hard offset drop-shadow on the glyph that collapses when pressed.
+  const iconGlyphFx = isColorful
     ? (isDarkMode
-        ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
-        : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#6d28d9]')
+        ? '[filter:drop-shadow(3px_3px_0_#7c3aed)] active:[filter:drop-shadow(0_0_0_#7c3aed)]'
+        : '[filter:drop-shadow(3px_3px_0_#6d28d9)] active:[filter:drop-shadow(0_0_0_#6d28d9)]')
     : (isDarkMode
-        ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
-        : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]');
-  const actionBtn = `w-14 h-14 flex items-center justify-center text-3xl rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none ${colors.buttonInactive} ${iconBtnPress}`;
+        ? '[filter:drop-shadow(3px_3px_0_#4169E1)] active:[filter:drop-shadow(0_0_0_#4169E1)]'
+        : '[filter:drop-shadow(3px_3px_0_black)] active:[filter:drop-shadow(0_0_0_black)]');
+  const actionBtn = `w-14 h-14 flex items-center justify-center text-5xl leading-none transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed disabled:[filter:none] active:translate-x-[2px] active:translate-y-[2px] ${iconGlyphFx}`;
 
   const messageBanner = message && (
     <div className={`p-2 rounded border text-xs sm:text-sm ${message.startsWith('❌')
