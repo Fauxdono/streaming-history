@@ -79,15 +79,15 @@ const FixedSettingsBar = ({
             height: isMobile ? `${mobileBarHeight}px` : 'auto',
             // Keep buttons clear of the landscape notch; bar bg still spans edge to edge
             ...(isMobile && {
-              paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-              paddingRight: 'max(1rem, env(safe-area-inset-right))',
+              paddingLeft: 'max(16px, env(safe-area-inset-left))',
+              paddingRight: 'max(16px, env(safe-area-inset-right))',
             }),
             ...((!isMobile) && { paddingTop: '8px' })
           }}>
           {isMobile ? (
             <>
               {/* Left side buttons */}
-              <div className={`flex items-center ${isLandscapeMobile ? 'gap-3' : 'gap-4'}`}>
+              <div className={`flex items-center ${isLandscapeMobile ? 'gap-[12px]' : 'gap-[16px]'}`}>
                 {/* Dark mode toggle */}
                 <button
                   onClick={toggleTheme}
@@ -138,7 +138,7 @@ const FixedSettingsBar = ({
               </div>
 
               {/* Right side buttons */}
-              <div className={`flex items-center ${isLandscapeMobile ? 'gap-3' : 'gap-4'}`}>
+              <div className={`flex items-center ${isLandscapeMobile ? 'gap-[12px]' : 'gap-[16px]'}`}>
                 {showViewToggle && (
                   <button
                     onClick={toggleViewMode}
