@@ -858,7 +858,7 @@ const CalendarView = ({
 
       {/* Mobile controls - separate row */}
       <div className="block sm:hidden mb-2">
-        <div className="flex flex-wrap gap-1 items-center">
+        <div className="flex flex-wrap gap-1 items-center justify-center">
           <TabButton id="calendar" label="Calendar" />
           <TabButton id="history" label="History" />
           {activeTab === 'calendar' && isMonthView && (

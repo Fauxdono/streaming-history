@@ -758,7 +758,7 @@ const ListeningPatterns = ({
 
     {/* Mobile controls - separate row */}
     <div className="block sm:hidden mb-2">
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1 justify-center">
         <TabButton id="timeOfDay" label="Time" />
         <TabButton id="dayOfWeek" label="Day" />
         <TabButton id="seasonal" label="Season" />

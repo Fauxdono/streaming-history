@@ -327,8 +327,8 @@ export default function StatsTab({
   return stats ? (
           <div className={
             colorMode === 'colorful'
-              ? 'px-0 py-2 sm:py-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
-              : `px-0 py-2 sm:py-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
+              ? 'px-0 pt-0 pb-2 sm:py-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
+              : `px-0 pt-0 pb-2 sm:py-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             {/* Desktop title */}
             <div className="hidden sm:block mb-4 px-4">
@@ -347,7 +347,7 @@ export default function StatsTab({
               <ExportHeader subtitle="Overview" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Hero: the number that matters */}
-                <div data-hero className="flex flex-col justify-center py-2">
+                <div data-hero className="flex flex-col justify-center py-0 sm:py-2">
                   <div className={
                     colorMode === 'colorful'
                       ? 'text-sm font-medium text-indigo-600 dark:text-indigo-400'
