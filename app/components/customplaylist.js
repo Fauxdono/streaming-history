@@ -1627,7 +1627,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               <div className="flex justify-between">
                 <button
                   onClick={addRule}
-                  className={`px-3 py-2 rounded transition-all ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
+                  className={`px-3 py-1.5 text-sm rounded font-medium transition-all ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
                 >
                   <Plus size={16} className="inline mr-1" /> Add Rule
                 </button>
@@ -1635,7 +1635,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                 <button
                   onClick={generateFromRules}
                   disabled={smartRules.every(rule => !rule.value)}
-                  className={`px-4 py-2 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
+                  className={`px-3 py-1.5 text-sm rounded font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
                 >
                   <Filter size={16} className="inline mr-1" /> Generate Playlist
                 </button>
@@ -1772,7 +1772,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <button
               onClick={savePlaylist}
               disabled={!selectedTracks.some(t => !['processing', 'no-matches', 'error'].includes(t.id))}
-              className={`flex items-center gap-2 px-4 py-2 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
+              className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
             >
               <Save size={16} />
               Save Playlist
@@ -1780,7 +1780,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <button
               onClick={exportPlaylist}
               disabled={!selectedTracks.some(t => !['processing', 'no-matches', 'error'].includes(t.id))}
-              className={`flex items-center gap-2 px-4 py-2 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
+              className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${modeColors.buttonInactive} ${modeColors.buttonPress}`}
             >
               <Download size={16} />
               Export as M3U
