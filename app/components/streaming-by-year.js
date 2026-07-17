@@ -17,7 +17,7 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
     bgCardAlt: isDarkMode ? 'bg-yellow-800' : 'bg-yellow-100',
     border: isDarkMode ? 'border-yellow-600' : 'border-yellow-300',
   } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
+    text: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',

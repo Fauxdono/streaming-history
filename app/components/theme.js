@@ -305,8 +305,8 @@ export const THEMES = {
 };
 
 export const MINIMAL = {
-  text:           'text-black dark:text-white',
-  textBold:       'text-black dark:text-white',
+  text:           'text-black dark:text-[#FDF6E3]',
+  textBold:       'text-black dark:text-[#FDF6E3]',
   textActive:     'text-white dark:text-black',
   bgActive:       'bg-black dark:bg-white',
   bgHover:        'hover:bg-gray-200 dark:hover:bg-gray-800',
@@ -408,7 +408,7 @@ export function getAlbumCardColors({ textTheme = 'cyan', backgroundTheme = 'cyan
   if (!isColorful) {
     return {
       text: '',
-      textLight: isDarkMode ? 'text-white' : 'text-black',
+      textLight: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
       bg: isDarkMode ? 'bg-black' : 'bg-white',
       border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
       bgLight: isDarkMode ? 'bg-black' : 'bg-white',
@@ -609,15 +609,15 @@ const RANKING_FLEX_BG = (isDarkMode) => ({
 });
 
 const RANKING_MINIMAL = (isDarkMode) => ({
-  text: isDarkMode ? 'text-white' : 'text-black',
-  textLight: isDarkMode ? 'text-white' : 'text-black',
-  textLighter: isDarkMode ? 'text-white' : 'text-black',
-  textDark: isDarkMode ? 'text-white' : 'text-black',
+  text: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
+  textLight: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
+  textLighter: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
+  textDark: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
   bg: isDarkMode ? 'bg-black' : 'bg-white',
   bgLight: isDarkMode ? 'bg-black' : 'bg-white',
   bgMed: isDarkMode ? 'bg-black' : 'bg-white',
-  bgDark: isDarkMode ? 'bg-black text-white border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black shadow-[2px_2px_0_0_black]',
-  bgDarkActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
+  bgDark: isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black shadow-[2px_2px_0_0_black]',
+  bgDarkActive: isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
   bgDarkHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
   border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
   borderDark: isDarkMode ? 'border-[#4169E1]' : 'border-black',
@@ -732,25 +732,25 @@ const OBSESSION_BG = (isDarkMode) => ({
 });
 
 const OBSESSION_MINIMAL = (isDarkMode) => ({
-  text: isDarkMode ? 'text-white' : 'text-black',
+  text: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
   textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
   textLighter: 'text-gray-500',
-  textDark: isDarkMode ? 'text-white' : 'text-black',
+  textDark: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
   bg: isDarkMode ? 'bg-black' : 'bg-white',
   bgHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-50',
   border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
   borderHover: isDarkMode ? 'border-gray-400' : 'border-gray-600',
   bgLight: isDarkMode ? 'bg-black' : 'bg-white',
-  bgButton: isDarkMode ? 'bg-black border border-[#4169E1] text-white' : 'bg-white border border-black text-black',
+  bgButton: isDarkMode ? 'bg-black border border-[#4169E1] text-[#FDF6E3]' : 'bg-white border border-black text-black',
   bgButtonHover: isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100',
   bgButtonLight: isDarkMode ? 'bg-black border border-gray-600 text-gray-300' : 'bg-white border border-gray-400 text-gray-600',
   bgButtonLightHover: isDarkMode ? 'hover:bg-gray-900' : 'hover:bg-gray-100',
-  bgSelected: isDarkMode ? 'bg-white text-black border border-[#4169E1]' : 'bg-black text-white border border-black',
+  bgSelected: isDarkMode ? 'bg-white text-black border border-[#4169E1]' : 'bg-black text-[#FDF6E3] border border-black',
   bgSelectedHover: isDarkMode ? 'hover:bg-gray-200' : 'hover:bg-gray-800',
   shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
   buttonShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]',
   focusRing: 'focus:ring-gray-400',
-  focus: isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black',
+  focus: isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3]' : 'border-black bg-white text-black',
 });
 
 export function getObsessionColors({ textTheme = 'rose', backgroundTheme = 'red', isColorful, isDarkMode }) {
@@ -865,7 +865,7 @@ const ANALYSIS_COLORFUL = (isDarkMode) => ({
 });
 
 const ANALYSIS_MINIMAL = (isDarkMode) => ({
-  text:           isDarkMode ? 'text-white' : 'text-black',
+  text:           isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
   textLight:      isDarkMode ? 'text-gray-400' : 'text-gray-600',
   textLighter:    'text-gray-500',
   bg:             isDarkMode ? 'bg-black' : 'bg-white',
@@ -875,11 +875,11 @@ const ANALYSIS_MINIMAL = (isDarkMode) => ({
   border:         isDarkMode ? 'border-[#4169E1]' : 'border-black',
   borderLight:    isDarkMode ? 'border-[#4169E1]' : 'border-black',
   shadow:         isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
-  buttonActive:   isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
-  buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
+  buttonActive:   isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
+  buttonInactive: isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   toggleBg:       isDarkMode ? 'bg-black' : 'bg-white',
   toggleActive:   isDarkMode ? 'bg-white text-black' : 'bg-black text-white',
-  toggleInactive: isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100',
+  toggleInactive: isDarkMode ? 'text-[#FDF6E3] hover:bg-gray-900' : 'text-black hover:bg-gray-100',
   input:          isDarkMode ? 'border-[#4169E1] bg-black' : 'border-black bg-white',
 });
 

@@ -74,12 +74,12 @@ export default function UploadTab({
         const uploadInnerBtnActive = colorMode === 'colorful'
           ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
           : isDarkMode
-            ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+            ? 'bg-black text-[#FDF6E3] border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
             : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
         const uploadInnerBtnInactive = colorMode === 'colorful'
           ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 hover:opacity-80 shadow-[2px_2px_0_0_#7c3aed]'
           : isDarkMode
-            ? 'bg-black text-white border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
+            ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
             : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
 
         return (
@@ -199,22 +199,22 @@ export default function UploadTab({
                   <div className={
                     colorMode === 'colorful'
                       ? 'px-2 py-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
-                      : `px-2 py-1 rounded border ${isDarkMode ? 'bg-black text-white border-[#4169E1]' : 'bg-white text-black border-black'}`
+                      : `px-2 py-1 rounded border ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1]' : 'bg-white text-black border-black'}`
                   }>
                     <p className="font-bold text-xs">📱 Download as Web App!</p>
                   </div>
                 </div>
                 <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                   <div className="flex items-start gap-3 mb-2">
-                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
+                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-[#FDF6E3]' : (isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
                     <span>Download your streaming history from your service</span>
                   </div>
                   <div className="flex items-start gap-3 mb-2">
-                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
+                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-[#FDF6E3]' : (isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>2</span>
                     <span>Upload your file(s) or connect Google Drive for large files</span>
                   </div>
                   <div className="flex items-start gap-3 mb-3">
-                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
+                    <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-[#FDF6E3]' : (isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
                     <span>Click "Calculate Statistics" and explore your data</span>
                   </div>
                 </div>
@@ -279,7 +279,7 @@ export default function UploadTab({
                   ${colorMode === 'colorful'
                     ? 'file:border-yellow-400 file:bg-yellow-300 file:text-yellow-800 hover:file:bg-yellow-400'
                     : isDarkMode
-                      ? 'file:border-[#4169E1] file:bg-black file:text-white hover:file:bg-gray-800'
+                      ? 'file:border-[#4169E1] file:bg-black file:text-[#FDF6E3] hover:file:bg-gray-800'
                       : 'file:border-black file:bg-white file:text-black hover:file:bg-gray-100'
                   }
                   ${isDarkMode ? 'text-gray-300' : 'text-slate-600'}`}
@@ -349,7 +349,7 @@ export default function UploadTab({
                         className={
                           colorMode === 'colorful'
                             ? 'p-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors shrink-0 shadow-[2px_2px_0_0_#b91c1c]'
-                            : `p-1 rounded transition-colors shrink-0 ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                            : `p-1 rounded transition-colors shrink-0 ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
                         }
                         title="Remove file"
                       >
@@ -407,7 +407,7 @@ export default function UploadTab({
                   className={
                     colorMode === 'colorful'
                       ? 'mt-4 w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg'
-                      : `mt-4 w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg disabled:cursor-not-allowed ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 disabled:opacity-50' : 'bg-white text-black border border-black hover:bg-gray-100 disabled:opacity-50'}`
+                      : `mt-4 w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg disabled:cursor-not-allowed ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 disabled:opacity-50' : 'bg-white text-black border border-black hover:bg-gray-100 disabled:opacity-50'}`
                   }
                 >
                   {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}
@@ -451,7 +451,7 @@ export default function UploadTab({
                     className={
                       colorMode === 'colorful'
                         ? 'w-full sm:w-auto px-8 py-3 bg-green-600 text-white rounded-lg font-semibold text-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors shadow-lg'
-                        : `w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg disabled:cursor-not-allowed ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 disabled:opacity-50' : 'bg-white text-black border border-black hover:bg-gray-100 disabled:opacity-50'}`
+                        : `w-full sm:w-auto px-8 py-3 rounded-lg font-semibold text-lg transition-colors shadow-lg disabled:cursor-not-allowed ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 disabled:opacity-50' : 'bg-white text-black border border-black hover:bg-gray-100 disabled:opacity-50'}`
                     }
                   >
                     {isProcessing ? "Processing..." : "🚀 Calculate Statistics"}

@@ -515,19 +515,19 @@ const ExportButton = ({
   // Lives on the Your Data tab: green page with black accents in light
   // colorful, black terminal with green accents in dark; standard
   // black/white/royal-blue in minimal.
-  const ink = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-white' : 'text-black';
-  const inkStrong = isColorful ? 'text-black dark:text-green-400' : isDarkMode ? 'text-white' : 'text-black';
-  const inkFaint = isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : `opacity-60 ${isDarkMode ? 'text-white' : 'text-black'}`;
+  const ink = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-[#FDF6E3]' : 'text-black';
+  const inkStrong = isColorful ? 'text-black dark:text-green-400' : isDarkMode ? 'text-[#FDF6E3]' : 'text-black';
+  const inkFaint = isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : `opacity-60 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`;
   const checkClass = isColorful ? 'cake-check' : 'cake-check-mono';
   const panelClass = isColorful
     ? 'p-3 rounded border mb-2 bg-green-100 border-black dark:bg-black dark:border-green-600'
     : `p-3 rounded border mb-2 ${isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black'}`;
   const smallBtnClass = isColorful
     ? 'text-xs px-2 py-1 rounded border border-black bg-green-200 text-black hover:bg-green-300 dark:border-green-700 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900'
-    : `text-xs px-2 py-1 rounded border ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`;
+    : `text-xs px-2 py-1 rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`;
   const detailBoxClass = isColorful
     ? 'text-xs p-2 rounded border bg-green-200 text-black border-black dark:bg-green-950 dark:text-green-400 dark:border-green-800'
-    : `text-xs p-2 rounded border ${isDarkMode ? 'bg-black text-white border-gray-700' : 'bg-white text-black border-gray-300'}`;
+    : `text-xs p-2 rounded border ${isDarkMode ? 'bg-black text-[#FDF6E3] border-gray-700' : 'bg-white text-black border-gray-300'}`;
   const dividerClass = isColorful ? 'border-green-600 dark:border-green-800' : isDarkMode ? 'border-gray-700' : 'border-gray-300';
   const amberClass = 'text-amber-600 dark:text-amber-400';
 
@@ -763,7 +763,7 @@ const ExportButton = ({
         className={
           isColorful
             ? 'flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-            : `flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            : `flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
         }
       >
         {exportFormat === 'json' ? <FileText size={16} /> : <Download size={16} />}

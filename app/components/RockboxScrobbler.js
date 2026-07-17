@@ -245,11 +245,11 @@ export default function RockboxScrobbler({ isDarkMode, colorMode, onScrobblesLoa
 
   const btnPrimary = isColorful
     ? 'px-4 py-2 rounded-lg font-medium text-sm bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
-    : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
+    : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
 
   const btnSecondary = isColorful
     ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-colors border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed]'
-    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
+    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
 
   const btnDanger = isColorful
     ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#7c3aed]'

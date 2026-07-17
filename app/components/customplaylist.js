@@ -32,7 +32,7 @@ const CustomPlaylistCreator = ({
     buttonInactive: isDarkMode ? 'bg-rose-800 text-rose-300 border border-rose-600 hover:bg-rose-700 shadow-[2px_2px_0_0_#e11d48]' : 'bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200 shadow-[2px_2px_0_0_#be123c]',
     buttonPress: isDarkMode ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#e11d48]' : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#be123c]',
   } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
+    text: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
@@ -42,8 +42,8 @@ const CustomPlaylistCreator = ({
     border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     borderLight: isDarkMode ? 'border-[#4169E1]' : 'border-black',
     shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
-    buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
+    buttonActive: isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
+    buttonInactive: isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
     buttonPress: isDarkMode ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]' : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]',
   };
   const [playlistName, setPlaylistName] = useState('My Custom Playlist');

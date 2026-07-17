@@ -74,7 +74,7 @@ const PodcastRankings = ({
     buttonActive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 translate-x-[1px] translate-y-[1px] shadow-[inset_2px_2px_0_0_#b91c1c]',
     buttonInactive: isDarkMode ? 'bg-red-800 text-red-300 border border-red-600 hover:bg-red-700 shadow-[2px_2px_0_0_#dc2626]' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 shadow-[2px_2px_0_0_#b91c1c]',
   } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
+    text: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     textLighter: isDarkMode ? 'text-gray-500' : 'text-gray-500',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
@@ -86,8 +86,8 @@ const PodcastRankings = ({
     shadow: isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]',
     inputShadow: isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]',
     placeholder: isDarkMode ? 'placeholder-gray-500' : 'placeholder-gray-400',
-    buttonActive: isDarkMode ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
-    buttonInactive: isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
+    buttonActive: isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]',
+    buttonInactive: isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-900 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]',
   };
 
   // Add check for mobile viewport

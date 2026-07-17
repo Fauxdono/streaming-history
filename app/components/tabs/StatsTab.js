@@ -388,7 +388,7 @@ export default function StatsTab({
                         className={`px-2.5 py-1.5 rounded text-xs font-medium border transition-colors ${
                           isActive(m)
                             ? (colorMode === 'colorful' ? 'bg-indigo-600 text-white border-indigo-600' : (isDarkMode ? 'bg-white text-black border-white' : 'bg-black text-white border-black'))
-                            : (colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-700' : `${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`)
+                            : (colorMode === 'colorful' ? 'border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-700' : `${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`)
                         }`}
                       >{m.label}</button>
                     );
@@ -398,7 +398,7 @@ export default function StatsTab({
                           colorMode === 'colorful'
                             ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-700 shadow-[2px_2px_0_0_#4338ca] dark:shadow-[2px_2px_0_0_#4f46e5] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4338ca] dark:active:shadow-[inset_2px_2px_0_0_#4f46e5] group-open:shadow-[inset_2px_2px_0_0_#4338ca] dark:group-open:shadow-[inset_2px_2px_0_0_#4f46e5]'
                             : (isDarkMode
-                                ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1] group-open:shadow-[inset_2px_2px_0_0_#4169E1]'
+                                ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1] group-open:shadow-[inset_2px_2px_0_0_#4169E1]'
                                 : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black] group-open:shadow-[inset_2px_2px_0_0_black]')
                         }`}>
                           <ImageIcon size={16} />
@@ -531,7 +531,7 @@ export default function StatsTab({
                       const fitsInside = (hPct / 100) * 112 >= label.length * 6.5 + 10;
                       const yearLabelColor = colorMode === 'colorful'
                         ? 'text-indigo-700 dark:text-indigo-300'
-                        : (isDarkMode ? 'text-white' : 'text-black');
+                        : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black');
                       return (
                         <div key={year} className="flex flex-col items-center justify-end flex-1 min-w-[2rem] h-full" title={`${year}: ${formatDuration(ms)}`}>
                           {/* Too short for knockout text — hours float above the bar */}

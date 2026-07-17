@@ -99,7 +99,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
                   <span className={`inline-flex items-center justify-center w-4 h-4 text-xs rounded border leading-none
                     ${isColorful
                       ? (isDarkMode ? `${colors.bg} ${colors.text} border-current shadow-[1px_1px_0_0_currentColor]` : `${colors.bg} ${colors.text} border-current shadow-[1px_1px_0_0_currentColor]`)
-                      : (isDarkMode ? 'bg-black text-white border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white text-black border-black shadow-[1px_1px_0_0_black]')
+                      : (isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white text-black border-black shadow-[1px_1px_0_0_black]')
                     }`}
                   >
                     {showTracks ? '−' : '+'}

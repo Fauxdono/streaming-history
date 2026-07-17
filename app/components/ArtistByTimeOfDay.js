@@ -24,13 +24,13 @@ const ArtistByTimeOfDay = ({ rawPlayData = [], formatDuration, colorMode = 'mini
     barColor: isDarkMode ? '#D97706' : '#F59E0B',
     barColorAlt: isDarkMode ? '#B45309' : '#FBBF24',
   } : {
-    text: isDarkMode ? 'text-white' : 'text-black',
+    text: isDarkMode ? 'text-[#FDF6E3]' : 'text-black',
     textLight: isDarkMode ? 'text-gray-400' : 'text-gray-600',
     bg: isDarkMode ? 'bg-black' : 'bg-white',
     bgCard: isDarkMode ? 'bg-black' : 'bg-white',
     border: isDarkMode ? 'border-[#4169E1]' : 'border-black',
-    input: isDarkMode ? 'bg-black text-white border-[#4169E1]' : 'bg-white text-black border-black',
-    button: isDarkMode ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-200 text-black hover:bg-gray-300',
+    input: isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1]' : 'bg-white text-black border-black',
+    button: isDarkMode ? 'bg-gray-800 text-[#FDF6E3] hover:bg-gray-700' : 'bg-gray-200 text-black hover:bg-gray-300',
     barColor: isDarkMode ? '#9CA3AF' : '#6B7280',
     barColorAlt: isDarkMode ? '#6B7280' : '#9CA3AF',
   };

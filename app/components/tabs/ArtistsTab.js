@@ -105,8 +105,8 @@ export default function ArtistsTab({
                           }`
                         : `px-3 py-1 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                             artistSelectionMode
-                              ? (isDarkMode ? 'bg-black text-white border border-[#4169E1] shadow-[inset_2px_2px_0_0_#4169E1] translate-x-[1px] translate-y-[1px]' : 'bg-white text-black border border-black shadow-[inset_2px_2px_0_0_black] translate-x-[1px] translate-y-[1px]')
-                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'border border-black bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
+                              ? (isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] shadow-[inset_2px_2px_0_0_#4169E1] translate-x-[1px] translate-y-[1px]' : 'bg-white text-black border border-black shadow-[inset_2px_2px_0_0_black] translate-x-[1px] translate-y-[1px]')
+                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-[#FDF6E3] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'border border-black bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
                           }`
                     }
                   >
@@ -121,7 +121,7 @@ export default function ArtistsTab({
                       className={
                         colorMode === 'colorful'
                           ? 'w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 text-sm bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-600 dark:placeholder-blue-500'
-                          : `w-full border rounded px-2 py-1 text-sm focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                          : `w-full border rounded px-2 py-1 text-sm focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3]' : 'border-black bg-white text-black'}`
                       }
                     />
                     {artistSearch && (
@@ -130,7 +130,7 @@ export default function ArtistsTab({
                         className={
                           colorMode === 'colorful'
                             ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
-                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                         }
                       >
                         ×
@@ -173,7 +173,7 @@ export default function ArtistsTab({
                     className={
                       colorMode === 'colorful'
                         ? 'w-14 border border-blue-300 dark:border-blue-600 rounded px-1.5 py-1 text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300'
-                        : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                        : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3]' : 'border-black bg-white text-black'}`
                     }
                   />
 
@@ -184,7 +184,7 @@ export default function ArtistsTab({
                     className={
                       colorMode === 'colorful'
                         ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb]' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-blue-dark' : 'btn-press-blue-light') : ''}`
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -195,7 +195,7 @@ export default function ArtistsTab({
                     className={
                       colorMode === 'colorful'
                         ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb]' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8]'} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-blue-dark' : 'btn-press-blue-light') : ''}`
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {artistsViewMode === 'grid' ? '☰' : '⊞'}
@@ -215,7 +215,7 @@ export default function ArtistsTab({
                       className={
                         colorMode === 'colorful'
                           ? 'search-input-sm w-full border border-blue-300 dark:border-blue-600 rounded px-2 py-1 text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 focus:border-blue-500 focus:ring-blue-500 focus:outline-none placeholder-blue-600 dark:placeholder-blue-500 shadow-[2px_2px_0_0_#1d4ed8] dark:shadow-[2px_2px_0_0_#2563eb]'
-                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]'}`
+                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]'}`
                       }
                     />
                     {artistSearch && (
@@ -224,7 +224,7 @@ export default function ArtistsTab({
                         className={
                           colorMode === 'colorful'
                             ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
-                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                         }
                       >
                         ×
@@ -267,7 +267,7 @@ export default function ArtistsTab({
                         : `px-1.5 py-1 rounded text-xs font-medium transition-colors ${
                             artistSelectionMode
                               ? (isDarkMode ? 'bg-gray-700 text-white border border-gray-600' : 'bg-gray-300 text-black border border-gray-400')
-                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-white hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'border border-black bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
+                              : (isDarkMode ? 'border border-[#4169E1] bg-black text-[#FDF6E3] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'border border-black bg-white text-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]')
                           }`
                     }
                   >
@@ -279,12 +279,12 @@ export default function ArtistsTab({
                     inputClass={
                       colorMode === 'colorful'
                         ? 'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-800 text-blue-700 dark:text-blue-200 shadow-[2px_2px_0_0_#1d4ed8] dark:shadow-[2px_2px_0_0_#2563eb]'
-                        : (isDarkMode ? 'border-[#4169E1] bg-black text-white shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
+                        : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
                     }
                     buttonClass={
                       colorMode === 'colorful'
                         ? 'text-blue-700 dark:text-blue-300'
-                        : (isDarkMode ? 'text-white' : 'text-black')
+                        : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black')
                     }
                   />
                   <button
@@ -293,7 +293,7 @@ export default function ArtistsTab({
                     className={
                       colorMode === 'colorful'
                         ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? 'bg-blue-800 text-blue-300 border border-blue-600 shadow-[2px_2px_0_0_#2563eb]' : 'bg-blue-100 text-blue-700 border border-blue-700 shadow-[2px_2px_0_0_#1d4ed8]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-blue-dark' : 'btn-press-blue-light') : ''}`
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${artistsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {artistsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -303,7 +303,7 @@ export default function ArtistsTab({
                   <p className={
                     colorMode === 'colorful'
                       ? 'text-xs text-center text-blue-600 dark:text-blue-400 mt-1'
-                      : `text-xs text-center mt-1 ${isDarkMode ? 'text-white' : 'text-black'}`
+                      : `text-xs text-center mt-1 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                   }>
                     👆 Tap any artist below to view their tracks
                   </p>
@@ -316,7 +316,7 @@ export default function ArtistsTab({
                   <p className={
                     colorMode === 'colorful'
                       ? 'text-sm text-center text-blue-600 dark:text-blue-400 mb-2'
-                      : `text-sm text-center mb-2 ${isDarkMode ? 'text-white' : 'text-black'}`
+                      : `text-sm text-center mb-2 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                   }>
                     👆 Click on any artist below to view their custom track rankings
                   </p>
@@ -337,7 +337,7 @@ export default function ArtistsTab({
                       className={
                         colorMode === 'colorful'
                           ? 'inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 dark:bg-blue-700 text-blue-700 dark:text-blue-200 rounded-full text-xs'
-                          : `inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${isDarkMode ? 'border-[#4169E1] text-white' : 'border-black text-black'}`
+                          : `inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3]' : 'border-black text-black'}`
                       }
                     >
                       {artist}
@@ -346,7 +346,7 @@ export default function ArtistsTab({
                         className={
                           colorMode === 'colorful'
                             ? 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-200'
-                            : `hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                            : `hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                         }
                       >
                         ✕
@@ -358,7 +358,7 @@ export default function ArtistsTab({
                     className={
                       colorMode === 'colorful'
                         ? 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 text-xs ml-1'
-                        : `text-xs ml-1 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                        : `text-xs ml-1 hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                     }
                   >
                     Clear
@@ -447,7 +447,7 @@ export default function ArtistsTab({
                           : '';
                         const cardTextLight = colorMode === 'colorful'
                           ? 'text-blue-600 dark:text-blue-300'
-                          : (isDarkMode ? 'text-white' : 'text-black');
+                          : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black');
 
                         const isExpanded = !!expandedArtistCards[artist.name];
                         const toggleExpanded = (e) => {
@@ -562,7 +562,7 @@ export default function ArtistsTab({
                   <p className={
                     colorMode === 'colorful'
                       ? 'text-blue-600 dark:text-blue-300 mt-2'
-                      : `mt-2 ${isDarkMode ? 'text-white' : 'text-black'}`
+                      : `mt-2 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                   }>
                     {yearRangeMode
                       ? `No artists found for the year range ${yearRange.startYear} - ${yearRange.endYear}.`
@@ -579,7 +579,7 @@ export default function ArtistsTab({
                     className={
                       colorMode === 'colorful'
                         ? 'mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-                        : `mt-4 px-4 py-2 rounded ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                        : `mt-4 px-4 py-2 rounded ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
                     }
                   >
                     Show All Artists

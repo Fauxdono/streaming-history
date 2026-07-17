@@ -443,12 +443,12 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
   const segActive = isColorful
     ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
     : isDarkMode
-      ? 'bg-black text-white border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+      ? 'bg-black text-[#FDF6E3] border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
       : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
   const segInactive = isColorful
     ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 hover:opacity-80 shadow-[2px_2px_0_0_#7c3aed]'
     : isDarkMode
-      ? 'bg-black text-white border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
+      ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
       : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
   const border = isColorful ? 'border-violet-300 dark:border-violet-700' : isDarkMode ? 'border-[#4169E1]' : 'border-black';
   const cardBg = isColorful ? 'bg-violet-100 dark:bg-violet-800' : isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
@@ -458,10 +458,10 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
 
   const btnPrimary = isColorful
     ? 'px-4 py-2 rounded-lg font-medium text-sm bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
-    : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
+    : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
   const btnSecondary = isColorful
     ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-colors border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed]'
-    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-white border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
+    : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border-black hover:bg-gray-100'}`;
   const btnDanger = isColorful
     ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[2px_2px_0_0_#7c3aed]'
     : `px-3 py-1.5 rounded-lg font-medium text-sm border transition-colors ${isDarkMode ? 'bg-black text-red-400 border-red-600 hover:bg-gray-800' : 'bg-white text-red-600 border-red-400 hover:bg-red-50'}`;
@@ -512,7 +512,7 @@ export default function LastfmConnect({ isDarkMode, colorMode, onScrobblesLoaded
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
-                isColorful ? 'bg-violet-200 dark:bg-violet-800 text-violet-800 dark:text-violet-200' : isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'
+                isColorful ? 'bg-violet-200 dark:bg-violet-800 text-violet-800 dark:text-violet-200' : isDarkMode ? 'bg-gray-800 text-[#FDF6E3]' : 'bg-gray-200 text-black'
               }`}>
                 <span className="text-base">🎵</span>
                 <span className="font-medium">{savedUsername}</span>

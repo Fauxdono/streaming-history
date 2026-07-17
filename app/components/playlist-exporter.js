@@ -113,11 +113,11 @@ const PlaylistExporter = ({
     border: 'border-[#4169E1]',
     shadow: 'shadow-[1px_1px_0_0_#4169E1]',
     accent: 'accent-[#4169E1]',
-    button: 'bg-black text-white border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1] hover:bg-gray-900',
+    button: 'bg-black text-[#FDF6E3] border border-[#4169E1] shadow-[2px_2px_0_0_#4169E1] hover:bg-gray-900',
     buttonDisabled: 'bg-gray-900 text-gray-600',
-    darkest: 'text-white',
-    input: 'bg-black border-[#4169E1] text-white',
-    option: 'bg-black text-white',
+    darkest: 'text-[#FDF6E3]',
+    input: 'bg-black border-[#4169E1] text-[#FDF6E3]',
+    option: 'bg-black text-[#FDF6E3]',
     error: 'text-red-400 border-red-700 bg-red-900/50'
   } : {
     primary: 'text-black',

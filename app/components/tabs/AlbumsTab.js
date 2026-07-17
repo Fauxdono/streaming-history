@@ -103,7 +103,7 @@ export default function AlbumsTab({
                       className={
                         colorMode === 'colorful'
                           ? 'w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-sm bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-600 dark:placeholder-cyan-500'
-                          : `w-full border rounded px-2 py-1 text-sm focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                          : `w-full border rounded px-2 py-1 text-sm focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3]' : 'border-black bg-white text-black'}`
                       }
                     />
                     {artistSearch && (
@@ -112,7 +112,7 @@ export default function AlbumsTab({
                         className={
                           colorMode === 'colorful'
                             ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-cyan-500 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-200'
-                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                         }
                       >
                         ×
@@ -155,7 +155,7 @@ export default function AlbumsTab({
                     className={
                       colorMode === 'colorful'
                         ? 'w-14 border border-cyan-300 dark:border-cyan-600 rounded px-1.5 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300'
-                        : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-white' : 'border-black bg-white text-black'}`
+                        : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3]' : 'border-black bg-white text-black'}`
                     }
                   />
 
@@ -166,7 +166,7 @@ export default function AlbumsTab({
                     className={
                       colorMode === 'colorful'
                         ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? 'bg-cyan-800 text-cyan-300 border border-cyan-600 shadow-[2px_2px_0_0_#0891b2]' : 'bg-cyan-100 text-cyan-700 border border-cyan-700 shadow-[2px_2px_0_0_#0e7490]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-cyan-dark' : 'btn-press-cyan-light') : ''}`
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -177,7 +177,7 @@ export default function AlbumsTab({
                     className={
                       colorMode === 'colorful'
                         ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? 'bg-cyan-800 text-cyan-300 border border-cyan-600 shadow-[2px_2px_0_0_#0891b2]' : 'bg-cyan-100 text-cyan-700 border border-cyan-700 shadow-[2px_2px_0_0_#0e7490]'} ${albumsViewPress > 0 ? (isDarkMode ? 'btn-press-cyan-dark' : 'btn-press-cyan-light') : ''}`
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsViewPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {albumsViewMode === 'grid' ? '☰' : '⊞'}
@@ -197,7 +197,7 @@ export default function AlbumsTab({
                       className={
                         colorMode === 'colorful'
                           ? 'search-input-sm w-full border border-cyan-300 dark:border-cyan-600 rounded px-2 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none placeholder-cyan-600 dark:placeholder-cyan-500 shadow-[2px_2px_0_0_#0e7490] dark:shadow-[2px_2px_0_0_#0891b2]'
-                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-white shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]'}`
+                          : `search-input-sm w-full border rounded px-2 py-1 text-xs focus:outline-none ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]'}`
                       }
                     />
                     {artistSearch && (
@@ -206,7 +206,7 @@ export default function AlbumsTab({
                         className={
                           colorMode === 'colorful'
                             ? 'absolute right-2 top-1/2 transform -translate-y-1/2 text-cyan-500 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-200'
-                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                            : `absolute right-2 top-1/2 transform -translate-y-1/2 hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                         }
                       >
                         ×
@@ -243,12 +243,12 @@ export default function AlbumsTab({
                     inputClass={
                       colorMode === 'colorful'
                         ? 'border-cyan-300 dark:border-cyan-600 bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 shadow-[2px_2px_0_0_#0e7490] dark:shadow-[2px_2px_0_0_#0891b2]'
-                        : (isDarkMode ? 'border-[#4169E1] bg-black text-white shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
+                        : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
                     }
                     buttonClass={
                       colorMode === 'colorful'
                         ? 'text-cyan-700 dark:text-cyan-300'
-                        : (isDarkMode ? 'text-white' : 'text-black')
+                        : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black')
                     }
                   />
                   <button
@@ -257,7 +257,7 @@ export default function AlbumsTab({
                     className={
                       colorMode === 'colorful'
                         ? `px-2 py-1 rounded text-xs font-medium transition-colors hover:opacity-80 ${isDarkMode ? 'bg-cyan-800 text-cyan-300 border border-cyan-600 shadow-[2px_2px_0_0_#0891b2]' : 'bg-cyan-100 text-cyan-700 border border-cyan-700 shadow-[2px_2px_0_0_#0e7490]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-cyan-dark' : 'btn-press-cyan-light') : ''}`
-                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
+                        : `px-2 py-1 rounded text-xs font-medium transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'} ${albumsSortPress > 0 ? (isDarkMode ? 'btn-press-dark' : 'btn-press-light') : ''}`
                     }
                   >
                     {albumsSortBy === 'totalPlayed' ? 'Time' : 'Plays'}
@@ -279,7 +279,7 @@ export default function AlbumsTab({
                       className={
                         colorMode === 'colorful'
                           ? 'inline-flex items-center gap-1 px-2 py-0.5 bg-cyan-100 dark:bg-cyan-700 text-cyan-700 dark:text-cyan-200 rounded-full text-xs'
-                          : `inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${isDarkMode ? 'border-[#4169E1] text-white' : 'border-black text-black'}`
+                          : `inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3]' : 'border-black text-black'}`
                       }
                     >
                       {artist}
@@ -288,7 +288,7 @@ export default function AlbumsTab({
                         className={
                           colorMode === 'colorful'
                             ? 'text-cyan-500 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-200'
-                            : `hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                            : `hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                         }
                       >
                         ✕
@@ -300,7 +300,7 @@ export default function AlbumsTab({
                     className={
                       colorMode === 'colorful'
                         ? 'text-cyan-600 dark:text-cyan-400 hover:text-cyan-800 dark:hover:text-cyan-200 text-xs ml-1'
-                        : `text-xs ml-1 hover:opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`
+                        : `text-xs ml-1 hover:opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                     }
                   >
                     Clear
@@ -357,7 +357,7 @@ export default function AlbumsTab({
                                           <span className={`inline-flex items-center justify-center w-4 h-4 text-xs rounded border leading-none shrink-0 ml-1
                                             ${colorMode === 'colorful'
                                               ? (isDarkMode ? 'bg-cyan-800 text-cyan-200 border-cyan-500 shadow-[1px_1px_0_0_#06b6d4]' : 'bg-cyan-100 text-cyan-700 border-cyan-600 shadow-[1px_1px_0_0_#0e7490]')
-                                              : (isDarkMode ? 'bg-black text-white border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white text-black border-black shadow-[1px_1px_0_0_black]')
+                                              : (isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] shadow-[1px_1px_0_0_#4169E1]' : 'bg-white text-black border-black shadow-[1px_1px_0_0_black]')
                                             }`}
                                           >{isRowExpanded ? '−' : '+'}</span>
                                         </button>
@@ -406,7 +406,7 @@ export default function AlbumsTab({
                         : '';
                       const albumCardTextLight = colorMode === 'colorful'
                         ? 'text-cyan-600 dark:text-cyan-300'
-                        : (isDarkMode ? 'text-white' : 'text-black');
+                        : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black');
 
                       return albumsViewMode === 'grid' ? (
                         <AlbumCard
@@ -466,7 +466,7 @@ export default function AlbumsTab({
                 <div className={
                   colorMode === 'colorful'
                     ? 'text-center py-8 text-cyan-600 dark:text-cyan-400'
-                    : `text-center py-8 ${isDarkMode ? 'text-white' : 'text-black'}`
+                    : `text-center py-8 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`
                 }>
                   {selectedAlbumYear === 'all' ?
                     'No album data available' :

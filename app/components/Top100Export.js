@@ -131,7 +131,7 @@ const Top100Export = ({
         className={
           isColorful
             ? 'w-16 px-2 py-2 bg-cyan-900 text-white rounded text-sm text-center border border-cyan-600 focus:outline-none focus:border-cyan-400'
-            : `w-16 px-2 py-2 rounded text-sm text-center focus:outline-none ${isDarkMode ? 'bg-black text-white border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
+            : `w-16 px-2 py-2 rounded text-sm text-center focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
         }
       />
       <button
@@ -139,7 +139,7 @@ const Top100Export = ({
         className={
           isColorful
             ? 'flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors text-sm'
-            : `flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            : `flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
         }
       >
         <FileText size={16} />
@@ -150,7 +150,7 @@ const Top100Export = ({
         className={
           isColorful
             ? 'flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors text-sm'
-            : `flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm ${isDarkMode ? 'bg-black text-white border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            : `flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
         }
       >
         {copied ? <Check size={16} /> : <Copy size={16} />}

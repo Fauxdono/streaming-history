@@ -267,7 +267,7 @@ const TopTabs = ({
       if (colorMode === 'minimal') {
         return activeTab === tabId
           ? 'bg-black text-white border-b-2 border-black dark:bg-white dark:text-black dark:border-[#4169E1]'
-          : 'bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-white dark:hover:bg-gray-900';
+          : 'bg-white text-black hover:bg-gray-100 dark:bg-black dark:text-[#FDF6E3] dark:hover:bg-gray-900';
       }
 
       // Colorful mode

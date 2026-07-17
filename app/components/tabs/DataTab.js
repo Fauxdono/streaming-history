@@ -451,28 +451,28 @@ export default function DataTab({
   // Colorful mode: green page with black accents in light, black terminal
   // with green accents in dark (dark: variants carry the inversion).
   const headingClass = isColorful ? 'text-black dark:text-green-400' : '';
-  const bodyClass = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-white' : 'text-black';
+  const bodyClass = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-[#FDF6E3]' : 'text-black';
   const cardClass = isColorful
     ? 'p-4 border border-black rounded bg-green-200 shadow-[2px_2px_0_0_black] dark:border-green-500 dark:bg-black dark:shadow-[2px_2px_0_0_#22c55e]'
     : `p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`;
   const thClass = isColorful
     ? 'px-2 py-2 text-left text-xs font-bold uppercase tracking-wider text-black cursor-pointer select-none hover:opacity-70 dark:text-green-400 dark:hover:text-green-300 dark:hover:opacity-100'
-    : `px-2 py-2 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none ${isDarkMode ? 'text-white' : 'text-black'}`;
+    : `px-2 py-2 text-left text-xs font-bold uppercase tracking-wider cursor-pointer select-none ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`;
   const tdClass = isColorful
     ? 'px-2 py-1.5 text-sm text-black dark:text-green-500'
-    : `px-2 py-1.5 text-sm ${isDarkMode ? 'text-white' : 'text-black'}`;
+    : `px-2 py-1.5 text-sm ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`;
   const inputClass = isColorful
     ? 'px-1.5 py-1 w-full text-sm rounded bg-green-100 border border-black text-black focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-300 dark:focus:border-green-400'
-    : `px-1.5 py-1 w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black'}`;
+    : `px-1.5 py-1 w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1]' : 'bg-white text-black border border-black'}`;
   const iconBtnClass = isColorful
     ? 'p-1 rounded text-black hover:bg-green-300 dark:text-green-500 dark:hover:text-green-300 dark:hover:bg-green-950'
     : `p-1 rounded ${isDarkMode ? 'text-white hover:bg-gray-900' : 'text-black hover:bg-gray-100'}`;
   const badgeClass = isColorful
     ? 'px-1.5 py-0.5 text-[10px] rounded border border-black bg-green-300 text-black whitespace-nowrap dark:border-green-700 dark:bg-green-950 dark:text-green-400'
-    : `px-1.5 py-0.5 text-[10px] rounded border whitespace-nowrap ${isDarkMode ? 'border-[#4169E1] text-white' : 'border-black text-black'}`;
+    : `px-1.5 py-0.5 text-[10px] rounded border whitespace-nowrap ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3]' : 'border-black text-black'}`;
   const pageBtnClass = isColorful
     ? 'flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
-    : `flex items-center gap-1 px-3 py-1.5 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`;
+    : `flex items-center gap-1 px-3 py-1.5 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`;
 
   const SortHeader = ({ column, label, className = '' }) => (
     <th className={`${thClass} ${className}`} onClick={() => toggleSort(column)}>
@@ -672,7 +672,7 @@ export default function DataTab({
                         className={
                           isColorful
                             ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
-                            : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                            : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
                         }
                       >
                         Run lookup now
@@ -683,7 +683,7 @@ export default function DataTab({
                           className={
                             isColorful
                               ? 'px-4 py-2 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-                              : `px-4 py-2 text-sm rounded border font-medium ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                              : `px-4 py-2 text-sm rounded border font-medium ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
                           }
                           title="Only the tracks matching the search/service filter in the table below"
                         >
@@ -741,7 +741,7 @@ export default function DataTab({
                       ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-red-600 text-red-700 bg-red-200 dark:border-red-500 dark:text-red-400 dark:bg-red-950'
                       : isColorful
                         ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-500 dark:hover:bg-green-950'
-                        : `flex items-center gap-1 px-2 py-1.5 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                        : `flex items-center gap-1 px-2 py-1.5 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
                   }
                 >
                   <RotateCcw size={12} />
@@ -758,7 +758,7 @@ export default function DataTab({
                   className={
                     isColorful
                       ? 'pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded bg-green-100 border border-black text-black placeholder-green-700 focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-400 dark:placeholder-green-800 dark:focus:border-green-400'
-                      : `pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-white border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
+                      : `pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
                   }
                 />
               </div>
@@ -780,8 +780,8 @@ export default function DataTab({
                             ? 'bg-black text-green-400 border-black dark:bg-green-600 dark:text-black dark:border-green-600'
                             : 'border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-500 dark:hover:bg-green-950'}`
                         : `inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded border ${active
-                            ? (isDarkMode ? 'bg-[#4169E1] text-white border-[#4169E1]' : 'bg-black text-white border-black')
-                            : (isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100')}`
+                            ? (isDarkMode ? 'bg-[#4169E1] text-[#FDF6E3] border-[#4169E1]' : 'bg-black text-[#FDF6E3] border-black')
+                            : (isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100')}`
                     }
                   >
                     {source && <ServiceIcon source={source} size={11} />}
@@ -826,7 +826,7 @@ export default function DataTab({
                         className={
                           isColorful
                             ? 'px-2 py-1 text-xs rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
+                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
                         }
                       >
                         Merge
@@ -889,7 +889,7 @@ export default function DataTab({
                   className={
                     isColorful
                       ? 'px-3 py-1.5 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-[#4169E1] text-white hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
+                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
                   }
                 >
                   Merge into one song
@@ -913,7 +913,7 @@ export default function DataTab({
             const rowClass = isColorful
               ? 'border-b border-green-400 dark:border-green-900'
               : `border-b ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`;
-            const metaCls = isColorful ? 'text-xs text-black opacity-70 dark:text-green-600 dark:opacity-100' : `text-xs opacity-70 ${isDarkMode ? 'text-white' : 'text-black'}`;
+            const metaCls = isColorful ? 'text-xs text-black opacity-70 dark:text-green-600 dark:opacity-100' : `text-xs opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`;
             const SORTS = [['name', 'Track'], ['artist', 'Artist'], ['album', 'Album'], ['releaseYear', 'Year'], ['lengthMs', 'Length']];
             return (
               <div>
