@@ -1353,7 +1353,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               type="text"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
               placeholder="Enter playlist name"
             />
           </div>
@@ -1401,7 +1401,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                    className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                     placeholder="Search by track name, artist or album..."
                   />
 
@@ -1440,7 +1440,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         type="text"
                         value={manualTrack.trackName}
                         onChange={(e) => updateManualTrack('trackName', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                        className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Enter track name"
                       />
                     </div>
@@ -1450,7 +1450,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         type="text"
                         value={manualTrack.artist}
                         onChange={(e) => updateManualTrack('artist', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                        className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Enter artist name"
                       />
                     </div>
@@ -1460,7 +1460,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         type="text"
                         value={manualTrack.albumName}
                         onChange={(e) => updateManualTrack('albumName', e.target.value)}
-                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                        className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Enter album name (optional)"
                       />
                     </div>
@@ -1470,7 +1470,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                         type="number"
                         value={Math.round(manualTrack.totalPlayed / 1000)}
                         onChange={(e) => updateManualTrack('totalPlayed', parseInt(e.target.value) * 1000)}
-                        className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                        className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                         placeholder="Duration in seconds"
                         min="1"
                       />
@@ -1596,14 +1596,16 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                       ))}
                     </select>
                   ) : (
-                    <input
-                      type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
-                      value={rule.value}
-                      onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
-                      className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
-                      placeholder={`Enter ${rule.type} value...`}
-                      min={rule.type === 'playCount' || rule.type === 'playTime' ? "0" : undefined}
-                    />
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type={rule.type === 'playCount' || rule.type === 'playTime' ? 'number' : 'text'}
+                        value={rule.value}
+                        onChange={(e) => updateRule(rule.id, 'value', e.target.value)}
+                        className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                        placeholder={`Enter ${rule.type} value...`}
+                        min={rule.type === 'playCount' || rule.type === 'playTime' ? "0" : undefined}
+                      />
+                    </div>
                   )}
                   <button
                     onClick={() => removeRule(rule.id)}
@@ -1829,7 +1831,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               type="text"
               value={importSearchTerm}
               onChange={(e) => setImportSearchTerm(e.target.value)}
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
               placeholder="Filter playlists by name..."
             />
           )}
@@ -1933,7 +1935,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
               type="text"
               value={musicBasePath}
               onChange={(e) => setMusicBasePath(e.target.value)}
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
               placeholder="e.g. /Music/Downloads or C:/Music"
             />
             <p className={`text-xs ${modeColors.textLight} mt-1`}>
@@ -1970,7 +1972,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
                   type="text"
                   value={customPathFormat}
                   onChange={(e) => setCustomPathFormat(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+                  className={`search-input-sm w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
                   placeholder="Custom path format"
                 />
                 <div className={`text-xs ${modeColors.textLight} mt-1`}>

@@ -330,7 +330,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
 
       {activeTab === 'past-updates' && (
         <div className="space-y-4">
-          <h3 className={`font-bold text-lg ${modeColors.heading}`}>Past Updates</h3>
+          <h3 className={`hidden sm:block font-bold text-lg ${modeColors.heading}`}>Past Updates</h3>
           {pastUpdates.length === 0 ? (
             <div className={`text-center py-8 ${modeColors.muted}`}>No completed updates yet.</div>
           ) : (
@@ -372,7 +372,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
 
       {activeTab === 'planned-updates' && (
         <div className="space-y-4">
-          <h3 className={`font-bold text-lg ${modeColors.heading}`}>Upcoming Features</h3>
+          <h3 className={`hidden sm:block font-bold text-lg ${modeColors.heading}`}>Upcoming Features</h3>
           {plannedUpdates.length === 0 ? (
             <div className={`text-center py-8 ${modeColors.muted}`}>No planned updates yet. Suggestions with 10+ votes are automatically promoted!</div>
           ) : (
@@ -456,7 +456,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
 
       {activeTab === 'community-suggestions' && (
         <div className="space-y-4">
-          <h3 className={`font-bold text-lg ${modeColors.heading}`}>Community Suggestions</h3>
+          <h3 className={`hidden sm:block font-bold text-lg ${modeColors.heading}`}>Community Suggestions</h3>
 
           {error && (
             <div className="p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 text-sm">
