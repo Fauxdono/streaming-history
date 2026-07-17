@@ -84,21 +84,14 @@ export default function UploadTab({
             {/* Content is capped at a mobile-ish column width and centered;
                 the violet card bg fills the space either side on desktop. */}
             <div className="max-w-2xl mx-auto">
-            {/* Title + inner tabs + web app row */}
-            <div className="relative flex items-center gap-3 mb-4 flex-wrap">
+            {/* Title + inner tabs row */}
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <h3 className={`text-xl hidden sm:block ${uploadText}`}>
                 {uploadInnerTab === 'upload' ? 'Upload Files' : 'Scrobbles'}
               </h3>
               <div className="w-full sm:w-auto flex justify-center sm:justify-start gap-1">
                 <button onClick={() => setUploadInnerTab('upload')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'upload' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Upload</button>
                 <button onClick={() => setUploadInnerTab('scrobbles')} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${uploadInnerTab === 'scrobbles' ? uploadInnerBtnActive : uploadInnerBtnInactive}`}>Scrobbles</button>
-              </div>
-              <div className={`absolute right-0 top-1/2 -translate-y-1/2 sm:static sm:translate-y-0 sm:ml-auto ${
-                colorMode === 'colorful'
-                  ? 'px-2 py-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
-                  : `px-2 py-1 rounded border ${isDarkMode ? 'bg-black text-white border-[#4169E1]' : 'bg-white text-black border-black'}`
-              }`}>
-                <p className="font-bold text-xs">📱 Download as Web App!</p>
               </div>
             </div>
             <div>
@@ -197,7 +190,16 @@ export default function UploadTab({
             <div className="relative pr-[52px] mb-4">
               {/* How to Use section */}
               <div className={`p-4 border rounded-lg flex flex-col ${uploadCardBg} ${uploadBorder} ${uploadShadow}`}>
-                <h3 className={`font-semibold mb-3 text-sm ${uploadText}`}>How to use:</h3>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <h3 className={`font-semibold text-sm ${uploadText}`}>How to use:</h3>
+                  <div className={
+                    colorMode === 'colorful'
+                      ? 'px-2 py-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded text-white'
+                      : `px-2 py-1 rounded border ${isDarkMode ? 'bg-black text-white border-[#4169E1]' : 'bg-white text-black border-black'}`
+                  }>
+                    <p className="font-bold text-xs">📱 Download as Web App!</p>
+                  </div>
+                </div>
                 <div className={`text-xs sm:text-sm ${uploadTextLight}`}>
                   <div className="flex items-start gap-3 mb-2">
                     <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-white' : (isDarkMode ? 'bg-black text-white border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>1</span>
