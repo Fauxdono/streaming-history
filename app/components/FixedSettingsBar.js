@@ -91,20 +91,20 @@ const FixedSettingsBar = ({
                 {/* Dark mode toggle */}
                 <button
                   onClick={toggleTheme}
-                  className={`p-1.5 rounded-full transition-colors shadow-lg w-8 h-8 flex items-center justify-center ${
+                  className={`p-1.5 rounded-full transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center ${
                     isDarkMode
                       ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
                       : 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
                   }`}
                   title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
-                  {isDarkMode ? <Sun size={16} className="w-[1.15rem] h-[1.15rem]" /> : <Moon size={16} className="w-[1.15rem] h-[1.15rem]" />}
+                  {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                 </button>
 
                 {/* Color mode toggle */}
                 <button
                   onClick={() => setColorMode(colorMode === 'minimal' ? 'colorful' : 'minimal')}
-                  className={`p-1.5 rounded-full transition-colors shadow-lg w-8 h-8 flex items-center justify-center ${
+                  className={`p-1.5 rounded-full transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center ${
                     colorMode === 'colorful'
                       ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white hover:from-pink-600 hover:to-purple-600'
                       : isDarkMode
@@ -113,27 +113,27 @@ const FixedSettingsBar = ({
                   }`}
                   title={colorMode === 'minimal' ? 'Switch to colorful mode' : 'Switch to minimal mode'}
                 >
-                  <Palette size={16} className="w-[1.15rem] h-[1.15rem]" />
+                  <Palette size={16} />
                 </button>
 
                 {/* Settings (font size/family) */}
                 <button
                   ref={settingsButtonRef}
                   onClick={() => setShowFontSizeDropdown(!showFontSizeDropdown)}
-                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-gray-600 text-white hover:bg-gray-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Font & Display Settings"
                 >
-                  <Type size={16} className="w-[1.15rem] h-[1.15rem]" />
+                  <Type size={16} />
                 </button>
 
                 {/* Support/donate */}
                 <button
                   ref={supportButtonRef}
                   onClick={() => setShowSupportDropdown(!showSupportDropdown)}
-                  className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Support"
                 >
-                  <Heart size={16} className="w-[1.15rem] h-[1.15rem]" fill="white" />
+                  <Heart size={16} fill="white" />
                 </button>
               </div>
 
@@ -142,26 +142,26 @@ const FixedSettingsBar = ({
                 {showViewToggle && (
                   <button
                     onClick={toggleViewMode}
-                    className="p-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                    className="p-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                     title={viewMode === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
                   >
-                    {viewMode === 'grid' ? <List size={16} className="w-[1.15rem] h-[1.15rem]" /> : <LayoutGrid size={16} className="w-[1.15rem] h-[1.15rem]" />}
+                    {viewMode === 'grid' ? <List size={16} /> : <LayoutGrid size={16} />}
                   </button>
                 )}
                 {/* Tab labels: words <-> icons (mirrors the toggle on the tab strip) */}
                 <button
                   onClick={toggleCollapsed}
-                  className="p-1.5 rounded-full bg-sky-600 text-white hover:bg-sky-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-sky-600 text-white hover:bg-sky-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title={isCollapsed ? 'Show tab labels' : 'Show tab icons'}
                 >
-                  {isCollapsed ? <Maximize2 size={16} className="w-[1.15rem] h-[1.15rem]" /> : <Minimize2 size={16} className="w-[1.15rem] h-[1.15rem]" />}
+                  {isCollapsed ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
                 </button>
                 <button
                   onClick={togglePosition}
-                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-8 h-8 flex items-center justify-center"
+                  className="p-1.5 rounded-full bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-lg w-[28px] h-[28px] flex items-center justify-center"
                   title="Change tab position"
                 >
-                  <ArrowLeftRight size={16} className="w-[1.15rem] h-[1.15rem]" />
+                  <ArrowLeftRight size={16} />
                 </button>
               </div>
             </>
