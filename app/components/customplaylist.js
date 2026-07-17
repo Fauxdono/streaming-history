@@ -1318,7 +1318,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
 
       {/* Mobile controls - separate row */}
       <div className="block sm:hidden mb-4">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 justify-center">
           <TabButton id="create" label="Create" />
           {hasImports && (
             <TabButton id="import" label={`Import (${importCount})`} />

@@ -2615,10 +2615,6 @@ const SpotifyAnalyzer = ({
               ? 'p-2 sm:p-4 bg-fuchsia-200 dark:bg-fuchsia-900 rounded border-2 border-fuchsia-300 dark:border-fuchsia-700'
               : `p-2 sm:p-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
-            {/* Desktop title */}
-            <div className="hidden sm:block mb-4">
-              <h3 className="text-xl">App Updates</h3>
-            </div>
             <UpdatesSection colorMode={colorMode} />
           </div>
         );

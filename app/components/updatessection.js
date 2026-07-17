@@ -269,8 +269,16 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
     completedBadge: isDarkMode ? 'border border-[#4169E1] text-white' : 'border border-black text-black',
   };
 
-  const tabClass = (tab) =>
-    `px-4 py-2 font-medium ${activeTab === tab ? modeColors.tabActive : modeColors.tabInactive}`;
+  const TabButton = ({ id, label }) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${
+        activeTab === id ? modeColors.buttonActive : modeColors.buttonInactive
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   const renderIcon = (type) => {
     switch (type) {
@@ -296,17 +304,28 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
 
   return (
     <div className="space-y-4">
-      {/* Tabs */}
-      <div className={`flex border-b mb-4 ${modeColors.tabBorder}`}>
-        <button onClick={() => setActiveTab('community-suggestions')} className={tabClass('community-suggestions')}>
-          Suggestions/Bugs
-        </button>
-        <button onClick={() => setActiveTab('past-updates')} className={tabClass('past-updates')}>
-          Past Updates
-        </button>
-        <button onClick={() => setActiveTab('planned-updates')} className={tabClass('planned-updates')}>
-          Planned Updates
-        </button>
+      {/* Desktop layout - title, centered tabs */}
+      <div className="hidden sm:flex items-center mb-2 gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className={`text-xl truncate ${modeColors.heading}`}>
+            App Updates <span className="opacity-50">/</span> <span className="text-base">{{ 'community-suggestions': 'Suggestions/Bugs', 'past-updates': 'Past Updates', 'planned-updates': 'Planned Updates' }[activeTab]}</span>
+          </h3>
+        </div>
+        <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
+          <TabButton id="community-suggestions" label="Suggestions/Bugs" />
+          <TabButton id="past-updates" label="Past Updates" />
+          <TabButton id="planned-updates" label="Planned Updates" />
+        </div>
+        <div className="flex-1"></div>
+      </div>
+
+      {/* Mobile controls - separate row */}
+      <div className="block sm:hidden mb-2">
+        <div className="flex flex-wrap gap-1 justify-center">
+          <TabButton id="community-suggestions" label="Suggest" />
+          <TabButton id="past-updates" label="Past" />
+          <TabButton id="planned-updates" label="Planned" />
+        </div>
       </div>
 
       {activeTab === 'past-updates' && (
