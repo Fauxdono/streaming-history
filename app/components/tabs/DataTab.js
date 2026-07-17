@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { Download, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, RotateCcw, Disc3 } from 'lucide-react';
+import { Download, Search, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, RotateCcw, Disc3, Info } from 'lucide-react';
 import ExportButton from '../ExportButton.js';
 import Top100Export from '../Top100Export.js';
 import ServiceIcon from '../ServiceIcons.js';
@@ -87,6 +87,22 @@ export default function DataTab({
   const [expandedKey, setExpandedKey] = useState(null);
   const [editingKey, setEditingKey] = useState(null);
   const [editDraft, setEditDraft] = useState({ name: '', artist: '', album: '', year: '', length: '' });
+  // Mobile: the explanatory paragraphs collapse behind a little ⓘ beside
+  // each section header; desktop always shows them.
+  const [infoOpen, setInfoOpen] = useState({});
+  const InfoBtn = ({ id }) => (
+    <button
+      onClick={() => setInfoOpen(o => ({ ...o, [id]: !o[id] }))}
+      className={`sm:hidden shrink-0 ${infoOpen[id] ? '' : 'opacity-60'} ${isColorful ? 'text-black dark:text-green-400' : ''}`}
+      aria-label="Toggle explanation"
+      aria-expanded={!!infoOpen[id]}
+    >
+      <Info size={15} />
+    </button>
+  );
+  const Expl = ({ id, className, children }) => (
+    <p className={`${infoOpen[id] ? '' : 'hidden'} sm:block ${className}`}>{children}</p>
+  );
 
   const persist = useCallback(async (next) => {
     setOverrides(next);
@@ -549,12 +565,13 @@ export default function DataTab({
           <div className="flex items-center gap-2 mb-3">
             <Download size={18} className={isColorful ? 'text-black dark:text-green-400' : ''} />
             <h4 className={`font-medium ${headingClass}`}>Download Your Data</h4>
+            <InfoBtn id="download" />
           </div>
-          <p className={`text-sm mb-3 ${bodyClass}`}>
+          <Expl id="download" className={`text-sm mb-3 ${bodyClass}`}>
             Save your streaming analysis to your device as Excel or JSON — your whole library,
             every service and all your edits, combined into one file. Keep <span className="font-bold">Complete History</span> selected
             and next time you can upload that single file instead of the separate service exports.
-          </p>
+          </Expl>
           <ExportButton
             stats={stats}
             topArtists={topArtists || []}
@@ -567,9 +584,9 @@ export default function DataTab({
             colorMode={colorMode}
           />
           <div className={`mt-3 pt-3 border-t ${isColorful ? 'border-green-600 dark:border-green-800' : isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <p className={`text-sm mb-2 ${bodyClass}`}>
+            <Expl id="download" className={`text-sm mb-2 ${bodyClass}`}>
               Lightweight export of your top 100 rankings — paste into AI chats or save for later.
-            </p>
+            </Expl>
             <Top100Export
               processedData={processedData || []}
               songsByYear={songsByYear || {}}
@@ -615,11 +632,12 @@ export default function DataTab({
           <div className="flex items-center gap-2 mb-2">
             <Disc3 size={18} className={isColorful ? 'text-black dark:text-green-400' : ''} />
             <h4 className={`font-medium ${headingClass}`}>MusicBrainz Lookup</h4>
+            <InfoBtn id="mb" />
           </div>
-          <p className={`text-sm mb-2 ${bodyClass}`}>
+          <Expl id="mb" className={`text-sm mb-2 ${bodyClass}`}>
             Fills in missing albums and release years from the open MusicBrainz database
             (about one lookup per second — you can browse other tabs while it runs, or stop anytime).
-          </p>
+          </Expl>
           {(() => {
             const missingAlbums = allTracks.filter(t => !t.album).length;
             const missingYears = allTracks.filter(t => !t.releaseYear).length;
@@ -627,11 +645,11 @@ export default function DataTab({
             const estMinutes = Math.ceil(lookupCount / 60);
             return (
               <>
-                <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+                <Expl id="mb" className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
                   {lookupCount > 0
                     ? `${missingAlbums.toLocaleString()} tracks missing album info · ${missingYears.toLocaleString()} missing a release year — roughly ${lookupCount.toLocaleString()} lookups (~${estMinutes} min, previously seen tracks are instant).`
                     : 'Every track already has an album and a release year.'}
-                </p>
+                </Expl>
                 <div className="flex flex-wrap items-center gap-3">
                   {enrichRunning ? (
                     <button
@@ -704,12 +722,15 @@ export default function DataTab({
       {allTracks.length > 0 && (
         <div className={cardClass}>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <h4 className={`font-medium ${headingClass}`}>
-              All Tracks
-              <span className={`ml-2 text-xs font-normal ${bodyClass}`}>
-                {visibleTracks.length.toLocaleString()} of {allTracks.length.toLocaleString()}
-              </span>
-            </h4>
+            <div className="flex items-center gap-2">
+              <h4 className={`font-medium ${headingClass}`}>
+                All Tracks
+                <span className={`ml-2 text-xs font-normal ${bodyClass}`}>
+                  {visibleTracks.length.toLocaleString()} of {allTracks.length.toLocaleString()}
+                </span>
+              </h4>
+              <InfoBtn id="tracks" />
+            </div>
             <div className="flex items-center gap-2">
               {editCount > 0 && (
                 <button
@@ -771,9 +792,9 @@ export default function DataTab({
             </div>
           )}
 
-          <p className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
+          <Expl id="tracks" className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
             Edit song details (name, artist, album, release year, length) for any track, or tick two or more versions of the same song — &quot;Remastered&quot;, &quot;Mono&quot;, different albums — and merge them into one. Length edits only change listening-time stats for scrobbles (Last.fm, iPod), where the log stores the song length; streamed play times are never rewritten. Expand a row to adjust or remove individual scrobble plays.
-          </p>
+          </Expl>
 
           {visibleSuggestions.length > 0 && (
             <div className={
