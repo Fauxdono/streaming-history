@@ -179,15 +179,8 @@ export default function StatsTab({
   // a subtle framed look). The branded ExportHeader inside is hidden on the
   // live page and only revealed in the captured clone.
   const shareWrapCls = colorMode === 'colorful'
-    ? 'space-y-4 px-2 pb-2 pt-0 sm:p-4 rounded-lg bg-indigo-200 dark:bg-indigo-900'
-    : `space-y-4 px-2 pb-2 pt-0 sm:p-4 rounded-lg ${isDarkMode ? 'bg-black' : 'bg-white'}`;
-
-  const ExportHeader = ({ subtitle }) => (
-    <div data-export-only className={`hidden items-baseline justify-between ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
-      <h3 className="text-lg font-bold">Statistics <span className="text-xs font-normal opacity-75">{periodLabel} · {subtitle}</span></h3>
-      <span className="text-xs font-medium opacity-50">🎂 cakeculator</span>
-    </div>
-  );
+    ? 'space-y-4 px-2 pb-2 pt-2 sm:p-4 rounded-lg bg-indigo-200 dark:bg-indigo-900'
+    : `space-y-4 px-2 pb-2 pt-2 sm:p-4 rounded-lg ${isDarkMode ? 'bg-black' : 'bg-white'}`;
 
   // Render the poster to a canvas in the current page theme. The 4 mode
   // buttons switch the actual app theme, so this just clones the live
@@ -344,8 +337,7 @@ export default function StatsTab({
               )}
             </div>
             <div ref={overviewRef} className={shareWrapCls}>
-              <ExportHeader subtitle="Overview" />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:mt-4">
                 {/* Hero: the number that matters */}
                 <div data-hero className="flex flex-col justify-center py-0 sm:py-2">
                   <div className={
@@ -578,7 +570,6 @@ export default function StatsTab({
             </div>
 
             <div ref={recordsRef} className={`${shareWrapCls} mt-4`}>
-              <ExportHeader subtitle="Records & Firsts" />
               {/* Records & Firsts */}
               {records && (() => {
                 const cardCls = colorMode === 'colorful'
