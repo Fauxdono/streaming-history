@@ -303,7 +303,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div>
       {/* Desktop layout - title, centered tabs */}
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
@@ -502,13 +502,15 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
           {/* Post Form */}
           <form onSubmit={handleSubmit} className={`p-4 rounded-lg border ${modeColors.cardBg}`}>
             <div className="flex flex-wrap gap-3 mb-3">
-              <input
-                type="text"
-                placeholder="Username (optional)"
-                value={newPostUsername}
-                onChange={(e) => setNewPostUsername(e.target.value.slice(0, 30))}
-                className={`px-3 py-2 rounded-lg border text-sm w-40 ${modeColors.inputBg}`}
-              />
+              <div className="w-40">
+                <input
+                  type="text"
+                  placeholder="Username (optional)"
+                  value={newPostUsername}
+                  onChange={(e) => setNewPostUsername(e.target.value.slice(0, 30))}
+                  className={`search-input-sm w-full px-3 py-2 rounded-lg border text-sm ${modeColors.inputBg}`}
+                />
+              </div>
               <div className="flex gap-1.5 items-center">
                 {[
                   { value: 'feature-request', label: 'Feature' },
@@ -535,7 +537,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
                 value={newPostText}
                 onChange={(e) => setNewPostText(e.target.value.slice(0, 500))}
                 rows={3}
-                className={`w-full px-3 py-2 rounded-lg border text-sm resize-none ${modeColors.inputBg}`}
+                className={`textarea-input-sm w-full px-3 py-2 rounded-lg border text-sm resize-none ${modeColors.inputBg}`}
               />
               <span className={`absolute bottom-2 right-2 text-xs ${modeColors.muted}`}>
                 {newPostText.length}/500

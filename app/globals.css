@@ -77,6 +77,40 @@ html {
     margin: -4.33px -33.34% -4.33px 0;
   }
 
+  /* Multi-line flavor (suggestion form textarea): same oversize-then-scale
+     trick, anchored top-left; the fixed pre-scale height replaces the rows
+     attribute on mobile and the negative bottom margin trims the layout box
+     to the visual height. */
+  .textarea-input-sm {
+    font-size: 16px !important;
+    width: 133.34%;
+    height: 104px;
+    transform: scale(0.75);
+    transform-origin: left top;
+    margin: 0 -33.34% -26px 0;
+  }
+
+  /* text-small: root 14px, scale 10.5/16 */
+  html.text-small .textarea-input-sm {
+    width: 152.38%;
+    transform: scale(0.65625);
+    margin: 0 -52.38% -35.75px 0;
+  }
+
+  /* text-large: root 18px, scale 13.5/16 */
+  html.text-large .textarea-input-sm {
+    width: 118.52%;
+    transform: scale(0.84375);
+    margin: 0 -18.52% -16.25px 0;
+  }
+
+  /* text-xlarge: root 20px, scale 15/16 */
+  html.text-xlarge .textarea-input-sm {
+    width: 106.67%;
+    transform: scale(0.9375);
+    margin: 0 -6.67% -6.5px 0;
+  }
+
   /* text-small: root 14px, scale 10.5/16 */
   html.text-small .stepper-input-sm {
     height: 35.05px;
