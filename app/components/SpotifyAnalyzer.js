@@ -2246,7 +2246,7 @@ const SpotifyAnalyzer = ({
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
     // FixedSettingsBar is always 40px on desktop (icon buttons only, no text)
-    const settingsBarHeight = isMobile ? 85 : 40;
+    const settingsBarHeight = isMobile ? 57 : 40;
     
     let leftSpace = 0;
     let rightSpace = 0;

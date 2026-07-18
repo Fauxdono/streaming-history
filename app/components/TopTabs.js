@@ -373,7 +373,7 @@ const TopTabs = ({
   }, [activeTab, setActiveTab, isCollapsed, isMobile, isLandscapeMobile, getTabIcon, colorMode]);
 
   // Settings bar height calculation - measure actual height on desktop
-  const mobileBarHeight = 85;
+  const mobileBarHeight = 57;
   const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? `${mobileBarHeight}px` : '40px');
   
   // Measure actual SettingsBar height on desktop, use fixed value on mobile

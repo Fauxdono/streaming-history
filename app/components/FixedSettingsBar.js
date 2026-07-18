@@ -33,7 +33,7 @@ const FixedSettingsBar = ({
   // One height in both orientations: the 48px landscape bar put the buttons
   // inside iOS's home-indicator gesture zone (taps swallowed after rotation),
   // and the height swap kept the bar and its neighbors disagreeing mid-rotate.
-  const mobileBarHeight = 85;
+  const mobileBarHeight = 57;
   // Tabs that support grid/list view (mobile only)
   const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns', 'calendar'];
   const showViewToggle = isMobile && tabsWithViewMode.includes(activeTab);
