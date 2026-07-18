@@ -317,23 +317,37 @@ const SpotifyAnalyzer = ({
       const isNarrow = window.innerWidth < 640;
       const isMobileNow = isPhone || isNarrow;
       setIsMobile(isMobileNow);
-      setIsLandscapeMobile(isPhone && window.innerWidth > window.innerHeight);
-      
+      // screen.orientation flips atomically at rotation; innerWidth/innerHeight
+      // can stay mixed (new width, OLD height — 844×844 reads as portrait)
+      // through every rotation event, leaving this stuck until some later
+      // resize (URL bar, scroll) happened to re-run it.
+      const landscape = window.screen.orientation
+        ? window.screen.orientation.type.startsWith('landscape')
+        : window.innerWidth > window.innerHeight;
+      setIsLandscapeMobile(isPhone && landscape);
+
       // Allow user to manually control position on both mobile and desktop
       // Remove auto-positioning to prevent oscillation between bottom and top on desktop
     };
-    
+
+    // Safety net for the mixed-dims window: re-check after the viewport
+    // settles. setState bails when values are unchanged, so this is free.
+    let timers = [];
+    const checkSoon = () => {
+      checkMobile();
+      timers.push(setTimeout(checkMobile, 150), setTimeout(checkMobile, 600));
+    };
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    // orientationchange too (like useFloatPanel): if the lone resize event
-    // fires mid-rotation with mixed dims, isLandscapeMobile would stay stale
-    // and the settings bar (85px) would disagree with the year selector's
-    // landscape offset (48px), leaving the two overlapping.
-    window.addEventListener('orientationchange', checkMobile);
+    window.addEventListener('resize', checkSoon);
+    window.addEventListener('orientationchange', checkSoon);
+    window.screen.orientation?.addEventListener?.('change', checkSoon);
 
     return () => {
-      window.removeEventListener('resize', checkMobile);
-      window.removeEventListener('orientationchange', checkMobile);
+      timers.forEach(clearTimeout);
+      window.removeEventListener('resize', checkSoon);
+      window.removeEventListener('orientationchange', checkSoon);
+      window.screen.orientation?.removeEventListener?.('change', checkSoon);
     };
   }, [topTabsPosition]); // Default width for side positioning
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');

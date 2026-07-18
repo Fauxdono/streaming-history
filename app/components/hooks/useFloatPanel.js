@@ -62,19 +62,35 @@ export function useFloatPanel({
       const w = window.innerWidth;
       const h = window.innerHeight;
       const isTouch      = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isLandscape  = w > h;
+      // screen.orientation flips atomically at rotation; w > h can read
+      // portrait through every rotation event when iOS mixes new width with
+      // old height (see checkMobile in SpotifyAnalyzer).
+      const isLandscape  = window.screen.orientation
+        ? window.screen.orientation.type.startsWith('landscape')
+        : w > h;
       // Phone = screen dims, not viewport: mid-rotation iOS mixes new width
       // with old height, which read as "desktop" for a frame (see checkMobile
       // in SpotifyAnalyzer).
       const isMobile     = w < 640 || (isTouch && Math.min(window.screen.width, window.screen.height) < 640);
-      setScreen({ isMobile, isLandscape });
+      // Bail on no-change so the delayed re-checks below don't re-render
+      setScreen(prev => (prev.isMobile === isMobile && prev.isLandscape === isLandscape)
+        ? prev : { isMobile, isLandscape });
+    };
+    // Re-check after the viewport settles, in case an event fired mid-rotation
+    let timers = [];
+    const updateSoon = () => {
+      update();
+      timers.push(setTimeout(update, 150), setTimeout(update, 600));
     };
     update();
-    window.addEventListener('resize', update);
-    window.addEventListener('orientationchange', update);
+    window.addEventListener('resize', updateSoon);
+    window.addEventListener('orientationchange', updateSoon);
+    window.screen.orientation?.addEventListener?.('change', updateSoon);
     return () => {
-      window.removeEventListener('resize', update);
-      window.removeEventListener('orientationchange', update);
+      timers.forEach(clearTimeout);
+      window.removeEventListener('resize', updateSoon);
+      window.removeEventListener('orientationchange', updateSoon);
+      window.screen.orientation?.removeEventListener?.('change', updateSoon);
     };
   }, []);
 
