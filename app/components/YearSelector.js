@@ -685,7 +685,7 @@ function getPositionStyle({ isFloating, floatPos, currentPosition, topTabsPositi
   }
 
   // Desktop: use the measured settings-bar height (scales with font size)
-  const settingsBar = isMobile ? (isLandscape ? 48 : 85) : settingsBarHeight;
+  const settingsBar = isMobile ? 85 : settingsBarHeight;
   const tabsH = topTabsHeight ?? (isMobile ? 48 : 56);
   const tabsW = topTabsWidth ?? (isMobile ? 160 : 192);
   const sameSide = topTabsPosition === currentPosition;

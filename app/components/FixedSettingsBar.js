@@ -30,7 +30,10 @@ const FixedSettingsBar = ({
 
   const tabAccentColors = isDarkMode ? TAB_ACCENT_HEX.dark : TAB_ACCENT_HEX.light;
   const colorfulBg = colorMode === 'colorful' ? (tabAccentColors[activeTab] || null) : null;
-  const mobileBarHeight = isLandscapeMobile ? 48 : 85;
+  // One height in both orientations: the 48px landscape bar put the buttons
+  // inside iOS's home-indicator gesture zone (taps swallowed after rotation),
+  // and the height swap kept the bar and its neighbors disagreeing mid-rotate.
+  const mobileBarHeight = 85;
   // Tabs that support grid/list view (mobile only)
   const tabsWithViewMode = ['artists', 'albums', 'custom', 'podcasts', 'patterns', 'calendar'];
   const showViewToggle = isMobile && tabsWithViewMode.includes(activeTab);
@@ -94,7 +97,7 @@ const FixedSettingsBar = ({
           {isMobile ? (
             <>
               {/* Left side buttons */}
-              <div className={`flex items-center ${isLandscapeMobile ? 'gap-[12px]' : 'gap-[16px]'}`}>
+              <div className="flex items-center gap-[16px]">
                 {/* Dark mode toggle */}
                 <button
                   onClick={toggleTheme}
@@ -145,7 +148,7 @@ const FixedSettingsBar = ({
               </div>
 
               {/* Right side buttons */}
-              <div className={`flex items-center ${isLandscapeMobile ? 'gap-[12px]' : 'gap-[16px]'}`}>
+              <div className="flex items-center gap-[16px]">
                 {showViewToggle && (
                   <button
                     onClick={toggleViewMode}

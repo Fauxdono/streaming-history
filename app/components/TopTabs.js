@@ -94,14 +94,32 @@ const TopTabs = ({
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const isPhone = isTouch && Math.min(window.screen.width, window.screen.height) < 640;
       setIsMobile(isPhone || window.innerWidth < 640);
-      setIsLandscapeMobile(isPhone && window.innerWidth > window.innerHeight);
+      // screen.orientation flips atomically at rotation; innerWidth/innerHeight
+      // can stay mixed through every rotation event (see checkMobile in
+      // SpotifyAnalyzer).
+      const landscape = window.screen.orientation
+        ? window.screen.orientation.type.startsWith('landscape')
+        : window.innerWidth > window.innerHeight;
+      setIsLandscapeMobile(isPhone && landscape);
+    };
+
+    // Re-check after the viewport settles, in case an event fired mid-rotation
+    let timers = [];
+    const checkSoon = () => {
+      checkMobile();
+      timers.push(setTimeout(checkMobile, 150), setTimeout(checkMobile, 600));
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', checkSoon);
+    window.addEventListener('orientationchange', checkSoon);
+    window.screen.orientation?.addEventListener?.('change', checkSoon);
 
     return () => {
-      window.removeEventListener('resize', checkMobile);
+      timers.forEach(clearTimeout);
+      window.removeEventListener('resize', checkSoon);
+      window.removeEventListener('orientationchange', checkSoon);
+      window.screen.orientation?.removeEventListener?.('change', checkSoon);
     };
   }, []);
 
@@ -355,7 +373,7 @@ const TopTabs = ({
   }, [activeTab, setActiveTab, isCollapsed, isMobile, isLandscapeMobile, getTabIcon, colorMode]);
 
   // Settings bar height calculation - measure actual height on desktop
-  const mobileBarHeight = isLandscapeMobile ? 48 : 85;
+  const mobileBarHeight = 85;
   const [settingsBarHeight, setSettingsBarHeight] = useState(isMobile ? `${mobileBarHeight}px` : '40px');
   
   // Measure actual SettingsBar height on desktop, use fixed value on mobile
