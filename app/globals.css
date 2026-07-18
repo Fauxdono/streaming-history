@@ -37,6 +37,17 @@ html {
   background-color: var(--bg);
 }
 
+/* App shell (main page only — privacy/terms keep document scrolling):
+   the document never scrolls; the content area is the scroll container.
+   With no document scroll there is no scroll state for iOS standalone to
+   leave stale after rotation — the fixed-chrome desync (gap under TopTabs,
+   offset taps) becomes structurally impossible. */
+html.app-shell,
+html.app-shell body {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* Prevent iOS auto-zoom on input focus (requires >= 16px font-size) */
 @media screen and (max-width: 639px) {
   input[type="number"],

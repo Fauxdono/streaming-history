@@ -305,6 +305,14 @@ const SpotifyAnalyzer = ({
 
   useEffect(() => { setMounted(true); }, []);
 
+  // App shell: lock the document scroller while the analyzer is mounted (see
+  // globals.css html.app-shell) — the content div below is the scroll
+  // container instead. Scoped by class so privacy/terms keep document scroll.
+  useEffect(() => {
+    document.documentElement.classList.add('app-shell');
+    return () => document.documentElement.classList.remove('app-shell');
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => {
       // Phone detection uses screen dimensions, not the viewport: mid-rotation
@@ -2840,7 +2848,7 @@ const SpotifyAnalyzer = ({
   };
 
   return (
-    <div className={`w-full h-full min-h-screen ${getPageBackground()}`} data-bg-debug={getPageBackground()}>
+    <div className={`w-full h-full ${getPageBackground()}`} data-bg-debug={getPageBackground()}>
       {/* Always own the iOS safe-area regions: when TopTabs isn't docked on an
           edge, nothing else paints under the notch there and iOS keeps showing
           the last color it saw. Top strip for portrait, side strips for the
@@ -2976,7 +2984,14 @@ const SpotifyAnalyzer = ({
                    : contentAreaStyles.paddingRight;
                })(),
                // Add safe area support on mobile
-               paddingBottom: isMobile ? `calc(${contentAreaStyles.paddingBottom} + env(safe-area-inset-bottom, 0px))` : contentAreaStyles.paddingBottom
+               paddingBottom: isMobile ? `calc(${contentAreaStyles.paddingBottom} + env(safe-area-inset-bottom, 0px))` : contentAreaStyles.paddingBottom,
+               // App shell: this div is the scroll container (document scroll
+               // is locked while the analyzer is mounted — see html.app-shell)
+               height: '100%',
+               minHeight: 0,
+               overflowY: 'auto',
+               overscrollBehavior: 'contain',
+               WebkitOverflowScrolling: 'touch'
              }}>
           <div className="flex flex-col h-full w-full">
             <div className="w-full h-full">

@@ -126,54 +126,10 @@ export default function RootLayout({ children }) {
               // by the viewport meta, the gesture handlers above, and the
               // global touch-action: manipulation.
 
-              // iOS standalone: rotation can leave the visual viewport
-              // detached from the layout viewport — content sits offset from
-              // the fixed chrome (visible gap under TopTabs) and taps land
-              // offset from what's on screen until a real scroll forces
-              // WebKit to clamp and resync. Do that scroll programmatically
-              // once the rotation settles.
-              var isStandalone = navigator.standalone ||
-                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-              if (isStandalone && window.screen && window.screen.orientation) {
-                var rotationVeil = null;
-                window.screen.orientation.addEventListener('change', function() {
-                  // Nudge every frame for ~700ms, starting immediately: both
-                  // scrollTo calls happen within one frame, so the 1px jiggle
-                  // itself never paints.
-                  var start = Date.now();
-                  var nudge = function() {
-                    var x = window.scrollX, y = window.scrollY;
-                    window.scrollTo(x, y + 1);
-                    window.scrollTo(x, y);
-                    if (Date.now() - start < 700) requestAnimationFrame(nudge);
-                  };
-                  requestAnimationFrame(nudge);
-
-                  // Entering landscape, WebKit paints at least one desynced
-                  // frame before it accepts the nudge — veil the screen with
-                  // the page background until the resync lands, then fade.
-                  // Oversized so it covers even while fixed-positioning is
-                  // offset. Portrait entry is natively smooth; leave it be.
-                  if (window.screen.orientation.type.indexOf('landscape') === 0) {
-                    if (!rotationVeil) {
-                      rotationVeil = document.createElement('div');
-                      rotationVeil.style.cssText =
-                        'position:fixed;left:-50vmax;top:-50vmax;right:-50vmax;bottom:-50vmax;' +
-                        'z-index:2147483647;pointer-events:none;';
-                    }
-                    rotationVeil.style.transition = 'none';
-                    rotationVeil.style.opacity = '1';
-                    rotationVeil.style.background =
-                      getComputedStyle(document.documentElement).backgroundColor;
-                    document.body.appendChild(rotationVeil);
-                    setTimeout(function() {
-                      rotationVeil.style.transition = 'opacity 120ms ease';
-                      rotationVeil.style.opacity = '0';
-                      setTimeout(function() { rotationVeil.remove(); }, 160);
-                    }, 320);
-                  }
-                });
-              }
+              // The rotation scroll-nudge and veil that used to live here are
+              // gone: the app runs as an app shell (html.app-shell locks the
+              // document scroller; the content area scrolls instead), so the
+              // iOS-standalone stale-scroll desync they patched can't occur.
             })();
           `
         }} />
