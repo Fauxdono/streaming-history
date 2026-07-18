@@ -153,6 +153,20 @@ export function useFloatPanel({
   // Mobile: force un-float
   useEffect(() => { if (isMobile) _setIsFloating(false); }, [isMobile]);
 
+  // Mobile landscape: move to bottom, restore on portrait (restored — removing
+  // this in 7446a836 is when rotation started leaving the layout half-settled)
+  const portraitPositionRef = useRef(null);
+  useEffect(() => {
+    if (!isMobile) return;
+    if (isLandscape) {
+      portraitPositionRef.current = currentPosition;
+      setCurrentPosition('bottom');
+    } else {
+      setCurrentPosition(portraitPositionRef.current ?? 'right');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLandscape, isMobile]);
+
   // Clamp float position when it might be off-screen
   useEffect(() => {
     if (!isMobile && isFloating) setFloatPos(prev => clampPos(prev));
