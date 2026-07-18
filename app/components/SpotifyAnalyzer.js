@@ -325,9 +325,15 @@ const SpotifyAnalyzer = ({
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+    // orientationchange too (like useFloatPanel): if the lone resize event
+    // fires mid-rotation with mixed dims, isLandscapeMobile would stay stale
+    // and the settings bar (85px) would disagree with the year selector's
+    // landscape offset (48px), leaving the two overlapping.
+    window.addEventListener('orientationchange', checkMobile);
+
     return () => {
       window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
     };
   }, [topTabsPosition]); // Default width for side positioning
   const [selectedPatternYear, setSelectedPatternYear] = useState('all');

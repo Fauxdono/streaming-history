@@ -55,6 +55,13 @@ const FixedSettingsBar = ({
   return (
     <>
       <div
+        // Keyed by orientation: Safari can keep painting this promoted fixed
+        // layer (translateZ) with stale portrait pixels after rotation, so taps
+        // land where buttons only *appear* to be — and fall through to the
+        // year selector docked above the real bar. A fresh DOM node per
+        // orientation forces a fresh layer (same trick as the safe-area strips
+        // in SpotifyAnalyzer).
+        key={isMobile ? (isLandscapeMobile ? 'bar-landscape' : 'bar-portrait') : 'bar-desktop'}
         className={`fixed left-0 right-0 w-full z-[100] ${mounted ? '' : 'premount-settings-bar'} ${isMobile ? 'border-t' : 'border-b'} border-violet-200 dark:border-gray-600`}
         style={{
           backgroundImage: 'url(/apple-touch-icon.png)',
