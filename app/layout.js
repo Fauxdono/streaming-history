@@ -136,13 +136,19 @@ export default function RootLayout({ children }) {
                 (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
               if (isStandalone && window.screen && window.screen.orientation) {
                 window.screen.orientation.addEventListener('change', function() {
-                  [200, 600].forEach(function(delay) {
-                    setTimeout(function() {
-                      var x = window.scrollX, y = window.scrollY;
-                      window.scrollTo(x, y + 1);
-                      window.scrollTo(x, y);
-                    }, delay);
-                  });
+                  // Nudge every frame for ~700ms, starting immediately: the
+                  // earliest effective resync lands while the OS rotation
+                  // animation still covers the screen, so the desynced gap
+                  // never becomes visible. Both scrollTo calls happen within
+                  // one frame, so the 1px jiggle itself never paints.
+                  var start = Date.now();
+                  var nudge = function() {
+                    var x = window.scrollX, y = window.scrollY;
+                    window.scrollTo(x, y + 1);
+                    window.scrollTo(x, y);
+                    if (Date.now() - start < 700) requestAnimationFrame(nudge);
+                  };
+                  requestAnimationFrame(nudge);
                 });
               }
             })();
