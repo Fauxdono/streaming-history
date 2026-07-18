@@ -125,6 +125,26 @@ export default function RootLayout({ children }) {
               // bottom chrome tap-dead after rotating. Zoom is already blocked
               // by the viewport meta, the gesture handlers above, and the
               // global touch-action: manipulation.
+
+              // iOS standalone: rotation can leave the visual viewport
+              // detached from the layout viewport — content sits offset from
+              // the fixed chrome (visible gap under TopTabs) and taps land
+              // offset from what's on screen until a real scroll forces
+              // WebKit to clamp and resync. Do that scroll programmatically
+              // once the rotation settles.
+              var isStandalone = navigator.standalone ||
+                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+              if (isStandalone && window.screen && window.screen.orientation) {
+                window.screen.orientation.addEventListener('change', function() {
+                  [200, 600].forEach(function(delay) {
+                    setTimeout(function() {
+                      var x = window.scrollX, y = window.scrollY;
+                      window.scrollTo(x, y + 1);
+                      window.scrollTo(x, y);
+                    }, delay);
+                  });
+                });
+              }
             })();
           `
         }} />
