@@ -117,32 +117,14 @@ export default function RootLayout({ children }) {
               document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
               document.addEventListener('gestureend', function(e) { e.preventDefault(); });
 
-              // Snap back if zoom somehow occurs (e.g. double-tap, iOS accessibility)
-              var isRotating = false;
-              if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', function() {
-                  if (isRotating) return;
-                  if (window.visualViewport.scale > 1) {
-                    document.body.style.transform = 'scale(' + (1 / window.visualViewport.scale) + ')';
-                    document.body.style.transformOrigin = '0 0';
-                    document.body.style.width = (window.visualViewport.scale * 100) + '%';
-                  } else {
-                    document.body.style.transform = '';
-                    document.body.style.transformOrigin = '';
-                    document.body.style.width = '';
-                  }
-                });
-              }
-
-              // Reset body transform on orientation change (no viewport meta manipulation —
-              // that caused safe-area flicker on the sides in landscape)
-              window.addEventListener('orientationchange', function() {
-                isRotating = true;
-                document.body.style.transform = '';
-                document.body.style.transformOrigin = '';
-                document.body.style.width = '';
-                setTimeout(function() { isRotating = false; }, 500);
-              });
+              // No zoom snap-back via body transform: a transform on <body>
+              // re-anchors every position:fixed element to the body instead of
+              // the screen. iOS transiently reports visualViewport.scale > 1
+              // during rotation, and in the standalone PWA nothing re-fires
+              // the resize event until the user scrolls — which left the
+              // bottom chrome tap-dead after rotating. Zoom is already blocked
+              // by the viewport meta, the gesture handlers above, and the
+              // global touch-action: manipulation.
             })();
           `
         }} />
