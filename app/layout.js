@@ -142,29 +142,18 @@ export default function RootLayout({ children }) {
                 window.screen.orientation.addEventListener('change', function() {
                   var gen = ++resyncGen;
                   var root = document.documentElement;
+                  var goingLandscape = window.screen.orientation.type.indexOf('landscape') === 0;
                   root.classList.add('rotation-resync');
-                  var start = Date.now();
-                  var nudge = function() {
-                    if (gen !== resyncGen) return; // superseded by a newer rotation
-                    // Both calls land within one frame: the 1px jiggle never paints.
-                    window.scrollTo(0, 1);
-                    window.scrollTo(0, 0);
-                    if (Date.now() - start < 700) {
-                      requestAnimationFrame(nudge);
-                    } else {
-                      root.classList.remove('rotation-resync');
-                    }
-                  };
-                  requestAnimationFrame(nudge);
 
-                  // Entering landscape, WebKit paints at least one frame with
-                  // the old portrait geometry (page looks dumped at the bottom
-                  // edge) *before* any JS runs — it can't be prevented, only
-                  // covered: veil the screen with the page background until
-                  // the nudge lands, then fade. Oversized so it covers even
-                  // while fixed-positioning is offset. Portrait entry is
-                  // natively smooth; leave it be.
-                  if (window.screen.orientation.type.indexOf('landscape') === 0) {
+                  // Entering landscape, WebKit paints frames with the old
+                  // portrait geometry (page looks dumped at the bottom edge)
+                  // before it accepts the nudge — that can't be prevented,
+                  // only covered. The veil is dropped the first frame the
+                  // geometry *verifies* as synced, not on a timer, so it
+                  // lasts exactly as long as the desync does. Oversized so it
+                  // covers even while fixed-positioning is offset. Portrait
+                  // entry is natively smooth; leave it be.
+                  if (goingLandscape) {
                     if (!rotationVeil) {
                       rotationVeil = document.createElement('div');
                       rotationVeil.style.cssText =
@@ -174,15 +163,65 @@ export default function RootLayout({ children }) {
                     rotationVeil.style.transition = 'none';
                     rotationVeil.style.opacity = '1';
                     rotationVeil.style.background =
-                      getComputedStyle(document.documentElement).backgroundColor;
+                      getComputedStyle(root).backgroundColor;
                     document.body.appendChild(rotationVeil);
-                    setTimeout(function() {
-                      if (gen !== resyncGen) return; // a newer rotation owns the veil
-                      rotationVeil.style.transition = 'opacity 120ms ease';
-                      rotationVeil.style.opacity = '0';
-                      setTimeout(function() { rotationVeil.remove(); }, 160);
-                    }, 320);
                   }
+
+                  var finish = function() {
+                    root.classList.remove('rotation-resync');
+                    // Clean up any veil, including one a superseded rotation
+                    // left behind (a fast landscape->portrait flip must not
+                    // strand it on screen).
+                    if (rotationVeil && rotationVeil.parentNode) {
+                      var veil = rotationVeil;
+                      veil.style.transition = 'opacity 80ms ease';
+                      veil.style.opacity = '0';
+                      setTimeout(function() {
+                        if (gen === resyncGen) veil.remove();
+                      }, 120);
+                    }
+                  };
+
+                  // Synced = every geometry source agrees: aspect matches the
+                  // reported orientation, viewport fills the physical screen
+                  // (standalone has no browser chrome), and the visual
+                  // viewport is glued to the layout viewport at scale 1.
+                  var synced = function() {
+                    var landscapeNow = window.innerWidth > window.innerHeight;
+                    if (landscapeNow !== goingLandscape) return false;
+                    var dLong = Math.max(window.innerWidth, window.innerHeight) -
+                                Math.max(window.screen.width, window.screen.height);
+                    var dShort = Math.min(window.innerWidth, window.innerHeight) -
+                                 Math.min(window.screen.width, window.screen.height);
+                    if (Math.abs(dLong) > 1 || Math.abs(dShort) > 1) return false;
+                    var vv = window.visualViewport;
+                    if (vv && (vv.scale !== 1 ||
+                        vv.offsetTop !== 0 || vv.offsetLeft !== 0 ||
+                        vv.pageTop !== 0 || vv.pageLeft !== 0 ||
+                        Math.abs(vv.width - window.innerWidth) > 1)) return false;
+                    return true;
+                  };
+
+                  var start = Date.now();
+                  var syncedFrames = 0;
+                  var tick = function() {
+                    if (gen !== resyncGen) return; // superseded by a newer rotation
+                    // Both calls land within one frame: the 1px jiggle never paints.
+                    window.scrollTo(0, 1);
+                    window.scrollTo(0, 0);
+                    if (synced()) {
+                      // Let one verified frame actually paint before unveiling.
+                      if (++syncedFrames >= 2) { finish(); return; }
+                    } else {
+                      syncedFrames = 0;
+                    }
+                    if (Date.now() - start < 700) {
+                      requestAnimationFrame(tick);
+                    } else {
+                      finish(); // safety cap: never strand the veil or the 1px scroll room
+                    }
+                  };
+                  requestAnimationFrame(tick);
                 });
               }
             })();
