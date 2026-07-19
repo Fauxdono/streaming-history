@@ -34,6 +34,8 @@ export function processRockboxScrobblerLog(content) {
     // Rockbox stores all featured artists joined by ';' — use only the primary artist
     const primaryArtist = String(artist).split(';')[0].trim();
 
+    const trackNum = parseInt(trackNumber, 10);
+
     transformedData.push({
       ts: ts.toISOString(),
       ms_played: skipped ? Math.min(durationMs, 15000) : durationMs,
@@ -46,7 +48,8 @@ export function processRockboxScrobblerLog(content) {
       skipped: skipped,
       platform: 'iPod',
       source: 'ipod',
-      offline: true
+      offline: true,
+      ...(trackNum > 0 ? { track_number: trackNum } : {})
     });
   }
 

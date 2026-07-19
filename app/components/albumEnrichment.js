@@ -66,14 +66,28 @@ function releaseYear(rel) {
   return y >= 1000 && y <= 9999 ? y : null;
 }
 
-// Returns { album, year } or null. Year is the earliest release date seen
-// across credit-matched releases (original release beats reissues).
+// Disc (media position) and track number of the recording within a release —
+// search results embed the matching track in release.media[].track[].
+function mediaNumbers(rel) {
+  const m = rel.media?.[0];
+  if (!m) return { disc: null, trackNo: null };
+  const disc = m.position > 0 ? m.position : null;
+  const num = parseInt(m.track?.[0]?.number, 10);
+  const trackNo = num > 0 ? num : (m['track-offset'] != null ? m['track-offset'] + 1 : null);
+  return { disc, trackNo };
+}
+
+// Returns { album, year, disc, trackNo } or null. Year is the earliest release
+// date seen across credit-matched releases (original release beats reissues);
+// disc/trackNo come from the same release the album name was taken from.
 function extractAlbum(data, artistHint) {
   if (!data?.recordings?.length) return null;
 
   const artistLower = artistHint.toLowerCase();
   let album = null;
   let year = null;
+  let disc = null;
+  let trackNo = null;
 
   for (const rec of data.recordings) {
     const releases = rec.releases ?? [];
@@ -93,12 +107,13 @@ function extractAlbum(data, artistHint) {
         const type = rel['release-group']?.['primary-type'] ?? '';
         if (type === 'Album' || type === 'EP') {
           album = rel.title;
+          ({ disc, trackNo } = mediaNumbers(rel));
         }
       }
     }
   }
 
-  if (album) return { album, year };
+  if (album) return { album, year, disc, trackNo };
 
   // Fallback: take first release from first matching recording
   for (const rec of data.recordings) {
@@ -107,11 +122,13 @@ function extractAlbum(data, artistHint) {
             artistLower.includes(ac.artist?.name?.toLowerCase() ?? '')
     );
     if (creditMatch && rec.releases?.length) {
-      return { album: rec.releases[0].title, year };
+      const rel = rec.releases[0];
+      ({ disc, trackNo } = mediaNumbers(rel));
+      return { album: rel.title, year, disc, trackNo };
     }
   }
 
-  return year ? { album: null, year } : null;
+  return year ? { album: null, year, disc: null, trackNo: null } : null;
 }
 
 function sleep(ms) {
@@ -178,12 +195,14 @@ export async function enrichAlbums(entries, onProgress, { lookupYears = false, s
   let stopped = false;
   const total = needsLookup.size;
 
-  // Cache values: legacy plain string (album only), { album, year }, or null.
-  // Never overwrite an album the data already knows; years fill blanks only.
+  // Cache values: legacy plain string (album only), { album, year, disc,
+  // trackNo }, or null. Never overwrite data already known; blanks fill only.
   const applyResult = (result, indices) => {
     const album = typeof result === 'string' ? result : result?.album;
     const year = typeof result === 'object' && result ? result.year : null;
-    if (!album && !year) return false;
+    const disc = typeof result === 'object' && result ? result.disc : null;
+    const trackNo = typeof result === 'object' && result ? result.trackNo : null;
+    if (!album && !year && !trackNo) return false;
     let applied = false;
     indices.forEach(i => {
       const cur = entries[i].master_metadata_album_album_name;
@@ -193,6 +212,14 @@ export async function enrichAlbums(entries, onProgress, { lookupYears = false, s
       }
       if (year && !entries[i].release_year) {
         entries[i].release_year = year;
+        applied = true;
+      }
+      if (trackNo && !entries[i].track_number) {
+        entries[i].track_number = trackNo;
+        applied = true;
+      }
+      if (disc && !entries[i].disc_number) {
+        entries[i].disc_number = disc;
         applied = true;
       }
     });

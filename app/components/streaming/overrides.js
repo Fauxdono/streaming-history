@@ -77,6 +77,8 @@ export function applyOverrides(entries, overrides) {
       if (trackEdit.artist) copy.master_metadata_album_artist_name = trackEdit.artist;
       if (trackEdit.album) copy.master_metadata_album_album_name = trackEdit.album;
       if (trackEdit.releaseYear != null) copy.release_year = trackEdit.releaseYear;
+      if (trackEdit.trackNumber != null) copy.track_number = trackEdit.trackNumber;
+      if (trackEdit.discNumber != null) copy.disc_number = trackEdit.discNumber;
       if (trackEdit.lengthMs != null) {
         // Corrected song runtime, carried as metadata on every play.
         copy.track_length_ms = trackEdit.lengthMs;

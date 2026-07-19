@@ -86,7 +86,7 @@ export default function DataTab({
   const [resetArmed, setResetArmed] = useState(false);
   const [expandedKey, setExpandedKey] = useState(null);
   const [editingKey, setEditingKey] = useState(null);
-  const [editDraft, setEditDraft] = useState({ name: '', artist: '', album: '', year: '', length: '' });
+  const [editDraft, setEditDraft] = useState({ name: '', artist: '', album: '', year: '', length: '', disc: '', track: '' });
   // Mobile: the explanatory paragraphs collapse behind a little ⓘ beside
   // each section header; desktop always shows them.
   const [infoOpen, setInfoOpen] = useState({});
@@ -131,7 +131,7 @@ export default function DataTab({
       const okey = play.__origKey || key;
       let t = map.get(key);
       if (!t) {
-        t = { key, name, artist, albums: new Map(), maxMs: 0, doneMs: [], correctedLengthMs: null, releaseYear: null, sources: new Set(), plays: [], okeys: new Set(), variants: new Map() };
+        t = { key, name, artist, albums: new Map(), maxMs: 0, doneMs: [], correctedLengthMs: null, releaseYear: null, trackNumber: null, discNumber: null, sources: new Set(), plays: [], okeys: new Set(), variants: new Map() };
         map.set(key, t);
       }
       t.okeys.add(okey);
@@ -143,6 +143,8 @@ export default function DataTab({
       // median of them later rather than the max.
       if (play.reason_end === 'trackdone' && ms > 0) t.doneMs.push(ms);
       if (play.release_year) t.releaseYear = play.release_year;
+      if (play.track_number) t.trackNumber = play.track_number;
+      if (play.disc_number) t.discNumber = play.disc_number;
       const album = play.master_metadata_album_album_name;
       if (album && album !== 'Unknown Album') {
         t.albums.set(album, (t.albums.get(album) || 0) + 1);
@@ -187,6 +189,8 @@ export default function DataTab({
         lengthMs,
         lengthIsPartial,
         releaseYear: t.releaseYear || 0,
+        trackNumber: t.trackNumber || 0,
+        discNumber: t.discNumber || 0,
         sources,
         plays: t.plays,
         okeys: [...t.okeys],
@@ -279,6 +283,8 @@ export default function DataTab({
       album: t.album,
       year: t.releaseYear ? String(t.releaseYear) : '',
       length: formatDurationInput(t.lengthMs),
+      disc: t.discNumber ? String(t.discNumber) : '',
+      track: t.trackNumber ? String(t.trackNumber) : '',
     });
   };
 
@@ -289,11 +295,17 @@ export default function DataTab({
     const lengthMs = parseDurationInput(editDraft.length);
     const year = parseInt(editDraft.year, 10);
     const releaseYear = year >= 1000 && year <= 9999 ? year : null;
+    const discNum = parseInt(editDraft.disc, 10);
+    const discNumber = discNum >= 1 && discNum <= 99 ? discNum : null;
+    const trackNum = parseInt(editDraft.track, 10);
+    const trackNumber = trackNum >= 1 && trackNum <= 999 ? trackNum : null;
     setEditingKey(null);
     if (!name || !artist) return;
     const lengthChanged = lengthMs != null && lengthMs > 0 && lengthMs !== t.lengthMs;
     const yearChanged = releaseYear != null && releaseYear !== t.releaseYear;
-    if (name === t.name && artist === t.artist && album === t.album && !lengthChanged && !yearChanged) return;
+    const discChanged = discNumber != null && discNumber !== t.discNumber;
+    const trackNoChanged = trackNumber != null && trackNumber !== t.trackNumber;
+    if (name === t.name && artist === t.artist && album === t.album && !lengthChanged && !yearChanged && !discChanged && !trackNoChanged) return;
     // Fan the edit out over every original variant this row contains
     const tracks = { ...overrides.tracks };
     for (const okey of t.okeys) {
@@ -302,6 +314,10 @@ export default function DataTab({
       else if (tracks[okey]?.lengthMs != null) edit.lengthMs = tracks[okey].lengthMs;
       if (releaseYear != null) edit.releaseYear = releaseYear;
       else if (tracks[okey]?.releaseYear != null) edit.releaseYear = tracks[okey].releaseYear;
+      if (discNumber != null) edit.discNumber = discNumber;
+      else if (tracks[okey]?.discNumber != null) edit.discNumber = tracks[okey].discNumber;
+      if (trackNumber != null) edit.trackNumber = trackNumber;
+      else if (tracks[okey]?.trackNumber != null) edit.trackNumber = tracks[okey].trackNumber;
       tracks[okey] = edit;
     }
     persist({ ...overrides, tracks });
@@ -932,7 +948,7 @@ export default function DataTab({
               ? 'border-b border-green-400 dark:border-green-900'
               : `border-b ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`;
             const metaCls = isColorful ? 'text-xs text-black opacity-70 dark:text-green-600 dark:opacity-100' : `text-xs opacity-70 ${isDarkMode ? 'text-[#FDF6E3]' : 'text-black'}`;
-            const SORTS = [['name', 'Track'], ['artist', 'Artist'], ['album', 'Album'], ['releaseYear', 'Year'], ['lengthMs', 'Length']];
+            const SORTS = [['name', 'Track'], ['artist', 'Artist'], ['album', 'Album'], ['trackNumber', 'Track #'], ['releaseYear', 'Year'], ['lengthMs', 'Length']];
             return (
               <div>
                 <div className="flex items-center gap-2 mb-2">
@@ -986,29 +1002,38 @@ export default function DataTab({
                               <div className="flex gap-1.5">
                                 <input className={`${inputClass} !w-20 text-right tabular-nums`} value={editDraft.year} onChange={(e) => setEditDraft(d => ({ ...d, year: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Year" title="Release year" />
                                 <input className={`${inputClass} !w-24 text-right tabular-nums`} value={editDraft.length} onChange={(e) => setEditDraft(d => ({ ...d, length: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} title="Song length (m:ss)" placeholder="m:ss" />
+                                <input className={`${inputClass} !w-14 text-right tabular-nums`} value={editDraft.disc} onChange={(e) => setEditDraft(d => ({ ...d, disc: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Disc" title="Disc number" />
+                                <input className={`${inputClass} !w-14 text-right tabular-nums`} value={editDraft.track} onChange={(e) => setEditDraft(d => ({ ...d, track: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Trk#" title="Track number" />
                               </div>
                             </div>
                           ) : (
                             <>
-                              <div className={`${tdClass} !p-0 font-medium truncate`} title={t.name}>
-                                {t.name}
-                                {isEdited && <span className={`ml-1.5 ${badgeClass}`}>edited</span>}
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className={`${tdClass} !p-0 font-medium truncate min-w-0`} title={t.name}>
+                                  {t.name}
+                                  {isEdited && <span className={`ml-1.5 ${badgeClass}`}>edited</span>}
+                                </span>
+                                <span className={`${metaCls} ml-auto shrink-0 flex items-center gap-x-1.5 tabular-nums`}>
+                                  {t.trackNumber > 0 && (
+                                    <span title={t.discNumber > 1 ? `Disc ${t.discNumber}, track ${t.trackNumber}` : `Track ${t.trackNumber}`}>
+                                      #{t.discNumber > 1 ? `${t.discNumber}-` : ''}{t.trackNumber}
+                                    </span>
+                                  )}
+                                  {t.releaseYear > 0 && <span>{t.releaseYear}</span>}
+                                  <span>
+                                    {t.lengthIsPartial
+                                      ? (t.lengthMs >= 1000 ? `≥ ${formatDurationInput(t.lengthMs)}` : '—')
+                                      : formatDurationInput(t.lengthMs)}
+                                  </span>
+                                  {t.sources.map((s) => (
+                                    <span key={s} className={`${badgeClass} inline-flex items-center`} title={serviceLabel(s)} aria-label={serviceLabel(s)}>
+                                      <ServiceIcon source={s} size={12} />
+                                    </span>
+                                  ))}
+                                </span>
                               </div>
                               <div className={`${tdClass} !p-0 truncate opacity-80`} title={`${t.artist}${t.album ? ` · ${t.album}` : ''}`}>
                                 {t.artist}{t.album ? ` · ${t.album}` : ''}
-                              </div>
-                              <div className={`${metaCls} mt-0.5 flex items-center flex-wrap gap-x-2 gap-y-1 tabular-nums`}>
-                                <span>{t.releaseYear || '—'}</span>
-                                <span>
-                                  {t.lengthIsPartial
-                                    ? (t.lengthMs >= 1000 ? `≥ ${formatDurationInput(t.lengthMs)}` : '—')
-                                    : formatDurationInput(t.lengthMs)}
-                                </span>
-                                {t.sources.map((s) => (
-                                  <span key={s} className={`${badgeClass} inline-flex items-center`} title={serviceLabel(s)} aria-label={serviceLabel(s)}>
-                                    <ServiceIcon source={s} size={12} />
-                                  </span>
-                                ))}
                               </div>
                             </>
                           )}
@@ -1037,7 +1062,7 @@ export default function DataTab({
             );
           })() : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px]">
+            <table className="w-full min-w-[820px]">
               <thead>
                 <tr className={isColorful ? 'border-b border-black dark:border-green-700' : `border-b ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`}>
                   <th className={`${thClass} cursor-default w-6`} title="Select versions to merge"></th>
@@ -1045,6 +1070,7 @@ export default function DataTab({
                   <SortHeader column="name" label="Track" />
                   <SortHeader column="artist" label="Artist" />
                   <SortHeader column="album" label="Album" />
+                  <SortHeader column="trackNumber" label="#" className="text-right" />
                   <SortHeader column="releaseYear" label="Year" className="text-right" />
                   <SortHeader column="lengthMs" label="Length" className="text-right" />
                   <th className={`${thClass} cursor-default`}>Service</th>
@@ -1092,6 +1118,12 @@ export default function DataTab({
                               <input className={inputClass} value={editDraft.album} onChange={(e) => setEditDraft(d => ({ ...d, album: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} />
                             </td>
                             <td className={`${tdClass} text-right`}>
+                              <div className="flex gap-1 justify-end">
+                                <input className={`${inputClass} !w-10 text-right tabular-nums`} value={editDraft.disc} onChange={(e) => setEditDraft(d => ({ ...d, disc: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="D" title="Disc number" />
+                                <input className={`${inputClass} !w-12 text-right tabular-nums`} value={editDraft.track} onChange={(e) => setEditDraft(d => ({ ...d, track: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="#" title="Track number" />
+                              </div>
+                            </td>
+                            <td className={`${tdClass} text-right`}>
                               <input className={`${inputClass} w-16 text-right tabular-nums`} value={editDraft.year} onChange={(e) => setEditDraft(d => ({ ...d, year: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(t); if (e.key === 'Escape') setEditingKey(null); }} placeholder="Year" title="Release year" />
                             </td>
                             <td className={`${tdClass} text-right`}>
@@ -1108,6 +1140,12 @@ export default function DataTab({
                             </td>
                             <td className={`${tdClass} max-w-[160px] truncate`} title={t.artist}>{t.artist}</td>
                             <td className={`${tdClass} max-w-[180px] truncate opacity-80`} title={t.album}>{t.album}</td>
+                            <td
+                              className={`${tdClass} text-right tabular-nums`}
+                              title={t.trackNumber ? (t.discNumber > 1 ? `Disc ${t.discNumber}, track ${t.trackNumber}` : `Track ${t.trackNumber}`) : undefined}
+                            >
+                              {t.trackNumber ? `${t.discNumber > 1 ? `${t.discNumber}-` : ''}${t.trackNumber}` : '—'}
+                            </td>
                             <td className={`${tdClass} text-right tabular-nums`}>{t.releaseYear || '—'}</td>
                             <td
                               className={`${tdClass} text-right tabular-nums whitespace-nowrap ${t.lengthIsPartial ? 'opacity-60' : ''}`}
@@ -1153,7 +1191,7 @@ export default function DataTab({
                       </tr>
                       {isExpanded && (
                         <tr className={rowClass}>
-                          <td colSpan={9} className="px-2 pb-2">
+                          <td colSpan={10} className="px-2 pb-2">
                             {renderExpandedPanel(t)}
                           </td>
                         </tr>
