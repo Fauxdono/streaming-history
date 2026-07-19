@@ -975,11 +975,7 @@ export default function DataTab({
                   >
                     {SORTS.map(([col, label]) => <option key={col} value={col}>{label}</option>)}
                   </select>
-                  <button
-                    onClick={() => setSortDesc(d => !d)}
-                    className={`${iconBtnClass} border rounded ${isColorful ? 'border-black dark:border-green-600' : isDarkMode ? 'border-[#4169E1]' : 'border-black'} ${btnFx}`}
-                    title="Reverse order"
-                  >
+                  <button onClick={() => setSortDesc(d => !d)} className={iconBtnClass} title="Reverse order">
                     {sortDesc ? '▼' : '▲'}
                   </button>
                 </div>
