@@ -250,11 +250,11 @@ export default function DataTab({
   }, [allTracks, trackSearch, serviceFilter, sortBy, sortDesc]);
 
   // Scope for a targeted MusicBrainz run: tracks matching the current
-  // search/service filter that still miss an album or release year
+  // search/service filter that still miss an album, release year or track number
   const scopeActive = !!(trackSearch.trim() || serviceFilter);
   const scopedLookup = useMemo(() => {
     if (!scopeActive) return { count: 0, okeys: [] };
-    const needing = visibleTracks.filter(t => !t.album || !t.releaseYear);
+    const needing = visibleTracks.filter(t => !t.album || !t.releaseYear || !t.trackNumber);
     return { count: needing.length, okeys: needing.flatMap(t => t.okeys) };
   }, [scopeActive, visibleTracks]);
 
@@ -675,14 +675,17 @@ export default function DataTab({
           {(() => {
             const missingAlbums = allTracks.filter(t => !t.album).length;
             const missingYears = allTracks.filter(t => !t.releaseYear).length;
-            const lookupCount = allTracks.filter(t => !t.album || !t.releaseYear).length;
-            const estMinutes = Math.ceil(lookupCount / 60);
+            const missingNumbers = allTracks.filter(t => !t.trackNumber).length;
+            const yearsCount = allTracks.filter(t => !t.album || !t.releaseYear).length;
+            const numbersCount = allTracks.filter(t => !t.album || !t.trackNumber).length;
+            const bothCount = allTracks.filter(t => !t.album || !t.releaseYear || !t.trackNumber).length;
+            const estMinutes = Math.ceil(bothCount / 60);
             return (
               <>
                 <Expl id="mb" className={`text-xs mb-3 ${isColorful ? 'text-black opacity-60 dark:text-green-700 dark:opacity-100' : 'opacity-60'}`}>
-                  {lookupCount > 0
-                    ? `${missingAlbums.toLocaleString()} tracks missing album info · ${missingYears.toLocaleString()} missing a release year — roughly ${lookupCount.toLocaleString()} lookups (~${estMinutes} min, previously seen tracks are instant).`
-                    : 'Every track already has an album and a release year.'}
+                  {bothCount > 0
+                    ? `${missingAlbums.toLocaleString()} tracks missing album info · ${missingYears.toLocaleString()} missing a release year · ${missingNumbers.toLocaleString()} missing a track number — up to ${bothCount.toLocaleString()} lookups for a full run (~${estMinutes} min, previously seen tracks are instant).`
+                    : 'Every track already has an album, a release year and a track number.'}
                 </Expl>
                 <div className="flex flex-wrap items-center gap-3">
                   {enrichRunning ? (
@@ -700,26 +703,34 @@ export default function DataTab({
                     </button>
                   ) : (
                     <>
-                      <button
-                        onClick={() => onRunEnrichment?.()}
-                        disabled={lookupCount === 0}
-                        className={
-                          `${isColorful
-                            ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
-                            : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx} disabled:shadow-none`
-                        }
-                      >
-                        Run lookup now
-                      </button>
-                      {scopeActive && scopedLookup.count > 0 && (
+                      {[
+                        ['Run for years', yearsCount, { years: true, numbers: false }, 'Look up tracks missing an album or release year'],
+                        ['Run for track numbers', numbersCount, { years: false, numbers: true }, 'Look up tracks missing a disc/track number'],
+                        ['Run for both', bothCount, { years: true, numbers: true }, 'Look up tracks missing an album, release year or track number'],
+                      ].map(([label, count, mode, title]) => (
                         <button
-                          onClick={() => onRunEnrichment?.(scopedLookup.okeys)}
+                          key={label}
+                          onClick={() => onRunEnrichment?.(null, mode)}
+                          disabled={count === 0}
+                          title={title}
                           className={
                             `${isColorful
-                              ? 'px-4 py-2 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-                              : `px-4 py-2 text-sm rounded border font-medium ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx}`
+                              ? 'px-3 py-1.5 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
+                              : `px-3 py-1.5 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx} disabled:shadow-none`
                           }
-                          title="Only the tracks matching the search/service filter in the table below"
+                        >
+                          {label} ({count.toLocaleString()})
+                        </button>
+                      ))}
+                      {scopeActive && scopedLookup.count > 0 && (
+                        <button
+                          onClick={() => onRunEnrichment?.(scopedLookup.okeys, { years: true, numbers: true })}
+                          className={
+                            `${isColorful
+                              ? 'px-3 py-1.5 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
+                              : `px-3 py-1.5 text-sm rounded border font-medium ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx}`
+                          }
+                          title="Only the tracks matching the search/service filter in the table below — fills years and track numbers"
                         >
                           Look up current {trackSearch.trim() ? 'search' : 'filter'} only ({scopedLookup.count.toLocaleString()})
                         </button>

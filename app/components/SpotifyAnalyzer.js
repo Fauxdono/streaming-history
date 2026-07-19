@@ -1267,7 +1267,9 @@ const SpotifyAnalyzer = ({
 
   // scopeOkeys: optional array of original track keys — limits the lookup to
   // those tracks (the Data tab passes the user's current search/filter).
-  const handleRunEnrichment = useCallback(async (scopeOkeys = null) => {
+  // mode: which missing fields select tracks for lookup — years, track
+  // numbers, or both (albums are always filled when found).
+  const handleRunEnrichment = useCallback(async (scopeOkeys = null, { years = true, numbers = false } = {}) => {
     if (enrichRunningRef.current) return;
     const base = basePlayData.length > 0 ? basePlayData : rawPlayData;
     if (base.length === 0) return;
@@ -1286,7 +1288,8 @@ const SpotifyAnalyzer = ({
         base,
         (done, total) => setEnrichProgress({ done, total }),
         {
-          lookupYears: true,
+          lookupYears: years,
+          lookupNumbers: numbers,
           shouldStop: () => enrichStopRef.current,
           entryFilter,
           // Look tracks up under their merged/corrected identities

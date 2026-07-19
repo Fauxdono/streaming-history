@@ -145,9 +145,12 @@ function sleep(ms) {
  *
  * @param {Array} entries - Processed streaming entries (mutated in place)
  * @param {Function} onProgress - Optional callback: (done, total) => void
- * @param {Object} options - { lookupYears?: boolean, shouldStop?: () => boolean,
+ * @param {Object} options - { lookupYears?: boolean, lookupNumbers?: boolean,
+ *                             shouldStop?: () => boolean,
  *                             entryFilter?: (entry) => boolean,
- *                             trackOverrides?: object } — entryFilter scopes the
+ *                             trackOverrides?: object } — lookupNumbers also
+ *                             covers tracks missing a disc/track number;
+ *                             entryFilter scopes the
  *                             run (e.g. to the user's current search);
  *                             trackOverrides (overrides.tracks) makes lookups
  *                             use the user's merged/corrected names, so merged
@@ -155,7 +158,7 @@ function sleep(ms) {
  *                             better
  * @returns {Object} { enriched: number, total: number, cached: number, stopped: boolean }
  */
-export async function enrichAlbums(entries, onProgress, { lookupYears = false, shouldStop, entryFilter, trackOverrides } = {}) {
+export async function enrichAlbums(entries, onProgress, { lookupYears = false, lookupNumbers = false, shouldStop, entryFilter, trackOverrides } = {}) {
   // Collect unique artist+track combos that need enrichment
   const needsLookup = new Map(); // cacheKey → { artist, track, indices[] }
 
@@ -170,7 +173,8 @@ export async function enrichAlbums(entries, onProgress, { lookupYears = false, s
     // A user-supplied album or year counts as known
     const albumMissing = !edit?.album && (!album || album === 'Unknown Album');
     const yearMissing = lookupYears && !entry.release_year && edit?.releaseYear == null;
-    if (!albumMissing && !yearMissing) return;
+    const numberMissing = lookupNumbers && !entry.track_number && edit?.trackNumber == null;
+    if (!albumMissing && !yearMissing && !numberMissing) return;
 
     // Query under the user's corrected identity when there is one
     const artist = edit?.artist || rawArtist;
@@ -226,10 +230,15 @@ export async function enrichAlbums(entries, onProgress, { lookupYears = false, s
     return applied;
   };
 
-  // A legacy string cache entry has no year info — when years are wanted,
-  // re-query it once so the cache upgrades to { album, year }.
-  const cacheIsFinal = (value) =>
-    value === null || typeof value === 'object' || !lookupYears;
+  // A legacy string cache entry has no year info, and pre-number objects
+  // ({ album, year } without a trackNo key) have no position info — when the
+  // missing kind is wanted, re-query once so the cache upgrades. Cached
+  // misses (null) stay final.
+  const cacheIsFinal = (value) => {
+    if (value === null) return true;
+    if (typeof value === 'string') return !lookupYears && !lookupNumbers;
+    return !lookupNumbers || 'trackNo' in value;
+  };
 
   for (const [key, { artist, track, indices }] of needsLookup) {
     if (shouldStop?.()) {
