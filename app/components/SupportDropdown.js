@@ -137,17 +137,23 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
         <path d={HEART_PATH} fill={heartFill} stroke={heartStroke} strokeWidth="2" vectorEffect="non-scaling-stroke" />
       </svg>
 
-      {/* Content sits in the heart's wide middle band, clear of the lobes and tip */}
-      <div
-        className="absolute flex flex-col items-center justify-center"
-        style={{ left: '15%', right: '15%', top: '16%', bottom: '34%' }}
-      >
-        <div className="flex gap-3 justify-center mb-3">
-          {['ko-fi', 'buymeacoffee'].map(platform => {
-            const isActive = activePlatform === platform;
-            return (
+      {/* Content mapped to the heart's geometry: one pill per lobe, the
+          coffee link at the container's center, Love Yourz running down the
+          lower-left diagonal edge. Wrappers carry the centering transform so
+          the buttons' own press-indent translates still work. */}
+      <div className="absolute inset-0">
+        {[
+          { platform: 'ko-fi', label: 'Ko-fi', left: '28%' },
+          { platform: 'buymeacoffee', label: 'BMC', left: '72%' },
+        ].map(({ platform, label, left }) => {
+          const isActive = activePlatform === platform;
+          return (
+            <div
+              key={platform}
+              className="absolute"
+              style={{ left, top: '30%', transform: 'translate(-50%, -50%)' }}
+            >
               <button
-                key={platform}
                 onClick={() => setActivePlatform(platform)}
                 className={`font-mono text-[11px] font-bold px-3 py-1 rounded-none border-2 transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${
                   isActive
@@ -160,23 +166,32 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
                     : `2px 2px 0 0 ${shadowColor}`,
                 }}
               >
-                {platform === 'ko-fi' ? 'Ko-fi' : 'BMC'}
+                {label}
               </button>
-            );
-          })}
+            </div>
+          );
+        })}
+
+        <div
+          className="absolute"
+          style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+        >
+          <a
+            href={platformLinks[activePlatform]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-block px-4 py-2 rounded-none border-2 text-sm whitespace-nowrap transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${colors.barText} ${linkFx} active:translate-x-[2px] active:translate-y-[2px]`}
+          >
+            <Coffee className="inline mr-2" size={16} />
+            Buy me a coffee
+          </a>
         </div>
 
-        <a
-          href={platformLinks[activePlatform]}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`inline-block px-4 py-2 rounded-none border-2 text-sm whitespace-nowrap transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${colors.barText} ${linkFx} active:translate-x-[2px] active:translate-y-[2px]`}
+        {/* Rotated to follow the heart's lower-left edge toward the tip */}
+        <div
+          className={`absolute whitespace-nowrap text-xs ${colors.muted}`}
+          style={{ left: '40%', top: '72%', transform: 'translate(-50%, -50%) rotate(50deg)' }}
         >
-          <Coffee className="inline mr-2" size={16} />
-          Buy me a coffee
-        </a>
-
-        <div className={`mt-2 text-xs text-center ${colors.muted}`}>
           Love Yourz
         </div>
       </div>
