@@ -9,39 +9,28 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
   const isDark = theme === 'dark';
   const dropdownRef = useRef(null);
   const [activePlatform, setActivePlatform] = useState('ko-fi');
-  const isColorful = colorMode === 'colorful';
 
   const accounts = {
     'ko-fi': 'fauxdono',
     'buymeacoffee': 'fauxdono'
   };
 
-  // Same color system as the settings dropdowns
-  const shadowColor = isColorful
-    ? (isDark ? '#6b7280' : '#4b5563')
-    : (isDark ? '#4169E1' : '#000000');
+  // Love red, in both minimal and colorful modes (this section's own accent,
+  // like the Data tab's black/green): red-500 accents on black in dark,
+  // deep reds on a pink-red pastel in light
+  const shadowColor = isDark ? '#ef4444' : '#7f1d1d';
 
-  const colors = isColorful
-    ? {
-        muted: isDark ? 'text-gray-500' : 'text-gray-400',
-        barText: isDark ? 'text-gray-300' : 'text-gray-700',
-        toggleBg: isDark ? 'bg-gray-700' : 'bg-gray-100',
-        toggleBorder: isDark ? 'border-gray-500' : 'border-gray-500',
-        toggleInactiveText: isDark ? 'text-gray-400' : 'text-gray-500',
-      }
-    : {
-        muted: isDark ? 'text-gray-500' : 'text-gray-400',
-        barText: isDark ? 'text-[#4169E1]' : 'text-black',
-        toggleBg: isDark ? 'bg-gray-900' : 'bg-white',
-        toggleBorder: isDark ? 'border-[#4169E1]' : 'border-black',
-        toggleInactiveText: isDark ? 'text-gray-500' : 'text-gray-500',
-      };
+  const colors = {
+    muted: isDark ? 'text-red-500' : 'text-red-400',
+    barText: isDark ? 'text-red-400' : 'text-red-700',
+    toggleBg: isDark ? 'bg-red-950' : 'bg-red-100',
+    toggleBorder: isDark ? 'border-red-500' : 'border-red-700',
+    toggleInactiveText: isDark ? 'text-red-700' : 'text-red-400',
+  };
 
   // Heart container colors (SVG needs raw values, not classes)
-  const heartFill = isColorful
-    ? (isDark ? '#111827' : '#ffffff')
-    : (isDark ? '#000000' : '#ffffff');
-  const heartStroke = isColorful ? '#6b7280' : (isDark ? '#4169E1' : '#000000');
+  const heartFill = isDark ? '#000000' : '#fee2e2';
+  const heartStroke = isDark ? '#ef4444' : '#b91c1c';
 
   // Handle clicks outside dropdown
   useEffect(() => {
@@ -92,13 +81,9 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
   }, [isOpen, buttonRef]);
 
   // Raised shadow that flips to inset while pressed (site-wide button language)
-  const linkFx = isColorful
-    ? (isDark
-        ? 'shadow-[2px_2px_0_0_#6b7280] active:shadow-[inset_2px_2px_0_0_#6b7280]'
-        : 'shadow-[2px_2px_0_0_#4b5563] active:shadow-[inset_2px_2px_0_0_#4b5563]')
-    : (isDark
-        ? 'shadow-[2px_2px_0_0_#4169E1] active:shadow-[inset_2px_2px_0_0_#4169E1]'
-        : 'shadow-[2px_2px_0_0_black] active:shadow-[inset_2px_2px_0_0_black]');
+  const linkFx = isDark
+    ? 'shadow-[2px_2px_0_0_#ef4444] active:shadow-[inset_2px_2px_0_0_#ef4444]'
+    : 'shadow-[2px_2px_0_0_#7f1d1d] active:shadow-[inset_2px_2px_0_0_#7f1d1d]';
 
   const platformLinks = {
     'ko-fi': `https://ko-fi.com/${accounts['ko-fi']}`,
