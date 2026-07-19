@@ -173,15 +173,15 @@ export default function StoredScrobbles({ colorMode = 'minimal', isDarkMode = fa
   const shadow = isColorful ? (isDarkMode ? 'shadow-[1px_1px_0_0_#7c3aed]' : 'shadow-[1px_1px_0_0_#6d28d9]') : (isDarkMode ? 'shadow-[1px_1px_0_0_#4169E1]' : 'shadow-[1px_1px_0_0_black]');
   // Action buttons indent on press (active:), matching the tab buttons' feel.
   const btnSecondary = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-all border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
+    ? 'px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium text-xs sm:text-sm bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-700 transition-all border border-violet-300 dark:border-violet-700 shadow-[2px_2px_0_0_#7c3aed] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
     : isDarkMode
-      ? 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
-      : 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
+      ? 'px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium text-xs sm:text-sm border transition-all bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium text-xs sm:text-sm border transition-all bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
   const btnDanger = isColorful
-    ? 'px-3 py-1.5 rounded-lg font-medium text-sm bg-red-500 text-white hover:bg-red-600 transition-all shadow-[2px_2px_0_0_#7c3aed] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
+    ? 'px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium text-xs sm:text-sm bg-red-500 text-white hover:bg-red-600 transition-all shadow-[2px_2px_0_0_#7c3aed] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#7c3aed]'
     : isDarkMode
-      ? 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-black text-red-400 border-red-600 hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
-      : 'px-3 py-1.5 rounded-lg font-medium text-sm border transition-all bg-white text-red-600 border-red-400 hover:bg-red-50 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
+      ? 'px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium text-xs sm:text-sm border transition-all bg-black text-red-400 border-red-600 hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg font-medium text-xs sm:text-sm border transition-all bg-white text-red-600 border-red-400 hover:bg-red-50 shadow-[2px_2px_0_0_black] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
   // Toggle matches the tab buttons: active is pressed-in, inactive is raised.
   const segActive = isColorful
     ? 'bg-violet-100 dark:bg-violet-800 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#7c3aed]'
