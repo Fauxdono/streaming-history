@@ -267,6 +267,7 @@ const FixedSettingsBar = ({
         isOpen={showAnalysisSettings}
         onClose={() => setShowAnalysisSettings(false)}
         buttonRef={analysisButtonRef}
+        colorMode={colorMode}
       />
 
       {/* Support Dropdown */}

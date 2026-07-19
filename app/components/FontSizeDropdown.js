@@ -165,12 +165,16 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
   const [position, setPosition] = useState({ top: null, bottom: null, left: 0, maxHeight: 'none', width: 280 });
 
   useEffect(() => {
-    if (isOpen && buttonRef.current) {
+    const updatePosition = () => {
+      if (!isOpen || !buttonRef.current) return;
       const buttonRect = buttonRef.current.getBoundingClientRect();
-      const isLandscape = window.innerWidth > window.innerHeight;
-      const dropdownWidth = isMobile
-        ? (isLandscape ? Math.min(window.innerWidth - 16, 560) : 280)
-        : 560;
+      // Width follows the app font size (root goes 14-20px) so larger text
+      // gets a wider panel instead of cramming into the same 280px.
+      const fontScale = ({ small: 14, medium: 16, large: 18, xlarge: 20 }[fontSize] || 16) / 16;
+      // Dyslexic spacing adds 0.12em letter / 0.16em word spacing (~15% wider text)
+      const spacingScale = dyslexicSpacing ? 1.15 : 1;
+      // Mobile keeps the portrait-shaped panel in every orientation
+      const dropdownWidth = Math.min(window.innerWidth - 16, Math.round((isMobile ? 280 : 560) * fontScale * spacingScale));
 
       let left = buttonRect.left + buttonRect.width / 2 - dropdownWidth / 2;
       if (left < 8) left = 8;
@@ -191,8 +195,26 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
           setPosition({ top, bottom: null, left, maxHeight: Math.min(600, spaceBelow), width: dropdownWidth });
         }
       }
-    }
-  }, [isOpen, buttonRef, isMobile]);
+    };
+
+    updatePosition();
+    // Re-anchor on rotation/resize so the panel doesn't keep a stale layout.
+    // Second pass: iOS fires these before the remounted bar button and final
+    // viewport dimensions settle.
+    let settleTimer = null;
+    const onViewportChange = () => {
+      updatePosition();
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(updatePosition, 250);
+    };
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', onViewportChange);
+    return () => {
+      clearTimeout(settleTimer);
+      window.removeEventListener('resize', onViewportChange);
+      window.removeEventListener('orientationchange', onViewportChange);
+    };
+  }, [isOpen, buttonRef, isMobile, fontSize, dyslexicSpacing]);
 
   if (!isOpen) return null;
 
@@ -248,42 +270,47 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
             </button>
           ))}
         </div>
+        <div className="mt-3">
+          <RetroToggle checked={dyslexicSpacing} onChange={setDyslexicSpacing} label="Dyslexia-friendly spacing" />
+        </div>
       </div>
 
-      <div className={`my-3 border-t ${colors.divider}`} />
+      {/* Time/analysis settings live in AnalysisSettingsDropdown on desktop;
+          mobile has no analysis button, so they stay here */}
+      {isMobile && (
+        <>
+          <div className={`my-3 border-t ${colors.divider}`} />
 
-      {/* Minimum Play Duration */}
-      <div>
-        <div className={`text-xs mb-2 ${colors.label}`}>Minimum Play Duration</div>
-        <RetroSlider
-          value={Math.round(minPlayDuration / 1000)}
-          min={0}
-          max={120}
-          onChange={(v) => setMinPlayDuration(v * 1000)}
-          displayValue={`${Math.round(minPlayDuration / 1000)}s`}
-        />
-      </div>
+          {/* Minimum Play Duration */}
+          <div>
+            <div className={`text-xs mb-2 ${colors.label}`}>Minimum Play Duration</div>
+            <RetroSlider
+              value={Math.round(minPlayDuration / 1000)}
+              min={0}
+              max={120}
+              onChange={(v) => setMinPlayDuration(v * 1000)}
+              displayValue={`${Math.round(minPlayDuration / 1000)}s`}
+            />
+          </div>
 
-      {/* Skip Tolerance */}
-      <div className="mt-3">
-        <div className={`text-xs mb-2 ${colors.label}`}>Skip Tolerance (near end)</div>
-        <RetroSlider
-          value={Math.round(skipEndThreshold / 1000)}
-          min={0}
-          max={60}
-          onChange={(v) => setSkipEndThreshold(v * 1000)}
-          displayValue={skipEndThreshold === 0 ? 'Off' : `${Math.round(skipEndThreshold / 1000)}s`}
-        />
-      </div>
+          {/* Skip Tolerance */}
+          <div className="mt-3">
+            <div className={`text-xs mb-2 ${colors.label}`}>Skip Tolerance (near end)</div>
+            <RetroSlider
+              value={Math.round(skipEndThreshold / 1000)}
+              min={0}
+              max={60}
+              onChange={(v) => setSkipEndThreshold(v * 1000)}
+              displayValue={skipEndThreshold === 0 ? 'Off' : `${Math.round(skipEndThreshold / 1000)}s`}
+            />
+          </div>
 
-      <div className={`my-3 border-t ${colors.divider}`} />
+          <div className={`my-3 border-t ${colors.divider}`} />
 
-      <RetroToggle checked={skipFilter} onChange={setSkipFilter} label="Exclude skipped tracks" />
-      <RetroToggle checked={fullListenOnly} onChange={setFullListenOnly} label="Only count completed plays" />
-
-      <div className={`my-3 border-t ${colors.divider}`} />
-
-      <RetroToggle checked={dyslexicSpacing} onChange={setDyslexicSpacing} label="Dyslexia-friendly spacing" />
+          <RetroToggle checked={skipFilter} onChange={setSkipFilter} label="Exclude skipped tracks" />
+          <RetroToggle checked={fullListenOnly} onChange={setFullListenOnly} label="Only count completed plays" />
+        </>
+      )}
     </div>
   );
 };

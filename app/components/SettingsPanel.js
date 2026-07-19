@@ -270,6 +270,13 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
             </button>
           ))}
         </div>
+        <div className="mt-3">
+          <RetroToggle
+            checked={dyslexicSpacing}
+            onChange={setDyslexicSpacing}
+            label="Dyslexia-friendly spacing"
+          />
+        </div>
       </div>
 
       {/* Divider */}
@@ -321,23 +328,16 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
         />
       </div>
 
-      {/* Divider */}
-      <div className={`my-4 border-t ${colors.divider}`}></div>
-
-      <RetroToggle
-        checked={dyslexicSpacing}
-        onChange={setDyslexicSpacing}
-        label="Dyslexia-friendly spacing"
-      />
-
       {rainbowDiscovered && (
-        <div className="mt-1">
+        <>
+          {/* Divider */}
+          <div className={`my-4 border-t ${colors.divider}`}></div>
           <RetroToggle
             checked={!!rainbowMode}
             onChange={setRainbowMode}
             label="🌈 Rainbow mode"
           />
-        </div>
+        </>
       )}
     </div>
   );
