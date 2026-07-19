@@ -138,48 +138,17 @@ export default function RootLayout({ children }) {
                 (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
               if (isStandalone && window.screen && window.screen.orientation) {
                 var resyncGen = 0;
-                var rotationVeil = null;
                 window.screen.orientation.addEventListener('change', function() {
                   var gen = ++resyncGen;
                   var root = document.documentElement;
                   var goingLandscape = window.screen.orientation.type.indexOf('landscape') === 0;
                   root.classList.add('rotation-resync');
 
-                  // Entering landscape, WebKit paints frames with the old
-                  // portrait geometry (page looks dumped at the bottom edge)
-                  // before it accepts the nudge — that can't be prevented,
-                  // only covered. The veil is dropped the first frame the
-                  // geometry *verifies* as synced, not on a timer, so it
-                  // lasts exactly as long as the desync does. Oversized so it
-                  // covers even while fixed-positioning is offset. Portrait
-                  // entry is natively smooth; leave it be.
-                  if (goingLandscape) {
-                    if (!rotationVeil) {
-                      rotationVeil = document.createElement('div');
-                      rotationVeil.style.cssText =
-                        'position:fixed;left:-50vmax;top:-50vmax;right:-50vmax;bottom:-50vmax;' +
-                        'z-index:2147483647;pointer-events:none;';
-                    }
-                    rotationVeil.style.transition = 'none';
-                    rotationVeil.style.opacity = '1';
-                    rotationVeil.style.background =
-                      getComputedStyle(root).backgroundColor;
-                    document.body.appendChild(rotationVeil);
-                  }
+                  // No veil over the pre-nudge desynced frames: user prefers
+                  // seeing the screen click into place over any covering.
 
                   var finish = function() {
                     root.classList.remove('rotation-resync');
-                    // Clean up any veil, including one a superseded rotation
-                    // left behind (a fast landscape->portrait flip must not
-                    // strand it on screen).
-                    if (rotationVeil && rotationVeil.parentNode) {
-                      var veil = rotationVeil;
-                      veil.style.transition = 'opacity 80ms ease';
-                      veil.style.opacity = '0';
-                      setTimeout(function() {
-                        if (gen === resyncGen) veil.remove();
-                      }, 120);
-                    }
                   };
 
                   // Synced = every geometry source agrees: aspect matches the
@@ -210,7 +179,7 @@ export default function RootLayout({ children }) {
                     window.scrollTo(0, 1);
                     window.scrollTo(0, 0);
                     if (synced()) {
-                      // Let one verified frame actually paint before unveiling.
+                      // One extra verified frame, then re-lock the scroll room.
                       if (++syncedFrames >= 2) { finish(); return; }
                     } else {
                       syncedFrames = 0;
@@ -218,7 +187,7 @@ export default function RootLayout({ children }) {
                     if (Date.now() - start < 700) {
                       requestAnimationFrame(tick);
                     } else {
-                      finish(); // safety cap: never strand the veil or the 1px scroll room
+                      finish(); // safety cap: never strand the 1px scroll room
                     }
                   };
                   requestAnimationFrame(tick);
