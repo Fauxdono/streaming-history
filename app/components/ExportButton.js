@@ -522,9 +522,19 @@ const ExportButton = ({
   const panelClass = isColorful
     ? 'p-3 rounded border mb-2 bg-green-100 border-black dark:bg-black dark:border-green-600'
     : `p-3 rounded border mb-2 ${isDarkMode ? 'bg-black border-[#4169E1]' : 'bg-gray-50 border-black'}`;
-  const smallBtnClass = isColorful
+  // Press-shadow button language in the Data tab's black/green palette
+  const raiseFx = isColorful
+    ? 'shadow-[2px_2px_0_0_black] dark:shadow-[2px_2px_0_0_#22c55e]'
+    : isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]';
+  const pressFx = isColorful
+    ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black] dark:active:shadow-[inset_2px_2px_0_0_#22c55e]'
+    : isDarkMode
+      ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
+  const btnFx = `transition-all ${raiseFx} ${pressFx}`;
+  const smallBtnClass = `${isColorful
     ? 'text-xs px-2 py-1 rounded border border-black bg-green-200 text-black hover:bg-green-300 dark:border-green-700 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900'
-    : `text-xs px-2 py-1 rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`;
+    : `text-xs px-2 py-1 rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx}`;
   const detailBoxClass = isColorful
     ? 'text-xs p-2 rounded border bg-green-200 text-black border-black dark:bg-green-950 dark:text-green-400 dark:border-green-800'
     : `text-xs p-2 rounded border ${isDarkMode ? 'bg-black text-[#FDF6E3] border-gray-700' : 'bg-white text-black border-gray-300'}`;
@@ -761,9 +771,9 @@ const ExportButton = ({
         onClick={handleExportStart}
         disabled={isExporting}
         className={
-          isColorful
-            ? 'inline-flex items-center justify-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-            : `inline-flex items-center justify-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+          `${isColorful
+            ? 'inline-flex items-center justify-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded disabled:opacity-40 disabled:cursor-not-allowed bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
+            : `inline-flex items-center justify-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`} ${btnFx} disabled:shadow-none`
         }
       >
         {exportFormat === 'json' ? <FileText size={14} /> : <Download size={14} />}

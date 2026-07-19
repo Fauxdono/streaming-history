@@ -118,6 +118,17 @@ const Top100Export = ({
 
   const maxTracks = Math.min(processedData.length, 250);
 
+  // Press-shadow button language in the Data tab's black/green palette
+  const raiseFx = isColorful
+    ? 'shadow-[2px_2px_0_0_black] dark:shadow-[2px_2px_0_0_#22c55e]'
+    : isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]';
+  const pressFx = isColorful
+    ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black] dark:active:shadow-[inset_2px_2px_0_0_#22c55e]'
+    : isDarkMode
+      ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
+  const btnFx = `transition-all ${raiseFx} ${pressFx}`;
+
   return (
     <div className="flex flex-wrap items-center gap-2 mt-2">
       <TopNStepper
@@ -125,9 +136,9 @@ const Top100Export = ({
         setValue={setTrackCount}
         max={maxTracks}
         inputClass={
-          isColorful
+          `${isColorful
             ? 'border-black bg-green-100 text-black focus:outline-none focus:border-green-700 dark:border-green-600 dark:bg-black dark:text-green-300 dark:focus:border-green-400'
-            : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] focus:outline-none focus:border-blue-400' : 'border-black bg-white text-black focus:outline-none focus:border-gray-500')
+            : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] focus:outline-none focus:border-blue-400' : 'border-black bg-white text-black focus:outline-none focus:border-gray-500')} ${raiseFx}`
         }
         buttonClass={
           isColorful
@@ -138,9 +149,9 @@ const Top100Export = ({
       <button
         onClick={handleDownload}
         className={
-          isColorful
-            ? 'flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors'
-            : `flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+          `${isColorful
+            ? 'flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm bg-cyan-600 text-white rounded hover:bg-cyan-700'
+            : `flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`} ${btnFx}`
         }
       >
         <FileText size={14} />
@@ -149,9 +160,9 @@ const Top100Export = ({
       <button
         onClick={handleCopyToClipboard}
         className={
-          isColorful
-            ? 'flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors'
-            : `flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+          `${isColorful
+            ? 'flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm bg-teal-600 text-white rounded hover:bg-teal-700'
+            : `flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`} ${btnFx}`
         }
       >
         {copied ? <Check size={14} /> : <Copy size={14} />}

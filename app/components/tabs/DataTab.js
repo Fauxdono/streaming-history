@@ -452,6 +452,24 @@ export default function DataTab({
   // with green accents in dark (dark: variants carry the inversion).
   const headingClass = isColorful ? 'text-black dark:text-green-400' : '';
   const bodyClass = isColorful ? 'text-black dark:text-green-500' : isDarkMode ? 'text-[#FDF6E3]' : 'text-black';
+  // Site-wide button language in the Data tab's black/green palette:
+  // raised offset shadow on anything pressable, indent + inset while pressed,
+  // static raised shadow on selection areas (search, selects).
+  const raise = isColorful
+    ? 'shadow-[2px_2px_0_0_black] dark:shadow-[2px_2px_0_0_#22c55e]'
+    : isDarkMode ? 'shadow-[2px_2px_0_0_#4169E1]' : 'shadow-[2px_2px_0_0_black]';
+  const press = isColorful
+    ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black] dark:active:shadow-[inset_2px_2px_0_0_#22c55e]'
+    : isDarkMode
+      ? 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'active:translate-x-[2px] active:translate-y-[2px] active:shadow-[inset_2px_2px_0_0_black]';
+  const pressedIn = isColorful
+    ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black] dark:shadow-[inset_2px_2px_0_0_#22c55e]'
+    : isDarkMode
+      ? 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
+  const btnFx = `transition-all ${raise} ${press}`;
+
   const cardClass = isColorful
     ? 'p-4 border border-black rounded bg-green-200 shadow-[2px_2px_0_0_black] dark:border-green-500 dark:bg-black dark:shadow-[2px_2px_0_0_#22c55e]'
     : `p-4 border rounded ${isDarkMode ? 'border-[#4169E1] bg-black shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white shadow-[1px_1px_0_0_black]'}`;
@@ -470,9 +488,9 @@ export default function DataTab({
   const badgeClass = isColorful
     ? 'px-1.5 py-0.5 text-[10px] rounded border border-black bg-green-300 text-black whitespace-nowrap dark:border-green-700 dark:bg-green-950 dark:text-green-400'
     : `px-1.5 py-0.5 text-[10px] rounded border whitespace-nowrap ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3]' : 'border-black text-black'}`;
-  const pageBtnClass = isColorful
+  const pageBtnClass = `${isColorful
     ? 'flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
-    : `flex items-center gap-1 px-3 py-1.5 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`;
+    : `flex items-center gap-1 px-3 py-1.5 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx} disabled:shadow-none`;
 
   const SortHeader = ({ column, label, className = '' }) => (
     <th className={`${thClass} ${className}`} onClick={() => toggleSort(column)}>
@@ -655,9 +673,9 @@ export default function DataTab({
                     <button
                       onClick={onStopEnrichment}
                       className={
-                        isColorful
+                        `${isColorful
                           ? 'px-4 py-2 text-sm rounded border border-red-600 text-red-700 hover:bg-red-200 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-950'
-                          : `px-4 py-2 text-sm rounded border ${isDarkMode ? 'border-red-500 text-red-400 hover:bg-red-950' : 'border-red-600 text-red-700 hover:bg-red-100'}`
+                          : `px-4 py-2 text-sm rounded border ${isDarkMode ? 'border-red-500 text-red-400 hover:bg-red-950' : 'border-red-600 text-red-700 hover:bg-red-100'}`} ${btnFx}`
                       }
                     >
                       {enrichProgress
@@ -670,9 +688,9 @@ export default function DataTab({
                         onClick={() => onRunEnrichment?.()}
                         disabled={lookupCount === 0}
                         className={
-                          isColorful
+                          `${isColorful
                             ? 'px-4 py-2 text-sm rounded border border-black text-black hover:bg-green-300 disabled:opacity-30 disabled:cursor-not-allowed dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950'
-                            : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                            : `px-4 py-2 text-sm rounded border disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx} disabled:shadow-none`
                         }
                       >
                         Run lookup now
@@ -681,9 +699,9 @@ export default function DataTab({
                         <button
                           onClick={() => onRunEnrichment?.(scopedLookup.okeys)}
                           className={
-                            isColorful
+                            `${isColorful
                               ? 'px-4 py-2 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-                              : `px-4 py-2 text-sm rounded border font-medium ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                              : `px-4 py-2 text-sm rounded border font-medium ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx}`
                           }
                           title="Only the tracks matching the search/service filter in the table below"
                         >
@@ -737,11 +755,11 @@ export default function DataTab({
                   onClick={resetAll}
                   onBlur={() => setResetArmed(false)}
                   className={
-                    resetArmed
+                    `${resetArmed
                       ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-red-600 text-red-700 bg-red-200 dark:border-red-500 dark:text-red-400 dark:bg-red-950'
                       : isColorful
                         ? 'flex items-center gap-1 px-2 py-1.5 text-xs rounded border border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-500 dark:hover:bg-green-950'
-                        : `flex items-center gap-1 px-2 py-1.5 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`
+                        : `flex items-center gap-1 px-2 py-1.5 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx}`
                   }
                 >
                   <RotateCcw size={12} />
@@ -756,9 +774,9 @@ export default function DataTab({
                   onChange={(e) => { setTrackSearch(e.target.value); setPage(0); }}
                   placeholder="Search track, artist, album…"
                   className={
-                    isColorful
+                    `${isColorful
                       ? 'search-input-sm pl-7 pr-2 py-1.5 w-full text-sm rounded bg-green-100 border border-black text-black placeholder-green-700 focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-400 dark:placeholder-green-800 dark:focus:border-green-400'
-                      : `search-input-sm pl-7 pr-2 py-1.5 w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
+                      : `search-input-sm pl-7 pr-2 py-1.5 w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`} ${raise}`
                   }
                 />
               </div>
@@ -775,13 +793,13 @@ export default function DataTab({
                     key={label ?? 'all'}
                     onClick={() => { setServiceFilter(active ? null : label); setPage(0); }}
                     className={
-                      isColorful
+                      `${isColorful
                         ? `inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded border ${active
                             ? 'bg-black text-green-400 border-black dark:bg-green-600 dark:text-black dark:border-green-600'
                             : 'border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-500 dark:hover:bg-green-950'}`
                         : `inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded border ${active
                             ? (isDarkMode ? 'bg-[#4169E1] text-[#FDF6E3] border-[#4169E1]' : 'bg-black text-[#FDF6E3] border-black')
-                            : (isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100')}`
+                            : (isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-900' : 'border-black text-black hover:bg-gray-100')}`} transition-all ${active ? pressedIn : `${raise} ${press}`}`
                     }
                   >
                     {source && <ServiceIcon source={source} size={11} />}
@@ -824,9 +842,9 @@ export default function DataTab({
                       <button
                         onClick={() => mergeTracks(group.tracks, group.tracks[0])}
                         className={
-                          isColorful
+                          `${isColorful
                             ? 'px-2 py-1 text-xs rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
+                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx}`
                         }
                       >
                         Merge
@@ -834,9 +852,9 @@ export default function DataTab({
                       <button
                         onClick={() => dismissSuggestion(group.isrc)}
                         className={
-                          isColorful
+                          `${isColorful
                             ? 'px-2 py-1 text-xs rounded border border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900'
-                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-gray-600 text-white hover:bg-gray-900' : 'border-gray-400 text-black hover:bg-gray-100'}`
+                            : `px-2 py-1 text-xs rounded border ${isDarkMode ? 'border-gray-600 text-white hover:bg-gray-900' : 'border-gray-400 text-black hover:bg-gray-100'}`} ${btnFx}`
                         }
                       >
                         Dismiss
@@ -887,9 +905,9 @@ export default function DataTab({
                 <button
                   onClick={mergeSelected}
                   className={
-                    isColorful
+                    `${isColorful
                       ? 'px-3 py-1.5 text-sm rounded bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`
+                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-[#4169E1] text-[#FDF6E3] hover:bg-gray-800' : 'border-black text-black hover:bg-gray-100'}`} ${btnFx}`
                   }
                 >
                   Merge into one song
@@ -897,9 +915,9 @@ export default function DataTab({
                 <button
                   onClick={() => { setSelectedKeys(new Set()); setMergeCanonicalKey(null); }}
                   className={
-                    isColorful
+                    `${isColorful
                       ? 'px-3 py-1.5 text-sm rounded border border-black text-black hover:bg-green-300 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900'
-                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-gray-600 text-white hover:bg-gray-900' : 'border-gray-400 text-black hover:bg-gray-100'}`
+                      : `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'border-gray-600 text-white hover:bg-gray-900' : 'border-gray-400 text-black hover:bg-gray-100'}`} ${btnFx}`
                   }
                 >
                   Cancel
@@ -926,11 +944,15 @@ export default function DataTab({
                       setSortDesc(e.target.value === 'lengthMs' || e.target.value === 'releaseYear');
                       setPage(0);
                     }}
-                    className={`${inputClass} select-input-sm`}
+                    className={`${inputClass} select-input-sm ${raise}`}
                   >
                     {SORTS.map(([col, label]) => <option key={col} value={col}>{label}</option>)}
                   </select>
-                  <button onClick={() => setSortDesc(d => !d)} className={iconBtnClass} title="Reverse order">
+                  <button
+                    onClick={() => setSortDesc(d => !d)}
+                    className={`${iconBtnClass} border rounded ${isColorful ? 'border-black dark:border-green-600' : isDarkMode ? 'border-[#4169E1]' : 'border-black'} ${btnFx}`}
+                    title="Reverse order"
+                  >
                     {sortDesc ? '▼' : '▲'}
                   </button>
                 </div>
