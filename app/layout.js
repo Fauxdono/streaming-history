@@ -138,6 +138,7 @@ export default function RootLayout({ children }) {
                 (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
               if (isStandalone && window.screen && window.screen.orientation) {
                 var resyncGen = 0;
+                var rotationVeil = null;
                 window.screen.orientation.addEventListener('change', function() {
                   var gen = ++resyncGen;
                   var root = document.documentElement;
@@ -155,6 +156,33 @@ export default function RootLayout({ children }) {
                     }
                   };
                   requestAnimationFrame(nudge);
+
+                  // Entering landscape, WebKit paints at least one frame with
+                  // the old portrait geometry (page looks dumped at the bottom
+                  // edge) *before* any JS runs — it can't be prevented, only
+                  // covered: veil the screen with the page background until
+                  // the nudge lands, then fade. Oversized so it covers even
+                  // while fixed-positioning is offset. Portrait entry is
+                  // natively smooth; leave it be.
+                  if (window.screen.orientation.type.indexOf('landscape') === 0) {
+                    if (!rotationVeil) {
+                      rotationVeil = document.createElement('div');
+                      rotationVeil.style.cssText =
+                        'position:fixed;left:-50vmax;top:-50vmax;right:-50vmax;bottom:-50vmax;' +
+                        'z-index:2147483647;pointer-events:none;';
+                    }
+                    rotationVeil.style.transition = 'none';
+                    rotationVeil.style.opacity = '1';
+                    rotationVeil.style.background =
+                      getComputedStyle(document.documentElement).backgroundColor;
+                    document.body.appendChild(rotationVeil);
+                    setTimeout(function() {
+                      if (gen !== resyncGen) return; // a newer rotation owns the veil
+                      rotationVeil.style.transition = 'opacity 120ms ease';
+                      rotationVeil.style.opacity = '0';
+                      setTimeout(function() { rotationVeil.remove(); }, 160);
+                    }, 320);
+                  }
                 });
               }
             })();
