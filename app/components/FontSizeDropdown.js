@@ -256,7 +256,7 @@ const FontSizeDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' })
       {/* Font Family */}
       <div>
         <div className={`text-xs mb-2 ${colors.label}`}>Font Family</div>
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-1">
+        <div className="grid grid-cols-3 gap-1">
           {fontFamilyOptions.map((option) => (
             <button
               key={option.value}
