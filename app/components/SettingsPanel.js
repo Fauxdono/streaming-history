@@ -59,8 +59,6 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
         // Toggle
         toggleBg: isDark ? 'bg-gray-700' : 'bg-gray-100',
         toggleBorder: isDark ? 'border-gray-500' : 'border-gray-500',
-        toggleActiveBg: isDark ? 'bg-gray-600' : 'bg-gray-600',
-        toggleActiveText: 'text-white',
         toggleInactiveText: isDark ? 'text-gray-400' : 'text-gray-500',
       }
     : {
@@ -85,17 +83,8 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
         // Toggle
         toggleBg: isDark ? 'bg-gray-900' : 'bg-white',
         toggleBorder: isDark ? 'border-[#4169E1]' : 'border-black',
-        toggleActiveBg: isDark ? 'bg-[#4169E1]' : 'bg-black',
-        toggleActiveText: 'text-white',
         toggleInactiveText: isDark ? 'text-gray-500' : 'text-gray-500',
       };
-
-  const fontSizeOptions = [
-    { value: 'small', label: 'Small', sliderValue: 0 },
-    { value: 'medium', label: 'Medium', sliderValue: 1 },
-    { value: 'large', label: 'Large', sliderValue: 2 },
-    { value: 'xlarge', label: 'Extra Large', sliderValue: 3 },
-  ];
 
   const fontFamilyOptions = [
     { value: 'sans', label: 'Sans-serif', preview: '-apple-system, BlinkMacSystemFont, sans-serif' },
@@ -115,8 +104,6 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
     { value: 'fantasy', label: 'Fantasy', preview: 'Papyrus, fantasy' },
     { value: 'opendyslexic', label: 'OpenDyslexic', preview: 'var(--font-opendyslexic), OpenDyslexic, sans-serif' },
   ];
-
-  const currentSliderValue = fontSizeOptions.find(opt => opt.value === fontSize)?.sliderValue ?? 1;
 
   const modeButtons = [
     { label: 'Light Minimal', theme: 'light', colorMode: 'minimal' },
@@ -146,35 +133,33 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
     const handleTouch = (e) => onChange(calcValue(e.touches[0].clientX));
 
     return (
-      <div className={`${colors.barBg} border ${colors.barBorder} p-3 rounded-none`}>
-        <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3">
+        <div
+          ref={trackRef}
+          className="relative flex-1 h-3 cursor-pointer"
+          onClick={handleClick}
+          onMouseMove={handleDrag}
+          onTouchMove={handleTouch}
+        >
+          {/* Track background */}
+          <div className={`absolute inset-0 ${colors.barTrack} rounded-none`} />
+          {/* Filled portion */}
           <div
-            ref={trackRef}
-            className="relative flex-1 h-3 cursor-pointer"
-            onClick={handleClick}
-            onMouseMove={handleDrag}
-            onTouchMove={handleTouch}
-          >
-            {/* Track background */}
-            <div className={`absolute inset-0 ${colors.barTrack} rounded-none`} />
-            {/* Filled portion */}
-            <div
-              className={`absolute top-0 left-0 h-full ${colors.barFill} rounded-none`}
-              style={{ width: `${fraction * 100}%` }}
-            />
-            {/* Round thumb */}
-            <div
-              className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full ${colors.thumbBg} border-2 ${colors.thumbBorder}`}
-              style={{
-                left: `calc(${fraction * 100}% - 10px)`,
-                boxShadow: `2px 2px 0 0 ${shadowColor}`,
-              }}
-            />
-          </div>
-          <span className={`font-mono text-[12px] min-w-[4rem] text-right ${colors.barText}`}>
-            {displayValue}
-          </span>
+            className={`absolute top-0 left-0 h-full ${colors.barFill} rounded-none`}
+            style={{ width: `${fraction * 100}%` }}
+          />
+          {/* Round thumb */}
+          <div
+            className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full ${colors.thumbBg} border-2 ${colors.thumbBorder}`}
+            style={{
+              left: `calc(${fraction * 100}% - 10px)`,
+              boxShadow: `2px 2px 0 0 ${shadowColor}`,
+            }}
+          />
         </div>
+        <span className={`font-mono text-[12px] min-w-[4rem] text-right ${colors.barText}`}>
+          {displayValue}
+        </span>
       </div>
     );
   };
@@ -186,10 +171,10 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
         <span className={`text-sm ${colors.text}`}>{label}</span>
         <button
           onClick={() => onChange(!checked)}
-          className={`font-mono text-[11px] rounded-none border-2 transition-all duration-200 select-none ${
+          className={`font-mono text-[11px] rounded-none border-2 transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${
             checked
-              ? `${colors.toggleActiveBg} ${colors.toggleActiveText} ${colors.toggleBorder} translate-x-[2px] translate-y-[2px]`
-              : `${colors.toggleBg} ${colors.toggleInactiveText} ${colors.toggleBorder}`
+              ? `${colors.barText} translate-x-[2px] translate-y-[2px]`
+              : colors.toggleInactiveText
           }`}
           style={{
             minWidth: '56px',
@@ -199,7 +184,7 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
           }}
         >
           <span className="px-2 py-0.5 font-bold block">
-            {checked ? '\u25A0 ON' : 'OFF \u25A0'}
+            {checked ? 'ON' : 'OFF'}
           </span>
         </button>
       </label>
@@ -239,17 +224,7 @@ export default function SettingsPanel({ colorMode, setColorMode, rainbowMode, se
         <div className={`text-xs mb-2 ${colors.label}`}>
           Font Size
         </div>
-        <RetroSlider
-          value={currentSliderValue}
-          min={0}
-          max={3}
-          onChange={(v) => {
-            const option = fontSizeOptions[v];
-            if (option) setFontSize(option.value);
-          }}
-          displayValue={fontSizeOptions[currentSliderValue]?.label || ''}
-        />
-        <div className="flex justify-between mt-3 px-1">
+        <div className="flex justify-between px-1">
           {[
             { size: 'small', px: '12px' },
             { size: 'medium', px: '16px' },
