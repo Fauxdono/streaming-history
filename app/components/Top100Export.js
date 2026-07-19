@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Copy, Check } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
+import TopNStepper from './TopNStepper.js';
 
 const Top100Export = ({
   processedData = [],
@@ -119,41 +120,41 @@ const Top100Export = ({
 
   return (
     <div className="flex flex-wrap items-center gap-2 mt-2">
-      <input
-        type="number"
-        min={1}
-        max={maxTracks}
+      <TopNStepper
         value={trackCount}
-        onChange={(e) => {
-          const val = Math.max(1, Math.min(maxTracks, parseInt(e.target.value) || 1));
-          setTrackCount(val);
-        }}
-        className={
+        setValue={setTrackCount}
+        max={maxTracks}
+        inputClass={
           isColorful
-            ? 'w-16 px-2 py-2 bg-cyan-900 text-white rounded text-sm text-center border border-cyan-600 focus:outline-none focus:border-cyan-400'
-            : `w-16 px-2 py-2 rounded text-sm text-center focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
+            ? 'border-black bg-green-100 text-black focus:outline-none focus:border-green-700 dark:border-green-600 dark:bg-black dark:text-green-300 dark:focus:border-green-400'
+            : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] focus:outline-none focus:border-blue-400' : 'border-black bg-white text-black focus:outline-none focus:border-gray-500')
+        }
+        buttonClass={
+          isColorful
+            ? 'text-black dark:text-green-400'
+            : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black')
         }
       />
       <button
         onClick={handleDownload}
         className={
           isColorful
-            ? 'flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors text-sm'
-            : `flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            ? 'flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors'
+            : `flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
         }
       >
-        <FileText size={16} />
+        <FileText size={14} />
         Top {trackCount} JSON
       </button>
       <button
         onClick={handleCopyToClipboard}
         className={
           isColorful
-            ? 'flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors text-sm'
-            : `flex items-center gap-2 px-4 py-2 rounded transition-colors text-sm ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            ? 'flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors'
+            : `flex items-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
         }
       >
-        {copied ? <Check size={16} /> : <Copy size={16} />}
+        {copied ? <Check size={14} /> : <Copy size={14} />}
         {copied ? 'Copied!' : 'Copy for AI'}
       </button>
     </div>

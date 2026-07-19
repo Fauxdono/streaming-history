@@ -748,7 +748,7 @@ export default function DataTab({
                   {resetArmed ? `Really reset ${editCount} edits?` : 'Reset all edits'}
                 </button>
               )}
-              <div className="relative">
+              <div className="relative w-64 max-w-full">
                 <Search size={14} className={`absolute left-2 top-1/2 -translate-y-1/2 ${isColorful ? 'text-black opacity-50 dark:text-green-600 dark:opacity-100' : 'opacity-50'}`} />
                 <input
                   type="text"
@@ -757,8 +757,8 @@ export default function DataTab({
                   placeholder="Search track, artist, album…"
                   className={
                     isColorful
-                      ? 'pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded bg-green-100 border border-black text-black placeholder-green-700 focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-400 dark:placeholder-green-800 dark:focus:border-green-400'
-                      : `pl-7 pr-2 py-1.5 w-64 max-w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
+                      ? 'search-input-sm pl-7 pr-2 py-1.5 w-full text-sm rounded bg-green-100 border border-black text-black placeholder-green-700 focus:outline-none focus:border-green-700 dark:bg-black dark:border-green-600 dark:text-green-400 dark:placeholder-green-800 dark:focus:border-green-400'
+                      : `search-input-sm pl-7 pr-2 py-1.5 w-full text-sm rounded focus:outline-none ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] focus:border-blue-400' : 'bg-white text-black border border-black focus:border-gray-500'}`
                   }
                 />
               </div>
@@ -926,7 +926,7 @@ export default function DataTab({
                       setSortDesc(e.target.value === 'lengthMs' || e.target.value === 'releaseYear');
                       setPage(0);
                     }}
-                    className={`${inputClass} !w-auto`}
+                    className={`${inputClass} select-input-sm`}
                   >
                     {SORTS.map(([col, label]) => <option key={col} value={col}>{label}</option>)}
                   </select>

@@ -97,6 +97,18 @@ html.app-shell.rotation-resync body {
     margin: -4.33px -33.34% -4.33px 0;
   }
 
+  /* Dropdown flavor (mobile sort select): fixed pre-scale width instead of
+     the percentage trick since the select isn't in a sized wrapper; the
+     negative right margin trims the layout box by the scaled-off 25%. */
+  .select-input-sm {
+    font-size: 16px !important;
+    width: 96px !important;
+    height: 34.67px;
+    transform: scale(0.75);
+    transform-origin: left center;
+    margin: -4.33px -24px -4.33px 0;
+  }
+
   /* Multi-line flavor (suggestion form textarea): same oversize-then-scale
      trick, anchored top-left; the fixed pre-scale height replaces the rows
      attribute on mobile and the negative bottom margin trims the layout box

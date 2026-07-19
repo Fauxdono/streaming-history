@@ -762,11 +762,11 @@ const ExportButton = ({
         disabled={isExporting}
         className={
           isColorful
-            ? 'flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
-            : `flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
+            ? 'inline-flex items-center justify-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-black text-green-400 hover:bg-gray-900 dark:bg-green-600 dark:text-black dark:hover:bg-green-500'
+            : `inline-flex items-center justify-center gap-1.5 px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm rounded transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:bg-gray-800' : 'bg-white text-black border border-black hover:bg-gray-100'}`
         }
       >
-        {exportFormat === 'json' ? <FileText size={16} /> : <Download size={16} />}
+        {exportFormat === 'json' ? <FileText size={14} /> : <Download size={14} />}
         {isExporting ? 'Exporting...' : `Export to ${exportFormat.toUpperCase()}`}
       </button>
       
