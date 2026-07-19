@@ -2996,8 +2996,11 @@ const SpotifyAnalyzer = ({
                overscrollBehavior: 'contain',
                WebkitOverflowScrolling: 'touch'
              }}>
-          <div className="flex flex-col h-full w-full">
-            <div className="w-full h-full">
+          {/* min-h-full (not h-full): tall tab content must grow these
+              wrappers so the scroll container's bottom padding lands after
+              the content instead of being overlapped by it */}
+          <div className="flex flex-col min-h-full w-full">
+            <div className="w-full min-h-full">
               <div className="w-full">
                 <div>
                   {renderTabContent}
