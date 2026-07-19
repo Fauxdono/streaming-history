@@ -126,10 +126,37 @@ export default function RootLayout({ children }) {
               // by the viewport meta, the gesture handlers above, and the
               // global touch-action: manipulation.
 
-              // The rotation scroll-nudge and veil that used to live here are
-              // gone: the app runs as an app shell (html.app-shell locks the
-              // document scroller; the content area scrolls instead), so the
-              // iOS-standalone stale-scroll desync they patched can't occur.
+              // iOS standalone detaches hit-testing of fixed chrome from the
+              // screen after rotation (settings bar looks right but is
+              // tap-dead) until a *document* scroll forces WebKit to clamp
+              // and resync its viewport. The app shell locks document scroll,
+              // which also removed the old heal-on-scroll escape hatch — so
+              // on rotation, briefly give the document 1px of scroll room
+              // (html.rotation-resync, see globals.css) and nudge it every
+              // frame until the rotation settles, then re-lock.
+              var isStandalone = navigator.standalone ||
+                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+              if (isStandalone && window.screen && window.screen.orientation) {
+                var resyncGen = 0;
+                window.screen.orientation.addEventListener('change', function() {
+                  var gen = ++resyncGen;
+                  var root = document.documentElement;
+                  root.classList.add('rotation-resync');
+                  var start = Date.now();
+                  var nudge = function() {
+                    if (gen !== resyncGen) return; // superseded by a newer rotation
+                    // Both calls land within one frame: the 1px jiggle never paints.
+                    window.scrollTo(0, 1);
+                    window.scrollTo(0, 0);
+                    if (Date.now() - start < 700) {
+                      requestAnimationFrame(nudge);
+                    } else {
+                      root.classList.remove('rotation-resync');
+                    }
+                  };
+                  requestAnimationFrame(nudge);
+                });
+              }
             })();
           `
         }} />

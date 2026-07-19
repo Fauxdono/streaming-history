@@ -38,14 +38,23 @@ html {
 }
 
 /* App shell (main page only — privacy/terms keep document scrolling):
-   the document never scrolls; the content area is the scroll container.
-   With no document scroll there is no scroll state for iOS standalone to
-   leave stale after rotation — the fixed-chrome desync (gap under TopTabs,
-   offset taps) becomes structurally impossible. */
+   the document never scrolls; the content area is the scroll container. */
 html.app-shell,
 html.app-shell body {
   height: 100%;
   overflow: hidden;
+}
+
+/* Post-rotation viewport resync (layout.js): iOS standalone only resyncs
+   fixed-chrome hit-testing when the *document* scrolls, which the app shell
+   forbids — so while the rotation nudge runs, the shell gets 1px of
+   scrollable overflow, then locks again. */
+html.app-shell.rotation-resync,
+html.app-shell.rotation-resync body {
+  overflow: visible;
+}
+html.app-shell.rotation-resync body {
+  height: calc(100% + 1px);
 }
 
 /* Prevent iOS auto-zoom on input focus (requires >= 16px font-size) */
