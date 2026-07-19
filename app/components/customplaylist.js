@@ -2003,7 +2003,7 @@ const processBatches = (tracks, validRules, batchSize = 300, resultCallback) => 
             <select
               value={fileExtension}
               onChange={(e) => setFileExtension(e.target.value)}
-              className={`px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text}`}
+              className={`select-input-sm px-3 py-2 border rounded focus:outline-none focus:ring-2 ${modeColors.bgCard} ${modeColors.border} ${modeColors.text} ${modeColors.shadow}`}
             >
               <option value="mp3">mp3</option>
               <option value="flac">flac</option>
