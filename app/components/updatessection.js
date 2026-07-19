@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
-import { Mail, Check, Clock, Sparkles, BugIcon, ThumbsUp, ThumbsDown, Send, Shield } from 'lucide-react';
+import { Mail, Check, Clock, Sparkles, BugIcon, ThumbsUp, ThumbsDown, Send, Shield, GitCommit, ExternalLink, Info } from 'lucide-react';
 import { useTheme } from './themeprovider';
 import { collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -32,6 +32,17 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
   const [adminPIN, setAdminPIN] = useState('');
   const [pinError, setPinError] = useState(null);
   const [completeNotes, setCompleteNotes] = useState('');
+
+  // GitHub commits state
+  const [commits, setCommits] = useState([]);
+  const [commitsLoading, setCommitsLoading] = useState(false);
+  const [commitsError, setCommitsError] = useState(null);
+  const [commitsPage, setCommitsPage] = useState(1);
+  const [hasMoreCommits, setHasMoreCommits] = useState(true);
+  const [expandedCommits, setExpandedCommits] = useState({});
+
+  const GITHUB_REPO = 'Fauxdono/streaming-history';
+  const COMMITS_PER_PAGE = 100;
 
   // Planned Updates — derived from promoted suggestions
   const plannedUpdates = useMemo(() => posts.filter((p) => p.status === 'planned'), [posts]);
@@ -79,6 +90,56 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
     });
     return unsub;
   }, []);
+
+  // Fetch GitHub commits when the tab is opened (cached in sessionStorage to stay within API rate limits)
+  useEffect(() => {
+    if (activeTab !== 'github' || commits.length > 0 || commitsLoading) return;
+    try {
+      const cached = JSON.parse(sessionStorage.getItem('github_commits_v2') || 'null');
+      if (cached?.commits?.length) {
+        setCommits(cached.commits);
+        setCommitsPage(cached.page || 1);
+        setHasMoreCommits(cached.hasMore !== false);
+        return;
+      }
+    } catch {}
+    loadCommits(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const loadCommits = async (page) => {
+    setCommitsLoading(true);
+    setCommitsError(null);
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=${COMMITS_PER_PAGE}&page=${page}`
+      );
+      if (!res.ok) {
+        throw new Error(res.status === 403 ? 'GitHub rate limit reached — try again later.' : `GitHub returned ${res.status}`);
+      }
+      const data = await res.json();
+      const mapped = data.map((c) => ({
+        sha: c.sha,
+        message: c.commit?.message || '',
+        date: c.commit?.author?.date || c.commit?.committer?.date,
+        url: c.html_url,
+      }));
+      setCommits((prev) => {
+        const merged = page === 1 ? mapped : [...prev, ...mapped];
+        const hasMore = mapped.length === COMMITS_PER_PAGE;
+        try {
+          sessionStorage.setItem('github_commits_v2', JSON.stringify({ commits: merged, page, hasMore }));
+        } catch {}
+        return merged;
+      });
+      setCommitsPage(page);
+      setHasMoreCommits(mapped.length === COMMITS_PER_PAGE);
+    } catch (err) {
+      console.error('Failed to load commits:', err);
+      setCommitsError(err.message);
+    }
+    setCommitsLoading(false);
+  };
 
   // Sorted and filtered posts
   const displayPosts = useMemo(() => {
@@ -308,13 +369,14 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
       <div className="hidden sm:flex items-center mb-2 gap-2">
         <div className="flex-1 min-w-0">
           <h3 className={`text-xl truncate ${modeColors.heading}`}>
-            App Updates <span className="opacity-50">/</span> <span className="text-base">{{ 'community-suggestions': 'Suggestions/Bugs', 'past-updates': 'Past Updates', 'planned-updates': 'Planned Updates' }[activeTab]}</span>
+            App Updates <span className="opacity-50">/</span> <span className="text-base">{{ 'community-suggestions': 'Suggestions/Bugs', 'past-updates': 'Past Updates', 'planned-updates': 'Planned Updates', 'github': 'GitHub' }[activeTab]}</span>
           </h3>
         </div>
         <div className="flex flex-wrap gap-1 items-center justify-center shrink-0">
           <TabButton id="community-suggestions" label="Suggestions/Bugs" />
           <TabButton id="past-updates" label="Past Updates" />
           <TabButton id="planned-updates" label="Planned Updates" />
+          <TabButton id="github" label="GitHub" />
         </div>
         <div className="flex-1"></div>
       </div>
@@ -325,6 +387,7 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
           <TabButton id="community-suggestions" label="Suggest" />
           <TabButton id="past-updates" label="Past" />
           <TabButton id="planned-updates" label="Planned" />
+          <TabButton id="github" label="GitHub" />
         </div>
       </div>
 
@@ -450,6 +513,100 @@ const UpdatesSection = ({ colorMode = 'minimal' }) => {
                 </div>
               </div>
             ))
+          )}
+        </div>
+      )}
+
+      {activeTab === 'github' && (
+        <div className="space-y-4">
+          <div className="hidden sm:flex items-center justify-between">
+            <h3 className={`font-bold text-lg ${modeColors.heading}`}>GitHub Commits</h3>
+            <a
+              href={`https://github.com/${GITHUB_REPO}/commits`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center gap-1 text-xs ${modeColors.muted} hover:underline`}
+            >
+              View on GitHub <ExternalLink size={12} />
+            </a>
+          </div>
+
+          {commitsError && (
+            <div className="p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 text-sm">
+              {commitsError}
+            </div>
+          )}
+
+          {commitsLoading && commits.length === 0 ? (
+            <div className={`text-center py-8 ${modeColors.muted}`}>Loading commits...</div>
+          ) : commits.length === 0 && !commitsError ? (
+            <div className={`text-center py-8 ${modeColors.muted}`}>No commits found.</div>
+          ) : (
+            <div className="space-y-3">
+              {commits.map((commit) => {
+                const [title, ...bodyLines] = commit.message.split('\n');
+                const body = bodyLines.join('\n').trim();
+                const isExpanded = !!expandedCommits[commit.sha];
+                return (
+                  <div key={commit.sha} className={`px-3 py-2 rounded-lg border transition-colors ${modeColors.cardBg}`}>
+                    <div className="flex items-center gap-2">
+                      <GitCommit size={14} className={`shrink-0 ${modeColors.muted}`} />
+                      <p className={`flex-1 min-w-0 text-sm font-medium ${modeColors.text} break-words`}>{title}</p>
+                      {commit.date && (
+                        <span className={`text-xs shrink-0 hidden sm:inline ${modeColors.muted}`}>
+                          {formatDistanceToNow(new Date(commit.date), { addSuffix: true })}
+                        </span>
+                      )}
+                      {body && (
+                        <button
+                          onClick={() =>
+                            setExpandedCommits((prev) => ({ ...prev, [commit.sha]: !prev[commit.sha] }))
+                          }
+                          className={`shrink-0 p-1 rounded transition-colors cursor-pointer ${modeColors.adminBtn}`}
+                          title={isExpanded ? 'Hide description' : 'Show description'}
+                        >
+                          <Info size={16} />
+                        </button>
+                      )}
+                    </div>
+                    {isExpanded && body && (
+                      <div className="mt-2 ml-6">
+                        <p className={`text-xs ${modeColors.muted} whitespace-pre-wrap break-words`}>{body}</p>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          {commit.date && (
+                            <span className={`text-xs sm:hidden ${modeColors.muted}`}>
+                              {formatDistanceToNow(new Date(commit.date), { addSuffix: true })}
+                            </span>
+                          )}
+                          <a
+                            href={commit.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`text-xs font-mono ${modeColors.muted} hover:underline`}
+                          >
+                            {commit.sha.slice(0, 7)}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {commits.length > 0 && hasMoreCommits && (
+            <div className="flex justify-center">
+              <button
+                onClick={() => loadCommits(commitsPage + 1)}
+                disabled={commitsLoading}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  commitsLoading ? modeColors.submitDisabled : modeColors.submitActive
+                }`}
+              >
+                {commitsLoading ? 'Loading...' : 'Load more'}
+              </button>
+            </div>
           )}
         </div>
       )}
