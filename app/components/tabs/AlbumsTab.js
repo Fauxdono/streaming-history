@@ -154,8 +154,8 @@ export default function AlbumsTab({
                     onBlur={(e) => { const v = parseInt(e.target.value); if (v >= 1 && v <= 500) setTopAlbumsCount(v); else e.target.value = topAlbumsCount; }}
                     className={
                       colorMode === 'colorful'
-                        ? 'w-14 border border-cyan-300 dark:border-cyan-600 rounded px-1.5 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300'
-                        : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3]' : 'border-black bg-white text-black'}`
+                        ? `w-14 border border-cyan-300 dark:border-cyan-600 rounded px-1.5 py-1 text-xs bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300 ${isDarkMode ? 'shadow-[1px_1px_0_0_#0891b2]' : 'shadow-[1px_1px_0_0_#0e7490]'}`
+                        : `w-14 border rounded px-1.5 py-1 text-xs ${isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[1px_1px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[1px_1px_0_0_black]'}`
                     }
                   />
 

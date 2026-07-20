@@ -4,6 +4,7 @@ import { Sparkles, Music, Users } from 'lucide-react';
 import { buildRecommendations } from './engine.js';
 import { getLbToken, setLbToken } from './listenbrainz.js';
 import { filterDataByDate } from '../streaming-adapter.js';
+import TopNStepper from '../TopNStepper.js';
 
 const PHASE_LABELS = {
   'matching-artists': 'Matching artists to MusicBrainz…',
@@ -38,8 +39,8 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
   const text = colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : '';
   const textLight = colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400';
   const buttonCls = colorMode === 'colorful'
-    ? `px-4 py-2 rounded-lg font-medium text-sm bg-indigo-600 text-white border border-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors ${isDarkMode ? 'shadow-[2px_2px_0_0_#4f46e5]' : 'shadow-[2px_2px_0_0_#4338ca]'}`
-    : `px-4 py-2 rounded-lg font-medium text-sm border transition-colors disabled:opacity-50 ${isDarkMode ? 'bg-white text-black border-white hover:bg-gray-200 shadow-[2px_2px_0_0_#4169E1]' : 'bg-black text-white border-black hover:bg-gray-800 shadow-[2px_2px_0_0_black]'}`;
+    ? `px-4 py-2 rounded text-sm font-medium border transition-colors hover:opacity-80 disabled:opacity-50 ${isDarkMode ? 'bg-indigo-800 text-indigo-300 border-indigo-600 shadow-[2px_2px_0_0_#4f46e5]' : 'bg-indigo-100 text-indigo-700 border-indigo-700 shadow-[2px_2px_0_0_#4338ca]'}`
+    : `px-4 py-2 rounded text-sm font-medium border transition-colors disabled:opacity-50 ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
   const pressCls = isDarkMode
     ? (colorMode === 'colorful' ? 'btn-press-indigo-dark' : 'btn-press-dark')
     : (colorMode === 'colorful' ? 'btn-press-indigo-light' : 'btn-press-light');
@@ -94,6 +95,15 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
     setCustomSeedLimit(null);
     setSeedStateIndex(i => (i + 1) % SEED_STATES.length);
     setSeedPress(p => p + 1);
+  };
+
+  // TopNStepper calls setValue with either a plain number (typed + blurred)
+  // or an updater fn (± arrow buttons). The updater form needs to step off
+  // the currently DISPLAYED value, not the raw customSeedLimit state — that's
+  // null whenever the cycle button (not a custom entry) set the active count.
+  const handleSeedStepperChange = (next) => {
+    const resolved = typeof next === 'function' ? next(seedLimit) : next;
+    setCustomSeedLimit(Math.max(1, Math.min(resolved, seedPool.length || resolved)));
   };
 
   const handleBuild = useCallback(async () => {
@@ -182,18 +192,21 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
             >
               Top {seedLimitLabel}
             </button>
-            <span className={`text-xs ${textLight}`}>or enter an exact number:</span>
-            <input
-              type="number"
-              min="1"
+            <label className={`text-xs ${textLight}`}>or exact</label>
+            <TopNStepper
+              value={seedLimit}
+              setValue={handleSeedStepperChange}
               max={seedPool.length || 1}
-              value={customSeedLimit ?? ''}
-              onChange={e => {
-                const n = parseInt(e.target.value, 10);
-                setCustomSeedLimit(n > 0 ? Math.min(n, seedPool.length || n) : null);
-              }}
-              className={`${inputCls} w-24`}
-              placeholder={String(seedLimit)}
+              inputClass={
+                colorMode === 'colorful'
+                  ? `border-indigo-300 dark:border-indigo-600 bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 ${isDarkMode ? 'shadow-[2px_2px_0_0_#4f46e5]' : 'shadow-[2px_2px_0_0_#4338ca]'}`
+                  : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
+              }
+              buttonClass={
+                colorMode === 'colorful'
+                  ? 'text-indigo-700 dark:text-indigo-300'
+                  : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black')
+              }
             />
           </div>
           <p className={`text-xs ${textLight}`}>

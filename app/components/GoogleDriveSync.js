@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getAnalysisPageColors } from './theme.js';
 import { exportEnrichmentCache, mergeEnrichmentCache } from './albumEnrichment.js';
+import { getLbToken, setLbToken } from './recommendations/listenbrainz.js';
 
 const GoogleDriveSync = ({
   stats,
@@ -759,6 +760,9 @@ const GoogleDriveSync = ({
         // MusicBrainz lookup results (album + release year per track) — restored
         // into localStorage on load so years survive new devices/cleared storage
         enrichmentCache: exportEnrichmentCache(),
+        // ListenBrainz personal API token (Recommendations tab) — restored so
+        // song-level recommendations work on a new device without reconnecting
+        listenbrainzToken: getLbToken() || undefined,
         metadata: {
           savedAt: new Date().toISOString(),
           totalTracks: processedData.length,
@@ -994,6 +998,15 @@ const GoogleDriveSync = ({
         if (restored > 0) console.log(`✅ Restored ${restored} MusicBrainz lookups from backup`);
         delete data.enrichmentCache;
       }
+
+      // Restore ListenBrainz token saved with the analysis — only fills in if
+      // this device isn't already connected, so it never clobbers a token the
+      // user just pasted in on this device.
+      if (data.listenbrainzToken && !getLbToken()) {
+        setLbToken(data.listenbrainzToken);
+        console.log('✅ Restored ListenBrainz token from backup');
+      }
+      delete data.listenbrainzToken;
       
       // Step 6: Load data into app (80-100%)
       setLoadProgress({ step: 6, total: 6, percent: 94, message: 'Loading data into app...' });
