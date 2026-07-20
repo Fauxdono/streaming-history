@@ -572,7 +572,7 @@ const SpotifyAnalyzer = ({
     const serviceListeningTime = {};
     filteredData.forEach(play => {
       if (passesFilters(play)) {
-        const service = play._source || 'Unknown';
+        const service = play.source || 'unknown';
         serviceListeningTime[service] = (serviceListeningTime[service] || 0) + play.ms_played;
       }
     });

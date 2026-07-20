@@ -339,7 +339,7 @@ export default function StatsTab({
               : `px-0 pt-0 pb-2 sm:py-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
             {/* Title + inner tabs row */}
-            <div className="flex items-center gap-3 mb-4 px-4 flex-wrap">
+            <div className="flex items-center gap-3 mb-4 px-4 pt-2 sm:pt-4 flex-wrap">
               <h3 className={`text-xl hidden sm:block ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
                 {statsInnerTab === 'recommendations' ? 'Recommendations' : 'Statistics'}
                 {statsInnerTab !== 'recommendations' && (
@@ -522,7 +522,9 @@ export default function StatsTab({
                           ? 'space-y-1 text-indigo-700 dark:text-indigo-300'
                           : 'space-y-1'
                       }>
-                        {Object.entries(filteredStats.serviceListeningTime).map(([service, time]) => (
+                        {Object.entries(filteredStats.serviceListeningTime)
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([service, time]) => (
                           <li key={service} className="flex justify-between items-center">
                             <span>{service}:</span>
                             <span>{formatDuration(time)}</span>
