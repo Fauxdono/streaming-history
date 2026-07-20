@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Crown } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
 import { RankBar } from './RankCardBits.js';
@@ -974,13 +975,17 @@ const CalendarView = ({
                   const isExpanded = !!expandedMonthCards[index];
                   return (
                     <div key={index} className={`p-3 ${modeColors.bgCardAlt} rounded border ${modeColors.border} text-center relative ${modeColors.shadow}`}>
-                      {peakMonthTime > 0 && monthData.totalTime === peakMonthTime && (
-                        <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl" title="Biggest month">★</div>
-                      )}
                       {/* Row 1: name + toggle */}
                       <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
                         <span className="w-5 shrink-0" />
-                        <span className="flex-1 text-center">{monthData.fullName}</span>
+                        <span className="flex-1 text-center">
+                          <span className="relative inline-block">
+                            {monthData.fullName}
+                            {peakMonthTime > 0 && monthData.totalTime === peakMonthTime && (
+                              <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-2 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                            )}
+                          </span>
+                        </span>
                         <button type="button" onClick={() => setExpandedMonthCards(p => ({ ...p, [index]: !p[index] }))} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">{isExpanded ? '−' : '+'}</button>
                       </div>
                       {/* Row 2: collapsible stats */}
@@ -1123,13 +1128,17 @@ const CalendarView = ({
                             : 'hover:bg-gray-100 ring-2 ring-black ring-opacity-30'
                         : ''
                     }`}>
-                    {peakDayTime > 0 && dayData.totalTime === peakDayTime && (
-                      <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl" title="Biggest day this month">★</div>
-                    )}
                     {/* Row 1: date + toggle */}
                     <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
                       <span className="w-5 shrink-0" />
-                      <span className="flex-1 text-center">{monthName} {day}{suffix}</span>
+                      <span className="flex-1 text-center">
+                        <span className="relative inline-block">
+                          {monthName} {day}{suffix}
+                          {peakDayTime > 0 && dayData.totalTime === peakDayTime && (
+                            <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-2 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                          )}
+                        </span>
+                      </span>
                       <button type="button" onClick={e => { e.stopPropagation(); setExpandedDayCards(p => ({ ...p, [dayData.date]: !p[dayData.date] })); }} className="w-5 text-sm opacity-60 hover:opacity-100 cursor-pointer shrink-0">{isExpanded ? '−' : '+'}</button>
                     </div>
                     {/* Row 2: collapsible stats */}

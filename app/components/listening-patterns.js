@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { Download } from 'lucide-react';
+import { Download, Crown } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
 import TrackRankings from './TrackRankings.js';
@@ -1047,13 +1047,15 @@ const ListeningPatterns = ({
               const maxVal = Math.max(...dayOfWeekData.map(d => (byAverage ? d.avgPerDay : d.count)), 0);
               return (
               <div key={index} className={`p-3 relative ${colors.card}`}>
-                {(dayOfWeekViewMode === 'plays' && day.isTopByCount) ||
-                (dayOfWeekViewMode === 'average' && day.isTopByAverage) ? (
-                  <div className="absolute -top-2 -right-2 text-yellow-500 text-2xl">★</div>
-                ) : null}
-                <h4 className={`font-bold ${
+                <h4 className={`font-bold relative inline-block ${
                   colors.text
-                }`}>{day.fullName}</h4>
+                }`}>
+                  {day.fullName}
+                  {((dayOfWeekViewMode === 'plays' && day.isTopByCount) ||
+                    (dayOfWeekViewMode === 'average' && day.isTopByAverage)) && (
+                    <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-2 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                  )}
+                </h4>
                 <div className={`text-sm ${
                   colors.textLight
                 }`}>
