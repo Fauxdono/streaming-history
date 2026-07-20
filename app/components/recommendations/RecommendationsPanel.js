@@ -33,6 +33,7 @@ export default function RecommendationsPanel({
   const [buildPress, setBuildPress] = useState(0);
   const [showSeedInfo, setShowSeedInfo] = useState(false);
   const [showLbInfo, setShowLbInfo] = useState(false);
+  const [showAlbums, setShowAlbums] = useState(false);
 
   const cardBg = colorMode === 'colorful'
     ? 'bg-indigo-100 dark:bg-indigo-900 border-indigo-300 dark:border-indigo-700 shadow-[1px_1px_0_0_#4338ca] dark:shadow-[1px_1px_0_0_#4f46e5]'
@@ -88,6 +89,23 @@ export default function RecommendationsPanel({
   }, [rawPlayData, selectedStreaksYear]);
 
   const seedPool = useMemo(() => periodArtists || topArtists || [], [periodArtists, topArtists]);
+
+  // Group by each item's single biggest-contributing seed (sources[0]) so
+  // "recommended because you listen to Kendrick Lamar" only has to be said
+  // once per group instead of repeating on every one of a dozen cards.
+  const groupBySeed = (items) => {
+    const groups = new Map();
+    for (const item of items || []) {
+      const seedName = item.sources?.[0]?.seedName || 'your library';
+      if (!groups.has(seedName)) groups.set(seedName, []);
+      groups.get(seedName).push(item);
+    }
+    return [...groups.entries()]
+      .map(([seedName, groupItems]) => ({ seedName, items: groupItems }))
+      .sort((a, b) => b.items.length - a.items.length);
+  };
+  const groupedArtists = useMemo(() => groupBySeed(results?.artists), [results]);
+  const groupedTracks = useMemo(() => groupBySeed(results?.tracks), [results]);
 
   const seedState = SEED_STATES[seedStateIndex];
   const seedLimit = customSeedLimit != null
@@ -232,7 +250,14 @@ export default function RecommendationsPanel({
                   <Info size={14} />
                 </button>
               </div>
-              {token && <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Connected</span>}
+              {token && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Connected</span>
+                  <button onClick={handleClearToken} className={`text-xs underline ${textLight} hover:opacity-70`}>
+                    Disconnect
+                  </button>
+                </div>
+              )}
             </div>
             {/* Mobile: explanation is hidden behind the info icon to save space */}
             {showLbInfo && (
@@ -251,11 +276,7 @@ export default function RecommendationsPanel({
                 listenbrainz.org/settings
               </a>.
             </p>
-            {token ? (
-              <button onClick={handleClearToken} className={`text-xs underline ${textLight} hover:opacity-70`}>
-                Disconnect
-              </button>
-            ) : (
+            {!token && (
               <div className="flex flex-wrap items-center gap-2">
                 <input
                   type="password"
@@ -280,42 +301,39 @@ export default function RecommendationsPanel({
           <RecommendationSection
             title="Artists to discover"
             icon={<Users size={16} />}
-            items={results.artists}
+            groups={groupedArtists}
+            sourceLabel="Because you listen to"
+            compact
             cardBg={cardBg}
             text={text}
             textLight={textLight}
             renderItem={(a) => (
-              <>
-                <div className="flex items-baseline gap-1.5">
-                  <span className={`font-medium truncate flex-1 min-w-0 ${text}`} title={a.name}>{a.name}</span>
-                  {a.comment && <span className={`text-xs truncate flex-1 min-w-0 ${textLight}`} title={a.comment}>{a.comment}</span>}
-                </div>
-                {a.sources[0] && (
-                  <div className={`text-xs mt-0.5 truncate ${textLight}`}>because you listen to {a.sources[0].seedName}</div>
-                )}
-              </>
+              <span className={`text-xs truncate block ${text}`} title={a.name}>{a.name}</span>
             )}
           />
           <RecommendationSection
             title="Songs to discover"
             icon={<Music size={16} />}
-            items={results.tracks}
+            groups={groupedTracks}
+            sourceLabel="Because you played"
+            compact
             cardBg={cardBg}
             text={text}
             textLight={textLight}
             emptyHint={!token ? 'Connect ListenBrainz above to unlock song-level recommendations.' : 'No song recommendations found — try again after your library grows.'}
+            extraHeader={
+              <button onClick={() => setShowAlbums(v => !v)} className={`ml-auto text-xs font-normal underline ${textLight} hover:opacity-70`}>
+                {showAlbums ? 'Hide albums' : 'Show albums'}
+              </button>
+            }
             renderItem={(t) => (
-              <>
-                <div className="flex items-baseline gap-1.5">
-                  <span className={`font-medium truncate flex-1 min-w-0 ${text}`} title={t.trackName}>{t.trackName}</span>
-                  <span className={`text-xs truncate flex-1 min-w-0 ${textLight}`} title={`by ${t.artist}${t.album ? ` · ${t.album}` : ''}`}>
-                    by {t.artist}{t.album ? ` · ${t.album}` : ''}
-                  </span>
-                </div>
-                {t.sources[0] && (
-                  <div className={`text-xs mt-0.5 truncate ${textLight}`}>because you played {t.sources[0].seedName}</div>
+              <div className="text-center">
+                <div className={`text-sm font-medium truncate ${text}`} title={t.trackName}>{t.trackName}</div>
+                <div className={`text-xs truncate ${textLight}`} title={`by ${t.artist}`}>by {t.artist}</div>
+                {showAlbums && t.album && (
+                  <div className={`text-xs truncate mt-0.5 ${textLight}`} title={t.album}>{t.album}</div>
                 )}
-              </>
+              </div>
             )}
           />
         </div>
@@ -324,19 +342,34 @@ export default function RecommendationsPanel({
   );
 }
 
-function RecommendationSection({ title, icon, items, cardBg, text, textLight, renderItem, emptyHint }) {
+function RecommendationSection({ title, icon, groups, sourceLabel, cardBg, text, textLight, renderItem, emptyHint, compact, extraHeader }) {
+  const totalItems = groups.reduce((sum, g) => sum + g.items.length, 0);
   return (
     <div className={`p-4 border rounded-lg ${cardBg}`}>
       <h4 className={`font-semibold text-sm mb-3 flex items-center gap-2 ${text}`}>
-        {icon} {title} {items.length > 0 && <span className={`font-normal ${textLight}`}>({items.length})</span>}
+        {icon} {title} {totalItems > 0 && <span className={`font-normal ${textLight}`}>({totalItems})</span>}
+        {totalItems > 0 && extraHeader}
       </h4>
-      {items.length === 0 ? (
+      {groups.length === 0 ? (
         <p className={`text-sm ${textLight}`}>{emptyHint || 'No recommendations yet.'}</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {items.map((item, i) => (
-            <div key={i} className={`p-2.5 rounded border ${cardBg}`}>
-              {renderItem(item)}
+        <div className="space-y-3">
+          {groups.map(({ seedName, items }) => (
+            <div key={seedName} className={compact ? `p-2.5 rounded border ${cardBg}` : ''}>
+              <div className={`text-xs font-semibold mb-1.5 truncate ${textLight}`} title={`${sourceLabel} ${seedName}`}>
+                {sourceLabel} {seedName}
+              </div>
+              <div className={compact ? 'grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-x-3 gap-y-1.5' : 'grid grid-cols-1 sm:grid-cols-2 gap-2'}>
+                {items.map((item, i) => (
+                  compact ? (
+                    <React.Fragment key={i}>{renderItem(item)}</React.Fragment>
+                  ) : (
+                    <div key={i} className={`p-2.5 rounded border ${cardBg}`}>
+                      {renderItem(item)}
+                    </div>
+                  )
+                ))}
+              </div>
             </div>
           ))}
         </div>
