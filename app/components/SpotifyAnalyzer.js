@@ -499,7 +499,10 @@ const SpotifyAnalyzer = ({
   // Calculate filtered stats based on selected year
   const filteredStats = useMemo(() => {
     if (!stats) return null;
-    if (selectedStreaksYear === 'all') {
+    // stats is precomputed with the default filters (30s min duration, no skip/full-listen
+    // exclusion) — only safe to reuse as-is when the user hasn't changed those settings.
+    const usingDefaultFilters = minPlayDuration === 30000 && !skipFilter && !fullListenOnly;
+    if (selectedStreaksYear === 'all' && usingDefaultFilters) {
       // Compute date window from all raw data
       let earliestDate = null;
       let latestDate = null;
@@ -517,7 +520,9 @@ const SpotifyAnalyzer = ({
       return stats;
     }
     let filteredData;
-    if (selectedStreaksYear.startsWith('all-')) {
+    if (selectedStreaksYear === 'all') {
+      filteredData = rawPlayData;
+    } else if (selectedStreaksYear.startsWith('all-')) {
       // All-time with month or month+day filter (all-MM or all-MM-DD)
       const parts = selectedStreaksYear.split('-');
       const month = parseInt(parts[1]);
