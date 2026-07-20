@@ -514,13 +514,13 @@ export default function StatsTab({
                     <div>
                       <div className={
                         colorMode === 'colorful'
-                          ? 'mb-2 font-semibold text-indigo-700 dark:text-indigo-300'
-                          : 'mb-2'
+                          ? 'mb-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300'
+                          : 'mb-2 text-sm'
                       }>Listening Time by Service:</div>
                       <ul className={
                         colorMode === 'colorful'
-                          ? 'space-y-1 text-indigo-700 dark:text-indigo-300'
-                          : 'space-y-1'
+                          ? 'space-y-1 text-sm text-indigo-700 dark:text-indigo-300'
+                          : 'space-y-1 text-sm'
                       }>
                         {Object.entries(filteredStats.serviceListeningTime)
                           .sort((a, b) => b[1] - a[1])
@@ -553,8 +553,8 @@ export default function StatsTab({
                   <div className="flex items-baseline justify-between mb-3">
                     <h4 className={
                       colorMode === 'colorful'
-                        ? 'text-lg font-semibold text-indigo-700 dark:text-indigo-300'
-                        : 'text-lg font-semibold'
+                        ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300'
+                        : 'text-sm font-semibold'
                     }>Your Years</h4>
                     {peakYear && (
                       <span className={
@@ -622,7 +622,7 @@ export default function StatsTab({
                   ? 'p-3 rounded border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-800'
                   : `p-3 rounded border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`;
                 const labelCls = colorMode === 'colorful' ? 'text-xs text-indigo-500 dark:text-indigo-400 mb-1' : 'text-xs text-gray-500 dark:text-gray-400 mb-1';
-                const mainCls = colorMode === 'colorful' ? 'font-medium text-indigo-700 dark:text-indigo-300' : 'font-medium';
+                const mainCls = colorMode === 'colorful' ? 'text-sm font-medium text-indigo-700 dark:text-indigo-300' : 'text-sm font-medium';
                 const subCls = colorMode === 'colorful' ? 'text-sm text-indigo-600 dark:text-indigo-400' : 'text-sm text-gray-600 dark:text-gray-400';
                 const strongCls = colorMode === 'colorful' ? 'text-sm font-semibold text-indigo-700 dark:text-indigo-300' : 'text-sm font-semibold';
                 const Card = ({ label, children }) => (
@@ -660,8 +660,8 @@ export default function StatsTab({
                   }>
                     <h4 className={
                       colorMode === 'colorful'
-                        ? 'text-lg font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
-                        : 'text-lg font-semibold mb-4'
+                        ? 'text-sm font-semibold mb-4 text-indigo-700 dark:text-indigo-300'
+                        : 'text-sm font-semibold mb-4'
                     }>Records &amp; Firsts</h4>
                     <div data-rec-grid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       {records.first && (
