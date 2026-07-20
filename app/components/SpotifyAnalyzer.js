@@ -37,6 +37,7 @@ import { getTotalCount as getLastfmCount, loadAllScrobbles as loadLastfmScrobble
 import FixedSettingsBar from './FixedSettingsBar.js';
 import SettingsPanel from './SettingsPanel.js';
 import { buildFavoritesIndex } from './streaming/favorites.js';
+import { buildRecommendations } from './recommendations/engine.js';
 
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
@@ -1323,6 +1324,51 @@ const SpotifyAnalyzer = ({
     enrichStopRef.current = true;
   }, []);
 
+  // Recommendations tab (Statistics > Recommendations) — same reasoning as
+  // album enrichment above: state lives HERE so a build's progress/results
+  // survive switching to another tab and back, instead of resetting every
+  // time RecommendationsPanel remounts.
+  const [recRunning, setRecRunning] = useState(false);
+  const [recProgress, setRecProgress] = useState(null);
+  const [recResults, setRecResults] = useState(null);
+  const [recError, setRecError] = useState(null);
+  const [recSeedStateIndex, setRecSeedStateIndex] = useState(2); // default "Top 100"
+  const [recCustomSeedLimit, setRecCustomSeedLimit] = useState(null);
+  const recRunningRef = useRef(false);
+  const recStopRef = useRef(false);
+
+  const handleBuildRecommendations = useCallback(async ({ seedPool, seedLimit, token }) => {
+    if (recRunningRef.current) return;
+    recRunningRef.current = true;
+    recStopRef.current = false;
+    setRecRunning(true);
+    setRecError(null);
+    try {
+      const result = await buildRecommendations({
+        topArtists: seedPool,
+        knownArtistNames: (topArtists || []).map(a => a.name),
+        seedArtistLimit: seedLimit,
+        topTracks: processedData || [],
+        rawPlayData: rawPlayData || [],
+        token,
+        onProgress: (phase, done, total) => setRecProgress({ phase, done, total }),
+        shouldStop: () => recStopRef.current,
+      });
+      setRecResults(result);
+    } catch (err) {
+      console.error('Recommendation build failed:', err);
+      setRecError(err.message || 'Something went wrong building recommendations.');
+    } finally {
+      recRunningRef.current = false;
+      setRecRunning(false);
+      setRecProgress(null);
+    }
+  }, [topArtists, processedData, rawPlayData]);
+
+  const handleStopRecommendations = useCallback(() => {
+    recStopRef.current = true;
+  }, []);
+
   // Handle file upload with useCallback
   const handleFileUpload = useCallback((e) => {
     const newFiles = e.target.files;
@@ -2397,6 +2443,16 @@ const SpotifyAnalyzer = ({
             statsInnerTab={statsInnerTab}
             setStatsInnerTab={setStatsInnerTab}
             topArtists={topArtists}
+            recRunning={recRunning}
+            recProgress={recProgress}
+            recResults={recResults}
+            recError={recError}
+            recSeedStateIndex={recSeedStateIndex}
+            setRecSeedStateIndex={setRecSeedStateIndex}
+            recCustomSeedLimit={recCustomSeedLimit}
+            setRecCustomSeedLimit={setRecCustomSeedLimit}
+            onBuildRecommendations={handleBuildRecommendations}
+            onStopRecommendations={handleStopRecommendations}
           />
         );
 
@@ -2728,6 +2784,16 @@ const SpotifyAnalyzer = ({
     setUploadInnerTab,
     statsInnerTab,
     setStatsInnerTab,
+    recRunning,
+    recProgress,
+    recResults,
+    recError,
+    recSeedStateIndex,
+    setRecSeedStateIndex,
+    recCustomSeedLimit,
+    setRecCustomSeedLimit,
+    handleBuildRecommendations,
+    handleStopRecommendations,
     includeScrobblerData,
     setIncludeScrobblerData,
     storedScrobbleCount,

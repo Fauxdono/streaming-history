@@ -1,7 +1,6 @@
 'use client';
-import React, { useState, useCallback, useRef, useMemo } from 'react';
-import { Sparkles, Music, Users } from 'lucide-react';
-import { buildRecommendations } from './engine.js';
+import React, { useState, useMemo } from 'react';
+import { Sparkles, Music, Users, Info } from 'lucide-react';
 import { getLbToken, setLbToken } from './listenbrainz.js';
 import { filterDataByDate } from '../streaming-adapter.js';
 import TopNStepper from '../TopNStepper.js';
@@ -14,24 +13,26 @@ const PHASE_LABELS = {
 };
 
 const SEED_STATES = [10, 50, 100, 500, 1000, 'max'];
-const DEFAULT_SEED_STATE_INDEX = 2; // 100
 const MIN_SEED_PLAY_MS = 30000;
 
-export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists, topTracks, rawPlayData, selectedStreaksYear, periodLabel }) {
+// Build state (isBuilding/progress/results/error) and the seed-count choice
+// live in SpotifyAnalyzer (passed down as props) rather than local useState —
+// same reasoning as album enrichment: it survives switching to another tab
+// and back instead of resetting every time this component remounts.
+export default function RecommendationsPanel({
+  colorMode, isDarkMode, topArtists, topTracks, rawPlayData, selectedStreaksYear, periodLabel,
+  isBuilding, progress, results, error,
+  seedStateIndex, setSeedStateIndex, customSeedLimit, setCustomSeedLimit,
+  onBuild, onStop,
+}) {
   const [token, setToken] = useState(() => getLbToken());
   const [tokenInput, setTokenInput] = useState('');
   const [tokenSaved, setTokenSaved] = useState(false);
-  const [seedStateIndex, setSeedStateIndex] = useState(DEFAULT_SEED_STATE_INDEX);
   const [seedPress, setSeedPress] = useState(0);
-  const [customSeedLimit, setCustomSeedLimit] = useState(null);
   const [savePress, setSavePress] = useState(0);
   const [buildPress, setBuildPress] = useState(0);
-
-  const [isBuilding, setIsBuilding] = useState(false);
-  const [progress, setProgress] = useState(null);
-  const [results, setResults] = useState(null);
-  const [error, setError] = useState(null);
-  const stopRef = useRef(false);
+  const [showSeedInfo, setShowSeedInfo] = useState(false);
+  const [showLbInfo, setShowLbInfo] = useState(false);
 
   const cardBg = colorMode === 'colorful'
     ? 'bg-indigo-100 dark:bg-indigo-900 border-indigo-300 dark:border-indigo-700 shadow-[1px_1px_0_0_#4338ca] dark:shadow-[1px_1px_0_0_#4f46e5]'
@@ -41,9 +42,13 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
   const buttonCls = colorMode === 'colorful'
     ? `px-4 py-2 rounded text-sm font-medium border transition-colors hover:opacity-80 disabled:opacity-50 ${isDarkMode ? 'bg-indigo-800 text-indigo-300 border-indigo-600 shadow-[2px_2px_0_0_#4f46e5]' : 'bg-indigo-100 text-indigo-700 border-indigo-700 shadow-[2px_2px_0_0_#4338ca]'}`
     : `px-4 py-2 rounded text-sm font-medium border transition-colors disabled:opacity-50 ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`;
-  const pressCls = isDarkMode
-    ? (colorMode === 'colorful' ? 'btn-press-indigo-dark' : 'btn-press-dark')
-    : (colorMode === 'colorful' ? 'btn-press-indigo-light' : 'btn-press-light');
+  // Only applied when press > 0 — otherwise the animation replays on every
+  // fresh mount (e.g. switching tabs and back), not just on an actual click.
+  const pressClsFor = (press) => press > 0
+    ? (isDarkMode
+        ? (colorMode === 'colorful' ? 'btn-press-indigo-dark' : 'btn-press-dark')
+        : (colorMode === 'colorful' ? 'btn-press-indigo-light' : 'btn-press-light'))
+    : '';
   const inputCls = `px-3 py-1.5 text-sm rounded border ${isDarkMode ? 'bg-black border-[#4169E1] text-[#FDF6E3]' : 'bg-white border-black text-black'}`;
 
   const handleSaveToken = () => {
@@ -106,145 +111,168 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
     setCustomSeedLimit(Math.max(1, Math.min(resolved, seedPool.length || resolved)));
   };
 
-  const handleBuild = useCallback(async () => {
-    setIsBuilding(true);
-    setError(null);
+  const handleBuild = () => {
     setBuildPress(p => p + 1);
-    stopRef.current = false;
-    try {
-      const result = await buildRecommendations({
-        topArtists: seedPool,
-        knownArtistNames: (topArtists || []).map(a => a.name),
-        seedArtistLimit: seedLimit,
-        topTracks: topTracks || [],
-        rawPlayData: rawPlayData || [],
-        token,
-        onProgress: (phase, done, total) => setProgress({ phase, done, total }),
-        shouldStop: () => stopRef.current,
-      });
-      setResults(result);
-    } catch (err) {
-      console.error('Recommendation build failed:', err);
-      setError(err.message || 'Something went wrong building recommendations.');
-    } finally {
-      setIsBuilding(false);
-      setProgress(null);
-    }
-  }, [seedPool, topArtists, topTracks, rawPlayData, token, seedLimit]);
+    onBuild?.({ seedPool, seedLimit, token });
+  };
 
   const hasEnoughData = (topArtists?.length || 0) >= 5;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
-      {/* Connect ListenBrainz */}
-      <div className={`p-4 border rounded-lg ${cardBg}`}>
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <h4 className={`font-semibold text-sm ${text}`}>ListenBrainz (optional)</h4>
-          {token && <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Connected</span>}
-        </div>
-        <p className={`text-xs sm:text-sm mb-3 ${textLight}`}>
-          Artist recommendations work with no setup. Connecting a free ListenBrainz account also unlocks
-          song-level recommendations. Grab a token from{' '}
-          <a href="https://listenbrainz.org/settings/" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">
-            listenbrainz.org/settings
-          </a>.
-        </p>
-        {token ? (
-          <button onClick={handleClearToken} className={`text-xs underline ${textLight} hover:opacity-70`}>
-            Disconnect
-          </button>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="password"
-              value={tokenInput}
-              onChange={e => setTokenInput(e.target.value)}
-              placeholder="Paste your ListenBrainz token"
-              className={`${inputCls} flex-1 min-w-[200px]`}
-            />
-            <button key={`save-${savePress}`} onClick={handleSaveToken} disabled={!tokenInput.trim()} className={`${buttonCls} ${pressCls}`}>
-              Save
-            </button>
-            {tokenSaved && <span className="text-xs text-green-600 dark:text-green-400">Saved</span>}
-          </div>
-        )}
-      </div>
-
-      {/* Seed settings */}
-      {hasEnoughData && (
+    <div className="space-y-4">
+      {!hasEnoughData ? (
         <div className={`p-4 border rounded-lg ${cardBg}`}>
-          <h4 className={`font-semibold text-sm mb-1 ${text}`}>Seed artists</h4>
-          <p className={`text-xs sm:text-sm mb-3 ${textLight}`}>
-            Based on your top artists {periodLabel ? `(${periodLabel})` : ''} — {seedPool.length.toLocaleString()} available.
-            More seeds means broader coverage but a slower first build (MusicBrainz allows ~1 lookup/second; already-matched
-            artists are cached and skip the wait).
-          </p>
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <button
-              key={`seed-cycle-${seedPress}`}
-              onClick={cycleSeedState}
-              className={
-                (colorMode === 'colorful'
-                  ? `px-3 py-1.5 rounded text-xs sm:text-sm font-medium border transition-colors hover:opacity-80 ${isDarkMode ? 'bg-indigo-800 text-indigo-300 border-indigo-600 shadow-[2px_2px_0_0_#4f46e5]' : 'bg-indigo-100 text-indigo-700 border-indigo-700 shadow-[2px_2px_0_0_#4338ca]'}`
-                  : `px-3 py-1.5 rounded text-xs sm:text-sm font-medium border transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
-                ) + ` ${pressCls}`
-              }
-            >
-              Top {seedLimitLabel}
-            </button>
-            <label className={`text-xs ${textLight}`}>or exact</label>
-            <TopNStepper
-              value={seedLimit}
-              setValue={handleSeedStepperChange}
-              max={seedPool.length || 1}
-              inputClass={
-                colorMode === 'colorful'
-                  ? `border-indigo-300 dark:border-indigo-600 bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 ${isDarkMode ? 'shadow-[2px_2px_0_0_#4f46e5]' : 'shadow-[2px_2px_0_0_#4338ca]'}`
-                  : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
-              }
-              buttonClass={
-                colorMode === 'colorful'
-                  ? 'text-indigo-700 dark:text-indigo-300'
-                  : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black')
-              }
-            />
-          </div>
-          <p className={`text-xs ${textLight}`}>
-            Using top {Math.min(seedLimit, seedPool.length).toLocaleString()} artists · first build ~{estimatedMinutes} min (uncached)
-          </p>
-        </div>
-      )}
-
-      {/* Build button */}
-      <div className={`p-4 border rounded-lg ${cardBg}`}>
-        {!hasEnoughData ? (
           <p className={`text-sm ${textLight}`}>Not enough listening history yet to build recommendations.</p>
-        ) : (
-          <>
-            <button key={`build-${buildPress}`} onClick={handleBuild} disabled={isBuilding} className={`${buttonCls} ${pressCls} inline-flex items-center gap-2`}>
-              <Sparkles size={16} />
-              {isBuilding ? 'Building…' : results ? 'Refresh recommendations' : 'Build recommendations'}
-            </button>
-            {isBuilding && progress && (
-              <div className="mt-3 max-w-sm">
-                <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                  <div
-                    className="h-full rounded-full transition-all duration-300 ease-out"
-                    style={{
-                      width: `${progress.total ? Math.round((progress.done / progress.total) * 100) : 0}%`,
-                      background: colorMode === 'colorful' ? '#4f46e5' : (isDarkMode ? '#4169E1' : '#000'),
-                    }}
-                  />
-                </div>
-                <p className={`text-xs mt-1 ${textLight}`}>
-                  {PHASE_LABELS[progress.phase] || 'Working…'} {progress.total ? `(${progress.done}/${progress.total})` : ''}
-                </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+          {/* Seed settings — Build button lives in this card's header */}
+          <div className={`p-4 border rounded-lg ${cardBg}`}>
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="flex items-center gap-1.5">
+                <h4 className={`font-semibold text-sm ${text}`}>Seed artists</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowSeedInfo(v => !v)}
+                  className={`sm:hidden ${textLight} hover:opacity-70`}
+                  aria-label="What does this mean?"
+                >
+                  <Info size={14} />
+                </button>
+              </div>
+              <button key={`build-${buildPress}`} onClick={handleBuild} disabled={isBuilding} className={`${buttonCls} ${pressClsFor(buildPress)} !px-3 !py-1.5 text-xs sm:text-sm shrink-0 inline-flex items-center gap-1.5`}>
+                <Sparkles size={14} />
+                {isBuilding ? 'Building…' : results ? 'Refresh' : 'Build recommendations'}
+              </button>
+            </div>
+            {/* Mobile: explanation is hidden behind the info icon to save space */}
+            {showSeedInfo && (
+              <p className={`sm:hidden text-xs mb-3 ${textLight}`}>
+                Based on your top artists {periodLabel ? `(${periodLabel})` : ''} — {seedPool.length.toLocaleString()} available.
+                More seeds means broader coverage but a slower first build (MusicBrainz allows ~1 lookup/second; already-matched
+                artists are cached and skip the wait).
+              </p>
+            )}
+            <p className={`hidden sm:block text-xs sm:text-sm mb-3 ${textLight}`}>
+              Based on your top artists {periodLabel ? `(${periodLabel})` : ''} — {seedPool.length.toLocaleString()} available.
+              More seeds means broader coverage but a slower first build (MusicBrainz allows ~1 lookup/second; already-matched
+              artists are cached and skip the wait).
+            </p>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <button
+                key={`seed-cycle-${seedPress}`}
+                onClick={cycleSeedState}
+                className={
+                  (colorMode === 'colorful'
+                    ? `px-3 py-1.5 rounded text-xs sm:text-sm font-medium border transition-colors hover:opacity-80 ${isDarkMode ? 'bg-indigo-800 text-indigo-300 border-indigo-600 shadow-[2px_2px_0_0_#4f46e5]' : 'bg-indigo-100 text-indigo-700 border-indigo-700 shadow-[2px_2px_0_0_#4338ca]'}`
+                    : `px-3 py-1.5 rounded text-xs sm:text-sm font-medium border transition-colors ${isDarkMode ? 'bg-black text-[#FDF6E3] border-[#4169E1] hover:bg-gray-800 shadow-[2px_2px_0_0_#4169E1]' : 'bg-white text-black border-black hover:bg-gray-100 shadow-[2px_2px_0_0_black]'}`
+                  ) + ` ${pressClsFor(seedPress)}`
+                }
+              >
+                Top {seedLimitLabel}
+              </button>
+              <label className={`text-xs ${textLight}`}>or exact</label>
+              <TopNStepper
+                value={seedLimit}
+                setValue={handleSeedStepperChange}
+                max={seedPool.length || 1}
+                inputClass={
+                  colorMode === 'colorful'
+                    ? `border-indigo-300 dark:border-indigo-600 bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 ${isDarkMode ? 'shadow-[2px_2px_0_0_#4f46e5]' : 'shadow-[2px_2px_0_0_#4338ca]'}`
+                    : (isDarkMode ? 'border-[#4169E1] bg-black text-[#FDF6E3] shadow-[2px_2px_0_0_#4169E1]' : 'border-black bg-white text-black shadow-[2px_2px_0_0_black]')
+                }
+                buttonClass={
+                  colorMode === 'colorful'
+                    ? 'text-indigo-700 dark:text-indigo-300'
+                    : (isDarkMode ? 'text-[#FDF6E3]' : 'text-black')
+                }
+              />
+              <span className={`text-xs ${textLight}`}>/ {seedPool.length.toLocaleString()} available</span>
+            </div>
+            <p className={`text-xs ${textLight}`}>
+              Using top {Math.min(seedLimit, seedPool.length).toLocaleString()} artists · first build ~{estimatedMinutes} min (uncached)
+            </p>
+            {isBuilding && (
+              <div className="mt-3">
+                <button onClick={() => onStop?.()} className={`text-xs underline ${textLight} hover:opacity-70`}>
+                  Stop
+                </button>
+                {progress && (
+                  <div className="mt-2 max-w-sm">
+                    <div className={`w-full h-2.5 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                      <div
+                        className="h-full rounded-full transition-all duration-300 ease-out"
+                        style={{
+                          width: `${progress.total ? Math.round((progress.done / progress.total) * 100) : 0}%`,
+                          background: colorMode === 'colorful' ? '#4f46e5' : (isDarkMode ? '#4169E1' : '#000'),
+                        }}
+                      />
+                    </div>
+                    <p className={`text-xs mt-1 ${textLight}`}>
+                      {PHASE_LABELS[progress.phase] || 'Working…'} {progress.total ? `(${progress.done}/${progress.total})` : ''}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             {error && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>}
-          </>
-        )}
-      </div>
+          </div>
+
+          {/* Connect ListenBrainz */}
+          <div className={`p-4 border rounded-lg ${cardBg}`}>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-1.5">
+                <h4 className={`font-semibold text-sm ${text}`}>ListenBrainz (optional)</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowLbInfo(v => !v)}
+                  className={`sm:hidden ${textLight} hover:opacity-70`}
+                  aria-label="What does this mean?"
+                >
+                  <Info size={14} />
+                </button>
+              </div>
+              {token && <span className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Connected</span>}
+            </div>
+            {/* Mobile: explanation is hidden behind the info icon to save space */}
+            {showLbInfo && (
+              <p className={`sm:hidden text-xs mb-3 ${textLight}`}>
+                Artist recommendations work with no setup. Connecting a free ListenBrainz account also unlocks
+                song-level recommendations. Grab a token from{' '}
+                <a href="https://listenbrainz.org/settings/" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">
+                  listenbrainz.org/settings
+                </a>.
+              </p>
+            )}
+            <p className={`hidden sm:block text-xs sm:text-sm mb-3 ${textLight}`}>
+              Artist recommendations work with no setup. Connecting a free ListenBrainz account also unlocks
+              song-level recommendations. Grab a token from{' '}
+              <a href="https://listenbrainz.org/settings/" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">
+                listenbrainz.org/settings
+              </a>.
+            </p>
+            {token ? (
+              <button onClick={handleClearToken} className={`text-xs underline ${textLight} hover:opacity-70`}>
+                Disconnect
+              </button>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="password"
+                  value={tokenInput}
+                  onChange={e => setTokenInput(e.target.value)}
+                  placeholder="Paste your ListenBrainz token"
+                  className={`${inputCls} flex-1 min-w-[200px]`}
+                />
+                <button key={`save-${savePress}`} onClick={handleSaveToken} disabled={!tokenInput.trim()} className={`${buttonCls} ${pressClsFor(savePress)}`}>
+                  Save
+                </button>
+                {tokenSaved && <span className="text-xs text-green-600 dark:text-green-400">Saved</span>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {results && (
@@ -305,7 +333,7 @@ function RecommendationSection({ title, icon, items, cardBg, text, textLight, re
       {items.length === 0 ? (
         <p className={`text-sm ${textLight}`}>{emptyHint || 'No recommendations yet.'}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {items.map((item, i) => (
             <div key={i} className={`p-2.5 rounded border ${cardBg}`}>
               {renderItem(item)}

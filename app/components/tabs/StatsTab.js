@@ -23,6 +23,16 @@ export default function StatsTab({
   statsInnerTab,
   setStatsInnerTab,
   topArtists,
+  recRunning,
+  recProgress,
+  recResults,
+  recError,
+  recSeedStateIndex,
+  setRecSeedStateIndex,
+  recCustomSeedLimit,
+  setRecCustomSeedLimit,
+  onBuildRecommendations,
+  onStopRecommendations,
 }) {
   // Listening hours per calendar year (all-time context strip)
   const yearlyTotals = useMemo(() => {
@@ -352,6 +362,16 @@ export default function StatsTab({
                   rawPlayData={rawPlayData}
                   selectedStreaksYear={selectedStreaksYear}
                   periodLabel={periodLabel}
+                  isBuilding={recRunning}
+                  progress={recProgress}
+                  results={recResults}
+                  error={recError}
+                  seedStateIndex={recSeedStateIndex}
+                  setSeedStateIndex={setRecSeedStateIndex}
+                  customSeedLimit={recCustomSeedLimit}
+                  setCustomSeedLimit={setRecCustomSeedLimit}
+                  onBuild={onBuildRecommendations}
+                  onStop={onStopRecommendations}
                 />
               </div>
             ) : (<>
