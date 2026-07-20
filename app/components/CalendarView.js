@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Crown } from 'lucide-react';
 import { useTheme } from './themeprovider.js';
 import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
@@ -12,7 +12,7 @@ const dayKey = (d) =>
 
 // One year strip of the "Year at a Glance" heatmap: columns are weeks,
 // rows are weekdays, cells tinted by that day's listening time.
-function YearStrip({ year, days, maxMs, scale, gridColor, labelClass, formatDuration, onDayClick }) {
+function YearStrip({ year, days, maxMs, scale, gridColor, labelClass, formatDuration, onDayClick, cellSize = 14 }) {
   // Back the grid up to the Sunday on or before Jan 1
   const first = new Date(year, 0, 1);
   const start = new Date(first);
@@ -43,10 +43,14 @@ function YearStrip({ year, days, maxMs, scale, gridColor, labelClass, formatDura
   };
 
   return (
-    <div className="min-w-max">
+    <div className="w-full">
       <div className="flex gap-[2px] ml-9 mb-0.5">
         {weeks.map((col, i) => (
-          <span key={i} className={`w-[14px] shrink-0 text-[9px] whitespace-nowrap overflow-visible ${labelClass}`}>
+          <span
+            key={i}
+            style={{ width: cellSize }}
+            className={`shrink-0 text-[9px] whitespace-nowrap overflow-visible ${labelClass}`}
+          >
             {monthLabelFor(col)}
           </span>
         ))}
@@ -58,7 +62,7 @@ function YearStrip({ year, days, maxMs, scale, gridColor, labelClass, formatDura
             {weeks.map((col, w) => {
               const d = col[r];
               if (d.getFullYear() !== year) {
-                return <span key={w} className="w-[14px] h-[14px] shrink-0" />;
+                return <span key={w} style={{ width: cellSize, height: cellSize }} className="shrink-0" />;
               }
               const stat = days.get(dayKey(d));
               const color = stat ? cellColor(stat.ms) : null;
@@ -66,11 +70,13 @@ function YearStrip({ year, days, maxMs, scale, gridColor, labelClass, formatDura
                 <span
                   key={w}
                   onClick={stat ? () => onDayClick(dayKey(d)) : undefined}
-                  className={`w-[14px] h-[14px] shrink-0 rounded-[2px] ${stat ? 'cursor-pointer' : ''}`}
                   style={{
+                    width: cellSize,
+                    height: cellSize,
                     backgroundColor: color || 'transparent',
                     boxShadow: color ? 'none' : `inset 0 0 0 1px ${gridColor}`,
                   }}
+                  className={`shrink-0 rounded-[2px] ${stat ? 'cursor-pointer' : ''}`}
                   title={`${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${
                     stat ? ` — ${stat.plays} play${stat.plays === 1 ? '' : 's'} · ${formatDuration(stat.ms)}` : ' — no plays'
                   }`}
@@ -172,6 +178,11 @@ const CalendarView = ({
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // Desktop week-strip cells scale up to fill the available card width
+  // instead of sitting fixed at 14px with empty space to the right.
+  const desktopStripRef = useRef(null);
+  const [stripCellSize, setStripCellSize] = useState(14);
   const [viewPress, setViewPress] = useState(0);
   const [expandedMonthCards, setExpandedMonthCards] = useState({});
   const [expandedDayCards, setExpandedDayCards] = useState({});
@@ -389,6 +400,38 @@ const CalendarView = ({
     const years = [...new Set([...days.keys()].map((k) => parseInt(k.slice(0, 4))))].sort((a, b) => a - b);
     return { days, maxMs, years };
   }, [filteredData, activeTab, isMonthView, passesFilters]);
+
+  // Desktop week-strip cells scale to fill each column's width. Multiple
+  // years lay out two-per-row, but drop back to one column (rather than
+  // squeezing cells past MIN_CELL) once the container gets too narrow.
+  const [stripColumns, setStripColumns] = useState(1);
+  const canBeTwoColumns = yearHeatmap.years.length > 1;
+  useEffect(() => {
+    if (isMobile) return;
+    const el = desktopStripRef.current;
+    if (!el) return;
+    const WEEKS = 54; // matches YearStrip's max column count
+    const GAP = 2;
+    const LABEL_WIDTH = 32; // w-8 day-of-week label
+    const COLUMN_GAP = 24; // gap-x-6 between year columns
+    const MIN_CELL = 11;
+    const MAX_CELL = 22;
+    const fixedWidth = LABEL_WIDTH + GAP + (WEEKS - 1) * GAP;
+    const cellSizeFor = (colWidth) => Math.floor((colWidth - fixedWidth) / WEEKS);
+    const compute = () => {
+      const width = el.clientWidth;
+      const twoColWidth = (width - COLUMN_GAP) / 2;
+      const useTwo = canBeTwoColumns && cellSizeFor(twoColWidth) >= MIN_CELL;
+      const columns = useTwo ? 2 : 1;
+      const colWidth = useTwo ? twoColWidth : width;
+      setStripColumns(columns);
+      setStripCellSize(Math.max(MIN_CELL, Math.min(MAX_CELL, cellSizeFor(colWidth))));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isMobile, canBeTwoColumns]);
 
   // Listening history data for daily history tab
   const historyData = useMemo(() => {
@@ -934,27 +977,30 @@ const CalendarView = ({
                     </div>
                   );
                 })() : (
-                <div className="space-y-4 min-w-max">
-                  {yearHeatmap.years.map((year) => (
-                    <div key={year}>
-                      {yearHeatmap.years.length > 1 && (
-                        <div className={`text-xs font-bold mb-1 ${modeColors.textLight}`}>{year}</div>
-                      )}
-                      <YearStrip
-                        year={year}
-                        days={yearHeatmap.days}
-                        maxMs={yearHeatmap.maxMs}
-                        scale={heatScale}
-                        gridColor={chart.grid}
-                        labelClass={modeColors.textLighter}
-                        formatDuration={formatDuration}
-                        onDayClick={(date) => {
-                          if (onYearChange) onYearChange(date);
-                          setActiveTab('history');
-                        }}
-                      />
-                    </div>
-                  ))}
+                <div ref={desktopStripRef} className="w-full space-y-4">
+                  <div className={`grid gap-x-6 gap-y-4 ${stripColumns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {yearHeatmap.years.map((year) => (
+                      <div key={year}>
+                        {yearHeatmap.years.length > 1 && (
+                          <div className={`text-xs font-bold mb-1 ${modeColors.textLight}`}>{year}</div>
+                        )}
+                        <YearStrip
+                          year={year}
+                          days={yearHeatmap.days}
+                          maxMs={yearHeatmap.maxMs}
+                          scale={heatScale}
+                          gridColor={chart.grid}
+                          labelClass={modeColors.textLighter}
+                          formatDuration={formatDuration}
+                          cellSize={stripCellSize}
+                          onDayClick={(date) => {
+                            if (onYearChange) onYearChange(date);
+                            setActiveTab('history');
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
                   <div className={`flex items-center justify-end gap-1 text-[10px] ${modeColors.textLighter}`}>
                     fewer
                     {heatScale.map((c) => (
