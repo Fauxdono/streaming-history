@@ -236,6 +236,7 @@ const SpotifyAnalyzer = ({
   const [artistSearch, setArtistSearch] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadInnerTab, setUploadInnerTab] = useState('upload');
+  const [statsInnerTab, setStatsInnerTab] = useState('overview');
   const [includeScrobblerData, setIncludeScrobblerData] = useState(false);
   const [storedScrobbleCount, setStoredScrobbleCount] = useState(0);
   const [includeLastfmData, setIncludeLastfmData] = useState(false);
@@ -2389,9 +2390,13 @@ const SpotifyAnalyzer = ({
             filteredStats={filteredStats}
             filteredStreaks={filteredStreaks}
             formatDuration={formatDuration}
+            processedData={processedData}
             rawPlayData={rawPlayData}
             selectedStreaksYear={selectedStreaksYear}
             stats={stats}
+            statsInnerTab={statsInnerTab}
+            setStatsInnerTab={setStatsInnerTab}
+            topArtists={topArtists}
           />
         );
 
@@ -2721,6 +2726,8 @@ const SpotifyAnalyzer = ({
     error,
     uploadInnerTab,
     setUploadInnerTab,
+    statsInnerTab,
+    setStatsInnerTab,
     includeScrobblerData,
     setIncludeScrobblerData,
     storedScrobbleCount,

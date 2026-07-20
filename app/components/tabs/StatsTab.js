@@ -3,6 +3,7 @@ import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 import { filterDataByDate } from '../streaming-adapter.js';
 import { useTheme } from '../themeprovider.js';
+import RecommendationsPanel from '../recommendations/RecommendationsPanel.js';
 
 const localDayKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -15,9 +16,13 @@ export default function StatsTab({
   filteredStats,
   filteredStreaks,
   formatDuration,
+  processedData,
   rawPlayData,
   selectedStreaksYear,
   stats,
+  statsInnerTab,
+  setStatsInnerTab,
+  topArtists,
 }) {
   // Listening hours per calendar year (all-time context strip)
   const yearlyTotals = useMemo(() => {
@@ -323,19 +328,38 @@ export default function StatsTab({
               ? 'px-0 pt-0 pb-2 sm:py-4 bg-indigo-200 dark:bg-indigo-900 rounded border-2 border-indigo-300 dark:border-indigo-700'
               : `px-0 pt-0 pb-2 sm:py-4 border ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
-            {/* Desktop title */}
-            <div className="hidden sm:block mb-4 px-4">
-              <h3 className={
-                colorMode === 'colorful'
-                  ? 'text-xl text-indigo-700 dark:text-indigo-300'
-                  : 'text-xl'
-              }>Statistics <span className="text-xs opacity-75">{selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear.startsWith('all-') ? (() => { const p = selectedStreaksYear.split('-'); const monthName = new Date(2024, parseInt(p[1]) - 1).toLocaleDateString('en-US', { month: 'long' }); return p.length === 3 ? `Every ${monthName} ${parseInt(p[2])}` : `Every ${monthName}`; })() : selectedStreaksYear}</span></h3>
-              {filteredStats?.earliestDate && filteredStats?.latestDate && (
-                <p className={`text-sm mt-1 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>
-                  {new Date(filteredStats.earliestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} — {new Date(filteredStats.latestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                </p>
-              )}
+            {/* Title + inner tabs row */}
+            <div className="flex items-center gap-3 mb-4 px-4 flex-wrap">
+              <h3 className={`text-xl hidden sm:block ${colorMode === 'colorful' ? 'text-indigo-700 dark:text-indigo-300' : ''}`}>
+                {statsInnerTab === 'recommendations' ? 'Recommendations' : 'Statistics'}
+                {statsInnerTab !== 'recommendations' && (
+                  <span className="text-xs opacity-75"> {selectedStreaksYear === 'all' ? 'all-time' : selectedStreaksYear.startsWith('all-') ? (() => { const p = selectedStreaksYear.split('-'); const monthName = new Date(2024, parseInt(p[1]) - 1).toLocaleDateString('en-US', { month: 'long' }); return p.length === 3 ? `Every ${monthName} ${parseInt(p[2])}` : `Every ${monthName}`; })() : selectedStreaksYear}</span>
+                )}
+              </h3>
+              <div className="w-full sm:w-auto flex justify-center sm:justify-start gap-1">
+                <StatsInnerTabButton active={statsInnerTab !== 'recommendations'} onClick={() => setStatsInnerTab?.('overview')} colorMode={colorMode} isDarkMode={isDarkMode}>Overview</StatsInnerTabButton>
+                <StatsInnerTabButton active={statsInnerTab === 'recommendations'} onClick={() => setStatsInnerTab?.('recommendations')} colorMode={colorMode} isDarkMode={isDarkMode}>Recommendations</StatsInnerTabButton>
+              </div>
             </div>
+
+            {statsInnerTab === 'recommendations' ? (
+              <div className="px-2 sm:px-4">
+                <RecommendationsPanel
+                  colorMode={colorMode}
+                  isDarkMode={isDarkMode}
+                  topArtists={topArtists}
+                  topTracks={processedData}
+                  rawPlayData={rawPlayData}
+                  selectedStreaksYear={selectedStreaksYear}
+                  periodLabel={periodLabel}
+                />
+              </div>
+            ) : (<>
+            {filteredStats?.earliestDate && filteredStats?.latestDate && (
+              <p className={`hidden sm:block text-sm mt-[-0.75rem] mb-4 px-4 ${colorMode === 'colorful' ? 'text-indigo-600 dark:text-indigo-400' : 'opacity-60'}`}>
+                {new Date(filteredStats.earliestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} — {new Date(filteredStats.latestDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+              </p>
+            )}
             <div ref={overviewRef} className={shareWrapCls}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:mt-4">
                 {/* Hero: the number that matters */}
@@ -715,7 +739,26 @@ export default function StatsTab({
                 );
               })()}
             </div>
+            </>)}
 
           </div>
   ) : null;
+}
+
+function StatsInnerTabButton({ active, onClick, colorMode, isDarkMode, children }) {
+  const activeCls = colorMode === 'colorful'
+    ? 'bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4338ca] dark:shadow-[inset_2px_2px_0_0_#4f46e5]'
+    : isDarkMode
+      ? 'bg-black text-[#FDF6E3] border border-[#4169E1] translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_#4169E1]'
+      : 'bg-white text-black border border-black translate-x-[2px] translate-y-[2px] shadow-[inset_2px_2px_0_0_black]';
+  const inactiveCls = colorMode === 'colorful'
+    ? 'bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 hover:opacity-80 shadow-[2px_2px_0_0_#4338ca] dark:shadow-[2px_2px_0_0_#4f46e5]'
+    : isDarkMode
+      ? 'bg-black text-[#FDF6E3] border border-[#4169E1] hover:opacity-80 shadow-[2px_2px_0_0_#4169E1]'
+      : 'bg-white text-black border border-black hover:opacity-80 shadow-[2px_2px_0_0_black]';
+  return (
+    <button onClick={onClick} className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded font-medium ${active ? activeCls : inactiveCls}`}>
+      {children}
+    </button>
+  );
 }
