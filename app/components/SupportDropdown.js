@@ -143,19 +143,19 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
           the buttons' own press-indent translates still work. */}
       <div className="absolute inset-0">
         {[
-          { platform: 'ko-fi', label: 'Ko-fi', left: '28%' },
-          { platform: 'buymeacoffee', label: 'BMC', left: '72%' },
+          { platform: 'ko-fi', label: 'Ko-fi', left: '32%' },
+          { platform: 'buymeacoffee', label: 'BMC', left: '68%' },
         ].map(({ platform, label, left }) => {
           const isActive = activePlatform === platform;
           return (
             <div
               key={platform}
               className="absolute"
-              style={{ left, top: '30%', transform: 'translate(-50%, -50%)' }}
+              style={{ left, top: '25%', transform: 'translate(-50%, -50%)' }}
             >
               <button
                 onClick={() => setActivePlatform(platform)}
-                className={`font-mono text-[11px] font-bold px-3 py-1 rounded-none border-2 transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${
+                className={`px-3 py-1.5 text-sm rounded-full font-medium border transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${
                   isActive
                     ? `${colors.barText} translate-x-[2px] translate-y-[2px]`
                     : colors.toggleInactiveText
