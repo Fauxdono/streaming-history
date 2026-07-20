@@ -135,7 +135,7 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
   const hasEnoughData = (topArtists?.length || 0) >= 5;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
+    <div className="max-w-5xl mx-auto space-y-4">
       {/* Connect ListenBrainz */}
       <div className={`p-4 border rounded-lg ${cardBg}`}>
         <div className="flex items-center justify-between gap-2 mb-2">
@@ -248,7 +248,7 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
 
       {/* Results */}
       {results && (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           <RecommendationSection
             title="Artists to discover"
             icon={<Users size={16} />}
@@ -258,10 +258,12 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
             textLight={textLight}
             renderItem={(a) => (
               <>
-                <div className={`font-medium truncate ${text}`} title={a.name}>{a.name}</div>
-                {a.comment && <div className={`text-xs truncate ${textLight}`}>{a.comment}</div>}
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`font-medium truncate flex-1 min-w-0 ${text}`} title={a.name}>{a.name}</span>
+                  {a.comment && <span className={`text-xs truncate flex-1 min-w-0 ${textLight}`} title={a.comment}>{a.comment}</span>}
+                </div>
                 {a.sources[0] && (
-                  <div className={`text-xs mt-1 ${textLight}`}>because you listen to {a.sources[0].seedName}</div>
+                  <div className={`text-xs mt-0.5 truncate ${textLight}`}>because you listen to {a.sources[0].seedName}</div>
                 )}
               </>
             )}
@@ -276,15 +278,19 @@ export default function RecommendationsPanel({ colorMode, isDarkMode, topArtists
             emptyHint={!token ? 'Connect ListenBrainz above to unlock song-level recommendations.' : 'No song recommendations found — try again after your library grows.'}
             renderItem={(t) => (
               <>
-                <div className={`font-medium truncate ${text}`} title={t.trackName}>{t.trackName}</div>
-                <div className={`text-xs truncate ${textLight}`}>by {t.artist}{t.album ? ` · ${t.album}` : ''}</div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`font-medium truncate flex-1 min-w-0 ${text}`} title={t.trackName}>{t.trackName}</span>
+                  <span className={`text-xs truncate flex-1 min-w-0 ${textLight}`} title={`by ${t.artist}${t.album ? ` · ${t.album}` : ''}`}>
+                    by {t.artist}{t.album ? ` · ${t.album}` : ''}
+                  </span>
+                </div>
                 {t.sources[0] && (
-                  <div className={`text-xs mt-1 ${textLight}`}>because you played {t.sources[0].seedName}</div>
+                  <div className={`text-xs mt-0.5 truncate ${textLight}`}>because you played {t.sources[0].seedName}</div>
                 )}
               </>
             )}
           />
-        </>
+        </div>
       )}
     </div>
   );
@@ -299,7 +305,7 @@ function RecommendationSection({ title, icon, items, cardBg, text, textLight, re
       {items.length === 0 ? (
         <p className={`text-sm ${textLight}`}>{emptyHint || 'No recommendations yet.'}</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {items.map((item, i) => (
             <div key={i} className={`p-2.5 rounded border ${cardBg}`}>
               {renderItem(item)}
