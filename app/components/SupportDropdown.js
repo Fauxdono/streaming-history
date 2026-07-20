@@ -190,10 +190,10 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
         {/* Rotated to follow the heart's lower-left edge toward the tip */}
         <div
           className={`absolute flex items-center gap-1 whitespace-nowrap text-xs font-medium ${colors.muted}`}
-          style={{ left: '40%', top: '72%', transform: 'translate(-50%, -50%) rotate(50deg)' }}
+          style={{ left: '40%', top: '72%', transform: 'translate(-50%, -50%) rotate(-5deg)' }}
         >
           <span>N</span>
-          <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true" style={{ transform: 'rotate(-10deg)' }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">
             <path d={HEART_PATH} fill="none" stroke="currentColor" strokeWidth="1.5" />
           </svg>
           <span>M</span>
