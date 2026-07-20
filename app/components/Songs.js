@@ -10,7 +10,7 @@ import { getRankingColors } from './theme.js';
 import { isFavoriteSong } from './streaming/favorites.js';
 import TopNStepper from './TopNStepper.js';
 
-const CustomTrackRankings = ({
+const Songs = ({
   rawPlayData = [],
   formatDuration,
   initialArtists = [],
@@ -197,11 +197,11 @@ const CustomTrackRankings = ({
   
   // Add useEffect to log when selectedYear changes
   useEffect(() => {
-    console.log("CustomTrackRankings: selectedYear changed to", selectedYear);
-    console.log("CustomTrackRankings: yearRangeMode is", yearRangeMode);
+    console.log("Songs: selectedYear changed to", selectedYear);
+    console.log("Songs: yearRangeMode is", yearRangeMode);
   }, [selectedYear, yearRangeMode]);
 
-  // Fixed useEffect in CustomTrackRankings.js to properly handle month/day in ranges
+  // Fixed useEffect in Songs.js to properly handle month/day in ranges
   useEffect(() => {
     if (yearRangeMode && yearRange.startYear && yearRange.endYear) {
       // Year range mode
@@ -1595,7 +1595,7 @@ return (
 
                     {/* Row 1: rank + name + toggle */}
                     <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${colors.text}`}>
-                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} crownFirst />
                       {prevSongRanks && (
                         <RankChip
                           rank={index + 1}
@@ -1714,4 +1714,4 @@ return (
 ); 
 };
 
-export default CustomTrackRankings;
+export default Songs;

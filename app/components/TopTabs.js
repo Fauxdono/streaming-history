@@ -11,7 +11,6 @@ const COLORFUL_TAB_BG = {
   artists: 'bg-blue-200 dark:bg-blue-900',
   albums: 'bg-cyan-200 dark:bg-cyan-900',
   custom: 'bg-emerald-200 dark:bg-emerald-900',
-  tracks: 'bg-red-200 dark:bg-red-900',
   calendar: 'bg-green-200 dark:bg-green-900',
   patterns: 'bg-yellow-200 dark:bg-yellow-900',
   behavior: 'bg-amber-200 dark:bg-amber-900',
@@ -25,7 +24,7 @@ const COLORFUL_TAB_BG = {
 // Plain-text tab names for icon-mode tooltips (the label props are JSX)
 const TAB_NAMES = {
   updates: 'Updates', upload: 'Upload', stats: 'Statistics', artists: 'Artists',
-  albums: 'Albums', custom: 'Songs', tracks: 'Tracks', calendar: 'Calendar',
+  albums: 'Albums', custom: 'Songs', calendar: 'Calendar',
   patterns: 'Patterns', behavior: 'Behavior', discovery: 'Music Discovery',
   podcasts: 'Podcasts', playlists: 'Custom Playlists', data: 'Your Data',
   settings: 'Settings',
@@ -42,7 +41,6 @@ const TopTabs = ({
   getArtistsTabLabel,
   getAlbumsTabLabel,
   getCustomTabLabel,
-  getTracksTabLabel,
   getPatternsTabLabel,
   getBehaviorTabLabel,
   getCalendarTabLabel,
@@ -255,8 +253,6 @@ const TopTabs = ({
         return '💿';
       case 'custom':
         return '⚙️';
-      case 'tracks':
-        return '🎵';
       case 'patterns':
         return '📈';
       case 'behavior':
@@ -314,10 +310,6 @@ const TopTabs = ({
           return activeTab === tabId
             ? 'bg-emerald-50 text-emerald-600 border-b-2 border-emerald-600 dark:bg-emerald-900 dark:text-emerald-300 dark:border-emerald-400'
             : 'bg-emerald-200 text-emerald-600 hover:bg-emerald-300 dark:bg-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-700';
-        case 'tracks':
-          return activeTab === tabId
-            ? 'bg-red-50 text-red-600 border-b-2 border-red-600 dark:bg-red-900 dark:text-red-300 dark:border-red-400'
-            : 'bg-red-200 text-red-600 hover:bg-red-300 dark:bg-red-800 dark:text-red-300 dark:hover:bg-red-700';
         case 'calendar':
           return activeTab === tabId
             ? 'bg-green-50 text-green-600 border-b-2 border-green-600 dark:bg-green-900 dark:text-green-300 dark:border-green-400'

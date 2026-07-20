@@ -1003,7 +1003,7 @@ const PodcastRankings = ({
               >
                 {/* Row 1: rank + name + toggle */}
                 <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${modeColors.text}`}>
-                  <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                  <RankBadge rank={index + 1} isDarkMode={isDarkMode} crownFirst />
                   <span className={`flex-1 text-center px-1 ${isExpanded ? 'break-words' : 'truncate'}`} title={episode.episodeName}>{episode.episodeName}</span>
                   <button
                     type="button"

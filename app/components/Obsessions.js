@@ -6,7 +6,7 @@ import { getObsessionColors } from './theme.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
 import TopNStepper from './TopNStepper.js';
 
-const TrackRankings = ({
+const Obsessions = ({
   processedData = [],
   briefObsessions = [],
   songsByYear = {},
@@ -431,7 +431,7 @@ return (
                 >
                   {/* Row 1: rank + name + artist subline + toggle */}
                   <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${!isExpanded ? 'overflow-hidden' : ''} ${c.text}`}>
-                    <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                    <RankBadge rank={index + 1} isDarkMode={isDarkMode} crownFirst />
                     <div className="flex-1 min-w-0 text-center px-1">
                       <div className={isExpanded ? 'break-words' : 'truncate'} title={obsession.trackName}>{obsession.trackName}</div>
                       <div className={`text-xs font-normal opacity-70 ${isExpanded ? 'break-words' : 'truncate'} ${c.textLight}`}>{obsession.artist}</div>
@@ -549,4 +549,4 @@ return (
 );
 };
 
-export default TrackRankings;
+export default Obsessions;

@@ -1,5 +1,7 @@
 'use client';
 import React from 'react';
+import { Crown } from 'lucide-react';
+import { useTheme } from './themeprovider.js';
 
 // ---------------------------------------------------------------------------
 // Shared bits for ranking grid cards (Artists / Albums / Songs).
@@ -10,11 +12,29 @@ import React from 'react';
 // ---------------------------------------------------------------------------
 
 // Filled rank pill for the top 3, muted "#N" for everyone else.
-export function RankBadge({ rank, isDarkMode, className = '' }) {
+// crownFirst shapes the #1 pill itself like a crown (still in the page's theme
+// color, still with the number cut out of it) instead of a plain circle.
+export function RankBadge({ rank, isDarkMode, className = '', crownFirst = false }) {
+  const { fontSize } = useTheme();
   if (rank <= 3) {
+    const holeColor = isDarkMode ? 'text-gray-900' : 'text-white';
+    if (crownFirst && rank === 1) {
+      const fontScale = ({ small: 14, medium: 16, large: 18, xlarge: 20 }[fontSize] || 16) / 16;
+      return (
+        <span
+          className={`relative shrink-0 inline-flex items-end justify-center w-[26px] h-[26px] ${className}`}
+          style={{ transform: `scale(${fontScale})` }}
+        >
+          <Crown size={26} fill="currentColor" strokeWidth={1} className="absolute inset-0" />
+          <span className={`relative text-[13px] font-extrabold leading-none translate-x-0 -translate-y-[7px] ${holeColor}`}>
+            {rank}
+          </span>
+        </span>
+      );
+    }
     return (
       <span className={`shrink-0 min-w-[1.25rem] h-5 px-1 inline-flex items-center justify-center rounded-full bg-current ${className}`}>
-        <span className={`text-xs font-extrabold leading-none ${isDarkMode ? 'text-gray-900' : 'text-white'}`}>
+        <span className={`text-xs font-extrabold leading-none ${holeColor}`}>
           {rank}
         </span>
       </span>

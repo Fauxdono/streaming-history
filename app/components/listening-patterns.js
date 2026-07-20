@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 import { Download, Crown } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Label } from 'recharts';
 import StreamingByYear from './streaming-by-year.js';
-import TrackRankings from './TrackRankings.js';
+import Obsessions from './Obsessions.js';
 import { useTheme } from './themeprovider.js'; // Import the theme hook
 import { getAnalysisPageColors, getAnalysisChartTheme } from './theme.js';
 import { SliceDot, makePieLabel, donutCenter, tooltipProps, legendProps, axisProps } from './ChartBits.js';
@@ -1216,7 +1216,7 @@ const ListeningPatterns = ({
 
     {activeTab === 'obsessions' && (
       <div className="space-y-6">
-        <TrackRankings
+        <Obsessions
           processedData={[]}
           briefObsessions={briefObsessions}
           songsByYear={songsByYear}
@@ -1538,13 +1538,8 @@ const ListeningPatterns = ({
                           onClick={() => setSelectedCountry({ code: loc.code, name: loc.name })}
                         >
                           <div className="flex items-center gap-2">
-                            <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
-                            <h4 className="font-bold truncate min-w-0 relative inline-block" title={loc.name}>
-                              {loc.name}
-                              {index === 0 && (
-                                <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-4 text-yellow-500 rotate-[22deg] pointer-events-none" />
-                              )}
-                            </h4>
+                            <RankBadge rank={index + 1} isDarkMode={isDarkMode} crownFirst />
+                            <h4 className="font-bold truncate min-w-0" title={loc.name}>{loc.name}</h4>
                           </div>
                           <div className={`text-sm mt-1 ${colors.textLight}`}>
                             <div>{formatDuration(loc.totalMs)}</div>

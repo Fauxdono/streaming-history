@@ -5,8 +5,7 @@ const normalizeForSearch = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { streamingProcessor, computeStatsFromEntries, loadOverrides, applyOverrides, entryMatchKey, STREAMING_TYPES, STREAMING_SERVICES, filterDataByDate, normalizeArtistName, createMatchKey, calculateConsecutivePlayStreaks, calculateOverallDailyStreak, calculateTopSongDailyStreak, calculateTopAlbumDailyStreak } from './streaming-adapter.js';
-import CustomTrackRankings from './CustomTrackRankings.js';
-import TrackRankings from './TrackRankings.js';
+import Songs from './Songs.js';
 import CalendarView from './CalendarView.js';
 import PodcastRankings from './podcast-rankings.js';
 import _ from 'lodash';
@@ -86,8 +85,6 @@ const SpotifyAnalyzer = ({
   albumBackgroundTheme = 'cyan',
   customTextTheme = 'emerald',
   customBackgroundTheme = 'emerald',
-  tracksTextTheme = 'rose',
-  tracksBackgroundTheme = 'red',
   patternTextTheme = 'yellow',
   patternBackgroundTheme = 'yellow',
   calendarTextTheme = 'red',
@@ -110,7 +107,6 @@ const SpotifyAnalyzer = ({
   const artistColors = getTabColors(artistTextTheme, artistBackgroundTheme);
   const albumColors = getTabColors(albumTextTheme, albumBackgroundTheme);
   const customColors = getTabColors(customTextTheme, customBackgroundTheme);
-  const tracksColors = getTabColors(tracksTextTheme, tracksBackgroundTheme);
   const patternColors = getTabColors(patternTextTheme, patternBackgroundTheme);
   const calendarColors = getTabColors(calendarTextTheme, calendarBackgroundTheme);
   const behaviorColors = getTabColors(behaviorTextTheme, behaviorBackgroundTheme);
@@ -252,7 +248,7 @@ const SpotifyAnalyzer = ({
   
   // Ref to track if initial data loading has completed
   const dataLoadedRef = useRef(false);
-  // Add date range states for artists (like CustomTrackRankings)
+  // Add date range states for artists (like Songs)
   const [artistStartDate, setArtistStartDate] = useState('');
   const [artistEndDate, setArtistEndDate] = useState('');
   const [selectedAlbumYear, setSelectedAlbumYear] = useState('all');
@@ -264,7 +260,7 @@ const SpotifyAnalyzer = ({
   const [selectedCalendarYear, setSelectedCalendarYear] = useState('all');
   const [calendarYearRange, setCalendarYearRange] = useState({ startYear: '', endYear: '' });
   const [calendarYearRangeMode, setCalendarYearRangeMode] = useState(false);
-  // Add date range states for albums (like CustomTrackRankings)
+  // Add date range states for albums (like Songs)
   const [albumStartDate, setAlbumStartDate] = useState('');
   const [albumEndDate, setAlbumEndDate] = useState('');
   const [customTrackYear, setCustomTrackYear] = useState('all');
@@ -705,7 +701,7 @@ const SpotifyAnalyzer = ({
     return <span>Albums <span className="text-xs opacity-75">{selectedAlbumYear}</span></span>;
   }, [selectedAlbumYear, albumYearRangeMode, albumYearRange]);
 
-  // useEffect to set album date ranges when year changes (like CustomTrackRankings)
+  // useEffect to set album date ranges when year changes (like Songs)
   useEffect(() => {
     if (selectedAlbumYear === 'all' || selectedAlbumYear.startsWith('all-')) {
       // Clear date filters for all-time (month/day filtering handled in useMemo)
@@ -938,7 +934,7 @@ const SpotifyAnalyzer = ({
 
 
 
-  // useEffect to set artist date ranges when year changes (like CustomTrackRankings)
+  // useEffect to set artist date ranges when year changes (like Songs)
   useEffect(() => {
     if (selectedArtistYear === 'all' || selectedArtistYear.startsWith('all-')) {
       // Clear date filters for all-time (month/day filtering handled in useMemo)
@@ -966,7 +962,7 @@ const SpotifyAnalyzer = ({
     }
   }, [selectedArtistYear]);
 
-  // Simple displayedArtists logic using CustomTrackRankings pattern
+  // Simple displayedArtists logic using Songs pattern
   const displayedArtists = useMemo(() => {
 
     // If all-time (and not in range mode) and using default filters, use the existing topArtists
@@ -2004,7 +2000,7 @@ const SpotifyAnalyzer = ({
     }
   }, [activeTab, shouldShowSidebar]);
 
-  // Convert selectedArtistYear to date range (like CustomTrackRankings)
+  // Convert selectedArtistYear to date range (like Songs)
   useEffect(() => {
     if (selectedArtistYear === 'range') return; // Range mode sets dates directly
     if (selectedArtistYear === 'all' || selectedArtistYear.startsWith('all-')) {
@@ -2033,7 +2029,7 @@ const SpotifyAnalyzer = ({
     }
   }, [selectedArtistYear]);
 
-  // Convert selectedAlbumYear to date range (like CustomTrackRankings)
+  // Convert selectedAlbumYear to date range (like Songs)
   useEffect(() => {
     if (selectedAlbumYear === 'range') return; // Range mode sets dates directly
     if (selectedAlbumYear === 'all' || selectedAlbumYear.startsWith('all-')) {
@@ -2482,7 +2478,7 @@ const SpotifyAnalyzer = ({
               ? 'p-2 sm:p-4 bg-emerald-200 dark:bg-emerald-900 rounded border-2 border-emerald-300 dark:border-emerald-700'
               : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
           }>
-            <CustomTrackRankings
+            <Songs
               rawPlayData={rawPlayData}
               formatDuration={formatDuration}
               selectedYear={customTrackYear}
@@ -2500,24 +2496,7 @@ const SpotifyAnalyzer = ({
             />
           </div>
         );
-      
-      case 'tracks':
-        return (
-          <div className={
-            colorMode === 'colorful'
-              ? 'p-2 sm:p-4 bg-red-200 dark:bg-red-900 rounded border-2 border-red-300 dark:border-red-700'
-              : `p-2 sm:p-4 rounded border-2 ${isDarkMode ? 'border-[#4169E1]' : 'border-black'}`
-          }>
-            <TrackRankings
-              processedData={processedData}
-              formatDuration={formatDuration}
-              textTheme={tracksTextTheme}
-              backgroundTheme={tracksBackgroundTheme}
-              colorMode={colorMode}
-            />
-          </div>
-        );
-      
+
       case 'patterns':
         return (
           <div className={

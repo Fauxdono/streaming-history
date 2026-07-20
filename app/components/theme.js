@@ -6,8 +6,8 @@
 // mode. Dark mode inverts to deep accent shells with light accents.
 //
 // Phase 1 of the design-system refactor: the color maps that used to be
-// copy-pasted into SpotifyAnalyzer, albumcard, CustomTrackRankings,
-// TrackRankings, DialSelector, and useYearSelectorColors now live here,
+// copy-pasted into SpotifyAnalyzer, albumcard, Songs,
+// Obsessions, DialSelector, and useYearSelectorColors now live here,
 // moved VERBATIM so visuals stay pixel-identical. Unifying their shapes
 // is a later phase. (CalendarView still has its own bare-name map — it
 // builds class names by string interpolation and needs its call sites
@@ -429,7 +429,7 @@ export function getAlbumCardColors({ textTheme = 'cyan', backgroundTheme = 'cyan
 }
 
 // ---------------------------------------------------------------------------
-// Ranking list colors (moved verbatim from CustomTrackRankings:
+// Ranking list colors (moved verbatim from Songs:
 // getFlexibleColors, getColors, getMinimalColors). Two-tone press-button
 // design; emerald keeps its deeper light shades (200/100/300).
 // ---------------------------------------------------------------------------
@@ -661,7 +661,7 @@ export function getRankingColors({ colorTheme = 'orange', textTheme, backgroundT
 
 // ---------------------------------------------------------------------------
 // Obsessions / track rankings colors (moved verbatim from
-// TrackRankings.getThemedColors).
+// Obsessions.getThemedColors).
 // ---------------------------------------------------------------------------
 
 const OBSESSION_TEXT = (isDarkMode) => ({

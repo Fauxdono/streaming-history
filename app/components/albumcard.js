@@ -30,7 +30,7 @@ const AlbumCard = ({ album, index, processedData, formatDuration, textTheme = 'c
 
       {/* Row 1: rank + album name + artist + toggle */}
       <div className={`flex items-start justify-between font-bold text-base leading-tight mb-2 ${colors.text}`}>
-        <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+        <RankBadge rank={index + 1} isDarkMode={isDarkMode} crownFirst />
         {rankChip}
         <div className="flex-1 text-center px-1">
           <div>{album.name}{favoriteHeart}</div>

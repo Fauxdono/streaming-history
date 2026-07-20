@@ -476,7 +476,7 @@ export default function ArtistsTab({
                           >
                             {/* Row 1: position + name + toggle */}
                             <div className={`flex items-center justify-between font-bold text-base leading-tight mb-2 ${cardText}`}>
-                              <RankBadge rank={originalRank} isDarkMode={isDarkMode} />
+                              <RankBadge rank={originalRank} isDarkMode={isDarkMode} crownFirst />
                               {prevRanks && <RankChip rank={originalRank} prevRank={prevRanks.map.get(artist.name)} prevLabel={prevRanks.label} />}
                               <span
                                 className="flex-1 text-center cursor-pointer hover:underline"

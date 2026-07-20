@@ -773,7 +773,7 @@ const filteredData = useMemo(() => {
                 {discoveryData.top5Artists.map((artist, index) => (
                   <div key={index} className={`p-3 ${modeColors.card} ${modeColors.text}`}>
                     <div className="flex items-center gap-2">
-                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} crownFirst />
                       <span className="font-bold truncate min-w-0" title={artist.name}>{artist.name}</span>
                       <span className={`ml-auto text-sm font-bold shrink-0 ${modeColors.textLight}`}>
                         {Math.round((artist.time / discoveryData.loyaltyData[0].value) * 100)}%
@@ -878,7 +878,7 @@ const filteredData = useMemo(() => {
                 return (
                   <div key={index} className={`p-3 ${modeColors.card} ${modeColors.text}`}>
                     <div className="flex items-center gap-2">
-                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
+                      <RankBadge rank={index + 1} isDarkMode={isDarkMode} crownFirst />
                       <div className="min-w-0">
                         <div className="font-bold truncate" title={title}>{title}</div>
                         {artist && <div className={`text-xs truncate ${modeColors.textLight}`}>{artist}</div>}
