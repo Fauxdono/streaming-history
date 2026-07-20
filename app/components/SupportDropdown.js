@@ -143,8 +143,8 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
           the buttons' own press-indent translates still work. */}
       <div className="absolute inset-0">
         {[
-          { platform: 'ko-fi', label: 'Ko-fi', left: '32%' },
-          { platform: 'buymeacoffee', label: 'BMC', left: '68%' },
+          { platform: 'ko-fi', label: 'Ko-fi', left: '30%' },
+          { platform: 'buymeacoffee', label: 'BMC', left: '70%' },
         ].map(({ platform, label, left }) => {
           const isActive = activePlatform === platform;
           return (
@@ -180,7 +180,7 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
             href={platformLinks[activePlatform]}
             target="_blank"
             rel="noopener noreferrer"
-            className={`inline-block px-4 py-2 rounded-none border-2 text-sm whitespace-nowrap transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${colors.barText} ${linkFx} active:translate-x-[2px] active:translate-y-[2px]`}
+            className={`inline-block px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap transition-all duration-200 select-none ${colors.toggleBg} ${colors.toggleBorder} ${colors.barText} ${linkFx} active:translate-x-[2px] active:translate-y-[2px]`}
           >
             <Coffee className="inline mr-2" size={16} />
             Buy me a coffee
