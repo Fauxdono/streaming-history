@@ -100,9 +100,10 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
     }
   }, [isOpen, buttonRef, HEART_WIDTH, HEART_HEIGHT]);
 
-  // At the smallest text size the buttons can look oversized next to the
-  // shrunk heart, so scale them down a further 20% there only.
-  const buttonScale = fontSize === 'small' ? 0.8 : 1;
+  // Buttons sit at 80% of their natural (already font-size-scaled) size at
+  // every text size, so the ratio between buttons and heart stays uniform
+  // instead of only shrinking at one setting.
+  const buttonScale = 0.8;
 
   // Raised shadow that flips to inset while pressed (site-wide button language)
   const linkFx = isColorful
